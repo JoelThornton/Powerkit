@@ -46,12 +46,13 @@ direct_superpower_simulation <- function(design, n, means, sd, r = 0,
   binomial_estimate(result$main_results[row, "power"] / 100, nrep)
 }
 
-direct_superpower_exact <- function(design, n, means, sd, r = 0, effect, alpha) {
-  result <- Superpower::ANOVA_exact(
-    superpower_design(design, n, means, sd, r),
-    alpha_level = alpha,
-    verbose = FALSE
-  )
+# ANOVA_exact() builds its data with the random-number generator, so its
+# results vary around the 15th decimal place between calls. powerkit runs it
+# under the run's seed; pass the same seed here for a like-for-like call.
+direct_superpower_exact <- function(design, n, means, sd, r = 0, effect, alpha, seed) {
+  design <- superpower_design(design, n, means, sd, r)
+  set.seed(seed)
+  result <- Superpower::ANOVA_exact(design, alpha_level = alpha, verbose = FALSE)
   exact_estimate(result$main_results[superpower_effect_row(effect), "power"] / 100)
 }
 

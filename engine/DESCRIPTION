@@ -8,8 +8,8 @@ Description: Reads a single design specification (JSON) for common
     psychology designs, checks that it describes a possible population, and
     routes it to validated simulation backends ('Spower', 'power4mome',
     'Superpower', 'InteractionPoweR') to estimate power, required sample size
-    and sensitivity. This development version contains the specification
-    format and validator only.
+    and sensitivity. This development version runs 2x2 between and
+    2x2 mixed ANOVA designs only (via Superpower).
 License: file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,13 +19,16 @@ Depends:
 Imports:
     digest,
     jsonlite,
-    jsonvalidate (>= 1.3.0)
+    jsonvalidate (>= 1.3.0),
+    parallel,
+    stats,
+    Superpower,
+    utils
 Suggests:
     InteractionPoweR,
     lavaan,
     power4mome,
     pwr,
     Spower,
-    Superpower,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

@@ -146,13 +146,14 @@ The engine validates the spec, routes it to a backend, searches for the sample s
 - Run replications in parallel; cache results by a hash of the spec so identical requests are free.
 - Default precision: enough replications that the power estimate's 95% interval is about ±.03 near the target; let users increase it for final reports.
 
-**Result object (every backend returns this)**
+**Result object.** `run_spec()` always returns one result object, whatever the goal type:
 
 | Field | Contents |
 | --- | --- |
-| `n_required` | Smallest n reaching the target power, with an uncertainty interval |
-| `curve` | Power at each n tried, with MC standard errors |
-| `sensitivity` | Smallest detectable effect at the chosen n |
+| `goal_type` | The spec's goal type: `sample_size`, `power` or `sensitivity` |
+| `curve` | Data frame of `n`, `power` and `mcse` (Monte Carlo standard error) for each n simulated; a single row for a fixed-n (`power`) goal |
+| `n_required` | List of `n`, `lower`, `upper`: smallest n reaching the target power, with its uncertainty interval; `NA` unless the goal is `sample_size` |
+| `sensitivity` | Smallest detectable effect at the chosen n; `NA` unless the goal is `sensitivity` |
 | `check_run` | Population values versus recovered estimates |
 | `provenance` | Spec hash, seed, backend, R and package versions, run time |
 
@@ -171,13 +172,13 @@ Write these tests before the engine code, and treat them as your work rather tha
 | --- | --- | --- |
 | Basic tests | G\*Power 3.1 / `pwr` outputs; Spower's G\*Power subroutines | Analytic |
 | 2x2 between and mixed ANOVA | [Superpower paper](https://journals.sagepub.com/doi/10.1177/2515245920951503) and Superpower book examples | Published, direct call |
-| 2x2 interaction shapes | Sommet et al. INTxPower examples; Giner-Sorolla interaction-power guidance | Published |
+| 2x2 interaction shapes | Sommet, Weissman, Cheutin & Elliot (2023), AMPPS, Table 2 (primary) | Published |
 | Regression interactions | [InteractionPoweR tutorial](https://www.psychologicalscience.org/journals/ampps/25152459231187531/) examples (analytic and simulated) | Published, direct call |
 | Simple, parallel, serial mediation | Schoemann, Boulton & Short (2017) examples; pwrss `power.z.mediation` | Published, direct call |
-| Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); simsem tutorial (Behavior Research Methods, 2023) | Published, direct call |
+| Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); Donnelly, Jorgensen et al. (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0 | Published, direct call |
 | All designs | Effect set to zero | Type I error |
 
-**Tolerance rule:** a test passes if the published value lies inside the 95% Monte Carlo interval of your estimate; run validation tests at high replication counts (e.g., 5,000) on CI, nightly rather than on every commit.
+**Tolerance rule:** a test passes if the published value lies inside the 99.9% Monte Carlo interval of your estimate. (At 95%, a correct engine would fail roughly one test in twenty by chance, so a suite of fifty would almost never be all green.) Run validation tests at 10,000 replications on CI, nightly rather than on every commit. That count keeps a real error of .03 in power failing even at the wider interval: at power .5 the interval half-width is about .016 against a published value and .023 between two simulations (direct-call tests).
 
 **Bonus:** these tests, plus a comparison table, are most of a validation paper for *Behavior Research Methods* or *AMPPS*.
 

@@ -38,8 +38,16 @@ skip_if_todo <- function(...) {
   }
 }
 
-# Replications per validation run (build guide section 6: "e.g., 5,000").
-validation_nrep <- function() 5000L
+# Replications per validation run. Chosen so that, at the 99.9% tolerance,
+# a real error of .03 in power still fails (build guide section 6). At the
+# worst case (power near .5) with 10,000 replications:
+# * against a published or exact value, the interval half-width is
+#   3.29 * 0.005 = .016, so a .03 error fails about 99.7% of the time;
+# * between two simulations (direct-call tests), it is
+#   3.29 * 0.0071 = .023, so a .03 error fails about 83% of the time.
+# With 5,000 replications the direct-call half-width would be .033, so a
+# .03 error could pass.
+validation_nrep <- function() 10000L
 
 # Monte Carlo draws per confidence interval for indirect effects.
 validation_ci_draws <- function() 1000L
@@ -78,33 +86,34 @@ validation_spec <- function(design, template, variables, population,
       options
     )
   )
-  validate_spec(spec)
+  spec <- validate_spec(spec)
+  skip_if_no_backend(spec)
+  spec
+}
+
+# Designs whose backend isn't built yet are skipped with a clear message,
+# so that a red nightly run means a real problem.
+skip_if_no_backend <- function(spec) {
+  tryCatch(
+    route_spec(spec),
+    powerkit_not_available = function(e) {
+      skip(paste("backend not built yet:", conditionMessage(e)))
+    }
+  )
+  invisible(TRUE)
 }
 
 # Calling the engine ------------------------------------------------------------
 #
-# Contract assumed for the engine (build guide section 5), to be confirmed
-# in build phase 2:
-# * run_spec(spec) returns the standard result object;
-# * result$curve is a data frame with columns n, power and mcse;
-# * result$n_required is a list with n, lower and upper.
+# The engine's result object (build guide section 5):
+# * run_spec(spec) returns one result object for every goal type;
+# * result$curve is a data frame with columns n, power and mcse (a single
+#   row for a fixed-n goal);
+# * result$n_required is a list with n, lower and upper (NA unless the goal
+#   is sample_size).
 
 engine_function <- function(name) {
-  ns <- asNamespace("powerkit")
-  if (!exists(name, envir = ns, inherits = FALSE)) {
-    stop(
-      sprintf(
-        paste(
-          "powerkit's engine is not implemented yet: %s() is planned for",
-          "build phase 2 (2x2 ANOVA) and phase 3 (mediation, interactions,",
-          "basic tests). This validation test is expected to fail until then."
-        ),
-        name
-      ),
-      call. = FALSE
-    )
-  }
-  get(name, envir = ns)
+  get(name, envir = asNamespace("powerkit"))
 }
 
 # Estimated power (and its Monte Carlo SE) at the spec's fixed n.
@@ -126,7 +135,9 @@ engine_n_required <- function(spec) {
 # Expectations --------------------------------------------------------------------
 #
 # Tolerance rule (build guide section 6): a test passes if the reference
-# value lies inside the 95% Monte Carlo interval of powerkit's estimate.
+# value lies inside the 99.9% Monte Carlo interval of powerkit's estimate.
+# (99.9% rather than 95% so that a correct engine rarely fails one of the
+# many validation tests by chance.)
 
 # An estimate from a simulation with `nrep` replications.
 binomial_estimate <- function(power, nrep) {
@@ -143,34 +154,51 @@ z_for <- function(level) stats::qnorm(1 - (1 - level) / 2)
 # `reference` is a published or analytic power value. If it came from a
 # simulation itself, give its replication count as `reference_nrep` so its
 # own Monte Carlo error is allowed for.
-expect_power_near <- function(estimate, reference, reference_nrep = NULL, level = 0.95) {
+#
+# Rounding: published values are transcribed to every digit the source
+# prints (88.1553371% -> 0.881553371), and the only allowance for rounding
+# is half a unit in that last printed digit, added to the Monte Carlo
+# half-width. Nothing else is allowed for. This matters for exact results,
+# whose Monte Carlo error is 0. If the last printed digit is a 0 (91.20%),
+# give the value as a string ("0.9120") so that digit is not lost.
+expect_power_near <- function(estimate, reference, reference_nrep = NULL, level = 0.999) {
+  allowance <- rounding_allowance(reference)
+  reference <- as.numeric(reference)
   se <- estimate$mcse
   if (!is.null(reference_nrep)) {
     se <- sqrt(se^2 + reference * (1 - reference) / reference_nrep)
   }
-  half_width <- z_for(level) * se
+  half_width <- z_for(level) * se + allowance
   lower <- estimate$power - half_width
   upper <- estimate$power + half_width
   expect(
     reference >= lower && reference <= upper,
     sprintf(
-      "Reference power %.4f is outside the %d%% Monte Carlo interval [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f).",
-      reference, round(100 * level), lower, upper, estimate$power, estimate$mcse
+      "Reference power %.4f is outside the interval [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f, %g%% Monte Carlo interval plus rounding of the reference).",
+      reference, lower, upper, estimate$power, estimate$mcse, 100 * level
     )
   )
   invisible(estimate)
 }
 
+# Half a unit in the last decimal place of `x` as written (0.8816 -> 0.00005;
+# "0.9120" -> 0.00005).
+rounding_allowance <- function(x) {
+  digits <- if (is.character(x)) x else format(x, digits = 15, scientific = FALSE)
+  decimals <- if (grepl(".", digits, fixed = TRUE)) nchar(sub(".*\\.", "", digits)) else 0
+  0.5 * 10^-decimals
+}
+
 # Both values are simulation estimates: their difference must be within
 # the combined Monte Carlo error.
-expect_power_agrees <- function(estimate, reference, level = 0.95) {
+expect_power_agrees <- function(estimate, reference, level = 0.999) {
   difference <- estimate$power - reference$power
   half_width <- z_for(level) * sqrt(estimate$mcse^2 + reference$mcse^2)
   expect(
     abs(difference) <= half_width,
     sprintf(
-      "powerkit's estimate %.4f differs from the direct backend call %.4f by %.4f; the %d%% Monte Carlo tolerance is %.4f.",
-      estimate$power, reference$power, difference, round(100 * level), half_width
+      "powerkit's estimate %.4f differs from the direct backend call %.4f by %.4f; the %g%% Monte Carlo tolerance is %.4f.",
+      estimate$power, reference$power, difference, 100 * level, half_width
     )
   )
   invisible(estimate)

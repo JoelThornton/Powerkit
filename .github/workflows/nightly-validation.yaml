@@ -2,8 +2,8 @@
 # validation tests (tests/testthat/test-validation-*.R), by setting
 # POWERKIT_FULL_VALIDATION=true. Scheduled runs use the default branch.
 #
-# Until the engine is built (build phases 2-3) the validation tests fail by
-# design, with "powerkit's engine is not implemented yet".
+# Validation tests for designs whose backend isn't built yet are skipped
+# with a clear message, so a red run means a real problem.
 name: nightly-validation
 
 on:
@@ -21,6 +21,8 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       POWERKIT_FULL_VALIDATION: "true"
+      # Spread simulation replications over the runner's 4 cores.
+      POWERKIT_CORES: "4"
       RENV_CONFIG_AUTOLOADER_ENABLED: "false"
     steps:
       - uses: actions/checkout@v4

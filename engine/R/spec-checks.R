@@ -17,6 +17,7 @@ population_problems <- function(spec) {
     check_labels(spec),
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
+    check_method_allowed(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -36,7 +37,7 @@ spec_advice <- function(spec) {
     ))
   }
   nrep <- spec$options$nrep
-  if (!is.null(nrep) && nrep < 1000) {
+  if (!is.null(nrep) && nrep < 1000 && uses_simulation(spec)) {
     advice <- c(advice, sprintf(
       paste0(
         "'options > nrep' is %s. With fewer than 1,000 replications a power ",
@@ -57,6 +58,13 @@ spec_advice <- function(spec) {
     ))
   }
   advice
+}
+
+# 2x2 ANOVA designs are computed exactly unless simulation is requested;
+# every other design is simulated.
+uses_simulation <- function(spec) {
+  default <- if (spec$design == "factorial_anova") "exact" else "simulation"
+  identical(spec$options$method %||% default, "simulation")
 }
 
 # Variables -----------------------------------------------------------------
@@ -99,6 +107,16 @@ check_allocation_allowed <- function(spec) {
   paste0(
     "'options > allocation_ratio' only applies to two-group designs ",
     "(independent t-test, two proportions); remove it."
+  )
+}
+
+check_method_allowed <- function(spec) {
+  if (!identical(spec$options$method, "exact") || spec$design == "factorial_anova") {
+    return(character())
+  }
+  paste0(
+    "'options > method' 'exact' is only available for 2x2 ANOVA designs; ",
+    "remove it or use 'simulation'."
   )
 }
 
@@ -535,11 +553,17 @@ check_goal <- function(spec, check_effect = TRUE) {
   if (!is.null(goal$n)) {
     problems <- c(problems, check_n(spec, goal$n))
   }
-  if (check_effect && identical(goal$type, "sample_size") && target_effect_is_zero(spec)) {
+  if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
+    target_effect_is_zero(spec)) {
+    consequence <- if (goal$type == "sample_size") {
+      "no sample size can reach the target power"
+    } else {
+      "there is no effect pattern to scale for a sensitivity analysis"
+    }
     problems <- c(problems, paste0(
-      "The effect you want to detect is zero in this population, so no sample ",
-      "size can reach the target power. Check the population values, or use ",
-      "goal type 'power' to check the Type I error rate."
+      "The effect you want to detect is zero in this population, so ",
+      consequence, ". Check the population values, or use goal type 'power' ",
+      "to check the Type I error rate."
     ))
   }
   problems
