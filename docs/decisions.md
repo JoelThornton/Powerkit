@@ -72,3 +72,27 @@ phase 3. If power4mome exposes its own check, prefer it.
   `result$n_required`) and all backend API calls live in `helper-*.R`
   files, so later phases can adjust them without touching the
   maintainer-owned `test-validation-*` files.
+
+## 2026-10-12 · Published values for the 2x2 validation tests
+
+The maintainer transcribed and checked the published values for the six
+2x2 published-example tests (Superpower vignette "More ANOVA designs";
+Lakens & Caldwell (2021), "Power for Interactions", Fig. 5 left panel;
+Superpower book, ch. "Mixed ANOVA", section 5.1, Table 5.4; Sommet et al.
+(2023), Table 2).
+
+- Lakens & Caldwell (2021) has no 2x2 mixed example, so the second mixed
+  test uses the Superpower book instead.
+- **The Giner-Sorolla knock-out test was deleted.** The blog post gives only
+  a sample-size multiplier, with no cell means or exact N, so there is
+  nothing to test against. Knock-out (fully attenuated) interactions are
+  covered by the Sommet et al. fully attenuated test.
+- Sommet et al.'s required Ns come from a z-approximation and sit about 4
+  below the exact F-test N (256 vs 260; 1024 vs 1028). If those tests fail
+  narrowly, report it; do not change the values.
+- Guide section 6 now cites Sommet et al. (2023) Table 2 for interaction
+  shapes, and Donnelly, Jorgensen et al. (2023), Behavior Research Methods,
+  55(7), 3892-3909 (doi:10.3758/s13428-022-01996-0) in place of the
+  unidentified "simsem tutorial" for moderated mediation. The modmed
+  validation tests' source comments still say "simsem tutorial"; they will
+  be updated when those values are transcribed.

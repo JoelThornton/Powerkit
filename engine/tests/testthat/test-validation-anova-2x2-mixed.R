@@ -65,13 +65,13 @@ test_that("2x2 mixed: matches the Superpower vignette example (published)", {
   #   within factor), the SD, the correlation r, n per between group, alpha,
   #   and the power reported for the interaction (as a proportion). If the
   #   reported power comes from a simulation, also transcribe its nsims.
-  mu <- TODO_PUBLISHED_VALUE # c(a1_b1, a1_b2, a2_b1, a2_b2)
-  sd <- TODO_PUBLISHED_VALUE
-  r <- TODO_PUBLISHED_VALUE
-  n_per_group <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
-  published_power <- TODO_PUBLISHED_VALUE # interaction (a:b)
-  reference_nrep <- TODO_PUBLISHED_VALUE # nsims behind the published power, or NULL if exact
+  mu <- c(-0.25, 0.25, 0.25, -0.25) # c(a1_b1, a1_b2, a2_b1, a2_b2)
+  sd <- 1
+  r <- 0.5
+  n_per_group <- 23
+  alpha <- 0.05
+  published_power <- 0.9125 # interaction (a:b)
+  reference_nrep <- NULL # nsims behind the published power, or NULL if exact
   skip_if_todo(mu, sd, r, n_per_group, alpha, published_power, reference_nrep)
 
   means <- matrix(mu, nrow = 2, byrow = TRUE)
@@ -81,19 +81,17 @@ test_that("2x2 mixed: matches the Superpower vignette example (published)", {
 
 test_that("2x2 mixed: matches the Superpower paper example (published)", {
   skip_unless_full_validation()
-  # Source: Lakens & Caldwell (2021), "Simulation-based power analysis for
-  #   factorial analysis of variance designs", Advances in Methods and
-  #   Practices in Psychological Science, 4(1): the paper's mixed
-  #   (within-between) example, if it has one; otherwise an example from
-  #   the Superpower book by Caldwell et al. (update this comment).
-  mu <- TODO_PUBLISHED_VALUE # c(a1_b1, a1_b2, a2_b1, a2_b2)
-  sd <- TODO_PUBLISHED_VALUE
-  r <- TODO_PUBLISHED_VALUE
-  n_per_group <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
-  effect <- TODO_PUBLISHED_VALUE # "main_effect_A", "main_effect_B" or "interaction"
-  published_power <- TODO_PUBLISHED_VALUE
-  reference_nrep <- TODO_PUBLISHED_VALUE # nsims behind the published power, or NULL if exact
+  # Source: Caldwell, Lakens, Parlett-Pelleriti, Prochilo & Aust, "Power
+  #   Analysis with Superpower" (book), chapter "Mixed ANOVA", section 5.1,
+  #   Table 5.4. (Lakens & Caldwell (2021) has no 2x2 mixed example.)
+  mu <- c(-0.25, 0.25, 0.25, -0.25) # c(a1_b1, a1_b2, a2_b1, a2_b2)
+  sd <- 1
+  r <- 0.7
+  n_per_group <- 23
+  alpha <- 0.05
+  effect <- "interaction" # "main_effect_A", "main_effect_B" or "interaction"
+  published_power <- 0.9898
+  reference_nrep <- NULL # nsims behind the published power, or NULL if exact
   skip_if_todo(mu, sd, r, n_per_group, alpha, effect, published_power, reference_nrep)
 
   means <- matrix(mu, nrow = 2, byrow = TRUE)

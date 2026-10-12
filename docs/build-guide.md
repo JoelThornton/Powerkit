@@ -171,10 +171,10 @@ Write these tests before the engine code, and treat them as your work rather tha
 | --- | --- | --- |
 | Basic tests | G\*Power 3.1 / `pwr` outputs; Spower's G\*Power subroutines | Analytic |
 | 2x2 between and mixed ANOVA | [Superpower paper](https://journals.sagepub.com/doi/10.1177/2515245920951503) and Superpower book examples | Published, direct call |
-| 2x2 interaction shapes | Sommet et al. INTxPower examples; Giner-Sorolla interaction-power guidance | Published |
+| 2x2 interaction shapes | Sommet, Weissman, Cheutin & Elliot (2023), AMPPS, Table 2 (primary) | Published |
 | Regression interactions | [InteractionPoweR tutorial](https://www.psychologicalscience.org/journals/ampps/25152459231187531/) examples (analytic and simulated) | Published, direct call |
 | Simple, parallel, serial mediation | Schoemann, Boulton & Short (2017) examples; pwrss `power.z.mediation` | Published, direct call |
-| Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); simsem tutorial (Behavior Research Methods, 2023) | Published, direct call |
+| Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); Donnelly, Jorgensen et al. (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0 | Published, direct call |
 | All designs | Effect set to zero | Type I error |
 
 **Tolerance rule:** a test passes if the published value lies inside the 95% Monte Carlo interval of your estimate; run validation tests at high replication counts (e.g., 5,000) on CI, nightly rather than on every commit.
