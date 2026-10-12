@@ -1,0 +1,60 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "chi_square_independence",
+  "variables": {
+    "X": {
+      "type": "categorical",
+      "label": "Attachment style",
+      "levels": [
+        "Secure",
+        "Anxious",
+        "Avoidant"
+      ]
+    },
+    "Y": {
+      "type": "categorical",
+      "label": "Relationship status",
+      "levels": [
+        "Single",
+        "In a relationship"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "probabilities": [
+      [
+        0.3,
+        0.25
+      ],
+      [
+        0.12,
+        0.08
+      ],
+      [
+        0.15,
+        0.1
+      ]
+    ]
+  },
+  "effect_justification": {
+    "type": "prior_study",
+    "source": "Example only: replace with the study you used.",
+    "adjustment": "Differences between rows halved to allow for publication bias."
+  },
+  "target_test": {
+    "effect": "association",
+    "method": "pearson_chi_square",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

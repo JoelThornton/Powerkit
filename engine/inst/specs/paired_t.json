@@ -1,0 +1,42 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "paired_t",
+  "variables": {
+    "X": {
+      "type": "within_factor",
+      "label": "Session",
+      "levels": [
+        "Before",
+        "After"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Anxiety score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "dz": 0.35
+  },
+  "effect_justification": {
+    "type": "meta_analysis",
+    "source": "Example only: replace with the meta-analysis you used.",
+    "adjustment": "Lower bound of the 95% CI used instead of the point estimate."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "t_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 80
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

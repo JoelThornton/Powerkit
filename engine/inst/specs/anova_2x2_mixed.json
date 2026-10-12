@@ -1,0 +1,60 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "2x2_mixed",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Group",
+      "levels": [
+        "Waitlist",
+        "Therapy"
+      ]
+    },
+    "B": {
+      "type": "within_factor",
+      "label": "Time",
+      "levels": [
+        "Pre",
+        "Post"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Depression score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "means": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        -0.4
+      ]
+    ],
+    "sd": 1,
+    "r": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 0.4 SD extra reduction is the smallest clinically meaningful effect."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 120
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

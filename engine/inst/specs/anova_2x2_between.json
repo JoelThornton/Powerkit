@@ -1,0 +1,59 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "2x2_between",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Feedback",
+      "levels": [
+        "None",
+        "Praise"
+      ]
+    },
+    "B": {
+      "type": "between_factor",
+      "label": "Task difficulty",
+      "levels": [
+        "Easy",
+        "Hard"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Persistence (minutes)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        10,
+        10
+      ],
+      [
+        10,
+        13
+      ]
+    ],
+    "sd": 6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 3-minute benefit of praise on hard tasks is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.9
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

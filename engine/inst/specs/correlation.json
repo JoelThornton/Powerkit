@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "correlation",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Trait mindfulness"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Rumination"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r": -0.2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: correlations weaker than .2 would not change practice."
+  },
+  "target_test": {
+    "effect": "correlation",
+    "method": "pearson",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sensitivity",
+    "n": 200,
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

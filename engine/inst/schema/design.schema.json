@@ -1,0 +1,1441 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/JoelThornton/Powerkit/blob/main/engine/inst/schema/design.schema.json",
+  "title": "powerkit design specification",
+  "description": "One study design for a power analysis. Every front door (design forms, model builder, assistant) writes one of these; the engine reads only this. The schema checks structure. Checks that need arithmetic (e.g. that path values imply an R-squared below 1) are done by validate_spec() in R.",
+  "$comment": "spec_version 0.1. When the format changes, add a new version rather than changing the meaning of an existing one: old saved specs must keep running.",
+  "type": "object",
+  "required": [
+    "spec_version",
+    "design",
+    "template",
+    "variables",
+    "population",
+    "effect_justification",
+    "target_test",
+    "goal"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {
+      "description": "Version of this specification format.",
+      "const": "0.1"
+    },
+    "design": {
+      "description": "Family of design. Together with 'template' it decides the backend.",
+      "enum": [
+        "basic_test",
+        "factorial_anova",
+        "regression_interaction",
+        "mediation",
+        "moderated_mediation"
+      ]
+    },
+    "template": {
+      "description": "The specific model within the design family. Allowed values depend on 'design'.",
+      "type": "string"
+    },
+    "variables": {
+      "description": "The variables in the model, keyed by their role (X, Y, M, W, A, B, M1, ...). Labels are the user's own names and are used in the diagram and write-up.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/variable"
+      }
+    },
+    "population": {
+      "description": "The assumed population values. Its fields depend on 'design' and 'template'.",
+      "type": "object"
+    },
+    "effect_justification": {
+      "$ref": "#/definitions/effect_justification"
+    },
+    "target_test": {
+      "$ref": "#/definitions/target_test"
+    },
+    "goal": {
+      "$ref": "#/definitions/goal"
+    },
+    "options": {
+      "$ref": "#/definitions/options"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/design_basic_test"
+    },
+    {
+      "$ref": "#/definitions/design_factorial_anova"
+    },
+    {
+      "$ref": "#/definitions/design_regression_interaction"
+    },
+    {
+      "$ref": "#/definitions/design_mediation"
+    },
+    {
+      "$ref": "#/definitions/design_moderated_mediation"
+    }
+  ],
+  "definitions": {
+    "variable": {
+      "type": "object",
+      "required": [
+        "type",
+        "label"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "description": "continuous = a score or scale; binary = two groups or yes/no; categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
+          "enum": [
+            "continuous",
+            "binary",
+            "categorical",
+            "between_factor",
+            "within_factor"
+          ]
+        },
+        "label": {
+          "description": "The user's own name for the variable.",
+          "type": "string",
+          "minLength": 1
+        },
+        "levels": {
+          "description": "Names of the groups, categories or conditions, in order.",
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reliability": {
+          "description": "Reliability of the measure (e.g. Cronbach's alpha or omega), between 0 and 1. Omit for a perfectly reliable measure.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "categorical",
+                  "between_factor",
+                  "within_factor"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "levels"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "binary"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "levels": {
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    "effect_justification": {
+      "description": "Why the effect size is what it is. Required: it feeds the write-up and prevents unexamined 'medium effect' defaults.",
+      "type": "object",
+      "required": [
+        "type",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "smallest_effect_of_interest",
+            "meta_analysis",
+            "prior_study",
+            "pilot_study"
+          ]
+        },
+        "source": {
+          "description": "Where the number comes from, in the user's words (e.g. a reference, a decision rule).",
+          "type": "string",
+          "minLength": 1
+        },
+        "adjustment": {
+          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study.",
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "prior_study"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "adjustment"
+            ]
+          }
+        }
+      ]
+    },
+    "target_test": {
+      "description": "The one effect the power analysis is about, and how it is tested.",
+      "type": "object",
+      "required": [
+        "effect",
+        "method",
+        "alpha"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "effect": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "description": "Mediation only: the indirect path being tested, e.g. 'X->M1->M2->Y'.",
+          "type": "string"
+        },
+        "alpha": {
+          "description": "Significance level (two-sided unless 'alternative' says otherwise).",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.5
+        },
+        "alternative": {
+          "description": "Direction of the test. Only basic tests with a direction can be one-sided.",
+          "enum": [
+            "two_sided",
+            "greater",
+            "less"
+          ]
+        }
+      }
+    },
+    "goal": {
+      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition).",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "sample_size",
+            "power",
+            "sensitivity"
+          ]
+        },
+        "power": {
+          "description": "Target power, as a proportion (0.90, not 90).",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "n": {
+          "description": "Total number of participants analysed.",
+          "type": "integer",
+          "minimum": 2
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "sample_size"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "power"
+            ],
+            "properties": {
+              "n": false
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "power"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "n"
+            ],
+            "properties": {
+              "power": false
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "sensitivity"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "n",
+              "power"
+            ]
+          }
+        }
+      ]
+    },
+    "options": {
+      "description": "Run settings and cross-cutting options. All optional; the engine applies and records defaults.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attrition": {
+          "description": "Expected proportion of recruited participants who will not be analysed (0.10 for 10%). Used to turn the analysed n into a recruitment target.",
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "nrep": {
+          "description": "Monte Carlo replications per sample size.",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 1000000
+        },
+        "seed": {
+          "description": "Random seed, recorded with every result.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "ci_draws": {
+          "description": "Monte Carlo draws (or bootstrap resamples) used to form each confidence interval for an indirect effect.",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 100000
+        },
+        "allocation_ratio": {
+          "description": "Two-group designs only: size of the second group divided by the size of the first (1 = equal groups).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "correlation": {
+      "type": "number",
+      "exclusiveMinimum": -1,
+      "exclusiveMaximum": 1
+    },
+    "proportion": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "matrix_2x2_numbers": {
+      "description": "Two rows (levels of A) of two numbers (levels of B).",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "cell_sd": {
+      "description": "One standard deviation for all cells, or a 2x2 array of cell SDs (rows = levels of A).",
+      "type": [
+        "number",
+        "array"
+      ],
+      "exclusiveMinimum": 0,
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "paths": {
+      "description": "Standardised path coefficients keyed 'From->To' (e.g. 'X->M'). Product terms are named by joining the two variables: 'XW->M', 'MW->Y'. Every path in the template must be given; use 0 for no effect.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "correlation_map": {
+      "description": "Correlations keyed 'A<->B'.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/correlation"
+      }
+    },
+    "variable_continuous": {
+      "properties": {
+        "type": {
+          "const": "continuous"
+        }
+      }
+    },
+    "variable_continuous_or_binary": {
+      "properties": {
+        "type": {
+          "enum": [
+            "continuous",
+            "binary"
+          ]
+        }
+      }
+    },
+    "variable_binary": {
+      "properties": {
+        "type": {
+          "const": "binary"
+        }
+      }
+    },
+    "variable_categorical": {
+      "properties": {
+        "type": {
+          "const": "categorical"
+        }
+      }
+    },
+    "two_level_between_factor": {
+      "properties": {
+        "type": {
+          "const": "between_factor"
+        },
+        "levels": {
+          "maxItems": 2
+        }
+      }
+    },
+    "two_level_within_factor": {
+      "properties": {
+        "type": {
+          "const": "within_factor"
+        },
+        "levels": {
+          "maxItems": 2
+        }
+      }
+    },
+    "two_sided_only": {
+      "properties": {
+        "alternative": {
+          "const": "two_sided"
+        }
+      }
+    },
+    "design_basic_test": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "basic_test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "one_sample_t",
+              "independent_t",
+              "paired_t",
+              "correlation",
+              "two_proportions",
+              "chi_square_independence"
+            ]
+          },
+          "target_test": {
+            "properties": {
+              "path": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "one_sample_t"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_one_sample_t"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "independent_t"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_independent_t"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "paired_t"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_paired_t"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_proportions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_two_proportions"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "chi_square_independence"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_chi_square_independence"
+            }
+          }
+        ]
+      }
+    },
+    "template_one_sample_t": {
+      "description": "One-sample t-test of a mean against 0 (in SD units).",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d: (population mean - test value) / SD.",
+              "type": "number"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean"
+            },
+            "method": {
+              "const": "t_test"
+            }
+          }
+        }
+      }
+    },
+    "template_independent_t": {
+      "description": "Two independent groups compared on a continuous outcome.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d: (mean of group 2 - mean of group 1) / pooled SD.",
+              "type": "number"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "enum": [
+                "student_t",
+                "welch_t"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "template_paired_t": {
+      "description": "The same participants measured in two conditions.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "dz"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "dz": {
+              "description": "Cohen's d_z: mean of the within-person differences / SD of the differences.",
+              "type": "number"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "const": "t_test"
+            }
+          }
+        }
+      }
+    },
+    "template_correlation": {
+      "description": "Pearson correlation between two continuous variables, tested against 0.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r": {
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation"
+            },
+            "method": {
+              "const": "pearson"
+            }
+          }
+        }
+      }
+    },
+    "template_two_proportions": {
+      "description": "Two independent groups compared on a yes/no outcome.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p1",
+            "p2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p1": {
+              "description": "Proportion of 'yes' in the first group.",
+              "$ref": "#/definitions/proportion"
+            },
+            "p2": {
+              "description": "Proportion of 'yes' in the second group.",
+              "$ref": "#/definitions/proportion"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "proportion_difference"
+            },
+            "method": {
+              "const": "z_test"
+            }
+          }
+        }
+      }
+    },
+    "template_chi_square_independence": {
+      "description": "Chi-square test of association between two categorical variables.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_categorical"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_categorical"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "probabilities"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "probabilities": {
+              "description": "Proportion of the population in each cell: one row per level of X, one column per level of Y. Must add up to 1.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "association"
+                },
+                "method": {
+                  "const": "pearson_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "design_factorial_anova": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "factorial_anova"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "2x2_between",
+              "2x2_mixed"
+            ]
+          },
+          "target_test": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/two_sided_only"
+              },
+              {
+                "properties": {
+                  "path": false,
+                  "effect": {
+                    "enum": [
+                      "main_effect_A",
+                      "main_effect_B",
+                      "interaction"
+                    ]
+                  },
+                  "method": {
+                    "const": "anova_f"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "2x2_between"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_2x2_between"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "2x2_mixed"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_2x2_mixed"
+            }
+          }
+        ]
+      }
+    },
+    "template_2x2_between": {
+      "description": "Two between-participants factors, each with two levels. Cell sizes are equal.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "$ref": "#/definitions/two_level_between_factor"
+            },
+            "B": {
+              "$ref": "#/definitions/two_level_between_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "$ref": "#/definitions/matrix_2x2_numbers"
+            },
+            "sd": {
+              "$ref": "#/definitions/cell_sd"
+            }
+          }
+        }
+      }
+    },
+    "template_2x2_mixed": {
+      "description": "Factor A varies between participants, factor B within participants; each has two levels.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "$ref": "#/definitions/two_level_between_factor"
+            },
+            "B": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "$ref": "#/definitions/matrix_2x2_numbers"
+            },
+            "sd": {
+              "$ref": "#/definitions/cell_sd"
+            },
+            "r": {
+              "description": "Correlation between the two repeated measurements (levels of B) within a participant.",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        }
+      }
+    },
+    "design_regression_interaction": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "regression_interaction"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "two_way"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_way"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_two_way"
+            }
+          }
+        ]
+      }
+    },
+    "template_two_way": {
+      "description": "Y regressed on X, W and their product XW. Parametrised by correlations, as in InteractionPoweR.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X_Y",
+            "r_W_Y",
+            "r_XW_Y",
+            "r_X_W"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X_Y": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_W_Y": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_XW_Y": {
+              "description": "Correlation between the product term XW and Y: the interaction effect.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X_W": {
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "interaction"
+                },
+                "method": {
+                  "const": "ols_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "design_mediation": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "mediation"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "process_4",
+              "process_6"
+            ]
+          },
+          "target_test": {
+            "required": [
+              "path"
+            ],
+            "allOf": [
+              {
+                "$ref": "#/definitions/two_sided_only"
+              },
+              {
+                "properties": {
+                  "effect": {
+                    "const": "indirect_effect"
+                  },
+                  "method": {
+                    "enum": [
+                      "monte_carlo_ci",
+                      "percentile_bootstrap"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "process_4"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_process_4"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "process_6"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_process_6"
+            }
+          }
+        ]
+      }
+    },
+    "template_process_4": {
+      "description": "PROCESS model 4: simple mediation (one mediator, named M) or parallel mediation (mediators M1, M2, ...).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          },
+          "patternProperties": {
+            "^M[1-9]?$": {
+              "description": "mediators named M (one mediator) or M1, M2, ... (several)",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "paths"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "paths": {
+              "$ref": "#/definitions/paths"
+            },
+            "residual_correlations": {
+              "description": "Parallel mediation only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
+              "$ref": "#/definitions/correlation_map"
+            }
+          }
+        }
+      }
+    },
+    "template_process_6": {
+      "description": "PROCESS model 6: serial mediation through M1, M2 (up to M4), with every forward path.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M1",
+            "M2",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          },
+          "patternProperties": {
+            "^M[1-4]$": {
+              "description": "mediators named M1, M2, ... (up to M4), in causal order",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "paths"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "paths": {
+              "$ref": "#/definitions/paths"
+            }
+          }
+        }
+      }
+    },
+    "design_moderated_mediation": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "moderated_mediation"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "process_7",
+              "process_14"
+            ]
+          },
+          "variables": {
+            "required": [
+              "X",
+              "W",
+              "M",
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "X": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "W": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "M": {
+                "$ref": "#/definitions/variable_continuous"
+              },
+              "Y": {
+                "$ref": "#/definitions/variable_continuous"
+              }
+            }
+          },
+          "population": {
+            "required": [
+              "metric",
+              "paths"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "metric": {
+                "const": "standardised"
+              },
+              "paths": {
+                "$ref": "#/definitions/paths"
+              },
+              "correlations": {
+                "description": "Correlation between X and W, keyed 'X<->W'. Omitted means 0 (e.g. X randomised).",
+                "$ref": "#/definitions/correlation_map"
+              }
+            }
+          },
+          "target_test": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/two_sided_only"
+              },
+              {
+                "properties": {
+                  "path": false,
+                  "effect": {
+                    "const": "index_of_moderated_mediation"
+                  },
+                  "method": {
+                    "enum": [
+                      "monte_carlo_ci",
+                      "percentile_bootstrap"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

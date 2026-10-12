@@ -1,0 +1,54 @@
+{
+  "spec_version": "0.1",
+  "design": "moderated_mediation",
+  "template": "process_14",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Abusive supervision"
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Coping self-efficacy"
+    },
+    "M": {
+      "type": "continuous",
+      "label": "Emotional exhaustion"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Job performance"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M": 0.35,
+      "M->Y": -0.25,
+      "W->Y": 0.15,
+      "MW->Y": 0.12,
+      "X->Y": -0.05
+    },
+    "correlations": {
+      "X<->W": -0.1
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest moderation the team would consider theoretically meaningful."
+  },
+  "target_test": {
+    "effect": "index_of_moderated_mediation",
+    "method": "monte_carlo_ci",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}
