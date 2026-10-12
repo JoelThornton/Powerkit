@@ -71,7 +71,7 @@ test_that("2x2 between: matches the Superpower vignette example (published)", {
   sd <- 2
   n_per_cell <- 40
   alpha <- 0.05
-  published_power <- 0.8816 # interaction (a:b)
+  published_power <- 0.881553371 # interaction (a:b); printed as 88.1553371%
   reference_nrep <- NULL # nsims behind the published power, or NULL if exact
   skip_if_todo(mu, sd, n_per_cell, alpha, published_power, reference_nrep)
 
@@ -102,21 +102,35 @@ test_that("2x2 between: matches the Superpower paper example (published)", {
   expect_power_near(engine_power(spec), published_power, reference_nrep = reference_nrep)
 })
 
+# Sommet et al.'s (2023) required N for a 2x2 between-participants
+# interaction: N = 4 * (z_alpha + z_beta)^2 / d^2, rounded up, with the z
+# values rounded to two decimals as they print them (1.96 and 0.84 at alpha
+# .05 and power .80) and d = |interaction contrast| / (2 * SD), i.e. half
+# the difference between the two simple effects in SD units. This
+# reproduces their Table 2 Ns exactly (256 and 1024 at power .80; 343 and
+# 424 for the reversed interaction at .90 and .95). The 8-decimal rounding
+# only stops floating-point noise from pushing an exact integer up by one.
+sommet_n <- function(means, sd, alpha, power) {
+  z <- round(stats::qnorm(1 - alpha / 2), 2) + round(stats::qnorm(power), 2)
+  d <- abs((means[1, 1] - means[1, 2]) - (means[2, 1] - means[2, 2])) / (2 * sd)
+  ceiling(round(4 * z^2 / d^2, 8))
+}
+
 test_that("2x2 crossover interaction: matches Sommet et al. (published)", {
   skip_unless_full_validation()
   # Source: Sommet, Weissman, Cheutin & Elliot (2023), "How many
   #   participants do I need to test an interaction? Conducting an
   #   appropriate power analysis and achieving sufficient power to detect
   #   an interaction", Advances in Methods and Practices in Psychological
-  #   Science, 6(3); the required sample sizes reported for a 2x2
-  #   between-participants crossover (fully reversed) interaction (also
-  #   produced by their INTxPower app). Transcribe the cell means (or the
-  #   simple effects, converted to cell means with SD 1), alpha, target
-  #   power, and the required total N.
+  #   Science, 6(3), Table 2, "Reversed" interaction, median slopes: the
+  #   required total N for a 2x2 between-participants crossover (fully
+  #   reversed) interaction. Their N uses a normal (z) approximation, so it
+  #   is below the exact F-test N; see sommet_n().
   mu <- c(-0.175, 0.175, 0.175, -0.175) # c(a1_b1, a1_b2, a2_b1, a2_b2), SD = 1
   alpha <- 0.05
   target_power <- 0.80
   published_n <- 256 # required total N
+  exact_n <- 260 # exact F-test N for the same design (maintainer-checked)
   skip_if_todo(mu, alpha, target_power, published_n)
 
   means <- matrix(mu, nrow = 2, byrow = TRUE)
@@ -124,20 +138,25 @@ test_that("2x2 crossover interaction: matches Sommet et al. (published)", {
     means, sd = 1, effect = "interaction", seed = 203, alpha = alpha,
     target_power = target_power
   )
-  # Sommet et al. compute n with the z-approximation, which underestimates
-  # the exact F-test n (see expect_n_near()).
-  expect_n_near(engine_n_required(spec), published_n, z_approximation = TRUE)
+  # (a) Their formula, applied to this spec's effect, gives their N: the
+  #     spec matches their design.
+  expect_equal(sommet_n(means, sd = 1, alpha = alpha, power = target_power), published_n)
+  # (b) powerkit's exact required n is the exact F-test N, which is at least
+  #     their normal-approximation N.
+  n_required <- engine_n_required(spec)
+  expect_equal(n_required$n, exact_n)
+  expect_gte(n_required$n, published_n)
 })
 
 test_that("2x2 attenuated interaction: matches Sommet et al. (published)", {
   skip_unless_full_validation()
-  # Source: Sommet et al. (2023), as above; the required sample size
-  #   reported for an attenuated (e.g. knock-out) 2x2 between-participants
-  #   interaction.
+  # Source: Sommet et al. (2023), as above, Table 2, "Fully attenuated"
+  #   (knock-out) interaction. Normal-approximation N; see sommet_n().
   mu <- c(0, 0, 0, 0.35) # c(a1_b1, a1_b2, a2_b1, a2_b2), SD = 1
   alpha <- 0.05
   target_power <- 0.80
   published_n <- 1024 # required total N
+  exact_n <- 1028 # exact F-test N for the same design (maintainer-checked)
   skip_if_todo(mu, alpha, target_power, published_n)
 
   means <- matrix(mu, nrow = 2, byrow = TRUE)
@@ -145,9 +164,14 @@ test_that("2x2 attenuated interaction: matches Sommet et al. (published)", {
     means, sd = 1, effect = "interaction", seed = 204, alpha = alpha,
     target_power = target_power
   )
-  # Sommet et al. compute n with the z-approximation, which underestimates
-  # the exact F-test n (see expect_n_near()).
-  expect_n_near(engine_n_required(spec), published_n, z_approximation = TRUE)
+  # (a) Their formula, applied to this spec's effect, gives their N: the
+  #     spec matches their design.
+  expect_equal(sommet_n(means, sd = 1, alpha = alpha, power = target_power), published_n)
+  # (b) powerkit's exact required n is the exact F-test N, which is at least
+  #     their normal-approximation N.
+  n_required <- engine_n_required(spec)
+  expect_equal(n_required$n, exact_n)
+  expect_gte(n_required$n, published_n)
 })
 
 # 3. Direct-call agreement -----------------------------------------------------------

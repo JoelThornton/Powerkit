@@ -160,12 +160,8 @@ Superpower book, ch. "Mixed ANOVA", section 5.1, Table 5.4; Sommet et al.
 
 ## 2026-10-12 · Phase 2 follow-up: maintainer decisions
 
-1. **z-approximation allowance.** Sources that compute n with the normal (z)
-   approximation always underestimate the exact F-test n. For tests marked
-   `z_approximation = TRUE` only, `expect_n_near()` also passes when the
-   published n is up to 3% below powerkit's interval. Both Sommet et al.
-   (2023) tests are marked; their published values are unchanged (256 vs
-   exact 260; 1024 vs exact 1028).
+1. ~~z-approximation allowance~~ (replaced; see "Rounding and the Sommet
+   tests" below).
 2. **Sensitivity goals** keep the shape of the specified pattern and scale
    its size. For 2x2 designs each cell mean's deviation from the grand mean
    is multiplied by a factor found by root-finding on exact power (scale 1 =
@@ -198,11 +194,28 @@ Superpower book, ch. "Mixed ANOVA", section 5.1, Table 5.4; Sommet et al.
    that the user is told to use simulation. This supersedes "Power comes
    from simulation" in the phase 2 entry above.
 
-**Rounding allowance (needed for 5).** A published power value is rounded
-(0.8816 for 88.1553%). Against an exact result the Monte Carlo interval has
-zero width, so `expect_power_near()` now adds half a unit in the published
-value's last decimal place to the interval. For simulated results this is
-negligible next to the Monte Carlo half-width.
+**Rounding and the Sommet tests (maintainer's rule: no tolerance that isn't
+fully explained by the source).**
+
+- Published values are transcribed to every digit the source prints, and
+  the only rounding allowance is half a unit in that last printed digit
+  (`expect_power_near()` adds it to the Monte Carlo half-width, which is 0
+  for exact results). So the Superpower vignette's 88.1553371% is
+  0.881553371 (allowance 5e-10) and book Table 5.4's 98.98467% is 0.9898467
+  (5e-8); Lakens & Caldwell's 60.62% and the vignette's G*Power 91.25% stay
+  at 0.6062 and 0.9125 (5e-5). A value whose last printed digit is 0 is
+  written as a string so the digit isn't lost. Exact results meet all four.
+- The 3% allowance for Sommet et al. is dropped. **The difference between
+  their published N and the exact N is entirely explained by their normal
+  approximation:** their Table 2 Ns are N = 4 (z_alpha + z_beta)^2 / d^2,
+  rounded up, with z rounded to two decimals (1.96, 0.84 at power .80) and
+  d = |interaction contrast| / (2 SD). That reproduces 256 and 1024 exactly
+  (and 343 and 424 for the reversed interaction at power .90 and .95). Each
+  Sommet test now checks, with no allowance: (a) their formula applied to
+  the spec's effect gives exactly the published N, confirming the spec
+  matches their design; (b) powerkit's exact n_required equals the exact
+  F-test N (260 and 1028, maintainer-checked) and is at least the published
+  N.
 
 **What the 2x2 validation tests now check.** The analytic tests compare the
 default (exact) path with a direct `ANOVA_exact()` call, so they now check

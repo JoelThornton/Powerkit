@@ -92,7 +92,7 @@ test_that("2x2 mixed: matches the Superpower paper example (published)", {
   n_per_group <- 23
   alpha <- 0.05
   effect <- "interaction" # "main_effect_A", "main_effect_B" or "interaction"
-  published_power <- 0.9898
+  published_power <- 0.9898467 # printed as 98.98467%
   reference_nrep <- NULL # nsims behind the published power, or NULL if exact
   skip_if_todo(mu, sd, r, n_per_group, alpha, effect, published_power, reference_nrep)
 

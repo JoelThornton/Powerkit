@@ -155,16 +155,20 @@ z_for <- function(level) stats::qnorm(1 - (1 - level) / 2)
 # simulation itself, give its replication count as `reference_nrep` so its
 # own Monte Carlo error is allowed for.
 #
-# Published values are rounded (e.g. 0.8816 for 88.16%). A value given to d
-# decimal places is treated as exact to +/- half a unit in its last place,
-# added to the Monte Carlo half-width. This matters for exact results, whose
-# Monte Carlo error is 0.
+# Rounding: published values are transcribed to every digit the source
+# prints (88.1553371% -> 0.881553371), and the only allowance for rounding
+# is half a unit in that last printed digit, added to the Monte Carlo
+# half-width. Nothing else is allowed for. This matters for exact results,
+# whose Monte Carlo error is 0. If the last printed digit is a 0 (91.20%),
+# give the value as a string ("0.9120") so that digit is not lost.
 expect_power_near <- function(estimate, reference, reference_nrep = NULL, level = 0.999) {
+  allowance <- rounding_allowance(reference)
+  reference <- as.numeric(reference)
   se <- estimate$mcse
   if (!is.null(reference_nrep)) {
     se <- sqrt(se^2 + reference * (1 - reference) / reference_nrep)
   }
-  half_width <- z_for(level) * se + rounding_allowance(reference)
+  half_width <- z_for(level) * se + allowance
   lower <- estimate$power - half_width
   upper <- estimate$power + half_width
   expect(
@@ -177,9 +181,10 @@ expect_power_near <- function(estimate, reference, reference_nrep = NULL, level 
   invisible(estimate)
 }
 
-# Half a unit in the last decimal place of `x` as written (0.8816 -> 0.00005).
+# Half a unit in the last decimal place of `x` as written (0.8816 -> 0.00005;
+# "0.9120" -> 0.00005).
 rounding_allowance <- function(x) {
-  digits <- format(x, digits = 15, scientific = FALSE)
+  digits <- if (is.character(x)) x else format(x, digits = 15, scientific = FALSE)
   decimals <- if (grepl(".", digits, fixed = TRUE)) nchar(sub(".*\\.", "", digits)) else 0
   0.5 * 10^-decimals
 }
@@ -201,23 +206,12 @@ expect_power_agrees <- function(estimate, reference, level = 0.999) {
 
 # A published required n must lie inside powerkit's uncertainty interval
 # for the required n.
-#
-# z-approximation allowance (maintainer's decision, docs/decisions.md):
-# sources that compute n with the normal (z) approximation always
-# underestimate the exact F-test n. For tests marked
-# `z_approximation = TRUE` only, the published n may also be up to 3% below
-# powerkit's interval.
-expect_n_near <- function(n_required, published_n, z_approximation = FALSE) {
-  lower <- n_required$lower
-  if (z_approximation) {
-    lower <- lower * (1 - 0.03)
-  }
+expect_n_near <- function(n_required, published_n) {
   expect(
-    published_n >= lower && published_n <= n_required$upper,
+    published_n >= n_required$lower && published_n <= n_required$upper,
     sprintf(
-      "Published n = %s is outside powerkit's interval [%s, %s] (estimate %s)%s.",
-      published_n, n_required$lower, n_required$upper, n_required$n,
-      if (z_approximation) ", even allowing 3% for the z-approximation" else ""
+      "Published n = %s is outside powerkit's interval [%s, %s] (estimate %s).",
+      published_n, n_required$lower, n_required$upper, n_required$n
     )
   )
   invisible(n_required)
