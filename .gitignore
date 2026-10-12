@@ -1,0 +1,7 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+engine/*.tar.gz
+engine/*.Rcheck/
+engine/tests/testthat/_snaps/**/*.new.md

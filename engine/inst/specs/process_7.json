@@ -1,0 +1,53 @@
+{
+  "spec_version": "0.1",
+  "design": "moderated_mediation",
+  "template": "process_7",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition"
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Group identification",
+      "reliability": 0.85
+    },
+    "M": {
+      "type": "continuous",
+      "label": "Perceived threat"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Support for policy"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M": 0.2,
+      "W->M": 0.1,
+      "XW->M": 0.15,
+      "M->Y": 0.3,
+      "X->Y": 0.05
+    }
+  },
+  "effect_justification": {
+    "type": "meta_analysis",
+    "source": "Author (Year), k = 24",
+    "adjustment": "halved for bias"
+  },
+  "target_test": {
+    "effect": "index_of_moderated_mediation",
+    "method": "monte_carlo_ci",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.9
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

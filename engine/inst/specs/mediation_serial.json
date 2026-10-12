@@ -1,0 +1,57 @@
+{
+  "spec_version": "0.1",
+  "design": "mediation",
+  "template": "process_6",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Intervention",
+      "levels": [
+        "Control",
+        "Growth mindset"
+      ]
+    },
+    "M1": {
+      "type": "continuous",
+      "label": "Mindset beliefs"
+    },
+    "M2": {
+      "type": "continuous",
+      "label": "Effort"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Grades"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M1": 0.3,
+      "X->M2": 0.0,
+      "M1->M2": 0.35,
+      "X->Y": 0.0,
+      "M1->Y": 0.05,
+      "M2->Y": 0.3
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest paths the team would consider theoretically meaningful."
+  },
+  "target_test": {
+    "effect": "indirect_effect",
+    "path": "X->M1->M2->Y",
+    "method": "monte_carlo_ci",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

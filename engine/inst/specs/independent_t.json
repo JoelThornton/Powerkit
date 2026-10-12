@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "independent_t",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Control",
+        "Training"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Recall score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0.4
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest difference the team considers practically useful."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "welch_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.9
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012
+  }
+}

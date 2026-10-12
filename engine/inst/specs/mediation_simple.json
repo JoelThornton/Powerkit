@@ -1,0 +1,51 @@
+{
+  "spec_version": "0.1",
+  "design": "mediation",
+  "template": "process_4",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Control",
+        "Self-affirmation"
+      ]
+    },
+    "M": {
+      "type": "continuous",
+      "label": "Defensiveness"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Intention to change"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M": -0.25,
+      "M->Y": -0.3,
+      "X->Y": 0.1
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest paths the team would consider theoretically meaningful."
+  },
+  "target_test": {
+    "effect": "indirect_effect",
+    "path": "X->M->Y",
+    "method": "monte_carlo_ci",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261012,
+    "ci_draws": 2000
+  }
+}

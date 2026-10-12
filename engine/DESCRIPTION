@@ -1,0 +1,31 @@
+Package: powerkit
+Title: Unified Power Analysis for Psychology Designs
+Version: 0.0.0.9000
+Authors@R:
+    person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
+           role = c("aut", "cre"))
+Description: Reads a single design specification (JSON) for common
+    psychology designs, checks that it describes a possible population, and
+    routes it to validated simulation backends ('Spower', 'power4mome',
+    'Superpower', 'InteractionPoweR') to estimate power, required sample size
+    and sensitivity. This development version contains the specification
+    format and validator only.
+License: file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends:
+    R (>= 4.1.0)
+Imports:
+    digest,
+    jsonlite,
+    jsonvalidate (>= 1.3.0)
+Suggests:
+    InteractionPoweR,
+    lavaan,
+    power4mome,
+    pwr,
+    Spower,
+    Superpower,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
