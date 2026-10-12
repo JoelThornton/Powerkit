@@ -2,7 +2,7 @@
 # Backend: Superpower. Build guide section 6:
 #   1. analytic agreement with Superpower::ANOVA_exact()
 #   2. published examples: Superpower vignette and paper; interaction-shape
-#      examples (Sommet et al.; Giner-Sorolla)
+#      examples (Sommet et al.)
 #   3. direct-call agreement with Superpower::ANOVA_power()
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -11,7 +11,8 @@
 # `means` is a 2x2 matrix (rows = levels of A, columns = levels of B);
 # `n` is the total number of participants (4 equal cells).
 between_spec <- function(means, sd, effect, seed, n = NULL, alpha = 0.05,
-                         target_power = NULL) {
+                         target_power = NULL,
+                         method = NULL) {
   validation_spec(
     design = "factorial_anova",
     template = "2x2_between",
@@ -24,7 +25,8 @@ between_spec <- function(means, sd, effect, seed, n = NULL, alpha = 0.05,
     target_test = list(effect = effect, method = "anova_f", alpha = alpha),
     seed = seed,
     n = n,
-    target_power = target_power
+    target_power = target_power,
+    options = if (is.null(method)) list() else list(method = method)
   )
 }
 
@@ -122,7 +124,9 @@ test_that("2x2 crossover interaction: matches Sommet et al. (published)", {
     means, sd = 1, effect = "interaction", seed = 203, alpha = alpha,
     target_power = target_power
   )
-  expect_n_near(engine_n_required(spec), published_n)
+  # Sommet et al. compute n with the z-approximation, which underestimates
+  # the exact F-test n (see expect_n_near()).
+  expect_n_near(engine_n_required(spec), published_n, z_approximation = TRUE)
 })
 
 test_that("2x2 attenuated interaction: matches Sommet et al. (published)", {
@@ -141,7 +145,9 @@ test_that("2x2 attenuated interaction: matches Sommet et al. (published)", {
     means, sd = 1, effect = "interaction", seed = 204, alpha = alpha,
     target_power = target_power
   )
-  expect_n_near(engine_n_required(spec), published_n)
+  # Sommet et al. compute n with the z-approximation, which underestimates
+  # the exact F-test n (see expect_n_near()).
+  expect_n_near(engine_n_required(spec), published_n, z_approximation = TRUE)
 })
 
 # 3. Direct-call agreement -----------------------------------------------------------
@@ -151,7 +157,7 @@ for (effect in c("main_effect_A", "interaction")) {
     skip_unless_full_validation()
     skip_if_not_installed("Superpower")
     means <- matrix(c(10, 10, 10, 13), nrow = 2, byrow = TRUE)
-    spec <- between_spec(means, sd = 6, n = 160, effect = effect, seed = 301)
+    spec <- between_spec(means, sd = 6, n = 160, effect = effect, seed = 301, method = "simulation")
     direct <- direct_superpower_simulation(
       "2b*2b", n = 40, means = means, sd = 6, effect = effect,
       alpha = 0.05, nrep = validation_nrep(), seed = 301

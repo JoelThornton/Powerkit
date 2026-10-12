@@ -1,14 +1,18 @@
 # powerkit 0.0.0.9000
 
 * New `run_spec()` runs a power analysis for 2x2 between and 2x2 mixed ANOVA
-  designs, via Superpower. It returns power at a fixed n, or the required n
-  with a 95% interval, plus a power curve with Monte Carlo standard errors,
-  a check that Superpower reproduces the specified population, and a
-  provenance record (spec hash, seed, replications, backend, R and package
-  versions). Set `options(powerkit.cores = k)` or `POWERKIT_CORES` to run
-  replications on several cores.
-* Other designs, and sensitivity goals, give a plain-English "not available
-  yet" error.
+  designs, via Superpower. Goals: power at a fixed n, the required n, or
+  the smallest detectable effect (sensitivity: the specified pattern of
+  means is scaled, and the effect is reported in your units and as Cohen's
+  f). Power is exact by default (`ANOVA_exact()`); set
+  `options > method` to `"simulation"` for Monte Carlo simulation (95%
+  interval for the required n; `options(powerkit.cores = k)` or
+  `POWERKIT_CORES` spreads replications over cores). Every result includes
+  a check that Superpower reproduces the specified population and a
+  provenance record (spec hash, method, seed, backend, R and package
+  versions).
+* New optional spec field `options > method` (`"exact"` or `"simulation"`).
+* Other designs give a plain-English "not available yet" error.
 * New design specification format (spec version 0.1), defined by the JSON
   schema in `inst/schema/design.schema.json`. It covers the MVP designs:
   basic tests (one-sample, independent and paired t-tests, correlation, two

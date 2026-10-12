@@ -11,7 +11,8 @@
 # B, within); `n` is the total number of participants (2 equal groups);
 # `r` is the correlation between the two repeated measures.
 mixed_spec <- function(means, sd, r, effect, seed, n = NULL, alpha = 0.05,
-                       target_power = NULL) {
+                       target_power = NULL,
+                       method = NULL) {
   validation_spec(
     design = "factorial_anova",
     template = "2x2_mixed",
@@ -24,7 +25,8 @@ mixed_spec <- function(means, sd, r, effect, seed, n = NULL, alpha = 0.05,
     target_test = list(effect = effect, method = "anova_f", alpha = alpha),
     seed = seed,
     n = n,
-    target_power = target_power
+    target_power = target_power,
+    options = if (is.null(method)) list() else list(method = method)
   )
 }
 
@@ -106,7 +108,7 @@ for (effect in c("main_effect_B", "interaction")) {
     skip_unless_full_validation()
     skip_if_not_installed("Superpower")
     means <- matrix(c(20, 20, 20, 23), nrow = 2, byrow = TRUE)
-    spec <- mixed_spec(means, sd = 6, r = 0.6, n = 80, effect = effect, seed = 301)
+    spec <- mixed_spec(means, sd = 6, r = 0.6, n = 80, effect = effect, seed = 301, method = "simulation")
     direct <- direct_superpower_simulation(
       "2b*2w", n = 40, means = means, sd = 6, r = 0.6, effect = effect,
       alpha = 0.05, nrep = validation_nrep(), seed = 301

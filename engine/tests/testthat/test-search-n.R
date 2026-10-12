@@ -7,12 +7,12 @@ mock_backend <- function(power_at, step = 4) {
     simulation_function = "mock",
     packages = character(),
     n_step = step,
-    approximate_min_n = step,
+    exact_min_n = step,
     simulate = function(n, nrep, seed, cores) {
       set.seed(seed)
       list(rejections = stats::rbinom(1, nrep, power_at(n)), nrep = nrep)
     },
-    approximate_power = power_at,
+    exact_power = power_at,
     check_run = function() data.frame(parameter = "x", specified = 0, recovered = 0, ok = TRUE)
   )
 }
@@ -42,7 +42,7 @@ test_that("search_n() widens the grid when the interval runs off the end", {
   spec <- example_spec("anova_2x2_between")
   # A misleading approximation sends the first grid far too low.
   backend <- mock_backend(true_power)
-  backend$approximate_power <- function(n) true_power(4 * n)
+  backend$exact_power <- function(n) true_power(4 * n)
   result <- search_n(spec, backend, power = 0.8, nrep = 20000, seed = 2)
   expect_true(result$n_required$lower <= 788 && 788 <= result$n_required$upper)
 })

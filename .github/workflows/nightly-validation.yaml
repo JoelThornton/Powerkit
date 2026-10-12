@@ -2,8 +2,8 @@
 # validation tests (tests/testthat/test-validation-*.R), by setting
 # POWERKIT_FULL_VALIDATION=true. Scheduled runs use the default branch.
 #
-# Until every design has a backend (build phase 3), the validation tests for
-# designs without one fail by design, with "isn't available yet".
+# Validation tests for designs whose backend isn't built yet are skipped
+# with a clear message, so a red run means a real problem.
 name: nightly-validation
 
 on:

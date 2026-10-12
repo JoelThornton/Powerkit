@@ -1,11 +1,15 @@
 # Pick the backend adapter for a validated spec, by design and template.
 # Each adapter is a list with:
-#   name, simulation_function, packages  for the provenance record;
-#   n_step             valid sample sizes are multiples of this;
-#   approximate_min_n  smallest n approximate_power() accepts;
+#   name, packages      for the provenance record;
+#   methods, default_method  "exact" and/or "simulation";
+#   functions           the backend function used by each method;
+#   n_step              valid sample sizes are multiples of this;
+#   exact_min_n         smallest n exact_power() accepts;
+#   exact_power(n)      exact power at n (if "exact" is a method; also used
+#                       to bracket n before simulating);
 #   simulate(n, nrep, seed, cores)  -> list(rejections, nrep);
-#   approximate_power(n)            -> a fast power value for bracketing n;
-#   check_run()        -> data frame: parameter, specified, recovered, ok.
+#   sensitivity(n, power)           -> smallest detectable effect;
+#   check_run()         -> data frame: parameter, specified, recovered, ok.
 
 route_spec <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
@@ -13,10 +17,13 @@ route_spec <- function(spec) {
     key,
     "factorial_anova/2x2_between" = ,
     "factorial_anova/2x2_mixed" = superpower_backend(spec),
-    abort_run(sprintf(
-      "Power analysis for this design (%s, template '%s') isn't available yet; it is planned for a later version of powerkit.",
-      gsub("_", " ", spec$design), spec$template
-    ))
+    abort_run(
+      sprintf(
+        "Power analysis for this design (%s, template '%s') isn't available yet; it is planned for a later version of powerkit.",
+        gsub("_", " ", spec$design), spec$template
+      ),
+      class = "powerkit_not_available"
+    )
   )
 }
 

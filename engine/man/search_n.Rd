@@ -2,7 +2,7 @@
 % Please edit documentation in R/search_n.R
 \name{search_n}
 \alias{search_n}
-\title{Find the sample size for a target power}
+\title{Find the sample size for a target power by simulation}
 \usage{
 search_n(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
 }
@@ -29,8 +29,9 @@ A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}) and
 \description{
 Searches for the smallest total sample size whose power reaches \code{power},
 following the build guide (section 5): a coarse pass brackets the answer
-with the backend's fast approximate method, then simulations at several
-sample sizes around it, each with \code{nrep} replications, refine it.
+with the backend's exact method, then simulations at several sample sizes
+around it, each with \code{nrep} replications, refine it. (With the exact
+method, \code{\link[=search_n_exact]{search_n_exact()}} is used instead.)
 }
 \details{
 The simulated power values are smoothed with a probit regression of the

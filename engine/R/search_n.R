@@ -1,9 +1,10 @@
-#' Find the sample size for a target power
+#' Find the sample size for a target power by simulation
 #'
 #' Searches for the smallest total sample size whose power reaches `power`,
 #' following the build guide (section 5): a coarse pass brackets the answer
-#' with the backend's fast approximate method, then simulations at several
-#' sample sizes around it, each with `nrep` replications, refine it.
+#' with the backend's exact method, then simulations at several sample sizes
+#' around it, each with `nrep` replications, refine it. (With the exact
+#' method, [search_n_exact()] is used instead.)
 #'
 #' The simulated power values are smoothed with a probit regression of the
 #' rejection counts on sqrt(n), fitted to the points within 20% of the
@@ -28,8 +29,8 @@
 search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95) {
   step <- backend$n_step
   n_min <- ceiling(minimum_n(spec) / step) * step
-  n_start <- ceiling(max(n_min, backend$approximate_min_n) / step) * step
-  n_guess <- bracket_n(backend$approximate_power, power, n_start, step)
+  n_start <- ceiling(max(n_min, backend$exact_min_n) / step) * step
+  n_guess <- bracket_n(backend$exact_power, power, n_start, step)
 
   spacing <- step * max(1, round(0.05 * n_guess / step))
   grid <- pmax(n_min, n_guess + spacing * (-3:3))
@@ -79,8 +80,8 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
   )
 }
 
-# Smallest valid n (a multiple of `step`, at least `n_min`) whose approximate
-# power reaches the target: doubling, then bisection.
+# Smallest valid n (a multiple of `step`, at least `n_min`) whose power
+# reaches the target: doubling, then bisection.
 bracket_n <- function(power_at, target, n_min, step, n_max = 1e5) {
   if (power_at(n_min) >= target) {
     return(n_min)
@@ -121,5 +122,33 @@ n_from_curve <- function(points, target, step, level) {
     n = first_reaching(stats::pnorm(link$fit)),
     lower = first_reaching(stats::pnorm(link$fit + z * link$se.fit)),
     upper = first_reaching(stats::pnorm(link$fit - z * link$se.fit))
+  )
+}
+
+#' Find the sample size for a target power exactly
+#'
+#' The smallest valid total sample size whose exact power reaches `power`.
+#' There is no Monte Carlo uncertainty, so the interval is the single value.
+#'
+#' @inheritParams search_n
+#' @return As for [search_n()]; `curve` holds exact power (MCSE 0) at the
+#'   required n and three valid sizes either side.
+#' @keywords internal
+search_n_exact <- function(spec, backend, power) {
+  step <- backend$n_step
+  n_min <- ceiling(minimum_n(spec) / step) * step
+  n_start <- ceiling(max(n_min, backend$exact_min_n) / step) * step
+  n <- bracket_n(backend$exact_power, power, n_start, step)
+  if (n == n_start && n_start > n_min) {
+    abort_run(sprintf(
+      "This effect reaches the target power with %d or fewer participants, and exact calculation can't go lower here. Set 'options > method' to 'simulation' to find the smallest n.",
+      n_start
+    ))
+  }
+  ns <- n + step * (-3:3)
+  ns <- ns[ns >= n_start]
+  list(
+    n_required = list(n = n, lower = n, upper = n),
+    curve = data.frame(n = ns, power = vapply(ns, backend$exact_power, numeric(1)), mcse = 0)
   )
 }

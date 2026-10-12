@@ -86,7 +86,21 @@ validation_spec <- function(design, template, variables, population,
       options
     )
   )
-  validate_spec(spec)
+  spec <- validate_spec(spec)
+  skip_if_no_backend(spec)
+  spec
+}
+
+# Designs whose backend isn't built yet are skipped with a clear message,
+# so that a red nightly run means a real problem.
+skip_if_no_backend <- function(spec) {
+  tryCatch(
+    route_spec(spec),
+    powerkit_not_available = function(e) {
+      skip(paste("backend not built yet:", conditionMessage(e)))
+    }
+  )
+  invisible(TRUE)
 }
 
 # Calling the engine ------------------------------------------------------------
@@ -99,21 +113,7 @@ validation_spec <- function(design, template, variables, population,
 #   is sample_size).
 
 engine_function <- function(name) {
-  ns <- asNamespace("powerkit")
-  if (!exists(name, envir = ns, inherits = FALSE)) {
-    stop(
-      sprintf(
-        paste(
-          "powerkit's engine is not implemented yet: %s() is planned for",
-          "build phase 2 (2x2 ANOVA) and phase 3 (mediation, interactions,",
-          "basic tests). This validation test is expected to fail until then."
-        ),
-        name
-      ),
-      call. = FALSE
-    )
-  }
-  get(name, envir = ns)
+  get(name, envir = asNamespace("powerkit"))
 }
 
 # Estimated power (and its Monte Carlo SE) at the spec's fixed n.
@@ -154,22 +154,34 @@ z_for <- function(level) stats::qnorm(1 - (1 - level) / 2)
 # `reference` is a published or analytic power value. If it came from a
 # simulation itself, give its replication count as `reference_nrep` so its
 # own Monte Carlo error is allowed for.
+#
+# Published values are rounded (e.g. 0.8816 for 88.16%). A value given to d
+# decimal places is treated as exact to +/- half a unit in its last place,
+# added to the Monte Carlo half-width. This matters for exact results, whose
+# Monte Carlo error is 0.
 expect_power_near <- function(estimate, reference, reference_nrep = NULL, level = 0.999) {
   se <- estimate$mcse
   if (!is.null(reference_nrep)) {
     se <- sqrt(se^2 + reference * (1 - reference) / reference_nrep)
   }
-  half_width <- z_for(level) * se
+  half_width <- z_for(level) * se + rounding_allowance(reference)
   lower <- estimate$power - half_width
   upper <- estimate$power + half_width
   expect(
     reference >= lower && reference <= upper,
     sprintf(
-      "Reference power %.4f is outside the %g%% Monte Carlo interval [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f).",
-      reference, 100 * level, lower, upper, estimate$power, estimate$mcse
+      "Reference power %.4f is outside the interval [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f, %g%% Monte Carlo interval plus rounding of the reference).",
+      reference, lower, upper, estimate$power, estimate$mcse, 100 * level
     )
   )
   invisible(estimate)
+}
+
+# Half a unit in the last decimal place of `x` as written (0.8816 -> 0.00005).
+rounding_allowance <- function(x) {
+  digits <- format(x, digits = 15, scientific = FALSE)
+  decimals <- if (grepl(".", digits, fixed = TRUE)) nchar(sub(".*\\.", "", digits)) else 0
+  0.5 * 10^-decimals
 }
 
 # Both values are simulation estimates: their difference must be within
@@ -189,12 +201,23 @@ expect_power_agrees <- function(estimate, reference, level = 0.999) {
 
 # A published required n must lie inside powerkit's uncertainty interval
 # for the required n.
-expect_n_near <- function(n_required, published_n) {
+#
+# z-approximation allowance (maintainer's decision, docs/decisions.md):
+# sources that compute n with the normal (z) approximation always
+# underestimate the exact F-test n. For tests marked
+# `z_approximation = TRUE` only, the published n may also be up to 3% below
+# powerkit's interval.
+expect_n_near <- function(n_required, published_n, z_approximation = FALSE) {
+  lower <- n_required$lower
+  if (z_approximation) {
+    lower <- lower * (1 - 0.03)
+  }
   expect(
-    published_n >= n_required$lower && published_n <= n_required$upper,
+    published_n >= lower && published_n <= n_required$upper,
     sprintf(
-      "Published n = %s is outside powerkit's interval [%s, %s] (estimate %s).",
-      published_n, n_required$lower, n_required$upper, n_required$n
+      "Published n = %s is outside powerkit's interval [%s, %s] (estimate %s)%s.",
+      published_n, n_required$lower, n_required$upper, n_required$n,
+      if (z_approximation) ", even allowing 3% for the z-approximation" else ""
     )
   )
   invisible(n_required)

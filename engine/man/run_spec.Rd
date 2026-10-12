@@ -14,30 +14,43 @@ A \code{powerkit_result}: a list with
 \itemize{
 \item \code{goal_type}: the spec's goal type;
 \item \code{curve}: data frame of \code{n}, \code{power} and \code{mcse} (Monte Carlo standard
-error) for each sample size simulated; a single row for a fixed-n goal;
-\item \code{n_required}: list of \code{n}, \code{lower} and \code{upper} (95\% interval), or \code{NA}
-unless the goal is \code{sample_size};
-\item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity};
+error; 0 for exact results); a single row for a fixed-n or
+sensitivity goal;
+\item \code{n_required}: list of \code{n}, \code{lower} and \code{upper} (95\% interval for
+simulation; all equal for exact results), or \code{NA} unless the goal is
+\code{sample_size};
+\item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity}; otherwise a list
+with the \code{scale} applied to the specified pattern, the scaled cell
+\code{means}, the target \code{effect} in the user's units (with an
+\code{effect_description}), its \code{cohen_f}, and the \code{power} reached;
 \item \code{check_run}: data frame comparing specified and recovered population
 values;
-\item \code{provenance}: spec hash, seed, replications, backend, R and package
-versions, and run time.
+\item \code{provenance}: spec hash, method, seed, replications, backend and
+backend function, R and package versions, and run time.
 }
 }
 \description{
 Validates a design specification, checks that the backend reproduces the
-specified population (the check run), then estimates power at a fixed n
-or searches for the sample size that reaches the target power.
+specified population (the check run), then computes power at a fixed n,
+the sample size that reaches the target power, or the smallest
+detectable effect.
 }
 \details{
-Runs use \code{options > nrep} replications (default 1,000) and \code{options > seed} (a random seed is drawn and recorded if none is given). Set
+\strong{Method.} \code{options > method} chooses how power is computed. For 2x2
+ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},
+exact for the specified population); \code{"simulation"} uses Monte Carlo
+simulation with \code{options > nrep} replications (default 1,000) and
+\code{options > seed} (drawn and recorded if not given). Set
 \code{options(powerkit.cores = k)} or the environment variable \code{POWERKIT_CORES}
-to spread replications over \code{k} cores (Unix-alikes only).
+to spread simulation replications over \code{k} cores (Unix-alikes only).
+
+\strong{Sensitivity.} The shape of the specified pattern is kept and its size
+scaled (for 2x2 designs, each cell mean's deviation from the grand mean)
+until the target effect reaches the target power at n.
 }
 \examples{
 \donttest{
 spec <- read_spec(system.file("specs", "anova_2x2_mixed.json", package = "powerkit"))
-spec$options$nrep <- 200
 run_spec(spec)
 }
 }

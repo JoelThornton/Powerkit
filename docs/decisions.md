@@ -157,3 +157,55 @@ Superpower book, ch. "Mixed ANOVA", section 5.1, Table 5.4; Sommet et al.
   yet" error (which parameter to scale is still undecided). Attrition is not
   yet turned into a recruitment target in the result. Results are not cached
   by spec hash yet.
+
+## 2026-10-12 · Phase 2 follow-up: maintainer decisions
+
+1. **z-approximation allowance.** Sources that compute n with the normal (z)
+   approximation always underestimate the exact F-test n. For tests marked
+   `z_approximation = TRUE` only, `expect_n_near()` also passes when the
+   published n is up to 3% below powerkit's interval. Both Sommet et al.
+   (2023) tests are marked; their published values are unchanged (256 vs
+   exact 260; 1024 vs exact 1028).
+2. **Sensitivity goals** keep the shape of the specified pattern and scale
+   its size. For 2x2 designs each cell mean's deviation from the grand mean
+   is multiplied by a factor found by root-finding on exact power (scale 1 =
+   the pattern as specified; scale 0 = all means equal, power = alpha). The
+   result gives the scaled cell means, the target effect in the user's units
+   (a marginal mean difference for a main effect; the difference of simple
+   effects for the interaction) and Superpower's Cohen's f for it.
+   Sensitivity uses the exact method; asking for simulation gives a
+   plain-English error. A spec whose target effect is zero is rejected for
+   sensitivity goals, as for sample-size goals.
+3. The stale Giner-Sorolla mention in the 2x2 between test file header is
+   removed.
+4. **Unbuilt designs skip, not fail.** `route_spec()` signals
+   `powerkit_not_available` for designs with no backend yet, and the
+   validation helper `validation_spec()` turns that into a skip with the
+   reason. A red nightly run now means a real problem.
+5. **Exact by default for 2x2 designs.** `ANOVA_exact()` is exact for the
+   specified population (normal errors, equal cells), agrees with G*Power,
+   and reproduced every published 2x2 value to its last decimal; simulation
+   only adds Monte Carlo error around the same number, and is much slower
+   (about 20 s per 1,000 replications). So power and n_required for 2x2
+   designs are computed with `ANOVA_exact()` unless the spec asks for
+   simulation with the new optional field `options > method`
+   (`"exact"` or `"simulation"`; `"exact"` is refused for other designs).
+   Exact results have MCSE 0, and an exact required n has
+   `lower = upper = n`, found by bisection over valid n. The simulation path
+   (`ANOVA_power()`, `search_n()`) is unchanged and is still checked by the
+   direct-call validation tests, which now request it. `ANOVA_exact()`
+   needs at least 5 participants per cell (between) or group (mixed); below
+   that the user is told to use simulation. This supersedes "Power comes
+   from simulation" in the phase 2 entry above.
+
+**Rounding allowance (needed for 5).** A published power value is rounded
+(0.8816 for 88.1553%). Against an exact result the Monte Carlo interval has
+zero width, so `expect_power_near()` now adds half a unit in the published
+value's last decimal place to the interval. For simulated results this is
+negligible next to the Monte Carlo half-width.
+
+**What the 2x2 validation tests now check.** The analytic tests compare the
+default (exact) path with a direct `ANOVA_exact()` call, so they now check
+translation rather than simulation accuracy; the Type I tests are exact
+(power = alpha). Simulation accuracy against the exact answer is no longer
+tested directly; only its agreement with a direct `ANOVA_power()` call is.

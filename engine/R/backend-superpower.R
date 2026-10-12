@@ -1,35 +1,49 @@
 # Backend adapter: 2x2 between and 2x2 mixed ANOVA via Superpower.
 #
-# Power is estimated by simulation with Superpower::ANOVA_power(). Superpower's
-# exact method, ANOVA_exact(), is used only to bracket the sample size quickly
-# and to run the check run (see docs/decisions.md). ANOVA_exact2() is not
-# used: for mixed designs it gives a different answer from G*Power,
-# ANOVA_exact() and simulation.
+# By default power is computed exactly with Superpower::ANOVA_exact(), which
+# is exact for the specified population and matches G*Power and the
+# published values. Simulation with Superpower::ANOVA_power() is available
+# on request (options > method = "simulation"). ANOVA_exact2() is not used:
+# for mixed designs it gives a different answer from G*Power, ANOVA_exact()
+# and simulation (see docs/decisions.md).
 
 superpower_backend <- function(spec) {
   inputs <- superpower_inputs(spec)
-  design_at <- function(n) {
+  # ANOVA_exact() needs more participants per cell than there are cells.
+  exact_min_n <- 5 * inputs$groups
+  design_at <- function(n, mu = inputs$mu) {
     call_backend("Superpower", Superpower::ANOVA_design(
       design = inputs$design,
       n = n / inputs$groups,
-      mu = inputs$mu,
+      mu = mu,
       sd = inputs$sd,
       r = inputs$r,
       plot = FALSE
     ))
   }
+  exact_at <- function(n, mu = inputs$mu) {
+    if (n < exact_min_n) {
+      abort_run(sprintf(
+        "Exact power for this design needs at least %d participants (5 per %s); for n = %s, set 'options > method' to 'simulation'.",
+        exact_min_n, if (inputs$groups == 4) "cell" else "group", n
+      ))
+    }
+    superpower_exact(design_at(n, mu), inputs)
+  }
   list(
     name = "Superpower",
-    simulation_function = "Superpower::ANOVA_power",
     packages = c("Superpower", "afex"),
+    methods = c("exact", "simulation"),
+    default_method = "exact",
+    functions = c(exact = "Superpower::ANOVA_exact", simulation = "Superpower::ANOVA_power"),
     n_step = inputs$groups,
-    # ANOVA_exact() needs more participants per cell than there are cells.
-    approximate_min_n = 5 * inputs$groups,
+    exact_min_n = exact_min_n,
+    exact_power = function(n) exact_at(n)$power,
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
-    approximate_power = function(n) {
-      superpower_exact_power(design_at(n), inputs)
+    sensitivity = function(n, power) {
+      superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
       superpower_check_run(spec, design_at(50 * inputs$groups))
@@ -78,12 +92,77 @@ superpower_simulate <- function(design, inputs, nrep, seed, cores) {
   list(rejections = sum(rejections), nrep = nrep)
 }
 
-superpower_exact_power <- function(design, inputs) {
+# Exact power for the target effect, and Superpower's Cohen's f for it.
+superpower_exact <- function(design, inputs) {
   result <- call_backend(
     "Superpower",
     Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, verbose = FALSE)
   )
-  result$main_results[inputs$effect, "power"] / 100
+  row <- result$main_results[inputs$effect, ]
+  list(power = row$power / 100, cohen_f = row$cohen_f)
+}
+
+# Sensitivity: keep the shape of the specified pattern of cell means and
+# scale its size (each cell mean's deviation from the grand mean) until the
+# target effect reaches the target power at n. Scale 1 is the pattern as
+# specified; scale 0 has all means equal, where power equals alpha.
+superpower_sensitivity <- function(spec, inputs, exact_at, n, target) {
+  grand_mean <- mean(inputs$mu)
+  mu_at <- function(scale) grand_mean + scale * (inputs$mu - grand_mean)
+  power_at <- function(scale) exact_at(n, mu_at(scale))$power
+  upper <- 1
+  while (power_at(upper) < target) {
+    upper <- upper * 2
+    if (upper > 1e4) {
+      abort_run("No effect of this shape reaches the target power at this n. Check the population values.")
+    }
+  }
+  scale <- stats::uniroot(
+    function(k) power_at(k) - target,
+    lower = 0, upper = upper, tol = 1e-10
+  )$root
+  at_scale <- exact_at(n, mu_at(scale))
+  means <- matrix(mu_at(scale), nrow = 2, byrow = TRUE)
+  contrast <- anova_effect_in_units(spec, means)
+  list(
+    scale = scale,
+    means = means,
+    effect = contrast$value,
+    effect_description = contrast$description,
+    cohen_f = at_scale$cohen_f,
+    power = at_scale$power
+  )
+}
+
+# The target effect in the user's units, from a 2x2 matrix of cell means
+# (rows = levels of A, columns = levels of B).
+anova_effect_in_units <- function(spec, means) {
+  a <- spec$variables$A
+  b <- spec$variables$B
+  switch(
+    spec$target_test$effect,
+    main_effect_A = list(
+      value = mean(means[1, ]) - mean(means[2, ]),
+      description = sprintf(
+        "difference in mean %s between %s and %s (%s), averaged over %s",
+        spec$variables$Y$label, a$levels[[1]], a$levels[[2]], a$label, b$label
+      )
+    ),
+    main_effect_B = list(
+      value = mean(means[, 1]) - mean(means[, 2]),
+      description = sprintf(
+        "difference in mean %s between %s and %s (%s), averaged over %s",
+        spec$variables$Y$label, b$levels[[1]], b$levels[[2]], b$label, a$label
+      )
+    ),
+    interaction = list(
+      value = (means[1, 1] - means[1, 2]) - (means[2, 1] - means[2, 2]),
+      description = sprintf(
+        "difference in the %s effect (%s minus %s) between %s and %s (%s)",
+        b$label, b$levels[[1]], b$levels[[2]], a$levels[[1]], a$levels[[2]], a$label
+      )
+    )
+  )
 }
 
 # Check that Superpower's version of the population has the spec's cell

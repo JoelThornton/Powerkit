@@ -368,6 +368,13 @@
           "description": "Two-group designs only: size of the second group divided by the size of the first (1 = equal groups).",
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "method": {
+          "description": "How power is computed. exact: exact calculation for the specified population (2x2 ANOVA designs only, and their default). simulation: Monte Carlo simulation with nrep replications (the default for every other design).",
+          "enum": [
+            "exact",
+            "simulation"
+          ]
         }
       }
     },
