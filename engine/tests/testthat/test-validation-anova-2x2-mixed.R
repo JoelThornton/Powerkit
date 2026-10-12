@@ -31,31 +31,38 @@ mixed_spec <- function(means, sd, r, effect, seed, n = NULL, alpha = 0.05,
 }
 
 # 1. Analytic agreement ----------------------------------------------------------
+#
+# Each test runs twice: with the default exact method (checks the
+# translation: powerkit equals a direct ANOVA_exact() call), and with
+# method = "simulation" (checks that simulated power matches the exact
+# answer within the 99.9% Monte Carlo interval).
 
-for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
-  test_that(paste0("2x2 mixed, ", effect, ": power matches Superpower::ANOVA_exact (analytic)"), {
+for (method in c("exact", "simulation")) {
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    test_that(paste0("2x2 mixed, ", effect, ", ", method, ": power matches Superpower::ANOVA_exact (analytic)"), {
+      skip_unless_full_validation()
+      skip_if_not_installed("Superpower")
+      means <- matrix(c(0, 0.2, 0.1, 0.6), nrow = 2, byrow = TRUE)
+      spec <- mixed_spec(means, sd = 1, r = 0.5, n = 80, effect = effect, seed = 101, method = method)
+      reference <- direct_superpower_exact(
+        "2b*2w", n = 40, means = means, sd = 1, r = 0.5, effect = effect, alpha = 0.05, seed = 101
+      )
+      expect_power_near(engine_power(spec), reference$power)
+    })
+  }
+
+  test_that(paste0("2x2 mixed with a negative repeated-measures correlation, ", method, ": matches ANOVA_exact (analytic)"), {
     skip_unless_full_validation()
     skip_if_not_installed("Superpower")
     means <- matrix(c(0, 0.2, 0.1, 0.6), nrow = 2, byrow = TRUE)
-    spec <- mixed_spec(means, sd = 1, r = 0.5, n = 80, effect = effect, seed = 101)
+    spec <- mixed_spec(means, sd = 1, r = -0.3, n = 120, effect = "interaction", seed = 102, method = method)
     reference <- direct_superpower_exact(
-      "2b*2w", n = 40, means = means, sd = 1, r = 0.5, effect = effect, alpha = 0.05, seed = 101
+      "2b*2w", n = 60, means = means, sd = 1, r = -0.3, effect = "interaction", alpha = 0.05,
+      seed = 102
     )
     expect_power_near(engine_power(spec), reference$power)
   })
 }
-
-test_that("2x2 mixed with a negative repeated-measures correlation: matches ANOVA_exact (analytic)", {
-  skip_unless_full_validation()
-  skip_if_not_installed("Superpower")
-  means <- matrix(c(0, 0.2, 0.1, 0.6), nrow = 2, byrow = TRUE)
-  spec <- mixed_spec(means, sd = 1, r = -0.3, n = 120, effect = "interaction", seed = 102)
-  reference <- direct_superpower_exact(
-    "2b*2w", n = 60, means = means, sd = 1, r = -0.3, effect = "interaction", alpha = 0.05,
-    seed = 102
-  )
-  expect_power_near(engine_power(spec), reference$power)
-})
 
 # 2. Published examples ------------------------------------------------------------
 

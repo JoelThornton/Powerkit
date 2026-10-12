@@ -209,7 +209,12 @@ fully explained by the source).**
   their published N and the exact N is entirely explained by their normal
   approximation:** their Table 2 Ns are N = 4 (z_alpha + z_beta)^2 / d^2,
   rounded up, with z rounded to two decimals (1.96, 0.84 at power .80) and
-  d = |interaction contrast| / (2 SD). That reproduces 256 and 1024 exactly
+  d = |interaction contrast| / (2 SD), which is their definition of the
+  interaction effect, d = (d_simple1 - d_simple2) / 2 (Sommet et al., 2023,
+  Equation 5, section "Calculating the required sample size to detect an
+  interaction effect of a typical size"; applied with d = 0.175 in their
+  Equation 8, N = 1,024; confirmed by the maintainer). That reproduces 256
+  and 1024 exactly
   (and 343 and 424 for the reversed interaction at power .90 and .95). Each
   Sommet test now checks, with no allowance: (a) their formula applied to
   the spec's effect gives exactly the published N, confirming the spec
@@ -217,11 +222,14 @@ fully explained by the source).**
   F-test N (260 and 1028, maintainer-checked) and is at least the published
   N.
 
-**What the 2x2 validation tests now check.** The analytic tests compare the
-default (exact) path with a direct `ANOVA_exact()` call, so they now check
-translation rather than simulation accuracy; the Type I tests are exact
-(power = alpha). Simulation accuracy against the exact answer is no longer
-tested directly; only its agreement with a direct `ANOVA_power()` call is.
+**What the 2x2 validation tests now check.** Each analytic test runs twice
+(nightly only, like all validation tests): with the default exact method,
+where powerkit must equal a seeded direct `ANOVA_exact()` call (checks the
+translation), and with `method = "simulation"`, where simulated power must
+contain the exact answer in its 99.9% Monte Carlo interval (checks
+simulation accuracy; maintainer's decision). The direct-call tests check
+simulation against a direct `ANOVA_power()` call; the Type I tests use the
+default exact method (power = alpha).
 
 **Exact results are reproducible bit for bit.** `ANOVA_exact()` builds its
 data set with the random-number generator (`mvrnorm(empirical = TRUE)`), so

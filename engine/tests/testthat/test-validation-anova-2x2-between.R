@@ -31,30 +31,37 @@ between_spec <- function(means, sd, effect, seed, n = NULL, alpha = 0.05,
 }
 
 # 1. Analytic agreement ----------------------------------------------------------
+#
+# Each test runs twice: with the default exact method (checks the
+# translation: powerkit equals a direct ANOVA_exact() call), and with
+# method = "simulation" (checks that simulated power matches the exact
+# answer within the 99.9% Monte Carlo interval).
 
-for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
-  test_that(paste0("2x2 between, ", effect, ": power matches Superpower::ANOVA_exact (analytic)"), {
+for (method in c("exact", "simulation")) {
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    test_that(paste0("2x2 between, ", effect, ", ", method, ": power matches Superpower::ANOVA_exact (analytic)"), {
+      skip_unless_full_validation()
+      skip_if_not_installed("Superpower")
+      means <- matrix(c(0, 0.2, 0.3, 0.8), nrow = 2, byrow = TRUE)
+      spec <- between_spec(means, sd = 1, n = 160, effect = effect, seed = 101, method = method)
+      reference <- direct_superpower_exact("2b*2b", n = 40, means = means, sd = 1, effect = effect, alpha = 0.05, seed = 101)
+      expect_power_near(engine_power(spec), reference$power)
+    })
+  }
+
+  test_that(paste0("2x2 between with unequal cell SDs, ", method, ": power matches Superpower::ANOVA_exact (analytic)"), {
     skip_unless_full_validation()
     skip_if_not_installed("Superpower")
-    means <- matrix(c(0, 0.2, 0.3, 0.8), nrow = 2, byrow = TRUE)
-    spec <- between_spec(means, sd = 1, n = 160, effect = effect, seed = 101)
-    reference <- direct_superpower_exact("2b*2b", n = 40, means = means, sd = 1, effect = effect, alpha = 0.05, seed = 101)
+    means <- matrix(c(10, 10, 10, 13), nrow = 2, byrow = TRUE)
+    sds <- matrix(c(5, 6, 6, 7), nrow = 2, byrow = TRUE)
+    spec <- between_spec(means, sd = sds, n = 200, effect = "interaction", seed = 102, method = method)
+    reference <- direct_superpower_exact(
+      "2b*2b", n = 50, means = means, sd = as.vector(t(sds)),
+      effect = "interaction", alpha = 0.05, seed = 102
+    )
     expect_power_near(engine_power(spec), reference$power)
   })
 }
-
-test_that("2x2 between with unequal cell SDs: power matches Superpower::ANOVA_exact (analytic)", {
-  skip_unless_full_validation()
-  skip_if_not_installed("Superpower")
-  means <- matrix(c(10, 10, 10, 13), nrow = 2, byrow = TRUE)
-  sds <- matrix(c(5, 6, 6, 7), nrow = 2, byrow = TRUE)
-  spec <- between_spec(means, sd = sds, n = 200, effect = "interaction", seed = 102)
-  reference <- direct_superpower_exact(
-    "2b*2b", n = 50, means = means, sd = as.vector(t(sds)),
-    effect = "interaction", alpha = 0.05, seed = 102
-  )
-  expect_power_near(engine_power(spec), reference$power)
-})
 
 # 2. Published examples ------------------------------------------------------------
 
@@ -105,8 +112,11 @@ test_that("2x2 between: matches the Superpower paper example (published)", {
 # Sommet et al.'s (2023) required N for a 2x2 between-participants
 # interaction: N = 4 * (z_alpha + z_beta)^2 / d^2, rounded up, with the z
 # values rounded to two decimals as they print them (1.96 and 0.84 at alpha
-# .05 and power .80) and d = |interaction contrast| / (2 * SD), i.e. half
-# the difference between the two simple effects in SD units. This
+# .05 and power .80). They define the interaction effect as
+# d = (d_simple1 - d_simple2) / 2 (Sommet et al., 2023, Equation 5, section
+# "Calculating the required sample size to detect an interaction effect of
+# a typical size"), applied with d = 0.175 in their Equation 8 (N = 1,024).
+# With SD 1 this is |interaction contrast| / (2 * SD). This
 # reproduces their Table 2 Ns exactly (256 and 1024 at power .80; 343 and
 # 424 for the reversed interaction at .90 and .95). The 8-decimal rounding
 # only stops floating-point noise from pushing an exact integer up by one.
