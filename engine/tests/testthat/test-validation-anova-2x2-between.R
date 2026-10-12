@@ -38,7 +38,7 @@ for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
     skip_if_not_installed("Superpower")
     means <- matrix(c(0, 0.2, 0.3, 0.8), nrow = 2, byrow = TRUE)
     spec <- between_spec(means, sd = 1, n = 160, effect = effect, seed = 101)
-    reference <- direct_superpower_exact("2b*2b", n = 40, means = means, sd = 1, effect = effect, alpha = 0.05)
+    reference <- direct_superpower_exact("2b*2b", n = 40, means = means, sd = 1, effect = effect, alpha = 0.05, seed = 101)
     expect_power_near(engine_power(spec), reference$power)
   })
 }
@@ -51,7 +51,7 @@ test_that("2x2 between with unequal cell SDs: power matches Superpower::ANOVA_ex
   spec <- between_spec(means, sd = sds, n = 200, effect = "interaction", seed = 102)
   reference <- direct_superpower_exact(
     "2b*2b", n = 50, means = means, sd = as.vector(t(sds)),
-    effect = "interaction", alpha = 0.05
+    effect = "interaction", alpha = 0.05, seed = 102
   )
   expect_power_near(engine_power(spec), reference$power)
 })

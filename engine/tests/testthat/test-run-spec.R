@@ -231,3 +231,16 @@ test_that("invalid specs are rejected before anything runs", {
   spec <- small_run_spec("anova_2x2_between", goal = list(type = "power", n = 81))
   expect_error(run_spec(spec), class = "powerkit_spec_error")
 })
+
+test_that("exact results are reproducible bit for bit and leave the RNG alone", {
+  spec <- small_run_spec("anova_2x2_between", goal = list(type = "power", n = 160))
+  set.seed(99)
+  before <- .Random.seed
+  first <- run_spec(spec)$curve$power
+  expect_identical(.Random.seed, before)
+  expect_identical(run_spec(spec)$curve$power, first)
+  design <- Superpower::ANOVA_design("2b*2b", n = 40, mu = c(10, 10, 10, 13), sd = 6, plot = FALSE)
+  set.seed(7)
+  direct <- Superpower::ANOVA_exact(design, alpha_level = 0.05, verbose = FALSE)
+  expect_identical(first, direct$main_results["a:b", "power"] / 100)
+})

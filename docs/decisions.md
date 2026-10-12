@@ -222,3 +222,14 @@ default (exact) path with a direct `ANOVA_exact()` call, so they now check
 translation rather than simulation accuracy; the Type I tests are exact
 (power = alpha). Simulation accuracy against the exact answer is no longer
 tested directly; only its agreement with a direct `ANOVA_power()` call is.
+
+**Exact results are reproducible bit for bit.** `ANOVA_exact()` builds its
+data set with the random-number generator (`mvrnorm(empirical = TRUE)`), so
+two calls on the same design differ around the 15th decimal place (about
+1e-15). A validation run caught this: an analytic test comparing powerkit's
+exact power with a direct `ANOVA_exact()` call failed because the zero-width
+exact interval could not absorb it. Rather than add a tolerance the source
+doesn't explain, powerkit runs `ANOVA_exact()` under the run's seed
+(restoring the caller's RNG state afterwards), so an exact result is
+identical every time for a given seed, and the analytic tests' direct calls
+use the same seed, so the comparison is exact equality.

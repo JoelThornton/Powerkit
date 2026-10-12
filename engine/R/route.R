@@ -11,12 +11,12 @@
 #   sensitivity(n, power)           -> smallest detectable effect;
 #   check_run()         -> data frame: parameter, specified, recovered, ok.
 
-route_spec <- function(spec) {
+route_spec <- function(spec, seed = NULL) {
   key <- paste(spec$design, spec$template, sep = "/")
   switch(
     key,
     "factorial_anova/2x2_between" = ,
-    "factorial_anova/2x2_mixed" = superpower_backend(spec),
+    "factorial_anova/2x2_mixed" = superpower_backend(spec, seed),
     abort_run(
       sprintf(
         "Power analysis for this design (%s, template '%s') isn't available yet; it is planned for a later version of powerkit.",
@@ -76,4 +76,23 @@ call_backend <- function(backend, expr) {
       ))
     }
   )
+}
+
+# Evaluate `expr` with the random-number generator seeded, then restore the
+# caller's RNG state. With seed = NULL, just evaluate `expr`.
+with_seed <- function(seed, expr) {
+  if (is.null(seed)) {
+    return(expr)
+  }
+  env <- globalenv()
+  old <- if (exists(".Random.seed", envir = env, inherits = FALSE)) get(".Random.seed", envir = env)
+  on.exit(
+    if (is.null(old)) {
+      rm(".Random.seed", envir = env)
+    } else {
+      assign(".Random.seed", old, envir = env)
+    }
+  )
+  set.seed(seed)
+  expr
 }

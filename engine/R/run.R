@@ -43,7 +43,8 @@
 #' }
 run_spec <- function(spec) {
   spec <- validate_spec(spec)
-  backend <- route_spec(spec)
+  seed <- spec$options$seed %||% sample.int(2147483646L, 1)
+  backend <- route_spec(spec, seed)
   method <- spec$options$method %||% backend$default_method
   if (!method %in% backend$methods) {
     abort_run(sprintf(
@@ -53,7 +54,6 @@ run_spec <- function(spec) {
   }
   simulating <- method == "simulation"
   nrep <- if (simulating) spec$options$nrep %||% 1000L else NA_integer_
-  seed <- spec$options$seed %||% sample.int(2147483646L, 1)
   cores <- powerkit_cores()
   started <- Sys.time()
 

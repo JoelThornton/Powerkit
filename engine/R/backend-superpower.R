@@ -7,7 +7,7 @@
 # for mixed designs it gives a different answer from G*Power, ANOVA_exact()
 # and simulation (see docs/decisions.md).
 
-superpower_backend <- function(spec) {
+superpower_backend <- function(spec, seed = NULL) {
   inputs <- superpower_inputs(spec)
   # ANOVA_exact() needs more participants per cell than there are cells.
   exact_min_n <- 5 * inputs$groups
@@ -28,7 +28,7 @@ superpower_backend <- function(spec) {
         exact_min_n, if (inputs$groups == 4) "cell" else "group", n
       ))
     }
-    superpower_exact(design_at(n, mu), inputs)
+    superpower_exact(design_at(n, mu), inputs, seed)
   }
   list(
     name = "Superpower",
@@ -46,7 +46,7 @@ superpower_backend <- function(spec) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
-      superpower_check_run(spec, design_at(50 * inputs$groups))
+      superpower_check_run(spec, design_at(50 * inputs$groups), seed)
     }
   )
 }
@@ -93,11 +93,14 @@ superpower_simulate <- function(design, inputs, nrep, seed, cores) {
 }
 
 # Exact power for the target effect, and Superpower's Cohen's f for it.
-superpower_exact <- function(design, inputs) {
-  result <- call_backend(
-    "Superpower",
+# ANOVA_exact() builds its data set with the random-number generator, so
+# repeated calls differ around the 15th decimal place; running it under the
+# run's seed makes exact results reproducible bit for bit.
+superpower_exact <- function(design, inputs, seed = NULL) {
+  result <- call_backend("Superpower", with_seed(
+    seed,
     Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, verbose = FALSE)
-  )
+  ))
   row <- result$main_results[inputs$effect, ]
   list(power = row$power / 100, cohen_f = row$cohen_f)
 }
@@ -170,8 +173,11 @@ anova_effect_in_units <- function(spec, means) {
 # from the data set Superpower builds with exactly those properties. Cells
 # are matched by Superpower's factor labels, so a cell put in the wrong
 # place by the translation shows up as a mismatch.
-superpower_check_run <- function(spec, design) {
-  data <- call_backend("Superpower", Superpower::ANOVA_exact(design, verbose = FALSE))$dataframe
+superpower_check_run <- function(spec, design, seed = NULL) {
+  data <- call_backend(
+    "Superpower",
+    with_seed(seed, Superpower::ANOVA_exact(design, verbose = FALSE))
+  )$dataframe
   level <- function(x) as.integer(sub(".*(\\d)$", "\\1", as.character(x)))
   data$i <- level(data$a)
   data$j <- level(data$b)

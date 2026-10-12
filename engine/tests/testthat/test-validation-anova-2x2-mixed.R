@@ -39,7 +39,7 @@ for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
     means <- matrix(c(0, 0.2, 0.1, 0.6), nrow = 2, byrow = TRUE)
     spec <- mixed_spec(means, sd = 1, r = 0.5, n = 80, effect = effect, seed = 101)
     reference <- direct_superpower_exact(
-      "2b*2w", n = 40, means = means, sd = 1, r = 0.5, effect = effect, alpha = 0.05
+      "2b*2w", n = 40, means = means, sd = 1, r = 0.5, effect = effect, alpha = 0.05, seed = 101
     )
     expect_power_near(engine_power(spec), reference$power)
   })
@@ -51,7 +51,8 @@ test_that("2x2 mixed with a negative repeated-measures correlation: matches ANOV
   means <- matrix(c(0, 0.2, 0.1, 0.6), nrow = 2, byrow = TRUE)
   spec <- mixed_spec(means, sd = 1, r = -0.3, n = 120, effect = "interaction", seed = 102)
   reference <- direct_superpower_exact(
-    "2b*2w", n = 60, means = means, sd = 1, r = -0.3, effect = "interaction", alpha = 0.05
+    "2b*2w", n = 60, means = means, sd = 1, r = -0.3, effect = "interaction", alpha = 0.05,
+    seed = 102
   )
   expect_power_near(engine_power(spec), reference$power)
 })
