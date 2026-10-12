@@ -96,3 +96,64 @@ Superpower book, ch. "Mixed ANOVA", section 5.1, Table 5.4; Sommet et al.
   unidentified "simsem tutorial" for moderated mediation. The modmed
   validation tests' source comments still say "simsem tutorial"; they will
   be updated when those values are transcribed.
+
+## 2026-10-12 · Phase 2: answers to open questions
+
+1. **`goal.n` is the total number of participants analysed** (confirmed).
+2. **Validation tolerance is a 99.9% Monte Carlo interval** (`level = 0.999`
+   by default in the test helpers), so that a correct engine rarely fails a
+   test by chance across the whole suite. To keep a real error of .03 in power
+   failing, nightly validation runs **10,000 replications**. At power .5, the
+   99.9% half-width is about .016 against a published or exact value (a .03
+   error fails ~99.7% of the time) and about .023 between two simulations in
+   the direct-call tests (~83%). 5,000 replications would give .033 there,
+   wider than .03. Guide section 6 is updated.
+3. **Result object.** `run_spec()` always returns one object with
+   `goal_type`; `curve` (`n`, `power`, `mcse`; one row for a fixed-n goal);
+   `n_required` (`n`, `lower`, `upper`; `NA` unless the goal is
+   `sample_size`); `sensitivity` (`NA` unless the goal is `sensitivity`);
+   `check_run`; `provenance`. Guide section 5 is updated.
+
+## 2026-10-12 · Phase 2: 2x2 designs via Superpower
+
+- **Files.** `R/route.R` (routing, parallel helpers), `R/backend-superpower.R`,
+  `R/search_n.R`, `R/run.R` (`run_spec()`). Superpower moved to Imports.
+- **Power comes from simulation**, with `Superpower::ANOVA_power()`. The
+  result is a Monte Carlo estimate with an MCSE, as for every other backend.
+- **`ANOVA_exact()` is used only for speed and checking**, never as the
+  reported power: (a) to bracket the required n before simulating, and
+  (b) for the check run. `ANOVA_exact()` needs more than 4 participants per
+  cell, so bracketing starts there; the simulated grid can still go lower.
+- **`ANOVA_exact2()` is not used.** For mixed designs it gives 90.47% power
+  where G*Power, `ANOVA_exact()` and simulation give 91.25% (vignette "More
+  ANOVA designs", within-between section); `ANOVA_exact()` agrees with
+  simulation.
+- **Parallel replications.** `nrep` is split into one seeded `ANOVA_power()`
+  call per core (`options(powerkit.cores)` or `POWERKIT_CORES`; default 1;
+  Unix only, via `parallel::mclapply`). Chunk seeds are `seed`, `seed + 1`,
+  ...; with one core a run is exactly `ANOVA_power(nsims = nrep, seed = seed)`.
+  Nightly CI uses 4 cores. Superpower takes about 20 s per 1,000
+  replications on one core.
+- **Sample-size search (`search_n()`).** Bracket n with `ANOVA_exact()`;
+  simulate 7 valid sizes spaced about 5% apart around it (seed for the i-th
+  size: `seed + 10007 * (i - 1)`); smooth with a probit regression of the
+  rejection counts on sqrt(n) (power is close to `pnorm(a + b * sqrt(n))` for
+  roughly normal test statistics), fitted to points within 20% of the
+  estimate. `n` is the smallest valid n whose fitted power reaches the
+  target; the **95%** interval runs from the smallest n whose upper limit
+  reaches it to the smallest n whose lower limit does. The grid widens
+  geometrically if the interval runs off either end. Superpower has no
+  simulation-based sample-size search of its own, so this is powerkit code.
+- **Check run.** Rather than simulating 100,000 cases (guide section 5),
+  the check reads back the data set `ANOVA_exact()` builds with exactly the
+  translated population (`empirical = TRUE`), matching cells by Superpower's
+  factor labels. Recovered cell means, SDs and (mixed) repeated-measures
+  correlations must equal the spec's to 1e-6, so any mistranslation (e.g.
+  cells in the wrong order) shows up with no Monte Carlo noise. A failed
+  check stops the run with a plain-English error.
+- **Defaults.** `nrep` 1,000; a random seed is drawn and recorded if the
+  spec has none.
+- **Not yet done.** Sensitivity goals give a plain-English "not available
+  yet" error (which parameter to scale is still undecided). Attrition is not
+  yet turned into a recruitment target in the result. Results are not cached
+  by spec hash yet.

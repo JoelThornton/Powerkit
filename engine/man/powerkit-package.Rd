@@ -6,7 +6,7 @@
 \alias{powerkit-package}
 \title{powerkit: Unified Power Analysis for Psychology Designs}
 \description{
-Reads a single design specification (JSON) for common psychology designs, checks that it describes a possible population, and routes it to validated simulation backends ('Spower', 'power4mome', 'Superpower', 'InteractionPoweR') to estimate power, required sample size and sensitivity. This development version contains the specification format and validator only.
+Reads a single design specification (JSON) for common psychology designs, checks that it describes a possible population, and routes it to validated simulation backends ('Spower', 'power4mome', 'Superpower', 'InteractionPoweR') to estimate power, required sample size and sensitivity. This development version runs 2x2 between and 2x2 mixed ANOVA designs only (via Superpower).
 }
 \author{
 \strong{Maintainer}: Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
