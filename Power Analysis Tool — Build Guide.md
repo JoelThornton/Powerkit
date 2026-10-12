@@ -1,0 +1,286 @@
+# Power Analysis Tool — Build Guide
+
+Oct 12, 2026 · @Joel Thornton
+
+One R simulation engine, three front doors (design forms, full-model builder, optional AI assistant), validated against published results before anything ships. This guide is written to hand to Claude Code.
+
+## 1. Prior-art check: the engine exists, the product doesn't
+
+The "one engine" half of the idea now exists as R code; the "one tool anyone can use" half does not. Two packages from 2025–26 change the build plan: build the front end and write-up layer on top of them rather than reimplementing the maths.
+
+| Tool | What it covers | Interface | What it lacks for your user |
+| --- | --- | --- | --- |
+| [Spower](https://cran.r-project.org/web/packages/Spower/index.html) (Chalmers, 2025; v0.6.4 June 2026) | General-purpose Monte Carlo power engine; simulation versions of all G\*Power tests, mediation, Bayesian power; a priori, sensitivity, compromise and criterion analyses with MC uncertainty | R code only | No point-and-click front end; you write your own generate/analyse functions for anything non-standard |
+| [power4mome](https://cloud.r-project.org/web/packages/power4mome/index.html) (Cheung et al., v0.2.1 March 2026) | Moderation, mediation, moderated mediation, latent mediation, via lavaan or regression; sample size search; power curves | R code only | No GUI; requires lavaan model syntax |
+| [pwrss](https://www.rdocumentation.org/packages/pwrss/versions/1.3.1/topics/power.z.mediation) | Broad analytic coverage incl. ANOVA/ANCOVA, regression, logistic, Poisson, indirect effects (Monte Carlo test) | R + Shiny apps | Formula-based; no general interaction shapes or moderated mediation |
+| [Superpower](https://journals.sagepub.com/doi/10.1177/2515245920951503) | Factorial ANOVA up to three factors, between/within/mixed | R + Shiny | ANOVA only |
+| InteractionPoweR | 2- and 3-way regression interactions with reliability | R + Shiny | Interactions only |
+| pwrSEM, semPower | SEM parameter and fit power | Shiny / R | SEM only, steep set-up |
+| PowerGPT, N-Power AI | LLM + engine for clinical trial tests | Web / prototype | Not psychology models |
+
+**Verdict:** nobody has a single interface that takes a psychology design, routes it to a validated engine, confirms the model with the user, and returns a power curve, reproducible script and APA paragraph. That is still open, but the window is narrowing: the Spower and power4mome authors are the most likely people to build it.
+
+**What this changes in the plan**
+
+- **Wrap, don't reimplement.** Use Spower and power4mome (plus Superpower and InteractionPoweR for their specialities) as engine backends. They are peer-reviewed and maintained, which cuts your validation burden and gives reviewers names they already trust.
+- **Your contribution is the layer they lack:** the unified specification, the design forms and model builder, the confirmation screen, the write-up and citation generator, and the optional AI assistant.
+- **Contact the authors early** (Phil Chalmers for Spower; Shu Fai Cheung for power4mome). Collaboration or endorsement turns your biggest competitive threat into your strongest trust signal.
+- **Your own validation still matters:** test that your specification-to-engine translation is right, by checking your results equal what each package gives when called directly, and match published examples.
+
+## 2. Coverage: what psychologists need power for
+
+So far we had covered interactions and mediation/moderation. The biggest gaps were repeated measures, mixed models with participants and stimuli, longitudinal designs, equivalence tests and non-normal outcomes. All of them fit the same engine; they differ only in the data generator and the analysis.
+
+| Family | Examples | Why it matters | Tier | Likely backend |
+| --- | --- | --- | --- | --- |
+| Basic tests | t-tests, correlations, chi-square, proportions | Baseline users and teaching; G\*Power parity | MVP | Spower |
+| Factorial ANOVA | 2x2 between, 2x2 mixed, 2x2x2, ANCOVA | Most common experimental design | MVP | Superpower / Spower |
+| Interactions in regression | Continuous × continuous, continuous × binary, three-way, reliability | Moderation hypotheses | MVP | InteractionPoweR / power4mome |
+| Mediation | Simple, parallel, serial (PROCESS 4, 6) | Very common, poorly served by G\*Power | MVP | power4mome |
+| Moderated mediation | PROCESS 7, 8, 14, 58, 59; index of moderated mediation | Your core niche | MVP (7, 14), v2 (rest) | power4mome |
+| Equivalence and smallest effect of interest | TOST, minimum-effect tests | Increasingly required by Registered Reports | v2 | Spower |
+| Generalised linear models | Logistic, Poisson, ordinal / Likert outcomes | Binary and count outcomes are common | v2 | Spower / pwrss |
+| Mixed-effects models | Crossed participants × stimuli, nested designs | Reviewers increasingly expect this for experiments with items | v2 | simr / faux |
+| Within-subject and multilevel mediation | Repeated measures mediation, 2-1-1 designs | Common in experience-sampling work | Later | Custom |
+| Longitudinal | Growth curves, cross-lagged panel, intensive longitudinal / EMA | Panel and diary studies | Later | lavaan / PowerAnalysisIL |
+| SEM and measurement | CFA, latent mediation, measurement invariance, model fit (RMSEA) | Scale development and latent models | Later | pwrSEM / semPower |
+| Bayesian design analysis | Bayes factor design analysis, posterior precision | Growing minority | Later | Spower / BFDA |
+| Sequential designs | Group-sequential, interim analyses | Efficient sampling, RR friendly | Later | rpact |
+| Precision (AIPE) | n for a target confidence interval width | Alternative to power for estimation-focused work | v2 | Custom |
+
+**Cross-cutting options every design needs:** attrition and missing data, unequal group sizes, measurement reliability, multiple-comparison correction, non-normal data, and a sensitivity analysis (smallest detectable effect at a fixed n).
+
+**Out of scope:** power for qualitative or purely computational text studies (e.g., topic models) has no agreed framework; leave it out rather than invent one.
+
+## 3. Architecture and repository layout
+
+One repository, three parts: an R package that turns a specification into a power result, a Shiny app that builds specifications, and (later) a small AI service that only suggests specifications.
+
+```
+powerkit/                      # working name
+├── engine/                    # R package
+│   ├── R/
+│   │   ├── spec.R             # read + validate a design spec (JSON schema)
+│   │   ├── route.R            # pick the backend for a spec
+│   │   ├── backends/          # one adapter per backend
+│   │   │   ├── spower.R
+│   │   │   ├── power4mome.R
+│   │   │   ├── superpower.R
+│   │   │   └── interactionpower.R
+│   │   ├── search_n.R         # sample size search + power curve
+│   │   ├── export_script.R    # write a standalone R script for the run
+│   │   └── writeup.R          # templated APA paragraph + citations
+│   ├── inst/schema/design.schema.json
+│   ├── inst/citations/refs.bib
+│   └── tests/testthat/        # validation targets (section 6)
+├── app/                       # Shiny front end
+│   ├── forms/                 # one module per design form
+│   ├── builder/               # full-model builder
+│   ├── confirm/               # diagram + equations confirmation
+│   └── results/
+├── assistant/                 # later: AI suggestion service
+├── docs/                      # this guide, decisions log
+├── renv.lock                  # pinned package versions
+└── CLAUDE.md
+```
+
+**Rules that hold across the repo**
+
+- The app never computes power itself; it only builds specs and calls the engine.
+- Every backend adapter takes a spec and returns the same result object (power, MC standard error, n, settings, versions, seed).
+- Package versions are pinned with renv; every result records them.
+- Long runs go through a job runner (future + mirai, or a queue when hosted) so the app stays responsive.
+
+## 4. The design specification
+
+The specification is the heart of the product: every front door writes one, the engine reads only this, and it is saved with every result. Design it before any other code.
+
+Example for a first-stage moderated mediation (PROCESS Model 7):
+
+```json
+{
+  "spec_version": "0.1",
+  "design": "moderated_mediation",
+  "template": "process_7",
+  "variables": {
+    "X": {"type": "binary", "label": "Condition"},
+    "W": {"type": "continuous", "label": "Group identification", "reliability": 0.85},
+    "M": {"type": "continuous", "label": "Perceived threat"},
+    "Y": {"type": "continuous", "label": "Support for policy"}
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {"X->M": 0.20, "W->M": 0.10, "XW->M": 0.15, "M->Y": 0.30, "X->Y": 0.05}
+  },
+  "effect_justification": {"type": "meta_analysis", "source": "Author (Year), k = 24", "adjustment": "halved for bias"},
+  "target_test": {"effect": "index_of_moderated_mediation", "method": "monte_carlo_ci", "alpha": 0.05},
+  "goal": {"type": "sample_size", "power": 0.90},
+  "options": {"attrition": 0.10, "nrep": 1000, "seed": 20261012}
+}
+```
+
+**Design rules**
+
+- `design` + `template` decide the backend; the rest is design-specific and validated by the JSON schema.
+- `goal.type` is one of: `sample_size`, `power` (at a fixed n), `sensitivity` (smallest detectable effect).
+- `effect_justification` is required, not optional. It feeds the write-up and stops "medium effect" defaults.
+- Labels are the user's own variable names, so the confirmation screen and write-up read naturally.
+- Version the schema from day one; old saved specs must keep running.
+
+## 5. Engine design
+
+The engine validates the spec, routes it to a backend, searches for the sample size, and returns one standard result object. Speed comes from method choices, not language.
+
+**The run, step by step**
+
+1. **Validate** the spec against the schema; check the implied population is possible (e.g., correlation matrix positive definite, R² below 1). Fail with a plain-English message.
+2. **Route** by `design` + `template` to a backend adapter.
+3. **Check run:** simulate one large data set (e.g., n = 100,000) and confirm the fitted estimates recover the specified population values. This catches translation errors before spending compute.
+4. **Search n:** coarse pass with few replications to bracket the answer, then refine near the target with more replications (power4mome's `n_region_from_power` and Spower's criterion search already do this).
+5. **Report:** power curve, required n with a confidence interval, Monte Carlo standard error, sensitivity curve, settings, seed, package versions.
+
+**Speed rules**
+
+- Use Monte Carlo confidence intervals for indirect effects inside the loop, not bootstrapping.
+- Use the fastest valid estimator: `lm`-based fits for observed-variable regression models; lavaan only where needed.
+- Run replications in parallel; cache results by a hash of the spec so identical requests are free.
+- Default precision: enough replications that the power estimate's 95% interval is about ±.03 near the target; let users increase it for final reports.
+
+**Result object (every backend returns this)**
+
+| Field | Contents |
+| --- | --- |
+| `n_required` | Smallest n reaching the target power, with an uncertainty interval |
+| `curve` | Power at each n tried, with MC standard errors |
+| `sensitivity` | Smallest detectable effect at the chosen n |
+| `check_run` | Population values versus recovered estimates |
+| `provenance` | Spec hash, seed, backend, R and package versions, run time |
+
+## 6. Validation targets
+
+Write these tests before the engine code, and treat them as your work rather than Claude's: you choose the published numbers and check they are transcribed correctly. If the engine passes them, the engine can be trusted.
+
+**Four kinds of test**
+
+1. **Analytic agreement.** For designs with exact formulas (t-tests, correlations, simple regression, ANOVA main effects), simulated power must match G\*Power or `pwr` within Monte Carlo error.
+2. **Published-example agreement.** Reproduce worked examples from the method papers and vignettes, within Monte Carlo error. The table lists where to take them from.
+3. **Direct-call agreement.** For each backend, your spec-to-backend translation must give the same answer as calling the package directly with equivalent inputs. This tests your code, not theirs.
+4. **Type I error.** With the target effect set to zero, rejection rates must sit near alpha (e.g., between .04 and .06 at α = .05 with enough replications).
+
+| Design | Benchmark source to transcribe | Test type |
+| --- | --- | --- |
+| Basic tests | G\*Power 3.1 / `pwr` outputs; Spower's G\*Power subroutines | Analytic |
+| 2x2 between and mixed ANOVA | [Superpower paper](https://journals.sagepub.com/doi/10.1177/2515245920951503) and Superpower book examples | Published, direct call |
+| 2x2 interaction shapes | Sommet et al. INTxPower examples; Giner-Sorolla interaction-power guidance | Published |
+| Regression interactions | [InteractionPoweR tutorial](https://www.psychologicalscience.org/journals/ampps/25152459231187531/) examples (analytic and simulated) | Published, direct call |
+| Simple, parallel, serial mediation | Schoemann, Boulton & Short (2017) examples; pwrss `power.z.mediation` | Published, direct call |
+| Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); simsem tutorial (Behavior Research Methods, 2023) | Published, direct call |
+| All designs | Effect set to zero | Type I error |
+
+**Tolerance rule:** a test passes if the published value lies inside the 95% Monte Carlo interval of your estimate; run validation tests at high replication counts (e.g., 5,000) on CI, nightly rather than on every commit.
+
+**Bonus:** these tests, plus a comparison table, are most of a validation paper for *Behavior Research Methods* or *AMPPS*.
+
+## 7. Front end and outputs
+
+The Shiny app is a four-screen flow: Choose → Specify → Confirm → Results. Mock these up in Claude Design first and show them to a few PhD students before building.
+
+**Screens**
+
+1. **Choose a design.** Plain-language cards ("Two conditions crossed with two conditions", "X affects Y through M", "…and that depends on W"), plus "Build my own model" and, later, "Describe it in words".
+2. **Specify.** The design's short form, with an effect-size helper that converts reported t, F, r or means/SDs, and a required justification picker (smallest effect of interest, meta-analysis, prior study with bias correction, pilot with warning).
+3. **Confirm.** The model drawn as a path diagram or interaction plot, the equations, and hypotheses in plain words using the user's labels. Nothing runs until the user confirms.
+4. **Results.** Required n, power curve, sensitivity curve, check-run table, warnings in plain English, and the export buttons.
+
+**Design finder (the simple route)**
+
+For users who don't know what design they have, the Choose screen offers a guided question tree. It is deterministic (no AI), each question is answered by clicking a plain-language card with a small picture, and every answer can be changed later.
+
+1. **What do you want to show?** A difference between groups or conditions · A relationship between variables · An effect that works through something else (mediation) · An effect that depends on something else (moderation) · Both of the last two · That an effect is absent or negligible (equivalence) · That a model or scale fits.
+2. **What is your outcome like?** A score or scale · Yes/no · A count · A rating on a few points (Likert).
+3. **Who gives the data?** Different people per condition · The same people in every condition · People respond to many items or stimuli · People nested in groups (classes, teams) · The same people over time.
+4. **Design details,** asked only when needed: number of factors and levels; whether the moderator is a category or a continuous score; for a 2x2, which picture matches your prediction (lines cross, one effect shrinks, one effect disappears).
+5. **Shortcut:** "I already know my analysis" jumps straight to a form, e.g., "PROCESS Model 7" or "2x2 mixed ANOVA".
+
+The finder ends on one design form, shows the path taken ("Different people · score outcome · effect depends on W"), and names the analysis in standard terms so users learn the vocabulary. "Not sure" is always an option and opens a short explanation with an example from psychology. The optional AI assistant can fill in the same answers from a typed description, but the tree works without it.
+
+**Exports**
+
+| Export | Contents |
+| --- | --- |
+| Methods paragraph | APA style; design, effect size and justification, alpha, target power, method and replications, n, software and versions; editable before copy |
+| R script | Standalone script that calls the backend package directly, with seed and `sessionInfo()`; runs without your tool |
+| Spec file | The JSON spec, re-uploadable to reproduce the run |
+| Citations | APA and BibTeX for the method and packages, from the curated `refs.bib` only |
+| Preregistration text | Sample size section for OSF or AsPredicted |
+| Report PDF | All of the above plus plots, with the spec hash |
+
+**UX rules:** form-first, chat optional; plain English, no error codes; every number shown with its uncertainty; runs over a few seconds show progress and can be left running.
+
+## 8. Build plan for Claude Code
+
+Work in small phases, each ending with passing tests. Give Claude Code this guide and the CLAUDE.md below, then one phase prompt at a time.
+
+| Phase | Goal | Done when |
+| --- | --- | --- |
+| 0. Set-up | Repo, renv, package skeleton, CI; email the Spower and power4mome authors | CI runs an empty test suite |
+| 1. Spec + tests | JSON schema, spec validator, all MVP validation tests written (failing) | Tests exist and fail for the right reason |
+| 2. First backend | 2x2 between and mixed via Superpower/Spower; sample size search; result object | 2x2 tests pass, Type I check passes |
+| 3. Mediation backends | Models 4, 6, 7, 14 and regression interactions via power4mome / InteractionPoweR | All MVP validation tests pass |
+| 4. Exports | Script export, write-up, citations, prereg text | Exported scripts rerun and match in a clean R session |
+| 5. Shiny app | Four-screen flow for MVP designs | Five PhD students complete a task unaided |
+| 6. v2 designs | Equivalence, GLMs, mixed-effects, AIPE | Their validation tests pass |
+| 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
+| 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
+
+**Example phase prompt (phase 2)**
+
+```
+Read docs/build-guide.md sections 4–6 and CLAUDE.md.
+Implement the 2x2 between-subjects and 2x2 mixed designs:
+1. Add their schema entries to inst/schema/design.schema.json.
+2. Write backends/superpower.R mapping a validated spec to Superpower calls.
+3. Implement search_n() returning the standard result object.
+Do not change any test expectations in tests/testthat/. If a test fails,
+report why instead of editing the test. Run the full test suite before finishing.
+```
+
+**Starter CLAUDE.md**
+
+```markdown
+# powerkit — project rules
+
+## What this is
+A unified power analysis tool for psychology. One spec format, routed to
+validated R backends (Spower, power4mome, Superpower, InteractionPoweR).
+See docs/build-guide.md.
+
+## Non-negotiables
+- Never write new statistical maths when a backend package does it; adapt the spec.
+- Never edit expected values in tests/testthat/validation-*. They are
+  transcribed from published sources by the maintainer. Report failures.
+- Every result records spec hash, seed, backend, R + package versions.
+- The Shiny app never computes power; it builds specs and calls the engine.
+- Citations come only from inst/citations/refs.bib. Never invent references.
+- Plain-English errors for users; no stack traces in the UI.
+
+## Conventions
+- R package with roxygen2 docs, testthat 3e, renv for versions.
+- tidyverse style guide; functions small and pure where possible.
+- Validation tests at high nrep are tagged and run nightly, not per commit.
+
+## Before finishing any task
+- Run devtools::test() and devtools::check(); both must pass.
+- Update NEWS.md with user-visible changes.
+```
+
+## Sources
+
+- [Spower on CRAN](https://cran.r-project.org/web/packages/Spower/index.html) and [Chalmers (2025), Behavior Research Methods](https://link.springer.com/article/10.3758/s13428-025-02787-z)
+- [power4mome on CRAN](https://cloud.r-project.org/web/packages/power4mome/index.html) and [vignette](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html)
+- [pwrss mediation function](https://www.rdocumentation.org/packages/pwrss/versions/1.3.1/topics/power.z.mediation)
+- [Superpower, Lakens & Caldwell (2021)](https://journals.sagepub.com/doi/10.1177/2515245920951503)
+- [InteractionPoweR tutorial, AMPPS](https://www.psychologicalscience.org/journals/ampps/25152459231187531/)
+- [pwrSEM, Wang & Rhemtulla (2021)](https://journals.sagepub.com/doi/10.1177/2515245920918253)
+- [PowerAnalysisIL, KU Leuven](https://ppw.kuleuven.be/okp/software/poweranalysisil/)
+- [LeBeau (2026), Simulation and Power Analysis Using R](https://iro.uiowa.edu/esploro/outputs/book/Simulation-and-Power-Analysis-Using-R/9985180977902771)
