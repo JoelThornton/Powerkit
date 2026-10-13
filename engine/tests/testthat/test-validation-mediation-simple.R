@@ -25,11 +25,10 @@ test_that("simple mediation: matches the power4mome Quick Template (published)",
   # Date read: TODO (Joel).
   #   The article's output is regenerated each time the website is rebuilt,
   #   so the reported numbers can change between versions; record both.
-  # Test method: the templates leave test_method unset, so power4mome may
-  #   have used the asymmetric p-value (Boos and Zhang) rather than the
-  #   confidence-interval test powerkit uses (power4mome switches to it for
-  #   some numbers of draws R: 39, 79, ..., 359; docs/conventions.md,
-  #   Departure 8). Open question to Shu Fai Cheung (docs/decisions.md).
+  # Test method: the templates leave test_method unset but use R = 1000
+  #   draws. Boos and Zhang's p-value rule only switches on for R in 39,
+  #   79, ..., 359 (docs/conventions.md, Departure 8), so the templates used
+  #   the confidence-interval test, the same test powerkit uses.
   a <- TODO_PUBLISHED_VALUE
   b <- TODO_PUBLISHED_VALUE
   c_prime <- TODO_PUBLISHED_VALUE

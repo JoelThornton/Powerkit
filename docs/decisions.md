@@ -911,18 +911,15 @@ tool reports about 150, and powerkit's answer will be recorded next to it.
   = .215 / .8775 = 0.2450, and c' = (r_XY - r_XM r_MY) / (1 - r_XM^2) =
   .0125 / .8775 = 0.0142 (to be checked by the maintainer before the run).
 
-**5. Open question to Shu Fai Cheung: which test did the templates use?**
-power4mome's templates leave `test_method` unset. powerkit always asks for
-the confidence-interval test (`test_method = "ci"`, decision 10 of "Phase
-3: maintainer decisions"; conventions.md, Departure 8), but with
-`test_method` unset power4mome switches to Boos and Zhang's asymmetric
-p-value when the number of draws R is one of 39, 79, ..., 359. So a
-template run with such an R may have used the p-value rule. If a
-template's R is outside that set the question doesn't arise for it. Phase
-3 found the two rules gave the same decision in each replication at R = 39
-(100 seeded replications), so any difference is expected to be small, but
-that is not confirmed for the templates. Each template-based test says
-this in a comment. Not yet asked.
+**5. The power4mome templates used the confidence-interval test
+(settled by the maintainer).** The templates leave `test_method` unset,
+and with it unset power4mome switches to Boos and Zhang's asymmetric
+p-value only when the number of draws R is one of 39, 79, ..., 359
+(conventions.md, Departure 8). The templates use R = 1000, so they used
+the confidence-interval test, the same test powerkit always asks for
+(`test_method = "ci"`, decision 10 of "Phase 3: maintainer decisions").
+Not a question for Shu Fai Cheung. Each template-based test says this in a
+comment.
 
 **6. Binary X or W: messages.** The "not available yet" messages for a
 binary X or W (`R/backend-interactionpower.R`, `R/backend-power4mome.R`)
