@@ -807,3 +807,128 @@ and must be rerun.
   script's list stops the run with "the script finds 15 tests, testthat
   reports 16"; and a run in which testthat reports 24 tests is recorded as
   an ERROR.
+
+## 2026-10-13 · Housekeeping: published ranges, rerunning skipped tests, sources
+
+No expected values changed and no `TODO_PUBLISHED_VALUE` was filled in or
+removed.
+
+**1. Published required-N ranges: an overlap rule (a powerkit judgment).**
+Some sources report the required N as a range, not a point:
+
+- the InteractionPoweR tutorial (Baranger et al., 2023) searched N in steps
+  of 250 and reports "approximately 3,750", so the true value lies in
+  3,501 to 3,750;
+- power4mome's `n_region_from_power()` reports a region (e.g. 300 to 347).
+
+`expect_n_near()` (`tests/testthat/helper-validation.R`) now takes either a
+single published N (unchanged: it must lie in powerkit's interval for the
+required N) or a range `c(lower, upper)`. A range passes if it overlaps
+powerkit's interval `[lower, upper]`; the message states both intervals
+and their overlap (or "none").
+
+- *Not an established convention.* No source or tool sets a rule for
+  comparing a simulated required-N interval with a published range; this
+  is powerkit's own judgment, recorded here so it can be revisited.
+- *Lenient.* Overlap is the weakest sensible check: two wide intervals
+  overlap easily, and a 250-wide published range can be met by an
+  interval that only touches its edge. A pass says powerkit's answer is
+  compatible with the source, not that the two agree closely.
+- *Narrow passes are reported.* A pass where powerkit's point estimate lies
+  outside the published range (so the intervals overlap only at one end)
+  gives a warning starting "Narrow pass", naming the estimate, both
+  intervals and the overlap. It shows in `devtools::test()` output and in
+  `scripts/run-validation.R`'s summary (the test is still a PASS). Such a
+  pass should be reported and looked at, not taken as agreement.
+- The required-N published tests in the interaction and PROCESS model 7
+  files now have two placeholders, `published_n` and `published_n_range`,
+  both `TODO_PUBLISHED_VALUE`: give exactly one and set the other to NULL
+  (`published_n_value()` stops otherwise).
+- Unit tests: `tests/testthat/test-expect-n-near.R` (point, overlapping
+  range, narrow overlap, non-overlapping range, malformed input).
+
+**2. `scripts/run-validation.R --retry-skipped`.** A test skipped for a
+`TODO_PUBLISHED_VALUE` is saved as SKIP and counts as done, and
+`--retry-failed` reruns only FAIL and ERROR, so after values were filled in
+those tests only reran with `--fresh`, which also discards the long
+results. `--retry-skipped` (`run_validation(retry_skipped = TRUE)`) reruns
+the tests saved as SKIP and keeps every other result; it can be combined
+with `--retry-failed`. It follows the PR #7 design: a saved result belongs
+to a test only if it records that test's name and position, so only those
+results are deleted and rerun (a result saved under another name or
+position is already ignored, and that test runs anyway). `--list` now
+shows each chunk's saved results by status and says which flag reruns
+what. One behaviour change: the retry flags now act only when tests are
+about to run. Before, `--retry-failed` combined with `--list` or
+`--summary` deleted the FAIL / ERROR results without rerunning them.
+
+Renamed tests (their saved results, all SKIP, are ignored by the name
+check and the tests rerun, which takes seconds):
+"simple mediation: matches the power4mome Quick Template (published)",
+"parallel mediation: matches a published parallel example (published)",
+"PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023)
+(published)" and "PROCESS model 14: matches Donnelly, Jorgensen &
+Rudolph (2023) (published)".
+
+**3. Sources of the published tests (comments only).**
+
+- *Simple mediation, PROCESS model 7 and model 14:* power4mome's Quick
+  Templates ("Quick Template: Simple Mediation with Observed Variables";
+  "Quick Template: Simple Moderated Mediation with Observed Variables:
+  a-Path Moderated" for model 7 and "...: b-Path Moderated" for model 14).
+  Each test has lines for the power4mome version that built the website
+  and the date the maintainer read it, since the articles' output is
+  regenerated each time the site is rebuilt.
+- *Parallel and serial mediation:* no published two-mediator example has
+  been found. power4mome's templates use three mediators (the parallel one
+  tests whether all the specific indirect effects are significant), and
+  Schoemann, Boulton & Short (2017) has no parallel or serial example.
+- *Donnelly, Jorgensen & Rudolph (2023)* (Behavior Research Methods,
+  55(7), 3892-3909; earlier called the "simsem tutorial") can't be used
+  yet: its X and W are binary; it reports no power for the index of
+  moderated mediation, only for a conditional indirect effect at a level
+  of W it doesn't state; and it has no model 14 example. Both tests stay
+  TODO; the model 7 one becomes usable when binary X and W are supported
+  (and then for a conditional indirect effect, not the index).
+- *InteractionPoweR measurement-error test:* Baranger et al. (2023) report
+  60% power with all reliabilities 0.8 but don't say whether it came from
+  `power_interaction_r2()` (analytic) or `power_interaction()`
+  (simulation, and with how many iterations), so `reference_nrep` can't
+  be set. It stays TODO.
+
+**4. Schoemann, Boulton & Short (2017): a recorded sanity check, not a
+test.** The paper's only worked example is simple mediation given as
+correlations: r_XM = .35, r_MY = .25, r_XY = .10, with 5,000 replications,
+20,000 Monte Carlo draws and a 95% confidence interval. It reports
+"approximately 150" participants for 80% power, found with a varying-N
+method, and gives no precision for that figure. With no precision there is
+nothing to test against, so it is kept as a sanity check: an independent
+tool reports about 150, and powerkit's answer will be recorded next to it.
+
+- *Schoemann et al.:* about 150 (80% power, 95% Monte Carlo CI).
+- *powerkit:* not run yet. For powerkit's spec, the correlations give the
+  standardised paths a = r_XM = .35, b = (r_MY - r_XM r_XY) / (1 - r_XM^2)
+  = .215 / .8775 = 0.2450, and c' = (r_XY - r_XM r_MY) / (1 - r_XM^2) =
+  .0125 / .8775 = 0.0142 (to be checked by the maintainer before the run).
+
+**5. Open question to Shu Fai Cheung: which test did the templates use?**
+power4mome's templates leave `test_method` unset. powerkit always asks for
+the confidence-interval test (`test_method = "ci"`, decision 10 of "Phase
+3: maintainer decisions"; conventions.md, Departure 8), but with
+`test_method` unset power4mome switches to Boos and Zhang's asymmetric
+p-value when the number of draws R is one of 39, 79, ..., 359. So a
+template run with such an R may have used the p-value rule. If a
+template's R is outside that set the question doesn't arise for it. Phase
+3 found the two rules gave the same decision in each replication at R = 39
+(100 seeded replications), so any difference is expected to be small, but
+that is not confirmed for the templates. Each template-based test says
+this in a comment. Not yet asked.
+
+**6. Binary X or W: messages.** The "not available yet" messages for a
+binary X or W (`R/backend-interactionpower.R`, `R/backend-power4mome.R`)
+no longer suggest treating the variable as continuous, which can give an
+inaccurate power estimate (InteractionPoweR's manual says
+`power_interaction_r2()` is valid only for continuous, normally
+distributed variables). The interaction message suggests a 2x2 ANOVA only
+when both X and W are binary, the only case it fits. A proposed phase for
+binary X and W is in `docs/build-guide.md`, section 8.

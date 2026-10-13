@@ -234,6 +234,31 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
+**Proposed next phase (not started, no code yet): binary X and W**
+
+Section 2 lists continuous × binary interactions as MVP, and the example PROCESS model 7 spec in section 4 has a binary X, but the engine refuses a binary X or W in regression interactions and mediation designs ("not available yet"; treating the variable as continuous may give an inaccurate power estimate). This phase would add them, in three steps, each reviewed before the next.
+
+*a. Check backend support first (findings from the package sources, October 2026).*
+
+- **InteractionPoweR 0.2.4** makes a variable binary with `k.x1 = 2` / `k.x2 = 2` in `power_interaction()` and `generate_interaction()` (simulation only). It draws a normal variable, splits it into two equal groups and standardises the result; with `adjust.correlations = TRUE` (the default) the input correlations are adjusted so the observed binary data have the specified correlations. The group split is fixed at 50/50 (no option for unequal groups). The analytic `power_interaction_r2()` is documented as valid only for continuous, normally distributed variables, so it can't give the power for a binary X or W; powerkit uses it only to bracket N before simulating, and that use would need checking for binary variables.
+- **power4mome 0.2.1** can generate a binary exogenous variable through `x_fun` with `rbinary_rs()` (passed through `power4test()`): 0/1 data with probability `p1` of a 1, rescaled to population mean 0 and SD 1. Its documentation requires a variable generated this way to have zero covariance with the other exogenous variables, so a binary X correlated with W is not supported this way. `x_fun` on an endogenous variable sets its error term, so a binary M or Y is not supported. manymome's conditional effects accept a dichotomous moderator. Questions for Shu Fai Cheung before building:
+  1. Is `x_fun` with `rbinary_rs()` the intended way to model a binary X or W in mediation and moderated mediation power analyses?
+  2. With `rbinary_rs()` rescaling X to SD 1, is a path in `pop_es` from a binary X meant as a fully standardised effect? Is the analysis then fitted on the rescaled values rather than 0/1, and does that matter for the tests of indirect effects and the index of moderated mediation?
+  3. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
+  4. Has power4mome's Monte Carlo CI test been checked with a binary X?
+
+*b. A decision for the maintainer: what a "standardised path" means for a 0/1 variable.* Either fully standardised (X scaled to SD 1, as both backends' generators do), or Y standardised and X left as 0/1, so that the path reads like Cohen's d. Follow the backends' convention by default; any departure goes in `docs/conventions.md` with a test of its size, is shown on the results screen and stated in the methods paragraph. The same decision covers the group split (equal, or an allocation ratio where the backend allows one).
+
+*c. Validation targets.*
+
+- Direct-call agreement: powerkit against `power_interaction()` with `k.x1` / `k.x2`, and against `power4test()` with `x_fun = list(x = list(rbinary_rs, p1 = ...))`.
+- Type I error with a binary X or W.
+- Published: Donnelly, Jorgensen & Rudolph (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0. Its X and W are binary. It reports power for a conditional indirect effect, at a level of W it doesn't state, not for the index of moderated mediation, and has no model 14 example, so it fits only if powerkit also offers conditional indirect effects as a target and the level of W can be recovered.
+- Published, interactions: an InteractionPoweR example with a binary variable, if the tutorial or package articles have one (to find).
+- Agreement between powerkit's binary-W interaction and its 2x2 ANOVA when both X and W are binary, as a cross-check between backends.
+
+Done when the backend questions are answered, the convention is decided and recorded, and these tests pass.
+
 **Example phase prompt (phase 2)**
 
 ```

@@ -2,7 +2,7 @@
 # Backend: power4mome. Build guide section 6:
 #   1. analytic agreement: none (no closed-form power for confidence-
 #      interval tests of an indirect effect)
-#   2. published examples: Schoemann, Boulton & Short (2017)
+#   2. published examples: none found yet for two serial mediators
 #   3. direct-call agreement with power4mome
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -19,13 +19,17 @@ serial_paths <- function(a1, a2, d21, b1, b2, c_prime) {
 
 test_that("serial mediation: matches a published serial example (published)", {
   skip_unless_full_validation()
-  # Source: the build guide lists Schoemann, Boulton & Short (2017), Social
-  #   Psychological and Personality Science, 8(4), 379-386, for serial
-  #   mediation. Joel: confirm the paper (or its app documentation) has a
-  #   two-mediator serial example; if not, choose another published serial
-  #   example and update this comment. Transcribe the six standardised
-  #   paths, N, alpha, and the reported power for the full serial indirect
-  #   effect X->M1->M2->Y with its number of replications.
+  # No published two-mediator example found yet. power4mome's Quick
+  #   Templates for parallel and serial mediation use three mediators (and
+  #   the parallel one tests whether all the specific indirect effects are
+  #   significant, not one of them), and Schoemann, Boulton & Short (2017),
+  #   Social Psychological and Personality Science, 8(4), 379-386, has no
+  #   parallel or serial example (its only worked example is simple
+  #   mediation). Joel: if you find a published two-mediator serial example,
+  #   update this comment and transcribe it.
+  # To transcribe: the six standardised paths, N, alpha, and the reported
+  #   power for the full serial indirect effect X->M1->M2->Y with its
+  #   number of replications.
   a1 <- TODO_PUBLISHED_VALUE # X->M1
   a2 <- TODO_PUBLISHED_VALUE # X->M2
   d21 <- TODO_PUBLISHED_VALUE # M1->M2

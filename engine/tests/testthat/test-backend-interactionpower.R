@@ -49,5 +49,15 @@ test_that("a sample-size search brackets n with the analytic power", {
 test_that("a binary X or W isn't available yet", {
   spec <- sim_spec("regression_interaction")
   spec$variables$W <- list(type = "binary", label = "Group", levels = list("A", "B"))
-  expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
+  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
+  expect_match(conditionMessage(error), "'Group (W)' is yes/no", fixed = TRUE)
+  expect_match(conditionMessage(error), "Treating it as continuous may give an inaccurate power estimate", fixed = TRUE)
+  # A 2x2 ANOVA fits only when both X and W are binary.
+  expect_no_match(conditionMessage(error), "ANOVA", fixed = TRUE)
+
+  spec$variables$X <- list(type = "binary", label = "Condition", levels = list("Control", "Treatment"))
+  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
+  expect_match(conditionMessage(error), "'Condition (X)' and 'Group (W)' are yes/no", fixed = TRUE)
+  expect_match(conditionMessage(error), "Treating them as continuous may give an inaccurate power estimate", fixed = TRUE)
+  expect_match(conditionMessage(error), "Because both are yes/no, you can use a 2x2 ANOVA design instead.", fixed = TRUE)
 })

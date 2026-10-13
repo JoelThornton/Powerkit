@@ -33,14 +33,21 @@ interactionpower_backend <- function(spec, seed = NULL) {
 # Binary X or W would use InteractionPoweR's discretised variables (k.x1,
 # k.x2 = 2), whose correlations are adjusted so the observed binary data
 # have the specified correlations. That is a methodological choice still to
-# be made (docs/decisions.md, open questions), so it isn't offered yet.
+# be made (docs/decisions.md, open questions; docs/build-guide.md, section
+# 8), so it isn't offered yet. Treating a binary variable as continuous
+# isn't suggested: InteractionPoweR's analytic power is documented as valid
+# only for continuous, normally distributed variables. A 2x2 ANOVA is
+# suggested only when both X and W are binary.
 check_interaction_supported <- function(spec) {
   binary <- vapply(c("X", "W"), function(v) identical(spec$variables[[v]]$type, "binary"), logical(1))
   if (any(binary)) {
-    abort_not_available(sprintf(
-      "Regression interactions with a yes/no (binary) %s aren't available yet; for now, treat %s as continuous or use a 2x2 ANOVA design.",
-      quote_list(vapply(names(binary)[binary], function(v) var_label(spec, v), character(1)), "or"),
-      if (sum(binary) == 1) "it" else "them"
+    labels <- quote_list(vapply(names(binary)[binary], function(v) var_label(spec, v), character(1)), "and")
+    abort_not_available(paste0(
+      sprintf(
+        "Regression interactions with a yes/no (binary) predictor or moderator aren't available yet (%s %s yes/no). Treating %s as continuous may give an inaccurate power estimate.",
+        labels, if (sum(binary) == 1) "is" else "are", if (sum(binary) == 1) "it" else "them"
+      ),
+      if (all(binary)) " Because both are yes/no, you can use a 2x2 ANOVA design instead." else ""
     ))
   }
   invisible(TRUE)

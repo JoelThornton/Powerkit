@@ -2,7 +2,9 @@
 # Backend: power4mome. Build guide section 6:
 #   1. analytic agreement: none (no closed-form power for confidence-
 #      interval tests of an indirect effect)
-#   2. published examples: Schoemann, Boulton & Short (2017)
+#   2. published examples: power4mome's Quick Template for simple
+#      mediation. (Schoemann, Boulton & Short's (2017) example is a sanity
+#      check recorded in docs/decisions.md, not a test.)
 #   3. direct-call agreement with power4mome
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -10,18 +12,24 @@
 
 # 2. Published examples ------------------------------------------------------------
 
-test_that("simple mediation: matches Schoemann, Boulton & Short (2017) (published)", {
+test_that("simple mediation: matches the power4mome Quick Template (published)", {
   skip_unless_full_validation()
-  # Source: Schoemann, Boulton & Short (2017), "Determining power and sample
-  #   size for simple and complex mediation models", Social Psychological
-  #   and Personality Science, 8(4), 379-386: the worked simple-mediation
-  #   example (Monte Carlo confidence interval method, as in their app).
-  #   Transcribe standardised paths a (X->M), b (M->Y) and c' (X->Y), N,
-  #   alpha (or CI level), the number of Monte Carlo draws, and the
-  #   reported power for the indirect effect with its number of
-  #   replications. If the paper gives correlations rather than
-  #   standardised paths, leave these as TODO and note it: powerkit's spec
-  #   takes standardised paths.
+  # Source: power4mome article "Quick Template: Simple Mediation with
+  #   Observed Variables" (pkgdown "Articles" at
+  #   https://sfcheung.r-universe.dev/power4mome). Transcribe the population
+  #   values from its pop_es (convert the "s"/"m"/"l" labels using the
+  #   values the article states): a (X->M), b (M->Y) and c' (X->Y); n,
+  #   alpha (or CI level), nrep and R, and the reported rejection rate for
+  #   the indirect effect.
+  # power4mome version that built the website: TODO (Joel).
+  # Date read: TODO (Joel).
+  #   The article's output is regenerated each time the website is rebuilt,
+  #   so the reported numbers can change between versions; record both.
+  # Test method: the templates leave test_method unset, so power4mome may
+  #   have used the asymmetric p-value (Boos and Zhang) rather than the
+  #   confidence-interval test powerkit uses (power4mome switches to it for
+  #   some numbers of draws R: 39, 79, ..., 359; docs/conventions.md,
+  #   Departure 8). Open question to Shu Fai Cheung (docs/decisions.md).
   a <- TODO_PUBLISHED_VALUE
   b <- TODO_PUBLISHED_VALUE
   c_prime <- TODO_PUBLISHED_VALUE

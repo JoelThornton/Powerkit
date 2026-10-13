@@ -2,7 +2,7 @@
 # Backend: power4mome. Build guide section 6:
 #   1. analytic agreement: none (no closed-form power for confidence-
 #      interval tests of an indirect effect)
-#   2. published examples: Schoemann, Boulton & Short (2017)
+#   2. published examples: none found yet for two parallel mediators
 #   3. direct-call agreement with power4mome
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -10,16 +10,21 @@
 
 # 2. Published examples ------------------------------------------------------------
 
-test_that("parallel mediation: matches Schoemann, Boulton & Short (2017) (published)", {
+test_that("parallel mediation: matches a published parallel example (published)", {
   skip_unless_full_validation()
-  # Source: Schoemann, Boulton & Short (2017), Social Psychological and
-  #   Personality Science, 8(4), 379-386: the worked example with two
-  #   parallel mediators. Transcribe the standardised paths, the
-  #   correlation between the mediators' residuals (0 if none), N, alpha,
-  #   which specific indirect effect the reported power refers to, and that
-  #   power with its number of replications. If the paper gives
-  #   correlations rather than standardised paths, leave these as TODO and
-  #   note it.
+  # No published two-mediator example found yet. power4mome's Quick
+  #   Templates for parallel and serial mediation use three mediators (and
+  #   the parallel one tests whether all the specific indirect effects are
+  #   significant, not one of them), and Schoemann, Boulton & Short (2017),
+  #   Social Psychological and Personality Science, 8(4), 379-386, has no
+  #   parallel or serial example (its only worked example is simple
+  #   mediation). Joel: if you find a published two-mediator parallel example,
+  #   update this comment and transcribe it.
+  # To transcribe: the standardised paths, the correlation between the
+  #   mediators' residuals (0 if none), N, alpha, which specific indirect
+  #   effect the reported power refers to, and that power with its number
+  #   of replications. If the source gives correlations rather than
+  #   standardised paths, leave these as TODO and note it.
   a1 <- TODO_PUBLISHED_VALUE # X->M1
   a2 <- TODO_PUBLISHED_VALUE # X->M2
   b1 <- TODO_PUBLISHED_VALUE # M1->Y

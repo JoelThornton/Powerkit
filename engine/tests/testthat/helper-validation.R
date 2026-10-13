@@ -206,7 +206,24 @@ expect_power_agrees <- function(estimate, reference, level = 0.999) {
 
 # A published required n must lie inside powerkit's uncertainty interval
 # for the required n.
+#
+# Some sources report the required n as a range rather than a point: a
+# search in steps (the InteractionPoweR tutorial searched N in steps of 250,
+# so "approximately 3,750" means 3,501 to 3,750) or power4mome's
+# n_region_from_power() (e.g. 300 to 347). Give such a range as
+# c(lower, upper); the test then passes if it overlaps powerkit's interval.
+# Overlap is a lenient criterion and a powerkit judgment, not an established
+# convention (docs/decisions.md). A pass where powerkit's estimate lies
+# outside the published range is a narrow pass: it is reported with a
+# warning, so it shows in the test output and the validation summary.
 expect_n_near <- function(n_required, published_n) {
+  published_n <- as.numeric(published_n)
+  if (length(published_n) == 2) {
+    return(expect_n_range_overlaps(n_required, published_n))
+  }
+  if (length(published_n) != 1 || is.na(published_n)) {
+    stop("published_n must be a single n or a range c(lower, upper).", call. = FALSE)
+  }
   expect(
     published_n >= n_required$lower && published_n <= n_required$upper,
     sprintf(
@@ -215,6 +232,43 @@ expect_n_near <- function(n_required, published_n) {
     )
   )
   invisible(n_required)
+}
+
+expect_n_range_overlaps <- function(n_required, published_range) {
+  if (anyNA(published_range) || published_range[1] > published_range[2]) {
+    stop("A published n range must be c(lower, upper) with lower <= upper.", call. = FALSE)
+  }
+  from <- max(published_range[1], n_required$lower)
+  to <- min(published_range[2], n_required$upper)
+  overlaps <- from <= to
+  expect(
+    overlaps,
+    sprintf(
+      "Published n range [%s, %s]; must overlap powerkit's interval [%s, %s] (estimate %s). Overlap: %s.",
+      published_range[1], published_range[2], n_required$lower, n_required$upper,
+      n_required$n, if (overlaps) sprintf("[%s, %s]", from, to) else "none"
+    )
+  )
+  outside <- n_required$n < published_range[1] || n_required$n > published_range[2]
+  if (overlaps && outside) {
+    warning(sprintf(
+      "Narrow pass: powerkit's estimate n = %s lies outside the published range [%s, %s]; the intervals overlap only in [%s, %s] (powerkit's interval [%s, %s]).",
+      n_required$n, published_range[1], published_range[2], from, to,
+      n_required$lower, n_required$upper
+    ), call. = FALSE)
+  }
+  invisible(n_required)
+}
+
+# Required-n tests take the published value as either a single n
+# (`published_n`) or a range (`published_n_range`, c(lower, upper)); the
+# other is NULL. Returns the one given.
+published_n_value <- function(published_n, published_n_range) {
+  given <- c(!is.null(published_n), !is.null(published_n_range))
+  if (sum(given) != 1) {
+    stop("Give exactly one of published_n and published_n_range; set the other to NULL.", call. = FALSE)
+  }
+  if (given[1]) published_n else published_n_range
 }
 
 # Rejection rate with no true effect must sit near alpha: between 0.8 and

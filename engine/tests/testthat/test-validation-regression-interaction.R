@@ -92,6 +92,12 @@ test_that("interaction with measurement error: matches the InteractionPoweR tuto
   # Source: Baranger et al. (2023), as above: the tutorial's example that
   #   adds reliability (rel.x1, rel.x2, rel.y < 1). Transcribe as above,
   #   plus the three reliabilities.
+  # Why this stays TODO: the tutorial reports 60% power with all three
+  #   reliabilities at 0.8, but doesn't say whether that figure came from
+  #   the analytic power_interaction_r2() or the simulated
+  #   power_interaction() (and, if simulated, with how many iterations). So
+  #   reference_nrep can't be set: NULL (analytic) and a replication count
+  #   give different tolerances.
   r_x_y <- TODO_PUBLISHED_VALUE
   r_w_y <- TODO_PUBLISHED_VALUE
   r_xw_y <- TODO_PUBLISHED_VALUE
@@ -118,20 +124,28 @@ test_that("interaction: required N matches the InteractionPoweR tutorial (publis
   #   reports as needed for its target power (e.g. read from its power
   #   curve or sample-size search). Transcribe the correlations, alpha,
   #   target power and that N.
+  # Published N as a point or a range: give exactly one of published_n and
+  #   published_n_range, and set the other to NULL. The tutorial searched N
+  #   in steps of 250 and reports "approximately 3,750", so the true value
+  #   lies somewhere in 3,501 to 3,750: that is a range, c(lower, upper),
+  #   not a point. A range passes if it overlaps powerkit's interval for
+  #   the required N (a lenient criterion; docs/decisions.md), and a narrow
+  #   overlap is reported with a warning.
   r_x_y <- TODO_PUBLISHED_VALUE
   r_w_y <- TODO_PUBLISHED_VALUE
   r_xw_y <- TODO_PUBLISHED_VALUE
   r_x_w <- TODO_PUBLISHED_VALUE
   alpha <- TODO_PUBLISHED_VALUE
   target_power <- TODO_PUBLISHED_VALUE
-  published_n <- TODO_PUBLISHED_VALUE
-  skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, alpha, target_power, published_n)
+  published_n <- TODO_PUBLISHED_VALUE # a single N, or NULL if a range is given
+  published_n_range <- TODO_PUBLISHED_VALUE # c(lower, upper), or NULL if a single N is given
+  skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, alpha, target_power, published_n, published_n_range)
 
   spec <- interaction_spec(
     r_x_y, r_w_y, r_xw_y, r_x_w, seed = 203, alpha = alpha,
     target_power = target_power
   )
-  expect_n_near(engine_n_required(spec), published_n)
+  expect_n_near(engine_n_required(spec), published_n_value(published_n, published_n_range))
 })
 
 # 3. Direct-call agreement -----------------------------------------------------------
