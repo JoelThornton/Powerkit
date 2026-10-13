@@ -33,7 +33,8 @@ This is a specification for the app (build phase 5). It is not built yet.
   analysis is contested, the finder asks the user which analysis they plan,
   explains the trade-off, and the write-up states the choice (see Decisions,
   P1). Paths whose routing has not been decided yet are marked **Open
-  question** and route nowhere until the maintainer decides.
+  question** and route nowhere until the maintainer decides. There are none
+  at present.
 
 ## Status labels
 
@@ -376,37 +377,40 @@ got both.*
 
 | Factor A | Factor B | Next |
 | --- | --- | --- |
-| Different people | Different people | F4a |
-| Different people | Everyone got both | F4b |
-| Everyone got both | Different people | F4b, with the factors swapped so that A is the between factor (the spec's convention) |
+| Different people | Different people | F4a, then (equal groups) `2x2_between` |
+| Different people | Everyone got both | F4a, then (equal groups) F4b |
+| Everyone got both | Different people | As the row above, with the factors swapped so that A is the between factor (the spec's convention) |
 | Everyone got both | Everyone got both | **Coming later (not in spec):** *2 x 2 within-participants ANOVA* |
 
-### F4a. Did you assign people to both factors yourself, with equal group sizes? *(both factors between; decision D5)*
+### F4a. Will the groups be equal in size? *(at least one factor between; decisions D5, N1 and N2)*
 
-Help line: *For example, randomly assigning each person to one of four
-combinations, with the same number in each.*
+Help line: *What matters is whether every group (every combination, if both
+factors are between participants) will have the same number of people, not
+whether you assigned the factor or measured it.*
 
-**Yes: I assign both factors, with equal group sizes** *(picture: a 2 x 2
-grid with equal dots)*
-Not sure? Both factors are things you manipulate and you plan equal numbers
-in every combination. Example: *praise vs none, crossed with easy vs hard,
-randomised with 30 people per combination.*
-→ `factorial_anova / 2x2_between`, **Available**. Analysis name: *2 x 2
-between-participants ANOVA.* Then F5.
+**Yes: the same number in every group** *(picture: a grid with equal dots)*
+Not sure? Choose this if you assign people to the groups with equal numbers,
+or recruit a fixed, equal number into each group. Examples: *praise vs none,
+crossed with easy vs hard, randomised with 30 people per combination;
+recruiting exactly 50 patients and 50 controls, each tested in two
+conditions.*
+→ Both factors between: `factorial_anova / 2x2_between`, **Available**.
+Analysis name: *2 x 2 between-participants ANOVA.* Then F5.
+→ One factor within: F4b.
 
-**No: at least one factor is measured, or the groups will be unequal**
-*(picture: a 2 x 2 grid with unequal dots)*
-Not sure? One factor is a characteristic you record rather than assign, or
-you expect unequal numbers. Example: *a manipulation crossed with gender;
-smokers vs non-smokers crossed with a manipulation.*
-→ F5, then:
-- the interaction: `regression_interaction / two_way` with X and W both
-  binary, **Coming later (spec ready).** Analysis name: *moderated regression
-  (binary x binary interaction).* F6 is not asked, because the regression
-  form takes correlations rather than cell means.
-- a main effect: **Open question N2.**
+**No: the groups will differ in size** *(picture: a grid with unequal dots)*
+Not sure? Choose this if you expect different numbers in the groups, for
+example because you record a characteristic of whoever takes part rather than
+recruiting fixed numbers. Examples: *a manipulation crossed with the gender
+of whoever signs up; more patients than controls.*
+→ **Coming later (not in spec):** *2 x 2 between-participants ANOVA with
+unequal group sizes* or *2 x 2 mixed ANOVA with unequal group sizes*, for any
+effect (main effect or interaction). The card says: *"powerkit doesn't cover
+unequal group sizes in 2 x 2 designs yet."* For a main effect, powerkit does
+not offer a simpler test that ignores the other factor (such as an
+independent-samples t-test) as a stand-in (decision N2).
 
-### F4b. Is the within-participants factor a "before and after" measurement? *(one factor between, one within)*
+### F4b. Is the within-participants factor a "before and after" measurement? *(one factor between, one within, equal groups)*
 
 **Yes: before and after** *(picture: two dots on a timeline)*
 Not sure? Everyone is measured before and after something, and the groups
@@ -419,8 +423,8 @@ conditions)*
 Not sure? Example: *each person rates faces with and without time pressure;
 the groups are two training conditions.*
 → `factorial_anova / 2x2_mixed`, **Available**. Analysis name: *2 x 2 mixed
-ANOVA.* Then F5. See also **Open question N1** (measured or unequal
-between-participants groups).
+ANOVA.* Then F5. (Only reached with equal group sizes; see F4a and decision
+N1.)
 
 ### PP1. Were people randomly assigned to the groups? *(pre–post with two groups; decision D2)*
 
@@ -595,8 +599,7 @@ but only for children, not adults.*
 
 | X (MO1) | W (MO2) | Who gives the data (Q3) | Leads to | Status | Analysis name shown |
 | --- | --- | --- | --- | --- | --- |
-| Two conditions you assigned | Two conditions you assigned | P1, or one factor within | F4 (and F4a: equal group sizes?), with `effect = interaction`: `factorial_anova / 2x2_between` or `2x2_mixed`; unequal groups go to `regression_interaction / two_way` (decision D5) | **Available** (2 x 2 ANOVA); **Coming later (spec ready)** (regression) | *2 x 2 ANOVA interaction*, or *moderated regression (binary x binary interaction)* |
-| Two levels, at least one an existing group | Two groups (at least one existing) | P1 | `regression_interaction / two_way`, X and W both binary (decision D5) | **Coming later (spec ready)** | *moderated regression (binary x binary interaction)* |
+| Two levels (assigned or existing) | Two groups or conditions (assigned or existing) | P1, or one factor within | F4, then F4a, with `effect = interaction`. Equal group sizes: `factorial_anova / 2x2_between` or `2x2_mixed` (F4b). Unequal group sizes: coming later (decisions D5 and N1) | **Available** (equal groups); **Coming later (not in spec)** (unequal groups) | *2 x 2 ANOVA interaction*, or *2 x 2 ANOVA with unequal group sizes* |
 | Two levels | A score | P1 | `regression_interaction / two_way` (X binary, W continuous) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
 | A score | Two groups | P1 | `regression_interaction / two_way` (X continuous, W binary) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
 | A score | A score | P1 | `regression_interaction / two_way` (both continuous) | **Coming later (spec ready)** | *moderated regression (continuous x continuous interaction)* |
@@ -783,11 +786,12 @@ is to generalise beyond the stimuli used.
 approximation is a legitimate option to add later, clearly labelled as an
 approximation.
 
-**D5. Two binary factors (F4a, moderation table).** Route to the 2 x 2 ANOVA
-only if both factors are assigned by the researcher with equal group sizes.
-If either factor is measured (e.g. gender) or the groups are unequal, route to
-the regression interaction (`regression_interaction / two_way`, X and W
-binary).
+**D5. Two binary factors (F4a, F4b, moderation table), as refined by N1.**
+Route on whether the group sizes are equal, not on whether a factor is
+assigned or measured. Equal groups (assigned, or recruited in fixed equal
+numbers) go to the 2 x 2 between or 2 x 2 mixed template. Unequal groups are
+"coming later". (This replaces the earlier rule, which sent a measured factor
+or unequal groups to the regression interaction template.)
 
 **D6. Interaction shape pictures (F6).** The picture records the expected
 shape only; no cell means are pre-filled. The form warns (does not block) if
@@ -807,27 +811,32 @@ be preregistered. Both are "coming later".
 **D9. Mediation (ME1).** One neutral sentence when X is measured rather than
 manipulated, and a note, always shown, that the M → Y path is not randomised.
 
+**N1. Group sizes, not assignment, decide the 2 x 2 route (F4a, F4b,
+moderation table).** This refines D5 and applies to both 2 x 2 templates.
+Equal groups, whether assigned or recruited in fixed equal numbers, go to
+`factorial_anova / 2x2_between` or `factorial_anova / 2x2_mixed`. Unequal
+groups go to "coming later".
+
+*To check: whether Superpower supports unequal group sizes, in mixed designs
+in particular.* What the installed source (Superpower 0.2.4.1) shows so far:
+`ANOVA_design()` accepts a vector `n` with one size per between-participants
+group (e.g. `n = c(20, 30)` for `"2b*2w"`, or one per cell for `"2b*2b"`)
+without an error, and stores it in the design object (`n = n_vec`). But it
+then sets `n <- max(n)` and builds the design's data with that one size per
+cell (120 rows for `n = c(20, 30)` in `"2b*2w"`, i.e. 30 per cell). Whether
+`ANOVA_exact()`, `ANOVA_exact2()` and `ANOVA_power()` use the unequal sizes,
+or silently use the largest, has not been checked. Until it is, unequal
+groups stay "coming later".
+
+**N2. Main effects with unequal groups (F4a).** A main-effect hypothesis in a
+2 x 2 design with unequal groups is "coming later". The finder does not route
+it to an approximation, such as an independent-samples t-test that ignores
+the other factor.
+
+*To check: whether InteractionPoweR's simulation reports power for the main
+effects as well as the interaction* (relevant if it is used for unequal
+groups later). InteractionPoweR is not installed in the build environment, so
+this has not been checked.
+
 **Accepted:** the "One of several categories" outcome option (O3), added to
 the guide's list so that the chi-square test of independence can be reached.
-
-## Open questions for the maintainer
-
-Raised while applying the decisions above. These paths route nowhere until
-decided.
-
-**N1. 2 x 2 mixed designs with a measured or unequal between-participants
-factor (F4b).** D5 covers two between-participants factors. When one factor
-is within participants, the regression interaction template can't be used
-(it has no within-participants factor), and the 2 x 2 mixed template assumes
-equal group sizes. Should a measured but equal-sized between factor (e.g.
-recruiting 50 patients and 50 controls, each measured in two conditions) go
-to the 2 x 2 mixed ANOVA? And what should happen when the groups are unequal:
-"coming later", or the 2 x 2 mixed ANOVA with a note?
-
-**N2. Main effects in 2 x 2 designs routed to regression (F4a).** Under D5, a
-2 x 2 with a measured factor or unequal groups goes to the regression
-interaction template, which tests only the interaction. If the user's
-hypothesis is a main effect (e.g. *praise improves persistence, averaged over
-gender*), where should it go: "coming later" (a regression main-effect
-template), or the 2 x 2 ANOVA with a note about the measured factor or
-unequal groups?

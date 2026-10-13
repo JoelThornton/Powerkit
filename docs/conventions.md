@@ -23,6 +23,9 @@ it.
     about G*Power, not checked in G*Power itself.
   - **[SP-intro]** Superpower vignette "Introduction to Superpower"
     (`vignettes/intro_to_superpower.Rmd`).
+  - **[SP-book]** The Superpower book, chapter "Mixed
+    ANOVA", section 5.1, footnote, as reported by the maintainer. Not read
+    directly here (no web access).
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
 - G*Power's manual, and the pwrss, InteractionPoweR, power4mome and Spower
   documentation, were not available when this file was written (no network
@@ -72,13 +75,13 @@ it.
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f, with the correlation among repeated measures entered as a separate field [SP-vig] | **Effect size specification (Options button).** In the setting used for the vignette's reproductions, the correlation is entered separately. With "As in SPSS" the correlation field disappears and is folded into f; in the vignette's within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. The name of the default option, and whether it is the default, is to check. |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (Joel to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
 | Superpower | `ANOVA_exact()`, `ANOVA_exact2()`, `ANOVA_power()` as above. The vignette's own within-between example calls `ANOVA_exact2()` [SP-vig]. | As above, plus a correlation `r` between repeated measures [SP-src] | As above |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered | | |
 | power4mome | Not covered: to check | | |
 | Spower | to check | to check | to check |
-| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Matches G*Power's within-between interaction with the correlation entered separately (not "As in SPSS"); see Departures. `goal.n` is the total number analysed and must be even. |
+| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Not departures, but worth stating"). |
 
 ## Regression interaction (two-way)
 
@@ -134,10 +137,22 @@ methods paragraph, and covered by a test showing the size of the difference
   `ANOVA_exact2()` for the within-between example and describes it as giving
   "a more accurate estimate of power" over a wider range of sample sizes
   [SP-intro, SP-vig].
-- **powerkit:** uses `ANOVA_exact()`, which matches **G*Power's "ANOVA:
-  Repeated measures, within-between interaction" with the correlation among
-  repeated measures entered separately (not the "As in SPSS" option)**, and
-  matches simulation.
+- **powerkit:** uses `ANOVA_exact()`, which reproduces the values [SP-vig]
+  reports from G*Power's "ANOVA: Repeated measures, within-between
+  interaction" (table below), and matches simulation.
+- **Which G*Power setting gave those values: to check (Joel to verify in
+  G*Power).** The two Superpower sources disagree, and neither is claimed
+  here until it is verified:
+  - [SP-vig] does not name the setting for the within-between example; its
+    settings are shown only in a screenshot (`screenshots/gpower_5.png`,
+    not in the installed package). For the preceding one-factor
+    within-participants example, it presents "As in SPSS" as an extra step
+    taken after the settings it used ("We click the 'Options' button, and
+    check the radio button next to 'As in SPSS'"), which suggests those
+    settings were not "As in SPSS". An earlier version of this file
+    extended that to the within-between example; that was an inference, not
+    something the vignette states.
+  - [SP-book] says G*Power was set to "As in SPSS" for the 91.25% example.
 - **Size** (2b*2w, means −0.25, 0.25, 0.25, −0.25, SD 1, n = 23 per group,
   α = .05; run with Superpower 0.2.4.1):
 
@@ -178,3 +193,11 @@ methods paragraph, and covered by a test showing the size of the difference
 - **ANCOVA:** Superpower has `ANCOVA_analytic()` and `power_oneway_ancova()`
   [SP-src]. These may serve the ANCOVA route for pre–post designs (decision
   D2 in `docs/design-finder.md`); whether they match G*Power is to check.
+- **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
+  templates assume equal group sizes; unequal groups are "coming later"
+  (decisions D5 and N1 in `docs/design-finder.md`). Whether Superpower
+  supports unequal sizes is **to check**: `ANOVA_design()` accepts a vector
+  `n` (e.g. `n = c(20, 30)` for `"2b*2w"`) and stores it, but builds the
+  design's data with `max(n)` per cell [SP-src]; whether `ANOVA_exact()`,
+  `ANOVA_exact2()` and `ANOVA_power()` then use the unequal sizes has not been
+  checked.
