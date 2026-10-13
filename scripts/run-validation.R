@@ -6,6 +6,11 @@
 #   * resumable: each test's result is saved to validation-results/ as soon
 #     as it finishes, and tests with a saved result are skipped next time;
 #   * runnable in chunks by design (--only);
+#   * complete: every test_that() block runs, including blocks generated in
+#     loops, each in its own process and recorded under its own name. Before
+#     anything runs, the script checks that its list of tests is the list
+#     testthat reports for each file, and a test whose run reports anything
+#     other than that one test is recorded as an ERROR;
 #   * independent of any other tool: start it yourself from a terminal or
 #     RStudio, and stop it at any time (Ctrl+C in a terminal, Esc or the red
 #     stop button in RStudio); rerun the same command to carry on.
@@ -16,7 +21,7 @@
 #   Rscript scripts/run-validation.R                        everything
 #   Rscript scripts/run-validation.R --only interactions    one chunk
 #   Rscript scripts/run-validation.R --only process_4,process_6 --cores 3
-#   Rscript scripts/run-validation.R --list                 chunks and progress
+#   Rscript scripts/run-validation.R --list                 chunks, progress, test-list check
 #   Rscript scripts/run-validation.R --summary              summary only
 #   Rscript scripts/run-validation.R --retry-failed         rerun FAIL / ERROR
 #   Rscript scripts/run-validation.R --fresh                forget saved results
@@ -73,19 +78,21 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
   }
 
   tests <- validation_tests(root, only)
-  tests$done <- file.exists(tests$result)
+  tests$done <- tests_done(tests)
   if (isTRUE(retry_failed)) {
-    failed <- tests$done & vapply(tests$result, function(f) {
-      file.exists(f) && readRDS(f)$status %in% c("FAIL", "ERROR")
+    failed <- vapply(seq_len(nrow(tests)), function(i) {
+      r <- saved_result(tests[i, ])
+      !is.null(r) && r$status %in% c("FAIL", "ERROR")
     }, logical(1))
     file.remove(tests$result[failed])
     tests$done[failed] <- FALSE
   }
-  if (isTRUE(list_only)) {
-    return(invisible(print_chunk_progress(tests)))
-  }
   if (isTRUE(summary_only)) {
     return(invisible(write_summary(tests, results_dir, cores)))
+  }
+  check_test_lists(tests)
+  if (isTRUE(list_only)) {
+    return(invisible(print_chunk_progress(tests)))
   }
 
   todo <- tests[!tests$done, ]
@@ -103,8 +110,12 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
     cat("Stop at any time with Ctrl+C (terminal) or Esc (RStudio); rerun the same command to carry on.\n\n")
     run_queue(todo, cores, nrow(tests) - nrow(todo), nrow(tests))
   }
-  tests$done <- file.exists(tests$result)
+  tests$done <- tests_done(tests)
   invisible(write_summary(tests, results_dir, cores))
+}
+
+tests_done <- function(tests) {
+  vapply(seq_len(nrow(tests)), function(i) !is.null(saved_result(tests[i, ])), logical(1))
 }
 
 # The repository's top folder: the working directory or one above it.
@@ -147,7 +158,11 @@ validation_tests <- function(root, only) {
         file = file,
         index = seq_along(descriptions),
         test = descriptions,
-        estimate = minutes[[chunk]] * ifelse(grepl("direct", descriptions), 2, 1),
+        # Exact (non-simulated) ANOVA checks take seconds.
+        estimate = ifelse(
+          grepl(", exact:", descriptions), 0.2,
+          minutes[[chunk]] * ifelse(grepl("direct", descriptions), 2, 1)
+        ),
         result = file.path(
           root, "validation-results",
           sprintf("%s__%s__%02d.rds", chunk, sub("\\.R$", "", file), seq_along(descriptions))
@@ -315,15 +330,141 @@ grid_summary_lines <- function(saved) {
   )
 }
 
+# The description of every test_that() block in a test file, in the order
+# testthat runs them, including blocks generated in loops (the 2 x 2 ANOVA
+# files make most of theirs in for loops). The file's top-level code is
+# evaluated with test_that() replaced by a recorder, so the loops run but no
+# test body does. Validation files' top-level code only defines functions
+# and constants and loops over test_that() calls; anything else that fails
+# here stops the script with the file's name.
 test_descriptions <- function(path) {
-  exprs <- parse(path, keep.source = FALSE)
-  calls <- Filter(function(e) is.call(e) && identical(e[[1]], as.name("test_that")), as.list(exprs))
-  vapply(calls, function(e) as.character(e[[2]]), character(1))
+  found <- character()
+  env <- new.env(parent = baseenv())
+  env$test_that <- function(desc, code) {
+    if (!is.character(desc) || length(desc) != 1) {
+      stop("a test_that() description is not a single string", call. = FALSE)
+    }
+    found <<- c(found, desc)
+    invisible(TRUE)
+  }
+  tryCatch(
+    for (e in parse(path, keep.source = FALSE)) eval(e, env),
+    error = function(e) {
+      stop(sprintf("Could not list the tests in %s: %s", basename(path), conditionMessage(e)), call. = FALSE)
+    }
+  )
+  found
+}
+
+# A stand-in for test_that() that runs only the index-th test_that() call
+# in a file (counting loop-generated ones) and skips the others, without
+# evaluating their code.
+only_test_number <- function(index) {
+  seen <- 0L
+  function(desc, code) {
+    seen <<- seen + 1L
+    if (seen != index) {
+      return(invisible(TRUE))
+    }
+    eval(as.call(list(quote(testthat::test_that), desc, substitute(code))), parent.frame())
+  }
+}
+
+# Run a test file with testthat in a fresh environment of the loaded
+# package (helpers are sourced into it); `test_that` overrides testthat's
+# when given. Returns testthat's list of the tests it ran.
+run_test_file <- function(path, test_that = NULL) {
+  env <- new.env(parent = asNamespace("powerkit"))
+  if (!is.null(test_that)) env$test_that <- test_that
+  testthat::test_file(
+    path, package = "powerkit", load_package = "none",
+    reporter = testthat::ListReporter$new(), env = env
+  )
+}
+
+reported_names <- function(reported) {
+  vapply(reported, function(t) as.character(t$test), character(1))
+}
+
+# Check, before anything runs, that the script's list of tests is the list
+# testthat itself reports for each file. testthat's list comes from a child
+# R process that runs the files with the validation tests switched off, so
+# each test skips at its first line (a few seconds per file).
+check_test_lists <- function(tests) {
+  rows <- tests[tests$kind == "test", ]
+  files <- unique(rows$file)
+  if (length(files) == 0) {
+    return(invisible(TRUE))
+  }
+  out <- tempfile(fileext = ".rds")
+  on.exit(unlink(out), add = TRUE)
+  run <- processx::run(
+    rscript_path(), c(file.path("scripts", "run-validation.R"), "--list-tests", out, files),
+    error_on_status = FALSE, env = c("current", POWERKIT_FULL_VALIDATION = "false")
+  )
+  if (!file.exists(out)) {
+    stop(paste(
+      "Could not ask testthat for its list of tests:",
+      paste(utils::tail(strsplit(paste(run$stdout, run$stderr), "\n")[[1]], 10), collapse = "\n")
+    ), call. = FALSE)
+  }
+  theirs <- readRDS(out)
+  problems <- character()
+  for (file in files) {
+    ours <- rows$test[rows$file == file][order(rows$index[rows$file == file])]
+    if (length(ours) != length(theirs[[file]])) {
+      problems <- c(problems, sprintf(
+        "%s: the script finds %d tests, testthat reports %d.", file, length(ours), length(theirs[[file]])
+      ))
+    } else if (!identical(ours, theirs[[file]])) {
+      problems <- c(problems, sprintf(
+        "%s: the script and testthat both find %d tests, but their names or order differ.", file, length(ours)
+      ))
+    }
+  }
+  if (length(problems) > 0) {
+    stop(paste(c("The script's list of tests does not match testthat's:", problems), collapse = "\n"), call. = FALSE)
+  }
+  cat(sprintf(
+    "Tests found, checked against testthat: %s.\n",
+    paste(sprintf("%s %d", sub("^test-validation-(.*)\\.R$", "\\1", files), lengths(theirs[files])), collapse = ", ")
+  ))
+  invisible(TRUE)
+}
+
+# Child process: save testthat's list of test names for each file.
+list_tests_with_testthat <- function(out, files) {
+  Sys.setenv(POWERKIT_FULL_VALIDATION = "false")
+  pkgload::load_all("engine", helpers = FALSE, quiet = TRUE)
+  found <- lapply(files, function(file) {
+    reported_names(run_test_file(file.path("engine", "tests", "testthat", file)))
+  })
+  names(found) <- files
+  saveRDS(found, out)
+}
+
+# A saved result, or NULL if there is none or it belongs to a different test
+# (for example one saved by an earlier version of this script, which
+# numbered the tests differently): such a result is ignored and the test
+# runs again.
+saved_result <- function(row) {
+  if (!file.exists(row$result)) {
+    return(NULL)
+  }
+  r <- tryCatch(readRDS(row$result), error = function(e) NULL)
+  if (is.null(r) || !identical(r$test, row$test) || !identical(as.integer(r$index), as.integer(row$index))) {
+    return(NULL)
+  }
+  r
+}
+
+rscript_path <- function() {
+  file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
 }
 
 # Run the queue, at most `cores` tests at a time, each in its own R process.
 run_queue <- function(todo, cores, already, total) {
-  rscript <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
+  rscript <- rscript_path()
   script <- file.path("scripts", "run-validation.R")
   running <- list()
   started_all <- Sys.time()
@@ -362,8 +503,8 @@ run_queue <- function(todo, cores, already, total) {
       finished <- finished + 1
       minutes <- as.numeric(difftime(Sys.time(), job$started, units = "mins"))
       row <- job$row
-      if (file.exists(row$result)) {
-        result <- readRDS(row$result)
+      result <- saved_result(row)
+      if (!is.null(result)) {
         status <- result$status
         if (status != "SKIP") {
           speed$actual <- speed$actual + minutes
@@ -388,25 +529,42 @@ run_queue <- function(todo, cores, already, total) {
 }
 
 # Child process: run one test_that() block and save its result.
+# Only the index-th test_that() block runs (loop-generated blocks count);
+# the file's other code runs too, but the other blocks are skipped without
+# evaluating them. The result recorded is the one testthat reports under
+# this test's description; if testthat reports anything other than exactly
+# that one test, the result is an ERROR.
 run_one_test <- function(file, index, result_path) {
   Sys.setenv(POWERKIT_FULL_VALIDATION = "true")
   path <- file.path("engine", "tests", "testthat", file)
   description <- test_descriptions(path)[[index]]
   started <- Sys.time()
   messages <- character()
-  results <- tryCatch(
-    testthat::test_file(
-      path, desc = description, package = "powerkit",
-      load_package = "source", reporter = testthat::ListReporter$new()
-    ),
+  reported <- tryCatch(
+    {
+      pkgload::load_all("engine", helpers = FALSE, quiet = TRUE)
+      run_test_file(path, test_that = only_test_number(index))
+    },
     error = function(e) {
       messages <<- paste("Could not run the test:", conditionMessage(e))
       NULL
     }
   )
   status <- "ERROR"
-  if (!is.null(results)) {
-    expectations <- results[[1]]$results
+  if (!is.null(reported)) {
+    ran <- reported_names(reported)
+    matching <- which(ran == description)
+    if (length(ran) != 1 || length(matching) != 1) {
+      messages <- sprintf(
+        "Expected testthat to report only this test; it reported %d test%s (%d with this name)%s.",
+        length(ran), if (length(ran) == 1) "" else "s", length(matching),
+        if (length(ran) > 0) paste0(": ", paste0("\"", ran, "\"", collapse = ", ")) else ""
+      )
+      reported <- NULL
+    }
+  }
+  if (!is.null(reported)) {
+    expectations <- reported[[matching]]$results
     classes <- vapply(expectations, function(x) class(x)[1], character(1))
     messages <- vapply(expectations, function(x) {
       paste0(sub("^expectation_", "", class(x)[1]), ": ", conditionMessage(x))
@@ -442,7 +600,7 @@ print_chunk_progress <- function(tests) {
 }
 
 write_summary <- function(tests, results_dir, cores) {
-  saved <- lapply(tests$result, function(f) if (file.exists(f)) readRDS(f))
+  saved <- lapply(seq_len(nrow(tests)), function(i) saved_result(tests[i, ]))
   status <- vapply(saved, function(r) if (is.null(r)) "NOT RUN" else r$status, character(1))
   versions <- c(
     powerkit = unname(read.dcf(file.path("engine", "DESCRIPTION"), "Version")[1, 1]),
@@ -512,6 +670,8 @@ if (!interactive() && sys.nframe() == 0) {
     run_one_test(args[2], as.integer(args[3]), args[4])
   } else if (length(args) >= 1 && args[1] == "--run-cell") {
     run_one_cell(as.integer(args[2]), args[3])
+  } else if (length(args) >= 2 && args[1] == "--list-tests") {
+    list_tests_with_testthat(args[2], args[-(1:2)])
   } else {
     value_of <- function(flag) {
       i <- match(flag, args)

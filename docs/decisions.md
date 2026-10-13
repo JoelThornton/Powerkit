@@ -750,3 +750,60 @@ standard approximation.
 4. **The `interaction_grid` chunk stays** in `scripts/run-validation.R`, on
    demand only, so it can be rerun later (for example after an
    InteractionPoweR update).
+
+## 2026-10-13 · Bug in scripts/run-validation.R: loop-generated tests (fixed)
+
+Found by the maintainer: the anova chunk reported 10 PASS, but the results
+were wrong.
+
+**The bug.** Two faults together:
+
+1. `test_descriptions()` listed only top-level `test_that()` calls with a
+   literal name. The two 2 x 2 ANOVA files generate most of their tests in
+   `for` loops (each file: 8 checks against `ANOVA_exact()`, exact and
+   simulated, and 2 direct `ANOVA_power()` calls), so 20 of the 30 ANOVA
+   tests were never selected.
+2. `run_one_test()` used `testthat::test_file(desc = ...)`, which runs the
+   file's other top-level code before the selected test, including those
+   loops, so every loop-generated test ran too (9 tests for the second test
+   in the between file). It then recorded `results[[1]]`, the first test
+   that ran, not the selected one. So every anova result showed the first
+   analytic check's message (0.8074 in the between file, 0.2473 in the
+   mixed file).
+
+**Which results are affected.** Only the anova chunk: the two ANOVA files
+are the only validation files with loops (checked: the others' top-level
+code only defines functions and constants). In a file without loops,
+`test_file(desc = ...)` ran exactly the selected test (checked for a basic
+test and an interaction test), so the basic and interactions results
+already reported are sound. The anova results reported so far are invalid
+and must be rerun.
+
+**The fix** (no expected values in the test files changed):
+
+- The list of tests comes from evaluating each file's top-level code with
+  `test_that()` replaced by a recorder, so loop-generated tests are listed,
+  in the order testthat runs them: 16 tests in the between file and 14 in
+  the mixed file (30, up from 10).
+- A test runs in its own process with `test_that()` replaced by a stand-in
+  that runs only the selected block (by its position in the file, loops
+  included) and skips the others without evaluating them. The result
+  recorded is the one testthat reports under the test's description; if
+  testthat reports anything other than exactly that one test, the result
+  is an ERROR naming what it did report.
+- Before anything runs (and with `--list`), the script checks, for each
+  selected file, that its list of tests matches the list testthat reports
+  (count, names and order; testthat's list comes from running the files
+  with the validation tests switched off, about 15 seconds for all files),
+  and stops if they differ.
+- A saved result is used only if it records the same test name and
+  position; anything else (including the old anova results, which were
+  numbered differently) is ignored and the test runs again. No need to
+  delete old results by hand.
+- Checked: each of 6 ANOVA tests run individually recorded its own value
+  (0.8074, 0.5948 and 0.4158 for the first three analytic checks, 0.8816
+  for the vignette example, the Sommet et al. crossover N, and 0.1727 for
+  the mixed design with a negative correlation); dropping one test from the
+  script's list stops the run with "the script finds 15 tests, testthat
+  reports 16"; and a run in which testthat reports 24 tests is recorded as
+  an ERROR.
