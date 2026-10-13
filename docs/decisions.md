@@ -523,8 +523,9 @@ licence line; the phase 0 entry's set-up predates the choice.
    departs from Spower's default (`correct = TRUE`): conventions.md,
    Departure 5.
 7. **Spower's one-sided tests.** A minimal reproducible example is in
-   `docs/upstream/spower-one-sided-tests.R`, for the maintainer to send to
-   Phil Chalmers (nobody has been contacted). Seeded, 10,000 replications:
+   `docs/upstream/spower-one-sided-tests.R`. Reported to Phil Chalmers on
+   13 October 2026: [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3)
+   (conventions.md, Departure 4). Seeded, 10,000 replications:
    Type I error 0.1009 with `two.tailed = FALSE` against 0.0495 with a
    directional test; with d = 0.5 both give 0.7931.
 8. **Parallel mediators: residuals free to correlate, as in PROCESS.** The
@@ -556,8 +557,10 @@ licence line; the phase 0 entry's set-up predates the choice.
       So the option phase 3 set did not turn the method off. powerkit now
       asks for the confidence-interval rule explicitly
       (`test_method = "ci"`, a documented argument of both test functions)
-      and still sets the option for the summaries. This could be a second
-      upstream report (to Shu Fai Cheung); not prepared.
+      and still sets the option for the summaries. Reported to Shu Fai
+      Cheung on 13 October 2026:
+      [sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276)
+      (conventions.md, Departure 8).
     * *Size: none in powerkit's runs.* At the supported numbers of draws
       (39, 79, ..., 359), Boos and Zhang's p-value rule gives the same
       decision as the confidence interval in each replication, and

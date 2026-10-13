@@ -255,6 +255,7 @@ methods paragraph, and covered by a test showing the size of the difference
   per group).
 - **Test:** `engine/tests/testthat/test-backend-spower.R`, "departure:
   one-sided tests check the direction, unlike Spower's two.tailed = FALSE".
+- **Reported upstream:** [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3), 13 October 2026.
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
 ### 5. Two proportions and chi-square: no continuity correction (Spower applies one by default)
@@ -324,6 +325,7 @@ methods paragraph, and covered by a test showing the size of the difference
   R, including the default 1,000, the method is never used.
 - **Test:** `test-backend-power4mome.R`, "departure: Boos-Zhang off makes
   no difference to power4test()'s rejection rate".
+- **Reported upstream:** [sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276), 13 October 2026.
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
 ## Known differences
