@@ -6,16 +6,29 @@ real studies. The app builds design specs and calls the engine
 (`run_spec()`); it never computes power itself (see CLAUDE.md and
 docs/build-guide.md section 7).
 
-## Running it
+## Run the demo
 
-1. Open `Powerkit.Rproj` in RStudio.
-2. Run `source("run_app.R")`. The first time, it installs any missing
-   packages (shiny, bslib, pkgload and the engine's imports) into the
-   project library. Then run `renv::snapshot()` to record them in
-   `renv.lock`.
+The demo needs these R packages:
 
-Opening `app/app.R` and clicking **Run App** also works once shiny is
-installed. The app loads the engine from `engine/` in this checkout with
+| Package | For | In `renv.lock` already? |
+| --- | --- | --- |
+| shiny | the app | no |
+| bslib | the app's theme | yes |
+| pkgload | loading the engine from `engine/` | yes |
+| digest, jsonlite, jsonvalidate, Superpower | the engine (`engine/DESCRIPTION`) | yes |
+
+Install them once, from the project (RStudio: open `Powerkit.Rproj`):
+
+```r
+install.packages(c("shiny", "bslib", "pkgload", "digest", "jsonlite", "jsonvalidate", "Superpower"))
+```
+
+Then start the app with `source("run_app.R")`, or open `app/app.R` and
+click **Run App**. `run_app.R` installs nothing: if a package is missing it
+stops and prints the line above. `renv.lock` is deliberately not updated
+for the demo; record shiny there after the phase 3 work is merged.
+
+The app loads the engine from `engine/` in this checkout with
 `pkgload::load_all()`, falling back to an installed powerkit.
 
 ## Screens
