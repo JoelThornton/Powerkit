@@ -382,7 +382,7 @@ got both.*
 | Everyone got both | Different people | As the row above, with the factors swapped so that A is the between factor (the spec's convention) |
 | Everyone got both | Everyone got both | **Coming later (not in spec):** *2 x 2 within-participants ANOVA* |
 
-### F4a. Will the groups be equal in size? *(at least one factor between; decisions D5, N1 and N2)*
+### F4a. Will the groups be equal in size? *(at least one factor between; decisions D5, N1, N2 and N3)*
 
 Help line: *What matters is whether every group (every combination, if both
 factors are between participants) will have the same number of people, not
@@ -405,8 +405,8 @@ recruiting fixed numbers. Examples: *a manipulation crossed with the gender
 of whoever signs up; more patients than controls.*
 → **Coming later (not in spec):** *2 x 2 between-participants ANOVA with
 unequal group sizes* or *2 x 2 mixed ANOVA with unequal group sizes*, for any
-effect (main effect or interaction). The card says: *"powerkit doesn't cover
-unequal group sizes in 2 x 2 designs yet."* For a main effect, powerkit does
+effect (main effect or interaction), until validated (decision N3). The card
+says: *"powerkit doesn't cover unequal group sizes in 2 x 2 designs yet."* For a main effect, powerkit does
 not offer a simpler test that ignores the other factor (such as an
 independent-samples t-test) as a stand-in (decision N2).
 
@@ -817,16 +817,13 @@ Equal groups, whether assigned or recruited in fixed equal numbers, go to
 `factorial_anova / 2x2_between` or `factorial_anova / 2x2_mixed`. Unequal
 groups go to "coming later".
 
-*To check: whether Superpower supports unequal group sizes, in mixed designs
-in particular.* What the installed source (Superpower 0.2.4.1) shows so far:
-`ANOVA_design()` accepts a vector `n` with one size per between-participants
-group (e.g. `n = c(20, 30)` for `"2b*2w"`, or one per cell for `"2b*2b"`)
-without an error, and stores it in the design object (`n = n_vec`). But it
-then sets `n <- max(n)` and builds the design's data with that one size per
-cell (120 rows for `n = c(20, 30)` in `"2b*2w"`, i.e. 30 per cell). Whether
-`ANOVA_exact()`, `ANOVA_exact2()` and `ANOVA_power()` use the unequal sizes,
-or silently use the largest, has not been checked. Until it is, unequal
-groups stay "coming later".
+*Superpower and unequal group sizes (checked with Superpower 0.2.4.1; details
+in `docs/conventions.md`, "Superpower and unequal group sizes").*
+`ANOVA_design()` accepts unequal `n` without error, but builds its data
+balanced at `max(n)`. For a 2 x 2 mixed design (`"2b*2w"`), `ANOVA_exact()`,
+`ANOVA_exact2()` and `ANOVA_power()` all stop with an error. For a 2 x 2
+between design (`"2b*2b"`), `ANOVA_exact()` stops, but `ANOVA_power()` runs;
+whether it uses the unequal sizes correctly has not been validated.
 
 **N2. Main effects with unequal groups (F4a).** A main-effect hypothesis in a
 2 x 2 design with unequal groups is "coming later". The finder does not route
@@ -837,6 +834,14 @@ the other factor.
 effects as well as the interaction* (relevant if it is used for unequal
 groups later). InteractionPoweR is not installed in the build environment, so
 this has not been checked.
+
+**N3. Unequal groups need independent validation (F4a).** Unequal group
+sizes stay "coming later" until they are validated against an independent
+reference: a published value, or an exact calculation done independently of
+Superpower. That a backend's functions run without error is not enough. Any
+unequal-n support must also include a test proving that the unequal sizes are
+actually used, not replaced by a balanced design (see `docs/conventions.md`,
+"Superpower and unequal group sizes").
 
 **Accepted:** the "One of several categories" outcome option (O3), added to
 the guide's list so that the chi-square test of independence can be reached.

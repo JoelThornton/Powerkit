@@ -81,7 +81,44 @@ it.
 | InteractionPoweR | Not covered | | |
 | power4mome | Not covered: to check | | |
 | Spower | to check | to check | to check |
-| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Not departures, but worth stating"). |
+| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Superpower and unequal group sizes" below). |
+
+### Superpower and unequal group sizes (2 x 2 between and mixed)
+
+Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
+
+- **`ANOVA_design()`** accepts unequal `n` for `"2b*2w"` (e.g.
+  `n = c(20, 30)`) and for `"2b*2b"` (e.g. `n = c(10, 20, 30, 40)`), with no
+  error or warning. It stores the vector (`n = n_vec`) but then sets
+  `n <- max(n)` and builds the design's data at that size: for
+  `n = c(20, 30)` in `"2b*2w"`, 30 per cell. So, silently, the design
+  object's data describe a balanced design at the largest group size.
+- **The power functions** then behave as follows:
+
+  | Design | Function | What happens |
+  | --- | --- | --- |
+  | `"2b*2w"`, `n = c(20, 30)` | `ANOVA_exact()` | Stops: "the condition has length > 1". This is an R error from comparing a vector `n`, not a message about unequal groups. |
+  | `"2b*2w"`, `n = c(20, 30)` | `ANOVA_exact2()` | Warns "Unequal n designs can only be passed to ANOVA_power", then stops: "non-conformable arguments". |
+  | `"2b*2w"`, `n = c(20, 30)` | `ANOVA_power()` | Stops: "Unequal group sizes are not possible when the design contains within factors". |
+  | `"2b*2b"`, `n = c(10, 20, 30, 40)` | `ANOVA_exact()` | Stops: "the condition has length > 1". |
+  | `"2b*2b"`, `n = c(10, 20, 30, 40)` | `ANOVA_power()` | Runs. With means 0, 0.5, 0, 0 and SD 1, interaction power was 18.4% (2,000 simulations), against 33.85% for 40 per cell. So it does not simply use the largest size, but whether it uses the unequal sizes correctly has not been validated. |
+
+  So in this version, a mixed design with unequal groups is not supported by
+  any of Superpower's power functions. The balanced-at-the-largest-size
+  behaviour is in `ANOVA_design()`, and would reach a result only through
+  code that used the design object's data or `n` directly.
+- **powerkit today:** this cannot reach Superpower. The `factorial_anova`
+  spec has no group sizes: `goal.n` is split into 4 equal cells
+  (`2x2_between`) or 2 equal groups (`2x2_mixed`), an `n` that doesn't split
+  evenly is rejected, and `options > allocation_ratio` is rejected for any
+  design other than the two-group tests [powerkit, `engine/R/spec-checks.R`].
+  The engine passes Superpower a single per-cell `n` [powerkit,
+  `engine/R/backend-superpower.R`].
+- **Requirement for any future unequal-n support:** it must include a test
+  proving that the unequal sizes are actually used (for example, that the
+  result differs from the balanced design at `max(n)` and matches the
+  independent reference). It must also be validated against an independent
+  reference before it is offered (decision N3 in `docs/design-finder.md`).
 
 ## Regression interaction (two-way)
 
@@ -194,10 +231,6 @@ methods paragraph, and covered by a test showing the size of the difference
   [SP-src]. These may serve the ANCOVA route for pre–post designs (decision
   D2 in `docs/design-finder.md`); whether they match G*Power is to check.
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
-  templates assume equal group sizes; unequal groups are "coming later"
-  (decisions D5 and N1 in `docs/design-finder.md`). Whether Superpower
-  supports unequal sizes is **to check**: `ANOVA_design()` accepts a vector
-  `n` (e.g. `n = c(20, 30)` for `"2b*2w"`) and stores it, but builds the
-  design's data with `max(n)` per cell [SP-src]; whether `ANOVA_exact()`,
-  `ANOVA_exact2()` and `ANOVA_power()` then use the unequal sizes has not been
-  checked.
+  templates require equal group sizes; unequal groups are "coming later"
+  (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and
+  unequal group sizes" above.
