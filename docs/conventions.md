@@ -5,7 +5,8 @@ This file records, design by design, what each tool does by default (the test,
 how the effect size is defined, and settings that change the answer) and what
 powerkit does. **Every departure from an established tool is listed in
 "Departures" below**, with the size of the difference and the test that shows
-it.
+it. Where powerkit follows one established tool but another gives a
+different answer, the difference is listed in "Known differences".
 
 ## How to read this file
 
@@ -137,13 +138,13 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (e.g. linear multiple regression, R² increase) | to check (f²) | to check |
+| G*Power | to check (e.g. linear multiple regression, R² increase; believed to treat the predictors as fixed, see "Known differences", 1) | to check (f²) | to check |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()`, valid for continuous, normally distributed variables. Neither is presented as the primary method (see "Not departures" below) [IP-src, IP-web] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
 | power4mome | to check (moderation is in scope per the build guide) | to check | to check |
 | Spower | to check | to check | to check |
-| **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n; it becomes the default where it is exact once a test shows the two agree (maintainer's decision 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
+| **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n in the sample-size search; reported power and n always come from simulation, and no analytic option is offered (see "Known differences", 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
 
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
@@ -325,6 +326,45 @@ methods paragraph, and covered by a test showing the size of the difference
   no difference to power4test()'s rejection rate".
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
+## Known differences
+
+powerkit follows an established tool here, but another established tool
+gives a different answer. These are not departures. Users comparing tools
+will notice them, though, so each entry states the size of the difference
+and, like a departure, is shown on the results screen and stated in the
+methods paragraph.
+
+### 1. Regression interactions: fixed-model power is slightly optimistic
+
+- **What differs:** fixed-model regression power, such as G*Power's linear
+  multiple regression and InteractionPoweR's analytic
+  `power_interaction_r2()`, is slightly higher than simulated power for
+  interactions. powerkit simulates (InteractionPoweR's
+  `power_interaction()`), so it may need a few more participants than
+  G*Power.
+- **Size:** up to about 1.4 points of power, or about 3% of N, in the grid
+  comparison (72 cells: N 50-500, r_XW_Y 0.05-0.20, reliability 0.7-1,
+  r_X_W 0-0.3). The largest gap was at N = 200, r_XW_Y = 0.20,
+  reliability 1, r_X_W = 0.3: 0.808 simulated vs 0.822 analytic. For 80%
+  power there, the analytic method gives N = 190 and simulation about 196.
+  On average the gap is 0.2 points (z = -5.49); it grows with the size of
+  the interaction and is about zero at r_XW_Y = 0.05.
+- **Likely causes (likely, not confirmed):** the analytic method treats the
+  predictors as fixed, whereas in real samples X and W are random and their
+  product is heavy-tailed, which lowers power on average; and possibly the
+  df convention (`power_interaction_r2()` uses N - 3 denominator df, where
+  Y ~ X + W + XW leaves N - 4) [IP-src].
+- **G*Power:** the grid measured `power_interaction_r2()`, not G*Power.
+  G*Power is expected to behave the same way because it also treats the
+  predictors as fixed; this, and its noncentrality and df, are to check in
+  G*Power's manual.
+- **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
+  full results in `docs/decisions.md`).
+- **Shown to users:** to do (build phases 4-5).
+- **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's are slightly optimistic for interactions, so this sample size may be a few participants larger than G*Power's."
+  To be added when the methods paragraph (`writeup.R`) is built in phases
+  4-5.
+
 ## Not departures, but worth stating
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with
@@ -360,16 +400,13 @@ methods paragraph, and covered by a test showing the size of the difference
   the same way [powerkit].
 - **Default method for every design except the 2 x 2 ANOVAs:** simulation,
   with `options > nrep` replications (default 1,000) [powerkit].
-- **Regression interactions: analytic or simulated power.** InteractionPoweR
-  presents neither method as primary: its DESCRIPTION names
-  `power_interaction_r2()` (analytic) and `power_interaction()`
+- **Regression interactions: simulated power, not analytic.**
+  InteractionPoweR presents neither method as primary: its DESCRIPTION
+  names `power_interaction_r2()` (analytic) and `power_interaction()`
   (simulation) together as "the primary functions"; its main article
   introduces the analytic method first; its home page recommends the
-  analytic web app for beginners [IP-src, IP-web]. powerkit simulates for
-  now. The plan, once the maintainer has seen the grid comparison
-  (`scripts/run-validation.R --only interaction_grid`): analytic by default
-  only for continuous X and W within the tested ranges, simulation
-  elsewhere, labelled "analytic (checked against simulation)", never
-  "exact". Because this follows one of InteractionPoweR's two primary
-  methods, it is not a departure; the grid shows the size of the
-  difference between the two (`docs/decisions.md`).
+  analytic web app for beginners [IP-src, IP-web]. So simulating follows
+  one of InteractionPoweR's two primary methods and is not a departure.
+  powerkit reports simulated power only; after the grid comparison the
+  maintainer decided not to offer the analytic method (`docs/decisions.md`).
+  The difference between the two is in "Known differences", 1.

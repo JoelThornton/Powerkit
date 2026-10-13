@@ -681,3 +681,72 @@ maintainer judged two populations not enough to change the default
    the methods paragraph, never "exact".
 4. The three published InteractionPoweR tutorial tests stay skipped
    (TODO values).
+
+## 2026-10-13 · Regression interactions: grid results; simulation stays the default
+
+The maintainer ran the `interaction_grid` chunk (commit 3b136fe, 2 cores,
+28 minutes; R 4.5.3, InteractionPoweR 0.2.4). It compares InteractionPoweR's
+analytic `power_interaction_r2()` with powerkit's simulation
+(`power_interaction()`, 10,000 replications per cell) over 72 cells (see the
+previous entry for the grid).
+
+**Results**
+
+- **3 of 72 cells fall outside the 99.9% Monte Carlo interval.** If the two
+  methods agreed, about 0.07 would be expected. Simulation vs analytic:
+  - N = 50, r_XW_Y = 0.10, reliability 0.7, r_X_W = 0: 0.0604 vs 0.0686
+    (-0.0082);
+  - N = 50, r_XW_Y = 0.20, reliability 0.8, r_X_W = 0: 0.1547 vs 0.1668
+    (-0.0121);
+  - N = 200, r_XW_Y = 0.20, reliability 1.0, r_X_W = 0.3: 0.8084 vs 0.8222
+    (-0.0138).
+- **The differences lean one way.** Simulation is lower than analytic in 51
+  of 72 cells (sign test p = 0.0005). The mean signed difference
+  (simulation minus analytic) is -0.0023 (Monte Carlo SE 0.0004, z = -5.49).
+- **Mean difference by interaction size:** +0.0001 (r_XW_Y = 0.05), -0.0023
+  (0.10), -0.0048 (0.20). **By reliability:** -0.0022 (0.7), -0.0014 (0.8),
+  -0.0033 (1.0), so the gap is not from how unreliability is handled.
+  **By N:** -0.0035 (50), -0.0023 (100), -0.0022 (200), -0.0013 (500).
+  **By r_X_W:** -0.0019 (0), -0.0027 (0.3).
+- **Size in participants.** In the cell with the largest gap (N = 200,
+  r_XW_Y = 0.20, reliability 1.0, r_X_W = 0.3), the analytic method first
+  reaches 80% power at N = 190. Simulation reaches it at about N = 196
+  (0.8084 at N = 200, with the power curve rising by about 0.0019 per
+  participant there). The analytic N is about 3% smaller.
+
+**Likely causes (likely, not confirmed).** `power_interaction_r2()`
+computes power from a noncentral F with 1 and N - 3 df and noncentrality
+f^2 x (N - 3) (InteractionPoweR 0.2.4 source).
+
+1. **Fixed vs random predictors.** The noncentral F treats the predictors
+   as fixed. In real samples X and W are random and their product is
+   heavy-tailed, so the information about the interaction varies from
+   sample to sample, which on average lowers power, more so for larger
+   effects. This fits the pattern but has not been tested separately.
+2. **Possibly the df convention.** The model Y ~ X + W + XW leaves N - 4
+   residual df; using N - 3 would give slightly higher power. Whether this
+   is intended has not been checked.
+
+Neither is described as a bug in InteractionPoweR: fixed-model power is a
+standard approximation.
+
+**Decision (maintainer)**
+
+1. **Simulation stays the default** for regression interactions, and no
+   analytic option is offered for now. The analytic method keeps its one
+   current use, bracketing N in the sample-size search; the reported power
+   and N always come from simulation. This replaces the plan in item 3 of
+   the previous entry.
+2. **Recorded as a known difference** in `docs/conventions.md` ("Known
+   differences", 1): fixed-model regression power, such as G*Power's and
+   `power_interaction_r2()`, is slightly optimistic for interactions, so
+   powerkit may need a few more participants than G*Power. The entry also
+   holds the sentence for interaction designs' methods paragraph, to be
+   added when the methods paragraph (`writeup.R`) is built in phases 4-5.
+3. **G*Power was not run.** The grid measured `power_interaction_r2()`.
+   G*Power's linear multiple regression power is believed to work the same
+   way (a noncentral F with fixed predictors); its noncentrality and df are
+   to check in G*Power's manual.
+4. **The `interaction_grid` chunk stays** in `scripts/run-validation.R`, on
+   demand only, so it can be rerun later (for example after an
+   InteractionPoweR update).

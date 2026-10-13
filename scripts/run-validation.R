@@ -30,7 +30,8 @@
 # On demand only (not part of "everything", and never run by
 # devtools::test()): interaction_grid, which compares InteractionPoweR's
 # analytic power_interaction_r2() with powerkit's simulation over a grid of
-# designs (72 cells), one cell per R process:
+# designs (72 cells), one cell per R process. Kept so it can be rerun,
+# for example after an InteractionPoweR update (docs/decisions.md):
 #   Rscript scripts/run-validation.R --only interaction_grid
 #   run_validation(only = "interaction_grid")
 
