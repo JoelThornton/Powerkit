@@ -36,6 +36,9 @@ it.
     installed source and help pages (`power4test()`,
     `test_indirect_effect()`, `test_index_of_mome()`, `rejection_rates()`,
     `q_power_mediation()`, `Rs_bz_supported()`), phase 3.
+  - **[IP-web]** InteractionPoweR's website (dbaranger.github.io/InteractionPoweR):
+    home page and the articles "The InteractionPoweR Package" and
+    "Questions & Errors", read on 2026-10-13.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
 - G*Power's manual and the pwrss documentation were not available when this
   file was written (no network access to CRAN or the web), so their entries
@@ -137,7 +140,7 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | G*Power | to check (e.g. linear multiple regression, R² increase) | to check (f²) | to check |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
-| InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()` [IP-src] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
+| InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()`, valid for continuous, normally distributed variables. Neither is presented as the primary method (see "Not departures" below) [IP-src, IP-web] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
 | power4mome | to check (moderation is in scope per the build guide) | to check | to check |
 | Spower | to check | to check | to check |
 | **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n; it becomes the default where it is exact once a test shows the two agree (maintainer's decision 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
@@ -357,3 +360,16 @@ methods paragraph, and covered by a test showing the size of the difference
   the same way [powerkit].
 - **Default method for every design except the 2 x 2 ANOVAs:** simulation,
   with `options > nrep` replications (default 1,000) [powerkit].
+- **Regression interactions: analytic or simulated power.** InteractionPoweR
+  presents neither method as primary: its DESCRIPTION names
+  `power_interaction_r2()` (analytic) and `power_interaction()`
+  (simulation) together as "the primary functions"; its main article
+  introduces the analytic method first; its home page recommends the
+  analytic web app for beginners [IP-src, IP-web]. powerkit simulates for
+  now. The plan, once the maintainer has seen the grid comparison
+  (`scripts/run-validation.R --only interaction_grid`): analytic by default
+  only for continuous X and W within the tested ranges, simulation
+  elsewhere, labelled "analytic (checked against simulation)", never
+  "exact". Because this follows one of InteractionPoweR's two primary
+  methods, it is not a departure; the grid shows the size of the
+  difference between the two (`docs/decisions.md`).

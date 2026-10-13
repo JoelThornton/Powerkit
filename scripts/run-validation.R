@@ -26,6 +26,13 @@
 #
 # Chunks: basic, anova, interactions, process_4 (simple and parallel
 # mediation), process_6 (serial mediation), process_7, process_14.
+#
+# On demand only (not part of "everything", and never run by
+# devtools::test()): interaction_grid, which compares InteractionPoweR's
+# analytic power_interaction_r2() with powerkit's simulation over a grid of
+# designs (72 cells), one cell per R process:
+#   Rscript scripts/run-validation.R --only interaction_grid
+#   run_validation(only = "interaction_grid")
 
 if (!exists("%||%", mode = "function")) {
   `%||%` <- function(x, y) if (is.null(x)) y else x
@@ -109,19 +116,24 @@ validation_root <- function() {
   stop("Run this from the Powerkit folder (the one containing 'engine' and 'scripts').", call. = FALSE)
 }
 
-# One row per test_that() block in the selected chunks.
+# One row per test_that() block in the selected chunks, plus one row per
+# grid cell if interaction_grid is selected (it is never selected by
+# default).
 validation_tests <- function(root, only) {
   chunks <- validation_chunks()
+  grid <- FALSE
   if (!is.null(only)) {
     only <- trimws(unlist(strsplit(only, ",")))
-    unknown <- setdiff(only, names(chunks))
+    known <- c(names(chunks), "interaction_grid")
+    unknown <- setdiff(only, known)
     if (length(unknown) > 0) {
       stop(sprintf(
         "Unknown chunk %s. Choose from: %s.",
-        paste0("'", unknown, "'", collapse = ", "), paste(names(chunks), collapse = ", ")
+        paste0("'", unknown, "'", collapse = ", "), paste(known, collapse = ", ")
       ), call. = FALSE)
     }
-    chunks <- chunks[only]
+    grid <- "interaction_grid" %in% only
+    chunks <- chunks[intersect(only, names(chunks))]
   }
   minutes <- validation_minutes()
   rows <- lapply(names(chunks), function(chunk) {
@@ -130,6 +142,7 @@ validation_tests <- function(root, only) {
       descriptions <- test_descriptions(path)
       data.frame(
         chunk = chunk,
+        kind = "test",
         file = file,
         index = seq_along(descriptions),
         test = descriptions,
@@ -142,7 +155,163 @@ validation_tests <- function(root, only) {
       )
     }))
   })
+  if (grid) {
+    rows <- c(rows, list(interaction_grid_rows(root)))
+  }
   do.call(rbind, rows)
+}
+
+# Interaction grid ----------------------------------------------------------------
+#
+# InteractionPoweR's analytic power_interaction_r2() against powerkit's
+# simulation (InteractionPoweR::power_interaction(), 10,000 replications),
+# for Y ~ X + W + XW with continuous X and W. Main effects are fixed at
+# r_X_Y = r_W_Y = 0.2; the same reliability is given to X, W and Y.
+
+interaction_grid <- function() {
+  expand.grid(
+    n = c(50, 100, 200, 500),
+    r_XW_Y = c(0.05, 0.10, 0.20),
+    reliability = c(1, 0.8, 0.7),
+    r_X_W = c(0, 0.3)
+  )
+}
+
+interaction_grid_rows <- function(root) {
+  grid <- interaction_grid()
+  data.frame(
+    chunk = "interaction_grid",
+    kind = "cell",
+    file = NA_character_,
+    index = seq_len(nrow(grid)),
+    test = sprintf(
+      "N = %d, r_XW_Y = %.2f, reliability = %.1f, r_X_W = %.1f",
+      grid$n, grid$r_XW_Y, grid$reliability, grid$r_X_W
+    ),
+    # Rough minutes on one core: loading the package, plus simulation time
+    # that grows with n.
+    estimate = 0.2 + grid$n / 500,
+    result = file.path(root, "validation-results", sprintf("interaction_grid__cell_%02d.rds", seq_len(nrow(grid)))),
+    stringsAsFactors = FALSE
+  )
+}
+
+interaction_grid_spec <- function(cell, seed) {
+  variable <- function(label) {
+    v <- list(type = "continuous", label = label)
+    if (cell$reliability < 1) v$reliability <- cell$reliability
+    v
+  }
+  list(
+    spec_version = "0.1",
+    design = "regression_interaction",
+    template = "two_way",
+    variables = list(X = variable("Predictor"), W = variable("Moderator"), Y = variable("Outcome")),
+    population = list(
+      metric = "correlation",
+      r_X_Y = 0.2, r_W_Y = 0.2, r_XW_Y = cell$r_XW_Y, r_X_W = cell$r_X_W
+    ),
+    effect_justification = list(
+      type = "smallest_effect_of_interest",
+      source = "powerkit interaction grid (not a real study)"
+    ),
+    target_test = list(effect = "interaction", method = "ols_t", alpha = 0.05),
+    goal = list(type = "power", n = cell$n),
+    options = list(nrep = 10000L, seed = seed)
+  )
+}
+
+# Child process: one grid cell. Saves both power values, their difference
+# (simulation minus analytic) and whether the analytic value lies inside
+# the 99.9% Monte Carlo interval of the simulation (the validation
+# tolerance rule; the analytic value has no Monte Carlo error).
+run_one_cell <- function(index, result_path) {
+  started <- Sys.time()
+  cell <- interaction_grid()[index, ]
+  label <- interaction_grid_rows(".")$test[index]
+  result <- tryCatch({
+    pkgload::load_all("engine", quiet = TRUE, helpers = FALSE)
+    run <- getExportedValue("powerkit", "run_spec")(interaction_grid_spec(cell, seed = 60000L + index))
+    simulation <- run$curve$power
+    mcse <- run$curve$mcse
+    analytic <- InteractionPoweR::power_interaction_r2(
+      N = cell$n, r.x1.y = 0.2, r.x2.y = 0.2, r.x1x2.y = cell$r_XW_Y, r.x1.x2 = cell$r_X_W,
+      rel.x1 = cell$reliability, rel.x2 = cell$reliability, rel.y = cell$reliability,
+      alpha = 0.05
+    )$pwr[1]
+    half_width <- stats::qnorm(0.9995) * mcse
+    within <- abs(simulation - analytic) <= half_width
+    list(
+      status = if (within) "PASS" else "FAIL",
+      messages = sprintf(
+        "simulation %.4f (MCSE %.4f), analytic %.4f, difference %+.4f; 99.9%% half-width %.4f: %s",
+        simulation, mcse, analytic, simulation - analytic, half_width,
+        if (within) "within" else "OUTSIDE"
+      ),
+      grid = c(as.list(cell), list(
+        simulation = simulation, mcse = mcse, analytic = analytic,
+        difference = simulation - analytic, half_width = half_width, within = within
+      ))
+    )
+  }, error = function(e) {
+    list(status = "ERROR", messages = paste("Could not run the cell:", conditionMessage(e)), grid = NULL)
+  })
+  result <- c(
+    result,
+    list(
+      test = label, index = index,
+      minutes = as.numeric(difftime(Sys.time(), started, units = "mins")),
+      finished = format(Sys.time(), "%Y-%m-%d %H:%M")
+    )
+  )
+  tmp <- paste0(result_path, ".tmp")
+  saveRDS(result, tmp)
+  file.rename(tmp, result_path)
+  invisible(result)
+}
+
+# The grid's results as a table, and whether the differences lean one way.
+grid_summary_lines <- function(saved) {
+  cells <- Filter(function(r) !is.null(r) && !is.null(r$grid), saved)
+  if (length(cells) == 0) {
+    return(character())
+  }
+  g <- do.call(rbind, lapply(cells, function(r) as.data.frame(r$grid)))
+  g <- g[order(g$r_X_W, g$reliability, g$r_XW_Y, g$n), ]
+  k <- nrow(g)
+  higher <- sum(g$difference > 0)
+  ties <- sum(g$difference == 0)
+  se_mean <- sqrt(sum(g$mcse^2)) / k
+  mean_diff <- mean(g$difference)
+  sign_p <- if (k - ties > 0) stats::binom.test(higher, k - ties)$p.value else NA
+  by_group <- function(var) {
+    means <- tapply(g$difference, g[[var]], mean)
+    paste(sprintf("%s = %s: %+.4f", var, names(means), means), collapse = "; ")
+  }
+  c(
+    "",
+    sprintf("Interaction grid: analytic power_interaction_r2() vs simulation, %d of 72 cells", k),
+    "     N  r_XW_Y  rel  r_X_W  simulation (MCSE)  analytic   diff  within 99.9%",
+    sprintf(
+      "%6d  %6.2f  %3.1f  %5.1f  %8.4f (%.4f)  %8.4f  %+.4f  %s",
+      g$n, g$r_XW_Y, g$reliability, g$r_X_W, g$simulation, g$mcse, g$analytic,
+      g$difference, ifelse(g$within, "yes", "NO")
+    ),
+    sprintf("Cells within the 99.9%% interval: %d of %d", sum(g$within), k),
+    sprintf(
+      "Simulation higher than analytic in %d of %d cells (%.0f%%)%s; sign test p = %s",
+      higher, k, 100 * higher / k, if (ties > 0) sprintf(", %d ties", ties) else "",
+      if (is.na(sign_p)) "NA" else format(signif(sign_p, 3))
+    ),
+    sprintf(
+      "Mean signed difference (simulation - analytic): %+.4f (Monte Carlo SE %.4f, z = %.2f)",
+      mean_diff, se_mean, mean_diff / se_mean
+    ),
+    paste("Mean difference by N:", by_group("n")),
+    paste("Mean difference by reliability:", by_group("reliability")),
+    paste("Mean difference by r_XW_Y:", by_group("r_XW_Y")),
+    paste("Mean difference by r_X_W:", by_group("r_X_W"))
+  )
 }
 
 test_descriptions <- function(path) {
@@ -170,7 +339,11 @@ run_queue <- function(todo, cores, already, total) {
       log <- sub("\\.rds$", ".log", row$result)
       process <- processx::process$new(
         rscript,
-        c(script, "--run-one", row$file, as.character(row$index), row$result),
+        if (row$kind == "cell") {
+          c(script, "--run-cell", as.character(row$index), row$result)
+        } else {
+          c(script, "--run-one", row$file, as.character(row$index), row$result)
+        },
         stdout = log, stderr = "2>&1", cleanup = TRUE,
         env = c("current", POWERKIT_FULL_VALIDATION = "true", POWERKIT_CORES = "1")
       )
@@ -303,6 +476,10 @@ write_summary <- function(tests, results_dir, cores) {
   )
   for (i in seq_len(nrow(tests))) {
     r <- saved[[i]]
+    # Grid cells with results are shown in the grid table below.
+    if (tests$kind[i] == "cell" && status[i] %in% c("PASS", "FAIL")) {
+      next
+    }
     lines <- c(lines, sprintf(
       "%-7s %s / %s%s", status[i], tests$chunk[i], tests$test[i],
       if (is.null(r)) "" else sprintf(" (%s)", format_minutes(r$minutes))
@@ -311,7 +488,7 @@ write_summary <- function(tests, results_dir, cores) {
       lines <- c(lines, paste0("          ", r$messages))
     }
   }
-  lines <- c(lines, "===== end of summary =====")
+  lines <- c(lines, grid_summary_lines(saved[tests$kind == "cell"]), "===== end of summary =====")
   writeLines(lines, file.path(results_dir, "summary.txt"))
   cat("\n", paste(lines, collapse = "\n"), "\n", sep = "")
   cat(sprintf("\nSaved to %s\n", file.path(results_dir, "summary.txt")))
@@ -332,6 +509,8 @@ if (!interactive() && sys.nframe() == 0) {
   args <- commandArgs(trailingOnly = TRUE)
   if (length(args) >= 1 && args[1] == "--run-one") {
     run_one_test(args[2], as.integer(args[3]), args[4])
+  } else if (length(args) >= 1 && args[1] == "--run-cell") {
+    run_one_cell(as.integer(args[2]), args[3])
   } else {
     value_of <- function(flag) {
       i <- match(flag, args)

@@ -625,3 +625,59 @@ sample-size test keeps 400 replications: with 100 the search's interval
 runs off its grid and powerkit stops with its plain-English "could not pin
 down the required n" message, which is the intended behaviour for too few
 replications.
+
+## 2026-10-13 · Regression interactions: analytic method, before any switch
+
+The interactions validation chunk passed (maintainer's run, commit
+97cc736): both analytic tests agree with simulation (0.6343 vs 0.6363
+perfectly measured; 0.5483 vs 0.5544 with unreliable measures). The
+maintainer judged two populations not enough to change the default
+(decision 1 above). So:
+
+1. **A grid comparison, on demand only.** `scripts/run-validation.R --only
+   interaction_grid` compares InteractionPoweR's analytic
+   `power_interaction_r2()` with powerkit's simulation (10,000 replications
+   per cell) over N = 50, 100, 200, 500; interaction r_XW_Y = 0.05, 0.10,
+   0.20 (small to moderate); reliability 1.0, 0.8, 0.7; and r_X_W = 0 and
+   0.3: 72 cells. Main effects are fixed at r_X_Y = r_W_Y = 0.2, and the
+   same reliability is given to X, W and Y. Each cell reports both values,
+   the difference (simulation minus analytic) and whether the analytic
+   value lies inside the 99.9% Monte Carlo interval of the simulation (the
+   validation tolerance rule). The summary adds whether the differences
+   lean one way: the share of cells where simulation is higher (with a
+   sign test), the mean signed difference with its Monte Carlo SE, and the
+   mean difference by N, reliability, interaction size and r_X_W. The grid
+   is not part of "everything" and is never run by `devtools::test()` or
+   nightly CI. Each cell runs in its own R process and is saved as it
+   finishes, like the tests, with seed 60000 + the cell's number.
+2. **Which method InteractionPoweR presents as primary: neither.** Checked
+   in InteractionPoweR 0.2.4's DESCRIPTION and help pages and on its
+   website (home page; articles "The InteractionPoweR Package" and
+   "Questions & Errors"; no vignettes are installed with the package):
+   * DESCRIPTION names both as "the primary functions": "The primary
+     functions are power_interaction_r2() and power_interaction() for
+     two-way interactions", and says power analyses "can be done either
+     analytically or via simulation".
+   * The main article introduces the analytic method first ("A simple
+     power analysis"), then simulation, and notes analytic power is fast
+     to compute; it doesn't recommend either.
+   * The home page offers both web apps. It recommends the analytic app
+     "particularly for beginners and users who are new to power analyses",
+     and describes the simulation app as implementing "the major
+     functions for simulation-based power analyses".
+   * The analytic method's scope, from its help page: "Valid for
+     interactions with continuous, normally distributed, variables."
+   * "Questions & Errors" says nothing on which to use.
+   Since simulation isn't presented as InteractionPoweR's primary method,
+   making the analytic method the default would not be a departure under
+   the conventions rule. It would change powerkit's own default, so it is
+   recorded in `docs/conventions.md` under "Not departures, but worth
+   stating", with the grid as the test of its size.
+3. **The default stays simulation** until the maintainer has seen the grid.
+   The plan then: analytic is the default only for continuous X and W
+   within the tested ranges (N 50-500, r_XW_Y 0.05-0.20, reliability
+   0.7-1, r_X_W 0-0.3), simulation everywhere else. It would be labelled
+   "analytic (checked against simulation)" on the results screen and in
+   the methods paragraph, never "exact".
+4. The three published InteractionPoweR tutorial tests stay skipped
+   (TODO values).
