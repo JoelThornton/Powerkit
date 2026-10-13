@@ -29,9 +29,11 @@ This is a specification for the app (build phase 5). It is not built yet.
   interaction") so users learn the vocabulary.
 - **Shortcut.** "I already know my analysis" skips the questions (see the
   last section).
-- **Methodological choices are not hidden in wording.** Where the right
-  analysis is a judgement, the path is marked **Open question** below and
-  routes nowhere until the maintainer decides.
+- **Contested choices are asked, never made silently.** Where the choice of
+  analysis is contested, the finder asks the user which analysis they plan,
+  explains the trade-off, and the write-up states the choice (see Decisions,
+  P1). Paths whose routing has not been decided yet are marked **Open
+  question** and route nowhere until the maintainer decides.
 
 ## Status labels
 
@@ -164,7 +166,32 @@ Not sure? How many times something happened, with no fixed maximum. Example:
 Not sure? A single question answered on a short scale, such as 1 to 5 from
 "strongly disagree" to "strongly agree". If you average several such items
 into a scale score, choose "A score or scale" instead.
-→ **Open question OQ1.**
+→ O5a.
+
+### O5a. How will you analyse this rating? *(after O5; decision D1)*
+
+Help line: *Researchers disagree about this, so we ask rather than choose for
+you. Your answer is stated in the write-up.*
+
+**As a score (for example, comparing mean ratings)** *(picture: a ruler)*
+Not sure? You will compare averages, as in a t-test or ANOVA. Example:
+*mean agreement (1–7) with "I feel calm" after mindfulness vs control.*
+→ Continue as O1 (score), with this note on the final card and in the
+write-up: *"This treats the rating as an interval scale: the step from 1 to 2
+counts the same as the step from 4 to 5. This is debated. Some
+methodologists consider it a reasonable approximation for means; others
+argue that for single items it can give misleading results and recommend
+ordinal models."*
+
+**As ordered categories** *(picture: a staircase)*
+Not sure? You will treat the answers as ordered categories without assuming
+equal steps, for example with an ordinal (cumulative link) regression.
+Example: *the proportion choosing each level of "How often do you feel
+lonely?" (never, rarely, sometimes, often).*
+→ **Coming later (not in spec):** ordinal models.
+
+The finder applies no automatic cut-off by number of points (e.g. it does not
+treat 7-point items as scores and 5-point items as ordinal).
 
 **Not sure** — *Look at one participant's data for your outcome. Is it a
 number that can take many values (score), one of two answers (yes/no), one
@@ -201,15 +228,23 @@ Not sure? Each person reacts to many stimuli (words, faces, vignettes) and you
 want your conclusion to hold for other stimuli like these, not just the ones
 you used. Example: *a lexical decision task with 80 words.*
 → **Coming later (not in spec):** mixed-effects models with crossed
-participants and stimuli. See also **Open question OQ3.**
+participants and stimuli (decision D3). The final card explains: *"Averaging
+each person's responses over the stimuli and running a t-test or ANOVA
+treats your particular stimuli as the only ones that matter. If you want to
+generalise to other stimuli, the variability between stimuli has to be in
+the model; leaving it out overstates power, sometimes by a lot."*
 
 **P4. People are nested in groups (classes, teams, clinics)** *(picture:
 figures inside circles)*
 Not sure? Participants come in clusters that share something, so people in
 the same cluster tend to be more alike. Example: *pupils in 20 classrooms,
 with whole classrooms assigned to the intervention.*
-→ **Coming later (not in spec):** multilevel models. See also **Open
-question OQ4.**
+→ **Coming later (not in spec):** multilevel models (decision D4). The
+final card explains that ignoring clustering overstates power. A
+design-effect approximation (inflating a single-level sample size by
+1 + (m − 1) × ICC, where m is the cluster size and ICC the intraclass
+correlation) is a legitimate option that may be added later, clearly
+labelled as an approximation.
 
 **P5. The same people measured over time** *(picture: one figure on a
 timeline)*
@@ -229,7 +264,8 @@ timeline)*
 Not sure? Example: *anxiety measured at the start and at the end of an
 8-week course.*
 → Treated as a within-person factor "Time" with two levels, then F1.
-→ **Open question OQ2** applies to the pre–post designs this creates.
+One group measured twice leads to the paired t-test (F2). Groups measured
+before and after lead to the pre–post questions (PP1, PP2; decision D2).
 
 **Three or more times** *(picture: several dots on a timeline)*
 Not sure? Example: *mood measured weekly for 10 weeks; experience sampling
@@ -280,16 +316,40 @@ Not sure? Example: *intervention vs control; morning vs evening testing.*
 
 **Three or more** *(picture: three bars)*
 Not sure? Example: *three types of feedback: none, praise, criticism.*
-→ See the table below.
+→ Score outcome (O1): F2a. Other outcomes: see the table below.
 
 | Outcome | Who gives the data | Two groups / conditions | Three or more |
 | --- | --- | --- | --- |
-| O1 Score | P1 Different people | `basic_test / independent_t`, **Coming later (spec ready)**; *independent-samples t-test*; see OQ7 | **Coming later (not in spec):** *one-way ANOVA*; see OQ8 |
-| O1 Score | P2 Same people, or P5 measured twice | `basic_test / paired_t`, **Coming later (spec ready)**; *paired-samples t-test*; P5 path also under OQ2 | **Coming later (not in spec):** *repeated-measures ANOVA*; see OQ8 |
+| O1 Score | P1 Different people | `basic_test / independent_t`, **Coming later (spec ready)**; *independent-samples t-test*; Student's by default, Welch's as an option (decision D7) | F2a |
+| O1 Score | P2 Same people, or P5 measured twice | `basic_test / paired_t`, **Coming later (spec ready)**; *paired-samples t-test* (one group measured twice, decision D2) | F2a |
 | O2 Yes/no | P1 Different people | `basic_test / two_proportions`, **Coming later (spec ready)**; *test of two proportions (z test)* | `basic_test / chi_square_independence`, **Coming later (spec ready)**; *chi-square test of independence* |
 | O2 Yes/no | P2 or P5 | **Coming later (not in spec):** *McNemar's test* | **Coming later (not in spec):** *Cochran's Q* |
 | O3 Categories | P1 Different people | `basic_test / chi_square_independence`, **Coming later (spec ready)** | `basic_test / chi_square_independence`, **Coming later (spec ready)** |
 | O3 Categories | P2 or P5 | **Coming later (not in spec)** | **Coming later (not in spec)** |
+
+On the independent-samples t-test form, Student's t-test (equal variances
+assumed) is pre-selected, matching G*Power; Welch's t-test is offered as an
+option. The write-up names the test used (decision D7).
+
+### F2a. What does your hypothesis say about the groups? *(three or more groups, score outcome; decision D8)*
+
+Help line: *Researchers disagree about whether to power the overall test or a
+specific comparison, so we ask. Your answer is stated in the write-up.*
+
+**A specific comparison** *(picture: two of three bars highlighted)*
+Not sure? Your hypothesis names which groups differ, or in what pattern.
+Example: *both feedback conditions will outperform no feedback.*
+→ **Coming later (not in spec):** planned contrast (for different people,
+or for the same people in every condition). The final card notes: *"A
+planned contrast must be specified in your preregistration before you see
+the data. Choosing it afterwards invalidates the test."*
+
+**Any difference among the groups** *(picture: three bars, none
+highlighted)*
+Not sure? Your hypothesis is only that the groups are not all equal.
+Example: *the three feedback types will differ in persistence.*
+→ **Coming later (not in spec):** omnibus *one-way ANOVA* (different people)
+or *repeated-measures ANOVA* (same people).
 
 ### F3. Does each factor have exactly two levels? *(two factors, score outcome)*
 
@@ -314,14 +374,90 @@ both". Example: in a study of therapy vs waitlist measured before and after,
 "therapy vs waitlist" is different people and "before vs after" is everyone
 got both.*
 
-| Factor A | Factor B | Leads to | Status | Analysis name shown |
-| --- | --- | --- | --- | --- |
-| Different people | Different people | `factorial_anova / 2x2_between` | **Available** | *2 x 2 between-participants ANOVA* |
-| Different people | Everyone got both | `factorial_anova / 2x2_mixed` (A between, B within) | **Available**; pre–post versions also under OQ2 | *2 x 2 mixed ANOVA* |
-| Everyone got both | Different people | `factorial_anova / 2x2_mixed`, with the factors swapped so that A is the between factor (the spec's convention) | **Available**; pre–post versions also under OQ2 | *2 x 2 mixed ANOVA* |
-| Everyone got both | Everyone got both | **Coming later (not in spec)** | | *2 x 2 within-participants ANOVA* |
+| Factor A | Factor B | Next |
+| --- | --- | --- |
+| Different people | Different people | F4a |
+| Different people | Everyone got both | F4b |
+| Everyone got both | Different people | F4b, with the factors swapped so that A is the between factor (the spec's convention) |
+| Everyone got both | Everyone got both | **Coming later (not in spec):** *2 x 2 within-participants ANOVA* |
 
-Then F5.
+### F4a. Did you assign people to both factors yourself, with equal group sizes? *(both factors between; decision D5)*
+
+Help line: *For example, randomly assigning each person to one of four
+combinations, with the same number in each.*
+
+**Yes: I assign both factors, with equal group sizes** *(picture: a 2 x 2
+grid with equal dots)*
+Not sure? Both factors are things you manipulate and you plan equal numbers
+in every combination. Example: *praise vs none, crossed with easy vs hard,
+randomised with 30 people per combination.*
+→ `factorial_anova / 2x2_between`, **Available**. Analysis name: *2 x 2
+between-participants ANOVA.* Then F5.
+
+**No: at least one factor is measured, or the groups will be unequal**
+*(picture: a 2 x 2 grid with unequal dots)*
+Not sure? One factor is a characteristic you record rather than assign, or
+you expect unequal numbers. Example: *a manipulation crossed with gender;
+smokers vs non-smokers crossed with a manipulation.*
+→ F5, then:
+- the interaction: `regression_interaction / two_way` with X and W both
+  binary, **Coming later (spec ready).** Analysis name: *moderated regression
+  (binary x binary interaction).* F6 is not asked, because the regression
+  form takes correlations rather than cell means.
+- a main effect: **Open question N2.**
+
+### F4b. Is the within-participants factor a "before and after" measurement? *(one factor between, one within)*
+
+**Yes: before and after** *(picture: two dots on a timeline)*
+Not sure? Everyone is measured before and after something, and the groups
+differ in what happens in between. Example: *therapy vs waitlist, anxiety
+measured before and after.*
+→ PP1.
+
+**No: another within-participants condition** *(picture: one person, two
+conditions)*
+Not sure? Example: *each person rates faces with and without time pressure;
+the groups are two training conditions.*
+→ `factorial_anova / 2x2_mixed`, **Available**. Analysis name: *2 x 2 mixed
+ANOVA.* Then F5. See also **Open question N1** (measured or unequal
+between-participants groups).
+
+### PP1. Were people randomly assigned to the groups? *(pre–post with two groups; decision D2)*
+
+**Yes, randomly assigned** *(picture: a die)*
+Not sure? Example: *a randomised controlled trial of therapy vs waitlist.*
+→ PP2, with this note: *"With randomised groups, ANCOVA (the after score
+adjusted for the before score) is usually more powerful than the 2 x 2 mixed
+interaction, so it often needs fewer participants."*
+
+**No, the groups already existed or chose themselves** *(picture: two
+labelled groups)*
+Not sure? Example: *students who signed up for a course vs students who
+didn't; two schools.*
+→ PP2, with this note: *"Without random assignment, ANCOVA and the mixed
+interaction (equivalent to comparing change scores) can answer different
+questions and can give different answers from the same data (Lord's
+paradox). Neither is right by default; choose the analysis that matches your
+research question and explain the choice."* No option is recommended.
+
+### PP2. Which analysis do you plan to use?
+
+Help line: *Researchers disagree about this, so we ask rather than choose for
+you. Your answer is stated in the write-up.*
+
+**ANCOVA: the after score, adjusting for the before score** *(picture: an
+arrow from "before" to "after")*
+Not sure? Example: *comparing post-therapy anxiety between groups,
+controlling for baseline anxiety.*
+→ **Coming later (not in spec):** *ANCOVA.*
+
+**The 2 x 2 mixed ANOVA interaction** *(picture: a 2 x 2 grid, group x
+time)*
+Not sure? Example: *testing whether anxiety changes more from before to after
+in the therapy group than in the waitlist group.*
+→ `factorial_anova / 2x2_mixed` with the group as factor A (between) and time
+as factor B (within), `effect = interaction`, **Available**. Analysis name:
+*2 x 2 mixed ANOVA (group x time interaction).* F5 is not asked; then F6.
 
 ### F5. Which result matters most for your study?
 
@@ -359,8 +495,26 @@ Not sure? The effect is there at both levels but smaller at one. Example:
 Not sure? The effect is present at one level and absent at the other.
 Example: *praise helps on hard tasks and makes no difference on easy ones.*
 
-All three lead to the same form (2 x 2 between or mixed, as chosen in F4).
-What the picture should set on that form is **Open question OQ6.**
+First, the finder asks **"Whose effect changes?"** with the two factors as
+options (e.g. *"the effect of difficulty, at each level of feedback"*). The
+shape depends on which factor's effect is drawn: means of 0 and 2 for A1 and
+0 and 1 for A2 show B's effect shrinking but A's effect disappearing.
+
+The picture records the expected shape only (decision D6). It does not
+pre-fill any cell means: the user enters all four means on the form and
+justifies them. All three shapes lead to the same form (2 x 2 between or
+mixed, as chosen above).
+
+**Shape check.** When the means are entered, the form compares them with the
+chosen shape using the two simple effects of the chosen factor (its effect at
+each level of the other factor), and shows a warning, not an error, if they
+don't match:
+
+| Chosen shape | The entered means match if | Warning if not |
+| --- | --- | --- |
+| The lines cross | the two simple effects have opposite signs | *"Your means don't show a reversal: the effect of [factor] goes the same way at both levels of [other factor]."* |
+| One effect shrinks | the simple effects have the same sign, are both non-zero, and differ in size | *"Your means don't show a shrinking effect: [describe what they show]."* |
+| One effect disappears | one simple effect is exactly zero and the other is not | *"Your means don't show an effect that disappears: neither simple effect is zero."* |
 
 ---
 
@@ -419,8 +573,12 @@ Not sure? Example: *daily stress measured with a questionnaire.*
 
 ### MO2. What does the effect depend on (the moderator, W)?
 
-**Two groups or conditions** *(picture: two boxes)*
-Not sure? Example: *easy vs hard task; men vs women.*
+**Two conditions you assigned** *(picture: two boxes with a die)*
+Not sure? You assign people to these too. Example: *easy vs hard task.*
+
+**Two groups that already exist** *(picture: two labelled groups)*
+Not sure? A characteristic you record. Example: *men vs women; clinical vs
+non-clinical sample.*
 
 **A measured score** *(picture: a ruler)*
 Not sure? Example: *social support; trait anxiety.*
@@ -437,7 +595,8 @@ but only for children, not adults.*
 
 | X (MO1) | W (MO2) | Who gives the data (Q3) | Leads to | Status | Analysis name shown |
 | --- | --- | --- | --- | --- | --- |
-| Two levels (assigned or existing) | Two groups | P1, or one factor within | F4, then `factorial_anova / 2x2_between` or `2x2_mixed`, with `effect = interaction` | **Available** for the 2 x 2 designs; routing is **Open question OQ5** | *2 x 2 ANOVA interaction* |
+| Two conditions you assigned | Two conditions you assigned | P1, or one factor within | F4 (and F4a: equal group sizes?), with `effect = interaction`: `factorial_anova / 2x2_between` or `2x2_mixed`; unequal groups go to `regression_interaction / two_way` (decision D5) | **Available** (2 x 2 ANOVA); **Coming later (spec ready)** (regression) | *2 x 2 ANOVA interaction*, or *moderated regression (binary x binary interaction)* |
+| Two levels, at least one an existing group | Two groups (at least one existing) | P1 | `regression_interaction / two_way`, X and W both binary (decision D5) | **Coming later (spec ready)** | *moderated regression (binary x binary interaction)* |
 | Two levels | A score | P1 | `regression_interaction / two_way` (X binary, W continuous) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
 | A score | Two groups | P1 | `regression_interaction / two_way` (X continuous, W binary) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
 | A score | A score | P1 | `regression_interaction / two_way` (both continuous) | **Coming later (spec ready)** | *moderated regression (continuous x continuous interaction)* |
@@ -457,10 +616,17 @@ and multilevel mediation are **Coming later (not in spec).***
 Not sure? Example: *self-affirmation vs control task.*
 
 **A measured score** *(picture: a ruler)*
-Not sure? Example: *workload measured with a questionnaire.* See **Open
-question OQ9.**
+Not sure? Example: *workload measured with a questionnaire.*
 
 Both lead to ME2. (The spec allows X to be binary or continuous.)
+
+Notes on the final card and in the write-up (decision D9), stated neutrally:
+
+- If X is measured: *"X was measured rather than manipulated, so the X → M
+  and X → Y paths are associations, not effects of an experimental
+  manipulation."*
+- Always: *"The M → Y path is not randomised, even when X is manipulated,
+  because participants are not assigned to levels of M."*
 
 ### ME2. How many go-betweens (mediators)?
 
@@ -562,7 +728,7 @@ same status label.
 | Listed as | Leads to | Status |
 | --- | --- | --- |
 | One-sample t-test | `basic_test / one_sample_t` | Coming later (spec ready) |
-| Independent-samples t-test (Student or Welch) | `basic_test / independent_t` | Coming later (spec ready) |
+| Independent-samples t-test (Student's by default; Welch's as an option) | `basic_test / independent_t` | Coming later (spec ready) |
 | Paired-samples t-test | `basic_test / paired_t` | Coming later (spec ready) |
 | Pearson correlation | `basic_test / correlation` | Coming later (spec ready) |
 | Test of two proportions (z test) | `basic_test / two_proportions` | Coming later (spec ready) |
@@ -575,7 +741,7 @@ same status label.
 | Serial mediation (PROCESS model 6) | `mediation / process_6` | Coming later (spec ready) |
 | PROCESS model 7 | `moderated_mediation / process_7` | Coming later (spec ready) |
 | PROCESS model 14 | `moderated_mediation / process_14` | Coming later (spec ready) |
-| One-way ANOVA; repeated-measures ANOVA; 2 x 2 within ANOVA; 2 x 2 x 2 ANOVA; ANCOVA | | Coming later (not in spec) |
+| One-way ANOVA; repeated-measures ANOVA; planned contrasts; 2 x 2 within ANOVA; 2 x 2 x 2 ANOVA; ANCOVA | | Coming later (not in spec) |
 | Three-way interaction; PROCESS models 8, 58, 59 | | Coming later (not in spec) |
 | Equivalence test (TOST); minimum-effect test | | Coming later (not in spec) |
 | Logistic, Poisson or ordinal regression; McNemar's test | | Coming later (not in spec) |
@@ -585,51 +751,83 @@ same status label.
 
 ---
 
+## Decisions
+
+Decided by the maintainer (to be copied into `docs/decisions.md`). The
+routing above follows them.
+
+**P1. Principle: contested choices are asked, never made silently.** Where
+the choice of analysis is contested, the finder asks the user which analysis
+they plan, explains the trade-off on the card, and the write-up states the
+choice. The finder never chooses silently.
+
+**D1. Single rating items (O5 → O5a).** The finder asks whether the item will
+be analysed as a score or as ordered categories. *Score* continues on the
+score path, with a note that this treats the rating as an interval scale,
+which is contested (the debate is summarised on the card). *Ordered
+categories* is "coming later" (ordinal models). There is no automatic cut-off
+by number of scale points.
+
+**D2. Pre–post designs (T1, F4b, PP1, PP2).** For two groups measured before
+and after, the finder asks which analysis is planned: ANCOVA (coming later)
+or the 2 x 2 mixed interaction (available). If the groups were randomised,
+the card notes that ANCOVA is usually more powerful. If not, the card notes
+that the two analyses can answer different questions (Lord's paradox) and
+recommends neither. One group measured twice goes to the paired t-test.
+
+**D3. Many items or stimuli (P3).** "Coming later" (mixed-effects models),
+with an explanation that averaging over stimuli overstates power when the aim
+is to generalise beyond the stimuli used.
+
+**D4. Nested data (P4).** "Coming later" (multilevel models). A design-effect
+approximation is a legitimate option to add later, clearly labelled as an
+approximation.
+
+**D5. Two binary factors (F4a, moderation table).** Route to the 2 x 2 ANOVA
+only if both factors are assigned by the researcher with equal group sizes.
+If either factor is measured (e.g. gender) or the groups are unequal, route to
+the regression interaction (`regression_interaction / two_way`, X and W
+binary).
+
+**D6. Interaction shape pictures (F6).** The picture records the expected
+shape only; no cell means are pre-filled. The form warns (does not block) if
+the entered cell means don't match the chosen shape. Because the shape
+depends on whose effect is drawn, the finder first asks which factor's effect
+changes.
+
+**D7. Two groups, score outcome (F2).** Student's t-test is the default,
+matching G*Power; Welch's t-test is an option. The write-up names the test
+used.
+
+**D8. Three or more groups (F2a).** The finder asks whether the hypothesis is
+a specific comparison or any difference among the groups, and offers a
+planned contrast or the omnibus test accordingly, noting that a contrast must
+be preregistered. Both are "coming later".
+
+**D9. Mediation (ME1).** One neutral sentence when X is measured rather than
+manipulated, and a note, always shown, that the M → Y path is not randomised.
+
+**Accepted:** the "One of several categories" outcome option (O3), added to
+the guide's list so that the chi-square test of independence can be reached.
+
 ## Open questions for the maintainer
 
-These are methodological choices. The finder does not route these paths until
-each is decided.
+Raised while applying the decisions above. These paths route nowhere until
+decided.
 
-**OQ1. Single rating items (O5).** A single 1–5 or 1–7 item: route it to the
-score designs (t-test, ANOVA, treating the rating as continuous), or treat it
-as ordinal and mark it "Coming later" until ordinal models arrive (v2)? If
-routed to score designs, should the finder show a warning?
+**N1. 2 x 2 mixed designs with a measured or unequal between-participants
+factor (F4b).** D5 covers two between-participants factors. When one factor
+is within participants, the regression interaction template can't be used
+(it has no within-participants factor), and the 2 x 2 mixed template assumes
+equal group sizes. Should a measured but equal-sized between factor (e.g.
+recruiting 50 patients and 50 controls, each measured in two conditions) go
+to the 2 x 2 mixed ANOVA? And what should happen when the groups are unequal:
+"coming later", or the 2 x 2 mixed ANOVA with a note?
 
-**OQ2. Pre–post designs (P5 with two time points).** "Therapy vs waitlist,
-measured before and after" currently maps to a 2 x 2 mixed ANOVA with the
-interaction as the target. ANCOVA (post-test adjusted for pre-test) is a
-common alternative that usually needs fewer participants. Should the finder:
-(a) route to 2 x 2 mixed only, (b) route to ANCOVA once it exists, or
-(c) offer both with an explanation? The same question applies to a single
-group measured twice (currently the paired t-test).
-
-**OQ3. Many items or stimuli (P3).** Block until mixed-effects models are
-supported (v2), or allow a by-participant analysis (averaging over stimuli)
-with a warning that it ignores stimulus variability?
-
-**OQ4. Nested data (P4).** Block until multilevel models are supported, or
-allow single-level designs with an adjustment for clustering (e.g. a design
-effect) and a warning?
-
-**OQ5. Two binary factors as moderation (MO1 and MO2 both two levels).**
-Route to the 2 x 2 ANOVA (current mapping, which assumes equal cell sizes) or
-to the regression interaction template (which allows measured moderators
-with unequal group sizes and unreliable measures)? For a measured binary
-moderator such as gender, group sizes are rarely equal.
-
-**OQ6. Interaction pictures (F6).** Should choosing a picture only record the
-expected shape (the user then enters all cell means and justifies them), or
-should it pre-fill cell means of that shape? Pre-filling needs default effect
-sizes, which the guide asks the tool to avoid.
-
-**OQ7. Two groups, score outcome: Student or Welch t-test?** The template
-supports both. Which should the finder name and pre-select as the default?
-
-**OQ8. Three or more groups.** When one-way and repeated-measures ANOVA
-arrive, should the finder suggest powering the key planned contrast (e.g.
-treatment vs control) instead of the omnibus test?
-
-**OQ9. Measured X in mediation (ME1).** Should the finder warn that
-mediation with a measured (not manipulated) X, measured at the same time as M
-and Y, supports weaker causal conclusions? Should it ask about the timing of
-measurement?
+**N2. Main effects in 2 x 2 designs routed to regression (F4a).** Under D5, a
+2 x 2 with a measured factor or unequal groups goes to the regression
+interaction template, which tests only the interaction. If the user's
+hypothesis is a main effect (e.g. *praise improves persistence, averaged over
+gender*), where should it go: "coming later" (a regression main-effect
+template), or the 2 x 2 ANOVA with a note about the measured factor or
+unequal groups?

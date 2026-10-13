@@ -91,6 +91,8 @@ plain English. Example specs for every design are in
 - [Decisions log](docs/decisions.md): why things are the way they are.
 - [Design finder](docs/design-finder.md): the question tree for the app's
   "find my design" route.
+- [Conventions](docs/conventions.md): what the established tools do by
+  default, what powerkit does, and every departure.
 - [Engine news](engine/NEWS.md): user-visible changes.
 - [CLAUDE.md](CLAUDE.md): project rules for contributors and coding
   assistants.
