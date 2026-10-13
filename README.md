@@ -24,8 +24,8 @@ optional AI assistant are planned.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Results have been validated for 2 x 2 designs only, the interface
-> may change, and the licence has not been chosen.
+> yet.** Results have been validated for 2 x 2 designs only, and the
+> interface may change.
 
 | Design | Status |
 | --- | --- |
@@ -107,3 +107,8 @@ High-replication validation tests are skipped by default. Set
 `POWERKIT_FULL_VALIDATION=true` to run them; they run nightly on GitHub
 Actions. Package versions for development are pinned with
 [renv](https://rstudio.github.io/renv/) (`renv.lock` at the repository root).
+
+## Licence
+
+The engine is free software, licensed under the GNU General Public License,
+version 3 or later (GPL (>= 3)). See [`engine/LICENSE`](engine/LICENSE).

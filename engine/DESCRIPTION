@@ -10,7 +10,7 @@ Description: Reads a single design specification (JSON) for common
     'Superpower', 'InteractionPoweR') to estimate power, required sample size
     and sensitivity. This development version runs 2x2 between and
     2x2 mixed ANOVA designs only (via Superpower).
-License: file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
