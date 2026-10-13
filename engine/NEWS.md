@@ -1,5 +1,29 @@
 # powerkit 0.0.0.9000
 
+* `run_spec()` now runs every MVP design:
+  * basic tests (one-sample, independent and paired t-tests, correlation,
+    two proportions, chi-square test of independence) via Spower;
+  * two-way regression interactions, with or without measurement error,
+    via InteractionPoweR;
+  * simple, parallel and serial mediation (PROCESS models 4 and 6) and
+    first- and second-stage moderated mediation (PROCESS models 7 and 14,
+    index of moderated mediation) via power4mome, with Monte Carlo or
+    percentile bootstrap confidence intervals.
+
+  These designs are simulated (`options > nrep` replications, seeded and
+  reproducible). Goals: power at a fixed n, or the required n with a 95%
+  interval. Every run first checks, on one large simulated data set, that
+  the backend reproduces the population you specified.
+* One-sided basic tests (`target_test > alternative` `"greater"` or
+  `"less"`) test the direction you specify; "greater" means the spec's
+  effect (d, dz, r, or p2 minus p1) is positive.
+* Exact 2x2 ANOVA results now equal a direct `ANOVA_exact()` call with the
+  same seed on every platform (they could differ around the 15th decimal
+  place).
+* Not available yet, with a plain-English message: sensitivity goals for
+  designs other than 2x2 ANOVAs; binary X or W in regression interactions
+  and mediation designs; measurement error (reliability) in mediation
+  designs.
 * New `run_spec()` runs a power analysis for 2x2 between and 2x2 mixed ANOVA
   designs, via Superpower. Goals: power at a fixed n, the required n, or
   the smallest detectable effect (sensitivity: the specified pattern of
@@ -12,7 +36,6 @@
   provenance record (spec hash, method, seed, backend, R and package
   versions).
 * New optional spec field `options > method` (`"exact"` or `"simulation"`).
-* Other designs give a plain-English "not available yet" error.
 * New design specification format (spec version 0.1), defined by the JSON
   schema in `inst/schema/design.schema.json`. It covers the MVP designs:
   basic tests (one-sample, independent and paired t-tests, correlation, two

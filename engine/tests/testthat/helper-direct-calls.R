@@ -5,10 +5,9 @@
 # by hand in the test, so they check powerkit's spec-to-backend translation
 # independently of powerkit's own adapter code.
 #
-# Status when written (build phase 1): the Superpower calls were run against
-# Superpower 0.2.4.1. Spower, power4mome and InteractionPoweR could not be
-# installed in the environment where this file was written, so those calls
-# follow the packages' documented interfaces but have NOT been run yet.
+# Status: all calls have been run against Superpower 0.2.4.1, Spower 0.6.4,
+# InteractionPoweR 0.2.4 and power4mome 0.2.1 (build phase 3; see
+# docs/decisions.md for what was changed and why).
 # If one fails in the nightly job because an argument or output name is
 # wrong, fix it here (not in test-validation-*.R).
 
@@ -56,7 +55,14 @@ direct_superpower_exact <- function(design, n, means, sd, r = 0, effect, alpha, 
   exact_estimate(result$main_results[superpower_effect_row(effect), "power"] / 100)
 }
 
-# Spower (not yet run) ----------------------------------------------------------
+# Spower -------------------------------------------------------------------------
+#
+# Spower::Spower() reads its experiment unevaluated (as in
+# `Spower(p_t.test(n = 50, d = 0.5))`), so the experiment is written out as
+# a call with its values in place, and evaluated with the random-number
+# generator seeded (Spower draws its own seed from it). Spower turns each
+# length-one argument into a column of its design table; vectors and
+# matrices must be names it can look up, so they are bound in `data`.
 
 spower_power <- function(result) {
   power <- result$power
@@ -66,37 +72,56 @@ spower_power <- function(result) {
   as.numeric(power)[1]
 }
 
-run_spower <- function(sim_call, alpha, nrep, seed) {
+run_spower <- function(experiment, alpha, nrep, seed, data = list()) {
+  env <- list2env(data, parent = globalenv())
+  sim_call <- bquote(Spower::Spower(
+    .(experiment),
+    sig.level = .(alpha), replications = .(nrep), verbose = FALSE
+  ))
   set.seed(seed)
-  result <- Spower::Spower(sim_call, sig.level = alpha, replications = nrep, verbose = FALSE)
+  result <- eval(sim_call, env)
   binomial_estimate(spower_power(result), nrep)
 }
 
 # `n` is per group for two-group designs and the number of pairs or
-# participants otherwise, as in Spower::p_t.test().
+# participants otherwise, as in Spower::p_t.test(). For type = "paired",
+# `d` is Cohen's d_z (as in the spec). Spower's paired generator draws the
+# two time points independently with SD 1, so the differences have SD
+# sqrt(2) and Spower's own d is sqrt(2) * d_z.
 direct_spower_t_test <- function(type, n, d, n2_n1 = 1, alpha, nrep, seed) {
-  run_spower(Spower::p_t.test(n = n, d = d, type = type, n2_n1 = n2_n1), alpha, nrep, seed)
-}
-
-direct_spower_correlation <- function(n, r, alpha, nrep, seed) {
-  run_spower(Spower::p_r(n = n, r = r), alpha, nrep, seed)
-}
-
-# `n` is per group.
-direct_spower_two_proportions <- function(n, p1, p2, alpha, nrep, seed) {
-  run_spower(Spower::p_prop.test(n = n, prop = c(p1, p2)), alpha, nrep, seed)
-}
-
-# `probabilities` is a matrix of cell probabilities; `n` is the total.
-direct_spower_chisq <- function(n, probabilities, alpha, nrep, seed) {
-  independent <- outer(rowSums(probabilities), colSums(probabilities))
+  spower_d <- if (type == "paired") sqrt(2) * d else d
   run_spower(
-    Spower::p_chisq.test(n = n, P0 = independent, P = probabilities),
+    bquote(Spower::p_t.test(n = .(n), d = .(spower_d), type = .(type), n2_n1 = .(n2_n1))),
     alpha, nrep, seed
   )
 }
 
-# InteractionPoweR (not yet run) -------------------------------------------------
+direct_spower_correlation <- function(n, r, alpha, nrep, seed) {
+  run_spower(bquote(Spower::p_r(n = .(n), r = .(r))), alpha, nrep, seed)
+}
+
+# `n` is per group. The spec's z test has no continuity correction, so
+# Yates' correction (on by default in Spower) is turned off.
+direct_spower_two_proportions <- function(n, p1, p2, alpha, nrep, seed) {
+  run_spower(
+    bquote(Spower::p_prop.test(n = .(n), prop = prop, correct = FALSE)),
+    alpha, nrep, seed, data = list(prop = c(p1, p2))
+  )
+}
+
+# `probabilities` is a matrix of cell probabilities; `n` is the total.
+# Given a matrix, p_chisq.test() runs chisq.test() on the generated table,
+# which is the Pearson test of independence (its null pattern P0 is not
+# used for a table). Yates' correction is off, as in the spec's Pearson
+# chi-square (it only matters for 2x2 tables).
+direct_spower_chisq <- function(n, probabilities, alpha, nrep, seed) {
+  run_spower(
+    bquote(Spower::p_chisq.test(n = .(n), P = probabilities, correct = FALSE)),
+    alpha, nrep, seed, data = list(probabilities = probabilities)
+  )
+}
+
+# InteractionPoweR ----------------------------------------------------------------
 
 direct_interactionpower_analytic <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
                                              rel_x = 1, rel_w = 1, rel_y = 1,
@@ -112,16 +137,18 @@ direct_interactionpower_analytic <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
 direct_interactionpower_simulation <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
                                                rel_x = 1, rel_w = 1, rel_y = 1,
                                                alpha, nrep, seed) {
+  # power_interaction() has no seed argument; run on one core, it uses R's
+  # random-number generator.
+  set.seed(seed)
   result <- InteractionPoweR::power_interaction(
     n.iter = nrep, alpha = alpha, N = n,
     r.x1.y = r_x_y, r.x2.y = r_w_y, r.x1x2.y = r_xw_y, r.x1.x2 = r_x_w,
-    rel.x1 = rel_x, rel.x2 = rel_w, rel.y = rel_y,
-    seed = seed
+    rel.x1 = rel_x, rel.x2 = rel_w, rel.y = rel_y
   )
   binomial_estimate(result$pwr[1], nrep)
 }
 
-# power4mome (not yet run) -------------------------------------------------------
+# power4mome ----------------------------------------------------------------------
 #
 # `model` is lavaan model syntax; `pop_es` gives the population values in
 # power4mome's "lhs ~ rhs: value" format. `test` is "indirect" (an indirect

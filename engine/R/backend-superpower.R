@@ -11,15 +11,18 @@ superpower_backend <- function(spec, seed = NULL) {
   inputs <- superpower_inputs(spec)
   # ANOVA_exact() needs more participants per cell than there are cells.
   exact_min_n <- 5 * inputs$groups
+  # ANOVA_design() draws random numbers; it runs under the run's seed so it
+  # leaves the caller's random-number state alone. Its draws don't affect
+  # ANOVA_exact(), which is seeded again (see superpower_exact()).
   design_at <- function(n, mu = inputs$mu) {
-    call_backend("Superpower", Superpower::ANOVA_design(
+    call_backend("Superpower", with_seed(seed, Superpower::ANOVA_design(
       design = inputs$design,
       n = n / inputs$groups,
       mu = mu,
       sd = inputs$sd,
       r = inputs$r,
       plot = FALSE
-    ))
+    )))
   }
   exact_at <- function(n, mu = inputs$mu) {
     if (n < exact_min_n) {
@@ -39,6 +42,7 @@ superpower_backend <- function(spec, seed = NULL) {
     n_step = inputs$groups,
     exact_min_n = exact_min_n,
     exact_power = function(n) exact_at(n)$power,
+    bracket_power = function(n) exact_at(n)$power,
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
@@ -71,25 +75,20 @@ superpower_inputs <- function(spec) {
   )
 }
 
-# Rejections out of nrep, splitting the replications into one seeded
-# ANOVA_power() call per core. With one core this is exactly
-# ANOVA_power(design, nsims = nrep, seed = seed).
+# Rejections out of nrep, one seeded ANOVA_power() call per core. With one
+# core this is exactly ANOVA_power(design, nsims = nrep, seed = seed).
 superpower_simulate <- function(design, inputs, nrep, seed, cores) {
-  chunks <- split_replications(nrep, cores)
-  seeds <- offset_seed(seed, seq_along(chunks) - 1)
-  run_chunk <- function(i) {
+  simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
     result <- call_backend("Superpower", Superpower::ANOVA_power(
       design,
       alpha_level = inputs$alpha,
-      nsims = chunks[i],
-      seed = seeds[i],
+      nsims = k,
+      seed = chunk_seed,
       verbose = FALSE
     ))
     power <- result$main_results[paste0("anova_", inputs$effect), "power"]
-    round(power / 100 * chunks[i])
-  }
-  rejections <- run_in_parallel(seq_along(chunks), run_chunk, cores)
-  list(rejections = sum(rejections), nrep = nrep)
+    round(power / 100 * k)
+  })
 }
 
 # Exact power for the target effect, and Superpower's Cohen's f for it.
@@ -97,6 +96,11 @@ superpower_simulate <- function(design, inputs, nrep, seed, cores) {
 # repeated calls differ around the 15th decimal place; running it under the
 # run's seed makes exact results reproducible bit for bit.
 superpower_exact <- function(design, inputs, seed = NULL) {
+  # Build the design before seeding: ANOVA_design() draws random numbers
+  # too, so building it lazily inside with_seed() would start
+  # ANOVA_exact() from a different RNG state than a direct call
+  # (design first, then set.seed(), then ANOVA_exact()).
+  force(design)
   result <- call_backend("Superpower", with_seed(
     seed,
     Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, verbose = FALSE)
@@ -174,6 +178,7 @@ anova_effect_in_units <- function(spec, means) {
 # are matched by Superpower's factor labels, so a cell put in the wrong
 # place by the translation shows up as a mismatch.
 superpower_check_run <- function(spec, design, seed = NULL) {
+  force(design)
   data <- call_backend(
     "Superpower",
     with_seed(seed, Superpower::ANOVA_exact(design, verbose = FALSE))

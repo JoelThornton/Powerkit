@@ -5,17 +5,23 @@
 #' the sample size that reaches the target power, or the smallest
 #' detectable effect.
 #'
+#' **Backends.** Basic tests run on Spower, regression interactions on
+#' InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
+#' 7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
+#'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
 #' exact for the specified population); `"simulation"` uses Monte Carlo
 #' simulation with `options > nrep` replications (default 1,000) and
-#' `options > seed` (drawn and recorded if not given). Set
+#' `options > seed` (drawn and recorded if not given). Every other design
+#' is simulated. Set
 #' `options(powerkit.cores = k)` or the environment variable `POWERKIT_CORES`
 #' to spread simulation replications over `k` cores (Unix-alikes only).
 #'
-#' **Sensitivity.** The shape of the specified pattern is kept and its size
-#' scaled (for 2x2 designs, each cell mean's deviation from the grand mean)
-#' until the target effect reaches the target power at n.
+#' **Sensitivity.** For 2x2 designs, the shape of the specified pattern is
+#' kept and its size scaled (each cell mean's deviation from the grand mean)
+#' until the target effect reaches the target power at n. Sensitivity is not
+#' yet available for other designs.
 #'
 #' @param spec A spec as a named list, a JSON string or a path to a JSON file.
 #'
@@ -84,6 +90,11 @@ run_spec <- function(spec) {
       list(sensitivity = NA)
     ),
     sensitivity = {
+      if (is.null(backend$sensitivity)) {
+        abort_not_available(
+          "Sensitivity analysis (the smallest detectable effect) isn't available yet for this design; use goal type 'power' or 'sample_size'."
+        )
+      }
       if (simulating) {
         abort_run(
           "Sensitivity analysis uses the exact method; remove 'options > method' or set it to 'exact'."

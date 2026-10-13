@@ -241,3 +241,249 @@ doesn't explain, powerkit runs `ANOVA_exact()` under the run's seed
 (restoring the caller's RNG state afterwards), so an exact result is
 identical every time for a given seed, and the analytic tests' direct calls
 use the same seed, so the comparison is exact equality.
+
+## 2026-10-13 · Phase 3: basic tests, regression interactions, mediation
+
+Backends now run every MVP design. Files: `R/backend-spower.R`,
+`R/backend-interactionpower.R`, `R/backend-power4mome.R` (flat, as decided
+in phase 0). Spower, power4mome and InteractionPoweR moved to Imports.
+Versions used: Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1
+(with manymome and lavaan 0.7.3), R 4.5.3.
+
+**Direct-call helpers (`helper-direct-calls.R`), run against the real
+packages for the first time.** The Superpower and power4mome calls were
+right. Changed:
+
+1. *Every Spower call failed* ("object of type 'symbol' is not
+   subsettable"). `Spower::Spower()` reads its experiment unevaluated, so
+   an experiment passed in as a variable is seen as a bare name. The
+   helpers now write the experiment out as a call with its values in place
+   (`bquote()`). Vectors and matrices are bound to names in the evaluation
+   environment, because Spower turns each length-one argument into a
+   column of its design table and cannot take longer ones. Spower draws
+   its seed from R's generator, so `set.seed(seed)` before the call makes
+   it reproducible (`control = list(seed = ...)` is rejected).
+2. *Paired t-test: Spower's `d` is not d_z.* `Spower::gen_t.test(type =
+   "paired")` draws the two time points independently with SD 1 and puts
+   `d` in the first, so the differences have SD sqrt(2) and Spower's d is
+   sqrt(2) * d_z. The helper converts the d_z it is given.
+3. *Two proportions and chi-square: Yates' continuity correction off.*
+   Spower's `p_prop.test()` and `p_chisq.test()` default to
+   `correct = TRUE`. The spec's methods are the z test and Pearson's
+   chi-square, which have no correction, so the helper (and powerkit)
+   pass `correct = FALSE`. Given a matrix of cell probabilities,
+   `p_chisq.test()` runs `chisq.test()` on the generated table, which is
+   the test of independence; its null pattern `P0` is ignored, so the
+   helper no longer builds one.
+4. *InteractionPoweR: `power_interaction()` has no `seed` argument.* It
+   uses R's generator when run on one core, so the helper calls
+   `set.seed(seed)` first.
+
+**Methods.** All three backends simulate; none has an exact method for
+these designs (the schema already allows `method = "exact"` for 2x2
+ANOVAs only). InteractionPoweR's analytic `power_interaction_r2()` is used
+only to bracket the required n before simulating, as `ANOVA_exact()` is
+in simulation mode. Whether to offer it as a method is an open question.
+
+**Spower: one-sided tests.** Spower's `two.tailed = FALSE` halves the
+two-sided p-value without checking the direction of the effect, so
+results in the wrong direction also count as significant. With d = 0,
+`Spower(p_t.test(n = 50, d = 0, two.tailed = FALSE))` rejected 10.1% of
+4,000 replications at alpha = .05. So:
+* two-sided tests use Spower's own experiment functions (`p_t.test()`,
+  `p_r()`, `p_prop.test()`, `p_chisq.test()`) exactly as a user would;
+* one-sided tests use Spower's data generators (`gen_t.test()`, `gen_r()`,
+  `gen_prop.test()`) inside `Spower()`, analysed with the stats test and
+  its `alternative` (`spower_one_sided_p()`). With d = 0 this rejected
+  5.2% of 4,000 replications.
+* Orientation: the spec's d is group 2 minus group 1; d_z is taken as the
+  second condition minus the first (the schema doesn't say; open
+  question); p2 versus p1. "greater" means that effect is positive.
+  Spower puts d in group 1 or the first time point, so powerkit passes -d
+  (and -sqrt(2) * d_z). Two-sided power doesn't depend on the sign.
+* Group sizes: Spower's `n` is group 1's size, with `n2_n1` (t-test) or
+  `n.ratios` (proportions) for group 2. Valid total n are the multiples of
+  the smallest n that splits into whole groups (3 for a ratio of 2).
+
+**Seeds and parallel replications.** As for Superpower: `nrep` is split
+into one chunk per core (`simulate_in_chunks()`, now shared; the
+Superpower adapter uses it with identical results), chunk seeds are
+`seed`, `seed + 1`, ..., and on one core a run equals one direct backend
+call with the run's seed. power4mome's own `parallel = TRUE` is not used:
+with the same `iseed` it gave different results on 1, 2 and 4 cores.
+InteractionPoweR's `cl` and Spower's `parallel` aren't used either.
+Parallel chunks still run on Unix only.
+
+**Sample-size search without an exact method.** `search_n()` brackets n
+with the backend's `bracket_power()` if it has one (Superpower exact,
+InteractionPoweR analytic). Otherwise (Spower, power4mome) it uses short
+simulations of 100 replications at each n tried, each with its own seed
+derived from the run's seed, starting at n = 20 (very small samples can
+fail to fit) and stopping bisection within 10% (noisy power makes finer
+bisection pointless). The bracket only places the grid; the probit
+smoothing, the 95% interval and the grid widening are unchanged from
+phase 2. This is powerkit's search, not Spower's or power4mome's own, so
+every design reports n and its interval the same way.
+
+**Check runs for simulation backends.** One data set of n = 100,000 from
+the backend's own generator with the translated inputs. Each recovered
+value must be within 5 standard errors of the specified one: chance puts a
+correct translation outside 5 SEs about once in 1.7 million checks, while
+a swapped sign, group or path is far outside at this n. SEs are those of a
+mean (standardised mean differences, proportions, variances), from `lm()`
+(path coefficients), or 1 / sqrt(n - 3) on Fisher's z scale
+(correlations). What is checked:
+* Spower: d, d_z, r, p1 and p2, and every chi-square cell probability, in
+  the spec's orientation; the group-size ratio exactly.
+* InteractionPoweR: the four correlations with perfect reliability (checks
+  the renaming X -> x1, W -> x2); with the specified reliabilities, the
+  observed correlations against the attenuated values InteractionPoweR
+  itself reports (`power_interaction_r2(detailed_results = TRUE)`).
+* power4mome: every path (each equation refitted by OLS), each observed
+  variable's variance (1), X<->W, and parallel mediators' residual
+  correlations.
+Unit tests confirm each check catches a deliberate mistranslation.
+
+**power4mome details.**
+* *Fitting.* Models are fitted with lavaan (power4mome's default), because
+  power4mome's Monte Carlo CIs need a lavaan fit: with
+  `fit_function = "lm"` the MC test returns NA ("The fit is not a lavaan
+  object"), although `lm` is about 10 times faster. ML point estimates
+  equal OLS for these recursive models.
+* *Product terms.* power4mome generates X, W, M and Y with variance 1, and
+  a product of two standardised variables with variance 1 + r^2 (1.236
+  recovered for r = 0.5 at n = 100,000), the coefficient applying to the
+  raw product. This is the convention powerkit's validator assumed in
+  phase 1, now confirmed; the check run tests it on every run.
+* *Residual correlations.* Between two endogenous variables, power4mome's
+  `M1 ~~ M2: v` is their residual covariance (all observed variables
+  standardised), not their residual correlation: with v = 0.3, a1 = 0.4
+  and a2 = 0.3, the recovered residual correlation was 0.344
+  = 0.3 / sqrt(0.84 * 0.91). The spec gives correlations (schema and
+  validator), so powerkit passes rho * sqrt((1 - R2_M1)(1 - R2_M2)), with
+  R-squared from the validator's implied model.
+* *Analysis model.* Parallel mediators' residual covariance is always free
+  in the fitted model, whatever its population value, as in PROCESS
+  (separate OLS regressions); lavaan would otherwise fix it at 0.
+* *Test.* `test_indirect_effect()` for the spec's path (mediators in path
+  order) or `test_index_of_mome()`; Monte Carlo (`ci_type = "mc"`) or
+  percentile bootstrap (`"boot"`) CI at level 1 - alpha; R =
+  `options > ci_draws`, default 1,000 (open question).
+* *Boos-Zhang.* power4mome automatically extrapolates rejection rates
+  (Boos & Zhang, 2000) when R is one of its supported small values
+  (<= 359). powerkit turns this off (`options(power4mome.bz = FALSE)`), so
+  the reported power is always the plain rejection rate (open question).
+* *Failed replications.* power4mome drops data sets whose model fails to
+  fit. Power is rejections over valid replications, and the MCSE uses the
+  number of valid replications. (power4mome's column for this is `pvalid`,
+  printed as "p.v".)
+* power4mome re-evaluates parts of its own call, so powerkit calls it with
+  `do.call()` and values, not expressions.
+
+**Not available yet (plain-English `powerkit_not_available` errors).**
+Each needs a methodological decision (open questions):
+* sensitivity goals for every design except the 2x2 ANOVAs;
+* binary X or W in regression interactions and mediation designs (the
+  schema allows them; the example `process_7.json` has a binary X, so it
+  can't run yet);
+* reliability below 1 in mediation and moderated mediation (regression
+  interactions do support it, through InteractionPoweR).
+The phase 2 unit test "designs without a backend yet give a plain-English
+error" used `process_7.json`. Every design now has a backend, so it now
+checks a sensitivity goal (correlation) and the binary-X example.
+
+**Fix: exact 2x2 results now equal a direct call bit for bit on every
+platform.** The phase 2 unit test "exact results are reproducible bit for
+bit and leave the RNG alone" failed on this Windows machine, on unchanged
+`main` too (0.3490087878869276 vs 0.3490087878869249). Cause:
+`superpower_exact()` received the design as a lazily evaluated argument,
+so `ANOVA_design()`, which itself draws random numbers, ran after
+`set.seed()` inside `with_seed()`, and `ANOVA_exact()` started from a
+different random-number state than a direct call (design, then
+`set.seed()`, then `ANOVA_exact()`). The design is now built first, under
+its own `with_seed()` so the caller's random-number state is still left
+alone, and `ANOVA_exact()` is then run under the seed. Exact results change
+only around the 15th decimal place; this also makes the nightly 2x2
+analytic tests' exact-equality comparison hold on every platform.
+
+**Speed.** Spower: about 0.5 ms per replication; InteractionPoweR: about
+4 ms at n = 400; power4mome: about 0.35 s per replication (simple
+mediation, R = 1,000) and 0.7 s (moderated mediation). The nightly
+mediation and moderated-mediation validation tests need about 170,000
+power4mome replications at 10,000 each, roughly 22 CPU-hours: more than
+the nightly job's 6 hours on 4 cores (open question).
+
+**Validation run for this phase (10,000 replications, Windows, R 4.5.3).**
+* Basic tests (Spower): all 20 analytic, direct-call and Type I error
+  tests pass, including the one-sided t-test; Type I error rates .048 to
+  .052. The 4 G*Power published tests skip (TODO values).
+* 2x2 ANOVA (after the Superpower RNG fix): the 8 tests that finished all
+  pass (both vignette, both paper and both Sommet et al. published tests,
+  and two Type I tests).
+* Not run to completion: regression interactions, the 2x2 analytic and
+  direct-call tests that hadn't finished, and every mediation and
+  moderated-mediation direct-call and Type I test. The local run was
+  stopped from outside after about two hours, while the mediation tests
+  were still running; at the maintainer's request the rerun covered the
+  basic tests only. These tests have run at small replication counts (the
+  unit tests, including a power4mome run equal to a direct `power4test()`
+  call), but not at 10,000.
+* Their published-value tests skip (TODO values), as expected.
+
+### Open questions for the maintainer (methodological, not decided here)
+
+1. **Regression interactions: analytic method?** InteractionPoweR's
+   `power_interaction_r2()` gives analytic power (noncentral F, with
+   reliability by attenuation). It is used only to bracket n. Should it be
+   offered as a method (`options > method = "exact"` or a new
+   `"analytic"`), and should it be the default, as `ANOVA_exact()` is for
+   2x2 designs? It is an approximation for random predictors, so it isn't
+   exact in the same sense.
+2. **Binary X or W.** The schema allows them in regression interactions
+   and mediation designs, but they aren't run yet. Interactions:
+   InteractionPoweR's `k.x1 = 2` / `k.x2 = 2` with
+   `adjust.correlations = TRUE` (the observed binary data then have the
+   specified correlations)? Mediation: power4mome's `x_fun` with
+   `rbinary_rs()`; with what group split (equal, or an allocation ratio),
+   and does a "standardised path" from a binary X mean per SD of the 0/1
+   variable? This blocks the example `process_7.json`.
+3. **Measurement error in mediation designs.** power4mome models
+   unreliability with `number_of_indicators` and `reliability`: analysed
+   as latent variables or as scale scores (as PROCESS users would), and
+   with how many indicators?
+4. **Sensitivity for the new designs.** Which value is scaled: d, d_z or r
+   (obvious); p2 with p1 fixed (or both moved apart)?; the chi-square
+   table's departure from independence?; r_XW_Y?; for mediation a, b,
+   both, or the indirect effect itself? Spower can solve for a missing
+   effect size; power4mome's `x_from_power()` can for a path.
+5. **Paired t-test direction.** The spec defines d_z as "mean of the
+   within-person differences / SD of the differences" without saying which
+   difference. powerkit uses second condition minus first, matching
+   independent groups (group 2 minus group 1). Only one-sided tests
+   depend on it. Confirm, and say so in the schema description?
+6. **Continuity correction.** The z test for two proportions and the
+   Pearson chi-square run without Yates' correction, as their names imply
+   (and as G*Power and `pwr` assume). Offer Yates as an option?
+7. **Spower's one-sided p-values.** powerkit works around them (above).
+   Report to Phil Chalmers?
+8. **Parallel mediators' residual covariance** is always free in the
+   fitted model (as in PROCESS). Confirm. Related: the direct-call test
+   "parallel mediation with correlated residuals" gives power4mome
+   `m1 ~~ m2: 0.4`, which power4mome reads as a residual covariance, while
+   the spec's 0.4 is a residual correlation, so powerkit passes
+   0.4 * sqrt(0.91 * 0.96) = 0.3739. The two populations differ slightly.
+   I haven't edited the test (maintainer-owned); change its pop_es to
+   `m1 ~~ m2: 0.3739` (and the model is already free)?
+9. **Monte Carlo draws per CI:** default 1,000 when `options > ci_draws` is
+   absent. Right default?
+10. **Boos and Zhang (2000) extrapolation** in power4mome is turned off.
+    It could cut run time a lot for small R. Allow it, and if so when?
+11. **Nightly runtime.** At 10,000 replications and R = 1,000, the
+    mediation and moderated-mediation validation tests need about 22
+    CPU-hours, well over the nightly job's 6 hours on 4 cores. Options: a
+    job per test file (matrix) on more runners, a larger runner, fewer
+    replications for the slow designs (with the power-detection argument
+    redone), or running those weekly.
+12. **lavaan ML instead of OLS** for mediation fits (needed for power4mome's
+    Monte Carlo CIs). Point estimates equal OLS; standard errors use n
+    rather than n - p. Acceptable?

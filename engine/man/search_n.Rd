@@ -29,9 +29,11 @@ A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}) and
 \description{
 Searches for the smallest total sample size whose power reaches \code{power},
 following the build guide (section 5): a coarse pass brackets the answer
-with the backend's exact method, then simulations at several sample sizes
-around it, each with \code{nrep} replications, refine it. (With the exact
-method, \code{\link[=search_n_exact]{search_n_exact()}} is used instead.)
+with the backend's exact or analytic power if it has one (Superpower's
+\code{ANOVA_exact()}, InteractionPoweR's \code{power_interaction_r2()}), or else
+with short simulations of 100 replications; then simulations at several
+sample sizes around it, each with \code{nrep} replications, refine it. (With
+the exact method, \code{\link[=search_n_exact]{search_n_exact()}} is used instead.)
 }
 \details{
 The simulated power values are smoothed with a probit regression of the

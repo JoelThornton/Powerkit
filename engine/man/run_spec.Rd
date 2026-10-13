@@ -36,17 +36,23 @@ the sample size that reaches the target power, or the smallest
 detectable effect.
 }
 \details{
+\strong{Backends.} Basic tests run on Spower, regression interactions on
+InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
+7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
+
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},
 exact for the specified population); \code{"simulation"} uses Monte Carlo
 simulation with \code{options > nrep} replications (default 1,000) and
-\code{options > seed} (drawn and recorded if not given). Set
+\code{options > seed} (drawn and recorded if not given). Every other design
+is simulated. Set
 \code{options(powerkit.cores = k)} or the environment variable \code{POWERKIT_CORES}
 to spread simulation replications over \code{k} cores (Unix-alikes only).
 
-\strong{Sensitivity.} The shape of the specified pattern is kept and its size
-scaled (for 2x2 designs, each cell mean's deviation from the grand mean)
-until the target effect reaches the target power at n.
+\strong{Sensitivity.} For 2x2 designs, the shape of the specified pattern is
+kept and its size scaled (each cell mean's deviation from the grand mean)
+until the target effect reaches the target power at n. Sensitivity is not
+yet available for other designs.
 }
 \examples{
 \donttest{

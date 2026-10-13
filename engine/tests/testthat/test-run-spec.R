@@ -1,29 +1,7 @@
-# run_spec() end to end for the 2x2 designs. Simulation runs use few
+# run_spec() end to end for the 2x2 designs (the other designs' backends are
+# tested in test-backend-*.R). Simulation runs use few
 # replications so the tests stay fast; accuracy is checked by the
 # validation tests.
-
-# Run without the "fewer than 1,000 replications" advice, which the small
-# simulation runs here would otherwise trigger every time.
-run_quietly <- function(spec) {
-  withCallingHandlers(
-    run_spec(spec),
-    powerkit_spec_warning = function(w) invokeRestart("muffleWarning")
-  )
-}
-
-# An example spec with seed 7 and, for simulation, few replications;
-# fields given in ... replace the example's fields whole.
-small_run_spec <- function(name, method = NULL, nrep = 100, ...) {
-  spec <- example_spec(name)
-  spec$options <- list(seed = 7)
-  if (identical(method, "simulation")) {
-    spec$options$method <- "simulation"
-    spec$options$nrep <- nrep
-  }
-  changes <- list(...)
-  spec[names(changes)] <- changes
-  spec
-}
 
 exact_power_direct <- function(design, n, mu, sd, r = 0, effect = "a:b") {
   d <- Superpower::ANOVA_design(design, n = n, mu = mu, sd = sd, r = r, plot = FALSE)
@@ -213,12 +191,11 @@ test_that("the check run catches cells put in the wrong place", {
 
 # Errors ----------------------------------------------------------------------------
 
-test_that("designs without a backend yet give a plain-English error", {
-  expect_error(
-    run_spec(example_spec("process_7")),
-    "isn't available yet",
-    class = "powerkit_not_available"
-  )
+test_that("features without a backend yet give a plain-English error", {
+  spec <- sim_spec("correlation", goal = list(type = "sensitivity", n = 100, power = 0.8))
+  expect_error(run_quietly(spec), "isn't available yet", class = "powerkit_not_available")
+  # The example PROCESS model 7 spec has a binary X and an unreliable W.
+  expect_error(run_spec(example_spec("process_7")), "aren't available yet", class = "powerkit_not_available")
 })
 
 test_that("the exact method is refused for designs that don't support it", {
