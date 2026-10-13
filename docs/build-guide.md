@@ -241,13 +241,11 @@ Section 2 lists continuous × binary interactions as MVP, and the example PROCES
 *a. Check backend support first (findings from the package sources, October 2026).*
 
 - **InteractionPoweR 0.2.4** makes a variable binary with `k.x1 = 2` / `k.x2 = 2` in `power_interaction()` and `generate_interaction()` (simulation only). It draws a normal variable, splits it into two equal groups and standardises the result; with `adjust.correlations = TRUE` (the default) the input correlations are adjusted so the observed binary data have the specified correlations. The group split is fixed at 50/50 (no option for unequal groups). The analytic `power_interaction_r2()` is documented as valid only for continuous, normally distributed variables, so it can't give the power for a binary X or W; powerkit uses it only to bracket N before simulating, and that use would need checking for binary variables.
-- **power4mome 0.2.1** can generate a binary exogenous variable through `x_fun` with `rbinary_rs()` (passed through `power4test()`): 0/1 data with probability `p1` of a 1, rescaled to population mean 0 and SD 1. Its documentation requires a variable generated this way to have zero covariance with the other exogenous variables, so a binary X correlated with W is not supported this way. `x_fun` on an endogenous variable sets its error term, so a binary M or Y is not supported. manymome's conditional effects accept a dichotomous moderator. Questions for Shu Fai Cheung before building:
-  1. Is `x_fun` with `rbinary_rs()` the intended way to model a binary X or W in mediation and moderated mediation power analyses?
-  2. With `rbinary_rs()` rescaling X to SD 1, is a path in `pop_es` from a binary X meant as a fully standardised effect? Is the analysis then fitted on the rescaled values rather than 0/1, and does that matter for the tests of indirect effects and the index of moderated mediation?
-  3. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
-  4. Has power4mome's Monte Carlo CI test been checked with a binary X?
+- **power4mome 0.2.1: backend convention.** power4mome supports a binary X or W through `power4test()`'s `x_fun` argument with `rbinary_rs()`: a 0/1 variable (probability `p1` of a 1) rescaled to population mean 0 and SD 1, so effects in `pop_es` are fully standardised. This is the convention powerkit follows for mediation and moderated mediation. Limits from its documentation: a variable generated with `x_fun` must have zero covariance with the other exogenous variables, and `x_fun` on an endogenous variable sets its error term, so a binary M or Y is not covered. manymome's conditional effects accept a dichotomous moderator. Remaining questions for Shu Fai Cheung (they don't block the convention):
+  1. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
+  2. Has power4mome's Monte Carlo CI test been checked with a binary X?
 
-*b. A decision for the maintainer: what a "standardised path" means for a 0/1 variable.* Either fully standardised (X scaled to SD 1, as both backends' generators do), or Y standardised and X left as 0/1, so that the path reads like Cohen's d. Follow the backends' convention by default; any departure goes in `docs/conventions.md` with a test of its size, is shown on the results screen and stated in the methods paragraph. The same decision covers the group split (equal, or an allocation ratio where the backend allows one).
+*b. Convention, and a decision for the maintainer.* Both backends treat a binary variable as fully standardised: power4mome rescales it to SD 1 with `rbinary_rs()` (above), and InteractionPoweR standardises it after the split. powerkit follows that by default, so a "standardised path" from a 0/1 X means per SD of X. The decision left for the maintainer is whether to offer the other reading as well (Y standardised and X left as 0/1, so the path reads like Cohen's d). That would be a departure: it goes in `docs/conventions.md` with a test of its size, is shown on the results screen and stated in the methods paragraph. The group split (equal, or an allocation ratio through `p1`; InteractionPoweR allows only 50/50) is decided at the same time.
 
 *c. Validation targets.*
 
@@ -257,7 +255,7 @@ Section 2 lists continuous × binary interactions as MVP, and the example PROCES
 - Published, interactions: an InteractionPoweR example with a binary variable, if the tutorial or package articles have one (to find).
 - Agreement between powerkit's binary-W interaction and its 2x2 ANOVA when both X and W are binary, as a cross-check between backends.
 
-Done when the backend questions are answered, the convention is decided and recorded, and these tests pass.
+Done when the maintainer has decided on the d-like option and the group split, the remaining questions to Shu Fai Cheung are answered or set aside, and these tests pass.
 
 **Example phase prompt (phase 2)**
 

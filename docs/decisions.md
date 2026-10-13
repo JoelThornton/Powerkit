@@ -932,3 +932,12 @@ inaccurate power estimate (InteractionPoweR's manual says
 distributed variables). The interaction message suggests a 2x2 ANOVA only
 when both X and W are binary, the only case it fits. A proposed phase for
 binary X and W is in `docs/build-guide.md`, section 8.
+
+**7. Binary X or W in power4mome: the backend convention (maintainer).**
+power4mome supports a binary X or W through `power4test()`'s `x_fun`
+argument with `rbinary_rs()`: a 0/1 variable rescaled to mean 0 and SD 1,
+so effects are fully standardised. This is recorded in the proposed phase
+(`docs/build-guide.md`, section 8) as the backend convention that powerkit
+follows, not as a question for Shu Fai Cheung. The questions left for him
+are whether a binary X can be correlated with W and whether the Monte Carlo
+CI test has been checked with a binary X.
