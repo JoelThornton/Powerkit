@@ -24,6 +24,7 @@
   designs other than 2x2 ANOVAs; binary X or W in regression interactions
   and mediation designs; measurement error (reliability) in mediation
   designs.
+* powerkit is now licensed under the GPL (>= 3).
 * New `run_spec()` runs a power analysis for 2x2 between and 2x2 mixed ANOVA
   designs, via Superpower. Goals: power at a fixed n, the required n, or
   the smallest detectable effect (sensitivity: the specified pattern of

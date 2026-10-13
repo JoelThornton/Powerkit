@@ -16,6 +16,10 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 - The Shiny app never computes power; it builds specs and calls the engine.
 - Citations come only from inst/citations/refs.bib. Never invent references.
 - Plain-English errors for users; no stack traces in the UI.
+- powerkit follows the established tools' conventions by default. Any
+  departure must be recorded in docs/conventions.md, shown to the user on the
+  results screen, stated in the methods paragraph, and covered by a test
+  showing the size of the difference.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
   a phase and summarise what was done, what's untested, and open questions.
 
