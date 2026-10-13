@@ -737,7 +737,7 @@
               "const": "standardised"
             },
             "dz": {
-              "description": "Cohen's d_z: mean of the within-person differences / SD of the differences.",
+              "description": "Cohen's d_z: mean of the within-person differences (second condition minus first, in the order of X's levels) / SD of the differences.",
               "type": "number"
             }
           }

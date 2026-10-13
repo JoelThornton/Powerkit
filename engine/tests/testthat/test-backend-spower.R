@@ -119,3 +119,54 @@ test_that("a sample-size search brackets n by coarse simulation", {
   expect_true(est$lower <= 89 && 89 <= est$upper)
   expect_true(nrow(result$curve) >= 5)
 })
+
+# Departures from Spower's defaults (docs/conventions.md) ------------------------
+
+test_that("departure: one-sided tests check the direction, unlike Spower's two.tailed = FALSE", {
+  # With no effect, Spower's halved two-sided p-value rejects about 2 * alpha
+  # (results in the wrong direction count too); powerkit's test rejects
+  # about alpha.
+  set.seed(4)
+  halved <- Spower::Spower(
+    Spower::p_t.test(n = 50, d = 0, two.tailed = FALSE),
+    replications = 5000, verbose = FALSE
+  )$power
+  inputs <- list(
+    alternative = "greater", template = "independent_t", generator = "gen_t.test",
+    alpha = 0.05,
+    args = function(n) list(n = 50, d = 0, type = "two.sample", n2_n1 = 1, var.equal = TRUE)
+  )
+  powerkit <- spower_rejections(inputs, 100, 5000, seed = 4) / 5000
+  expect_equal(halved, 0.1022)
+  expect_equal(powerkit, 0.0482)
+})
+
+test_that("departure: no continuity correction, unlike Spower's default (correct = TRUE)", {
+  # Same seed, so the same simulated data: the difference is the correction
+  # alone. Yates' correction lowers power by about .03 here.
+  # Vectors are passed by name: Spower turns each length-one argument into
+  # a column of its design table and warns about longer ones.
+  prop <- c(0.5, 0.65)
+  ratios <- c(1, 1)
+  power_with <- function(correct) {
+    set.seed(3)
+    Spower::Spower(
+      Spower::p_prop.test(n = 170, prop = prop, n.ratios = ratios, correct = correct),
+      replications = 5000, verbose = FALSE
+    )$power
+  }
+  corrected <- power_with(TRUE)
+  uncorrected <- power_with(FALSE)
+  expect_equal(corrected, 0.7894)
+  expect_equal(uncorrected, 0.8178)
+  # powerkit's two-proportions z test is the uncorrected one.
+  old <- options(powerkit.cores = 1)
+  on.exit(options(old))
+  spec <- sim_spec(
+    "two_proportions", nrep = 5000,
+    population = list(metric = "proportion", p1 = 0.5, p2 = 0.65),
+    goal = list(type = "power", n = 340)
+  )
+  spec$options$seed <- 3
+  expect_equal(run_quietly(spec)$curve$power, uncorrected)
+})

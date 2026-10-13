@@ -430,7 +430,7 @@ the nightly job's 6 hours on 4 cores (open question).
   call), but not at 10,000.
 * Their published-value tests skip (TODO values), as expected.
 
-### Open questions for the maintainer (methodological, not decided here)
+### Open questions for the maintainer (methodological, not decided here; answered in "Phase 3: maintainer decisions" below)
 
 1. **Regression interactions: analytic method?** InteractionPoweR's
    `power_interaction_r2()` gives analytic power (noncentral F, with
@@ -487,3 +487,141 @@ the nightly job's 6 hours on 4 cores (open question).
 12. **lavaan ML instead of OLS** for mediation fits (needed for power4mome's
     Monte Carlo CIs). Point estimates equal OLS; standard errors use n
     rather than n - p. Acceptable?
+
+## 2026-10-13 · Phase 3: maintainer decisions
+
+Answers to the phase 3 open questions above (numbered as there), and what
+was done. Departures from other tools are recorded in
+`docs/conventions.md` ("Departures"), each with a test showing its size.
+
+**Licence.** The engine is licensed under the GPL (>= 3)
+(`engine/DESCRIPTION`, `engine/LICENSE`; PR #3). This log had no earlier
+licence line; the phase 0 entry's set-up predates the choice.
+
+1. **Regression interactions: analytic method.** Use InteractionPoweR's
+   analytic `power_interaction_r2()` as the default where it is exact,
+   simulation otherwise, but only after a test shows the two agree within
+   Monte Carlo error. Until then simulation stays the default (no code
+   change). The test is the existing validation test "interaction,
+   perfectly measured: power matches power_interaction_r2 (analytic)" (and
+   its unreliable-measures twin), which compares powerkit's simulation with
+   the analytic value at the 99.9% Monte Carlo interval; it has not yet run
+   at 10,000 replications. Where the analytic method counts as exact is to
+   be set out when it is switched on.
+2, 3, 4. **Binary X or W, measurement error in mediation designs, and
+   sensitivity goals for the new designs** stay "not available yet", with
+   their plain-English errors, until the maintainer decides after review.
+5. **Paired designs: d_z is the second condition minus the first** (in
+   the order of X's levels), stated on screen. Done: the schema's
+   description of `dz` says so, and printing a paired spec shows "Effect:
+   d_z = mean of (After minus Before) / SD of those differences" with the
+   user's level labels (test: `test-read-spec.R`, "a paired spec states
+   the direction of d_z"). The app (phase 5) must show the same line on
+   the confirmation and results screens.
+6. **No Yates' continuity correction** for the two-proportions z test and
+   the Pearson chi-square (matches G*Power); no option to add it. This
+   departs from Spower's default (`correct = TRUE`): conventions.md,
+   Departure 5.
+7. **Spower's one-sided tests.** A minimal reproducible example is in
+   `docs/upstream/spower-one-sided-tests.R`, for the maintainer to send to
+   Phil Chalmers (nobody has been contacted). Seeded, 10,000 replications:
+   Type I error 0.1009 with `two.tailed = FALSE` against 0.0495 with a
+   directional test; with d = 0.5 both give 0.7931.
+8. **Parallel mediators: residuals free to correlate, as in PROCESS.** The
+   direct-call test "parallel mediation with correlated residuals" now
+   gives power4mome `m1 ~~ m2: 0.3739`, with the derivation from the spec's
+   correlation in a comment (0.4 * sqrt(0.91 * 0.96) = 0.37387). Size of
+   the departure from lavaan's default (residual covariance fixed at 0):
+   conventions.md, Departure 7.
+9. **Monte Carlo draws per CI: power4mome's own default.** power4mome has
+   no single default. `power4test()` has none: with `R = NULL` it makes no
+   draws, so no confidence-interval test can run. The low-level generators
+   `gen_mc()` and `gen_boot()` (and manymome's `indirect_effect()`) default
+   to 100. power4mome's own functions for a mediation power analysis,
+   `q_power_mediation()` and `q_power_mediation_simple()`, default to
+   `R = 1000`. powerkit uses that, read from `q_power_mediation()` at run
+   time (`default_ci_draws()`, test: "Monte Carlo draws default to
+   power4mome's own default for mediation power"), so it follows
+   power4mome if the default changes. In power4mome 0.2.1 it is 1,000, the
+   value powerkit already used.
+10. **Boos and Zhang's method: off for validation**, recorded as a
+    departure from power4mome's default (conventions.md, Departure 8); the
+    user-facing choice is for later, so for now it is off for every run.
+    While writing the size test, two things were found:
+    * *power4mome's documented switch does not reach its test functions.*
+      `test_indirect_effect()` and `test_index_of_mome()` check
+      `!isFALSE(options("power4mome.bz"))`; `options()` returns a list, so
+      this is always TRUE and `options(power4mome.bz = FALSE)` has no
+      effect there (its summary functions use `getOption()`, which works).
+      So the option phase 3 set did not turn the method off. powerkit now
+      asks for the confidence-interval rule explicitly
+      (`test_method = "ci"`, a documented argument of both test functions)
+      and still sets the option for the summaries. This could be a second
+      upstream report (to Shu Fai Cheung); not prepared.
+    * *Size: none in powerkit's runs.* At the supported numbers of draws
+      (39, 79, ..., 359), Boos and Zhang's p-value rule gives the same
+      decision as the confidence interval in each replication, and
+      `power4test()` does not extrapolate the rejection rate
+      (`bz_extrapolated = FALSE`; the extrapolation is used in power4mome's
+      own searches such as `x_from_power()`). On 100 seeded replications
+      at R = 39, both rules gave identical rejection rates (test:
+      "departure: Boos-Zhang off makes no difference to power4test()'s
+      rejection rate"). At other numbers of draws (including the default
+      1,000) the method is never used.
+11. **Validation strategy.**
+    * *Nightly CI runs a fast subset:* the unit tests plus the basic-test
+      and regression-interaction validation files, which take minutes
+      (`.github/workflows/nightly-validation.yaml`; `devtools::test()` with
+      `filter = "validation-(anova|mediation|modmed)", invert = TRUE`. The
+      filter is matched against each file's path, so it can't be
+      anchored with `^`). The 2x2 ANOVA validation tests leave the nightly
+      job too: their simulation reruns take a few CPU-hours.
+    * *Full validation runs on demand,* before merges and releases, on the
+      maintainer's machine, with `scripts/run-validation.R`. Each test runs
+      in its own R process (processx, already installed with testthat), 2
+      at a time by default (`--cores` for more), with
+      `POWERKIT_CORES=1` inside each, so a crash loses at most the tests in
+      progress. Each result is saved to `validation-results/` (git-ignored)
+      as soon as it finishes, written to a temporary file and renamed so it
+      is never half-written; a rerun skips saved tests, and tests that
+      were running when it stopped run again. `--only` runs chunks by
+      design (basic, anova, interactions, process_4, process_6, process_7,
+      process_14), `--list` shows progress, `--retry-failed` reruns FAIL
+      and ERROR, `--fresh` starts again. Stopping the script stops its
+      tests (processx kills them when the script ends; checked by stopping
+      a run part-way: no R processes were left). It prints progress with
+      an estimate of the time left (rough minutes per test, corrected by
+      how fast tests actually run), and ends with a summary to paste back
+      (also `validation-results/summary.txt`): commit (flagged if there
+      are uncommitted changes), R and package versions, totals, and every
+      test's numbers. Tested on the basic chunk: 24 tests in 4 minutes on
+      2 cores, identical results to the earlier run; resuming after a
+      stop ran only the 4 tests that had not finished.
+    * The validation helpers' messages are now worded to read correctly
+      whether a test passes or fails ("Reference power 0.8015; must lie in
+      [...]"), since the summary shows them for passing tests too. Only
+      the wording changed, not what is checked.
+12. **lavaan ML for the mediation fits: accepted**, recorded as a departure
+    from PROCESS's OLS (conventions.md, Departure 6). Test at N = 50
+    ("departure: lavaan ML standard errors vs PROCESS's OLS, at N = 50"):
+    the estimates are identical and the ML standard errors are exactly
+    the OLS ones times sqrt((n - k) / n), with k the number of
+    coefficients including the intercept: 2.0% smaller for the a path
+    (k = 2) and 3.0% smaller for b and c' (k = 3).
+
+**README.** The status table now says basic tests are working (validated
+at 10,000 replications, G*Power published examples to come), and the
+interaction and mediation designs are "built, not yet validated" until
+the full validation passes.
+
+**Unit-test run time.** Routine `devtools::test()` and `devtools::check()`
+should finish in about 5 minutes on a laptop; slow simulation checks belong
+in the validation suite or use small settings. The slowest unit tests were
+cut (a power4mome run equal to a direct call now uses 10 replications at
+the adapter level; simulation and sample-size tests use 100 replications
+where that still pins down n). `devtools::test()` now takes about 2 minutes
+and `devtools::check()` about 3 on the maintainer's machine. The Spower
+sample-size test keeps 400 replications: with 100 the search's interval
+runs off its grid and powerkit stops with its plain-English "could not pin
+down the required n" message, which is the intended behaviour for too few
+replications.

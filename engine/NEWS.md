@@ -17,6 +17,14 @@
 * One-sided basic tests (`target_test > alternative` `"greater"` or
   `"less"`) test the direction you specify; "greater" means the spec's
   effect (d, dz, r, or p2 minus p1) is positive.
+* In paired designs, d_z is the second condition minus the first (in the
+  order of X's levels). Printing a paired spec says so, in your labels.
+* The two-proportions z test and the Pearson chi-square have no continuity
+  correction, as in G*Power.
+* Mediation designs use power4mome's default number of Monte Carlo draws
+  per confidence interval (1,000) when `options > ci_draws` isn't given,
+  and always test with the confidence interval (Boos and Zhang's method is
+  off).
 * Exact 2x2 ANOVA results now equal a direct `ANOVA_exact()` call with the
   same seed on every platform (they could differ around the 15th decimal
   place).

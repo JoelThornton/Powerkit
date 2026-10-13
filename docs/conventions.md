@@ -26,10 +26,20 @@ it.
   - **[SP-book]** The Superpower book, chapter "Mixed
     ANOVA", section 5.1, footnote, as reported by the maintainer. Not read
     directly here (no web access).
+  - **[Spower-src]** Spower 0.6.4, installed source and help pages
+    (`p_t.test()`, `gen_t.test()`, `p_r()`, `p_prop.test()`,
+    `p_chisq.test()`, `Spower()`), checked in build phase 3.
+  - **[IP-src]** InteractionPoweR 0.2.4, installed source and help pages
+    (`power_interaction()`, `power_interaction_r2()`,
+    `generate_interaction()`, `test_interaction()`), phase 3.
+  - **[p4m-src]** power4mome 0.2.1 (with manymome and lavaan 0.7.3),
+    installed source and help pages (`power4test()`,
+    `test_indirect_effect()`, `test_index_of_mome()`, `rejection_rates()`,
+    `q_power_mediation()`, `Rs_bz_supported()`), phase 3.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
-- G*Power's manual, and the pwrss, InteractionPoweR, power4mome and Spower
-  documentation, were not available when this file was written (no network
-  access to CRAN or the web), so their entries are **to check**.
+- G*Power's manual and the pwrss documentation were not available when this
+  file was written (no network access to CRAN or the web), so their entries
+  are **to check**.
 
 ## Basic tests
 
@@ -42,8 +52,8 @@ it.
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (interactions only): to check | | |
 | power4mome | Not covered: to check | | |
-| Spower | to check (the build guide says Spower has simulation versions of the G*Power tests) | to check | to check |
-| **powerkit** | Spec template `independent_t`, method `student_t` or `welch_t` [powerkit schema]; the finder pre-selects Student's (decision D7). Engine: in progress (phase 3, via Spower). | `d` (independent, one-sample); `dz` (paired) [powerkit schema] | `alternative`: two-sided by default, or `greater` / `less`; `allocation_ratio` |
+| Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | `two.tailed = FALSE` halves the two-sided p-value regardless of direction (Departure 4); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
+| **powerkit** | Spower's `p_t.test()` for two-sided tests; for one-sided tests, Spower's `gen_t.test()` data with `t.test(alternative = ...)` (Departure 4). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
 
 ### Correlation, two proportions, chi-square test of independence
 
@@ -54,8 +64,8 @@ it.
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered: to check | | |
 | power4mome | Not covered: to check | | |
-| Spower | to check | to check | to check |
-| **powerkit** | Spec templates `correlation` (Pearson, against 0), `two_proportions` (z test), `chi_square_independence` (Pearson chi-square) [powerkit schema]. Engine: in progress (phase 3, via Spower). | `r`; `p1`, `p2`; a table of cell probabilities | |
+| Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
+| **powerkit** | Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()` (two-sided); one-sided correlation and proportions tests use Spower's generators with `cor.test()` / `prop.test()` and `alternative` (Departure 4) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
 ## Factorial ANOVA
 
@@ -127,10 +137,10 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | G*Power | to check (e.g. linear multiple regression, R² increase) | to check (f²) | to check |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
-| InteractionPoweR | to check (analytic `power_interaction_r2()` and simulation `power_interaction()`; argument names in `engine/tests/testthat/helper-direct-calls.R` not yet run against the package) | Correlations among X, W, XW and Y: to check | Reliabilities of X, W, Y: to check |
+| InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()` [IP-src] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
 | power4mome | to check (moderation is in scope per the build guide) | to check | to check |
 | Spower | to check | to check | to check |
-| **powerkit** | Spec template `two_way`, method `ols_t` (t test of the product term) [powerkit schema]. Engine: in progress (phase 3, via InteractionPoweR). | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, following InteractionPoweR's parametrisation [powerkit] | Reliabilities per variable |
+| **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n; it becomes the default where it is exact once a test shows the two agree (maintainer's decision 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
 
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
@@ -140,9 +150,9 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check (the build guide names `power.z.mediation`, a z test of the indirect effect) | to check | to check |
 | InteractionPoweR | Not covered: to check | | |
-| power4mome | to check (Monte Carlo or bootstrap confidence intervals for indirect effects and the index of moderated mediation; `power4test()`) | to check (population values as standardised coefficients; "s"/"m"/"l" labels) | to check (number of Monte Carlo draws `R`; replications `nrep`) |
+| power4mome | `power4test()` with `test_indirect_effect()` or `test_index_of_mome()`: Monte Carlo (default) or nonparametric bootstrap CI, significant if the CI excludes 0; the model is fitted with lavaan (ML) by default [p4m-src] | Standardised coefficients (`pop_es`, "lhs ~ rhs: value", or "s"/"m"/"l" labels). Observed variables have variance 1, and a product of two standardised variables has variance 1 + r^2. Between two endogenous variables, `~~` sets their **residual covariance** [p4m-src, checked by simulation] | `R` (draws per CI): no default in `power4test()` (no CI without it); 1,000 in `q_power_mediation()`; 100 in `gen_mc()` / `gen_boot()`. Boos and Zhang's method switches on automatically for R in 39, 79, ..., 359 (Departure 8). A residual covariance not written in the model is fixed at 0 (lavaan) [p4m-src] |
 | Spower | to check (the build guide says Spower covers mediation) | to check | to check |
-| **powerkit** | Spec: indirect effect along a named path (mediation) or the index of moderated mediation; `monte_carlo_ci` or `percentile_bootstrap` [powerkit schema]. Engine: in progress (phase 3, via power4mome). | Standardised paths keyed `From->To` [powerkit] | `options > ci_draws` |
+| **powerkit** | power4mome's `power4test()` with its test functions, CI level 1 - alpha, CI rule (`test_method = "ci"`); lavaan ML fit (Departure 6) [powerkit] | Standardised paths keyed `From->To`; residual **correlations** for parallel mediators (converted to power4mome's covariance) [powerkit] | `options > ci_draws`, default power4mome's 1,000 (`q_power_mediation()`); parallel mediators' residuals always free to correlate, as in PROCESS (Departure 7); Boos and Zhang off (Departure 8). Binary X or W and measurement error: not available yet |
 
 ## Departures
 
@@ -213,11 +223,104 @@ methods paragraph, and covered by a test showing the size of the difference
 - **Established convention:** Superpower's `ANOVA_exact()` builds its data
   set with the random-number generator, so repeated calls differ at about the
   15th decimal place [powerkit, `docs/decisions.md`].
-- **powerkit:** runs it under the run's seed (restoring the caller's RNG
-  state), so exact results are identical for a given seed.
+- **powerkit:** builds the design first (`ANOVA_design()` also draws random
+  numbers), then runs `ANOVA_exact()` under the run's seed and restores the
+  caller's RNG state. So exact results are identical for a given seed and
+  equal a direct call (design, then `set.seed()`, then `ANOVA_exact()`).
+  Before phase 3 the design was built lazily inside the seeded block, so
+  results differed from a direct call at about the 15th decimal place on
+  Windows.
 - **Size:** about 1e-15 in power, so this has no practical effect.
 - **Test:** `engine/tests/testthat/test-run-spec.R`, "exact results are
   reproducible bit for bit and leave the RNG alone".
+
+### 4. One-sided basic tests: a directional test, not Spower's halved p-value
+
+- **Established convention:** Spower's `two.tailed = FALSE` returns half
+  the two-sided p-value whatever the direction of the observed effect
+  (`p_t.test()`, `p_r()`, `p_prop.test()`) [Spower-src].
+- **powerkit:** for one-sided tests, data from Spower's generator analysed
+  with `t.test()`, `cor.test()` or `prop.test()` and `alternative`, so only
+  effects in the tested direction count. Two-sided tests use Spower's own
+  functions unchanged.
+- **Size:** with no effect, Spower's one-sided t-test rejects about twice
+  alpha: 0.1022 against powerkit's 0.0482 (5,000 seeded replications,
+  alpha = .05), and 0.1009 against 0.0495 in
+  `docs/upstream/spower-one-sided-tests.R` (10,000). With a real effect in
+  the tested direction the two agree (0.7931 and 0.7931 for d = 0.5, n = 50
+  per group).
+- **Test:** `engine/tests/testthat/test-backend-spower.R`, "departure:
+  one-sided tests check the direction, unlike Spower's two.tailed = FALSE".
+- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+
+### 5. Two proportions and chi-square: no continuity correction (Spower applies one by default)
+
+- **Established convention:** Spower's `p_prop.test()` and `p_chisq.test()`
+  apply Yates' continuity correction by default (`correct = TRUE`)
+  [Spower-src]. G*Power's z test and Pearson chi-square do not
+  (maintainer's decision 6; G*Power's documentation itself is still to check
+  here).
+- **powerkit:** no correction, and no option for one (maintainer's decision
+  6), as in G*Power.
+- **Size:** two proportions, p1 = .50, p2 = .65, 170 per group,
+  alpha = .05, the same 5,000 seeded data sets: power 0.8178 without the
+  correction and 0.7894 with it (.028 lower). For the chi-square test it
+  only matters for 2 x 2 tables.
+- **Test:** `test-backend-spower.R`, "departure: no continuity correction,
+  unlike Spower's default (correct = TRUE)", which also checks that
+  powerkit's run equals the uncorrected value.
+- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+
+### 6. Mediation fits: lavaan maximum likelihood, not PROCESS's OLS
+
+- **Established convention:** PROCESS fits each equation by OLS.
+- **powerkit:** fits the path model with lavaan (ML), power4mome's default,
+  because power4mome's Monte Carlo confidence intervals need a lavaan fit
+  (accepted by the maintainer, decision 12).
+- **Size:** identical estimates. ML standard errors are the OLS ones times
+  sqrt((n - k) / n), with k the number of coefficients in the equation
+  including the intercept. At N = 50 they are 2.0% smaller for a (k = 2)
+  and 3.0% smaller for b and c' (k = 3); at N = 200, 0.5% and 0.75%.
+- **Test:** `test-backend-power4mome.R`, "departure: lavaan ML standard
+  errors vs PROCESS's OLS, at N = 50" (checks the ratio to 1e-6).
+- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+
+### 7. Parallel mediators: residuals free to correlate (lavaan fixes them at 0)
+
+- **Established convention:** PROCESS fits separate OLS regressions, which
+  place no constraint on the mediators' residual covariance. lavaan, and so
+  power4mome given a model without `M1 ~~ M2`, fixes it at 0 [p4m-src].
+- **powerkit:** follows PROCESS (maintainer's decision 8): the fitted model
+  always frees the residual covariance between parallel mediators, whatever
+  its population value. This departs from lavaan's and power4mome's default
+  model, not from PROCESS.
+- **Size:** identical estimates. With a residual correlation of 0.4 and
+  n = 200, fixing the covariance at 0 understates the standard errors of
+  the M1->Y and M2->Y paths by about 10% (free / fixed = 1.111 for both,
+  seeded data), so it would overstate power.
+- **Test:** `test-backend-power4mome.R`, "departure: parallel mediators'
+  residuals free to correlate, as in PROCESS".
+- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+
+### 8. Boos and Zhang's (2000) method: off (power4mome switches it on for some R)
+
+- **Established convention:** power4mome switches Boos and Zhang's method
+  on automatically when the number of draws R is one of 39, 79, ..., 359.
+  Each replication's test then uses a p-value rule instead of the
+  confidence interval, and power4mome's own searches (e.g.
+  `x_from_power()`) extrapolate rejection rates [p4m-src].
+- **powerkit:** off, for validation and, until the user-facing choice is
+  made, for every run (maintainer's decision 10). powerkit asks for the CI
+  rule explicitly (`test_method = "ci"`), because power4mome's documented
+  switch (`options(power4mome.bz = FALSE)`) does not reach its test
+  functions in version 0.2.1 (`docs/decisions.md`).
+- **Size:** none in powerkit's runs. At R = 39 both rules gave identical
+  rejection rates on 100 seeded replications (at these R the p-value rule
+  and the CI agree), and `power4test()` does not extrapolate. At any other
+  R, including the default 1,000, the method is never used.
+- **Test:** `test-backend-power4mome.R`, "departure: Boos-Zhang off makes
+  no difference to power4test()'s rejection rate".
+- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
 ## Not departures, but worth stating
 
@@ -234,3 +337,23 @@ methods paragraph, and covered by a test showing the size of the difference
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and
   unequal group sizes" above.
+- **Paired designs: d_z is the second condition minus the first**, in the
+  order of X's levels (maintainer's decision 5). G*Power's d_z is the mean
+  difference over the SD of the differences [SP-vig]; the direction only
+  matters for one-sided tests. It is stated when a paired spec is printed,
+  and must be on the app's confirmation and results screens.
+- **Residual correlations, not covariances.** The spec gives parallel
+  mediators' residual correlations; power4mome's `M1 ~~ M2` value is a
+  residual covariance, so powerkit converts, multiplying by
+  sqrt((1 - R^2 of M1)(1 - R^2 of M2)). Same population, different
+  parametrisation; the check run recovers the correlation on every run.
+- **Product terms.** powerkit's validator and power4mome agree: a product
+  of two standardised variables with correlation r has variance 1 + r^2,
+  and its path coefficient applies to the raw product [p4m-src, checked by
+  simulation].
+- **Sample size search for simulated designs:** powerkit's own
+  `search_n()` (a probit fit to simulated power, with a 95% interval for
+  n), not Spower's or power4mome's own searches, so every design reports n
+  the same way [powerkit].
+- **Default method for every design except the 2 x 2 ANOVAs:** simulation,
+  with `options > nrep` replications (default 1,000) [powerkit].

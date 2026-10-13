@@ -178,7 +178,7 @@ Write these tests before the engine code, and treat them as your work rather tha
 | Moderated mediation | [power4mome vignettes](https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html); Donnelly, Jorgensen et al. (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0 | Published, direct call |
 | All designs | Effect set to zero | Type I error |
 
-**Tolerance rule:** a test passes if the published value lies inside the 99.9% Monte Carlo interval of your estimate. (At 95%, a correct engine would fail roughly one test in twenty by chance, so a suite of fifty would almost never be all green.) Run validation tests at 10,000 replications on CI, nightly rather than on every commit. That count keeps a real error of .03 in power failing even at the wider interval: at power .5 the interval half-width is about .016 against a published value and .023 between two simulations (direct-call tests).
+**Tolerance rule:** a test passes if the published value lies inside the 99.9% Monte Carlo interval of your estimate. (At 95%, a correct engine would fail roughly one test in twenty by chance, so a suite of fifty would almost never be all green.) Run validation tests at 10,000 replications, not on every commit: a fast subset nightly on CI, and the full set on demand before merges and releases, on the maintainer's machine, with `scripts/run-validation.R` (the mediation tests alone take about a day of CPU time). That count keeps a real error of .03 in power failing even at the wider interval: at power .5 the interval half-width is about .016 against a published value and .023 between two simulations (direct-call tests).
 
 **Bonus:** these tests, plus a comparison table, are most of a validation paper for *Behavior Research Methods* or *AMPPS*.
 
@@ -268,7 +268,7 @@ See docs/build-guide.md.
 ## Conventions
 - R package with roxygen2 docs, testthat 3e, renv for versions.
 - tidyverse style guide; functions small and pure where possible.
-- Validation tests at high nrep are tagged and run nightly, not per commit.
+- Validation tests at high nrep are tagged and run nightly (a fast subset) or on demand (the full set), not per commit.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check(); both must pass.

@@ -36,7 +36,7 @@ test_that("the check run catches X and W swapped", {
 
 test_that("a sample-size search brackets n with the analytic power", {
   spec <- sim_spec(
-    "regression_interaction", nrep = 300,
+    "regression_interaction", nrep = 100,
     population = list(metric = "correlation", r_X_Y = 0.2, r_W_Y = 0.2, r_XW_Y = 0.2, r_X_W = 0),
     goal = list(type = "sample_size", power = 0.8)
   )

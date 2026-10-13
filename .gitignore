@@ -5,3 +5,6 @@
 engine/*.tar.gz
 engine/*.Rcheck/
 engine/tests/testthat/_snaps/**/*.new.md
+
+# Local validation results (scripts/run-validation.R)
+validation-results/

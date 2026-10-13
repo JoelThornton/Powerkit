@@ -28,7 +28,10 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 - tidyverse style guide; small, pure functions where possible.
 - Design specs are JSON validated against engine/inst/schema/design.schema.json.
 - High-replication validation tests are skipped by default (skip unless
-  env var POWERKIT_FULL_VALIDATION=true) and run nightly in CI.
+  env var POWERKIT_FULL_VALIDATION=true). Nightly CI runs a fast subset
+  (basic tests, regression interactions); the full validation runs on
+  demand, before merges and releases, on the maintainer's machine, with
+  scripts/run-validation.R.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass

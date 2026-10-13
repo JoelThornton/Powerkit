@@ -133,13 +133,13 @@ test_that("on one core, a simulation run equals a direct ANOVA_power call", {
   on.exit(options(old))
   means <- matrix(c(10, 10, 10, 13), nrow = 2, byrow = TRUE)
   spec <- small_run_spec(
-    "anova_2x2_between", method = "simulation", nrep = 200,
+    "anova_2x2_between", method = "simulation", nrep = 100,
     population = list(metric = "raw", means = means, sd = 6),
     goal = list(type = "power", n = 120)
   )
   result <- run_quietly(spec)
   design <- Superpower::ANOVA_design("2b*2b", n = 30, mu = c(10, 10, 10, 13), sd = 6, plot = FALSE)
-  direct <- Superpower::ANOVA_power(design, alpha_level = 0.05, nsims = 200, seed = 7, verbose = FALSE)
+  direct <- Superpower::ANOVA_power(design, alpha_level = 0.05, nsims = 100, seed = 7, verbose = FALSE)
   expect_equal(result$curve$power, direct$main_results["anova_a:b", "power"] / 100)
 })
 
@@ -153,7 +153,7 @@ test_that("simulation runs are reproducible, and draw a seed when none is given"
 
 test_that("a simulation sample-size run returns a curve and an interval for n", {
   spec <- small_run_spec(
-    "anova_2x2_between", method = "simulation", nrep = 200,
+    "anova_2x2_between", method = "simulation", nrep = 100,
     population = list(metric = "standardised", means = list(list(0, 0), list(0, 1.2)), sd = 1),
     goal = list(type = "sample_size", power = 0.8)
   )

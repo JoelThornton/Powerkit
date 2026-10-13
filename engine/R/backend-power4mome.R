@@ -106,6 +106,9 @@ power4mome_inputs <- function(spec) {
   test_args$mc_ci <- monte_carlo
   test_args$boot_ci <- !monte_carlo
   test_args$level <- 1 - spec$target_test$alpha
+  # Significant if the confidence interval excludes 0 (see
+  # power4mome_rejections() on Boos and Zhang's method).
+  test_args$test_method <- "ci"
 
   list(
     model = paste(c(regressions, covariances), collapse = "\n"),
@@ -120,8 +123,13 @@ power4mome_inputs <- function(spec) {
 }
 
 # Monte Carlo draws (or bootstrap resamples) per confidence interval, when
-# the spec doesn't say.
-default_ci_draws <- function() 1000L
+# the spec doesn't say: power4mome's own default for a mediation power
+# analysis, the `R` of q_power_mediation() (1,000 in power4mome 0.2.1).
+# power4test() itself has no default (R = NULL makes no draws, so no CI
+# test can run), and the low-level gen_mc() and gen_boot() default to 100.
+default_ci_draws <- function() {
+  as.integer(eval(formals(power4mome::q_power_mediation)$R))
+}
 
 format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = FALSE)
 
@@ -138,10 +146,15 @@ power4mome_call <- function(inputs, n, nrep, seed, ...) {
 
 # Rejections in `nrep` replications at n, and how many replications could
 # be analysed (power4mome drops data sets whose model fails to fit).
-# power4mome switches on Boos and Zhang's (2000) extrapolated rejection
-# rates automatically for some small numbers of resamples (R <= 359); that
-# is turned off so the reported power is always the plain rejection rate
-# (docs/decisions.md, open questions).
+# Boos and Zhang's (2000) method is off (a departure from power4mome's
+# default; docs/conventions.md). power4mome switches it on automatically
+# when R is one of its supported values (39, 79, ..., 359): each test then
+# uses a p-value rule instead of the confidence interval. Its documented
+# switch, options(power4mome.bz = FALSE), is not seen by the test
+# functions in power4mome 0.2.1 (they check isFALSE(options(...)), which
+# is always FALSE because options() returns a list), so powerkit asks for
+# the CI rule explicitly (test_method = "ci", in power4mome_inputs()) and
+# also sets the option, which power4mome's summaries do read.
 power4mome_rejections <- function(inputs, n, nrep, seed) {
   old <- options(power4mome.bz = FALSE)
   on.exit(options(old))

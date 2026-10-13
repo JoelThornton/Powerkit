@@ -52,3 +52,9 @@ test_that("printing a spec gives a short summary in the user's labels", {
   expect_output(print(spec), "M1 = Mindset beliefs", fixed = TRUE)
   expect_output(print(spec), "indirect_effect (X->M1->M2->Y)", fixed = TRUE)
 })
+
+test_that("a paired spec states the direction of d_z", {
+  spec <- read_spec(example_path("paired_t"))
+  expect_output(print(spec), "d_z = mean of (After minus Before) / SD of those differences", fixed = TRUE)
+  expect_false(grepl("Effect:", paste(capture.output(print(read_spec(example_path("correlation")))), collapse = "\n")))
+})
