@@ -174,7 +174,7 @@ expect_power_near <- function(estimate, reference, reference_nrep = NULL, level 
   expect(
     reference >= lower && reference <= upper,
     sprintf(
-      "Reference power %.4f is outside the interval [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f, %g%% Monte Carlo interval plus rounding of the reference).",
+      "Reference power %.4f; must lie in [%.4f, %.4f] around powerkit's estimate %.4f (MCSE %.4f, %g%% Monte Carlo interval plus rounding of the reference).",
       reference, lower, upper, estimate$power, estimate$mcse, 100 * level
     )
   )
@@ -197,7 +197,7 @@ expect_power_agrees <- function(estimate, reference, level = 0.999) {
   expect(
     abs(difference) <= half_width,
     sprintf(
-      "powerkit's estimate %.4f differs from the direct backend call %.4f by %.4f; the %g%% Monte Carlo tolerance is %.4f.",
+      "powerkit's estimate %.4f vs the direct backend call %.4f: difference %.4f; the %g%% Monte Carlo tolerance is %.4f.",
       estimate$power, reference$power, difference, 100 * level, half_width
     )
   )
@@ -210,7 +210,7 @@ expect_n_near <- function(n_required, published_n) {
   expect(
     published_n >= n_required$lower && published_n <= n_required$upper,
     sprintf(
-      "Published n = %s is outside powerkit's interval [%s, %s] (estimate %s).",
+      "Published n = %s; must lie in powerkit's interval [%s, %s] (estimate %s).",
       published_n, n_required$lower, n_required$upper, n_required$n
     )
   )
@@ -225,7 +225,7 @@ expect_type1_near <- function(estimate, alpha) {
   expect(
     estimate$power >= lower && estimate$power <= upper,
     sprintf(
-      "Type I error rate %.4f is outside [%.3f, %.3f] for alpha = %s.",
+      "Type I error rate %.4f; must lie in [%.3f, %.3f] for alpha = %s.",
       estimate$power, lower, upper, alpha
     )
   )

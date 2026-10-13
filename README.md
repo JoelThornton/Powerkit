@@ -24,26 +24,33 @@ optional AI assistant are planned.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Results have been validated for 2 x 2 designs only, and the
-> interface may change.
+> yet.** Results have been validated for 2 x 2 designs and basic tests
+> only, and the interface may change.
 
 | Design | Status |
 | --- | --- |
 | 2 x 2 between-participants ANOVA | **Working** (via Superpower) |
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
-| Basic tests (t-tests, correlation, proportions, chi-square) | In progress |
-| Regression interactions | In progress |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | In progress |
-| Moderated mediation (PROCESS 7, 14) | In progress |
+| Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
+| Regression interactions | Built, not yet validated (via InteractionPoweR) |
+| Simple, parallel and serial mediation (PROCESS 4, 6) | Built, not yet validated (via power4mome) |
+| Moderated mediation (PROCESS 7, 14) | Built, not yet validated (via power4mome) |
 | Shiny app and design finder | Planned |
 
-For the 2 x 2 designs, powerkit can:
+"Built, not yet validated" means the design runs and its unit tests pass,
+but its full validation (high-replication checks against published
+results, direct backend calls and Type I error) hasn't passed yet. Not
+available yet for these designs: binary X or W, measurement error in
+mediation designs, and the smallest detectable effect.
+
+powerkit can:
 
 - compute power at a given sample size;
 - find the sample size that reaches a target power;
-- find the smallest detectable effect.
+- for the 2 x 2 designs, find the smallest detectable effect.
 
-Power is computed exactly by default, or by simulation on request.
+Power is computed exactly by default for the 2 x 2 designs (or by
+simulation on request), and by simulation for every other design.
 
 ## Install the engine
 
@@ -55,12 +62,8 @@ Install it from GitHub with:
 remotes::install_github("JoelThornton/Powerkit", subdir = "engine")
 ```
 
-This also installs its dependencies, including Superpower. The other backend
-packages are optional until their designs are ready:
-
-```r
-install.packages(c("Spower", "power4mome", "InteractionPoweR", "lavaan"))
-```
+This also installs its dependencies, including the backend packages
+Superpower, Spower, InteractionPoweR and power4mome.
 
 If the repository is private, set a GitHub personal access token in the
 `GITHUB_PAT` environment variable first.
@@ -105,9 +108,11 @@ devtools::test()   # unit tests
 devtools::check()  # R CMD check
 ```
 
-High-replication validation tests are skipped by default. Set
-`POWERKIT_FULL_VALIDATION=true` to run them; they run nightly on GitHub
-Actions. Package versions for development are pinned with
+High-replication validation tests are skipped by default. A fast subset
+(basic tests and regression interactions) runs nightly on GitHub Actions.
+The full validation runs on demand, on a local machine, with
+`scripts/run-validation.R` (see the instructions at the top of that file);
+it can be stopped and resumed, and run one design at a time. Package versions for development are pinned with
 [renv](https://rstudio.github.io/renv/) (`renv.lock` at the repository root).
 
 ## Licence

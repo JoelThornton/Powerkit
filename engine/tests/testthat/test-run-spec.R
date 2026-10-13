@@ -1,29 +1,7 @@
-# run_spec() end to end for the 2x2 designs. Simulation runs use few
+# run_spec() end to end for the 2x2 designs (the other designs' backends are
+# tested in test-backend-*.R). Simulation runs use few
 # replications so the tests stay fast; accuracy is checked by the
 # validation tests.
-
-# Run without the "fewer than 1,000 replications" advice, which the small
-# simulation runs here would otherwise trigger every time.
-run_quietly <- function(spec) {
-  withCallingHandlers(
-    run_spec(spec),
-    powerkit_spec_warning = function(w) invokeRestart("muffleWarning")
-  )
-}
-
-# An example spec with seed 7 and, for simulation, few replications;
-# fields given in ... replace the example's fields whole.
-small_run_spec <- function(name, method = NULL, nrep = 100, ...) {
-  spec <- example_spec(name)
-  spec$options <- list(seed = 7)
-  if (identical(method, "simulation")) {
-    spec$options$method <- "simulation"
-    spec$options$nrep <- nrep
-  }
-  changes <- list(...)
-  spec[names(changes)] <- changes
-  spec
-}
 
 exact_power_direct <- function(design, n, mu, sd, r = 0, effect = "a:b") {
   d <- Superpower::ANOVA_design(design, n = n, mu = mu, sd = sd, r = r, plot = FALSE)
@@ -155,13 +133,13 @@ test_that("on one core, a simulation run equals a direct ANOVA_power call", {
   on.exit(options(old))
   means <- matrix(c(10, 10, 10, 13), nrow = 2, byrow = TRUE)
   spec <- small_run_spec(
-    "anova_2x2_between", method = "simulation", nrep = 200,
+    "anova_2x2_between", method = "simulation", nrep = 100,
     population = list(metric = "raw", means = means, sd = 6),
     goal = list(type = "power", n = 120)
   )
   result <- run_quietly(spec)
   design <- Superpower::ANOVA_design("2b*2b", n = 30, mu = c(10, 10, 10, 13), sd = 6, plot = FALSE)
-  direct <- Superpower::ANOVA_power(design, alpha_level = 0.05, nsims = 200, seed = 7, verbose = FALSE)
+  direct <- Superpower::ANOVA_power(design, alpha_level = 0.05, nsims = 100, seed = 7, verbose = FALSE)
   expect_equal(result$curve$power, direct$main_results["anova_a:b", "power"] / 100)
 })
 
@@ -175,7 +153,7 @@ test_that("simulation runs are reproducible, and draw a seed when none is given"
 
 test_that("a simulation sample-size run returns a curve and an interval for n", {
   spec <- small_run_spec(
-    "anova_2x2_between", method = "simulation", nrep = 200,
+    "anova_2x2_between", method = "simulation", nrep = 100,
     population = list(metric = "standardised", means = list(list(0, 0), list(0, 1.2)), sd = 1),
     goal = list(type = "sample_size", power = 0.8)
   )
@@ -213,12 +191,11 @@ test_that("the check run catches cells put in the wrong place", {
 
 # Errors ----------------------------------------------------------------------------
 
-test_that("designs without a backend yet give a plain-English error", {
-  expect_error(
-    run_spec(example_spec("process_7")),
-    "isn't available yet",
-    class = "powerkit_not_available"
-  )
+test_that("features without a backend yet give a plain-English error", {
+  spec <- sim_spec("correlation", goal = list(type = "sensitivity", n = 100, power = 0.8))
+  expect_error(run_quietly(spec), "isn't available yet", class = "powerkit_not_available")
+  # The example PROCESS model 7 spec has a binary X and an unreliable W.
+  expect_error(run_spec(example_spec("process_7")), "aren't available yet", class = "powerkit_not_available")
 })
 
 test_that("the exact method is refused for designs that don't support it", {

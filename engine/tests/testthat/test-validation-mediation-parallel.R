@@ -87,10 +87,15 @@ test_that("parallel mediation with correlated residuals: powerkit matches a dire
       m1 ~~ m2
       y ~ m1 + m2 + x
     ",
+    # power4mome reads 'm1 ~~ m2' between two endogenous variables as their
+    # residual covariance (all observed variables standardised), but the
+    # spec's 0.4 is a residual correlation. Residual variances are
+    # 1 - 0.3^2 = 0.91 (m1) and 1 - 0.2^2 = 0.96 (m2), so the covariance is
+    # 0.4 * sqrt(0.91 * 0.96) = 0.37387, given here to four decimals.
     pop_es = "
       m1 ~ x: 0.3
       m2 ~ x: 0.2
-      m1 ~~ m2: 0.4
+      m1 ~~ m2: 0.3739
       y ~ m1: 0.25
       y ~ m2: 0.3
       y ~ x: 0.05

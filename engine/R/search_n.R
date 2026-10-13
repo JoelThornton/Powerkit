@@ -2,9 +2,11 @@
 #'
 #' Searches for the smallest total sample size whose power reaches `power`,
 #' following the build guide (section 5): a coarse pass brackets the answer
-#' with the backend's exact method, then simulations at several sample sizes
-#' around it, each with `nrep` replications, refine it. (With the exact
-#' method, [search_n_exact()] is used instead.)
+#' with the backend's exact or analytic power if it has one (Superpower's
+#' `ANOVA_exact()`, InteractionPoweR's `power_interaction_r2()`), or else
+#' with short simulations of 100 replications; then simulations at several
+#' sample sizes around it, each with `nrep` replications, refine it. (With
+#' the exact method, [search_n_exact()] is used instead.)
 #'
 #' The simulated power values are smoothed with a probit regression of the
 #' rejection counts on sqrt(n), fitted to the points within 20% of the
@@ -30,7 +32,15 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
   step <- backend$n_step
   n_min <- ceiling(minimum_n(spec) / step) * step
   n_start <- ceiling(max(n_min, backend$exact_min_n) / step) * step
-  n_guess <- bracket_n(backend$exact_power, power, n_start, step)
+  fast_power <- backend$bracket_power %||% backend$exact_power
+  n_guess <- if (is.null(fast_power)) {
+    # Very small samples can fail to fit; start the coarse pass at 20 (the
+    # grid still widens down to n_min if the answer is lower).
+    coarse_start <- max(n_start, step * ceiling(20 / step))
+    bracket_n(coarse_power(backend, seed, cores), power, coarse_start, step, rel_tol = 0.1)
+  } else {
+    bracket_n(fast_power, power, n_start, step)
+  }
 
   spacing <- step * max(1, round(0.05 * n_guess / step))
   grid <- pmax(n_min, n_guess + spacing * (-3:3))
@@ -80,9 +90,24 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
   )
 }
 
+# Power at n from a short simulation, for bracketing the required n when a
+# backend has no fast exact or analytic power. Each n gets its own seed
+# derived from the run's seed, so the bracket is reproducible. The result
+# only places the simulation grid; the grid is widened if it is off.
+coarse_power <- function(backend, seed, cores, nrep = coarse_nrep()) {
+  function(n) {
+    sim <- backend$simulate(n, nrep, offset_seed(seed, 7919 + n), cores)
+    sim$rejections / sim$nrep
+  }
+}
+
+coarse_nrep <- function() 100L
+
 # Smallest valid n (a multiple of `step`, at least `n_min`) whose power
-# reaches the target: doubling, then bisection.
-bracket_n <- function(power_at, target, n_min, step, n_max = 1e5) {
+# reaches the target: doubling, then bisection. With `rel_tol`, bisection
+# stops once the bracket is within that proportion of its upper end (for
+# noisy, simulated power, where finer bisection would be wasted).
+bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0) {
   if (power_at(n_min) >= target) {
     return(n_min)
   }
@@ -98,7 +123,7 @@ bracket_n <- function(power_at, target, n_min, step, n_max = 1e5) {
       ))
     }
   }
-  while (high - low > step) {
+  while (high - low > max(step, rel_tol * high)) {
     mid <- low + step * floor((high - low) / step / 2)
     if (power_at(mid) >= target) high <- mid else low <- mid
   }

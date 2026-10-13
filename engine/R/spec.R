@@ -120,10 +120,25 @@ print.powerkit_spec <- function(x, ...) {
     sprintf("Design:    %s / %s\n", x$design, x$template),
     sprintf("Variables: %s\n", paste(vars, collapse = "; ")),
     sprintf("Target:    %s, %s, alpha = %s\n", target, x$target_test$method, x$target_test$alpha),
+    effect_definition(x),
     sprintf("Goal:      %s\n", goal),
     sep = ""
   )
   invisible(x)
+}
+
+# A line stating how the effect size is defined, where its direction is a
+# convention the user needs to see (paired designs: d_z is the second
+# condition minus the first).
+effect_definition <- function(spec) {
+  if (!identical(spec$template, "paired_t")) {
+    return("")
+  }
+  levels <- unlist(spec$variables$X$levels) %||% c("first condition", "second condition")
+  sprintf(
+    "Effect:    d_z = mean of (%s minus %s) / SD of those differences\n",
+    levels[2], levels[1]
+  )
 }
 
 # Supported spec versions. Add to this (and keep old schemas) when the format
