@@ -757,7 +757,7 @@ standard approximation.
    the previous entry.
 2. **Recorded as a known difference** in `docs/conventions.md` ("Known
    differences", 1): fixed-model regression power, such as G*Power's and
-   `power_interaction_r2()`, is slightly optimistic for interactions, so
+   `power_interaction_r2()`, gives slightly higher power for interactions, so
    powerkit may need a few more participants than G*Power. The entry also
    holds the sentence for interaction designs' methods paragraph, to be
    added when the methods paragraph (`writeup.R`) is built in phases 4-5.
@@ -965,14 +965,15 @@ CI test has been checked with a binary X.
 ## 2026-10-15 · Upstream reports fixed; upstream watch; validation log
 
 **Upstream reports** (checked against the upstream repositories and CRAN on
-15 October 2026). Both bugs reported on 13 October were confirmed and fixed
-on GitHub on 14 October, but neither fix is on CRAN yet:
+15 October 2026). Both issues reported on 13 October were confirmed and fixed
+on GitHub on 14 October, with thanks to Phil Chalmers and Shu Fai Cheung for
+their quick responses; neither fix is on CRAN yet:
 
 - Spower ([philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3),
-  closed): fixed in 0.7 on GitHub; CRAN 0.6.4 has the bug. See item 7 of
+  closed): fixed in 0.7 on GitHub; CRAN 0.6.4 predates the fix. See item 7 of
   "Phase 3: maintainer decisions" and conventions.md, Departure 4.
 - power4mome ([sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276)):
-  fixed in 0.2.1.33 on GitHub; CRAN 0.2.1 has the bug. See item 10 of
+  fixed in 0.2.1.33 on GitHub; CRAN 0.2.1 predates the fix. See item 10 of
   "Phase 3: maintainer decisions" and conventions.md, Departure 8.
 
 ### Upstream watch

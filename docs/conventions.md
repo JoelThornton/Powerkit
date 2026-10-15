@@ -89,7 +89,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (Joel to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
 | Superpower | `ANOVA_exact()`, `ANOVA_exact2()`, `ANOVA_power()` as above. The vignette's own within-between example calls `ANOVA_exact2()` [SP-vig]. | As above, plus a correlation `r` between repeated measures [SP-src] | As above |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered | | |
@@ -105,8 +105,8 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
   `n = c(20, 30)`) and for `"2b*2b"` (e.g. `n = c(10, 20, 30, 40)`), with no
   error or warning. It stores the vector (`n = n_vec`) but then sets
   `n <- max(n)` and builds the design's data at that size: for
-  `n = c(20, 30)` in `"2b*2w"`, 30 per cell. So, silently, the design
-  object's data describe a balanced design at the largest group size.
+  `n = c(20, 30)` in `"2b*2w"`, 30 per cell. So, without a message, the
+  design object's data describe a balanced design at the largest group size.
 - **The power functions** then behave as follows:
 
   | Design | Function | What happens |
@@ -191,7 +191,7 @@ methods paragraph, and covered by a test showing the size of the difference
 - **powerkit:** uses `ANOVA_exact()`, which reproduces the values [SP-vig]
   reports from G*Power's "ANOVA: Repeated measures, within-between
   interaction" (table below), and matches simulation.
-- **Which G*Power setting gave those values: to check (Joel to verify in
+- **Which G*Power setting gave those values: to check (maintainer to verify in
   G*Power).** The two Superpower sources disagree, and neither is claimed
   here until it is verified:
   - [SP-vig] does not name the setting for the within-between example; its
@@ -262,7 +262,7 @@ methods paragraph, and covered by a test showing the size of the difference
   appropriate) to the underlying test instead of halving the two-sided
   p-value, and a new `alternative` argument (`"two.sided"`, `"greater"`,
   `"less"`) overrides `two.tailed`. The fix is not on CRAN yet: CRAN is
-  still 0.6.4, which has the bug (checked 15 October 2026). powerkit keeps
+  still 0.6.4, which predates the fix (checked 15 October 2026). powerkit keeps
   its directional workaround until a CRAN release has the fix.
 - **When a CRAN release has the fix:** retire this departure and use
   Spower's own functions with `alternative`. Before retiring it, a test
@@ -348,7 +348,7 @@ methods paragraph, and covered by a test showing the size of the difference
   was confirmed and fixed by Shu Fai Cheung, who also checked the
   package's other `options()` / `getOption()` uses. On GitHub (power4mome
   0.2.1.33, 14 October 2026) all five test functions use `getOption()`.
-  The fix is not on CRAN yet: CRAN is still 0.2.1, which has the bug
+  The fix is not on CRAN yet: CRAN is still 0.2.1, which predates the fix
   (checked 15 October 2026). Once a CRAN release includes the fix, record
   it here as "fixed upstream in version X".
 - **powerkit keeps `test_method = "ci"` regardless.** Boos and Zhang off is
@@ -364,7 +364,7 @@ will notice them, though, so each entry states the size of the difference
 and, like a departure, is shown on the results screen and stated in the
 methods paragraph.
 
-### 1. Regression interactions: fixed-model power is slightly optimistic
+### 1. Regression interactions: fixed-model power is slightly higher than simulated power
 
 - **What differs:** fixed-model regression power, such as G*Power's linear
   multiple regression and InteractionPoweR's analytic
@@ -391,7 +391,7 @@ methods paragraph.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
 - **Shown to users:** to do (build phases 4-5).
-- **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's are slightly optimistic for interactions, so this sample size may be a few participants larger than G*Power's."
+- **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.
 

@@ -24,8 +24,8 @@ test_that("PROCESS model 14: matches a power4mome vignette example (published)",
   #   values from its pop_es (convert the "s"/"m"/"l" labels using the
   #   values the article states), n, alpha, nrep and R, and the reported
   #   rejection rate for the index of moderated mediation.
-  # power4mome version that built the website: TODO (Joel).
-  # Date read: TODO (Joel).
+  # power4mome version that built the website: TODO (maintainer).
+  # Date read: TODO (maintainer).
   #   The article's output is regenerated each time the website is rebuilt,
   #   so the reported numbers can change between versions; record both.
   # Test method: the templates leave test_method unset but use R = 1000

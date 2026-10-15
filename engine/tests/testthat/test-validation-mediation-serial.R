@@ -25,7 +25,7 @@ test_that("serial mediation: matches a published serial example (published)", {
   #   significant, not one of them), and Schoemann, Boulton & Short (2017),
   #   Social Psychological and Personality Science, 8(4), 379-386, has no
   #   parallel or serial example (its only worked example is simple
-  #   mediation). Joel: if you find a published two-mediator serial example,
+  #   mediation). Maintainer: if you find a published two-mediator serial example,
   #   update this comment and transcribe it.
   # To transcribe: the six standardised paths, N, alpha, and the reported
   #   power for the full serial indirect effect X->M1->M2->Y with its

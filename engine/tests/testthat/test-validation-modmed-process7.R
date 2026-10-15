@@ -24,8 +24,8 @@ test_that("PROCESS model 7: matches the power4mome vignette example (published)"
   #   values from its pop_es (convert the "s"/"m"/"l" labels using the
   #   values the article states), n, the test used (index of moderated
   #   mediation), alpha, nrep and R, and the reported rejection rate.
-  # power4mome version that built the website: TODO (Joel).
-  # Date read: TODO (Joel).
+  # power4mome version that built the website: TODO (maintainer).
+  # Date read: TODO (maintainer).
   #   The article's output is regenerated each time the website is rebuilt,
   #   so the reported numbers can change between versions; record both.
   # Test method: the templates leave test_method unset but use R = 1000
@@ -85,11 +85,11 @@ test_that("PROCESS model 7: required n matches the power4mome vignette (publishe
   # Source: power4mome's search for the sample size for a target power
   #   (n_region_from_power() or n_from_power()), as shown in the Quick
   #   Template for this model ("Quick Template: Simple Moderated Mediation
-  #   with Observed Variables: a-Path Moderated"). Joel: confirm the
+  #   with Observed Variables: a-Path Moderated"). Maintainer: confirm the
   #   article. Transcribe the population values, alpha, target power and
   #   the sample size (or region) it reports.
-  # power4mome version that built the website: TODO (Joel).
-  # Date read: TODO (Joel).
+  # power4mome version that built the website: TODO (maintainer).
+  # Date read: TODO (maintainer).
   #   The article's output is regenerated each time the website is rebuilt,
   #   so the reported numbers can change between versions; record both.
   # Test method: the templates leave test_method unset but use R = 1000
