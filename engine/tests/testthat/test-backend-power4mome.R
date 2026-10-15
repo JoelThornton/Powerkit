@@ -101,21 +101,20 @@ test_that("a batched run gives the same rejections as the same batches run by ha
   expect_equal(sim$nrep, sum(by_hand[2, ]))
 })
 
-test_that("with as many batches as cores or more, the result doesn't depend on the cores", {
-  # 20 replications in batches of at most 4 make 5 batches on 1 core or on
-  # 4, with the same seeds, so the results are identical. On Linux and
-  # macOS the 4-core run forks (parallel::mclapply()); on Windows it runs
-  # the same batches one after another. With fewer batches than cores
-  # (10 replications: 3 batches on 1 core, 4 on 4 cores) the batches
-  # differ, so cores are recorded in the provenance with the batch size.
+test_that("the same seed and batch size give the same result on any number of cores", {
+  # The batches depend only on nrep and the batch size: 10 replications in
+  # batches of at most 4 are 3 batches (4, 3, 3) on 1 core or on 4 (one
+  # core then idle), and 20 are 5 batches, with the same seeds. On Linux
+  # and macOS the 4-core runs fork (parallel::mclapply()); on Windows they
+  # run the same batches one after another.
   local_mocked_bindings(power4mome_batch_size = function(...) 4L)
   spec <- validate_quietly(continuous_and_reliable(sim_spec("mediation_simple")))
   backend <- route_spec(spec, seed = 7)
-  one <- backend$simulate(100, nrep = 20, seed = 7, cores = 1)
-  four <- backend$simulate(100, nrep = 20, seed = 7, cores = 4)
-  expect_identical(four, one)
-  expect_equal(number_of_chunks(10, 1, 4), 3)
-  expect_equal(number_of_chunks(10, 4, 4), 4)
+  for (nrep in c(10, 20)) {
+    one <- backend$simulate(100, nrep = nrep, seed = 7, cores = 1)
+    four <- backend$simulate(100, nrep = nrep, seed = 7, cores = 4)
+    expect_identical(four, one)
+  }
 })
 
 test_that("power4mome simulations are batched, with the batch size in the adapter", {

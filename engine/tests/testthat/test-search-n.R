@@ -64,7 +64,12 @@ test_that("replications are split evenly across cores", {
 test_that("large simulations run in batches no larger than the batch size", {
   expect_equal(number_of_chunks(10000, 1, 500), 20)
   expect_equal(number_of_chunks(10000, 4, 500), 20)
-  expect_equal(number_of_chunks(1000, 4, 500), 4)
+  # With a batch size, the number of batches never depends on the cores.
+  expect_equal(number_of_chunks(1000, 4, 500), 2)
+  expect_equal(number_of_chunks(10, 1, 4), 3)
+  expect_equal(number_of_chunks(10, 4, 4), 3)
+  expect_equal(number_of_chunks(100, 8, 500), 1)
+  # Without one, one chunk per core.
   expect_equal(number_of_chunks(1000, 4), 4)
   expect_equal(split_replications(1001, number_of_chunks(1001, 1, 500)), c(334, 334, 333))
 

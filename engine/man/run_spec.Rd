@@ -29,7 +29,8 @@ values;
 size (the most replications simulated in one backend call; \code{NA} if
 the backend isn't run in batches), backend and backend function, R
 and package versions, and run time. A simulated result is reproduced
-by the same seed, replications, cores and batch size.
+by the same seed, replications and batch size; for a backend run in
+batches, the number of cores doesn't change it.
 }
 }
 \description{

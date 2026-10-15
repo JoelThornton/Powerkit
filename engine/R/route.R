@@ -45,17 +45,19 @@ abort_not_available <- function(message) {
   abort_run(message, class = "powerkit_not_available")
 }
 
-# Rejections out of nrep, splitting the replications into seeded chunks:
-# one per core, or more if a chunk would otherwise exceed `batch_size`
-# replications (chunks are then as equal as possible, none larger than
-# batch_size). `run_chunk(nrep, seed)` returns the chunk's rejections, or
-# c(rejections, valid) if some replications can fail; only these counts
-# are kept, so memory is bounded by one chunk per core, whatever nrep.
-# Chunk seeds are seed, seed + 1, ...; with one core and nrep <= batch_size
-# this is a single run_chunk(nrep, seed) call, so it equals one direct call
-# to the backend with that seed. The result depends on the seed and the
-# number of chunks (so on cores and batch_size), all recorded in the
-# provenance.
+# Rejections out of nrep, splitting the replications into seeded chunks
+# (number_of_chunks()) that run on up to `cores` cores. For a backend with
+# a batch size, the chunks are the fewest batches of at most batch_size
+# replications (as equal as possible), whatever the number of cores, so
+# the seed and batch size alone determine the result; cores only change
+# how fast it runs (some may be idle on small runs). Other backends get
+# one chunk per core. `run_chunk(nrep, seed)` returns the chunk's
+# rejections, or c(rejections, valid) if some replications can fail; only
+# these counts are kept, so memory is bounded by one chunk per core,
+# whatever nrep. Chunk seeds are seed, seed + 1, ...; with
+# nrep <= batch_size (or one core, unbatched) this is a single
+# run_chunk(nrep, seed) call, so it equals one direct call to the backend
+# with that seed.
 simulate_in_chunks <- function(nrep, seed, cores, run_chunk, batch_size = Inf) {
   chunks <- split_replications(nrep, number_of_chunks(nrep, cores, batch_size))
   seeds <- offset_seed(seed, seq_along(chunks) - 1)
@@ -111,10 +113,14 @@ quietly <- function(expr) {
   result
 }
 
-# Chunks for nrep replications: one per core, or enough that none has more
-# than batch_size replications.
+# Chunks for nrep replications. With a batch size: the fewest chunks with
+# at most batch_size replications each, never depending on the cores.
+# Without one (batch_size = Inf): one chunk per core.
 number_of_chunks <- function(nrep, cores, batch_size = Inf) {
-  as.integer(max(cores, ceiling(nrep / batch_size)))
+  if (is.finite(batch_size)) {
+    return(as.integer(max(1, ceiling(nrep / batch_size))))
+  }
+  as.integer(max(1, cores))
 }
 
 # Replications per chunk: as equal as possible, at most `chunks` chunks.

@@ -130,9 +130,9 @@ test_that("simulation is used on request, with Monte Carlo errors", {
 })
 
 test_that("provenance records the batch size and cores of a batched backend", {
-  # A backend that simulates in batches (as power4mome does): the seed,
-  # batch size and cores together determine the result (the cores only
-  # when there are fewer batches than cores), so all are recorded.
+  # A backend that simulates in batches (as power4mome does): the seed and
+  # batch size determine the result, so the batch size is recorded; the
+  # cores (which only change the speed) are recorded too.
   old <- options(powerkit.cores = 3)
   on.exit(options(old))
   local_mocked_bindings(route_spec = function(spec, seed) {

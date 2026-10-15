@@ -1058,13 +1058,15 @@ of 250, peak memory was the same (382 MB); with 2,000 draws instead of
 
 **Decision.** Large power4mome simulations run in batches.
 
-- `simulate_in_chunks()` splits the replications into one chunk per core
-  as before, or into more chunks if a chunk would exceed the backend's
-  batch size; chunks are as equal as possible, none larger than the batch
-  size. Each chunk is an ordinary `power4test()` call; only its rejection
-  count and number of valid replications are kept before the next one.
-  Rejections and valid replications are summed. This changes memory use,
-  not the method.
+- `simulate_in_chunks()` splits the replications into the fewest batches
+  of at most the backend's batch size, as equal as possible. The number
+  of batches depends only on nrep and the batch size, never on the cores:
+  the cores only run batches side by side (on small runs some cores are
+  idle). Each batch is an ordinary `power4test()` call; only its
+  rejection count and number of valid replications are kept before the
+  next one. Rejections and valid replications are summed. This changes
+  memory use, not the method. (Backends without a batch size still get
+  one chunk per core.)
 - Batch size (`power4mome_batch_size()`): 200 replications at up to 1,000
   draws per confidence interval, and proportionally fewer above that
   (100 at 2,000 draws, 40 at 5,000; at least 10). From the measurements,
@@ -1074,10 +1076,10 @@ of 250, peak memory was the same (382 MB); with 2,000 draws instead of
   Batching adds one `power4test()` call (model set-up) per 200
   replications, expected to be small against 200 replications of about
   1.4 s each; this overhead was not measured separately.
-- Seeds: chunk i (from 1) has seed `seed + i - 1`, as the per-core chunks
-  had. With one core and nrep at most the batch size, a run is still a
-  single call that equals one direct `power4test()` call with the run's
-  seed.
+- Seeds: batch i (from 1) has seed `seed + i - 1`, as the per-core chunks
+  had. With nrep at most the batch size, a run is still a single call
+  that equals one direct `power4test()` call with the run's seed, on any
+  number of cores.
 - The direct-call validation helper `direct_power4mome()` uses the same
   batches and seeds (and spreads them over POWERKIT_CORES cores, as the
   engine does), so both sides of a direct-call test use the same approach.
@@ -1086,24 +1088,26 @@ of 250, peak memory was the same (382 MB); with 2,000 draws instead of
   arguments correctly, not independent Monte Carlo agreement, which comes
   from the published-value tests.
 - Provenance records `batch_size` (`NA` for backends that are not run in
-  batches) and `cores`. A simulated result is determined by the seed,
-  replications and batch size, and also by the cores when there are fewer
-  batches than cores (nrep below cores x batch size), because the number
-  of chunks is then the number of cores. Checked on a small run (simple
-  mediation, batch size 4): 20 replications gave identical results on 1
-  and 4 cores (5 batches either way), 10 replications did not (3 batches
-  on 1 core, 4 on 4 cores). A unit test checks the 20-replication case,
-  forking on Linux (CI). Validation runs (10,000 replications, 50 batches)
-  are unaffected by the cores, on up to 50 of them. The validation
-  summary records the cores and cores per test ("Cores: 4 (4 per test)")
-  and the package versions, including power4mome and manymome.
+  batches) and, as before, `cores`. The same seed, replications and batch
+  size give the same result on any machine: results no longer depend on
+  the cores. (A first version made one chunk per core when there were
+  fewer batches than cores, so a small run could differ between 1 and 4
+  cores: 10 replications in batches of 4 gave 7 rejections on 1 core, 8
+  on 4. The maintainer chose to remove that dependence; idle cores on
+  small runs are acceptable.) A unit test checks that 1 and 4 cores give
+  identical results at 10 and 20 replications (batch size 4), forking on
+  Linux (CI). The batch size itself depends only on the draws per
+  confidence interval, not on the cores. The validation summary records
+  the cores and cores per test ("Cores: 4 (4 per test)") and the package
+  versions, including power4mome and manymome.
 
 **Not bit-identical to earlier runs.** A batched run with a given seed
 simulates different data sets from an unbatched run with the same seed
 (batch 2 starts from seed + 1, not from where batch 1's random numbers
 ended), so results differ from earlier runs within Monte Carlo error.
 Runs with nrep up to the batch size (200 at 1,000 draws) on one core are
-unchanged. No recorded mediation validation result is affected: none had
+unchanged. (On several cores, such a run used to be split into one chunk per
+core; it is now a single call, so its result changes too.) No recorded mediation validation result is affected: none had
 been recorded (`docs/validation-log.md`).
 
 **Validation on GitHub.** `.github/workflows/full-validation.yaml` runs one

@@ -8,8 +8,9 @@
   most laptops have. The method is unchanged (each batch is an ordinary
   `power4test()` call), but results are not identical to earlier,
   unbatched runs with the same seed. The batch size is recorded in the
-  result's provenance (`batch_size`), with the cores, which change the
-  result only when there are fewer batches than cores.
+  result's provenance (`batch_size`). The number of batches depends only
+  on the number of replications and the batch size, so the same seed and
+  batch size give the same result on any number of cores.
 * Validation (for maintainers): a `full-validation` GitHub Actions
   workflow runs one validation chunk on demand on GitHub's machines and
   uploads the results (docs/validation-log.md, "Running the full

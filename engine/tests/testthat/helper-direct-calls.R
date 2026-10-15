@@ -160,10 +160,9 @@ direct_interactionpower_simulation <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
 # `batch_size` replications (as equal as possible), each an ordinary
 # power4test() call with seed seed, seed + 1, ...; only each batch's
 # rejections and valid replications are kept. This is the engine's
-# approach (simulate_in_chunks(), with its batch size), so when nrep needs
-# at least as many batches as there are cores, both sides simulate the
-# same data sets. Batches are spread over POWERKIT_CORES cores, as in the
-# engine (Unix-alikes only).
+# approach (simulate_in_chunks(), with its batch size), so both sides
+# simulate the same data sets, on any number of cores. Batches are spread
+# over POWERKIT_CORES cores, as in the engine (Unix-alikes only).
 
 direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
                               method = "monte_carlo_ci", ci_draws, nrep, seed,
