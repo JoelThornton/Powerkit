@@ -17,6 +17,10 @@
 #' is simulated. Set
 #' `options(powerkit.cores = k)` or the environment variable `POWERKIT_CORES`
 #' to spread simulation replications over `k` cores (Unix-alikes only).
+#' Mediation and moderated-mediation simulations run in batches of at most
+#' 200 replications per power4mome call (fewer above 1,000 draws per
+#' confidence interval), keeping only each batch's counts, so memory use
+#' doesn't grow with `options > nrep`.
 #'
 #' **Sensitivity.** For 2x2 designs, the shape of the specified pattern is
 #' kept and its size scaled (each cell mean's deviation from the grand mean)
@@ -39,8 +43,12 @@
 #'     `effect_description`), its `cohen_f`, and the `power` reached;
 #'   * `check_run`: data frame comparing specified and recovered population
 #'     values;
-#'   * `provenance`: spec hash, method, seed, replications, backend and
-#'     backend function, R and package versions, and run time.
+#'   * `provenance`: spec hash, method, seed, replications, cores, batch
+#'     size (the most replications simulated in one backend call; `NA` if
+#'     the backend isn't run in batches), backend and backend function, R
+#'     and package versions, and run time. A simulated result is reproduced
+#'     by the same seed, replications and batch size; for a backend run in
+#'     batches, the number of cores doesn't change it.
 #' @export
 #' @examples
 #' \donttest{
@@ -122,6 +130,7 @@ run_spec <- function(spec) {
         seed = seed,
         nrep = nrep,
         cores = if (simulating) cores else NA_integer_,
+        batch_size = if (simulating) backend$batch_size %||% NA_integer_ else NA_integer_,
         backend = backend$name,
         backend_function = backend$functions[[method]],
         r_version = R.version.string,

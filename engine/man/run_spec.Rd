@@ -25,8 +25,12 @@ with the \code{scale} applied to the specified pattern, the scaled cell
 \code{effect_description}), its \code{cohen_f}, and the \code{power} reached;
 \item \code{check_run}: data frame comparing specified and recovered population
 values;
-\item \code{provenance}: spec hash, method, seed, replications, backend and
-backend function, R and package versions, and run time.
+\item \code{provenance}: spec hash, method, seed, replications, cores, batch
+size (the most replications simulated in one backend call; \code{NA} if
+the backend isn't run in batches), backend and backend function, R
+and package versions, and run time. A simulated result is reproduced
+by the same seed, replications and batch size; for a backend run in
+batches, the number of cores doesn't change it.
 }
 }
 \description{
@@ -48,6 +52,10 @@ simulation with \code{options > nrep} replications (default 1,000) and
 is simulated. Set
 \code{options(powerkit.cores = k)} or the environment variable \code{POWERKIT_CORES}
 to spread simulation replications over \code{k} cores (Unix-alikes only).
+Mediation and moderated-mediation simulations run in batches of at most
+200 replications per power4mome call (fewer above 1,000 draws per
+confidence interval), keeping only each batch's counts, so memory use
+doesn't grow with \code{options > nrep}.
 
 \strong{Sensitivity.} For 2x2 designs, the shape of the specified pattern is
 kept and its size scaled (each cell mean's deviation from the grand mean)

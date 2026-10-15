@@ -10,6 +10,9 @@
 #                       before simulating (exact or analytic); NULL means
 #                       bracket with a coarse simulation;
 #   simulate(n, nrep, seed, cores)  -> list(rejections, nrep);
+#   batch_size          most replications simulated in one backend call
+#                       (bounds memory; simulate_in_chunks()), or NULL if
+#                       the backend runs one call per core;
 #   sensitivity(n, power)           -> smallest detectable effect, or NULL
 #                       if sensitivity isn't available for the design;
 #   check_run()         -> data frame: parameter, specified, recovered, ok.
@@ -42,13 +45,21 @@ abort_not_available <- function(message) {
   abort_run(message, class = "powerkit_not_available")
 }
 
-# Rejections out of nrep, splitting the replications into one seeded chunk
-# per core. `run_chunk(nrep, seed)` returns the chunk's rejections, or
-# c(rejections, valid) if some replications can fail. Chunk seeds are seed,
-# seed + 1, ...; with one core this is a single run_chunk(nrep, seed) call,
-# so it equals one direct call to the backend with that seed.
-simulate_in_chunks <- function(nrep, seed, cores, run_chunk) {
-  chunks <- split_replications(nrep, cores)
+# Rejections out of nrep, splitting the replications into seeded chunks
+# (number_of_chunks()) that run on up to `cores` cores. For a backend with
+# a batch size, the chunks are the fewest batches of at most batch_size
+# replications (as equal as possible), whatever the number of cores, so
+# the seed and batch size alone determine the result; cores only change
+# how fast it runs (some may be idle on small runs). Other backends get
+# one chunk per core. `run_chunk(nrep, seed)` returns the chunk's
+# rejections, or c(rejections, valid) if some replications can fail; only
+# these counts are kept, so memory is bounded by one chunk per core,
+# whatever nrep. Chunk seeds are seed, seed + 1, ...; with
+# nrep <= batch_size (or one core, unbatched) this is a single
+# run_chunk(nrep, seed) call, so it equals one direct call to the backend
+# with that seed.
+simulate_in_chunks <- function(nrep, seed, cores, run_chunk, batch_size = Inf) {
+  chunks <- split_replications(nrep, number_of_chunks(nrep, cores, batch_size))
   seeds <- offset_seed(seed, seq_along(chunks) - 1)
   results <- run_in_parallel(
     seq_along(chunks),
@@ -102,10 +113,19 @@ quietly <- function(expr) {
   result
 }
 
-# Replications per parallel chunk: as equal as possible, at most `cores`
-# chunks.
-split_replications <- function(nrep, cores) {
-  k <- max(1L, min(as.integer(cores), as.integer(nrep)))
+# Chunks for nrep replications. With a batch size: the fewest chunks with
+# at most batch_size replications each, never depending on the cores.
+# Without one (batch_size = Inf): one chunk per core.
+number_of_chunks <- function(nrep, cores, batch_size = Inf) {
+  if (is.finite(batch_size)) {
+    return(as.integer(max(1, ceiling(nrep / batch_size))))
+  }
+  as.integer(max(1, cores))
+}
+
+# Replications per chunk: as equal as possible, at most `chunks` chunks.
+split_replications <- function(nrep, chunks) {
+  k <- max(1L, min(as.integer(chunks), as.integer(nrep)))
   base <- nrep %/% k
   base + c(rep(1L, nrep %% k), rep(0L, k - nrep %% k))
 }

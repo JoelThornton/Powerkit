@@ -154,9 +154,19 @@ direct_interactionpower_simulation <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
 # power4mome's "lhs ~ rhs: value" format. `test` is "indirect" (an indirect
 # effect along x -> m -> y, where m may name several mediators in order) or
 # "index" (the index of moderated mediation, with moderator w).
+#
+# power4test() keeps every replication's data, fit and draws, so memory
+# grows with nrep. Large runs are split into batches of at most
+# `batch_size` replications (as equal as possible), each an ordinary
+# power4test() call with seed seed, seed + 1, ...; only each batch's
+# rejections and valid replications are kept. This is the engine's
+# approach (simulate_in_chunks(), with its batch size), so both sides
+# simulate the same data sets, on any number of cores. Batches are spread
+# over POWERKIT_CORES cores, as in the engine (Unix-alikes only).
 
 direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
-                              method = "monte_carlo_ci", ci_draws, nrep, seed) {
+                              method = "monte_carlo_ci", ci_draws, nrep, seed,
+                              batch_size = power4mome_batch_size(ci_draws)) {
   test_fun <- switch(
     test,
     indirect = power4mome::test_indirect_effect,
@@ -173,19 +183,26 @@ direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
     test_args$boot_ci <- TRUE
     ci_type <- "boot"
   }
-  result <- power4mome::power4test(
-    nrep = nrep,
-    model = model,
-    pop_es = pop_es,
-    n = n,
-    R = ci_draws,
-    ci_type = ci_type,
-    test_fun = test_fun,
-    test_args = test_args,
-    iseed = seed,
-    parallel = FALSE,
-    progress = FALSE
-  )
-  rates <- power4mome::rejection_rates(result)
-  binomial_estimate(rates$reject[1], nrep)
+  batches <- ceiling(nrep / batch_size)
+  sizes <- nrep %/% batches + c(rep(1L, nrep %% batches), rep(0L, batches - nrep %% batches))
+  counts <- run_in_parallel(seq_len(batches), function(i) {
+    result <- power4mome::power4test(
+      nrep = sizes[i],
+      model = model,
+      pop_es = pop_es,
+      n = n,
+      R = ci_draws,
+      ci_type = ci_type,
+      test_fun = test_fun,
+      test_args = test_args,
+      iseed = seed + i - 1,
+      parallel = FALSE,
+      progress = FALSE
+    )
+    rates <- power4mome::rejection_rates(result)
+    valid <- round(rates$pvalid[1] * sizes[i])
+    c(round(rates$reject[1] * valid), valid)
+  }, powerkit_cores())
+  counts <- matrix(counts, nrow = 2)
+  binomial_estimate(sum(counts[1, ]) / sum(counts[2, ]), nrep)
 }

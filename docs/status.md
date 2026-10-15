@@ -27,11 +27,18 @@ fully validated. Validation runs are recorded in
   and 8).
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
   (#4). It is not merged.
+- **Memory:** mediation and moderated-mediation simulations run in batches
+  of at most 200 replications, so they no longer need more memory than an
+  ordinary laptop has (an unbatched 10,000-replication run did). The
+  validation can also run on GitHub, one chunk at a time
+  ([validation log](validation-log.md), "Running the full validation on
+  GitHub").
 
 ## What's next
 
-1. Full validation runs for the mediation and moderated mediation chunks,
-   and the remaining published values.
+1. Full validation runs for the mediation and moderated mediation chunks
+   (on GitHub or locally, now that they run in batches), and the
+   remaining published values.
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
    section 6, open items).
 3. Binary X and W in regression interactions and mediation (proposed

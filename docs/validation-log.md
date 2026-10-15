@@ -15,6 +15,55 @@ Chunks: basic, anova, interactions, process_4 (simple and parallel
 mediation), process_6 (serial mediation), process_7, process_14; plus the
 on-demand interaction_grid.
 
+## Running the full validation on GitHub
+
+The validation can run on GitHub's computers instead of yours: the
+repository is public, so GitHub Actions is free, and its standard Linux
+machine has 4 cores and about 16 GB of memory. Each run does one chunk and
+can take at most 6 hours. Nothing runs on its own; you start each run.
+
+**Start a run**
+
+1. Go to the repository on GitHub and click the **Actions** tab (at the
+   top, between Pull requests and Projects).
+2. In the list of workflows on the left, click **full-validation**.
+3. A blue band says "This workflow has a workflow_dispatch event trigger".
+   On its right, click **Run workflow**. Leave the branch as `main` (or
+   pick the branch you want to validate), choose the **chunk** from the
+   list, and click the green **Run workflow** button.
+4. After a few seconds the run appears in the list (refresh if not), with
+   a yellow dot while it runs. You can close the page; it keeps running.
+   Click it, then click the job, to watch its progress: the step "Run the
+   ... chunk" prints the same progress lines as on your own machine.
+
+**Download the results**
+
+1. When the run ends, its dot becomes a green tick (every test ran and
+   none failed) or a red cross (a test failed or errored, or the chunk hit
+   the time limit). Results are uploaded either way.
+2. Open the run. At the bottom of its **Summary** page, under
+   **Artifacts**, click **validation-results-*chunk*-run-*number***. This
+   downloads a zip file (you must be signed in to GitHub).
+3. Unzip it. `summary.txt` is the summary to paste into this file as a new
+   entry; each test also has a `.rds` file (its saved result) and a `.log`
+   file (everything it printed). Artifacts are kept for 30 days.
+
+**Time.** The mediation chunks run one test at a time with all 4 cores;
+the others run 4 tests at a time. Rough times, from timings on the
+maintainer's laptop: basic and interactions, minutes; anova and
+process_6, about an hour; process_4, about 2.5 hours; process_7 and
+process_14, about 3 hours each. A GitHub machine may be slower than the
+laptop; if it is twice as slow, **process_7 and process_14 might not fit
+in 6 hours**. If a chunk reaches the limit, the run stops at about
+5 h 40 m, the tests that finished are still in the artifact, and the
+summary lists the rest as NOT RUN; run those on your own machine (copy
+the downloaded `.rds` files into `validation-results/` first, and the
+script carries on from them). The first run also spends about 10 minutes
+installing packages; later runs reuse them.
+
+**Versions.** The run uses R and the package versions in `renv.lock`, as
+on your machine, so its results can be compared with local ones.
+
 ## Before this log
 
 Runs recorded in `docs/decisions.md` before this file existed. The loop bug
