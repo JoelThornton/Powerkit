@@ -31,13 +31,16 @@ power4mome_backend <- function(spec, seed = NULL) {
 
 # A binary X or W, and measurement error (reliability), are methodological
 # choices still to be made for these designs (docs/decisions.md, open
-# questions), so they aren't offered yet.
+# questions; for binary X or W, docs/build-guide.md, section 8), so they
+# aren't offered yet. Treating a binary variable as continuous isn't
+# suggested: it may give an inaccurate power estimate.
 check_power4mome_supported <- function(spec) {
   binary <- names(Filter(function(v) identical(v$type, "binary"), spec$variables))
   if (length(binary) > 0) {
     abort_not_available(sprintf(
-      "Mediation designs with a yes/no (binary) %s aren't available yet; for now, treat %s as continuous.",
-      quote_list(vapply(binary, function(v) var_label(spec, v), character(1)), "or"),
+      "Mediation designs with a yes/no (binary) variable aren't available yet (%s %s yes/no). Treating %s as continuous may give an inaccurate power estimate.",
+      quote_list(vapply(binary, function(v) var_label(spec, v), character(1)), "and"),
+      if (length(binary) == 1) "is" else "are",
       if (length(binary) == 1) "it" else "them"
     ))
   }

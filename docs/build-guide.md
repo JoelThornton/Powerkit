@@ -180,6 +180,12 @@ Write these tests before the engine code, and treat them as your work rather tha
 
 **Tolerance rule:** a test passes if the published value lies inside the 99.9% Monte Carlo interval of your estimate. (At 95%, a correct engine would fail roughly one test in twenty by chance, so a suite of fifty would almost never be all green.) Run validation tests at 10,000 replications, not on every commit: a fast subset nightly on CI, and the full set on demand before merges and releases, on the maintainer's machine, with `scripts/run-validation.R` (the mediation tests alone take about a day of CPU time). That count keeps a real error of .03 in power failing even at the wider interval: at power .5 the interval half-width is about .016 against a published value and .023 between two simulations (direct-call tests).
 
+**Open items**
+
+- Simulation versions of the 2x2 ANOVA Type I error tests. The current ones use the exact method (`ANOVA_exact()`), so they give exactly .05 by construction: they confirm powerkit translates "no effect" correctly but are not an empirical check of the simulation's Type I error rate (`docs/validation-log.md`, 14 October 2026).
+
+Full validation runs are recorded in `docs/validation-log.md`.
+
 **Bonus:** these tests, plus a comparison table, are most of a validation paper for *Behavior Research Methods* or *AMPPS*.
 
 ## 7. Front end and outputs
@@ -233,6 +239,29 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 6. v2 designs | Equivalence, GLMs, mixed-effects, AIPE | Their validation tests pass |
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
+
+**Proposed next phase (not started, no code yet): binary X and W**
+
+Section 2 lists continuous × binary interactions as MVP, and the example PROCESS model 7 spec in section 4 has a binary X, but the engine refuses a binary X or W in regression interactions and mediation designs ("not available yet"; treating the variable as continuous may give an inaccurate power estimate). This phase would add them, in three steps, each reviewed before the next.
+
+*a. Check backend support first (findings from the package sources, October 2026).*
+
+- **InteractionPoweR 0.2.4** makes a variable binary with `k.x1 = 2` / `k.x2 = 2` in `power_interaction()` and `generate_interaction()` (simulation only). It draws a normal variable, splits it into two equal groups and standardises the result; with `adjust.correlations = TRUE` (the default) the input correlations are adjusted so the observed binary data have the specified correlations. The group split is fixed at 50/50 (no option for unequal groups). The analytic `power_interaction_r2()` is documented as valid only for continuous, normally distributed variables, so it can't give the power for a binary X or W; powerkit uses it only to bracket N before simulating, and that use would need checking for binary variables.
+- **power4mome 0.2.1: backend convention.** power4mome supports a binary X or W through `power4test()`'s `x_fun` argument with `rbinary_rs()`: a 0/1 variable (probability `p1` of a 1) rescaled to population mean 0 and SD 1, so effects in `pop_es` are fully standardised. This is the convention powerkit follows for mediation and moderated mediation. Limits from its documentation: a variable generated with `x_fun` must have zero covariance with the other exogenous variables, and `x_fun` on an endogenous variable sets its error term, so a binary M or Y is not covered. manymome's conditional effects accept a dichotomous moderator. Remaining questions for Shu Fai Cheung (they don't block the convention):
+  1. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
+  2. Has power4mome's Monte Carlo CI test been checked with a binary X?
+
+*b. Convention, and a decision for the maintainer.* Both backends treat a binary variable as fully standardised: power4mome rescales it to SD 1 with `rbinary_rs()` (above), and InteractionPoweR standardises it after the split. powerkit follows that by default, so a "standardised path" from a 0/1 X means per SD of X. The decision left for the maintainer is whether to offer the other reading as well (Y standardised and X left as 0/1, so the path reads like Cohen's d). That would be a departure: it goes in `docs/conventions.md` with a test of its size, is shown on the results screen and stated in the methods paragraph. The group split (equal, or an allocation ratio through `p1`; InteractionPoweR allows only 50/50) is decided at the same time.
+
+*c. Validation targets.*
+
+- Direct-call agreement: powerkit against `power_interaction()` with `k.x1` / `k.x2`, and against `power4test()` with `x_fun = list(x = list(rbinary_rs, p1 = ...))`.
+- Type I error with a binary X or W.
+- Published: Donnelly, Jorgensen & Rudolph (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0. Its X and W are binary. It reports power for a conditional indirect effect, at a level of W it doesn't state, not for the index of moderated mediation, and has no model 14 example, so it fits only if powerkit also offers conditional indirect effects as a target and the level of W can be recovered.
+- Published, interactions: an InteractionPoweR example with a binary variable, if the tutorial or package articles have one (to find).
+- Agreement between powerkit's binary-W interaction and its 2x2 ANOVA when both X and W are binary, as a cross-check between backends.
+
+Done when the maintainer has decided on the d-like option and the group split, the remaining questions to Shu Fai Cheung are answered or set aside, and these tests pass.
 
 **Example phase prompt (phase 2)**
 

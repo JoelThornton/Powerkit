@@ -3,7 +3,8 @@
 # Backend: power4mome. Build guide section 6:
 #   1. analytic agreement: none (no closed-form power for confidence-
 #      interval tests of the index)
-#   2. published examples: power4mome vignettes; simsem tutorial (BRM, 2023)
+#   2. published examples: power4mome's Quick Template for this model;
+#      Donnelly, Jorgensen & Rudolph (2023), not usable yet (see below)
 #   3. direct-call agreement with power4mome
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -17,15 +18,20 @@ process_7_paths <- function(a1, a2, a3, b, c_prime) {
 
 test_that("PROCESS model 7: matches the power4mome vignette example (published)", {
   skip_unless_full_validation()
-  # Source: power4mome vignette "Get started"
-  #   (https://sfcheung.r-universe.dev/power4mome/doc/power4mome.html), its
-  #   moderated-mediation example with the moderator on the X->M path, if
-  #   it has one; otherwise the power4mome article (pkgdown "Articles")
-  #   that covers this model. Update this comment with the exact vignette.
-  #   Transcribe the population values from its pop_es (convert the
-  #   "s"/"m"/"l" labels using the values the vignette states), n, the
-  #   test used (index of moderated mediation), alpha, nrep and R, and the
-  #   reported rejection rate.
+  # Source: power4mome article "Quick Template: Simple Moderated Mediation
+  #   with Observed Variables: a-Path Moderated" (pkgdown "Articles" at
+  #   https://sfcheung.r-universe.dev/power4mome). Transcribe the population
+  #   values from its pop_es (convert the "s"/"m"/"l" labels using the
+  #   values the article states), n, the test used (index of moderated
+  #   mediation), alpha, nrep and R, and the reported rejection rate.
+  # power4mome version that built the website: TODO (Joel).
+  # Date read: TODO (Joel).
+  #   The article's output is regenerated each time the website is rebuilt,
+  #   so the reported numbers can change between versions; record both.
+  # Test method: the templates leave test_method unset but use R = 1000
+  #   draws. Boos and Zhang's p-value rule only switches on for R in 39,
+  #   79, ..., 359 (docs/conventions.md, Departure 8), so the templates used
+  #   the confidence-interval test, the same test powerkit uses.
   a1 <- TODO_PUBLISHED_VALUE # m ~ x
   a2 <- TODO_PUBLISHED_VALUE # m ~ w
   a3 <- TODO_PUBLISHED_VALUE # m ~ x:w
@@ -44,15 +50,18 @@ test_that("PROCESS model 7: matches the power4mome vignette example (published)"
   expect_power_near(engine_power(spec), published_power, reference_nrep = reference_nrep)
 })
 
-test_that("PROCESS model 7: matches the simsem tutorial example (published)", {
+test_that("PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023) (published)", {
   skip_unless_full_validation()
-  # Source: the build guide cites a "simsem tutorial (Behavior Research
-  #   Methods, 2023)" for moderated mediation but gives no authors or
-  #   title. Joel: identify the paper, then transcribe its first-stage
-  #   moderated mediation example: the standardised paths, n, alpha and the
-  #   reported power for the index of moderated mediation, with its number
-  #   of replications. If its example is a different model, move this test
-  #   to the matching file.
+  # Source: Donnelly, Jorgensen & Rudolph (2023), Behavior Research
+  #   Methods, 55(7), 3892-3909, doi:10.3758/s13428-022-01996-0 (the
+  #   "simsem tutorial" in earlier versions of these tests).
+  # Why this stays TODO: it can't be used yet.
+  #   * Its X and W are binary, and powerkit doesn't offer a binary X or W
+  #     yet (docs/build-guide.md, section 8, proposed next phase).
+  #   * It reports no power for the index of moderated mediation, only for
+  #     a conditional indirect effect, at a level of W it doesn't state.
+  #   It becomes usable when binary X and W are supported (and then only
+  #   for a conditional indirect effect, if powerkit offers that target).
   a1 <- TODO_PUBLISHED_VALUE
   a2 <- TODO_PUBLISHED_VALUE
   a3 <- TODO_PUBLISHED_VALUE
@@ -73,11 +82,26 @@ test_that("PROCESS model 7: matches the simsem tutorial example (published)", {
 
 test_that("PROCESS model 7: required n matches the power4mome vignette (published)", {
   skip_unless_full_validation()
-  # Source: the power4mome vignette on finding the sample size for a target
-  #   power (n_from_power / n_region_from_power), using its moderated
-  #   mediation example if it has one. Joel: name the exact vignette here.
-  #   Transcribe the population values, alpha, target power and the
-  #   sample size (or region) it reports.
+  # Source: power4mome's search for the sample size for a target power
+  #   (n_region_from_power() or n_from_power()), as shown in the Quick
+  #   Template for this model ("Quick Template: Simple Moderated Mediation
+  #   with Observed Variables: a-Path Moderated"). Joel: confirm the
+  #   article. Transcribe the population values, alpha, target power and
+  #   the sample size (or region) it reports.
+  # power4mome version that built the website: TODO (Joel).
+  # Date read: TODO (Joel).
+  #   The article's output is regenerated each time the website is rebuilt,
+  #   so the reported numbers can change between versions; record both.
+  # Test method: the templates leave test_method unset but use R = 1000
+  #   draws. Boos and Zhang's p-value rule only switches on for R in 39,
+  #   79, ..., 359 (docs/conventions.md, Departure 8), so the templates used
+  #   the confidence-interval test, the same test powerkit uses.
+  # Published N as a point or a range: give exactly one of published_n and
+  #   published_n_range, and set the other to NULL. n_region_from_power()
+  #   reports a region (e.g. 300 to 347), not a single n: give it as a
+  #   range, c(lower, upper). A range passes if it overlaps powerkit's
+  #   interval for the required n (a lenient criterion; docs/decisions.md),
+  #   and a narrow overlap is reported with a warning.
   a1 <- TODO_PUBLISHED_VALUE
   a2 <- TODO_PUBLISHED_VALUE
   a3 <- TODO_PUBLISHED_VALUE
@@ -85,14 +109,15 @@ test_that("PROCESS model 7: required n matches the power4mome vignette (publishe
   c_prime <- TODO_PUBLISHED_VALUE
   alpha <- TODO_PUBLISHED_VALUE
   target_power <- TODO_PUBLISHED_VALUE
-  published_n <- TODO_PUBLISHED_VALUE
-  skip_if_todo(a1, a2, a3, b, c_prime, alpha, target_power, published_n)
+  published_n <- TODO_PUBLISHED_VALUE # a single n, or NULL if a region is given
+  published_n_range <- TODO_PUBLISHED_VALUE # c(lower, upper), or NULL if a single n is given
+  skip_if_todo(a1, a2, a3, b, c_prime, alpha, target_power, published_n, published_n_range)
 
   spec <- moderated_mediation_spec(
     "process_7", process_7_paths(a1, a2, a3, b, c_prime),
     seed = 203, alpha = alpha, target_power = target_power
   )
-  expect_n_near(engine_n_required(spec), published_n)
+  expect_n_near(engine_n_required(spec), published_n_value(published_n, published_n_range))
 })
 
 # 3. Direct-call agreement -----------------------------------------------------------

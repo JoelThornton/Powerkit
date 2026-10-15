@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* The "not available yet" messages for a yes/no (binary) X or W in
+  regression interactions and mediation designs no longer suggest treating
+  the variable as continuous: they say that doing so may give an
+  inaccurate power estimate. For regression interactions, a 2x2 ANOVA
+  design is suggested only when both X and W are yes/no.
+* Validation (for maintainers): published required sample sizes can be
+  given as a range (`c(lower, upper)`), which passes if it overlaps
+  powerkit's interval, with narrow overlaps reported; and
+  `scripts/run-validation.R --retry-skipped` reruns tests saved as SKIP
+  (for example, after published values are filled in) without discarding
+  other results.
 * `run_spec()` now runs every MVP design:
   * basic tests (one-sample, independent and paired t-tests, correlation,
     two proportions, chi-square test of independence) via Spower;

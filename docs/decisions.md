@@ -1,6 +1,7 @@
 # Decisions log
 
 Short records of decisions that are not obvious from the code. Newest last.
+Full validation runs are recorded in `docs/validation-log.md`.
 
 ## 2026-10-12 · Phases 0–1 (set-up, specification and tests)
 
@@ -523,10 +524,19 @@ licence line; the phase 0 entry's set-up predates the choice.
    departs from Spower's default (`correct = TRUE`): conventions.md,
    Departure 5.
 7. **Spower's one-sided tests.** A minimal reproducible example is in
-   `docs/upstream/spower-one-sided-tests.R`, for the maintainer to send to
-   Phil Chalmers (nobody has been contacted). Seeded, 10,000 replications:
+   `docs/upstream/spower-one-sided-tests.R`. Seeded, 10,000 replications:
    Type I error 0.1009 with `two.tailed = FALSE` against 0.0495 with a
-   directional test; with d = 0.5 both give 0.7931.
+   directional test; with d = 0.5 both give 0.7931. Reported to Phil
+   Chalmers on 13 October 2026 ([philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3)); confirmed,
+   fixed on GitHub (Spower 0.7, commits of 14 October 2026: the `p_*`
+   functions pass `alternative` to the underlying test, and a new
+   `alternative` argument overrides `two.tailed`) and the issue closed.
+   CRAN is still 0.6.4, with the bug (checked 15 October 2026), so
+   powerkit keeps its directional workaround. When a CRAN release has the
+   fix, the departure is retired after a test confirms the direction
+   mapping; the existing departure test is then expected to fail, which is
+   the signal to retire it (conventions.md, Departure 4; "Upstream watch"
+   below).
 8. **Parallel mediators: residuals free to correlate, as in PROCESS.** The
    direct-call test "parallel mediation with correlated residuals" now
    gives power4mome `m1 ~~ m2: 0.3739`, with the derivation from the spec's
@@ -556,8 +566,16 @@ licence line; the phase 0 entry's set-up predates the choice.
       So the option phase 3 set did not turn the method off. powerkit now
       asks for the confidence-interval rule explicitly
       (`test_method = "ci"`, a documented argument of both test functions)
-      and still sets the option for the summaries. This could be a second
-      upstream report (to Shu Fai Cheung); not prepared.
+      and still sets the option for the summaries. Reported to Shu Fai
+      Cheung on 13 October 2026
+      ([sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276));
+      confirmed and fixed on GitHub (power4mome 0.2.1.33, 14 October
+      2026: all five test functions use `getOption()`; he also checked
+      the package's other `options()` / `getOption()` uses). CRAN is still
+      0.2.1, with the bug (checked 15 October 2026). powerkit keeps
+      `test_method = "ci"` regardless, since Boos and Zhang off is this
+      decision, not only a workaround (conventions.md, Departure 8;
+      "Upstream watch" below).
     * *Size: none in powerkit's runs.* At the supported numbers of draws
       (39, 79, ..., 359), Boos and Zhang's p-value rule gives the same
       decision as the confidence interval in each replication, and
@@ -807,3 +825,191 @@ and must be rerun.
   script's list stops the run with "the script finds 15 tests, testthat
   reports 16"; and a run in which testthat reports 24 tests is recorded as
   an ERROR.
+
+## 2026-10-13 · Housekeeping: published ranges, rerunning skipped tests, sources
+
+No expected values changed and no `TODO_PUBLISHED_VALUE` was filled in or
+removed.
+
+**1. Published required-N ranges: an overlap rule (a powerkit judgment).**
+Some sources report the required N as a range, not a point:
+
+- the InteractionPoweR tutorial (Baranger et al., 2023) searched N in steps
+  of 250 and reports "approximately 3,750", so the true value lies in
+  3,501 to 3,750;
+- power4mome's `n_region_from_power()` reports a region (e.g. 300 to 347).
+
+`expect_n_near()` (`tests/testthat/helper-validation.R`) now takes either a
+single published N (unchanged: it must lie in powerkit's interval for the
+required N) or a range `c(lower, upper)`. A range passes if it overlaps
+powerkit's interval `[lower, upper]`; the message states both intervals
+and their overlap (or "none").
+
+- *Not an established convention.* No source or tool sets a rule for
+  comparing a simulated required-N interval with a published range; this
+  is powerkit's own judgment, recorded here so it can be revisited.
+- *Lenient.* Overlap is the weakest sensible check: two wide intervals
+  overlap easily, and a 250-wide published range can be met by an
+  interval that only touches its edge. A pass says powerkit's answer is
+  compatible with the source, not that the two agree closely.
+- *Narrow passes are reported.* A pass where powerkit's point estimate lies
+  outside the published range (so the intervals overlap only at one end)
+  gives a warning starting "Narrow pass", naming the estimate, both
+  intervals and the overlap. It shows in `devtools::test()` output and in
+  `scripts/run-validation.R`'s summary (the test is still a PASS). Such a
+  pass should be reported and looked at, not taken as agreement.
+- The required-N published tests in the interaction and PROCESS model 7
+  files now have two placeholders, `published_n` and `published_n_range`,
+  both `TODO_PUBLISHED_VALUE`: give exactly one and set the other to NULL
+  (`published_n_value()` stops otherwise).
+- Unit tests: `tests/testthat/test-expect-n-near.R` (point, overlapping
+  range, narrow overlap, non-overlapping range, malformed input).
+
+**2. `scripts/run-validation.R --retry-skipped`.** A test skipped for a
+`TODO_PUBLISHED_VALUE` is saved as SKIP and counts as done, and
+`--retry-failed` reruns only FAIL and ERROR, so after values were filled in
+those tests only reran with `--fresh`, which also discards the long
+results. `--retry-skipped` (`run_validation(retry_skipped = TRUE)`) reruns
+the tests saved as SKIP and keeps every other result; it can be combined
+with `--retry-failed`. It follows the PR #7 design: a saved result belongs
+to a test only if it records that test's name and position, so only those
+results are deleted and rerun (a result saved under another name or
+position is already ignored, and that test runs anyway). `--list` now
+shows each chunk's saved results by status and says which flag reruns
+what. One behaviour change: the retry flags now act only when tests are
+about to run. Before, `--retry-failed` combined with `--list` or
+`--summary` deleted the FAIL / ERROR results without rerunning them.
+
+Renamed tests (their saved results, all SKIP, are ignored by the name
+check and the tests rerun, which takes seconds):
+"simple mediation: matches the power4mome Quick Template (published)",
+"parallel mediation: matches a published parallel example (published)",
+"PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023)
+(published)" and "PROCESS model 14: matches Donnelly, Jorgensen &
+Rudolph (2023) (published)". Renamed on 15 October 2026, when their
+sources changed: "independent t-test: matches the Faul et al. (2007)
+G*Power example (published)", "correlation: matches the Faul et al.
+(2007) exact bivariate-normal example (published)" and "two proportions:
+matches a published example (published)" (no source yet). The paired
+t-test keeps its name, since it still uses the G*Power 3.1 manual.
+
+**3. Sources of the published tests (comments only).**
+
+- *Simple mediation, PROCESS model 7 and model 14:* power4mome's Quick
+  Templates ("Quick Template: Simple Mediation with Observed Variables";
+  "Quick Template: Simple Moderated Mediation with Observed Variables:
+  a-Path Moderated" for model 7 and "...: b-Path Moderated" for model 14).
+  Each test has lines for the power4mome version that built the website
+  and the date the maintainer read it, since the articles' output is
+  regenerated each time the site is rebuilt.
+- *Parallel and serial mediation:* no published two-mediator example has
+  been found. power4mome's templates use three mediators (the parallel one
+  tests whether all the specific indirect effects are significant), and
+  Schoemann, Boulton & Short (2017) has no parallel or serial example.
+- *Donnelly, Jorgensen & Rudolph (2023)* (Behavior Research Methods,
+  55(7), 3892-3909; earlier called the "simsem tutorial") can't be used
+  yet: its X and W are binary; it reports no power for the index of
+  moderated mediation, only for a conditional indirect effect at a level
+  of W it doesn't state; and it has no model 14 example. Both tests stay
+  TODO; the model 7 one becomes usable when binary X and W are supported
+  (and then for a conditional indirect effect, not the index).
+- *InteractionPoweR measurement-error test:* Baranger et al. (2023) report
+  60% power with all reliabilities 0.8 but don't say whether it came from
+  `power_interaction_r2()` (analytic) or `power_interaction()`
+  (simulation, and with how many iterations), so `reference_nrep` can't
+  be set. It stays TODO.
+
+**4. Schoemann, Boulton & Short (2017): a recorded sanity check, not a
+test.** The paper's only worked example is simple mediation given as
+correlations: r_XM = .35, r_MY = .25, r_XY = .10, with 5,000 replications,
+20,000 Monte Carlo draws and a 95% confidence interval. It reports
+"approximately 150" participants for 80% power, found with a varying-N
+method, and gives no precision for that figure. With no precision there is
+nothing to test against, so it is kept as a sanity check: an independent
+tool reports about 150, and powerkit's answer will be recorded next to it.
+
+- *Schoemann et al.:* about 150 (80% power, 95% Monte Carlo CI).
+- *powerkit:* not run yet. For powerkit's spec, the correlations give the
+  standardised paths a = r_XM = .35, b = (r_MY - r_XM r_XY) / (1 - r_XM^2)
+  = .215 / .8775 = 0.2450, and c' = (r_XY - r_XM r_MY) / (1 - r_XM^2) =
+  .0125 / .8775 = 0.0142 (to be checked by the maintainer before the run).
+
+**5. The power4mome templates used the confidence-interval test
+(settled by the maintainer).** The templates leave `test_method` unset,
+and with it unset power4mome switches to Boos and Zhang's asymmetric
+p-value only when the number of draws R is one of 39, 79, ..., 359
+(conventions.md, Departure 8). The templates use R = 1000, so they used
+the confidence-interval test, the same test powerkit always asks for
+(`test_method = "ci"`, decision 10 of "Phase 3: maintainer decisions").
+Not a question for Shu Fai Cheung. Each template-based test says this in a
+comment.
+
+**6. Binary X or W: messages.** The "not available yet" messages for a
+binary X or W (`R/backend-interactionpower.R`, `R/backend-power4mome.R`)
+no longer suggest treating the variable as continuous, which can give an
+inaccurate power estimate (InteractionPoweR's manual says
+`power_interaction_r2()` is valid only for continuous, normally
+distributed variables). The interaction message suggests a 2x2 ANOVA only
+when both X and W are binary, the only case it fits. A proposed phase for
+binary X and W is in `docs/build-guide.md`, section 8.
+
+**7. Binary X or W in power4mome: the backend convention (maintainer).**
+power4mome supports a binary X or W through `power4test()`'s `x_fun`
+argument with `rbinary_rs()`: a 0/1 variable rescaled to mean 0 and SD 1,
+so effects are fully standardised. This is recorded in the proposed phase
+(`docs/build-guide.md`, section 8) as the backend convention that powerkit
+follows, not as a question for Shu Fai Cheung. The questions left for him
+are whether a binary X can be correlated with W and whether the Monte Carlo
+CI test has been checked with a binary X.
+
+## 2026-10-15 · Upstream reports fixed; upstream watch; validation log
+
+**Upstream reports** (checked against the upstream repositories and CRAN on
+15 October 2026). Both bugs reported on 13 October were confirmed and fixed
+on GitHub on 14 October, but neither fix is on CRAN yet:
+
+- Spower ([philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3),
+  closed): fixed in 0.7 on GitHub; CRAN 0.6.4 has the bug. See item 7 of
+  "Phase 3: maintainer decisions" and conventions.md, Departure 4.
+- power4mome ([sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276)):
+  fixed in 0.2.1.33 on GitHub; CRAN 0.2.1 has the bug. See item 10 of
+  "Phase 3: maintainer decisions" and conventions.md, Departure 8.
+
+### Upstream watch
+
+powerkit stays on CRAN releases, never GitHub development versions, so the
+versions it records stay installable. When either package publishes a new
+CRAN release (Spower above 0.6.4, power4mome above 0.2.1):
+
+1. On a branch, update `renv.lock` to the new release.
+2. Run the full test suite (`devtools::test()`, `devtools::check()`) and
+   the affected validation chunks with `scripts/run-validation.R` (Spower:
+   `basic`; power4mome: `process_4`, `process_6`, `process_7`,
+   `process_14`), and record the run in `docs/validation-log.md`.
+3. Then act on the departure:
+   * **Spower:** retire Departure 4 and use Spower's own functions with
+     `alternative`, after a test confirms the direction mapping (powerkit's
+     "greater" means the effect is positive; powerkit currently passes -d).
+     The departure test "one-sided tests check the direction, unlike
+     Spower's two.tailed = FALSE" is expected to fail after the upgrade:
+     that is the signal to retire the departure, not a bug.
+   * **power4mome:** record "fixed upstream in version X" in Departure 8.
+     Keep `test_method = "ci"`: Boos and Zhang off is the maintainer's
+     decision, not only a workaround.
+
+### Validation log
+
+`docs/validation-log.md` (new) collects every full validation run from now
+on: date, commit, platform, versions and results per chunk. It starts with
+the full anova chunk of 14 October 2026 (30 PASS of 30, the first run with
+every test recorded under its own name, after PR #7) and the earlier basic
+and interactions results recorded above, which PR #7 confirmed were
+unaffected by the loop bug. `scripts/run-validation.R` now says to paste
+the summary there after a full run.
+
+The anova chunk's four Type I error tests use the exact method
+(`ANOVA_exact()`), so they give exactly 0.0500 by construction. They
+confirm that powerkit translates "no effect" correctly, but they are not
+an empirical check of the simulation's Type I error rate. Simulation
+versions of these tests are listed as an open item in
+`docs/build-guide.md`, section 6.

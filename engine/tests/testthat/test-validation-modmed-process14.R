@@ -3,7 +3,8 @@
 # Backend: power4mome. Build guide section 6:
 #   1. analytic agreement: none (no closed-form power for confidence-
 #      interval tests of the index)
-#   2. published examples: power4mome vignettes; simsem tutorial (BRM, 2023)
+#   2. published examples: power4mome's Quick Template for this model;
+#      Donnelly, Jorgensen & Rudolph (2023) has no model 14 example
 #   3. direct-call agreement with power4mome
 #   4. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
@@ -17,12 +18,20 @@ process_14_paths <- function(a, b1, b2, b3, c_prime) {
 
 test_that("PROCESS model 14: matches a power4mome vignette example (published)", {
   skip_unless_full_validation()
-  # Source: a power4mome vignette (pkgdown "Articles" at
-  #   https://sfcheung.r-universe.dev/power4mome) with the moderator on the
-  #   M->Y path, if one exists. Joel: name the exact vignette here, or
-  #   replace with another published second-stage example. Transcribe the
-  #   population values from its pop_es, n, alpha, nrep and the reported
+  # Source: power4mome article "Quick Template: Simple Moderated Mediation
+  #   with Observed Variables: b-Path Moderated" (pkgdown "Articles" at
+  #   https://sfcheung.r-universe.dev/power4mome). Transcribe the population
+  #   values from its pop_es (convert the "s"/"m"/"l" labels using the
+  #   values the article states), n, alpha, nrep and R, and the reported
   #   rejection rate for the index of moderated mediation.
+  # power4mome version that built the website: TODO (Joel).
+  # Date read: TODO (Joel).
+  #   The article's output is regenerated each time the website is rebuilt,
+  #   so the reported numbers can change between versions; record both.
+  # Test method: the templates leave test_method unset but use R = 1000
+  #   draws. Boos and Zhang's p-value rule only switches on for R in 39,
+  #   79, ..., 359 (docs/conventions.md, Departure 8), so the templates used
+  #   the confidence-interval test, the same test powerkit uses.
   a <- TODO_PUBLISHED_VALUE # m ~ x
   b1 <- TODO_PUBLISHED_VALUE # y ~ m
   b2 <- TODO_PUBLISHED_VALUE # y ~ w
@@ -41,12 +50,21 @@ test_that("PROCESS model 14: matches a power4mome vignette example (published)",
   expect_power_near(engine_power(spec), published_power, reference_nrep = reference_nrep)
 })
 
-test_that("PROCESS model 14: matches the simsem tutorial example (published)", {
+test_that("PROCESS model 14: matches Donnelly, Jorgensen & Rudolph (2023) (published)", {
   skip_unless_full_validation()
-  # Source: the "simsem tutorial (Behavior Research Methods, 2023)" cited
-  #   in the build guide (authors and title not given; Joel to identify).
-  #   Use its second-stage moderated mediation example if it has one;
-  #   otherwise leave this test as TODO and say so here.
+  # Source: Donnelly, Jorgensen & Rudolph (2023), Behavior Research
+  #   Methods, 55(7), 3892-3909, doi:10.3758/s13428-022-01996-0 (the
+  #   "simsem tutorial" in earlier versions of these tests).
+  # Why this stays TODO: it can't be used yet.
+  #   * It has no model 14 (second-stage) example.
+  #   * Its examples have a binary X and W, and powerkit doesn't offer a
+  #     binary X or W yet (docs/build-guide.md, section 8, proposed next
+  #     phase).
+  #   * It reports no power for the index of moderated mediation, only for
+  #     a conditional indirect effect, at a level of W it doesn't state.
+  #   Left as TODO. Binary X and W support is needed before any of its
+  #   examples can be used, and even then this test needs a second-stage
+  #   example the paper doesn't have.
   a <- TODO_PUBLISHED_VALUE
   b1 <- TODO_PUBLISHED_VALUE
   b2 <- TODO_PUBLISHED_VALUE

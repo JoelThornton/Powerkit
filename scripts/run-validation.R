@@ -16,6 +16,7 @@
 #     stop button in RStudio); rerun the same command to carry on.
 # It prints progress and an estimate of the time remaining, and ends with a
 # summary (also saved to validation-results/summary.txt) to paste back.
+# After a full run, paste the summary into docs/validation-log.md.
 #
 # From a terminal, in the repository's top folder:
 #   Rscript scripts/run-validation.R                        everything
@@ -24,10 +25,21 @@
 #   Rscript scripts/run-validation.R --list                 chunks, progress, test-list check
 #   Rscript scripts/run-validation.R --summary              summary only
 #   Rscript scripts/run-validation.R --retry-failed         rerun FAIL / ERROR
+#   Rscript scripts/run-validation.R --retry-skipped        rerun SKIP
 #   Rscript scripts/run-validation.R --fresh                forget saved results
 # From RStudio, with Powerkit.Rproj open:
 #   source("scripts/run-validation.R")
 #   run_validation(only = "interactions", cores = 2)
+#   run_validation(retry_skipped = TRUE)
+#
+# A test skipped for a TODO_PUBLISHED_VALUE is saved as SKIP and counts as
+# done, so it doesn't run again on its own. After filling in published
+# values, rerun those tests with --retry-skipped (retry_skipped = TRUE):
+# it reruns only the tests whose saved result is SKIP, and keeps every
+# other saved result. --retry-failed and --retry-skipped can be combined.
+# As everywhere in this script, a saved result belongs to a test only if
+# it records that test's name and position in its file; a result saved
+# under another name or position is ignored, and that test runs anyway.
 #
 # Chunks: basic, anova, interactions, process_4 (simple and parallel
 # mediation), process_6 (serial mediation), process_7, process_14.
@@ -65,8 +77,8 @@ validation_minutes <- function() {
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
-                            fresh = FALSE, list_only = FALSE,
-                            summary_only = FALSE) {
+                            retry_skipped = FALSE, fresh = FALSE,
+                            list_only = FALSE, summary_only = FALSE) {
   root <- validation_root()
   old_wd <- setwd(root)
   on.exit(setwd(old_wd), add = TRUE)
@@ -79,20 +91,19 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 
   tests <- validation_tests(root, only)
   tests$done <- tests_done(tests)
-  if (isTRUE(retry_failed)) {
-    failed <- vapply(seq_len(nrow(tests)), function(i) {
-      r <- saved_result(tests[i, ])
-      !is.null(r) && r$status %in% c("FAIL", "ERROR")
-    }, logical(1))
-    file.remove(tests$result[failed])
-    tests$done[failed] <- FALSE
-  }
   if (isTRUE(summary_only)) {
     return(invisible(write_summary(tests, results_dir, cores)))
   }
   check_test_lists(tests)
   if (isTRUE(list_only)) {
     return(invisible(print_chunk_progress(tests)))
+  }
+  retry <- c(
+    if (isTRUE(retry_failed)) c("FAIL", "ERROR"),
+    if (isTRUE(retry_skipped)) "SKIP"
+  )
+  if (length(retry) > 0) {
+    tests <- forget_results(tests, retry)
   }
 
   todo <- tests[!tests$done, ]
@@ -116,6 +127,31 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 
 tests_done <- function(tests) {
   vapply(seq_len(nrow(tests)), function(i) !is.null(saved_result(tests[i, ])), logical(1))
+}
+
+# The saved status of each test ("NOT RUN" if it has no saved result).
+saved_status <- function(tests) {
+  vapply(seq_len(nrow(tests)), function(i) {
+    r <- saved_result(tests[i, ])
+    if (is.null(r)) "NOT RUN" else r$status
+  }, character(1))
+}
+
+# Delete the saved results whose status is one of `statuses` (for
+# --retry-failed and --retry-skipped), so those tests run again. Only
+# results that belong to the test (same name and position, as in
+# saved_result()) are touched.
+forget_results <- function(tests, statuses) {
+  status <- saved_status(tests)
+  again <- status %in% statuses
+  file.remove(tests$result[again])
+  tests$done[again] <- FALSE
+  counts <- table(factor(status[again], levels = statuses))
+  cat(sprintf(
+    "Running again: %s.\n",
+    paste(sprintf("%d %s", as.integer(counts), names(counts)), collapse = ", ")
+  ))
+  tests
 }
 
 # The repository's top folder: the working directory or one above it.
@@ -592,10 +628,21 @@ run_one_test <- function(file, index, result_path) {
 }
 
 print_chunk_progress <- function(tests) {
+  status <- saved_status(tests)
   for (chunk in unique(tests$chunk)) {
-    rows <- tests[tests$chunk == chunk, ]
-    cat(sprintf("%-13s %2d of %2d tests saved\n", chunk, sum(rows$done), nrow(rows)))
+    here <- status[tests$chunk == chunk]
+    cat(sprintf(
+      "%-16s %2d of %2d tests saved (%d PASS, %d FAIL, %d ERROR, %d SKIP)\n",
+      chunk, sum(here != "NOT RUN"), length(here), sum(here == "PASS"),
+      sum(here == "FAIL"), sum(here == "ERROR"), sum(here == "SKIP")
+    ))
   }
+  cat(strwrap(paste(
+    "Saved tests count as done and don't run again.",
+    "Rerun FAIL and ERROR with --retry-failed, and SKIP (for example, tests",
+    "skipped for a TODO_PUBLISHED_VALUE that has since been filled in) with",
+    "--retry-skipped; --fresh forgets every saved result."
+  ), width = 78), sep = "\n")
   tests
 }
 
@@ -681,6 +728,7 @@ if (!interactive() && sys.nframe() == 0) {
       only = value_of("--only"),
       cores = as.integer(value_of("--cores") %||% 2),
       retry_failed = "--retry-failed" %in% args,
+      retry_skipped = "--retry-skipped" %in% args,
       fresh = "--fresh" %in% args,
       list_only = "--list" %in% args,
       summary_only = "--summary" %in% args

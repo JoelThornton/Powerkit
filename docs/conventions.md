@@ -255,6 +255,25 @@ methods paragraph, and covered by a test showing the size of the difference
   per group).
 - **Test:** `engine/tests/testthat/test-backend-spower.R`, "departure:
   one-sided tests check the direction, unlike Spower's two.tailed = FALSE".
+- **Upstream status:** reported 13 October 2026 as
+  [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3); confirmed and fixed by Phil Chalmers, and
+  the issue closed. On GitHub (Spower 0.7, commits of 14 October 2026)
+  every `p_*` function passes `alternative = "greater"` (or `"less"` where
+  appropriate) to the underlying test instead of halving the two-sided
+  p-value, and a new `alternative` argument (`"two.sided"`, `"greater"`,
+  `"less"`) overrides `two.tailed`. The fix is not on CRAN yet: CRAN is
+  still 0.6.4, which has the bug (checked 15 October 2026). powerkit keeps
+  its directional workaround until a CRAN release has the fix.
+- **When a CRAN release has the fix:** retire this departure and use
+  Spower's own functions with `alternative`. Before retiring it, a test
+  must confirm the direction mapping, so that powerkit's `"greater"` lands
+  on the right side of Spower's: powerkit's `"greater"` means the effect is
+  positive (d = mean of group 2 minus group 1; d_z = second condition
+  minus first), and powerkit currently passes -d (and -sqrt(2) * d_z) to
+  Spower, which puts d in group 1 or the first time point. The existing
+  departure test ("one-sided tests check the direction, unlike Spower's
+  two.tailed = FALSE") is expected to fail after that upgrade: that
+  failure is the signal to retire the departure, not a bug.
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
 ### 5. Two proportions and chi-square: no continuity correction (Spower applies one by default)
@@ -324,6 +343,17 @@ methods paragraph, and covered by a test showing the size of the difference
   R, including the default 1,000, the method is never used.
 - **Test:** `test-backend-power4mome.R`, "departure: Boos-Zhang off makes
   no difference to power4test()'s rejection rate".
+- **Upstream status:** reported 13 October 2026 as
+  [sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276); the `options(power4mome.bz = FALSE)` bug
+  was confirmed and fixed by Shu Fai Cheung, who also checked the
+  package's other `options()` / `getOption()` uses. On GitHub (power4mome
+  0.2.1.33, 14 October 2026) all five test functions use `getOption()`.
+  The fix is not on CRAN yet: CRAN is still 0.2.1, which has the bug
+  (checked 15 October 2026). Once a CRAN release includes the fix, record
+  it here as "fixed upstream in version X".
+- **powerkit keeps `test_method = "ci"` regardless.** Boos and Zhang off is
+  the maintainer's decision (decision 10), not only a workaround for the
+  bug, so the explicit argument stays after the fix reaches CRAN.
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
 
 ## Known differences

@@ -90,7 +90,9 @@ test_that("the check run catches a path put in the wrong place", {
 test_that("binary variables and measurement error aren't available yet", {
   spec <- sim_spec("process_7")
   spec$variables$W$reliability <- NULL
-  expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
+  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
+  expect_match(conditionMessage(error), "may give an inaccurate power estimate", fixed = TRUE)
+  expect_no_match(conditionMessage(error), "treat .* as continuous")
   spec <- continuous_and_reliable(sim_spec("process_7"))
   spec$variables$M$reliability <- 0.8
   expect_error(run_quietly(spec), "measurement error.*aren't available yet", class = "powerkit_not_available")
