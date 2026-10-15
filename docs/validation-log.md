@@ -1,3 +1,4 @@
+[summary.txt](https://github.com/user-attachments/files/33514116/summary.txt)
 # Validation log
 
 Every full validation run of the powerkit engine, newest last. A full run is
@@ -123,3 +124,58 @@ run reporting 10 PASS) are invalid and are superseded by the 14 October
   translates "no effect" correctly, but they are not an empirical check of
   the simulation's Type I error rate. Simulation versions of these tests
   are an open item (`docs/build-guide.md`, section 6).
+
+
+
+  ===== powerkit validation summary (copy from here) =====
+Date: 2026-10-15 20:15   Commit: 260b943   Cores: 4
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 20 PASS, 0 FAIL, 0 ERROR, 4 SKIP, 0 NOT RUN (of 24)
+
+PASS    basic / independent t-test: power matches pwr (analytic) (11s)
+          success: Reference power 0.8015; must lie in [0.7899, 0.8161] around powerkit's estimate 0.8030 (MCSE 0.0040, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / independent t-test, one-sided: power matches pwr (analytic) (10s)
+          success: Reference power 0.8090; must lie in [0.7980, 0.8238] around powerkit's estimate 0.8109 (MCSE 0.0039, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / independent t-test, unequal groups: power matches pwr (analytic) (11s)
+          success: Reference power 0.7328; must lie in [0.7285, 0.7573] around powerkit's estimate 0.7429 (MCSE 0.0044, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / one-sample t-test: power matches pwr (analytic) (10s)
+          success: Reference power 0.8038; must lie in [0.7843, 0.8107] around powerkit's estimate 0.7975 (MCSE 0.0040, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / paired t-test: power matches pwr (analytic) (10s)
+          success: Reference power 0.8078; must lie in [0.7958, 0.8216] around powerkit's estimate 0.8087 (MCSE 0.0039, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / correlation at alpha = .01: power matches pwr (analytic) (18s)
+          success: Reference power 0.8818; must lie in [0.8749, 0.8959] around powerkit's estimate 0.8854 (MCSE 0.0032, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / two proportions: power matches pwr (analytic) (11s)
+          success: Reference power 0.8021; must lie in [0.8006, 0.8262] around powerkit's estimate 0.8134 (MCSE 0.0039, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    basic / chi-square test of independence: power matches pwr (analytic) (9s)
+          success: Reference power 0.6204; must lie in [0.6018, 0.6338] around powerkit's estimate 0.6178 (MCSE 0.0049, 99.9% Monte Carlo interval plus rounding of the reference).
+SKIP    basic / independent t-test: matches the Faul et al. (2007) G*Power example (published) (4s)
+SKIP    basic / paired t-test: matches G*Power 3.1 manual example (published) (4s)
+SKIP    basic / correlation: matches the Faul et al. (2007) exact bivariate-normal example (published) (4s)
+SKIP    basic / two proportions: matches a published example (published) (3s)
+PASS    basic / independent t-test: powerkit matches a direct Spower call (16s)
+          success: powerkit's estimate 0.6948 vs the direct backend call 0.6912: difference 0.0036; the 99.9% Monte Carlo tolerance is 0.0215.
+PASS    basic / paired t-test: powerkit matches a direct Spower call (16s)
+          success: powerkit's estimate 0.6976 vs the direct backend call 0.6957: difference 0.0019; the 99.9% Monte Carlo tolerance is 0.0214.
+PASS    basic / correlation: powerkit matches a direct Spower call (33s)
+          success: powerkit's estimate 0.7160 vs the direct backend call 0.7160: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0210.
+PASS    basic / two proportions: powerkit matches a direct Spower call (17s)
+          success: powerkit's estimate 0.7758 vs the direct backend call 0.7758: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0194.
+PASS    basic / chi-square test of independence: powerkit matches a direct Spower call (14s)
+          success: powerkit's estimate 0.4947 vs the direct backend call 0.4947: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0233.
+PASS    basic / independent t-test: Type I error is near alpha (9s)
+          success: Type I error rate 0.0518; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / independent t-test, unequal groups (Welch): Type I error is near alpha (10s)
+          success: Type I error rate 0.0498; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / one-sample t-test: Type I error is near alpha (10s)
+          success: Type I error rate 0.0479; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / paired t-test: Type I error is near alpha (9s)
+          success: Type I error rate 0.0519; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / correlation: Type I error is near alpha (15s)
+          success: Type I error rate 0.0502; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / two proportions: Type I error is near alpha (9s)
+          success: Type I error rate 0.0482; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / chi-square test of independence: Type I error is near alpha (7s)
+          success: Type I error rate 0.0511; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+
