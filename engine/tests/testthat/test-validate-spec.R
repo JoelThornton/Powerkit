@@ -89,6 +89,36 @@ test_that("wrong value types are described in plain words", {
   expect_spec_problem(spec, "'options > nrep' should be a whole number, but it is a number with decimals (1000.5).")
 })
 
+test_that("a null or missing SD gives a plain-English problem, not a crash", {
+  # Reported in PR #4: a null SD failed with "non-character argument".
+  for (name in c("anova_2x2_between", "anova_2x2_mixed")) {
+    spec <- example_spec(name)
+    spec$population["sd"] <- list(NULL)
+    expect_spec_problem(
+      spec,
+      "'population > sd' should be a number or a list ([ ... ]), but it is empty (null)."
+    )
+
+    spec <- example_spec(name)
+    spec$population$sd <- NULL
+    expect_spec_problem(spec, "'population' is missing 'sd'.")
+  }
+
+  # The same spec as JSON, as the app would send it.
+  json <- sub(
+    "\"sd\": 6", "\"sd\": null",
+    paste(readLines(example_path("anova_2x2_between")), collapse = "\n"),
+    fixed = TRUE
+  )
+  expect_spec_problem(json, "'population > sd' should be a number or a list ([ ... ]), but it is empty (null).")
+})
+
+test_that("a null SD where the design has no SD is named as not applicable", {
+  spec <- example_spec("independent_t")
+  spec$population["sd"] <- list(NULL)
+  expect_spec_problem(spec, "'sd' is not a recognised field in 'population'.")
+})
+
 test_that("out-of-range values give the limit and the value", {
   spec <- example_spec("independent_t")
   spec$target_test$alpha <- 0.6

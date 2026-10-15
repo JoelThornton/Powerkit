@@ -234,8 +234,11 @@ percent_hint <- function(value, limit, field) {
   ""
 }
 
+# ajv gives the allowed types as "number", "number,array" or, for fields
+# that allow several types (such as a cell SD: a number or a 2x2 array), as
+# a list holding a character vector.
 type_phrase <- function(types) {
-  types <- strsplit(types, ",", fixed = TRUE)[[1]]
+  types <- unlist(strsplit(as.character(unlist(types)), ",", fixed = TRUE))
   phrases <- c(
     number = "a number",
     integer = "a whole number",

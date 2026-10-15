@@ -1154,3 +1154,75 @@ whole number. The chunk itself had not run (steps without an `if` are
 skipped after a failure); the workflow now also checks that the packages
 load before starting it. The run step's own limit is now 5 h 30 m (was
 5 h 40 m), leaving more of the 6 hours for setup and the upload.
+
+## 2026-10-15 · Maintainer decisions: binary X and W phase
+
+Decided by the maintainer. Recorded in the proposed phase in the build
+guide, section 8. No code yet.
+
+- **Effect sizes.** v1 uses fully standardised paths, following both
+  backends: InteractionPoweR standardises binary variables after the
+  split, and power4mome's `rbinary_rs()` rescales a 0/1 variable to mean 0
+  and SD 1. A path from a binary X therefore means "per SD of X". Entering
+  a condition effect as Cohen's d (Y standardised, X left as 0/1) comes
+  later. It will be a departure, so it goes in `docs/conventions.md` with a
+  test showing the size of any difference.
+- **Group split.** 50/50 by default. Unequal groups only where the backend
+  supports them (power4mome, through `rbinary_rs()`'s `p1`). Interactions
+  are always 50/50, because InteractionPoweR splits at the median with no
+  option for unequal groups, and the app should say so.
+- **Binary X or W correlated with the other predictors.** power4mome
+  requires a variable generated with `x_fun` (such as a binary X or W) to
+  be uncorrelated with the other exogenous variables. That fits a
+  randomised condition. A binary W correlated with X isn't supported, and
+  the user should be told so plainly.
+- **Timing.** This phase comes next: after phase 3 closes and before
+  phase 4, because phase 4's methods paragraphs and scripts need to cover
+  binary variables.
+
+## 2026-10-15 · Published values: InteractionPoweR notes (comments only)
+
+Checked by the maintainer. No expected values were changed.
+
+- **Measurement-error example (Baranger et al., 2023, Fig. 6).** The method
+  and package version behind the figure are not stated, and unlike Figs 2
+  to 4 the supplement gives no app settings for it. InteractionPoweR
+  0.2.4's `power_interaction_r2()` gives 0.591 at N = 940 (paper: 60%) and
+  0.896 at N = 2,023 (paper: reaches 90%). The figures may be estimates from
+  `power_estimate()` (a polynomial fit to a power curve) or from an earlier
+  version of the function. Not precise enough to serve as a benchmark, so
+  the test stays TODO (`test-validation-regression-interaction.R`,
+  "interaction with measurement error").
+- **Required-N example.** The published range of 3,501 to 3,750 is
+  consistent with `power_interaction_r2()`, which gives 0.885 at N = 3,500
+  and 0.905 at N = 3,750. The range itself is still for the maintainer to
+  transcribe.
+- **power4mome template tests.** The power4mome website was built with
+  power4mome 0.2.1.31 (a development version); powerkit uses 0.2.1 from
+  CRAN. This is noted next to the version line in each template test
+  (simple mediation, PROCESS 7, PROCESS 14).
+
+## 2026-10-15 · The prototype app (PR #4) stays a draft
+
+The prototype Shiny app for the 2x2 designs (PR #4) stays an open draft. It
+is kept as a starting point for phase 5 and is not merged now. Its bug
+report (`validate_spec()` failed with "non-character argument" when
+`population > sd` was `null`) was fixed in the engine: a null value in a
+field that allows more than one type now gives a plain-English problem
+(`engine/NEWS.md`; test in `test-validate-spec.R`). powerkit rejects a null
+SD rather than reading it as "not given". In the 2x2 designs the SD is
+required, so null is reported as a wrong type. In designs without an SD,
+the field is reported as one that doesn't belong. Once this is merged, the
+app's workaround (leaving blank numbers out of the spec) still works.
+
+## 2026-10-15 · Project goal and coverage matrix
+
+The maintainer's goal is now stated in the build guide's overview: one
+place for psychologists to run the power analyses offered by Superpower,
+Spower, power4mome, InteractionPoweR and G*Power, built on those tools and
+crediting them, validated against them, with the full-model builder and R
+script export for rare cases no form covers. `docs/coverage.md` inventories
+those tools' user-facing capabilities against powerkit's status. Its tiers
+are proposals for the maintainer to confirm. The G*Power rows could not
+be checked against the manual in this session (the manual's host was not
+reachable), so they are marked for checking.

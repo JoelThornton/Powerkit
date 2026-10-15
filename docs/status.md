@@ -26,7 +26,20 @@ fully validated. Validation runs are recorded in
   until the fixes reach CRAN ([conventions](conventions.md), Departures 4
   and 8).
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
-  (#4). It is not merged.
+  (#4). It stays an open draft, kept as a starting point for phase 5
+  ([decisions](decisions.md), 15 October 2026). The `validate_spec()` bug
+  it reported (a null SD crashed with "non-character argument") is fixed.
+- **Goal and coverage:** the maintainer's goal is stated in the
+  [build guide](build-guide.md) overview. [`coverage.md`](coverage.md)
+  lists every user-facing capability of Superpower, Spower, power4mome,
+  InteractionPoweR and G*Power, with powerkit's status and proposed tiers.
+  The tiers are for the maintainer to confirm, and the G*Power rows still
+  need checking against the G*Power manual.
+  A section on needs the five tools don't cover (crossed participants and
+  stimuli, multilevel, longitudinal, SEM, sequential and Bayesian designs,
+  equivalence, precision, bias-corrected and replication planning, several
+  outcomes, ordinal outcomes) lists candidate tools for each, checked
+  against their own package sources.
 - **Validation on GitHub:** the `full-validation` workflow works: after a
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier
@@ -45,8 +58,13 @@ fully validated. Validation runs are recorded in
    remaining published values.
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
    section 6, open items).
-3. Binary X and W in regression interactions and mediation (proposed
-   phase, build guide section 8), after the maintainer's decisions there.
-4. Phase 4: script export, methods paragraph, citations and
+3. Binary X and W in regression interactions and mediation (phase 3b,
+   build guide section 8). It comes next after phase 3 closes, before
+   phase 4. The maintainer has decided its effect-size convention, group
+   split and handling of correlated predictors.
+4. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
+   its G*Power and MorePower rows against the G*Power manual and the
+   MorePower paper.
+5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-5. Phase 5: the Shiny app.
+6. Phase 5: the Shiny app.

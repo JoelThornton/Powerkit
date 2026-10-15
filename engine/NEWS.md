@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* `validate_spec()` no longer fails with "non-character argument" when a
+  field that accepts more than one kind of value is `null`, such as
+  `population > sd` in the 2x2 ANOVA designs (reported in PR #4). It now
+  gives a plain-English problem: "'population > sd' should be a number or a
+  list ([ ... ]), but it is empty (null)." A missing SD is reported as
+  missing, and an SD given for a design that has none is reported as a field
+  that doesn't belong there.
+
 * Validation (for maintainers): the `full-validation` GitHub workflow now
   installs the system library igraph needs (glpk) before restoring
   packages, checks that the packages load before the chunk starts, and

@@ -89,15 +89,17 @@ test_that("interaction: matches the InteractionPoweR tutorial example (published
 
 test_that("interaction with measurement error: matches the InteractionPoweR tutorial (published)", {
   skip_unless_full_validation()
-  # Source: Baranger et al. (2023), as above: the tutorial's example that
-  #   adds reliability (rel.x1, rel.x2, rel.y < 1). Transcribe as above,
-  #   plus the three reliabilities.
-  # Why this stays TODO: the tutorial reports 60% power with all three
-  #   reliabilities at 0.8, but doesn't say whether that figure came from
-  #   the analytic power_interaction_r2() or the simulated
-  #   power_interaction() (and, if simulated, with how many iterations). So
-  #   reference_nrep can't be set: NULL (analytic) and a replication count
-  #   give different tolerances.
+  # Source: Baranger et al. (2023), as above, Fig. 6: the tutorial's example
+  #   that adds reliability (rel.x1, rel.x2, rel.y < 1). Transcribe as
+  #   above, plus the three reliabilities.
+  # Why this stays TODO (maintainer's check, docs/decisions.md): the method
+  #   and package version behind Fig. 6 are not stated, and unlike Figs 2
+  #   to 4 the supplement gives no app settings for it. InteractionPoweR
+  #   0.2.4's power_interaction_r2() gives 0.591 at N = 940 (paper: 60%)
+  #   and 0.896 at N = 2,023 (paper: reaches 90%). The figures may be
+  #   estimates from power_estimate() (a polynomial fit to a power curve)
+  #   or from an earlier version of the function. Not precise enough to
+  #   serve as a benchmark; left TODO.
   r_x_y <- TODO_PUBLISHED_VALUE
   r_w_y <- TODO_PUBLISHED_VALUE
   r_xw_y <- TODO_PUBLISHED_VALUE
@@ -131,6 +133,9 @@ test_that("interaction: required N matches the InteractionPoweR tutorial (publis
   #   not a point. A range passes if it overlaps powerkit's interval for
   #   the required N (a lenient criterion; docs/decisions.md), and a narrow
   #   overlap is reported with a warning.
+  # Checked by the maintainer: the published range 3,501 to 3,750 is
+  #   consistent with InteractionPoweR 0.2.4's power_interaction_r2(),
+  #   which gives 0.885 at N = 3,500 and 0.905 at N = 3,750.
   r_x_y <- TODO_PUBLISHED_VALUE
   r_w_y <- TODO_PUBLISHED_VALUE
   r_xw_y <- TODO_PUBLISHED_VALUE
