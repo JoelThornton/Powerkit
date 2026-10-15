@@ -748,7 +748,11 @@ planned effect size (2.2), which is prospective. Some tools call both
   - *individual* testing (each claim stands alone): no adjustment
     needed.
 
-  Rubin argues adjustment shouldn't be automatic.
+  Rubin argues adjustment shouldn't be automatic. The same split appears
+  elsewhere: rejecting only when every test rejects (an intersection–union
+  test) needs no correction (Berger, 1982 *(seen second-hand, to verify)*), while confirmatory studies
+  need an adjustment when several tests feed one conclusion (Bender &
+  Lange, 2001 *(seen second-hand, to verify)*).
 - **In powerkit:** section 4 proposes a study level, with the combination
   rule tied to this call.
 - **Tools:** powertools (`coprimary.t()` for all, `altprimary()` for any),
@@ -827,10 +831,35 @@ optional route.
 3. **Mark which analyses are primary.** These are the ones the study must
    be powered for. Then ask how they support the study's claim
    (judgement call 3.5):
-   - each stands alone;
-   - all must be significant;
-   - any one is enough, in which case alpha may need adjusting (Rubin,
-     2021 *(seen second-hand, to verify)*).
+   - **each stands alone:** each analysis is a separate claim, tested at
+     its own alpha;
+   - **all must be significant** for the claim: no alpha correction is
+     needed. Rejecting the combined null only when every test rejects
+     keeps the overall false-positive rate at or below alpha (the
+     intersection–union principle; Berger, 1982, *Technometrics*, 24,
+     295–300 *(seen second-hand, to verify)*; Rubin, 2021 *(seen second-hand, to verify)*). The cost is lower joint power (see
+     below);
+   - **any one is enough** for the claim: this inflates the
+     false-positive rate. With three independent tests at α = .05 the
+     chance of at least one false positive is 1 − .95³ ≈ .14. It
+     therefore **needs an alpha correction**, for example Bonferroni
+     (α / k for k tests), and the correction **raises the required N**.
+     Bender and Lange (2001, *Journal of Clinical Epidemiology*, 54,
+     343–349) *(seen second-hand, to verify)* state that confirmatory studies need a multiplicity
+     adjustment when several tests feed one conclusion; Rubin (2021) *(seen second-hand, to verify)*
+     makes the same distinction between "disjunction" and "conjunction"
+     testing.
+
+   **An illustration of the cost** (computed with R's `stats::power.t.test()`,
+   two-sided independent-samples t-test, d = 0.5, power .90):
+
+   | Alpha per test | Total N |
+   | --- | --- |
+   | .05 (no correction) | 172 |
+   | .05 / 2 = .025 (Bonferroni, two tests) | 202 |
+   | .05 / 3 ≈ .0167 (Bonferroni, three tests) | 220 |
+
+   So correcting for three tests raises N by about 28% here.
 4. **Get the plan.** The plan screen shows:
    - **one card per analysis:**
      - its standard name and end point (E-number);
@@ -842,7 +871,15 @@ optional route.
        covers it).
    - **the combined N for the primary analyses:** the largest required N
      among the primary analyses that run, with the analysis that drives
-     it named and each one's own interval. If a primary analysis doesn't
+     it named and each one's own interval. The plan states the
+     combination rule chosen in step 3 and what it means:
+     - *each stands alone* or *all must be significant*: each analysis
+       uses the chosen alpha, with no correction;
+     - *any one is enough*: the card says "This needs an alpha correction
+       because any one significant result would support the claim. With
+       Bonferroni across k primary analyses, each uses α / k, which
+       raises the required N." Each card's N is computed at the corrected
+       alpha, and the combined N is the largest of those. If a primary analysis doesn't
      run yet, the combined N is shown as incomplete and says which one is
      missing.
    - **consistency warnings:** because the variables are shared, the app
@@ -863,7 +900,7 @@ flowchart TD
   T --> AQ{"Anything ambiguous?<br/>(which effect, which path,<br/>ANCOVA or mixed interaction)"}
   AQ -->|Yes| TQ["Ask the same question<br/>the tree would ask<br/>(F5, target path, PP2)"]
   AQ -->|No| P
-  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any)"]
+  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any;<br/>any needs an alpha correction)"]
   P --> PL["4. The plan"]
   PL --> C1["One card per analysis:<br/>name and E-number, inputs still needed,<br/>backend and method, status today"]
   PL --> CN["Combined N for the primary analyses<br/>(largest required N; which one drives it)"]
@@ -896,16 +933,23 @@ so the combination rule is visible.
 **What "the largest N" does and doesn't give.** It gives each primary
 analysis at least its target power **on its own**. It doesn't give the
 target power for **all of them together**:
-- For independent tests, the joint power is the product of the separate
-  powers. Three tests at .90 each give about .73 together.
-- Tests on the same data are often positively correlated. Then the
-  joint power lies somewhere between that product and the lowest single
-  power. With a negative correlation it can fall below the product. Only
-  a simulation of the whole study can say where (4.2, approach B).
+- **If the tests were independent,** the joint power would be the
+  product of the separate powers: three tests at .90 each give .90³ ≈
+  .73 together.
+- **Tests on the same data are usually positively correlated** (they
+  share participants, the outcome, and often the condition effect).
+  Positive correlation generally makes joint power **higher** than the
+  product, up to at most the lowest single power (.90 here). So .73 is
+  closer to a **floor** than to an estimate. The exception is tests that
+  are negatively correlated, where joint power can fall below the
+  product. How high it is depends on the correlations, and only a
+  simulation of the whole study can say (4.2, approach B).
 
 The "curse of multiplicities" for power (Maxwell, 2004) *(seen second-hand, to verify)* is this
 problem. If the user chooses "all must be significant", the plan should
-say plainly that the combined N doesn't guarantee joint power.
+say plainly that the combined N doesn't guarantee joint power. It gives
+each test its target power on its own, and joint power somewhere between
+the independence figure (e.g. .73) and the lowest single power.
 
 The tools that can compute joint power from one simulation are
 power4mome and Spower:
@@ -946,11 +990,10 @@ to agree. Nothing in the per-hypothesis tools checks them.
 **An illustration.** Suppose the ANOVA form gets d = 0.5 for the
 condition effect. Suppose the mediation form, with the same 50/50
 condition as X, gets standardised paths a = .30, b = .30, c' = .05. The
-total effect is then ab + c' = .14. Under the usual conversion for two
-equal groups (r = d / √(d² + 4)), d = 0.5 corresponds to a standardised
-effect of about .24 and .14 to a d of about 0.28. The two forms describe
-two different studies, and the required N from each is right only for
-its own.
+two forms then describe different condition effects: d = 0.5 against
+d ≈ 0.28. The step-by-step calculation is in the worked example (4.3).
+The required N from each form is right only for the study that form
+describes.
 
 **Two approaches. No decision is made here.**
 
@@ -1075,6 +1118,50 @@ all three marked primary and "each stands alone":
 **Warning shown:** "The condition's effect on the outcome is entered in
 H1, H2 and H3 (H3's total effect = a·b + c'). The three values imply
 different effects: [values]. Check that they describe the same study."
+
+**If the user had chosen "any one is enough"** in step 3, each card
+would be computed at α = .05 / 3 ≈ .0167 (Bonferroni), and the plan
+would say so. For a two-group comparison with d = 0.5 and power .90,
+that alone raises the total N from 172 to 220 (table in 4.1).
+
+**Where the contradiction comes from, step by step.** Suppose H1's form
+says the condition effect is d = 0.5, and H3's form has a = .30, b = .30,
+c' = .05. The condition C is a 50/50 two-group variable. In H3 it is
+standardised, as in power4mome. For two equal groups, the standardised
+effect of C (its correlation with the outcome, r) and Cohen's d convert
+as
+
+  r = d / √(d² + 4)   and, the other way,   d = 2r / √(1 − r²).
+
+*Step 1: H1's effect on H3's scale.*
+- d² = 0.5² = 0.25
+- d² + 4 = 4.25
+- √4.25 ≈ 2.062
+- r = 0.5 / 2.062 ≈ **0.243**
+
+*Step 2: H3's total effect.* The total effect of C on Y is the indirect
+plus the direct effect:
+- ab + c' = (.30 × .30) + .05 = .09 + .05 = **.14**
+
+*Step 3: H3's total effect on H1's scale.*
+- r² = .14² = .0196
+- 1 − r² = .9804
+- √.9804 ≈ .990
+- 2r = .28
+- d = .28 / .990 ≈ **0.28**
+
+*Result:* H1 says the condition shifts the outcome by d = 0.5 (r ≈
+.24). H3's paths imply only d ≈ 0.28 (r = .14), little more than half as
+large. Either H1's effect is too optimistic, or H3's paths are too small
+(or both). The plan would show both numbers and ask the user to
+reconcile them.
+- **Caveat:** H1 is an ANCOVA, so its d is the effect adjusted for the
+  baseline, and the two numbers measure the same thing only if H3 also
+  adjusts for the baseline. That is one more reason the app has to ask
+  which covariates each analysis includes (open question 13).
+- **Source of the numbers:** the conversion is the standard one between
+  d and the point-biserial correlation for two equal groups. These
+  numbers were checked in R.
 
 
 **What each approach asks the user for:**
@@ -1206,6 +1293,8 @@ package documentation or citing papers; not read in full):
 - Rubin (2021), *Synthese*.
 - Benjamin et al. (2018), *Nature Human Behaviour*.
 - Lakens et al. (2018), *Nature Human Behaviour*.
+- Berger (1982), *Technometrics*.
+- Bender & Lange (2001), *Journal of Clinical Epidemiology*.
 - Lakens & Caldwell (2021), *Advances in Methods and Practices in
   Psychological Science*.
 - DeBruine & Barr (2021), *Advances in Methods and Practices in

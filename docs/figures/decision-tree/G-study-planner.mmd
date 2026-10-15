@@ -4,7 +4,7 @@ flowchart TD
   T --> AQ{"Anything ambiguous?<br/>(which effect, which path,<br/>ANCOVA or mixed interaction)"}
   AQ -->|Yes| TQ["Ask the same question<br/>the tree would ask<br/>(F5, target path, PP2)"]
   AQ -->|No| P
-  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any)"]
+  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any;<br/>any needs an alpha correction)"]
   P --> PL["4. The plan"]
   PL --> C1["One card per analysis:<br/>name and E-number, inputs still needed,<br/>backend and method, status today"]
   PL --> CN["Combined N for the primary analyses<br/>(largest required N; which one drives it)"]
