@@ -1,0 +1,1037 @@
+# powerkit routing: the single source of truth for the app's routes,
+# questions and end points.
+#
+# Built from docs/decision-tree.md (structure, end points, judgement calls,
+# open questions) and docs/design-finder.md (card wording). Everything here
+# is a proposal for the maintainer to confirm (decision-tree.md, top).
+#
+# app/routing/tests/testthat/test-docs-match.R checks that the end points
+# and question IDs here match decision-tree.md, so the two can't drift
+# apart. If you change one, change the other.
+#
+# Routing only: nothing in this file is used to calculate anything.
+
+version: 1
+source_docs:
+  decision_tree: docs/decision-tree.md
+  design_finder: docs/design-finder.md
+  coverage: docs/coverage.md
+
+links:
+  validation_log: https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md
+  coverage: https://github.com/JoelThornton/Powerkit/blob/main/docs/coverage.md
+  decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
+  tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
+
+banner: "Prototype: shows which analysis you need; it doesn't calculate anything yet."
+
+# ---------------------------------------------------------------------------
+# Settings: undecided judgement calls and open questions
+# (decision-tree.md sections 3 and 5). `value: null` means undecided: the app
+# shows a labelled placeholder wherever the setting applies. To record a
+# decision, set `value` to one of the option keys; the app then shows the
+# decision instead of the placeholder. No code changes are needed.
+# `shown_at` lists screens (route ids, node ids, endpoint ids, "card",
+# "plan", "start") where the placeholder appears.
+# ---------------------------------------------------------------------------
+settings:
+  - key: observed_power
+    ref: "Judgement call 3.1; open question 5"
+    question: "If the effect size comes from the study's own result (observed power), should the form block it, warn about it, or allow it?"
+    options: {block: "Block it", warn: "Warn and allow", allow: "Allow without comment"}
+    value: null
+    shown_at: [card]
+  - key: effect_size_benchmarks
+    ref: "Judgement call 3.2; open question 5"
+    question: "Should small / medium / large benchmarks be shown, even as context? Should bias-corrected planning (e.g. BUCSS) be offered?"
+    options: {hide: "Don't show benchmarks", context: "Show as context only, never as defaults", bucss: "Show as context, and offer bias-corrected planning"}
+    value: null
+    shown_at: [card]
+  - key: one_sided_tests
+    ref: "Judgement call 3.3; open question 5"
+    question: "Should a one-sided test require a preregistration note? Should one-sided tests be offered for more designs than the basic tests?"
+    options: {as_now: "Basic tests only, no note required", note: "Basic tests only, preregistration note required", wider: "More designs, preregistration note required"}
+    value: null
+    shown_at: [card]
+  - key: simple_effects_target
+    ref: "Judgement call 3.4; open question 5"
+    question: "Should simple effects become a target alongside the interaction?"
+    options: {"no": "No: the interaction only", "yes": "Yes: offer simple effects as a target"}
+    value: null
+    shown_at: [f5_between, f5_mixed]
+  - key: several_hypotheses
+    ref: "Judgement call 3.5; open question 5"
+    question: "Should single-analysis routes ask whether the study tests several hypotheses?"
+    options: {"no": "No", ask: "Yes: ask, and point to the guided route"}
+    value: null
+    shown_at: [card]
+  - key: alpha_power_defaults
+    ref: "Judgement call 3.6; open question 5"
+    question: "Which defaults, if any, should alpha and target power have?"
+    options: {none: "Blank: the user enters both", conventional: "Pre-filled .05 and .80", conventional_reason: "Pre-filled .05 and .80, with a required reason if changed or kept", rr: "Pre-filled .05 and .90"}
+    value: null
+    shown_at: [card]
+  - key: starting_point
+    ref: "Open question 1"
+    question: "Start from the hypothesis (as here), or also offer G*Power's design-based order (parameter class, then design)?"
+    options: {hypothesis: "Hypothesis first (as here)", both: "Also offer the design-based order"}
+    value: null
+    shown_at: [start]
+  - key: analysis_types
+    ref: "Open question 2"
+    question: "Offer only required N / power at a given N / smallest detectable effect? Show compromise and criterion as coming later? Show sensitivity greyed out or hidden where the engine can't do it yet?"
+    options: {greyed: "Three types; sensitivity greyed out where unavailable", hidden: "Three types; sensitivity hidden where unavailable", five: "Also list compromise and criterion as coming later"}
+    value: null
+    shown_at: [card]
+  - key: closing_order
+    ref: "Open question 3"
+    question: "Ask 'what do you want to find out?' after the design (G*Power's order, as here) or first (PAMLj's order)?"
+    options: {after: "After the design", first: "First"}
+    value: null
+    shown_at: [start]
+  - key: unstored_answers
+    ref: "Open question 4"
+    question: "Where should answers the spec can't store go (rating analysed as a score; randomised or not; why ANCOVA or the mixed interaction; expected interaction shape; manipulated or measured)?"
+    options: {new_field: "A new spec field (schema change)", notes: "effect_justification.notes", app_only: "Keep them in the app only"}
+    value: null
+    shown_at: [o5a, pp1, pp2, f6_between, f6_mixed, me1, mm1]
+  - key: not_in_spec_wording
+    ref: "Open question 6"
+    question: "Confirm the wording that points users to another tool, and the rule that powerkit never routes to a simpler stand-in test."
+    options: {proposed: "Use the proposed wording (below)"}
+    value: null
+    proposed_text: "powerkit doesn't cover {analysis} yet. {package} does: see the link. powerkit can't check results from other tools."
+    shown_at: [card]
+  - key: r_script_for_uncovered
+    ref: "Open question 7"
+    question: "For designs powerkit doesn't run, should the full-model builder generate a script (e.g. power4mome or Spower) that the user runs themselves, without powerkit's validation?"
+    options: {"no": "No", "yes": "Yes, clearly labelled as not validated by powerkit"}
+    value: null
+    shown_at: [card]
+  - key: ask_bayes
+    ref: "Open question 8"
+    question: "Ask 'p-values or Bayes factors?' up front, or leave Bayesian designs to the shortcut list?"
+    options: {up_front: "Ask up front", shortcut: "Shortcut list only"}
+    value: null
+    shown_at: [start]
+  - key: parallel_mediators_max
+    ref: "Open question 10"
+    question: "Allow three or more parallel mediators before that validation exists (validated with two)?"
+    options: {two: "Two only until validated", up_to_nine: "Up to nine, as the spec allows"}
+    value: null
+    shown_at: [me3, E11]
+  - key: guided_route
+    ref: "Open question 11"
+    question: "Add the guided 'plan my whole study' route? (Its study file would be a schema change.)"
+    options: {"yes": "Yes", "no": "No"}
+    value: null
+    hides_guided_route_when: "no"
+    shown_at: [start, plan]
+  - key: consistency_approach
+    ref: "Open question 12"
+    question: "Per-hypothesis forms with a consistency check, whole-study simulation from one model, or both?"
+    options: {per_hypothesis: "Per hypothesis, with a consistency check", whole_study: "Whole-study simulation", both: "Both"}
+    value: null
+    shown_at: [plan]
+  - key: covariates_per_analysis
+    ref: "Open question 13"
+    question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
+    options: {"yes": "Yes, ask per analysis", "no": "No"}
+    value: null
+    shown_at: [plan]
+
+# ---------------------------------------------------------------------------
+# Start screen: the three routes (decision-tree.md 2.1 and 4.1).
+# ---------------------------------------------------------------------------
+routes:
+  doc_id: S0
+  question: "How do you want to start?"
+  options:
+    - id: known
+      label: "I know my analysis"
+      help: "Pick it from a list, as in G*Power's or PAMLj's menus."
+    - id: choose
+      label: "Help me choose"
+      help: "Answer a few questions about your study, one per screen."
+      start: q1
+    - id: guided
+      label: "Plan my whole study"
+      help: "For studies with several analyses on the same data: describe the variables once, tick the analyses, and get a plan."
+
+# ---------------------------------------------------------------------------
+# "Help me choose": one node per screen. `doc_id` is the question's ID in
+# decision-tree.md, section 2.2. Each option's `next` is another node id or
+# an end point id (E...). Wording follows design-finder.md.
+# ---------------------------------------------------------------------------
+nodes:
+  q1:
+    doc_id: Q1
+    text: "What do you want your study to show?"
+    help: "Pick the sentence closest to your main hypothesis. You can change it later."
+    options:
+      - {label: "A difference between groups or conditions", next: q2_diff, help: "e.g. students who sleep eight hours recall more words than students who sleep five."}
+      - {label: "A relationship between two things you measure", next: q2_rel, help: "e.g. daily screen time is related to loneliness."}
+      - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
+      - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
+      - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "That an effect is absent, or too small to matter", next: E36}
+      - {label: "That a model or questionnaire structure fits", next: E37}
+
+  # A difference ------------------------------------------------------------
+  q2_diff:
+    doc_id: Q2
+    text: "What is your outcome like?"
+    help: "The outcome is what you measure to see whether your hypothesis holds."
+    options:
+      - {label: "A score or scale", next: q3_diff, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
+      - {label: "A rating on a few points (a single item)", next: o5a}
+      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
+      - {label: "Yes/no, or one of several categories", next: q3_cat}
+  o5a:
+    doc_id: O5a
+    text: "How will you analyse this rating?"
+    help: "Researchers disagree about this, so we ask rather than choose for you. Your answer is stated in the write-up (decision D1)."
+    options:
+      - {label: "As a score (for example, comparing mean ratings)", next: q3_diff, help: "This treats the rating as an interval scale, which is debated."}
+      - {label: "As ordered categories", next: E29}
+  q3_diff:
+    doc_id: Q3
+    text: "Who gives the data?"
+    help: "How participants relate to your conditions or measurements."
+    options:
+      - {label: "Different people in each group or condition", next: f1}
+      - {label: "The same people in every condition", next: f1}
+      - {label: "People respond to many items or stimuli", next: E33}
+      - {label: "People are nested in groups (classes, teams, clinics)", next: E34}
+      - {label: "The same people measured over time", next: t1}
+  t1:
+    doc_id: Q3
+    sub_id: T1
+    text: "How many times is each person measured?"
+    options:
+      - {label: "Twice (for example, before and after)", next: f1}
+      - {label: "Three or more times", next: E35}
+  f1:
+    doc_id: F1
+    text: "How many things did you vary or compare?"
+    help: "Each thing you vary is called a factor (for example 'condition' or 'time')."
+    options:
+      - {label: "One", next: f2}
+      - {label: "Two, crossed (every combination appears)", next: f3}
+      - {label: "Three or more", next: E21}
+  f2:
+    doc_id: F2
+    text: "How many groups or conditions?"
+    options:
+      - {label: "One group, compared with a fixed value", next: E1}
+      - {label: "Two, with different people in each", next: E2}
+      - {label: "Two, with the same people in both (or one group measured twice)", next: E3}
+      - {label: "Three or more", next: f2a}
+  f2a:
+    doc_id: F2a
+    text: "What does your hypothesis say about the groups?"
+    help: "Researchers disagree about whether to power the overall test or a specific comparison, so we ask (decision D8)."
+    options:
+      - {label: "A specific comparison (e.g. both feedback conditions beat no feedback)", next: E19}
+      - {label: "Any difference among the groups", next: E18}
+  f3:
+    doc_id: F3
+    text: "Does each factor have exactly two levels?"
+    options:
+      - {label: "Yes: 2 x 2", next: f4}
+      - {label: "No: at least one factor has three or more", next: E21}
+  f4:
+    doc_id: F4
+    text: "For each factor: did different people get each level, or did everyone get both?"
+    options:
+      - {label: "Both factors: different people", next: f4a_between}
+      - {label: "One factor different people, the other everyone got both", next: f4a_mixed}
+      - {label: "Both factors: everyone got both", next: E20}
+  f4a_between:
+    doc_id: F4a
+    text: "Will the groups be equal in size?"
+    help: "Whether every combination will have the same number of people (decisions D5, N1-N3)."
+    options:
+      - {label: "Yes: the same number in every group", next: f5_between}
+      - {label: "No: the groups will differ in size", next: E22}
+  f5_between:
+    doc_id: F5
+    text: "Which result matters most for your study?"
+    help: "Power is calculated for one effect. Choose the one your main hypothesis is about."
+    options:
+      - {label: "The effect of factor A, averaged over factor B", next: E7}
+      - {label: "The effect of factor B, averaged over factor A", next: E7}
+      - {label: "Whether the effect of one depends on the other (the interaction)", next: f6_between}
+  f6_between:
+    doc_id: F6
+    text: "Which picture matches your prediction?"
+    help: "The shape is recorded only; you enter the means on the form (decision D6)."
+    options:
+      - {label: "The lines cross (the effect reverses)", next: E7}
+      - {label: "One effect shrinks", next: E7}
+      - {label: "One effect disappears", next: E7}
+  f4a_mixed:
+    doc_id: F4a
+    text: "Will the groups be equal in size?"
+    options:
+      - {label: "Yes: the same number in every group", next: f4b}
+      - {label: "No: the groups will differ in size", next: E22}
+  f4b:
+    doc_id: F4b
+    text: "Is the within-participants factor a 'before and after' measurement?"
+    options:
+      - {label: "Yes: before and after", next: pp1}
+      - {label: "No: another within-participants condition", next: f5_mixed}
+  pp1:
+    doc_id: PP1
+    text: "Were people randomly assigned to the groups?"
+    help: "Decision D2."
+    options:
+      - {label: "Yes, randomly assigned", next: pp2, help: "With randomised groups, ANCOVA is usually more powerful than the mixed interaction."}
+      - {label: "No, the groups already existed or chose themselves", next: pp2, help: "Without random assignment, the two analyses can answer different questions (Lord's paradox). Neither is right by default."}
+  pp2:
+    doc_id: PP2
+    text: "Which analysis do you plan to use?"
+    help: "Researchers disagree about this, so we ask rather than choose for you."
+    options:
+      - {label: "ANCOVA: the after score, adjusting for the before score", next: E23}
+      - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", next: f6_mixed}
+  f5_mixed:
+    doc_id: F5
+    text: "Which result matters most for your study?"
+    options:
+      - {label: "The effect of the between-participants factor", next: E8}
+      - {label: "The effect of the within-participants factor", next: E8}
+      - {label: "Whether the effect of one depends on the other (the interaction)", next: f6_mixed}
+  f6_mixed:
+    doc_id: F6
+    text: "Which picture matches your prediction?"
+    options:
+      - {label: "The lines cross (the effect reverses)", next: E8}
+      - {label: "One effect shrinks", next: E8}
+      - {label: "One effect disappears", next: E8}
+  q3_cat:
+    doc_id: Q3
+    text: "Who gives the data?"
+    options:
+      - {label: "Different people, two groups, yes/no outcome", next: E5}
+      - {label: "Different people, outcome in categories", next: E6}
+      - {label: "One group, compared with a fixed proportion", next: E25}
+      - {label: "The same people in every condition", next: E26}
+
+  # A relationship ----------------------------------------------------------
+  q2_rel:
+    doc_id: Q2
+    text: "What is your outcome like?"
+    options:
+      - {label: "A score or scale", next: q3_rel}
+      - {label: "Yes/no", next: E27}
+      - {label: "One of several categories (and the other variable is categories too)", next: E6}
+  q3_rel:
+    doc_id: Q3
+    text: "Who gives the data?"
+    options:
+      - {label: "Each person is measured once, on both variables", next: r1}
+      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+  r1:
+    doc_id: R1
+    text: "What is the other variable like?"
+    options:
+      - {label: "A score or scale", next: E4}
+      - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
+      - {label: "Several predictors at once, or controlling for other variables", next: E24}
+
+  # Moderation --------------------------------------------------------------
+  q2_mod:
+    doc_id: Q2
+    text: "What is your outcome like?"
+    options:
+      - {label: "A score or scale", next: q3_mod}
+      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+  q3_mod:
+    doc_id: Q3
+    text: "Who gives the data?"
+    options:
+      - {label: "Different people, each measured once", next: mo1}
+      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+  mo1:
+    doc_id: MO1
+    text: "What is your main predictor (X)?"
+    options:
+      - {label: "Two conditions you assigned, or two groups that already exist", next: mo2_xbin}
+      - {label: "A measured score", next: mo2_xscore}
+      - {label: "Three or more conditions or groups", next: E30}
+  mo2_xbin:
+    doc_id: MO2
+    text: "What does the effect depend on (the moderator, W)?"
+    options:
+      - {label: "Two conditions or two groups (a 2 x 2 design)", next: f4}
+      - {label: "A measured score", next: E15}
+      - {label: "Three or more groups", next: E30}
+  mo2_xscore:
+    doc_id: MO2
+    text: "What does the effect depend on (the moderator, W)?"
+    options:
+      - {label: "Two conditions or two groups", next: E15}
+      - {label: "A measured score", next: mo3}
+      - {label: "Three or more groups", next: E30}
+  mo3:
+    doc_id: MO3
+    text: "Does a third variable change the interaction again?"
+    options:
+      - {label: "No", next: E9}
+      - {label: "Yes (a three-way interaction)", next: E31}
+
+  # Mediation ---------------------------------------------------------------
+  q2_med:
+    doc_id: Q2
+    text: "What is your outcome like?"
+    options:
+      - {label: "A score or scale", next: q3_med}
+      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+  q3_med:
+    doc_id: Q3
+    text: "Who gives the data?"
+    options:
+      - {label: "Different people, each measured once", next: me1}
+      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+  me1:
+    doc_id: ME1
+    text: "What is the cause (X)?"
+    help: "The M -> Y path is not randomised, even when X is manipulated (decision D9)."
+    options:
+      - {label: "Conditions you assigned, or two groups", next: E16}
+      - {label: "A measured score", next: me4}
+  me4:
+    doc_id: ME4
+    text: "Are your mediators scores?"
+    options:
+      - {label: "Yes", next: me2}
+      - {label: "No, at least one is yes/no or a category", next: E39}
+  me2:
+    doc_id: ME2
+    text: "How many go-betweens (mediators)?"
+    options:
+      - {label: "One", next: E10}
+      - {label: "Two or more", next: me3}
+  me3:
+    doc_id: ME3
+    text: "How do the mediators connect?"
+    options:
+      - {label: "Side by side: X affects each one separately", next: E11}
+      - {label: "In a chain: X affects the first, which affects the next", next: E12}
+
+  # Moderated mediation -----------------------------------------------------
+  q2_modmed:
+    doc_id: Q2
+    text: "What is your outcome like?"
+    options:
+      - {label: "A score or scale", next: q3_modmed}
+      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+  q3_modmed:
+    doc_id: Q3
+    text: "Who gives the data?"
+    options:
+      - {label: "Different people, each measured once", next: mm1}
+      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+  mm1:
+    doc_id: MM1
+    text: "What is the cause (X)?"
+    options:
+      - {label: "Conditions you assigned, or two groups", next: E17}
+      - {label: "A measured score", next: mm2}
+  mm2:
+    doc_id: MM2
+    text: "What does part of the process depend on (the moderator, W)?"
+    options:
+      - {label: "Two groups or conditions", next: E17}
+      - {label: "A measured score", next: mm3}
+  mm3:
+    doc_id: MM3
+    text: "How many mediators?"
+    options:
+      - {label: "One", next: mm4}
+      - {label: "Two or more", next: E40}
+  mm4:
+    doc_id: MM4
+    text: "Which link depends on W?"
+    options:
+      - {label: "The link from X to the mediator", next: E13}
+      - {label: "The link from the mediator to the outcome", next: E14}
+      - {label: "Both links, or X to the mediator and the direct link", next: E38}
+
+# ---------------------------------------------------------------------------
+# Closing questions: shown on every end-point card as "what you'd be asked
+# next" (decision-tree.md 2.2, "Every design" rows; chart F).
+# `setting` names the undecided setting(s) shown, as a compact labelled
+# placeholder, next to that question on the card.
+# ---------------------------------------------------------------------------
+closing_questions:
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", note: "Used by regression interactions; mediation refuses it for now."}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", note: "One-sided tests only for directional basic tests.", setting: one_sided_tests}
+  - {doc_id: Q-test, text: "Which version of the test? (where there is a choice)", note: "e.g. Student or Welch; exact or simulation for 2 x 2 designs."}
+  - {doc_id: Q-goal, text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?", note: "Smallest detectable effect: 2 x 2 designs only for now. Observed power (from the study's own result) is not offered.", setting: [analysis_types, observed_power]}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults}
+  - {doc_id: Q-power, text: "What power do you want?"}
+  - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks}
+  - {doc_id: Q-attr, text: "How many participants do you expect to lose?"}
+  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: ask_bayes}
+
+# The effect-size justification prompt on every card (spec field
+# effect_justification; build guide section 4).
+justification_prompt:
+  text: "Where does your effect size come from? powerkit asks for a justification and never uses a 'medium effect' default."
+  types:
+    smallest_effect_of_interest: "The smallest effect that would matter (smallest effect size of interest)"
+    meta_analysis: "A meta-analysis"
+    prior_study: "A previous study (you'll be asked how you adjusted it, e.g. for publication bias)"
+    pilot_study: "A pilot study (you'll see a warning: pilot estimates are very imprecise)"
+
+# ---------------------------------------------------------------------------
+# End points (decision-tree.md, table 2.3). `doc_name` is copied exactly
+# from the table; `plain_name` is what the card shows.
+# status: runs_validated | runs_not_yet_validated | coming_soon | not_in_powerkit
+# tier: MVP | v2 | later (the table's tier text starts with this).
+# ---------------------------------------------------------------------------
+endpoints:
+  E1:
+    doc_name: "One-sample t-test"
+    plain_name: "Compare one group's average with a fixed value"
+    template: "basic_test / one_sample_t"
+    backend: "Spower: Spower() with p_t.test()"
+    method: Simulation
+    inputs: ["Your outcome's name", "Cohen's d: (expected mean minus the fixed value) / SD"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (G*Power published values still to be transcribed)."}
+    tier: MVP
+  E2:
+    doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
+    plain_name: "Compare two separate groups on a score"
+    template: "basic_test / independent_t"
+    backend: "Spower: Spower() with p_t.test()"
+    method: Simulation
+    inputs: ["Names of the two groups and the outcome", "Cohen's d: (group 2 minus group 1) / pooled SD", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's test"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    tier: MVP
+  E3:
+    doc_name: "Paired-samples t-test"
+    plain_name: "Compare the same people in two conditions (or before and after)"
+    template: "basic_test / paired_t"
+    backend: "Spower: Spower() with p_t.test(type = 'paired')"
+    method: Simulation
+    inputs: ["Names of the two conditions and the outcome", "d_z: mean of the differences (second minus first) / SD of the differences"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    tier: MVP
+  E4:
+    doc_name: "Pearson correlation"
+    plain_name: "Test whether two scores are related"
+    template: "basic_test / correlation"
+    backend: "Spower: Spower() with p_r()"
+    method: Simulation
+    inputs: ["Names of the two variables", "The expected correlation r"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    tier: MVP
+  E5:
+    doc_name: "Test of two proportions (z test)"
+    plain_name: "Compare two groups on a yes/no outcome"
+    template: "basic_test / two_proportions"
+    backend: "Spower: Spower() with p_prop.test() (no continuity correction, Departure 5)"
+    method: Simulation
+    inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    tier: MVP
+  E6:
+    doc_name: "Chi-square test of independence"
+    plain_name: "Test whether two sets of categories are related"
+    template: "basic_test / chi_square_independence"
+    backend: "Spower: Spower() with p_chisq.test()"
+    method: Simulation
+    inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1)"]
+    status: runs_validated
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    tier: MVP
+  E7:
+    doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
+    plain_name: "Two factors crossed, different people in each of the four groups"
+    template: "factorial_anova / 2x2_between"
+    backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    method: "Exact (analytic)"
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction"]
+    status: runs_validated
+    validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
+    tier: MVP
+  E8:
+    doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
+    plain_name: "One factor between people, one within (including group x time)"
+    template: "factorial_anova / 2x2_mixed"
+    backend: "Superpower: ANOVA_exact() (not ANOVA_exact2(), Departure 2)"
+    method: "Exact (analytic)"
+    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
+    status: runs_validated
+    validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
+    tier: MVP
+  E9:
+    doc_name: "Moderated regression (continuous × continuous)"
+    plain_name: "Does the effect of one score depend on another score?"
+    template: "regression_interaction / two_way"
+    backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
+    method: Simulation
+    inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-regression-interaction.R, note: "Tests written; the full validation run has not been recorded yet."}
+    tier: MVP
+  E10:
+    doc_name: "Simple mediation (PROCESS model 4)"
+    plain_name: "X affects Y through one go-between (M)"
+    template: "mediation / process_4 (mediator M)"
+    backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
+    method: Simulation
+    inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-mediation-simple.R, note: "Tests written; the full validation run has not been recorded yet."}
+    tier: MVP
+  E11:
+    doc_name: "Parallel mediation (PROCESS model 4)"
+    plain_name: "X affects Y through several go-betweens side by side"
+    template: "mediation / process_4 (mediators M1, M2, ...)"
+    backend: "power4mome: power4test() with test_indirect_effect()"
+    method: Simulation
+    inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-mediation-parallel.R, note: "Tests written (two mediators); the full validation run has not been recorded yet."}
+    tier: MVP
+  E12:
+    doc_name: "Serial mediation (PROCESS model 6)"
+    plain_name: "X affects Y through a chain of go-betweens"
+    template: "mediation / process_6 (M1 to M4)"
+    backend: "power4mome: power4test() with test_indirect_effect()"
+    method: Simulation
+    inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-mediation-serial.R, note: "The process_6 chunk's run on GitHub finished on 15 October 2026; its results are not yet in the validation log."}
+    tier: MVP
+  E13:
+    doc_name: "First-stage moderated mediation (PROCESS model 7), index of moderated mediation"
+    plain_name: "Mediation where W changes the X -> M link"
+    template: "moderated_mediation / process_7"
+    backend: "power4mome: power4test() with test_index_of_mome()"
+    method: Simulation
+    inputs: ["Standardised paths, including the interaction XW -> M"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-modmed-process7.R, note: "Tests written; the full validation run has not been recorded yet."}
+    tier: MVP
+  E14:
+    doc_name: "Second-stage moderated mediation (PROCESS model 14)"
+    plain_name: "Mediation where W changes the M -> Y link"
+    template: "moderated_mediation / process_14"
+    backend: "power4mome: power4test() with test_index_of_mome()"
+    method: Simulation
+    inputs: ["Standardised paths, including the interaction MW -> Y"]
+    status: runs_not_yet_validated
+    validation: {file: test-validation-modmed-process14.R, note: "Tests written; the full validation run has not been recorded yet."}
+    tier: MVP
+  E15:
+    doc_name: "Moderated regression with a yes/no X or W"
+    plain_name: "Does an effect depend on a moderator, when X or W is two groups?"
+    template: "regression_interaction / two_way (X or W yes/no)"
+    backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (planned)"
+    method: Simulation
+    inputs: ["Fully standardised correlations", "Groups are always 50/50 for interactions (maintainer decision; InteractionPoweR has no unequal split)"]
+    status: coming_soon
+    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    tier: MVP
+  E16:
+    doc_name: "Mediation with a yes/no X"
+    plain_name: "Mediation where X is two conditions or two groups"
+    template: "mediation / process_4 or process_6 (X yes/no)"
+    backend: "power4mome: power4test() with x_fun = rbinary_rs() (planned)"
+    method: Simulation
+    inputs: ["Fully standardised paths", "The group split (50/50 by default)"]
+    status: coming_soon
+    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    tier: MVP
+  E17:
+    doc_name: "Moderated mediation with a yes/no X or W"
+    plain_name: "Moderated mediation where X or W is two groups"
+    template: "moderated_mediation / process_7 or process_14 (X or W yes/no)"
+    backend: "power4mome: power4test() with rbinary_rs() (planned)"
+    method: Simulation
+    inputs: ["Fully standardised paths", "A yes/no X or W must be uncorrelated with the other predictors (fits a randomised condition)"]
+    status: coming_soon
+    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    tier: MVP
+  E18:
+    doc_name: "One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus"
+    plain_name: "Any difference among three or more groups or conditions"
+    status: not_in_powerkit
+    inputs: ["The expected group means", "The SD", "For the same people: the correlations between conditions"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Factorial ANOVA power from means, SDs and correlations (between, within and mixed designs, up to three factors)."}
+    tier: v2
+  E19:
+    doc_name: "Planned contrast"
+    plain_name: "A specific comparison among three or more groups"
+    status: not_in_powerkit
+    inputs: ["Contrast weights", "The expected group means and SD"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Power for emmeans contrasts (pairwise, custom, simple effects) in factorial designs."}
+      - {name: pwranova, url: "https://cran.r-project.org/package=pwranova", what: "Analytic power for planned contrasts in between- or within-factor ANOVA (pwrcontrast())."}
+    tier: v2
+  E20:
+    doc_name: "2 x 2 within-participants ANOVA"
+    plain_name: "Two factors crossed, everyone in all four conditions"
+    status: not_in_powerkit
+    inputs: ["The four expected means", "The SD", "The correlations between the repeated measures"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Factorial ANOVA power from means, SDs and correlations, including within-participants designs (\"2w*2w\")."}
+    tier: v2
+  E21:
+    doc_name: "Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...)"
+    plain_name: "Factorial designs bigger than 2 x 2"
+    status: not_in_powerkit
+    inputs: ["The expected cell means", "SDs and correlations"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Factorial ANOVA up to three factors, 2 to 99 levels each, any mix of between and within."}
+      - {name: pwranova, url: "https://cran.r-project.org/package=pwranova", what: "Analytic power for any number of between and within factors (default cap six), from partial eta-squared or Cohen's f."}
+    tier: v2
+  E22:
+    doc_name: "2 x 2 ANOVA with unequal group sizes"
+    plain_name: "A 2 x 2 design where the groups differ in size"
+    status: not_in_powerkit
+    inputs: ["The four expected cell means and SD", "The size of each group"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "ANOVA_power() accepts unequal group sizes for between-participants designs only; powerkit hasn't validated that use (decision N3)."}
+    tier: v2
+  E23:
+    doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
+    plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
+    status: not_in_powerkit
+    inputs: ["The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome"]
+    packages:
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Analytic ANCOVA power from cell means, SD and the covariates' R-squared (ANCOVA_analytic(), power_oneway_ancova())."}
+      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for ANCOVA (Keppel and Shieh methods) and many other common tests."}
+    tier: v2
+  E24:
+    doc_name: "Multiple regression (R² or one coefficient)"
+    plain_name: "Several predictors at once, or one predictor controlling for others"
+    status: not_in_powerkit
+    inputs: ["R-squared, or the R-squared change for the predictor(s) of interest", "Number of predictors"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for R-squared and R-squared change (p_lm.R2()) and any linear hypothesis in a regression (p_glm())."}
+      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for regression coefficients and R-squared."}
+    tier: v2
+  E25:
+    doc_name: "One proportion against a fixed value"
+    plain_name: "Compare one group's proportion with a fixed value"
+    status: not_in_powerkit
+    inputs: ["The expected proportion", "The fixed value"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for one proportion against a constant (p_prop.test(), binomial test)."}
+    tier: v2
+  E26:
+    doc_name: "McNemar's test (same people, yes/no); Cochran's Q"
+    plain_name: "The same people, a yes/no outcome in each condition"
+    status: not_in_powerkit
+    inputs: ["The expected discordant proportions"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for McNemar's test (p_mcnemar.test()). No tool found for Cochran's Q."}
+    tier: v2
+  E27:
+    doc_name: "Logistic regression (yes/no outcome)"
+    plain_name: "Predict a yes/no outcome"
+    status: not_in_powerkit
+    inputs: ["Odds ratio or regression coefficients"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for generalised linear models with fixed predictors, including logistic (p_glm(family = binomial()))."}
+      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for logistic regression."}
+    tier: v2
+  E28:
+    doc_name: "Count outcome (Poisson or negative binomial)"
+    plain_name: "An outcome that counts how often something happened"
+    status: not_in_powerkit
+    inputs: ["The expected rate ratio"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for Poisson regression (p_glm(family = poisson()))."}
+      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for Poisson regression."}
+    tier: v2
+  E29:
+    doc_name: "Ordinal outcome (ordered categories)"
+    plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+    status: not_in_powerkit
+    inputs: ["The expected proportion in each category", "The odds ratio between groups"]
+    packages:
+      - {name: Hmisc, url: "https://cran.r-project.org/package=Hmisc", what: "popower() and posamsize(): power and sample size for comparing two groups on an ordinal outcome (proportional odds)."}
+      - {name: powertools, url: "https://cran.r-project.org/package=powertools", what: "propodds(): power for proportional-odds comparisons."}
+    tier: v2
+  E30:
+    doc_name: "Moderator with three or more groups"
+    plain_name: "Moderation where X or W has three or more groups"
+    status: not_in_powerkit
+    inputs: ["Depends on the model you write"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made function for this design was found."}
+    tier: later
+  E31:
+    doc_name: "Three-way interaction"
+    plain_name: "Does an interaction itself depend on a third variable?"
+    status: not_in_powerkit
+    inputs: ["Correlations among x1, x2, x3, their products and y", "Optional reliabilities"]
+    packages:
+      - {name: InteractionPoweR, url: "https://cran.r-project.org/package=InteractionPoweR", what: "power_interaction_3way_r2(): analytic power for three-way interactions, with reliabilities."}
+    tier: v2
+  E32:
+    doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
+    plain_name: "Moderation or mediation when the outcome isn't a score"
+    status: not_in_powerkit
+    inputs: ["Depends on the model you write"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made template was found."}
+    tier: later
+  E33:
+    doc_name: "Crossed participants and stimuli"
+    plain_name: "Each person responds to many items or stimuli"
+    status: not_in_powerkit
+    inputs: ["Fixed effects", "Variance components for participants and stimuli"]
+    packages:
+      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for (generalised) linear mixed models fitted with lme4, including models built without pilot data (makeLmer())."}
+      - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for linear and generalised linear mixed models (newer, released 2026)."}
+    tier: v2
+  E34:
+    doc_name: "Multilevel or cluster design"
+    plain_name: "People nested in groups (classes, teams, clinics)"
+    status: not_in_powerkit
+    inputs: ["Intraclass correlation (ICC)", "Cluster size", "The expected effect"]
+    packages:
+      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models specified by variance explained, with within- and between-cluster effects and random slopes."}
+      - {name: PAMLj, url: "https://pamlj.github.io/", what: "jamovi module with power for mixed models (search over the number of clusters or cluster size)."}
+    tier: v2
+  E35:
+    doc_name: "Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling)"
+    plain_name: "The same people measured three or more times"
+    status: not_in_powerkit
+    inputs: ["Depends on the model"]
+    packages:
+      - {name: longpower, url: "https://cran.r-project.org/package=longpower", what: "Power for longitudinal mixed models, GLS and GEE."}
+      - {name: powRICLPM, url: "https://cran.r-project.org/package=powRICLPM", what: "Simulation power for random-intercept cross-lagged panel models."}
+      - {name: PowerAnalysisIL, url: "https://github.com/ginettelafit/PowerAnalysisIL", what: "Shiny app for intensive longitudinal (experience sampling) designs."}
+    tier: later
+  E36:
+    doc_name: "Equivalence test (TOST) or minimum-effect test"
+    plain_name: "Show that an effect is absent or too small to matter"
+    status: not_in_powerkit
+    inputs: ["Equivalence bounds", "The expected effect"]
+    packages:
+      - {name: TOSTER, url: "https://cran.r-project.org/package=TOSTER", what: "Power for equivalence tests (TOST) for t-tests, correlations, proportions and F tests."}
+    tier: v2
+  E37:
+    doc_name: "CFA, SEM model fit, measurement invariance"
+    plain_name: "Check that a model or questionnaire structure fits"
+    status: not_in_powerkit
+    inputs: ["RMSEA or model parameters"]
+    packages:
+      - {name: semPower, url: "https://cran.r-project.org/package=semPower", what: "A priori, post hoc and compromise power for SEM, including CFA, measurement invariance and RMSEA-based fit."}
+    tier: later
+  E38:
+    doc_name: "PROCESS models 8, 58, 59"
+    plain_name: "Moderated mediation where W changes both links, or the direct link too"
+    status: not_in_powerkit
+    inputs: ["Standardised paths"]
+    packages:
+      - {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any mediation or moderated mediation model written in lavaan syntax (no ready-made template for these models)."}
+    tier: v2
+  E39:
+    doc_name: "Mediation with a yes/no or categorical mediator"
+    plain_name: "Mediation when a mediator isn't a score"
+    status: not_in_powerkit
+    inputs: ["Depends on the model you write"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made function was found."}
+    tier: later
+  E40:
+    doc_name: "Moderated mediation with two or more mediators"
+    plain_name: "Moderated mediation with several mediators"
+    status: not_in_powerkit
+    inputs: ["Standardised paths"]
+    packages:
+      - {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any moderated mediation model written in lavaan syntax (no ready-made template)."}
+    tier: later
+  E41:
+    doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
+    plain_name: "Relationships measured within people, or in nested data"
+    status: not_in_powerkit
+    inputs: ["Depends on the model"]
+    packages:
+      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
+      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
+    tier: later
+  E-bayes:
+    doc_name: "Bayes factor design (any design)"
+    plain_name: "Plan a study analysed with Bayes factors"
+    status: not_in_powerkit
+    inputs: ["Prior and expected effect"]
+    packages:
+      - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors."}
+      - {name: BFDA, url: "https://github.com/nicebread/BFDA", what: "Bayes factor design analysis by simulation, fixed-N and sequential (GitHub, not on CRAN)."}
+    tier: later
+
+# ---------------------------------------------------------------------------
+# "Plan my whole study" (decision-tree.md 4.1). Variables are defined once;
+# each analysis the user ticks is routed to an end point by its `rules`
+# (first matching rule wins). `when` keys refer to the variable answers
+# below; a list means "any of these". A rule may `ask` a follow-up
+# question (the same question the tree would ask) before choosing.
+# ---------------------------------------------------------------------------
+guided:
+  intro: "Describe your study's variables once. Then tick the analyses you plan and mark which ones the study must be powered for."
+  scope_note: "This route assumes different people, each measured once (plus an optional baseline). For repeated measures, stimuli or nested data, use 'Help me choose'."
+  variables:
+    - id: x
+      label: "Main predictor (X)"
+      options: {cond2: "A condition with two groups (or two existing groups)", cond3: "A condition with three or more groups", score: "A measured score"}
+    - id: outcome
+      label: "Outcome (Y)"
+      options: {score: "A score or scale", yesno: "Yes/no", count: "A count", ordinal: "Ordered categories"}
+    - id: mediators
+      label: "Mediators (go-betweens)"
+      options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score"}
+    - id: moderator
+      label: "Moderator (W)"
+      options: {none: "None", score: "A measured score", two: "Two groups or conditions", three: "Three or more groups"}
+    - id: covariate
+      label: "Covariates"
+      options: {none: "None", baseline: "A baseline (before) measure of the outcome", other: "Other covariates"}
+  analyses:
+    - id: compare
+      label: "The effect of X on the outcome"
+      rules:
+        - {when: {outcome: yesno, x: cond2}, endpoint: E5}
+        - {when: {outcome: yesno}, endpoint: E27}
+        - {when: {outcome: count}, endpoint: E28}
+        - {when: {outcome: ordinal}, endpoint: E29}
+        - when: {x: cond2, covariate: baseline}
+          ask:
+            doc_id: PP2
+            text: "With a baseline measure: which analysis do you plan to use?"
+            options:
+              - {label: "ANCOVA: the outcome adjusting for the baseline", endpoint: E23}
+              - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", endpoint: E8}
+        - {when: {x: cond2, covariate: other}, endpoint: E23}
+        - {when: {x: cond2}, endpoint: E2}
+        - {when: {x: cond3}, endpoint: E18}
+        - {when: {x: score, covariate: [baseline, other]}, endpoint: E24}
+        - {when: {x: score}, endpoint: E4}
+    - id: moderation
+      label: "Whether the effect of X depends on the moderator (X x W)"
+      requires: {moderator: [score, two, three]}
+      rules:
+        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {moderator: three}, endpoint: E30}
+        - {when: {x: cond3}, endpoint: E30}
+        - {when: {x: cond2, moderator: two}, endpoint: E7}
+        - {when: {x: cond2, moderator: score}, endpoint: E15}
+        - {when: {x: score, moderator: two}, endpoint: E15}
+        - {when: {x: score, moderator: score}, endpoint: E9}
+    - id: mediation
+      label: "Whether X affects the outcome through the mediator(s)"
+      requires: {mediators: [one, several, notscore]}
+      rules:
+        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {mediators: notscore}, endpoint: E39}
+        - when: {x: cond3}
+          unmapped: "Mediation with a condition of three or more groups has no end point in decision-tree.md. coverage.md: none of the five tools documents a multi-category X for mediation."
+          package: {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself."}
+        - {when: {x: cond2}, endpoint: E16}
+        - {when: {x: score, mediators: one}, endpoint: E10}
+        - when: {x: score, mediators: several}
+          ask:
+            doc_id: ME3
+            text: "How do the mediators connect?"
+            options:
+              - {label: "Side by side: X affects each one separately", endpoint: E11}
+              - {label: "In a chain: X affects the first, which affects the next", endpoint: E12}
+    - id: modmed
+      label: "Whether the mediation depends on the moderator (moderated mediation)"
+      requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
+      rules:
+        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {mediators: notscore}, endpoint: E39}
+        - {when: {mediators: several}, endpoint: E40}
+        - when: {x: cond3}
+          unmapped: "Moderated mediation with a condition of three or more groups has no end point in decision-tree.md."
+          package: {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any moderated mediation model written in lavaan syntax (no ready-made template)."}
+        - {when: {moderator: three}, endpoint: E40}
+        - {when: {x: cond2}, endpoint: E17}
+        - {when: {moderator: two}, endpoint: E17}
+        - when: {x: score, moderator: score, mediators: one}
+          ask:
+            doc_id: MM4
+            text: "Which link depends on the moderator?"
+            options:
+              - {label: "The link from X to the mediator", endpoint: E13}
+              - {label: "The link from the mediator to the outcome", endpoint: E14}
+              - {label: "Both links, or X to the mediator and the direct link", endpoint: E38}
+  combination_rules:
+    - id: each
+      label: "Each analysis stands alone"
+      note: "Each analysis is a separate claim, tested at its own alpha. No correction."
+    - id: all
+      label: "All must be significant for the claim"
+      note: "No alpha correction is needed (intersection-union principle). The combined N gives each test its target power on its own; joint power is lower (decision-tree.md 4.1)."
+    - id: any
+      label: "Any one significant result supports the claim"
+      note: "This inflates the false-positive rate, so it needs an alpha correction (e.g. Bonferroni: alpha / k for k primary analyses), which raises the required N."
+  placeholders:
+    combined_n: "Combined N for the primary analyses: calculated here once the engine is connected. It will be the largest required N among the primary analyses that run, with the analysis that drives it named."
+    consistency: "Consistency check: values will be compared here once the engine is connected."
+  # Relationships that several analyses share, for the consistency check
+  # (decision-tree.md 4.2). The plan lists the ticked analyses that share each.
+  shared_relationships:
+    - id: x_y
+      label: "the effect of X on the outcome"
+      in: [compare, moderation, mediation]
+      note: "In mediation this is the total effect (indirect plus direct)."
+    - id: x_m
+      label: "the effect of X on the mediator"
+      in: [mediation, modmed]
+
+# ---------------------------------------------------------------------------
+# Coverage map: every coverage.md row in the MVP tier, and where it appears
+# in the app (end points, nodes or closing questions). Tested by
+# test-tree.R.
+# ---------------------------------------------------------------------------
+coverage_map:
+  - {capability: "One-sample t-test", covered_by: [E1]}
+  - {capability: "Independent-samples t-test, equal or unequal groups, Student or Welch", covered_by: [E2]}
+  - {capability: "Paired-samples t-test", covered_by: [E3]}
+  - {capability: "Pearson correlation against 0", covered_by: [E4]}
+  - {capability: "Two independent proportions", covered_by: [E5]}
+  - {capability: "Chi-square test of independence", covered_by: [E6]}
+  - {capability: "2x2 between-participants ANOVA", covered_by: [E7]}
+  - {capability: "2x2 mixed ANOVA (one factor between, one within)", covered_by: [E8]}
+  - {capability: "Different SDs per cell", covered_by: [E7, E8]}
+  - {capability: "Exact (empirical) and simulated power", covered_by: [E7, E8, Q-test]}
+  - {capability: "Means plot and power-by-n plot", covered_by: [E7, E8]}
+  - {capability: "Two-way interaction, continuous X and W, simulated", covered_by: [E9]}
+  - {capability: "Two-way interaction, analytic", covered_by: [E9]}
+  - {capability: "Reliability of X, W and Y", covered_by: [E9, Q-rel]}
+  - {capability: "Binary X or W", covered_by: [E15]}
+  - {capability: "Simple mediation (PROCESS 4), Monte Carlo CI", covered_by: [E10]}
+  - {capability: "Parallel mediation, two mediators", covered_by: [E11]}
+  - {capability: "Serial mediation, two mediators (PROCESS 6)", covered_by: [E12]}
+  - {capability: "Binary X in mediation", covered_by: [E16]}
+  - {capability: "First-stage moderated mediation (PROCESS 7), index of moderated mediation", covered_by: [E13]}
+  - {capability: "Second-stage moderated mediation (PROCESS 14)", covered_by: [E14]}
+  - {capability: "A priori: required n for a target power", covered_by: [Q-goal]}
+  - {capability: "Power at a given n (planned effect size)", covered_by: [Q-goal]}
+  - {capability: "Sensitivity: smallest detectable effect at a fixed n", covered_by: [Q-goal]}
+  - {capability: "Power curve (power by n)", covered_by: [Q-goal]}
+  - {capability: "Effect-size helpers (convert reported t, F, r or means and SDs)", covered_by: [Q-effect]}
+  - {capability: "Binary predictors (X or W)", covered_by: [E15, E16, E17]}
+  - {capability: "Measurement error in observed variables", covered_by: [E9, Q-rel]}
+  - {capability: "Unequal group sizes (two groups)", covered_by: [E2, E5]}
+  - {capability: "Unequal variances", covered_by: [E2, E7, E8]}

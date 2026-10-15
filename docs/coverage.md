@@ -189,7 +189,7 @@ and from each package's own GitHub repository for the development version.
 | Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
 | --- | --- | --- | --- | --- | --- |
 | A priori: required n for a target power | Spower (`n = NA` with `power`, `interval`) [Sp]; power4mome `n_from_power()`, `x_from_power(x = "n")` [p4m]; InteractionPoweR (vector of N, `power_estimate()`) [IP]; Superpower (`plot_power()` over n) [SP]; G\*Power [GP: to check] | done | MVP | Through each design's tests | Required n reported with its uncertainty interval |
-| Post hoc / prospective: power at a fixed n | All five [SP, Sp, p4m, IP; GP: to check] | done | MVP | Through each design's tests | |
+| Power at a given n (planned effect size) | All five [SP, Sp, p4m, IP; GP: to check] | done | MVP | Through each design's tests | |
 | Sensitivity: smallest detectable effect at a fixed n | Spower (effect argument `NA` with `interval`) [Sp]; power4mome `x_from_power(x = "es")` [p4m]; InteractionPoweR (vector of effect sizes; vignette "Finding the smallest detectable effect size") [IP-dev]; Superpower `morey_plot()` (power across effect sizes) [SP]; G\*Power [GP: to check] | partial | MVP for the remaining MVP designs *(proposal)* | No | 2x2 ANOVA only (`goal.type = "sensitivity"`) |
 | Compromise: alpha and power from a chosen ratio of beta to alpha | Spower `beta_alpha` [Sp]; Superpower `ANOVA_compromise()`, `optimal_alpha()` (minimise or balance error rates, with prior odds and costs) [SP]; G\*Power [GP: to check] | planned | later *(proposal)* | No | |
 | Criterion: alpha needed for a given power and n | Spower (`sig.level = NA`) [Sp]; G\*Power [GP: to check] | planned | later *(proposal)* | No | |

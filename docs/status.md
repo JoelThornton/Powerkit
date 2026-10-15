@@ -25,6 +25,13 @@ fully validated. Validation runs are recorded in
   reported and fixed upstream on GitHub; powerkit keeps its workarounds
   until the fixes reach CRAN ([conventions](conventions.md), Departures 4
   and 8).
+- **Routing prototype (draft PR):** a clickable Shiny prototype of
+  [`decision-tree.md`](decision-tree.md), in `app/routing/`. Routing only:
+  no engine calls and no calculations. It covers the three routes (I know
+  my analysis; help me choose; plan my whole study), end-point cards, and
+  placeholders for the undecided judgement calls, which are settings in
+  `app/routing/tree.yaml`. A test keeps that file in step with
+  `decision-tree.md`. How to run it: [`routing-prototype.md`](routing-prototype.md).
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
   (#4). It stays an open draft, kept as a starting point for phase 5
   ([decisions](decisions.md), 15 October 2026). The `validate_spec()` bug
@@ -90,6 +97,7 @@ fully validated. Validation runs are recorded in
    MorePower paper.
 5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-6. Phase 5: the Shiny app, guided by [`decision-tree.md`](decision-tree.md)
-   and [`design-finder.md`](design-finder.md) once the maintainer has
+6. Phase 5: the Shiny app, starting from the routing prototype's
+   `app/routing/tree.yaml` and guided by [`decision-tree.md`](decision-tree.md)
+   and [`design-finder.md`](design-finder.md), once the maintainer has
    answered their open questions.
