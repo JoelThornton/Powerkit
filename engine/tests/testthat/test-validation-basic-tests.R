@@ -139,10 +139,13 @@ test_that("chi-square test of independence: power matches pwr (analytic)", {
 
 test_that("independent t-test: matches G*Power 3.1 manual example (published)", {
   skip_unless_full_validation()
-  # Source: G*Power 3.1 manual (Faul, Erdfelder, Lang & Buchner; Heinrich
-  #   Heine University Duesseldorf), chapter "t test: Means - Difference
-  #   between two independent means (two groups)", Examples section,
-  #   a priori analysis. Transcribe the inputs and the Output block.
+  # Source: Faul, Erdfelder, Lang & Buchner (2007), "G*Power 3: A flexible
+  #   statistical power analysis program for the social, behavioral, and
+  #   biomedical sciences", Behavior Research Methods, 39(2), 175-191:
+  #   the worked example on p. 177 and Figure 1 (p. 178). Transcribe the
+  #   inputs and the Output block.
+  # Not the G*Power 3.1 manual: its Examples section for this test
+  #   (section 21.3, June 2023 version) is empty.
   d <- TODO_PUBLISHED_VALUE # Effect size d
   alpha <- TODO_PUBLISHED_VALUE # alpha err prob
   tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
@@ -161,15 +164,17 @@ test_that("independent t-test: matches G*Power 3.1 manual example (published)", 
 
 test_that("paired t-test: matches G*Power 3.1 manual example (published)", {
   skip_unless_full_validation()
-  # Source: G*Power 3.1 manual, chapter "t test: Means - Difference between
-  #   two dependent means (matched pairs)", Examples section. Use the
-  #   example's effect size dz (if the manual derives dz from means, SDs
-  #   and a correlation, transcribe the dz it reports).
+  # Source: G*Power 3.1 manual (version of June 1, 2023), section 19.3
+  #   ("t test: Means - Difference between two dependent means (matched
+  #   pairs)"), p. 48: the post hoc analysis, whose output gives
+  #   "Power (1-beta err prob)". Use the example's effect size dz (if the
+  #   manual derives dz from means, SDs and a correlation, transcribe the
+  #   dz it reports).
   dz <- TODO_PUBLISHED_VALUE # Effect size dz
   alpha <- TODO_PUBLISHED_VALUE
   tails <- TODO_PUBLISHED_VALUE
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size (pairs)
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  total_n <- TODO_PUBLISHED_VALUE # Input: Total sample size (pairs)
+  actual_power <- TODO_PUBLISHED_VALUE # Output: Power (1-beta err prob)
   skip_if_todo(dz, alpha, tails, total_n, actual_power)
 
   spec <- basic_spec(
@@ -181,12 +186,16 @@ test_that("paired t-test: matches G*Power 3.1 manual example (published)", {
 
 test_that("correlation: matches G*Power 3.1 bivariate normal example (published)", {
   skip_unless_full_validation()
-  # Source: Faul, Erdfelder, Buchner & Lang (2009), "Statistical power
-  #   analyses using G*Power 3.1: Tests for correlation and regression
-  #   analyses", Behavior Research Methods, 41(4), 1149-1160: the worked
-  #   example for the exact test of a bivariate normal correlation (H0:
-  #   rho = 0). If the example tests against a non-zero rho, choose another
-  #   (powerkit tests against 0).
+  # Source: Faul, Erdfelder, Lang & Buchner (2007), Behavior Research
+  #   Methods, 39(2), 175-191, footnote 4: the exact test of a bivariate
+  #   normal correlation, two-tailed, H0: rho = 0.
+  # Not the G*Power 3.1 manual, whose example tests against rho = 0.60
+  #   (powerkit tests against 0), and not Faul, Erdfelder, Buchner & Lang
+  #   (2009), Behavior Research Methods, 41(4), 1149-1160, which has no
+  #   plain bivariate normal example.
+  # The power is reported to two decimals: transcribe both decimals, as a
+  #   string if the last one is 0 (e.g. "0.80"), so the rounding allowance
+  #   (half a unit in the second decimal) is right.
   r <- TODO_PUBLISHED_VALUE # Correlation rho H1
   alpha <- TODO_PUBLISHED_VALUE
   tails <- TODO_PUBLISHED_VALUE
@@ -203,9 +212,12 @@ test_that("correlation: matches G*Power 3.1 bivariate normal example (published)
 
 test_that("two proportions: matches G*Power 3.1 manual example (published)", {
   skip_unless_full_validation()
-  # Source: G*Power 3.1 manual, the chapter on the difference between two
-  #   independent proportions in the z tests family (not the Fisher exact
-  #   test chapter), Examples section.
+  # Source: none yet; left TODO. There is no worked example for the z test
+  #   of two independent proportions in the G*Power 3.1 manual (June 2023
+  #   version) or in Faul et al. (2007, 2009).
+  # Candidate: Cohen (1988), Statistical power analysis for the behavioral
+  #   sciences (2nd ed.), chapter 6. Check that its test matches powerkit's
+  #   (z test, no continuity correction) before using it.
   p1 <- TODO_PUBLISHED_VALUE # Proportion p1
   p2 <- TODO_PUBLISHED_VALUE # Proportion p2
   alpha <- TODO_PUBLISHED_VALUE
