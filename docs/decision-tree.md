@@ -25,8 +25,10 @@ document doesn't change them.
 
 ### G\*Power 3.1
 
-From the G\*Power 3.1 manual (edition of 1 June 2023), section 1.2,
-"Program handling":
+From the G\*Power 3.1 manual (edition of 1 June 2023, provided by the
+maintainer; *read directly: section 1, pp. 2–6, and chapter 11,
+pp. 26–28; the rest of the manual was not read for this document*),
+section 1.2, "Program handling":
 
 - **Three steps.** "1. Select the statistical test appropriate for your
   problem. 2. Choose one of the five types of power analysis available. 3.
@@ -45,7 +47,11 @@ From the G\*Power 3.1 manual (edition of 1 June 2023), section 1.2,
   - a priori (N from power, α and effect size);
   - compromise (α and power from effect size, N and the ratio q = β/α);
   - criterion (α from power, effect size and N);
-  - post hoc (power from α, effect size and N);
+  - "post hoc" (power from α, effect size and N). This is G\*Power's own
+    label. powerkit calls the same calculation with a **planned** effect
+    size "power at a given N" and doesn't use "post hoc" for it, because
+    the label is often read as *observed* power (see 2.2 and judgement
+    call 3.1).
   - sensitivity (effect size from α, power and N).
 - **Inputs** (section 1.2.3, p. 4): the number of tails, the effect size,
   α, power, and for two groups the allocation ratio n2/n1. A "Determine"
@@ -58,12 +64,14 @@ From the G\*Power 3.1 manual (edition of 1 June 2023), section 1.2,
   the error variance), the numerator df and the number of groups. The
   design itself (which factors, between or within) is not described to
   the program; the user works out f and the df. The manual's worked
-  example reproduces SPSS's "observed power" column with a post hoc
-  analysis (p. 27–28), which bears on judgement call 3.1 below.
+  example applies its "post hoc" analysis to the effect sizes observed in
+  a data set and reproduces SPSS's "Observed Power" column (pp. 27–28).
+  That is observed power, which bears on judgement call 3.1 below.
 
 The 2007 paper describing G\*Power 3 (Faul, Erdfelder, Lang & Buchner,
 2007, *Behavior Research Methods*, 39, 175–191, doi:10.3758/BF03193146)
-describes the same distribution-based and design-based input modes.
+*(seen second-hand, to verify)* describes the same distribution-based and
+design-based input modes.
 
 ### Superpower
 
@@ -97,7 +105,9 @@ evaluate"):
   - the effect size `NA` for sensitivity;
   - `sig.level = NA` for criterion;
   - `beta_alpha` for compromise;
-  - nothing missing for prospective or post hoc power.
+  - nothing missing for what the vignette calls "prospective/post-hoc"
+    power (Spower's wording; with a planned effect size this is powerkit's
+    "power at a given N").
 
   The vignette says "specific naming conventions for the type of analysis
   being performed is not particularly important".
@@ -166,7 +176,7 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 | Start from the **test** (G\*Power, Spower, PAMLj menus) or the **model** (Superpower, power4mome, InteractionPoweR) | Starts from the **hypothesis** (design finder Q1: difference, relationship, mediation, moderation, ...), then the outcome and who gives the data | **Departure.** powerkit is for users who may not know the test's name (build guide, section 7). Kept from precedent: an "I already know my analysis" shortcut lists tests by name, as G\*Power's and PAMLj's menus do. The design-based order (parameter, then design) is closest to G\*Power's design-based route |
 | Type of analysis chosen **after** the test (G\*Power step 2, Spower's `NA`) | Asked **after** the design (Q-goal below) | Follows G\*Power's order |
 | Type of analysis chosen **before** the design (PAMLj's "aim" comes first) | — | Not followed: the available analysis types depend on the design (sensitivity is 2x2-only today) |
-| Five analysis types (G\*Power), the same four in Spower | Three: required n, power at a given n, smallest detectable effect | **Departure for now.** The engine's `goal.type` has three values. Compromise and criterion are planned later ([coverage](coverage.md), Analysis types) |
+| Five analysis types (G\*Power), the same four in Spower | Three: required n; power at a given n, for a planned effect size; smallest detectable effect. Observed power is not offered as an analysis type (2.2, 3.1) | **Departure for now.** The engine's `goal.type` has three values. Compromise and criterion are planned later ([coverage](coverage.md), Analysis types) |
 | Effect size as a single standardised number (f, d, partial η²), with a calculator (G\*Power, PAMLj) | The **backend's** parametrisation: cell means and SDs for ANOVA (Superpower), correlations for interactions (InteractionPoweR), standardised paths for mediation (power4mome), d / d_z / r / proportions for basic tests (Spower) | Follows each backend. A converter from reported statistics is planned (build guide section 7) |
 | Small / medium / large defaults offered (G\*Power tooltips; power4mome labels) | No defaults; a justification is required (`effect_justification`) | **Departure,** recorded in the build guide (section 4: it "stops 'medium effect' defaults"). See judgement call 3.2 |
 | One analysis reported per run (G\*Power, Spower) or all effects at once (Superpower) | One **target** effect per run (F5, `target_test.effect`) | Follows G\*Power and Spower. Superpower's all-effects output could be shown as secondary information. See judgement call 3.5 |
@@ -174,102 +184,263 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 
 ## 2. The tree
 
-### 2.1 Flowchart
+### 2.1 Flowcharts
 
-End points are numbered E1–E40; the table in 2.3 gives the details. Grey
-end points are not in the engine yet.
+The tree is drawn as an overview (chart 0), one chart per goal (A to E)
+and one chart for the closing questions every design shares (F). End
+points are numbered E1 to E41; the table in 2.3 gives the details.
+
+**Colours:**
+- **blue:** a question;
+- **green:** runs in powerkit now;
+- **amber:** in the spec, but the engine refuses it until phase 3b (a
+  yes/no X or W);
+- **grey, dashed:** not in powerkit yet; the card points to another
+  tool;
+- **white, dashed:** continues in another chart.
+
+**For presentations:** all the goals in one picture, with a key, is in
+[`figures/decision-tree/full-presentation.png`](figures/decision-tree/full-presentation.png)
+(also `.svg`). Every chart below is also rendered as `.png` (3x) and
+`.svg` in [`figures/decision-tree/`](figures/decision-tree/). The `.mmd`
+files there are the sources. To regenerate an image after editing its
+source:
+
+```
+npx -p @mermaid-js/mermaid-cli@11.4.2 mmdc -c docs/figures/decision-tree/theme.json \
+  -b white -s 3 -i docs/figures/decision-tree/<chart>.mmd -o docs/figures/decision-tree/<chart>.png
+```
+
+#### Chart 0: overview
 
 ```mermaid
 flowchart TD
-  S0{"Do you already know your analysis?"}
-  S0 -->|Yes| SC["Shortcut list: pick by name, then the form"]
-  S0 -->|No| Q1{"Q1 What do you want your study to show?"}
-
-  Q1 -->|A difference between groups or conditions| Q2a{"Q2 What is your outcome like?"}
-  Q1 -->|A relationship between two measured things| Q2b{"Q2 Outcome"}
-  Q1 -->|An effect that depends on something else| Q2c{"Q2 Outcome"}
-  Q1 -->|An effect that works through something else| Q2d{"Q2 Outcome"}
-  Q1 -->|Both| Q2e{"Q2 Outcome"}
-  Q1 -->|That an effect is absent or negligible| E36["E36 Equivalence test"]
-  Q1 -->|That a model or questionnaire fits| E37["E37 CFA or SEM"]
-
-  Q2a -->|Score| Q3a{"Q3 Who gives the data?"}
-  Q2a -->|Yes/no or categories| Q3y{"Q3 Who gives the data?"}
-  Q2a -->|Count| E28["E28 Count outcome"]
-  Q2a -->|Rating on a few points| O5a{"O5a Analyse as a score or as ordered categories?"}
-  O5a -->|Score| Q3a
-  O5a -->|Ordered categories| E29["E29 Ordinal outcome"]
-
-  Q3a -->|Different people, or the same people| F1{"F1 How many factors?"}
-  Q3a -->|Many items or stimuli| E33["E33 Crossed participants and stimuli"]
-  Q3a -->|Nested in groups| E34["E34 Multilevel or cluster design"]
-  Q3a -->|Measured 3 or more times| E35["E35 Longitudinal"]
-
-  F1 -->|One| F2{"F2 How many groups or conditions?"}
-  F2 -->|One, against a fixed value| E1["E1 One-sample t-test"]
-  F2 -->|Two, different people| E2["E2 Independent-samples t-test"]
-  F2 -->|Two, same people| E3["E3 Paired t-test"]
-  F2 -->|Three or more| F2a{"F2a Specific comparison or any difference?"}
-  F2a -->|Specific comparison| E19["E19 Planned contrast"]
-  F2a -->|Any difference| E18["E18 One-way or repeated-measures ANOVA"]
-
-  F1 -->|Two, crossed| F3{"F3 Both factors with two levels?"}
-  F3 -->|No| E21["E21 Larger factorial ANOVA"]
-  F3 -->|Yes| F4{"F4 Between or within, for each factor"}
-  F4 -->|Both within| E20["E20 2x2 within ANOVA"]
-  F4 -->|At least one between| F4a{"F4a Equal group sizes?"}
-  F4a -->|No| E22["E22 2x2 with unequal groups"]
-  F4a -->|Yes, both between| F5b["F5 Which effect? / F6 shape"]
-  F5b --> E7["E7 2x2 between ANOVA"]
-  F4a -->|Yes, one within| F4b{"F4b Before-and-after?"}
-  F4b -->|No| F5m["F5 Which effect? / F6 shape"]
-  F5m --> E8["E8 2x2 mixed ANOVA"]
-  F4b -->|Yes| PP{"PP1 and PP2: ANCOVA or the mixed interaction?"}
-  PP -->|Mixed interaction| E8
-  PP -->|ANCOVA| E23["E23 ANCOVA"]
-  F1 -->|Three or more| E21
-
-  Q3y -->|Different people, two groups| E5["E5 Two proportions"]
-  Q3y -->|Different people, categories| E6["E6 Chi-square test of independence"]
-  Q3y -->|Same people| E26["E26 McNemar or Cochran's Q"]
-  Q3y -->|One group against a fixed value| E25["E25 One proportion"]
-
-  Q2b -->|Score, other variable a score| E4["E4 Pearson correlation"]
-  Q2b -->|Score, other variable groups| Q3a
-  Q2b -->|Several predictors or covariates| E24["E24 Multiple regression"]
-  Q2b -->|Yes/no outcome| E27["E27 Logistic regression"]
-  Q2b -->|Categories, other variable categories| E6
-
-  Q2c -->|Score| MO{"MO1 and MO2: X and W each two groups or a score; MO3 three-way?"}
-  Q2c -->|Not a score| E32["E32 Non-normal outcome in moderation or mediation"]
-  MO -->|Both two groups| F4
-  MO -->|Both scores| E9["E9 Moderated regression"]
-  MO -->|One two groups, one a score| E15["E15 Moderated regression, binary X or W"]
-  MO -->|Three or more groups| E30["E30 Moderator with 3+ groups"]
-  MO -->|Three-way| E31["E31 Three-way interaction"]
-
-  Q2d -->|Score, different people| ME{"ME1 to ME4: X type, number and arrangement of mediators"}
-  Q2d -->|Not a score| E32
-  ME -->|One mediator| E10["E10 Simple mediation"]
-  ME -->|Two or more, side by side| E11["E11 Parallel mediation"]
-  ME -->|Two to four, in a chain| E12["E12 Serial mediation"]
-  ME -->|A mediator that is not a score| E39["E39 Categorical mediator"]
-  ME -->|X is two groups| E16["E16 Mediation with binary X"]
-
-  Q2e -->|Score, different people| MM{"MM1 to MM4: X, W, mediators, which link W changes"}
-  Q2e -->|Not a score| E32
-  MM -->|X to M| E13["E13 PROCESS model 7"]
-  MM -->|M to Y| E14["E14 PROCESS model 14"]
-  MM -->|Both, or the direct path too| E38["E38 PROCESS 8, 58, 59"]
-  MM -->|Two or more mediators| E40["E40 Moderated mediation, several mediators"]
-  MM -->|X or W is two groups| E17["E17 Moderated mediation, binary X or W"]
-
-  classDef later fill:#eeeeee,stroke:#999999,color:#555555
-  class E18,E19,E20,E21,E22,E23,E24,E25,E26,E27,E28,E29,E30,E31,E32,E33,E34,E35,E36,E37,E38,E39,E40 later
+  S0{"Do you already know<br/>your analysis?"}
+  S0 -->|Yes| SC["Shortcut list:<br/>pick the analysis by name"]
+  S0 -->|No| Q1{"Q1 What do you want<br/>your study to show?"}
+  Q1 -->|A difference between<br/>groups or conditions| A["Chart A"]
+  Q1 -->|A relationship between<br/>two measured things| B["Chart B"]
+  Q1 -->|An effect that depends<br/>on something else| C["Chart C"]
+  Q1 -->|An effect that works<br/>through something else| D["Chart D"]
+  Q1 -->|Both| E["Chart E"]
+  Q1 -->|That an effect is<br/>absent or negligible| E36["E36 Equivalence test"]
+  Q1 -->|That a model or<br/>questionnaire fits| E37["E37 CFA or SEM"]
+  SC --> F["Chart F: closing questions<br/>(same for every design)"]
+  A --> F
+  B --> F
+  C --> F
+  D --> F
+  E --> F
+  class S0,Q1 q
+  class SC,A,B,C,D,E,F jump
+  class E36,E37 later
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
 ```
 
-After any available end point, the same closing questions follow (2.2,
-"Every design").
+#### Chart A1: a difference (the outcome and who gives the data)
+
+```mermaid
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|A score or scale| Q3{"Q3 Who gives the data?"}
+  Q2 -->|A rating on a few points| O5a{"O5a Analyse it as a score<br/>or as ordered categories?"}
+  O5a -->|As a score| Q3
+  O5a -->|Ordered categories| E29["E29 Ordinal outcome"]
+  Q2 -->|A count| E28["E28 Count outcome"]
+  Q2 -->|Yes/no, or one of<br/>several categories| Q3y{"Q3 Who gives the data?"}
+  Q3y -->|Different people,<br/>two groups, yes/no| E5["E5 Two proportions"]
+  Q3y -->|Different people,<br/>categories| E6["E6 Chi-square test<br/>of independence"]
+  Q3y -->|One group against<br/>a fixed value| E25["E25 One proportion"]
+  Q3y -->|The same people| E26["E26 McNemar's test<br/>or Cochran's Q"]
+  Q3 -->|Different people,<br/>or the same people| A2["Chart A2: factors"]
+  Q3 -->|Many items or stimuli| E33["E33 Crossed participants<br/>and stimuli"]
+  Q3 -->|Nested in groups| E34["E34 Multilevel or<br/>cluster design"]
+  Q3 -->|Measured 3 or more times| E35["E35 Longitudinal"]
+  class Q2,O5a,Q3,Q3y q
+  class E5,E6 avail
+  class E25,E26,E28,E29,E33,E34,E35 later
+  class A2 jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart A2: a difference with a score outcome (the factors)
+
+```mermaid
+flowchart TD
+  F1{"F1 How many factors?"}
+  F1 -->|One| F2{"F2 How many groups<br/>or conditions?"}
+  F2 -->|One, against<br/>a fixed value| E1["E1 One-sample t-test"]
+  F2 -->|Two, different people| E2["E2 Independent-samples t-test"]
+  F2 -->|Two, the same people| E3["E3 Paired t-test"]
+  F2 -->|Three or more| F2a{"F2a A specific comparison,<br/>or any difference?"}
+  F2a -->|A specific comparison| E19["E19 Planned contrast"]
+  F2a -->|Any difference| E18["E18 One-way or<br/>repeated-measures ANOVA"]
+  F1 -->|Three or more| E21["E21 Larger factorial ANOVA"]
+  F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
+  F3 -->|No| E21
+  F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
+  F4 -->|Both within| E20["E20 2 x 2 within ANOVA"]
+  F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
+  F4a -->|No| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
+  F4a -->|Yes, both between| F5b["F5 Which effect?<br/>F6 Which shape?"]
+  F5b --> E7["E7 2 x 2 between ANOVA"]
+  F4a -->|Yes, one within| F4b{"F4b Is the within factor<br/>before and after?"}
+  F4b -->|No| F5m["F5 Which effect?<br/>F6 Which shape?"]
+  F5m --> E8["E8 2 x 2 mixed ANOVA"]
+  F4b -->|Yes| PP{"PP1 Randomised?<br/>PP2 Which analysis?"}
+  PP -->|The mixed interaction| E8
+  PP -->|ANCOVA| E23["E23 ANCOVA"]
+  class F1,F2,F2a,F3,F4,F4a,F4b,PP,F5b,F5m q
+  class E1,E2,E3,E7,E8 avail
+  class E18,E19,E20,E21,E22,E23 later
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart B: a relationship
+
+```mermaid
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|A score| Q3{"Q3 Who gives the data?"}
+  Q3 -->|Each person measured<br/>once, on both| R1{"R1 What is the<br/>other variable like?"}
+  Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
+  R1 -->|A score| E4["E4 Pearson correlation"]
+  R1 -->|Groups or categories| A2["Chart A2: a difference<br/>between groups"]
+  R1 -->|Several predictors,<br/>or covariates| E24["E24 Multiple regression"]
+  Q2 -->|Yes/no| E27["E27 Logistic regression"]
+  Q2 -->|Categories, other<br/>variable categories| E6["E6 Chi-square test<br/>of independence"]
+  class Q2,Q3,R1 q
+  class E4,E6 avail
+  class E24,E27,E41 later
+  class A2 jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart C: moderation (an effect that depends on something else)
+
+```mermaid
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|Not a score| E32["E32 Yes/no, count or<br/>categorical outcome"]
+  Q2 -->|A score| Q3{"Q3 Who gives the data?"}
+  Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
+  Q3 -->|Different people| MO1{"MO1 What is X?<br/>MO2 What is W?"}
+  MO1 -->|Both two groups<br/>or conditions| A2["Chart A2 at F4:<br/>a 2 x 2 design"]
+  MO1 -->|Both scores| MO3{"MO3 Does a third variable<br/>change the interaction?"}
+  MO3 -->|No| E9["E9 Moderated regression"]
+  MO3 -->|Yes| E31["E31 Three-way interaction"]
+  MO1 -->|One two groups,<br/>one a score| E15["E15 Moderated regression,<br/>yes/no X or W"]
+  MO1 -->|Three or more groups| E30["E30 Moderator with<br/>three or more groups"]
+  class Q2,Q3,MO1,MO3 q
+  class E9 avail
+  class E15 spec
+  class E30,E31,E32,E41 later
+  class A2 jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart D: mediation (an effect that works through something else)
+
+```mermaid
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|Not a score| E32["E32 Yes/no, count or<br/>categorical outcome"]
+  Q2 -->|A score| Q3{"Q3 Who gives the data?"}
+  Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
+  Q3 -->|Different people| ME1{"ME1 What is the cause (X)?"}
+  ME1 -->|Conditions you assigned<br/>or two groups| E16["E16 Mediation<br/>with yes/no X"]
+  ME1 -->|A measured score| ME4{"ME4 Are your<br/>mediators scores?"}
+  ME4 -->|No| E39["E39 Yes/no or<br/>categorical mediator"]
+  ME4 -->|Yes| ME2{"ME2 How many mediators?<br/>ME3 How do they connect?"}
+  ME2 -->|One| E10["E10 Simple mediation<br/>(PROCESS model 4)"]
+  ME2 -->|Two or more,<br/>side by side| E11["E11 Parallel mediation<br/>(PROCESS model 4)"]
+  ME2 -->|Two to four,<br/>in a chain| E12["E12 Serial mediation<br/>(PROCESS model 6)"]
+  class Q2,Q3,ME1,ME2,ME4 q
+  class E10,E11,E12 avail
+  class E16 spec
+  class E32,E39,E41 later
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart E: moderated mediation
+
+```mermaid
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|Not a score| E32["E32 Yes/no, count or<br/>categorical outcome"]
+  Q2 -->|A score| Q3{"Q3 Who gives the data?"}
+  Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
+  Q3 -->|Different people| MM1{"MM1 What is X?<br/>MM2 What is W?"}
+  MM1 -->|X or W is two groups<br/>or conditions| E17["E17 Moderated mediation,<br/>yes/no X or W"]
+  MM1 -->|Both scores| MM3{"MM3 How many mediators?"}
+  MM3 -->|Two or more| E40["E40 Moderated mediation,<br/>several mediators"]
+  MM3 -->|One| MM4{"MM4 Which link<br/>does W change?"}
+  MM4 -->|X to M| E13["E13 First-stage<br/>(PROCESS model 7)"]
+  MM4 -->|M to Y| E14["E14 Second-stage<br/>(PROCESS model 14)"]
+  MM4 -->|Both links, or also<br/>the direct path| E38["E38 PROCESS models<br/>8, 58, 59"]
+  class Q2,Q3,MM1,MM3,MM4 q
+  class E13,E14 avail
+  class E17 spec
+  class E32,E38,E40,E41 later
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
+#### Chart F: closing questions (every design)
+
+```mermaid
+flowchart TD
+  R["Reliability of your measures<br/>(optional)"] --> D{"Does your hypothesis<br/>predict a direction?"}
+  D --> T["Which version of the test?<br/>(where there is a choice)"]
+  T --> G{"What do you want to find out?"}
+  G -->|The sample size I need| GN["Required N<br/>(goal: sample_size)"]
+  G -->|The power I would have<br/>at a given N, for an<br/>effect size I plan for| GP["Power at a given N,<br/>planned effect size<br/>(goal: power)"]
+  G -->|The smallest effect I could<br/>detect at a given N| GS["Sensitivity<br/>(goal: sensitivity;<br/>2 x 2 designs only for now)"]
+  G -.->|Not offered as an analysis type| OP["Observed power: effect size<br/>taken from the study's own result<br/>(judgement call 3.1)"]
+  GN --> AP["Alpha and target power"]
+  GP --> AP
+  GS --> AP
+  AP --> ES["Effect size, and<br/>where it comes from"]
+  ES --> AT["Expected attrition"]
+  AT --> RUN["Confirmation screen,<br/>then run"]
+  class R,D,T,G,AP,ES,AT q
+  class GN,GP avail
+  class GS spec
+  class OP later
+  class RUN jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
 
 ### 2.2 Questions and their spec fields
 
@@ -309,7 +480,7 @@ engine can use the answer today.
 | Every design: Q-rel | Do you know how reliable your measures are? (optional) | A reliability per variable, or "assume perfect" | `variables.*.reliability` | Regression interactions: yes. Mediation: refused ("not available yet"). Other designs: rejected by the validator |
 | Every design: Q-dir | Does your hypothesis predict a direction? | Two-sided / one-sided, with the direction | `target_test.alternative`: `two_sided`, `greater`, `less` | Basic tests except chi-square: yes. Other designs: two-sided only. See judgement call 3.3 |
 | Every design: Q-test | Which version of the test? (where there is a choice) | Student or Welch (decision D7); exact or simulation (2x2) | `target_test.method`; `options.method` | Yes |
-| Every design: Q-goal | What do you want to find out? | The sample size I need / the power I'd have with a given sample size / the smallest effect I could detect with a given sample size | `goal.type`: `sample_size` (+ `goal.power`), `power` (+ `goal.n`), `sensitivity` (+ `goal.n`, `goal.power`) | Yes. Sensitivity only for the 2x2 designs; elsewhere the option is shown as not available yet: **flag** |
+| Every design: Q-goal | What do you want to find out? | The sample size I need / the power I would have at a given sample size, for an effect size I plan for / the smallest effect I could detect at a given sample size | `goal.type`: `sample_size` (+ `goal.power`), `power` (+ `goal.n`), `sensitivity` (+ `goal.n`, `goal.power`) | Yes. Sensitivity only for the 2x2 designs; elsewhere the option is shown as not available yet: **flag** |
 | Every design: Q-alpha | Which significance level (alpha)? | A number | `target_test.alpha` | Yes. The default is a judgement call (3.6) |
 | Every design: Q-power | What power do you want? | A number | `goal.power` | Yes. The default is a judgement call (3.6) |
 | Every design: Q-effect | What effect do you expect, and where does that number come from? | The design's effect-size form (table 2.3), plus the source: smallest effect of interest; meta-analysis; prior study (with an adjustment); pilot study | `population.*`; `effect_justification.type`, `.source`, `.adjustment` | Yes. Bias-corrected planning (e.g. BUCSS) has no field or backend: **flag** (judgement call 3.2) |
@@ -317,6 +488,28 @@ engine can use the answer today.
 | Every design: Q-multi | Does your study test more than one hypothesis that this power analysis should cover? | No / yes | — | **No (flag):** one target effect per spec (judgement call 3.5) |
 | Every design: Q-bayes | Will you test your hypothesis with p-values or with Bayes factors? | p-values / Bayes factors / not sure | — | **No (flag):** frequentist only. Bayes factors → E-bayes row in 2.3 |
 | Every design: run settings | (advanced) replications, seed, CI draws | — | `options.nrep`, `options.seed`, `options.ci_draws` | Yes |
+
+**Power at a given N (planned effect size) is not observed power.** They
+are different analyses, and the app keeps them apart:
+
+- **Power at a given N, for a planned effect size** (`goal.type =
+  "power"`). This is the power for an effect size the user plans for and
+  justifies (a smallest effect of interest, a meta-analysis, a
+  bias-corrected prior study, ...), at a sample size they expect to have.
+  It is prospective: "is this N enough for the effect I care about?" The
+  app labels it **"power at a given N"** and never "post hoc".
+- **Observed power** (the effect size taken from the study's own result).
+  This is power computed after the study, from the effect it found. It
+  follows directly from the study's p-value (judgement call 3.1). powerkit
+  doesn't offer it as an analysis type. Whether the form should block,
+  warn about, or allow an effect size that comes from the same study's
+  result is open question 5.
+- **Why not "post hoc":** G\*Power (manual, section 1.1) and Spower
+  (vignette, "prospective/post-hoc") use "post hoc" for the calculation
+  itself, whichever effect size goes in. Many readers take "post hoc" to
+  mean observed power. Using "power at a given N" for the planned case
+  keeps the two apart. Where this document quotes another tool's label,
+  it says so.
 
 ### 2.3 End points
 
@@ -375,6 +568,7 @@ taken from coverage.md, where they are proposals.
 | E38 | PROCESS models 8, 58, 59 | — | Candidate: power4mome as a general lavaan model (no template); WebPower `wp.modmed.m8()`, `m58()` | — | Standardised paths | No | v2 (build guide) | Not in spec |
 | E39 | Mediation with a yes/no or categorical mediator | — | None found → R script export | — | — | No | later | Not in spec |
 | E40 | Moderated mediation with two or more mediators | — | power4mome as a general lavaan model → R script export | — | Standardised paths | No | later | Not in spec |
+| E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 
 **For "not in spec" end points the card says so plainly.** It names the
@@ -397,97 +591,131 @@ each one, the main positions are listed with sources. Following principle
 P1, where a call changes the analysis, the app asks the user and the
 write-up states the choice. **This section decides nothing.**
 
-### 3.1 "Observed" or post hoc power from the study's own result
+**How sources are tagged.** *(read in full)*: the source itself was read.
+*(seen second-hand, to verify)*: known only from web search results,
+abstracts, package documentation or other papers that cite it, so the
+claim needs checking against the source before anything depends on it.
+Unless a source is tagged *read in full*, it is second-hand.
 
-- **Against:** observed power computed from a study's own effect size is a
-  direct function of its p-value, so it adds no information; using it to
-  interpret a non-significant result is fallacious (Hoenig & Heisey, 2001,
-  *The American Statistician*, 55(1), 19–24,
-  doi:10.1198/000313001300339897).
-- **Narrower reading:** Hoenig and Heisey's argument concerns power for a
-  single test computed from that test's own result. Some argue that power
-  computed from observed effects across many studies can still be useful,
-  for example to estimate the replicability of a literature
-  (Replication Index blog, "The abuse of Hoenig and Heisey", 2016; a blog
-  post, not peer-reviewed).
-- **Common practice:** statistics packages report it (SPSS's "Observed
-  Power" column), and G\*Power's manual reproduces that column with a post
-  hoc analysis (G\*Power manual, 2023, pp. 27–28). Reviewers sometimes
-  request it.
-- **What this means for powerkit:** "power at a given n" with a
-  user-justified effect is a prospective analysis. Whether the app should
-  block, warn about, or allow an effect size taken from the same study's
-  result is the open question. `effect_justification.type` has no
-  "this study's own result" option today.
+### 3.1 Observed power (effect size taken from the study's own result)
+
+This is about **observed power**: power computed after a study from the
+effect size that study found. It is not "power at a given N" for a
+planned effect size (2.2), which is prospective. Some tools call both
+"post hoc".
+
+- **Against:** observed power is a direct function of the study's
+  p-value, so it adds no information, and using it to interpret a
+  non-significant result is fallacious (Hoenig & Heisey, 2001, *The
+  American Statistician*, 55(1), 19–24,
+  doi:10.1198/000313001300339897) *(seen second-hand, to verify)*.
+- **Narrower reading:** that argument concerns power for a single test,
+  computed from that test's own result. Power computed from observed
+  effects can still describe a body of research. Perugini, Gallucci and
+  Costantini (2014, p. 319) write that "the post hoc calculation of power
+  can also be useful for characterizing entire domains of research"
+  *(read in full)*. A blog post argues the same against broad readings of
+  Hoenig and Heisey (Replication Index, "The abuse of Hoenig and Heisey",
+  2016; not peer-reviewed) *(seen second-hand, to verify)*.
+- **Common practice:** statistics packages report observed power (SPSS's
+  "Observed Power" column). G\*Power's manual reproduces that column by
+  applying its "post hoc" analysis to the observed effect sizes (G\*Power
+  manual, 2023, pp. 27–28; read directly). Reviewers sometimes request it.
+- **What this means for powerkit:** powerkit doesn't offer observed power
+  as an analysis type (2.2). Whether the form should block, warn about, or
+  allow an effect size that comes from the same study's result is open
+  (open question 5). `effect_justification.type` has no "this study's own
+  result" option today.
 
 ### 3.2 Where effect sizes come from
 
 - **Smallest effect size of interest (SESOI):** power the study for the
   smallest effect that would matter, rather than the expected one. Lakens
-  (2022, "Sample size justification", *Collabra: Psychology*) sets out
-  this and other justifications (an a priori power analysis, planning for
-  accuracy, resource constraints, heuristics, or no justification).
+  (2022, "Sample size justification", *Collabra: Psychology*) *(seen second-hand, to verify)* sets out
+  this and other justifications: an a priori power analysis, planning for
+  accuracy, resource constraints, heuristics, or no justification.
 - **Published studies and meta-analyses:** published effects tend to be
-  inflated by publication bias. One response is to correct for bias and
-  uncertainty before planning. BUCSS implements Anderson, Kelley and
-  Maxwell (2017, *Psychological Science*, doi:10.1177/0956797617723724)
-  and its extension to replications (Anderson & Kelley, 2024,
-  *Psychological Methods*, doi:10.1037/met0000520). Others use the lower
-  bound of a confidence interval ("safeguard power"; Perugini, Gallucci &
-  Costantini, 2014, as cited in mixpower's `mp_safeguard_effect()`
-  documentation).
-- **Pilot studies:** effect sizes from small pilots are imprecise. Choosing
-  to go ahead only with pilots that look promising causes "follow-up bias"
-  that leaves main studies underpowered. Albers and Lakens (2018, *Journal
-  of Experimental Social Psychology*, 74, 187–195,
-  doi:10.1016/j.jesp.2017.09.004) also advise against η² for this purpose.
-  powerkit already warns about pilot estimates (`spec_advice()`).
-- **Conventional benchmarks** (small / medium / large; Cohen, 1988):
-  offered by G\*Power as tooltips, with the caution that they mean
-  different things for different tests (manual, p. 4). powerkit's build
-  guide rules out "medium effect" defaults (section 4). Whether the app
-  should show benchmarks at all, even as context, is open.
+  inflated by publication bias. Two responses:
+  - **Bias and uncertainty correction.** BUCSS implements Anderson,
+    Kelley and Maxwell (2017, *Psychological Science*,
+    doi:10.1177/0956797617723724) *(seen second-hand, to verify)* and its extension to replications
+    (Anderson & Kelley, 2024, *Psychological Methods*,
+    doi:10.1037/met0000520) *(seen second-hand, to verify)*. Both are known from BUCSS's own
+    documentation.
+  - **Safeguard power** (Perugini, Gallucci & Costantini, 2014,
+    *Perspectives on Psychological Science*, 9(3), 319–332,
+    doi:10.1177/1745691614528519) *(read in full)*. Plan with the lower
+    bound of a two-tailed confidence interval around the published
+    effect: the 60% interval (its 20th percentile) gives 80% protection
+    against overestimating the effect, and the 90% interval gives 95%.
+    In their simulations, safeguard power at 80% gave actual power above
+    the nominal .80 under most conditions typical of psychology, where
+    standard power analysis fell short (pp. 320–321). They also propose a
+    "safeguard sample ratio" to judge how strong an original study's
+    evidence is (pp. 325–326), and compare the method with the "2.5 rule"
+    (pp. 325–329).
+    mixpower implements it as `mp_safeguard_effect()`.
+- **Pilot studies:** effect sizes from small pilots are imprecise. Going
+  ahead only with pilots that look promising causes "follow-up bias" that
+  leaves main studies underpowered. Albers and Lakens (2018, *Journal of
+  Experimental Social Psychology*, 74, 187–195,
+  doi:10.1016/j.jesp.2017.09.004) *(seen second-hand, to verify)* also advise against η² for this
+  purpose. powerkit already warns about pilot estimates
+  (`spec_advice()`).
+- **Conventional benchmarks** (small / medium / large; Cohen, 1988 *(seen second-hand, to verify)*):
+  G\*Power offers them as tooltips, with the caution that "these
+  conventions may have different meanings for different tests" (manual,
+  p. 4; read directly). powerkit's build guide rules out "medium effect"
+  defaults (section 4). Whether the app should show benchmarks at all,
+  even as context, is open.
 - **Replications:** the "small telescopes" approach plans a replication
   around the effect the original study had 33% power to detect, which
   takes about 2.5 times the original sample for 80% power (Simonsohn,
-  2015, *Psychological Science*, doi:10.1177/0956797614567341;
-  implemented in RSmallTelescopes).
+  2015, *Psychological Science*, doi:10.1177/0956797614567341 *(seen second-hand, to verify)*;
+  implemented in RSmallTelescopes). Perugini et al. (2014, pp. 325–329)
+  *(read in full)* compare it with safeguard power. The 2.5 rule depends
+  only on the original sample size, while safeguard power depends on both
+  the size and the precision of the original estimate. In their examples the
+  2.5 rule can ask for much more or much less than safeguard power,
+  depending on the original sample size and effect size.
 
 ### 3.3 One-tailed tests
 
 - **For, when justified:** a directional research hypothesis can be tested
-  one-tailed. Two-tailed tests are often used out of a mistaken belief
-  that they are more conservative, and because the research hypothesis
+  one-tailed. Two-tailed tests are often used because people wrongly
+  believe they are more conservative, and because the research hypothesis
   isn't kept apart from the statistical one (Cho & Abe, 2013, *Journal of
-  Business Research*, 66(9), 1261–1266).
+  Business Research*, 66(9), 1261–1266) *(seen second-hand, to verify)*.
 - **With conditions:** use a one-tailed test only when the researcher can
   explain why only one direction matters, and say in advance how a large
   effect in the other direction would be treated (Ruxton & Neuhäuser,
-  2010, *Methods in Ecology and Evolution*, 1(2), 114–117).
+  2010, *Methods in Ecology and Evolution*, 1(2), 114–117) *(seen second-hand, to verify)*.
 - **Against by default:** many journals and reviewers treat two-tailed
   testing as the norm. A one-tailed test that isn't preregistered invites
   suspicion.
 - **Already decided in powerkit:** a one-sided test counts only effects in
   the stated direction (Departure 4). It is allowed only for directional
   basic tests (`two_sided_only` elsewhere). G\*Power asks for the number
-  of tails as an input (manual, p. 4). Open: whether the app should
-  require a preregistration note before allowing one-sided, and whether to
-  offer it for more designs.
+  of tails as an input (manual, p. 4; read directly). Open: whether the
+  app should require a preregistration note before allowing one-sided,
+  and whether to offer it for more designs.
 
 ### 3.4 Powering an interaction versus its simple effects
 
 - **Interactions need large samples:** attenuated interactions, where a
   moderator shrinks an effect, need far more participants than the main
-  effect they modify. Blake and Gangestad (2020, *Personality and Social
-  Psychology Bulletin*) make this point. So does Simonsohn's "No-way
-  interactions" (Data Colada [17], 2014), and Giner-Sorolla (2018, blog
-  post "Powering your interaction") gives rules of thumb for reversal,
-  knockout and attenuation. Sommet, Weissman, Cheutin and Elliot (2023,
-  *AMPPS*), already a benchmark source in the build guide, give required
-  sizes by interaction shape.
-- **Which test matches the hypothesis:** some argue the hypothesis is often
-  really about the simple effects (for example "praise helps on hard
-  tasks"), so the power analysis should target them; others say the
+  effect they modify:
+  - Blake and Gangestad (2020, *Personality and Social Psychology
+    Bulletin*) *(seen second-hand, to verify)*;
+  - Simonsohn, "No-way interactions" (Data Colada [17], 2014) *(seen second-hand, to verify)*;
+  - Giner-Sorolla (2018, blog post "Powering your interaction") *(seen second-hand, to verify)*, with
+    rules of thumb for reversal, knockout and attenuation;
+  - Sommet, Weissman, Cheutin and Elliot (2023, *AMPPS*) *(seen second-hand, to verify)*, already a
+    benchmark source in the build guide, with required sizes by
+    interaction shape.
+- **Which test matches the hypothesis:** some argue the hypothesis is
+  often really about the simple effects (for example "praise helps on
+  hard tasks"), so the power analysis should target them. Others say the
   interaction is the test that licenses the claim that an effect differs,
   so it must be powered.
 - **Existing powerkit design:** the finder asks which effect matters (F5)
@@ -502,14 +730,19 @@ write-up states the choice. **This section decides nothing.**
 - **All tests:** a study that needs several tests to all succeed has lower
   power for the whole set than for any one test. The "curse of
   multiplicities" affects power as well as Type I error, and has largely
-  been ignored (Maxwell, 2004, *Psychological Methods*, 9(2), 147–163).
-- **Whether to correct alpha:** Rubin (2021, *Synthese*, 199, 10969–11000,
-  doi:10.1007/s11229-021-03276-4) distinguishes three cases. In
-  *disjunction* testing, any one significant result supports the claim,
-  so alpha needs adjusting. In *conjunction* testing, all must be
-  significant, and in *individual* testing, each claim stands alone; in
-  these two no adjustment is needed. Rubin argues adjustment shouldn't be
-  automatic.
+  been ignored (Maxwell, 2004, *Psychological Methods*, 9(2),
+  147–163) *(seen second-hand, to verify)*.
+- **Whether to correct alpha:** Rubin (2021, *Synthese*, 199,
+  10969–11000, doi:10.1007/s11229-021-03276-4) *(seen second-hand, to verify)* distinguishes three
+  cases:
+  - *disjunction* testing (any one significant result supports the
+    claim): alpha needs adjusting;
+  - *conjunction* testing (all results must be significant): no
+    adjustment needed;
+  - *individual* testing (each claim stands alone): no adjustment
+    needed.
+
+  Rubin argues adjustment shouldn't be automatic.
 - **Tools:** powertools (`coprimary.t()` for all, `altprimary()` for any),
   power4mome (`rejection_rates(collapse = "all_sig")`) and Superpower
   (`p_adjust`) support parts of this ([coverage](coverage.md)).
@@ -519,16 +752,17 @@ write-up states the choice. **This section decides nothing.**
 - **Power .80:** Cohen proposed .80 as a convention for when the
   researcher has no other basis. He reasoned that a Type I error is about
   four times as serious as a Type II error (.20 / .05) (Cohen, 1988,
-  *Statistical Power Analysis for the Behavioral Sciences*, 2nd ed., as
-  quoted in secondary sources; the exact wording should be checked against
-  the book).
+  *Statistical Power Analysis for the Behavioral Sciences*, 2nd ed.) *(seen second-hand, to verify)*.
+  Perugini et al. (2014, p. 319) *(read in full)* also report that "Cohen
+  (1988) suggested .80 as a desirable threshold of power", which is still
+  second-hand for Cohen's own wording.
 - **Power .90 or .95:** many Registered Report formats ask for higher
   power. The exact requirement varies by journal and isn't checked here.
 - **Alpha .05:** the convention. Benjamin et al. (2018, "Redefine
-  statistical significance", *Nature Human Behaviour*) proposed .005 for
-  claims of new discoveries.
+  statistical significance", *Nature Human Behaviour*) *(seen second-hand, to verify)* proposed .005
+  for claims of new discoveries.
 - **Justify, don't default:** Lakens et al. (2018, "Justify your alpha",
-  *Nature Human Behaviour*, doi:10.1038/s41562-018-0311-x) argue that
+  *Nature Human Behaviour*, doi:10.1038/s41562-018-0311-x) *(seen second-hand, to verify)* argue that
   every design choice, alpha included, should be justified rather than
   set by convention. Superpower's `optimal_alpha()` and Spower's
   compromise analysis put this into practice ([coverage](coverage.md)).
@@ -581,10 +815,11 @@ write-up states the choice. **This section decides nothing.**
 8. **Bayes factors.** Ask "p-values or Bayes factors?" up front (and route
    Bayes factors to "not available"), or leave Bayesian designs to the
    shortcut list?
-9. **`design-finder.md` status labels.** Its labels predate phase 3: it
-   marks the basic tests, regression interactions and mediation as "Coming
-   later (spec ready)", although they now run (only binary X or W is
-   refused). Update it in a separate PR, or merge it with this document?
+9. **`design-finder.md` status labels.** Updated in this PR: the basic
+   tests, regression interactions and mediation now show **Available**;
+   a yes/no X or W in moderation or mediation shows **Coming later (spec
+   ready)** until phase 3b. Should the two documents stay separate (card
+   wording there, structure here), or be merged?
 10. **Parallel mediation with three or more mediators.** The spec and
     engine accept up to nine mediators, but validation covers two
     ([coverage](coverage.md) proposes v2 for three or more). Should the
@@ -592,15 +827,40 @@ write-up states the choice. **This section decides nothing.**
 
 ## Sources
 
-- G\*Power 3.1 manual, edition of 1 June 2023 (provided by the maintainer):
-  section 1 (pp. 2–6) and chapter 11 (pp. 26–28).
-- Faul, F., Erdfelder, E., Lang, A.-G., & Buchner, A. (2007). G\*Power 3.
-  *Behavior Research Methods*, 39, 175–191. doi:10.3758/BF03193146.
-- Package sources as in [`coverage.md`](coverage.md), "Sources":
-  Superpower 0.2.4.1, Spower 0.6.4, power4mome 0.2.1 (and its GitHub
-  website articles), InteractionPoweR 0.2.4, PAMLj 1.2.0, and the
-  candidate tools in its "Not covered by the five tools" section.
-- Judgement-call sources are cited where they are used. Each was checked
-  through web search results or package documentation in this session, not
-  read in full. One exception: the exact wording of Cohen (1988) was seen
-  only as quoted by secondary sources.
+**Read in full or read directly:**
+- The G\*Power 3.1 manual, edition of 1 June 2023 (provided by the
+  maintainer; not committed to the repository). Read directly: section 1
+  (pp. 2–6) and chapter 11 (pp. 26–28); the rest wasn't read for this
+  document.
+- Perugini, M., Gallucci, M., & Costantini, G. (2014). Safeguard power as
+  a protection against imprecise power estimates. *Perspectives on
+  Psychological Science*, 9(3), 319–332. doi:10.1177/1745691614528519
+  (provided by the maintainer; read in full).
+- Package sources and documentation as in [`coverage.md`](coverage.md),
+  "Sources": Superpower 0.2.4.1, Spower 0.6.4, power4mome 0.2.1 (and its
+  GitHub website articles), InteractionPoweR 0.2.4, PAMLj 1.2.0, and the
+  candidate tools in its "Not covered by the five tools" section. These
+  were read for what each tool does, not for the papers they cite.
+
+**Seen second-hand, to verify** (from web search results, abstracts,
+package documentation or citing papers; not read in full):
+- Faul, Erdfelder, Lang & Buchner (2007), *Behavior Research Methods*.
+- Hoenig & Heisey (2001), *The American Statistician*.
+- Replication Index (2016), "The abuse of Hoenig and Heisey" (blog).
+- Lakens (2022), *Collabra: Psychology*.
+- Anderson, Kelley & Maxwell (2017), *Psychological Science*.
+- Anderson & Kelley (2024), *Psychological Methods*.
+- Albers & Lakens (2018), *Journal of Experimental Social Psychology*.
+- Cohen (1988), *Statistical Power Analysis for the Behavioral Sciences*
+  (2nd ed.).
+- Simonsohn (2015), *Psychological Science*.
+- Cho & Abe (2013), *Journal of Business Research*.
+- Ruxton & Neuhäuser (2010), *Methods in Ecology and Evolution*.
+- Blake & Gangestad (2020), *Personality and Social Psychology Bulletin*.
+- Simonsohn (2014), "No-way interactions", Data Colada [17] (blog).
+- Giner-Sorolla (2018), "Powering your interaction" (blog).
+- Sommet, Weissman, Cheutin & Elliot (2023), *AMPPS*.
+- Maxwell (2004), *Psychological Methods*.
+- Rubin (2021), *Synthese*.
+- Benjamin et al. (2018), *Nature Human Behaviour*.
+- Lakens et al. (2018), *Nature Human Behaviour*.

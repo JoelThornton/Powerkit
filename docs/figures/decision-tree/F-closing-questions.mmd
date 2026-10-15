@@ -1,0 +1,24 @@
+flowchart TD
+  R["Reliability of your measures<br/>(optional)"] --> D{"Does your hypothesis<br/>predict a direction?"}
+  D --> T["Which version of the test?<br/>(where there is a choice)"]
+  T --> G{"What do you want to find out?"}
+  G -->|The sample size I need| GN["Required N<br/>(goal: sample_size)"]
+  G -->|The power I would have<br/>at a given N, for an<br/>effect size I plan for| GP["Power at a given N,<br/>planned effect size<br/>(goal: power)"]
+  G -->|The smallest effect I could<br/>detect at a given N| GS["Sensitivity<br/>(goal: sensitivity;<br/>2 x 2 designs only for now)"]
+  G -.->|Not offered as an analysis type| OP["Observed power: effect size<br/>taken from the study's own result<br/>(judgement call 3.1)"]
+  GN --> AP["Alpha and target power"]
+  GP --> AP
+  GS --> AP
+  AP --> ES["Effect size, and<br/>where it comes from"]
+  ES --> AT["Expected attrition"]
+  AT --> RUN["Confirmation screen,<br/>then run"]
+  class R,D,T,G,AP,ES,AT q
+  class GN,GP avail
+  class GS spec
+  class OP later
+  class RUN jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3

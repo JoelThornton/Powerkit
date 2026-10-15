@@ -47,8 +47,10 @@ fully validated. Validation runs are recorded in
   spec schema, with end points E1 to E40; the judgement calls where
   methodologists disagree, left undecided; and open questions. All of it
   is a proposal for the maintainer to confirm. It builds on
-  [`design-finder.md`](design-finder.md), whose status labels are out of
-  date.
+  [`design-finder.md`](design-finder.md), whose status labels are now up
+  to date. The flowcharts, including a single full chart for
+  presentations, are rendered in
+  [`figures/decision-tree/`](figures/decision-tree/).
 - **Validation on GitHub:** the `full-validation` workflow works: after a
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier

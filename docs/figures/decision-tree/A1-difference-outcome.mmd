@@ -1,0 +1,25 @@
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|A score or scale| Q3{"Q3 Who gives the data?"}
+  Q2 -->|A rating on a few points| O5a{"O5a Analyse it as a score<br/>or as ordered categories?"}
+  O5a -->|As a score| Q3
+  O5a -->|Ordered categories| E29["E29 Ordinal outcome"]
+  Q2 -->|A count| E28["E28 Count outcome"]
+  Q2 -->|Yes/no, or one of<br/>several categories| Q3y{"Q3 Who gives the data?"}
+  Q3y -->|Different people,<br/>two groups, yes/no| E5["E5 Two proportions"]
+  Q3y -->|Different people,<br/>categories| E6["E6 Chi-square test<br/>of independence"]
+  Q3y -->|One group against<br/>a fixed value| E25["E25 One proportion"]
+  Q3y -->|The same people| E26["E26 McNemar's test<br/>or Cochran's Q"]
+  Q3 -->|Different people,<br/>or the same people| A2["Chart A2: factors"]
+  Q3 -->|Many items or stimuli| E33["E33 Crossed participants<br/>and stimuli"]
+  Q3 -->|Nested in groups| E34["E34 Multilevel or<br/>cluster design"]
+  Q3 -->|Measured 3 or more times| E35["E35 Longitudinal"]
+  class Q2,O5a,Q3,Q3y q
+  class E5,E6 avail
+  class E25,E26,E28,E29,E33,E34,E35 later
+  class A2 jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
