@@ -89,7 +89,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (Joel to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
 | Superpower | `ANOVA_exact()`, `ANOVA_exact2()`, `ANOVA_power()` as above. The vignette's own within-between example calls `ANOVA_exact2()` [SP-vig]. | As above, plus a correlation `r` between repeated measures [SP-src] | As above |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered | | |
@@ -191,7 +191,7 @@ methods paragraph, and covered by a test showing the size of the difference
 - **powerkit:** uses `ANOVA_exact()`, which reproduces the values [SP-vig]
   reports from G*Power's "ANOVA: Repeated measures, within-between
   interaction" (table below), and matches simulation.
-- **Which G*Power setting gave those values: to check (Joel to verify in
+- **Which G*Power setting gave those values: to check (maintainer to verify in
   G*Power).** The two Superpower sources disagree, and neither is claimed
   here until it is verified:
   - [SP-vig] does not name the setting for the within-between example; its

@@ -1,6 +1,6 @@
 # Power Analysis Tool — Build Guide
 
-Oct 12, 2026 · @Joel Thornton
+Oct 12, 2026
 
 One R simulation engine, three front doors (design forms, full-model builder, optional AI assistant), validated against published results before anything ships. This guide is written to hand to Claude Code.
 

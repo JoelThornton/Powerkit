@@ -10,8 +10,8 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 ## Non-negotiables
 - Never write new statistical maths when a backend package already does it; adapt the spec.
 - Never edit expected values in tests/testthat/test-validation-*. They are transcribed
-  from published sources by the maintainer (Joel). If a test fails, report why.
-- Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for Joel.
+  from published sources by the maintainer. If a test fails, report why.
+- Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer.
 - Every result records: spec hash, seed, backend, R and package versions.
 - The Shiny app never computes power; it builds specs and calls the engine.
 - Citations come only from inst/citations/refs.bib. Never invent references.

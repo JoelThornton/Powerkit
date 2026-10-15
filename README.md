@@ -72,9 +72,6 @@ remotes::install_github("JoelThornton/Powerkit", subdir = "engine")
 This also installs its dependencies, including the backend packages
 Superpower, Spower, InteractionPoweR and power4mome.
 
-If the repository is private, set a GitHub personal access token in the
-`GITHUB_PAT` environment variable first.
-
 ## Try it
 
 ```r
@@ -127,4 +124,4 @@ it can be stopped and resumed, and run one design at a time. Package versions fo
 ## Licence
 
 The engine is free software, licensed under the GNU General Public License,
-version 3 or later (GPL (>= 3)). See [`engine/LICENSE`](engine/LICENSE).
+version 3 or later (GPL (>= 3)). See [`LICENSE`](LICENSE).

@@ -21,8 +21,8 @@ test_that("simple mediation: matches the power4mome Quick Template (published)",
   #   values the article states): a (X->M), b (M->Y) and c' (X->Y); n,
   #   alpha (or CI level), nrep and R, and the reported rejection rate for
   #   the indirect effect.
-  # power4mome version that built the website: TODO (Joel).
-  # Date read: TODO (Joel).
+  # power4mome version that built the website: TODO (maintainer).
+  # Date read: TODO (maintainer).
   #   The article's output is regenerated each time the website is rebuilt,
   #   so the reported numbers can change between versions; record both.
   # Test method: the templates leave test_method unset but use R = 1000
