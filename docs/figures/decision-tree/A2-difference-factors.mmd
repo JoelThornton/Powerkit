@@ -1,0 +1,32 @@
+flowchart TD
+  F1{"F1 How many factors?"}
+  F1 -->|One| F2{"F2 How many groups<br/>or conditions?"}
+  F2 -->|One, against<br/>a fixed value| E1["E1 One-sample t-test"]
+  F2 -->|Two, different people| E2["E2 Independent-samples t-test"]
+  F2 -->|Two, the same people| E3["E3 Paired t-test"]
+  F2 -->|Three or more| F2a{"F2a A specific comparison,<br/>or any difference?"}
+  F2a -->|A specific comparison| E19["E19 Planned contrast"]
+  F2a -->|Any difference| E18["E18 One-way or<br/>repeated-measures ANOVA"]
+  F1 -->|Three or more| E21["E21 Larger factorial ANOVA"]
+  F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
+  F3 -->|No| E21
+  F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
+  F4 -->|Both within| E20["E20 2 x 2 within ANOVA"]
+  F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
+  F4a -->|No| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
+  F4a -->|Yes, both between| F5b["F5 Which effect?<br/>F6 Which shape?"]
+  F5b --> E7["E7 2 x 2 between ANOVA"]
+  F4a -->|Yes, one within| F4b{"F4b Is the within factor<br/>before and after?"}
+  F4b -->|No| F5m["F5 Which effect?<br/>F6 Which shape?"]
+  F5m --> E8["E8 2 x 2 mixed ANOVA"]
+  F4b -->|Yes| PP{"PP1 Randomised?<br/>PP2 Which analysis?"}
+  PP -->|The mixed interaction| E8
+  PP -->|ANCOVA| E23["E23 ANCOVA"]
+  class F1,F2,F2a,F3,F4,F4a,F4b,PP,F5b,F5m q
+  class E1,E2,E3,E7,E8 avail
+  class E18,E19,E20,E21,E22,E23 later
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3

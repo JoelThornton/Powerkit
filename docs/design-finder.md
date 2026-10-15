@@ -44,12 +44,23 @@ card.
 | Label | Meaning | What the user sees |
 | --- | --- | --- |
 | **Available** | The engine runs this design today. | The design form. |
-| **Coming later (spec ready)** | The design is in the spec format; its engine is being built (build phase 3). | "This design is coming soon. You can fill in the form and save the spec, but you can't run it yet." |
+| **Coming later (spec ready)** | The design is in the spec format, but the engine refuses it for now. Today this means a yes/no (binary) X or W in moderation or mediation, planned for build phase 3b. | "This design is coming soon. You can fill in the form and save the spec, but you can't run it yet." |
 | **Coming later (not in spec)** | Planned (build guide section 2) but not yet in the spec format. | "powerkit doesn't cover this design yet. It is planned for a later version." plus the analysis name, so they can look for another tool. |
 | **Open question** | Which analysis to route to is a methodological decision still to be made (see the end of this document). | Not shown to users until decided. |
 
-Today only `factorial_anova / 2x2_between` and `factorial_anova / 2x2_mixed`
-are **Available**.
+*Status labels updated 15 October 2026.* **Available** today: the basic
+tests (`basic_test`: one-sample, independent and paired t-tests,
+correlation, two proportions, chi-square test of independence), the 2 x 2
+between and mixed ANOVAs (`factorial_anova`), the regression interaction
+with two scores (`regression_interaction / two_way`), and mediation and
+moderated mediation (`mediation / process_4`, `process_6`;
+`moderated_mediation / process_7`, `process_14`) when X and W are scores.
+**Coming later (spec ready)**: the same regression-interaction, mediation
+and moderated-mediation templates when X or W is yes/no (two groups or
+conditions). The engine refuses those until phase 3b (build guide,
+section 8). Validation status for each design is in
+[`coverage.md`](coverage.md) and [`decision-tree.md`](decision-tree.md),
+section 2.3.
 
 ## Overview
 
@@ -307,7 +318,7 @@ line)*
 Not sure? You have one group and compare its average with a known number.
 Example: *is mean mood above the scale midpoint of 4? Is accuracy above
 chance (50%)?*
-→ O1 score: `basic_test / one_sample_t` — **Coming later (spec ready).**
+→ O1 score: `basic_test / one_sample_t` — **Available.**
 Analysis name: *one-sample t-test.*
 → O2 yes/no: **Coming later (not in spec):** test of one proportion.
 
@@ -321,11 +332,11 @@ Not sure? Example: *three types of feedback: none, praise, criticism.*
 
 | Outcome | Who gives the data | Two groups / conditions | Three or more |
 | --- | --- | --- | --- |
-| O1 Score | P1 Different people | `basic_test / independent_t`, **Coming later (spec ready)**; *independent-samples t-test*; Student's by default, Welch's as an option (decision D7) | F2a |
-| O1 Score | P2 Same people, or P5 measured twice | `basic_test / paired_t`, **Coming later (spec ready)**; *paired-samples t-test* (one group measured twice, decision D2) | F2a |
-| O2 Yes/no | P1 Different people | `basic_test / two_proportions`, **Coming later (spec ready)**; *test of two proportions (z test)* | `basic_test / chi_square_independence`, **Coming later (spec ready)**; *chi-square test of independence* |
+| O1 Score | P1 Different people | `basic_test / independent_t`, **Available**; *independent-samples t-test*; Student's by default, Welch's as an option (decision D7) | F2a |
+| O1 Score | P2 Same people, or P5 measured twice | `basic_test / paired_t`, **Available**; *paired-samples t-test* (one group measured twice, decision D2) | F2a |
+| O2 Yes/no | P1 Different people | `basic_test / two_proportions`, **Available**; *test of two proportions (z test)* | `basic_test / chi_square_independence`, **Available**; *chi-square test of independence* |
 | O2 Yes/no | P2 or P5 | **Coming later (not in spec):** *McNemar's test* | **Coming later (not in spec):** *Cochran's Q* |
-| O3 Categories | P1 Different people | `basic_test / chi_square_independence`, **Coming later (spec ready)** | `basic_test / chi_square_independence`, **Coming later (spec ready)** |
+| O3 Categories | P1 Different people | `basic_test / chi_square_independence`, **Available** | `basic_test / chi_square_independence`, **Available** |
 | O3 Categories | P2 or P5 | **Coming later (not in spec)** | **Coming later (not in spec)** |
 
 On the independent-samples t-test form, Student's t-test (equal variances
@@ -531,8 +542,8 @@ expect it to be related to?*
 
 **A score or scale** *(picture: a ruler)*
 Not sure? Example: *screen time in hours per day.*
-→ O1 score outcome, P1: `basic_test / correlation`, **Coming later (spec
-ready)**. Analysis name: *Pearson correlation.*
+→ O1 score outcome, P1: `basic_test / correlation`, **Available**.
+Analysis name: *Pearson correlation.*
 → O2 yes/no outcome: **Coming later (not in spec):** *logistic regression.*
 → O3 categories outcome: **Coming later (not in spec).**
 
@@ -541,8 +552,8 @@ Not sure? Example: *smokers vs non-smokers; attachment style.*
 → O1 score outcome: this is a comparison between groups. The finder says
 *"A score compared across groups is a difference between groups; we've moved
 you to that path"* and goes to F1 with Q2 and Q3 kept.
-→ O2 or O3 outcome, P1: `basic_test / chi_square_independence`, **Coming
-later (spec ready).** Analysis name: *chi-square test of independence.*
+→ O2 or O3 outcome, P1: `basic_test / chi_square_independence`,
+**Available.** Analysis name: *chi-square test of independence.*
 
 **Several predictors at once, or controlling for other variables** *(picture:
 several arrows into one box)*
@@ -600,9 +611,9 @@ but only for children, not adults.*
 | X (MO1) | W (MO2) | Who gives the data (Q3) | Leads to | Status | Analysis name shown |
 | --- | --- | --- | --- | --- | --- |
 | Two levels (assigned or existing) | Two groups or conditions (assigned or existing) | P1, or one factor within | F4, then F4a, with `effect = interaction`. Equal group sizes: `factorial_anova / 2x2_between` or `2x2_mixed` (F4b). Unequal group sizes: coming later (decisions D5 and N1) | **Available** (equal groups); **Coming later (not in spec)** (unequal groups) | *2 x 2 ANOVA interaction*, or *2 x 2 ANOVA with unequal group sizes* |
-| Two levels | A score | P1 | `regression_interaction / two_way` (X binary, W continuous) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
-| A score | Two groups | P1 | `regression_interaction / two_way` (X continuous, W binary) | **Coming later (spec ready)** | *moderated regression (continuous x binary interaction)* |
-| A score | A score | P1 | `regression_interaction / two_way` (both continuous) | **Coming later (spec ready)** | *moderated regression (continuous x continuous interaction)* |
+| Two levels | A score | P1 | `regression_interaction / two_way` (X binary, W continuous) | **Coming later (spec ready)**: the engine refuses a yes/no X or W until phase 3b | *moderated regression (continuous x binary interaction)* |
+| A score | Two groups | P1 | `regression_interaction / two_way` (X continuous, W binary) | **Coming later (spec ready)**: the engine refuses a yes/no X or W until phase 3b | *moderated regression (continuous x binary interaction)* |
+| A score | A score | P1 | `regression_interaction / two_way` (both continuous) | **Available** | *moderated regression (continuous x continuous interaction)* |
 | Any | Any | P2, P3, P4, P5 (except 2 x 2 mixed above) | | **Coming later (not in spec)** | *multilevel moderation* |
 
 ---
@@ -659,8 +670,10 @@ increases effort, which raises grades.*
 
 ### ME4. Are your mediators scores?
 
-**Yes** → the form for the template chosen in ME2 or ME3: **Coming later
-(spec ready).**
+**Yes** → the form for the template chosen in ME2 or ME3: **Available**
+when X is a measured score; **Coming later (spec ready)** when X is
+conditions you assigned (a yes/no X), which the engine refuses until
+phase 3b.
 **No, at least one is yes/no or a category** → **Coming later (not in spec).**
 Not sure? A mediator is a score if it is a number that can take many values,
 like a questionnaire mean.
@@ -696,7 +709,9 @@ spec).**
 arrow)*
 Not sure? Example: *the threat manipulation raises perceived threat more for
 people who identify strongly with their group.*
-→ `moderated_mediation / process_7`, **Coming later (spec ready).** Analysis
+→ `moderated_mediation / process_7`: **Available** when X and W are
+scores; **Coming later (spec ready)** when X or W is yes/no (phase 3b).
+Analysis
 name: *first-stage moderated mediation (PROCESS model 7); test of the index
 of moderated mediation.*
 
@@ -704,7 +719,8 @@ of moderated mediation.*
 Y arrow)*
 Not sure? Example: *emotional exhaustion lowers job performance less for
 people with high coping self-efficacy.*
-→ `moderated_mediation / process_14`, **Coming later (spec ready).**
+→ `moderated_mediation / process_14`: **Available** when X and W are
+scores; **Coming later (spec ready)** when X or W is yes/no (phase 3b).
 Analysis name: *second-stage moderated mediation (PROCESS model 14); test of
 the index of moderated mediation.*
 
@@ -730,20 +746,20 @@ same status label.
 
 | Listed as | Leads to | Status |
 | --- | --- | --- |
-| One-sample t-test | `basic_test / one_sample_t` | Coming later (spec ready) |
-| Independent-samples t-test (Student's by default; Welch's as an option) | `basic_test / independent_t` | Coming later (spec ready) |
-| Paired-samples t-test | `basic_test / paired_t` | Coming later (spec ready) |
-| Pearson correlation | `basic_test / correlation` | Coming later (spec ready) |
-| Test of two proportions (z test) | `basic_test / two_proportions` | Coming later (spec ready) |
-| Chi-square test of independence | `basic_test / chi_square_independence` | Coming later (spec ready) |
+| One-sample t-test | `basic_test / one_sample_t` | **Available** |
+| Independent-samples t-test (Student's by default; Welch's as an option) | `basic_test / independent_t` | **Available** |
+| Paired-samples t-test | `basic_test / paired_t` | **Available** |
+| Pearson correlation | `basic_test / correlation` | **Available** |
+| Test of two proportions (z test) | `basic_test / two_proportions` | **Available** |
+| Chi-square test of independence | `basic_test / chi_square_independence` | **Available** |
 | 2 x 2 between-participants ANOVA | `factorial_anova / 2x2_between` | **Available** |
 | 2 x 2 mixed ANOVA (one factor between, one within) | `factorial_anova / 2x2_mixed` | **Available** |
-| Moderated regression (two-way interaction) | `regression_interaction / two_way` | Coming later (spec ready) |
-| Simple mediation (PROCESS model 4) | `mediation / process_4`, one mediator | Coming later (spec ready) |
-| Parallel mediation (PROCESS model 4) | `mediation / process_4`, several mediators | Coming later (spec ready) |
-| Serial mediation (PROCESS model 6) | `mediation / process_6` | Coming later (spec ready) |
-| PROCESS model 7 | `moderated_mediation / process_7` | Coming later (spec ready) |
-| PROCESS model 14 | `moderated_mediation / process_14` | Coming later (spec ready) |
+| Moderated regression (two-way interaction) | `regression_interaction / two_way` | **Available** with two scores; Coming later (spec ready) with a yes/no X or W |
+| Simple mediation (PROCESS model 4) | `mediation / process_4`, one mediator | **Available** with a score X; Coming later (spec ready) with a yes/no X |
+| Parallel mediation (PROCESS model 4) | `mediation / process_4`, several mediators | **Available** with a score X; Coming later (spec ready) with a yes/no X |
+| Serial mediation (PROCESS model 6) | `mediation / process_6` | **Available** with a score X; Coming later (spec ready) with a yes/no X |
+| PROCESS model 7 | `moderated_mediation / process_7` | **Available** with score X and W; Coming later (spec ready) with a yes/no X or W |
+| PROCESS model 14 | `moderated_mediation / process_14` | **Available** with score X and W; Coming later (spec ready) with a yes/no X or W |
 | One-way ANOVA; repeated-measures ANOVA; planned contrasts; 2 x 2 within ANOVA; 2 x 2 x 2 ANOVA; ANCOVA | | Coming later (not in spec) |
 | Three-way interaction; PROCESS models 8, 58, 59 | | Coming later (not in spec) |
 | Equivalence test (TOST); minimum-effect test | | Coming later (not in spec) |

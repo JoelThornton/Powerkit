@@ -1,0 +1,19 @@
+flowchart TD
+  Q2{"Q2 What is your outcome like?"}
+  Q2 -->|A score| Q3{"Q3 Who gives the data?"}
+  Q3 -->|Each person measured<br/>once, on both| R1{"R1 What is the<br/>other variable like?"}
+  Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
+  R1 -->|A score| E4["E4 Pearson correlation"]
+  R1 -->|Groups or categories| A2["Chart A2: a difference<br/>between groups"]
+  R1 -->|Several predictors,<br/>or covariates| E24["E24 Multiple regression"]
+  Q2 -->|Yes/no| E27["E27 Logistic regression"]
+  Q2 -->|Categories, other<br/>variable categories| E6["E6 Chi-square test<br/>of independence"]
+  class Q2,Q3,R1 q
+  class E4,E6 avail
+  class E24,E27,E41 later
+  class A2 jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3

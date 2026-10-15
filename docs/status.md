@@ -40,6 +40,27 @@ fully validated. Validation runs are recorded in
   equivalence, precision, bias-corrected and replication planning, several
   outcomes, ordinal outcomes) lists candidate tools for each, checked
   against their own package sources.
+- **Decision tree (draft):** [`decision-tree.md`](decision-tree.md) is a
+  draft spec of how an app user gets from their study to a power analysis,
+  for phase 5. It covers how G*Power, Superpower, Spower, power4mome,
+  InteractionPoweR and PAMLj route users; a question tree mapped to the
+  spec schema, with end points E1 to E40; the judgement calls where
+  methodologists disagree, left undecided; and open questions. All of it
+  is a proposal for the maintainer to confirm. It builds on
+  [`design-finder.md`](design-finder.md), whose status labels are now up
+  to date. The flowcharts, including a single full chart for
+  presentations, are rendered in
+  [`figures/decision-tree/`](figures/decision-tree/).
+  Section 4 proposes how to handle studies with several hypotheses: an
+  optional guided "plan my whole study" route (variables defined once,
+  one card per analysis, the combined N for the primary analyses, and
+  warnings when effect sizes contradict each other), two approaches to
+  consistency (per hypothesis, or whole-study simulation) left
+  undecided, and a worked example.
+- **Coverage:** [`coverage.md`](coverage.md) now also has rows for ANCOVA
+  (including pre–post), covariates in mediation, mediation with a
+  multi-category X, moderation with a 3+ group X or W, and several
+  hypotheses in one study.
 - **Validation on GitHub:** the `full-validation` workflow works: after a
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier
@@ -53,7 +74,9 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-1. Full validation runs for the mediation and moderated mediation chunks
+1. Record the process_6 (serial mediation) run that finished on GitHub on
+   15 October in the validation log, then the full validation runs for the
+   remaining mediation and moderated mediation chunks
    (on GitHub or locally, now that they run in batches), and the
    remaining published values.
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
@@ -67,4 +90,6 @@ fully validated. Validation runs are recorded in
    MorePower paper.
 5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-6. Phase 5: the Shiny app.
+6. Phase 5: the Shiny app, guided by [`decision-tree.md`](decision-tree.md)
+   and [`design-finder.md`](design-finder.md) once the maintainer has
+   answered their open questions.
