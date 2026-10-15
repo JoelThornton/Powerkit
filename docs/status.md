@@ -27,9 +27,10 @@ fully validated. Validation runs are recorded in
   and 8).
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
   (#4). It is not merged.
-- **Validation on GitHub:** the first run of the `full-validation`
-  workflow (basic chunk) failed while installing packages (a missing
-  system library for igraph); fixed, and to be rerun.
+- **Validation on GitHub:** the `full-validation` workflow works: after a
+  setup fix (PR #11), the basic chunk passed there on 15 October 2026
+  (20 PASS, 4 SKIP for TODO published values), matching the earlier
+  Windows runs ([validation log](validation-log.md)).
 - **Memory:** mediation and moderated-mediation simulations run in batches
   of at most 200 replications, so they no longer need more memory than an
   ordinary laptop has (an unbatched 10,000-replication run did). The

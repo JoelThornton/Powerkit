@@ -1,4 +1,3 @@
-[summary.txt](https://github.com/user-attachments/files/33514116/summary.txt)
 # Validation log
 
 Every full validation run of the powerkit engine, newest last. A full run is
@@ -125,9 +124,21 @@ run reporting 10 PASS) are invalid and are superseded by the 14 October
   the simulation's Type I error rate. Simulation versions of these tests
   are an open item (`docs/build-guide.md`, section 6).
 
+## 2026-10-15 · basic (GitHub Actions)
 
+- **Run:** the first run of the `full-validation` workflow on GitHub
+  ([run 38799579835](https://github.com/JoelThornton/Powerkit/actions/runs/38799579835)),
+  after PR #11 fixed its setup. **Commit:** 260b943 (main). **Cores:** 4,
+  one per test.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **basic:** 20 PASS, 0 FAIL, 0 ERROR, 4 SKIP (of 24). All analytic,
+  direct-call and Type I error tests pass; Type I error rates .048 to
+  .052. The 4 published-value tests skip (TODO values), as expected. Same
+  outcome as the 13 October runs on Windows.
 
-  ===== powerkit validation summary (copy from here) =====
+```
+===== powerkit validation summary (copy from here) =====
 Date: 2026-10-15 20:15   Commit: 260b943   Cores: 4
 R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
 Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
@@ -178,4 +189,4 @@ PASS    basic / two proportions: Type I error is near alpha (9s)
 PASS    basic / chi-square test of independence: Type I error is near alpha (7s)
           success: Type I error rate 0.0511; must lie in [0.040, 0.060] for alpha = 0.05.
 ===== end of summary =====
-
+```
