@@ -8,12 +8,14 @@
   most laptops have. The method is unchanged (each batch is an ordinary
   `power4test()` call), but results are not identical to earlier,
   unbatched runs with the same seed. The batch size is recorded in the
-  result's provenance (`batch_size`).
+  result's provenance (`batch_size`), with the cores, which change the
+  result only when there are fewer batches than cores.
 * Validation (for maintainers): a `full-validation` GitHub Actions
   workflow runs one validation chunk on demand on GitHub's machines and
   uploads the results (docs/validation-log.md, "Running the full
   validation on GitHub"); `scripts/run-validation.R --cores-per-test k`
-  gives each test k cores (Linux and macOS).
+  gives each test k cores (Linux and macOS), and its summary now also
+  records the manymome version.
 
 * The "not available yet" messages for a yes/no (binary) X or W in
   regression interactions and mediation designs no longer suggest treating

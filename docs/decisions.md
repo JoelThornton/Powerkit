@@ -1081,10 +1081,22 @@ of 250, peak memory was the same (382 MB); with 2,000 draws instead of
 - The direct-call validation helper `direct_power4mome()` uses the same
   batches and seeds (and spreads them over POWERKIT_CORES cores, as the
   engine does), so both sides of a direct-call test use the same approach.
+  The direct-call validation tests therefore use identical simulated data
+  for powerkit and power4mome: they check that powerkit passes the
+  arguments correctly, not independent Monte Carlo agreement, which comes
+  from the published-value tests.
 - Provenance records `batch_size` (`NA` for backends that are not run in
-  batches). A simulated result is determined by the seed, replications,
-  cores and batch size; above `cores x batch size` replications the number
-  of chunks, and so the result, no longer depends on the cores.
+  batches) and `cores`. A simulated result is determined by the seed,
+  replications and batch size, and also by the cores when there are fewer
+  batches than cores (nrep below cores x batch size), because the number
+  of chunks is then the number of cores. Checked on a small run (simple
+  mediation, batch size 4): 20 replications gave identical results on 1
+  and 4 cores (5 batches either way), 10 replications did not (3 batches
+  on 1 core, 4 on 4 cores). A unit test checks the 20-replication case,
+  forking on Linux (CI). Validation runs (10,000 replications, 50 batches)
+  are unaffected by the cores, on up to 50 of them. The validation
+  summary records the cores and cores per test ("Cores: 4 (4 per test)")
+  and the package versions, including power4mome and manymome.
 
 **Not bit-identical to earlier runs.** A batched run with a given seed
 simulates different data sets from an unbatched run with the same seed

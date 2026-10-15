@@ -129,9 +129,12 @@ test_that("simulation is used on request, with Monte Carlo errors", {
   expect_equal(result$curve$mcse, sqrt(result$curve$power * (1 - result$curve$power) / 100))
 })
 
-test_that("provenance records the batch size of a batched backend", {
-  # A backend that simulates in batches (as power4mome does): seed and batch
-  # size together determine the result, so both are recorded.
+test_that("provenance records the batch size and cores of a batched backend", {
+  # A backend that simulates in batches (as power4mome does): the seed,
+  # batch size and cores together determine the result (the cores only
+  # when there are fewer batches than cores), so all are recorded.
+  old <- options(powerkit.cores = 3)
+  on.exit(options(old))
   local_mocked_bindings(route_spec = function(spec, seed) {
     list(
       name = "mock", packages = character(), methods = "simulation",
@@ -145,6 +148,7 @@ test_that("provenance records the batch size of a batched backend", {
   })
   result <- run_quietly(small_run_spec("anova_2x2_mixed", method = "simulation"))
   expect_equal(result$provenance$batch_size, 30L)
+  expect_equal(result$provenance$cores, 3L)
   # 100 replications in 4 batches of 25: 12 rejections each.
   expect_equal(result$curve$power, 48 / 100)
 })

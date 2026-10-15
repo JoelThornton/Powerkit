@@ -696,7 +696,7 @@ write_summary <- function(tests, results_dir, cores) {
   versions <- c(
     powerkit = unname(read.dcf(file.path("engine", "DESCRIPTION"), "Version")[1, 1]),
     vapply(
-      c("Superpower", "Spower", "InteractionPoweR", "power4mome", "lavaan", "testthat"),
+      c("Superpower", "Spower", "InteractionPoweR", "power4mome", "manymome", "lavaan", "testthat"),
       function(p) tryCatch(as.character(utils::packageVersion(p)), error = function(e) "not installed"),
       character(1)
     )
