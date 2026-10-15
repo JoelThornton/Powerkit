@@ -1,5 +1,11 @@
 # powerkit
 
+> **⚠️ In development: not ready for use.** powerkit is still being built.
+> Its results are not yet fully validated, so please don't use it to plan
+> real studies yet. See [`docs/validation-log.md`](docs/validation-log.md)
+> for the current validation status, and [`docs/status.md`](docs/status.md)
+> for where the project is.
+
 A power analysis tool for psychology. You describe your study once, in plain
 terms, and powerkit routes it to a validated R package to work out the power,
 the sample size you need, or the smallest effect you could detect.
@@ -9,8 +15,9 @@ peer-reviewed R packages:
 [Superpower](https://cran.r-project.org/package=Superpower),
 [Spower](https://cran.r-project.org/package=Spower),
 [power4mome](https://cran.r-project.org/package=power4mome) and
-[InteractionPoweR](https://cran.r-project.org/package=InteractionPoweR).
-It adds what those packages don't have:
+[InteractionPoweR](https://cran.r-project.org/package=InteractionPoweR),
+and is grateful to their authors. Every result records which package
+computed it. On top of those packages, powerkit adds:
 
 - one specification format for every design;
 - checks that the population you describe is possible;
@@ -89,6 +96,8 @@ plain English. Example specs for every design are in
 
 ## Documentation
 
+- [Status](docs/status.md): where the project is and what's next.
+- [Validation log](docs/validation-log.md): every full validation run.
 - [Build guide](docs/build-guide.md): the plan, architecture, spec format,
   engine design and validation targets.
 - [Decisions log](docs/decisions.md): why things are the way they are.

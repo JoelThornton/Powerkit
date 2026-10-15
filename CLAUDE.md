@@ -37,3 +37,4 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 - Run devtools::test() and devtools::check() in engine/; both must pass
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes.
+- Update docs/status.md (where the project is and what's next) in every PR.

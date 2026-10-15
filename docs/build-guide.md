@@ -4,27 +4,27 @@ Oct 12, 2026 · @Joel Thornton
 
 One R simulation engine, three front doors (design forms, full-model builder, optional AI assistant), validated against published results before anything ships. This guide is written to hand to Claude Code.
 
-## 1. Prior-art check: the engine exists, the product doesn't
+## 1. Prior art: the tools powerkit builds on
 
-The "one engine" half of the idea now exists as R code; the "one tool anyone can use" half does not. Two packages from 2025–26 change the build plan: build the front end and write-up layer on top of them rather than reimplementing the maths.
+The statistics powerkit needs already exist in well-tested, peer-reviewed R packages. Two packages from 2025–26, Spower and power4mome, shaped the build plan: powerkit adds a front end and write-up layer on top of them rather than reimplementing the maths.
 
-| Tool | What it covers | Interface | What it lacks for your user |
+| Tool | What it covers | Interface | Notes |
 | --- | --- | --- | --- |
-| [Spower](https://cran.r-project.org/web/packages/Spower/index.html) (Chalmers, 2025; v0.6.4 June 2026) | General-purpose Monte Carlo power engine; simulation versions of all G\*Power tests, mediation, Bayesian power; a priori, sensitivity, compromise and criterion analyses with MC uncertainty | R code only | No point-and-click front end; you write your own generate/analyse functions for anything non-standard |
-| [power4mome](https://cloud.r-project.org/web/packages/power4mome/index.html) (Cheung et al., v0.2.1 March 2026) | Moderation, mediation, moderated mediation, latent mediation, via lavaan or regression; sample size search; power curves | R code only | No GUI; requires lavaan model syntax |
-| [pwrss](https://www.rdocumentation.org/packages/pwrss/versions/1.3.1/topics/power.z.mediation) | Broad analytic coverage incl. ANOVA/ANCOVA, regression, logistic, Poisson, indirect effects (Monte Carlo test) | R + Shiny apps | Formula-based; no general interaction shapes or moderated mediation |
-| [Superpower](https://journals.sagepub.com/doi/10.1177/2515245920951503) | Factorial ANOVA up to three factors, between/within/mixed | R + Shiny | ANOVA only |
-| InteractionPoweR | 2- and 3-way regression interactions with reliability | R + Shiny | Interactions only |
-| pwrSEM, semPower | SEM parameter and fit power | Shiny / R | SEM only, steep set-up |
-| PowerGPT, N-Power AI | LLM + engine for clinical trial tests | Web / prototype | Not psychology models |
+| [Spower](https://cran.r-project.org/web/packages/Spower/index.html) (Chalmers, 2025; v0.6.4 June 2026) | General-purpose Monte Carlo power engine; simulation versions of all G\*Power tests, mediation, Bayesian power; a priori, sensitivity, compromise and criterion analyses with MC uncertainty | R code | Very flexible: users can supply their own generate/analyse functions for non-standard designs |
+| [power4mome](https://cloud.r-project.org/web/packages/power4mome/index.html) (Cheung et al., v0.2.1 March 2026) | Moderation, mediation, moderated mediation, latent mediation, via lavaan or regression; sample size search; power curves | R code | Models are written in lavaan syntax |
+| [pwrss](https://www.rdocumentation.org/packages/pwrss/versions/1.3.1/topics/power.z.mediation) | Broad analytic coverage incl. ANOVA/ANCOVA, regression, logistic, Poisson, indirect effects (Monte Carlo test) | R + Shiny apps | Formula-based (analytic) calculations |
+| [Superpower](https://journals.sagepub.com/doi/10.1177/2515245920951503) | Factorial ANOVA up to three factors, between/within/mixed | R + Shiny | Specialised in factorial ANOVA |
+| InteractionPoweR | 2- and 3-way regression interactions with reliability | R + Shiny | Specialised in regression interactions |
+| pwrSEM, semPower | SEM parameter and fit power | Shiny / R | Specialised in SEM |
+| PowerGPT, N-Power AI | LLM + engine for clinical trial tests | Web / prototype | Focused on clinical trial designs |
 
-**Verdict:** nobody has a single interface that takes a psychology design, routes it to a validated engine, confirms the model with the user, and returns a power curve, reproducible script and APA paragraph. That is still open, but the window is narrowing: the Spower and power4mome authors are the most likely people to build it.
+**Where powerkit fits:** we did not find a single interface that takes a psychology design, routes it to one of these engines, confirms the model with the user, and returns a power curve, reproducible script and APA paragraph. powerkit aims to be that layer, built on the packages above and crediting them in every result.
 
 **What this changes in the plan**
 
 - **Wrap, don't reimplement.** Use Spower and power4mome (plus Superpower and InteractionPoweR for their specialities) as engine backends. They are peer-reviewed and maintained, which cuts your validation burden and gives reviewers names they already trust.
-- **Your contribution is the layer they lack:** the unified specification, the design forms and model builder, the confirmation screen, the write-up and citation generator, and the optional AI assistant.
-- **Contact the authors early** (Phil Chalmers for Spower; Shu Fai Cheung for power4mome). Collaboration or endorsement turns your biggest competitive threat into your strongest trust signal.
+- **powerkit's contribution is a layer on top of them:** the unified specification, the design forms and model builder, the confirmation screen, the write-up and citation generator, and the optional AI assistant.
+- **Contact the authors early** (Phil Chalmers for Spower; Shu Fai Cheung for power4mome): share the plan, ask for their advice, and report anything found while wrapping their packages. powerkit depends on their work and should credit it clearly.
 - **Your own validation still matters:** test that your specification-to-engine translation is right, by checking your results equal what each package gives when called directly, and match published examples.
 
 ## 2. Coverage: what psychologists need power for
@@ -36,8 +36,8 @@ So far we had covered interactions and mediation/moderation. The biggest gaps we
 | Basic tests | t-tests, correlations, chi-square, proportions | Baseline users and teaching; G\*Power parity | MVP | Spower |
 | Factorial ANOVA | 2x2 between, 2x2 mixed, 2x2x2, ANCOVA | Most common experimental design | MVP | Superpower / Spower |
 | Interactions in regression | Continuous × continuous, continuous × binary, three-way, reliability | Moderation hypotheses | MVP | InteractionPoweR / power4mome |
-| Mediation | Simple, parallel, serial (PROCESS 4, 6) | Very common, poorly served by G\*Power | MVP | power4mome |
-| Moderated mediation | PROCESS 7, 8, 14, 58, 59; index of moderated mediation | Your core niche | MVP (7, 14), v2 (rest) | power4mome |
+| Mediation | Simple, parallel, serial (PROCESS 4, 6) | Very common in psychology | MVP | power4mome |
+| Moderated mediation | PROCESS 7, 8, 14, 58, 59; index of moderated mediation | A core focus for powerkit | MVP (7, 14), v2 (rest) | power4mome |
 | Equivalence and smallest effect of interest | TOST, minimum-effect tests | Increasingly required by Registered Reports | v2 | Spower |
 | Generalised linear models | Logistic, Poisson, ordinal / Likert outcomes | Binary and count outcomes are common | v2 | Spower / pwrss |
 | Mixed-effects models | Crossed participants × stimuli, nested designs | Reviewers increasingly expect this for experiments with items | v2 | simr / faux |
