@@ -4,6 +4,8 @@ Oct 12, 2026
 
 One R simulation engine, three front doors (design forms, full-model builder, optional AI assistant), validated against published results before anything ships. This guide is written to hand to Claude Code.
 
+**Goal (the maintainer's).** powerkit aims to give psychologists one place to run the power analyses offered by Superpower, Spower, power4mome, InteractionPoweR and G\*Power. It is built on those tools and credits them, and it is validated against them. For the rare cases no form covers, the route is the full-model builder and the R script export. What each tool offers, and where powerkit stands on each capability, is in [`coverage.md`](coverage.md).
+
 ## 1. Prior art: the tools powerkit builds on
 
 The statistics powerkit needs already exist in well-tested, peer-reviewed R packages. Two packages from 2025–26, Spower and power4mome, shaped the build plan: powerkit adds a front end and write-up layer on top of them rather than reimplementing the maths.
@@ -47,6 +49,8 @@ So far we had covered interactions and mediation/moderation. The biggest gaps we
 | Bayesian design analysis | Bayes factor design analysis, posterior precision | Growing minority | Later | Spower / BFDA |
 | Sequential designs | Group-sequential, interim analyses | Efficient sampling, RR friendly | Later | rpact |
 | Precision (AIPE) | n for a target confidence interval width | Alternative to power for estimation-focused work | v2 | Custom |
+
+The capability-by-capability inventory of the five tools powerkit builds on, with powerkit's status, proposed tier and validation for each row, is in [`coverage.md`](coverage.md).
 
 **Cross-cutting options every design needs:** attrition and missing data, unequal group sizes, measurement reliability, multiple-comparison correction, non-normal data, and a sensitivity analysis (smallest detectable effect at a fixed n).
 
@@ -234,13 +238,16 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 1. Spec + tests | JSON schema, spec validator, all MVP validation tests written (failing) | Tests exist and fail for the right reason |
 | 2. First backend | 2x2 between and mixed via Superpower/Spower; sample size search; result object | 2x2 tests pass, Type I check passes |
 | 3. Mediation backends | Models 4, 6, 7, 14 and regression interactions via power4mome / InteractionPoweR | All MVP validation tests pass |
+| 3b. Binary X and W | A yes/no (binary) X or W in regression interactions and mediation (see below) | Its validation tests pass |
 | 4. Exports | Script export, write-up, citations, prereg text | Exported scripts rerun and match in a clean R session |
 | 5. Shiny app | Four-screen flow for MVP designs | Five PhD students complete a task unaided |
 | 6. v2 designs | Equivalence, GLMs, mixed-effects, AIPE | Their validation tests pass |
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
-**Proposed next phase (not started, no code yet): binary X and W**
+**Next phase (not started, no code yet): binary X and W**
+
+*Timing (maintainer's decision, `docs/decisions.md`, 15 October 2026):* this phase comes next, after phase 3 closes and before phase 4, because phase 4's methods paragraphs and scripts need to cover binary variables.
 
 Section 2 lists continuous × binary interactions as MVP, and the example PROCESS model 7 spec in section 4 has a binary X, but the engine refuses a binary X or W in regression interactions and mediation designs ("not available yet"; treating the variable as continuous may give an inaccurate power estimate). This phase would add them, in three steps, each reviewed before the next.
 
@@ -251,7 +258,11 @@ Section 2 lists continuous × binary interactions as MVP, and the example PROCES
   1. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
   2. Has power4mome's Monte Carlo CI test been checked with a binary X?
 
-*b. Convention, and a decision for the maintainer.* Both backends treat a binary variable as fully standardised: power4mome rescales it to SD 1 with `rbinary_rs()` (above), and InteractionPoweR standardises it after the split. powerkit follows that by default, so a "standardised path" from a 0/1 X means per SD of X. The decision left for the maintainer is whether to offer the other reading as well (Y standardised and X left as 0/1, so the path reads like Cohen's d). That would be a departure: it goes in `docs/conventions.md` with a test of its size, is shown on the results screen and stated in the methods paragraph. The group split (equal, or an allocation ratio through `p1`; InteractionPoweR allows only 50/50) is decided at the same time.
+*b. Decisions (the maintainer's, `docs/decisions.md`, 15 October 2026).*
+
+- **Effect sizes.** v1 uses fully standardised paths, following both backends: InteractionPoweR standardises binary variables after the split, and power4mome's `rbinary_rs()` rescales a 0/1 variable to mean 0 and SD 1. A "standardised path" from a 0/1 X therefore means per SD of X. Entering a condition effect as Cohen's d (Y standardised, X left as 0/1) comes later. It will be a departure, so it goes in `docs/conventions.md` with a test showing the size of any difference, is shown on the results screen and is stated in the methods paragraph.
+- **Group split.** 50/50 by default. Unequal groups are offered only where the backend supports them (power4mome, through `rbinary_rs()`'s `p1`). Interactions are always 50/50, because InteractionPoweR has no option for unequal groups, and the app says so.
+- **Correlated predictors.** power4mome requires a binary X or W (generated with `x_fun`) to be uncorrelated with the other predictors. That fits a randomised condition. A binary W correlated with X isn't supported, and the user is told so plainly instead of being given an approximation.
 
 *c. Validation targets.*
 
@@ -261,7 +272,7 @@ Section 2 lists continuous × binary interactions as MVP, and the example PROCES
 - Published, interactions: an InteractionPoweR example with a binary variable, if the tutorial or package articles have one (to find).
 - Agreement between powerkit's binary-W interaction and its 2x2 ANOVA when both X and W are binary, as a cross-check between backends.
 
-Done when the maintainer has decided on the d-like option and the group split, the remaining questions to Shu Fai Cheung are answered or set aside, and these tests pass.
+Done when the remaining questions to Shu Fai Cheung are answered or set aside, and these tests pass. (The effect-size convention and the group split are decided; see b.)
 
 **Example phase prompt (phase 2)**
 

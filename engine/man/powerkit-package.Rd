@@ -11,5 +11,10 @@ Reads a single design specification (JSON) for common psychology designs, checks
 \author{
 \strong{Maintainer}: Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
 
+Authors:
+\itemize{
+  \item Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
+}
+
 }
 \keyword{internal}

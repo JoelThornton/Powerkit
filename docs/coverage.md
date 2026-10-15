@@ -1,0 +1,312 @@
+# Coverage matrix
+
+*Last updated: 15 October 2026.*
+
+This page lists the user-facing capabilities of the five tools powerkit
+builds on: Superpower, Spower, power4mome, InteractionPoweR and G\*Power.
+For each capability it gives powerkit's status. The goal behind it (build
+guide, overview) is one place for psychologists to run the power analyses
+these tools offer, built on them, crediting them and validated against
+them.
+
+Each row comes from the tool's own documentation and source (the versions in
+`renv.lock`), not from memory. Where a GitHub development version differs,
+this is noted below.
+
+**The tiers are proposals for the maintainer to confirm.** Rows marked
+*(proposal)* in the Tier column have not been agreed. Tiers already set in
+the build guide (section 2) are marked *(build guide)*.
+
+## How to read the table
+
+| Column | Meaning |
+| --- | --- |
+| Capability | What a user can do, in plain terms |
+| Tool(s) | Which of the five tools offer it, with the function or section and a source tag (see Sources) |
+| powerkit | **done** (runs through `run_spec()`), **partial** (some of it), **planned** (in the build plan or proposed here), **not planned** (proposed to leave out, with the reason in Notes) |
+| Tier | MVP / v2 / later |
+| Validated? | Whether a validation test covers it, with the file in `engine/tests/testthat/`. "Full run passed" means a recorded full validation run ([validation log](validation-log.md)) |
+| Notes | Limits, conventions and anything unclear |
+
+## Sources
+
+Package sources were read from the CRAN releases in `renv.lock`, taken from
+the CRAN mirror on GitHub (`github.com/cran/<package>`) at the release tag,
+and from each package's own GitHub repository for the development version.
+
+| Tag | Source |
+| --- | --- |
+| [SP] | Superpower 0.2.4.1 (CRAN; `renv.lock`): `man/`, vignettes `intro_to_superpower`, `more_anova_designs`, `ANCOVAs`, `compromise_power`, `emmeans_power` |
+| [SP-dev] | Superpower on GitHub (`arcaldwell49/Superpower`, commit c606a92, 24 April 2026; version 0.2.4.2) |
+| [SP-book] | Caldwell, Lakens et al., *Power Analysis with Superpower* (book source, `arcaldwell49/SuperpowerBook`, commit 6dde62d), including "Appendix 2: Direct Comparison to MOREpower" |
+| [Sp] | Spower 0.6.4 (CRAN; `renv.lock`): `man/`, `README`, vignettes `SpowerIntro`, `SpowerIntro_logicals`, `Spower_TypeSM`, `gpower_examples` |
+| [Sp-dev] | Spower on GitHub (`philchalmers/Spower`, commit 862b867, 15 October 2026; version 0.7) |
+| [p4m] | power4mome 0.2.1 (CRAN; `renv.lock`): `man/`, vignettes `power4mome`, `power4test_latent_mediation` |
+| [p4m-dev] | power4mome on GitHub (`sfcheung/power4mome`, commit 253f83e, 14 October 2026; version 0.2.1.33), including the website articles in `vignettes/articles/` and `NEWS.md` |
+| [IP] | InteractionPoweR 0.2.4 (CRAN; `renv.lock`): `man/`, `R/`, `NEWS.md` |
+| [IP-dev] | InteractionPoweR on GitHub (`dbaranger/InteractionPoweR`, commit f4f2b2b, 23 March 2026): the website articles in `vignettes/articles/` (main vignette, three-way, covariates, stability, common questions) and `README` |
+| [GP] | G\*Power 3.1 manual (Faul, Erdfelder, Buchner & Lang; edition of 1 June 2023 on the HHU site). **Not read in this session:** its host was not reachable from the build environment. G\*Power rows are taken from the manual example numbers and titles that Spower's `gpower_examples` vignette reproduces ([GP via Sp]), or from the manual's contents as shown in web search results ([GP, search]). [GP: to check] marks rows with no source yet. **Every G\*Power row needs checking against the manual.** |
+| [powerkit] | This repository: `engine/inst/schema/design.schema.json`, `engine/R/`, `docs/conventions.md` |
+
+## Differences between the CRAN and development versions
+
+- **Spower 0.7 (GitHub) vs 0.6.4.** One-sided tests: `p_r()`, `p_2r()`,
+  `p_prop.test()`, `p_ks.test()`, `p_scale()` and others gain an
+  `alternative` argument passed to the underlying test, replacing the
+  halved two-sided p-value. `two.tailed` is removed from `p_anova.test()`,
+  `p_mcnemar.test()` and `p_mediation()`. This is the upstream fix behind
+  powerkit's Departure 4 ([conventions](conventions.md)). The set of
+  exported functions is unchanged [Sp, Sp-dev].
+- **power4mome 0.2.1.33 (GitHub) vs 0.2.1.** New in the development version
+  [p4m-dev, `NEWS.md`]: power for SAM (structural-after-measurement,
+  `lavaan::sam()`); `rig_rs()` for correlated non-normal variables;
+  `test_fit_measure()` (rejection rate from a fit measure); model
+  misspecification keys (`.beta_nil.`, `.fm.`), including for multigroup
+  models; `common_processes()` (ordinal, missing and scale-score processing
+  together); missing data by variable pattern, wave and attrition rate;
+  several tests in one `power4test()` call; plotting of ordinal cut
+  patterns. The website articles are only in the GitHub repository (they
+  are not in the CRAN package), and the website was built with 0.2.1.31.
+- **InteractionPoweR (GitHub) vs 0.2.4.** Same R code (differences are line
+  endings and packaging); the website articles are only on GitHub.
+- **Superpower 0.2.4.2 (GitHub) vs 0.2.4.1.** Only a fix to the plotting
+  code for current ggplot2 (`aes_string()` replaced). That is the source of
+  the two ggplot2 deprecation warnings seen in powerkit's test run with
+  0.2.4.1.
+
+## Basic tests
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| One-sample t-test | Spower `p_t.test(type = "one.sample")` [Sp]; G\*Power t test, means: difference from constant (Example 20.3) [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` (full run passed; G\*Power published values TODO) | One-sided tests follow Departure 4 |
+| Independent-samples t-test, equal or unequal groups, Student or Welch | Spower `p_t.test()` with `n2_n1`, `var.equal` [Sp]; G\*Power t test, two independent means [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | Unequal groups via `options > allocation_ratio` |
+| Paired-samples t-test | Spower `p_t.test(type = "paired")` [Sp]; G\*Power t test, matched pairs (Example 19.3) [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | Effect size d_z |
+| Pearson correlation against 0 | Spower `p_r()` [Sp]; G\*Power exact test, bivariate normal model [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |
+| Correlation against a constant other than 0 | Spower `p_r(rho = )` [Sp]; G\*Power Example 3.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Two independent correlations | Spower `p_2r()` [Sp]; G\*Power Example 27.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Two dependent correlations (common index or none) | Spower `p_2r()` [Sp]; G\*Power Examples 28.3.1, 28.3.2 [GP via Sp] | planned | later *(proposal)* | No | |
+| Point-biserial correlation | G\*Power Example 16.3, reproduced in Spower's vignette [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Tetrachoric, polychoric and polyserial correlation | Spower `p_r.cat()` [Sp]; G\*Power Example 31.3 (tetrachoric) [GP via Sp] | planned | later *(proposal)* | No | |
+| One proportion against a constant (binomial or exact) | Spower `p_prop.test()` (`binom.test()`) [Sp]; G\*Power exact test, proportion: difference from constant (Example 4.3) [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Two independent proportions | Spower `p_prop.test()` [Sp]; G\*Power [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | No continuity correction (Departure 5) |
+| Fisher's exact test for two proportions | Spower `p_prop.test(exact = TRUE)` [Sp]; G\*Power Fisher's exact test [GP, search] | planned | v2 *(proposal)* | No | |
+| Two dependent proportions (McNemar) | Spower `p_mcnemar.test()` [Sp]; G\*Power Example 5.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Chi-square test of independence | Spower `p_chisq.test()` [Sp]; G\*Power chi-square tests [GP, search] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |
+| Chi-square goodness of fit | Spower `p_chisq.test(w, df)` or `P0`/`P` [Sp] | planned | v2 *(proposal)* | No | |
+| Sign test, generic binomial test | G\*Power exact tests [GP, search] | planned | later *(proposal)* | No | Check in the manual |
+| Variance tests (one-sample against a constant; two groups; Levene, Bartlett, Fligner) | Spower `p_var.test()` [Sp]; G\*Power Examples 26.3, 15.3 [GP via Sp] | not planned | later *(proposal)* | No | Rare as a study's main hypothesis in psychology |
+| Scale tests (Ansari-Bradley, Mood) | Spower `p_scale()` [Sp] | not planned | later *(proposal)* | No | |
+| Wilcoxon signed-rank and Mann-Whitney tests, with a chosen parent distribution | Spower `p_wilcox.test()` with `parent1`, `parent2` [Sp]; G\*Power Examples 22.1, 22.3, 23.3 (normal and Laplace parents) [GP via Sp] | planned | v2 *(proposal)* | No | Goes with non-normal data (below) |
+| Kruskal-Wallis test | Spower `p_kruskal.test()` [Sp] | planned | later *(proposal)* | No | |
+| Kolmogorov-Smirnov, Shapiro-Wilk, Mauchly's sphericity test | Spower `p_ks.test()`, `p_shapiro.test()`, `p_mauchly.test()` [Sp] | not planned | later *(proposal)* | No | Assumption checks rather than hypotheses |
+| Generic t, F, chi-square and z tests from a noncentrality parameter | G\*Power "generic" tests [GP, search] | not planned | later *(proposal)* | No | The full-model builder and R script export are the route for unusual tests |
+| Equivalence test (TOST) for t-tests | Spower, through a confidence-interval criterion (`is.CI_within()`; `SpowerIntro_logicals`, "Equivalence testing") [Sp]; Superpower, equivalence contrasts through `emmeans_power()` [SP] | planned | v2 *(build guide)* | No | |
+| Precision (AIPE): n for a target CI width | Spower, precision criterion (`SpowerIntro_logicals`, "Precision criterion") [Sp] | planned | v2 *(build guide)* | No | |
+| Type S and Type M errors | Spower (`Spower_TypeSM` vignette) [Sp] | planned | later *(proposal)* | No | |
+
+## Linear and generalised linear regression
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Multiple regression: R² against 0, or R² increase over a set of predictors (fixed predictors) | Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` [Sp]; G\*Power Examples 13.1, 14.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Multiple regression with random predictors | Spower `p_lm.R2(fixed = FALSE)` [Sp]; G\*Power Example 7.3 [GP via Sp] | planned | later *(proposal)* | No | |
+| Simple linear regression slope | Spower `p_slr()` [Sp]; G\*Power Example 12.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| Regression for two groups (slopes or intercepts) | G\*Power Examples 17.3, 18.3, reproduced in Spower's vignette [GP via Sp] | planned | later *(proposal)* | No | Check in the manual |
+| Any linear hypothesis in a linear or generalised linear model with fixed predictors | Spower `p_glm(formula, X, betas, test)`, tested with `car::lht()` [Sp] | not planned as a form | later *(proposal)* | No | A candidate backend for the full-model builder |
+| Logistic regression | Spower `p_glm(family = binomial())` [Sp]; G\*Power z test, logistic regression [GP, search] | planned | v2 *(build guide)* | No | |
+| Poisson regression | Spower `p_glm(family = poisson())` [Sp]; G\*Power z test, Poisson regression [GP, search] | planned | v2 *(build guide)* | No | |
+
+## Factorial ANOVA
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 2x2 between-participants ANOVA | Superpower `ANOVA_design("2b*2b")`, `ANOVA_exact()`, `ANOVA_power()` [SP]; G\*Power ANOVA: fixed effects, special, main effects and interactions [GP, search] | done | MVP *(build guide)* | Yes: `test-validation-anova-2x2-between.R` (full run passed) | |
+| 2x2 mixed ANOVA (one factor between, one within) | Superpower `"2b*2w"` [SP]; G\*Power repeated measures, within-between interaction [GP, search] | done | MVP *(build guide)* | Yes: `test-validation-anova-2x2-mixed.R` (full run passed) | `ANOVA_exact()`, not `ANOVA_exact2()` (Departure 2) |
+| 2x2 within-participants ANOVA | Superpower `"2w*2w"` [SP] | planned | v2 *(proposal)* | No | |
+| One-way between ANOVA (k groups) | Superpower `"kb"`, `power_oneway_between()` [SP]; Spower `p_anova.test()` with unequal groups (`n.ratios`) and Welch (`var.equal = FALSE`) [Sp]; G\*Power Example 10.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
+| One-way within (repeated measures) ANOVA | Superpower `"kw"`, `power_oneway_within()` [SP]; G\*Power repeated measures, within factors [GP, search] | planned | v2 *(proposal)* | No | |
+| Factorial designs beyond 2x2: up to three factors, 2 to 99 levels each, any mix of between and within | Superpower `ANOVA_design()` (e.g. `"2b*3w"`, `"2b*2b*2b"`), analytic `power_twoway_between()`, `power_threeway_between()` [SP] | planned | v2 for 2x3, 3x3 and 2x2x2 *(build guide lists 2x2x2)*; later for the rest *(proposal)* | No | |
+| Unequal group sizes in between-participants designs | Superpower `ANOVA_power()` with an `n` vector, between designs only [SP]; Spower `p_anova.test(n.ratios)` [Sp] | not available | v2 *(proposal)* | No | Superpower stops for unequal n with a within factor, and `ANOVA_design()` builds data at max(n). Needs a test proving the sizes are used ([conventions](conventions.md), "Superpower and unequal group sizes") |
+| Different SDs per cell | Superpower `sd` vector [SP] | done | MVP | Yes (2x2 tests) | 2x2 array of cell SDs |
+| Correlations among repeated measures (full matrix) | Superpower `r` (single value or matrix) [SP] | partial | v2 *(proposal)* | Yes (2x2 mixed) | One `r`; a full matrix is needed once a within factor has more than two levels |
+| Sphericity correction (Greenhouse-Geisser, Huynh-Feldt) | Superpower `ANOVA_power(correction = )` [SP]; G\*Power nonsphericity correction [GP, search] | not needed yet | v2 *(proposal)* | No | No effect with two-level within factors |
+| MANOVA results for designs with within factors | Superpower `ANOVA_power()` (`manova_results`) [SP]; G\*Power MANOVA and Hotelling's T² [GP, search] | planned | later *(proposal)* | No | |
+| Correction for multiple ANOVA effects | Superpower `ANOVA_power(p_adjust = )` [SP] | planned | v2 *(proposal)* | No | |
+| Simple effects, pairwise comparisons and custom contrasts (emmeans), with their own corrections | Superpower `emm`, `emm_comp`, `contrast_type`, `emm_p_adjust`; `emmeans_power()` [SP] | planned | v2 *(proposal)* | No | |
+| ANCOVA (one-way and factorial) and ANCOVA contrasts | Superpower `power_oneway_ancova()`, `ANCOVA_analytic()`, `ANCOVA_contrast()` [SP]; G\*Power ANCOVA [GP, search] | planned | v2 *(build guide)* | No | |
+| Exact (empirical) and simulated power | Superpower `ANOVA_exact()` and `ANOVA_power()` [SP] | done | MVP | Yes (2x2 tests) | `options > method` |
+| Means plot and power-by-n plot | Superpower `ANOVA_design(plot = TRUE)`, `plot_power()` [SP] | planned | MVP (phase 5) | No | The app draws these from the engine's results |
+| Effect size entered as partial eta² or Cohen's f | G\*Power [GP, search]; Superpower `mu_from_ES()` (one-way) [SP] | planned | v2 *(proposal)* | No | As an effect-size helper that produces means |
+
+## Regression interactions
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Two-way interaction, continuous X and W, simulated | InteractionPoweR `power_interaction()` [IP] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-regression-interaction.R` | |
+| Two-way interaction, analytic | InteractionPoweR `power_interaction_r2()` [IP] | partial | MVP | Same file | Used only to bracket n; reported results always come from simulation ([conventions](conventions.md), Known differences 1) |
+| Reliability of X, W and Y | InteractionPoweR `rel.x1`, `rel.x2`, `rel.y` [IP] | done | MVP *(build guide)* | Same file (measurement-error published test TODO) | |
+| Binary X or W | InteractionPoweR `k.x1 = 2` / `k.x2 = 2`, simulation only, split 50/50 [IP]; power4mome `x_fun` with `rbinary_rs()` [p4m] | planned | MVP: next phase (3b) | No | Maintainer's decisions in build guide section 8 |
+| Ordinal X, W or Y (k levels) | InteractionPoweR `k.x1`, `k.x2`, `k.y`, `norm2ordinal()` [IP] | planned | v2 *(proposal)* | No | |
+| Binary Y | InteractionPoweR `k.y = 2` (pseudo-R² reported) [IP, IP-dev] | planned | later *(proposal)* | No | |
+| Covariates | InteractionPoweR `power_interaction_r2_covs()` with `generate.interaction.cov.input()` (analytic) [IP, IP-dev] | planned | v2 *(proposal)* | No | Analytic only, so powerkit would need a simulation route or a recorded departure |
+| Three-way interaction | InteractionPoweR `power_interaction_3way_r2()` (analytic, with reliabilities), `cor.mat.3way()`, `simple.slopes.3way()` [IP] | planned | v2 *(proposal)* | No | Analytic only in 0.2.4 |
+| Simple slopes: power and the distribution of simple slopes when the interaction is significant | InteractionPoweR `power_interaction(detailed_results = TRUE, q, ss.IQR)`, `test_interaction()`, `plot_simple_slope()` [IP, IP-dev] | planned | v2 *(proposal)* | No | |
+| Interaction shape and crossover point distributions | InteractionPoweR `detailed_results`: `shape` (B3/B1: above 1 crossover, 1 knock-out, below 1 attenuated) and `crossover` [IP-dev, main vignette] | planned | v2 *(proposal)* | No | Useful on the confirmation and results screens |
+| Stability (point and corridor of stability) | InteractionPoweR `run_pos_power_search()` [IP, IP-dev stability article] | planned | later *(proposal)* | No | |
+| Power estimate from a fitted power curve | InteractionPoweR `power_estimate()` (polynomial fit) [IP] | not planned | — | — | powerkit has its own n search |
+| Interaction with two moderators | power4mome template `moderation_obs_two_ws` [p4m-dev] | planned | later *(proposal)* | No | |
+| Interaction tested as an R² increase | G\*Power, linear multiple regression [GP, search] | — | — | — | Cross-check only; see [conventions](conventions.md), regression interaction table |
+
+## Mediation
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Simple mediation (PROCESS 4), Monte Carlo CI | power4mome `power4test()` with `test_indirect_effect()`, `q_power_mediation_simple()` [p4m]; Spower `p_mediation()` (Wald/Sobel test) [Sp] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-mediation-simple.R` | |
+| Parallel mediation, two mediators | power4mome `q_power_mediation_parallel()` [p4m] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-mediation-parallel.R` | Residuals free to correlate (Departure 7) |
+| Serial mediation, two mediators (PROCESS 6) | power4mome `q_power_mediation_serial()` [p4m] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-mediation-serial.R` | |
+| Three or more mediators (parallel or serial) | power4mome: `q_power_mediation_parallel()` and `_serial()` take vectors of paths for p mediators; any model in lavaan syntax through `power4test()` [p4m] | planned | v2 *(proposal)* | No | |
+| Several indirect effects at once (all, or at least k, significant) | power4mome `test_k_indirect_effects()`, `rejection_rates(collapse = "all_sig" / at_least_k)` [p4m] | planned | later *(proposal)* | No | |
+| Nonparametric bootstrap CI | power4mome `ci_type = "boot"` [p4m] | not planned | later *(proposal)* | No | Monte Carlo CI by design (build guide section 5, speed rules) |
+| Sobel (Wald) test | Spower `p_mediation(method = "wald")` [Sp] | not planned | — *(proposal)* | — | Less powerful than CI methods; could appear as a comparison only |
+| Binary X in mediation | Spower `p_mediation(dichotomous.X = TRUE)` [Sp]; power4mome `rbinary_rs()` [p4m] | planned | MVP: next phase (3b) | No | |
+| Effect sizes given as small, medium or large labels | power4mome `"s"`, `"m"`, `"l"` in `pop_es` [p4m] | not planned | — | — | powerkit requires a justified effect size (build guide section 4) |
+
+## Moderated mediation
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| First-stage moderated mediation (PROCESS 7), index of moderated mediation | power4mome `test_index_of_mome()` [p4m]; template `mome_obs_a` [p4m-dev] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-modmed-process7.R` | |
+| Second-stage moderated mediation (PROCESS 14) | power4mome, template `mome_obs_b` [p4m-dev] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-modmed-process14.R` | |
+| Conditional indirect effects at chosen levels of W | power4mome `test_cond_indirect()`, `test_cond_indirect_effects()` [p4m] | planned | v2 *(proposal)* | No | Needed for the Donnelly et al. (2023) benchmark (build guide section 8) |
+| Further PROCESS models (8, 58, 59 and others) | power4mome: any model in lavaan syntax with product terms [p4m] | planned | v2 for 8, 58, 59 *(build guide)*; later for the rest *(proposal)* | No | No ready-made template in power4mome for these |
+
+## Analysis types
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| A priori: required n for a target power | Spower (`n = NA` with `power`, `interval`) [Sp]; power4mome `n_from_power()`, `x_from_power(x = "n")` [p4m]; InteractionPoweR (vector of N, `power_estimate()`) [IP]; Superpower (`plot_power()` over n) [SP]; G\*Power [GP: to check] | done | MVP | Through each design's tests | Required n reported with its uncertainty interval |
+| Post hoc / prospective: power at a fixed n | All five [SP, Sp, p4m, IP; GP: to check] | done | MVP | Through each design's tests | |
+| Sensitivity: smallest detectable effect at a fixed n | Spower (effect argument `NA` with `interval`) [Sp]; power4mome `x_from_power(x = "es")` [p4m]; InteractionPoweR (vector of effect sizes; vignette "Finding the smallest detectable effect size") [IP-dev]; Superpower `morey_plot()` (power across effect sizes) [SP]; G\*Power [GP: to check] | partial | MVP for the remaining MVP designs *(proposal)* | No | 2x2 ANOVA only (`goal.type = "sensitivity"`) |
+| Compromise: alpha and power from a chosen ratio of beta to alpha | Spower `beta_alpha` [Sp]; Superpower `ANOVA_compromise()`, `optimal_alpha()` (minimise or balance error rates, with prior odds and costs) [SP]; G\*Power [GP: to check] | planned | later *(proposal)* | No | |
+| Criterion: alpha needed for a given power and n | Spower (`sig.level = NA`) [Sp]; G\*Power [GP: to check] | planned | later *(proposal)* | No | |
+| Alpha that falls with n (standardised alpha) | Superpower `alpha_standardized()`, `power_standardized_alpha()` [SP] | not planned | later *(proposal)* | No | |
+| Power curve (power by n) | Spower `SpowerCurve()` [Sp]; power4mome `power_curve()`, `power4test_by_n()` [p4m]; InteractionPoweR `plot_power_curve()` [IP]; Superpower `plot_power()` [SP] | done | MVP | Through each design's tests | `curve` in the result object |
+| Power over a grid of conditions (several effect sizes or settings) | Spower `SpowerBatch()` [Sp]; power4mome `power4test_by_es()` [p4m]; InteractionPoweR (vectors of any argument) [IP] | partial | v2 *(proposal)* | No | Over n only |
+| Effect-size helpers (convert reported t, F, r or means and SDs) | G\*Power effect-size dialogs [GP: to check] | planned | MVP (phase 5) *(build guide)* | No | |
+
+## Data features
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Binary predictors (X or W) | See regression interactions and mediation | planned | MVP: next phase (3b) | No | |
+| Ordinal variables | InteractionPoweR `k.*` [IP]; power4mome `ordinal_variables()`, `cut_patterns()` (ordinal indicators) [p4m] | planned | v2 *(proposal)* | No | |
+| Non-normal data | power4mome `x_fun` / `e_fun` with `rbeta_rs()`, `rexp_rs()`, `rlnorm_rs()`, `rt_rs()`, `runif_rs()`, `rpgnorm_rs()` [p4m]; `rig_rs()` for correlated non-normal variables [p4m-dev only]; Spower custom generators (`gen_fun`, `parent`) [Sp] | planned | v2 *(build guide: cross-cutting)* | No | |
+| Missing data | power4mome `missing_values(prop, mech = "MCAR"/"MAR"/"MNAR")` through `process_data` [p4m]; by variable pattern, wave and attrition rate [p4m-dev only] | partial | v2 *(proposal)* | No | powerkit's `options > attrition` only scales n up to a recruitment target; it doesn't simulate missingness |
+| Latent variables (number of indicators, reliability, loading differences) | power4mome `number_of_indicators`, `reliability`, `loading_difference` [p4m]; SAM [p4m-dev only] | planned | later *(build guide: SEM)* | No | |
+| Measurement error in observed variables | InteractionPoweR `rel.*` [IP]; power4mome reliability through latent models [p4m] | partial | MVP for interactions; v2 for mediation *(proposal)* | Interactions: `test-validation-regression-interaction.R` | Not yet for mediation ([conventions](conventions.md)) |
+| Multigroup models and tests of group equality | power4mome multigroup `pop_es`, `test_group_equal()` [p4m]; article `n_from_power_mediation_mg_obs_simple` [p4m-dev] | planned | later *(proposal)* | No | |
+| Robust estimation (MLR) | power4mome, articles `n_from_power_mediation_mlr_*` [p4m-dev] | planned | later *(proposal)* | No | |
+| Model misspecification (paths not truly zero) | power4mome `.beta_nil.`, `.fm.` [p4m-dev only] | not planned | later *(proposal)* | No | Development version only |
+| Fit-measure power | power4mome `test_fit_measure()` [p4m-dev only] | not planned | later *(build guide: SEM)* | No | |
+| Unequal group sizes (two groups) | Spower `n2_n1` [Sp]; G\*Power allocation ratio [GP, search] | done | MVP | Yes: `test-validation-basic-tests.R` (unequal groups) | `options > allocation_ratio`, two-group tests only |
+| Unequal variances | Spower `var.equal`, `sds` [Sp]; Superpower cell SDs [SP] | partial | MVP | Yes (Welch t, 2x2 cell SDs) | |
+
+## Bayesian approaches
+
+| Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Bayes factor as the decision rule, in simulation | Spower, user-written simulation returning a logical (example with `BayesFactor::ttestBF()`) [Sp, `SpowerIntro_logicals`] | planned | later *(build guide)* | No | Not a built-in function in Spower; the vignette shows how |
+| Posterior probability as the decision rule | Spower `sig.direction = "above"` with a user-written simulation (example with rstanarm and bayestestR) [Sp] | planned | later *(proposal)* | No | |
+| Region of practical equivalence (HDI + ROPE) | Spower vignette example [Sp] | planned | later *(proposal)* | No | |
+| Bayes factor design analysis (BFDA), including sequential designs | None of the five as a built-in feature | planned | later *(build guide)* | No | The build guide names BFDA as a likely backend |
+| Assurance (power averaged over a prior on the effect size) | Not found in the five tools' documentation | planned | later *(proposal)* | No | |
+
+## Related tools
+
+These tools are not powerkit backends. Each summary comes from the tool's
+own documentation or source, with the version read.
+
+**PAMLj** (jamovi module; `pamlj/pamlj` on GitHub, version 1.2.0, commit
+247d867). Its README and analysis definitions (`jamovi/*.a.yaml`) cover
+correlation, t-tests (independent, paired, one-sample, with equivalence
+tests), proportions, the general linear model (from partial eta², eta² or
+standardised coefficients), factorial designs from partial eta² or from cell
+means and SDs (between, within, mixed), generalised linear models (logistic,
+ordinal, multinomial), mediation (simple, two or three parallel mediators,
+two serial; joint-significance, Sobel and Monte Carlo tests), structural
+equation models (analytic or Monte Carlo; ML, WLS, DWLS, ULS) and mixed
+models (linear or logistic; solves for the number of clusters or the
+cluster size). Each analysis solves for n, power or effect size, and the
+README also lists the required alpha.
+*Not offered by any of the five main tools:* power for mixed (multilevel)
+models with a search over clusters or cluster size; ordinal and multinomial
+logistic outcomes.
+
+**WebPower** (R package 0.9.4, 13 October 2023, read from the CRAN mirror on
+GitHub; also the engine behind the webpower.psychstat.org site). Its
+functions cover correlation, proportions, t-tests (analytic and Monte
+Carlo), one-way ANOVA (also with binary or count outcomes), two-way to k-way
+ANOVA, repeated-measures ANOVA, linear, logistic and Poisson regression,
+simple mediation (Sobel), moderated mediation (PROCESS models 7, 8, 14, 15
+and 58: `wp.modmed.m7` and others), Monte Carlo SEM and mediation (including
+bootstrap), SEM by chi-square or RMSEA, univariate and bivariate latent
+change score models, longitudinal mixed models for repeated measures
+(`wp.mmrm`), and cluster-randomised and multisite-randomised trials with two
+or three arms.
+*Not offered by any of the five main tools:* cluster- and
+multisite-randomised trials; latent change score models; SEM power from
+RMSEA; ready-made functions for PROCESS models 8, 15 and 58 (power4mome can
+fit these as general lavaan models, without a template).
+
+**pwranova** (R package 1.1.5, 26 July 2026, `mutopsy/pwranova` via the CRAN
+mirror). It gives analytic power, required total n, alpha or minimal
+detectable effect (partial eta² or Cohen's f) for every main effect and
+interaction in between, within and mixed ANOVA designs. It allows any number
+of factors, capped by default at six (`max_nfactor = 6`), and a
+nonsphericity parameter (`epsilon`). It also covers planned contrasts
+(`pwrcontrast()`), t-tests and correlation tests. Its news file records
+comparisons with G\*Power.
+*Not offered by any of the five main tools:* analytic power for factorial
+designs with more than three factors from effect sizes alone. Superpower
+handles up to three factors and works from means, SDs and correlations.
+G\*Power's limits here were not checked.
+
+**MorePower 6.0** (Campbell & Thompson, 2012, *Behavior Research Methods*,
+44(4), 1255–1265, doi:10.3758/s13428-012-0186-0). **The paper and the
+program's documentation could not be read in this session** (their hosts
+were not reachable). The description below comes from the Superpower book's
+appendix comparing the two tools [SP-book] and from the paper's abstract as
+shown in search results. It needs checking against the paper before any row
+depends on it. Per [SP-book]: standalone software for power analysis for
+ANOVA, t-tests, correlations and tests of proportions, with at most 9 levels
+per factor. Users solve for n, power or effect size. An ANOVA effect is
+entered as partial eta², or as a test statistic (F, mean square for the
+effect, or t). Unlike Superpower, it doesn't give all tests at once, simple
+comparisons or corrections for multiple comparisons, and it doesn't take
+means, SDs and correlations. Per the abstract: it also computes relational
+confidence intervals for ANOVA effects and Bayesian posterior probabilities
+for the null and alternative hypotheses (BIC-based).
+*Not offered by any of the five main tools (to confirm from the paper):*
+relational confidence intervals; BIC-based posterior probabilities for
+ANOVA effects.
+
+## Rows where the documentation was unclear
+
+- **G\*Power (all rows).** The manual could not be read in this session.
+  Rows tagged [GP via Sp] use the manual's example numbers as Spower's
+  vignette cites them. Rows tagged [GP, search] rest on search-result views
+  of the manual's contents. Chapter numbers differ between editions of the
+  manual. Repeated-measures, MANOVA, ANCOVA and effect-size-dialog details
+  in particular need checking.
+- **MorePower.** Described from a secondary source and the abstract only
+  (above).
+- **InteractionPoweR three-way and covariate analyses.** Documented as
+  analytic functions only. Whether a simulation route exists for them is not
+  stated; none is exported in 0.2.4.
+- **power4mome bootstrap and Boos-Zhang.** The CRAN documentation switches
+  Boos and Zhang's method on automatically for some numbers of draws
+  (Departure 8). How this interacts with the batching powerkit uses is
+  documented in `docs/decisions.md`, not here.
+- **Assurance.** None of the five documents it. That it is missing was
+  inferred from searching their documentation, so it is not a definitive
+  statement.
