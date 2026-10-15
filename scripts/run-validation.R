@@ -16,6 +16,7 @@
 #     stop button in RStudio); rerun the same command to carry on.
 # It prints progress and an estimate of the time remaining, and ends with a
 # summary (also saved to validation-results/summary.txt) to paste back.
+# After a full run, paste the summary into docs/validation-log.md.
 #
 # From a terminal, in the repository's top folder:
 #   Rscript scripts/run-validation.R                        everything

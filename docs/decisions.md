@@ -1,6 +1,7 @@
 # Decisions log
 
 Short records of decisions that are not obvious from the code. Newest last.
+Full validation runs are recorded in `docs/validation-log.md`.
 
 ## 2026-10-12 · Phases 0–1 (set-up, specification and tests)
 
@@ -523,11 +524,19 @@ licence line; the phase 0 entry's set-up predates the choice.
    departs from Spower's default (`correct = TRUE`): conventions.md,
    Departure 5.
 7. **Spower's one-sided tests.** A minimal reproducible example is in
-   `docs/upstream/spower-one-sided-tests.R`. Reported to Phil Chalmers on
-   13 October 2026: [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3)
-   (conventions.md, Departure 4). Seeded, 10,000 replications:
+   `docs/upstream/spower-one-sided-tests.R`. Seeded, 10,000 replications:
    Type I error 0.1009 with `two.tailed = FALSE` against 0.0495 with a
-   directional test; with d = 0.5 both give 0.7931.
+   directional test; with d = 0.5 both give 0.7931. Reported to Phil
+   Chalmers on 13 October 2026 ([philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3)); confirmed,
+   fixed on GitHub (Spower 0.7, commits of 14 October 2026: the `p_*`
+   functions pass `alternative` to the underlying test, and a new
+   `alternative` argument overrides `two.tailed`) and the issue closed.
+   CRAN is still 0.6.4, with the bug (checked 15 October 2026), so
+   powerkit keeps its directional workaround. When a CRAN release has the
+   fix, the departure is retired after a test confirms the direction
+   mapping; the existing departure test is then expected to fail, which is
+   the signal to retire it (conventions.md, Departure 4; "Upstream watch"
+   below).
 8. **Parallel mediators: residuals free to correlate, as in PROCESS.** The
    direct-call test "parallel mediation with correlated residuals" now
    gives power4mome `m1 ~~ m2: 0.3739`, with the derivation from the spec's
@@ -558,9 +567,15 @@ licence line; the phase 0 entry's set-up predates the choice.
       asks for the confidence-interval rule explicitly
       (`test_method = "ci"`, a documented argument of both test functions)
       and still sets the option for the summaries. Reported to Shu Fai
-      Cheung on 13 October 2026:
-      [sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276)
-      (conventions.md, Departure 8).
+      Cheung on 13 October 2026
+      ([sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276));
+      confirmed and fixed on GitHub (power4mome 0.2.1.33, 14 October
+      2026: all five test functions use `getOption()`; he also checked
+      the package's other `options()` / `getOption()` uses). CRAN is still
+      0.2.1, with the bug (checked 15 October 2026). powerkit keeps
+      `test_method = "ci"` regardless, since Boos and Zhang off is this
+      decision, not only a workaround (conventions.md, Departure 8;
+      "Upstream watch" below).
     * *Size: none in powerkit's runs.* At the supported numbers of draws
       (39, 79, ..., 359), Boos and Zhang's p-value rule gives the same
       decision as the confidence interval in each replication, and
@@ -941,3 +956,55 @@ so effects are fully standardised. This is recorded in the proposed phase
 follows, not as a question for Shu Fai Cheung. The questions left for him
 are whether a binary X can be correlated with W and whether the Monte Carlo
 CI test has been checked with a binary X.
+
+## 2026-10-15 · Upstream reports fixed; upstream watch; validation log
+
+**Upstream reports** (checked against the upstream repositories and CRAN on
+15 October 2026). Both bugs reported on 13 October were confirmed and fixed
+on GitHub on 14 October, but neither fix is on CRAN yet:
+
+- Spower ([philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3),
+  closed): fixed in 0.7 on GitHub; CRAN 0.6.4 has the bug. See item 7 of
+  "Phase 3: maintainer decisions" and conventions.md, Departure 4.
+- power4mome ([sfcheung/power4mome#276](https://github.com/sfcheung/power4mome/issues/276)):
+  fixed in 0.2.1.33 on GitHub; CRAN 0.2.1 has the bug. See item 10 of
+  "Phase 3: maintainer decisions" and conventions.md, Departure 8.
+
+### Upstream watch
+
+powerkit stays on CRAN releases, never GitHub development versions, so the
+versions it records stay installable. When either package publishes a new
+CRAN release (Spower above 0.6.4, power4mome above 0.2.1):
+
+1. On a branch, update `renv.lock` to the new release.
+2. Run the full test suite (`devtools::test()`, `devtools::check()`) and
+   the affected validation chunks with `scripts/run-validation.R` (Spower:
+   `basic`; power4mome: `process_4`, `process_6`, `process_7`,
+   `process_14`), and record the run in `docs/validation-log.md`.
+3. Then act on the departure:
+   * **Spower:** retire Departure 4 and use Spower's own functions with
+     `alternative`, after a test confirms the direction mapping (powerkit's
+     "greater" means the effect is positive; powerkit currently passes -d).
+     The departure test "one-sided tests check the direction, unlike
+     Spower's two.tailed = FALSE" is expected to fail after the upgrade:
+     that is the signal to retire the departure, not a bug.
+   * **power4mome:** record "fixed upstream in version X" in Departure 8.
+     Keep `test_method = "ci"`: Boos and Zhang off is the maintainer's
+     decision, not only a workaround.
+
+### Validation log
+
+`docs/validation-log.md` (new) collects every full validation run from now
+on: date, commit, platform, versions and results per chunk. It starts with
+the full anova chunk of 14 October 2026 (30 PASS of 30, the first run with
+every test recorded under its own name, after PR #7) and the earlier basic
+and interactions results recorded above, which PR #7 confirmed were
+unaffected by the loop bug. `scripts/run-validation.R` now says to paste
+the summary there after a full run.
+
+The anova chunk's four Type I error tests use the exact method
+(`ANOVA_exact()`), so they give exactly 0.0500 by construction. They
+confirm that powerkit translates "no effect" correctly, but they are not
+an empirical check of the simulation's Type I error rate. Simulation
+versions of these tests are listed as an open item in
+`docs/build-guide.md`, section 6.

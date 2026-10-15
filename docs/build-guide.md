@@ -180,6 +180,12 @@ Write these tests before the engine code, and treat them as your work rather tha
 
 **Tolerance rule:** a test passes if the published value lies inside the 99.9% Monte Carlo interval of your estimate. (At 95%, a correct engine would fail roughly one test in twenty by chance, so a suite of fifty would almost never be all green.) Run validation tests at 10,000 replications, not on every commit: a fast subset nightly on CI, and the full set on demand before merges and releases, on the maintainer's machine, with `scripts/run-validation.R` (the mediation tests alone take about a day of CPU time). That count keeps a real error of .03 in power failing even at the wider interval: at power .5 the interval half-width is about .016 against a published value and .023 between two simulations (direct-call tests).
 
+**Open items**
+
+- Simulation versions of the 2x2 ANOVA Type I error tests. The current ones use the exact method (`ANOVA_exact()`), so they give exactly .05 by construction: they confirm powerkit translates "no effect" correctly but are not an empirical check of the simulation's Type I error rate (`docs/validation-log.md`, 14 October 2026).
+
+Full validation runs are recorded in `docs/validation-log.md`.
+
 **Bonus:** these tests, plus a comparison table, are most of a validation paper for *Behavior Research Methods* or *AMPPS*.
 
 ## 7. Front end and outputs
