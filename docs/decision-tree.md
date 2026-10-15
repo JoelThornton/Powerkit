@@ -15,7 +15,8 @@ N1–N3) for most questions. This document:
    a backend function, an effect-size form, a validation status and a tier;
 3. lists the judgement calls where methodologists disagree, without
    deciding them;
-4. ends with open questions.
+4. proposes how to handle studies with several hypotheses (section 4);
+5. ends with open questions.
 
 Where this document and `design-finder.md` overlap, the question IDs (Q1,
 F4a, MO1, ...) are the finder's, and the finder's decisions stand. This
@@ -180,13 +181,17 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 | Effect size as a single standardised number (f, d, partial η²), with a calculator (G\*Power, PAMLj) | The **backend's** parametrisation: cell means and SDs for ANOVA (Superpower), correlations for interactions (InteractionPoweR), standardised paths for mediation (power4mome), d / d_z / r / proportions for basic tests (Spower) | Follows each backend. A converter from reported statistics is planned (build guide section 7) |
 | Small / medium / large defaults offered (G\*Power tooltips; power4mome labels) | No defaults; a justification is required (`effect_justification`) | **Departure,** recorded in the build guide (section 4: it "stops 'medium effect' defaults"). See judgement call 3.2 |
 | One analysis reported per run (G\*Power, Spower) or all effects at once (Superpower) | One **target** effect per run (F5, `target_test.effect`) | Follows G\*Power and Spower. Superpower's all-effects output could be shown as secondary information. See judgement call 3.5 |
+| One analysis planned at a time (all tools; Superpower: all effects of one ANOVA design) | Single-analysis routes kept exactly as in the established tools, **plus** an optional guided "plan my whole study" route (section 4.1): shared variables, one card per analysis, combined N | **Added option, not a statistical departure:** each analysis is still computed by its backend as in the single-analysis routes |
 | No contested choices asked (all tools) | Contested choices are asked, never made silently (design finder, principle P1) | **Departure,** by maintainer decision P1 |
 
 ## 2. The tree
 
 ### 2.1 Flowcharts
 
-The tree is drawn as an overview (chart 0), one chart per goal (A to E)
+The first screen offers three routes: "I know my analysis" (the
+shortcut list), "Help me choose" (this tree) and the optional guided
+"Plan my whole study" (section 4.1). The tree is drawn as an overview
+(chart 0), one chart per goal (A to E)
 and one chart for the closing questions every design shares (F). End
 points are numbered E1 to E41; the table in 2.3 gives the details.
 
@@ -215,9 +220,10 @@ npx -p @mermaid-js/mermaid-cli@11.4.2 mmdc -c docs/figures/decision-tree/theme.j
 
 ```mermaid
 flowchart TD
-  S0{"Do you already know<br/>your analysis?"}
-  S0 -->|Yes| SC["Shortcut list:<br/>pick the analysis by name"]
-  S0 -->|No| Q1{"Q1 What do you want<br/>your study to show?"}
+  S0{"How do you want<br/>to start?"}
+  S0 -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
+  S0 -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
+  S0 -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
   Q1 -->|A difference between<br/>groups or conditions| A["Chart A"]
   Q1 -->|A relationship between<br/>two measured things| B["Chart B"]
   Q1 -->|An effect that depends<br/>on something else| C["Chart C"]
@@ -232,7 +238,7 @@ flowchart TD
   D --> F
   E --> F
   class S0,Q1 q
-  class SC,A,B,C,D,E,F jump
+  class SC,A,B,C,D,E,F,G jump
   class E36,E37 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -485,7 +491,7 @@ engine can use the answer today.
 | Every design: Q-power | What power do you want? | A number | `goal.power` | Yes. The default is a judgement call (3.6) |
 | Every design: Q-effect | What effect do you expect, and where does that number come from? | The design's effect-size form (table 2.3), plus the source: smallest effect of interest; meta-analysis; prior study (with an adjustment); pilot study | `population.*`; `effect_justification.type`, `.source`, `.adjustment` | Yes. Bias-corrected planning (e.g. BUCSS) has no field or backend: **flag** (judgement call 3.2) |
 | Every design: Q-attr | How many participants do you expect to lose? | A proportion | `options.attrition` | Yes |
-| Every design: Q-multi | Does your study test more than one hypothesis that this power analysis should cover? | No / yes | — | **No (flag):** one target effect per spec (judgement call 3.5) |
+| Every design: Q-multi | Does your study test more than one hypothesis that this power analysis should cover? | No / yes | — | **No (flag):** one target effect per spec (judgement call 3.5; proposals in section 4) |
 | Every design: Q-bayes | Will you test your hypothesis with p-values or with Bayes factors? | p-values / Bayes factors / not sure | — | **No (flag):** frequentist only. Bayes factors → E-bayes row in 2.3 |
 | Every design: run settings | (advanced) replications, seed, CI draws | — | `options.nrep`, `options.seed`, `options.ci_draws` | Yes |
 
@@ -743,6 +749,8 @@ planned effect size (2.2), which is prospective. Some tools call both
     needed.
 
   Rubin argues adjustment shouldn't be automatic.
+- **In powerkit:** section 4 proposes a study level, with the combination
+  rule tied to this call.
 - **Tools:** powertools (`coprimary.t()` for all, `altprimary()` for any),
   power4mome (`rejection_rates(collapse = "all_sig")`) and Superpower
   (`p_adjust`) support parts of this ([coverage](coverage.md)).
@@ -769,7 +777,327 @@ planned effect size (2.2), which is prospective. Some tools call both
 - **What the form needs:** pre-filled values (and which ones), blank
   fields, or pre-filled values plus a required reason.
 
-## 4. Open questions for the maintainer
+## 4. Studies with several hypotheses (proposals only)
+
+The study that motivated powerkit tested several hypotheses on the same
+data: an ANOVA or ANCOVA, an interaction, and a mediation or moderation.
+That is typical. The tree in section 2 routes **one hypothesis to one end
+point**, and each spec has a single `target_test`. This section proposes
+how the app could handle a whole study. **Nothing here is decided;** it
+links to judgement call 3.5 (power for one test versus all the tests in
+a study).
+
+### 4.1 Three ways in, including a guided "plan my whole study" route
+
+The app would offer three routes on its first screen. The first two plan
+one analysis, exactly as established tools do. The third is an added,
+optional route.
+
+| Route | Who it's for | What happens |
+| --- | --- | --- |
+| **"I know my analysis"** | Users who can name their test | Pick it from a list (the shortcut, S0), then fill in its form. As in G\*Power's and PAMLj's menus |
+| **"Help me choose"** | Users who know their hypothesis but not the test's name | The tree in section 2 (design finder), ending on one form |
+| **"Plan my whole study"** (guided, optional) | Users less familiar with power analysis, and studies with several hypotheses on the same data | Define the study's variables once, tick the analyses planned, mark which are primary, and get a plan (below) |
+
+**The guided route, step by step:**
+
+1. **Define the study's variables once:**
+   - the condition, and its number of groups (and whether participants
+     were randomised);
+   - the outcome, and its type (score, yes/no, ...);
+   - any mediator(s);
+   - any moderator(s);
+   - any covariates (for example, a baseline measure).
+
+   Each variable gets the user's own label, type and, optionally, its
+   reliability. These are the same `variables` fields as in a single
+   spec.
+2. **Tick the analyses planned on these variables.** The app lists only
+   analyses that fit the variables defined, for example:
+   - a comparison of the conditions (t-test, ANOVA or ANCOVA, depending
+     on the number of groups and covariates);
+   - condition × moderator;
+   - condition → mediator → outcome;
+   - first- or second-stage moderated mediation.
+
+   Where a tick leaves something ambiguous (which effect in a 2 x 2; which
+   indirect path; ANCOVA or the mixed interaction for a pre–post design),
+   the app asks the same question the tree would ask (F5, the target path,
+   PP2), so the routing stays identical to the single-analysis routes.
+3. **Mark which analyses are primary.** These are the ones the study must
+   be powered for. Then ask how they support the study's claim
+   (judgement call 3.5):
+   - each stands alone;
+   - all must be significant;
+   - any one is enough, in which case alpha may need adjusting (Rubin,
+     2021 *(seen second-hand, to verify)*).
+4. **Get the plan.** The plan screen shows:
+   - **one card per analysis:**
+     - its standard name and end point (E-number);
+     - the inputs still needed (the effect-size form from table 2.3, and
+       anything not yet entered);
+     - the backend function and default method;
+     - whether it **runs today**, is **spec only** (e.g. a yes/no X until
+       phase 3b) or is **not in powerkit yet** (with the tool that
+       covers it).
+   - **the combined N for the primary analyses:** the largest required N
+     among the primary analyses that run, with the analysis that drives
+     it named and each one's own interval. If a primary analysis doesn't
+     run yet, the combined N is shown as incomplete and says which one is
+     missing.
+   - **consistency warnings:** because the variables are shared, the app
+     can compare effect sizes entered for different analyses that
+     describe the same relationship (4.2). For example, the condition
+     effect on the outcome entered for the ANCOVA, and the total effect
+     implied by the mediation paths.
+5. **Run.** Each card runs as its own single-analysis spec, through the
+   same backend and method as if the user had come by route 1 or 2.
+   Attrition is applied once, to the combined N.
+
+Chart G (also rendered in [`figures/decision-tree/`](figures/decision-tree/)):
+
+```mermaid
+flowchart TD
+  V["1. Define the study's variables once:<br/>condition (and groups), outcome,<br/>mediators, moderators, covariates"]
+  V --> T["2. Tick the analyses planned<br/>(only those that fit the variables)"]
+  T --> AQ{"Anything ambiguous?<br/>(which effect, which path,<br/>ANCOVA or mixed interaction)"}
+  AQ -->|Yes| TQ["Ask the same question<br/>the tree would ask<br/>(F5, target path, PP2)"]
+  AQ -->|No| P
+  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any)"]
+  P --> PL["4. The plan"]
+  PL --> C1["One card per analysis:<br/>name and E-number, inputs still needed,<br/>backend and method, status today"]
+  PL --> CN["Combined N for the primary analyses<br/>(largest required N; which one drives it)"]
+  PL --> CW["Consistency warnings<br/>from shared variables"]
+  C1 --> R["5. Each card runs as its own<br/>single-analysis spec, through the<br/>same backend as routes 1 and 2"]
+  CN --> R
+  CW --> R
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+  class V,T,AQ,TQ,P q
+  class PL,C1,CN,CW jump
+  class R avail
+```
+
+**Status of the guided route: an added option, not a statistical
+departure.** Each analysis is computed exactly as in the single-analysis
+routes, so the established tools' conventions are unchanged. What the
+route adds is a way in (variables defined once), the bookkeeping
+(several cards, the combined N) and the consistency warnings. Single-
+analysis planning stays available exactly as in the established tools.
+On this reading the guided route doesn't need a "departure" entry in
+`docs/conventions.md`, but it should be described in the methods
+paragraph ("sample size set by the largest of the required Ns for H1–H3")
+so the combination rule is visible.
+- **One exception would be a departure:** a whole-study simulation from
+  one data-generating model (4.2, approach B). The guided route doesn't
+  require it.
+
+**What "the largest N" does and doesn't give.** It gives each primary
+analysis at least its target power **on its own**. It doesn't give the
+target power for **all of them together**:
+- For independent tests, the joint power is the product of the separate
+  powers. Three tests at .90 each give about .73 together.
+- Tests on the same data are often positively correlated. Then the
+  joint power lies somewhere between that product and the lowest single
+  power. With a negative correlation it can fall below the product. Only
+  a simulation of the whole study can say where (4.2, approach B).
+
+The "curse of multiplicities" for power (Maxwell, 2004) *(seen second-hand, to verify)* is this
+problem. If the user chooses "all must be significant", the plan should
+say plainly that the combined N doesn't guarantee joint power.
+
+The tools that can compute joint power from one simulation are
+power4mome and Spower:
+- power4mome: `rejection_rates(collapse = "all_sig")`, and in its
+  development version a named list of tests in one `power4test()` call
+  (0.2.1.27, `NEWS.md`);
+- Spower: a user-written experiment that returns one TRUE/FALSE combining
+  several tests. Its vignette lists "multiple hypotheses" among the uses
+  (`SpowerIntro`).
+
+**What the spec would need.** A study file that holds:
+- the shared variables;
+- the list of analysis specs and their roles (primary or secondary);
+- the combination rule from step 3;
+- the study-level result: the N, which analysis set it, and each
+  analysis's power.
+
+Each analysis keeps its own spec and provenance, so it can be re-run or
+exported on its own. This is a schema change (open question 11).
+
+**Precedent.** None of the tools in section 1 has a whole-study route:
+G\*Power, Spower, InteractionPoweR, power4mome and PAMLj each plan one
+analysis at a time. Superpower comes closest, with every effect of one
+ANOVA design from one set of means.
+
+### 4.2 Consistency between hypotheses that share variables
+
+**The problem.** When analyses share variables, effect sizes entered
+separately for each one can contradict each other. For example:
+- the condition effect in an ANOVA is the **total effect** in a mediation
+  with condition as X (the indirect path plus the direct path);
+- the condition effect on the outcome appears again as the main effect
+  of X in a condition × moderator interaction.
+
+Entered on three separate forms, these numbers are under no obligation
+to agree. Nothing in the per-hypothesis tools checks them.
+
+**An illustration.** Suppose the ANOVA form gets d = 0.5 for the
+condition effect. Suppose the mediation form, with the same 50/50
+condition as X, gets standardised paths a = .30, b = .30, c' = .05. The
+total effect is then ab + c' = .14. Under the usual conversion for two
+equal groups (r = d / √(d² + 4)), d = 0.5 corresponds to a standardised
+effect of about .24 and .14 to a d of about 0.28. The two forms describe
+two different studies, and the required N from each is right only for
+its own.
+
+**Two approaches. No decision is made here.**
+
+**Approach A: per hypothesis (established).** Each hypothesis has its own
+effect sizes, entered on its own form, and is run through its own
+backend.
+- **Precedent:** this is how the established tools work. G\*Power
+  computes one test at a time (manual, section 1.2; read directly).
+  Spower runs one experiment function at a time, InteractionPoweR one
+  interaction model, power4mome one population model with one target
+  test (its standard workflow).
+- **Partial exception:** Superpower derives power for every main effect
+  and interaction from one set of means, SDs and correlations: one
+  data-generating model within one ANOVA (`ANOVA_exact()`,
+  `ANOVA_power()`; Lakens & Caldwell, 2021, *AMPPS*,
+  doi:10.1177/2515245920951503 *(seen second-hand, to verify)*).
+- **For:** matches established practice and each backend's validated
+  route; simple forms; each analysis can be validated separately, as
+  powerkit already does.
+- **Against:** the contradictions above can go unnoticed; joint power
+  isn't available; correlation between the tests is ignored.
+- **A possible mitigation:** a consistency check that compares shared
+  quantities across forms and warns. For example: the total effect
+  implied by the mediation paths against the condition effect in the
+  ANOVA; the r_X_Y in the interaction form against the others. Where
+  possible the implied quantities would come from the backends (for
+  example, power4mome's population model, `ptable_pop()`), not from new
+  maths (CLAUDE.md).
+
+**Approach B: the whole study simulated from one data-generating model**
+(via the full-model builder).
+- **How it works:** the user specifies one population model containing
+  every variable and path (means, correlations, standardised paths,
+  interaction terms). Each simulated data set is then analysed with
+  **every** planned analysis. Power for each hypothesis, and joint power
+  (all or any), come from the same replications. Every analysis's effect
+  size follows from the one model, so the hypotheses agree by
+  construction.
+- **Tools that support parts of it:**
+  - power4mome generates data from one lavaan model (`power4test(model,
+    pop_es)`), and its development version runs several tests on the
+    same replications;
+  - Spower runs any user-written generate-and-analyse function (SpowerIntro,
+    "User-defined simulation experiments");
+  - faux and simr simulate data for factorial and mixed designs;
+  - pwrSEM runs power analysis for SEM parameters from one population
+    model;
+  - DeBruine and Barr (2021, *AMPPS*, doi:10.1177/2515245920965119) *(seen second-hand, to verify)*
+    give a tutorial on simulating data from a specified model to plan
+    complex designs.
+- **For:** consistent effect sizes; joint power; the correlation between
+  tests is handled; it forces the analysis plan to be written down in
+  full (which covariates go in which model), which a preregistration
+  needs anyway.
+- **Against:**
+  - more inputs, each needing a justification (`effect_justification`
+    per parameter?);
+  - for most analyses it isn't what the established tools do, so it
+    would be a departure, needing an entry in `docs/conventions.md`, a
+    statement on the results screen and in the methods paragraph, and a
+    test of its size;
+  - the combined pipeline would need its own validation, even though
+    each analysis still comes from a backend;
+  - slower;
+  - parametrisations differ between backends (fully standardised paths
+    in power4mome; correlations in InteractionPoweR; cell means in
+    Superpower), so one model must be translated into each backend's
+    form.
+
+**How this relates to the guided route (4.1).** The guided route as
+proposed uses approach A, plus the consistency warnings that shared
+variables make possible. Whether to also offer approach B (whole-study
+simulation through the full-model builder, for users who want joint
+power) is left open.
+
+### 4.3 Worked example
+
+**The study.** A randomised experiment with:
+- **condition** C: two groups, 50/50;
+- **outcome** Y, measured after the manipulation;
+- a **baseline** measure of the outcome, Y0;
+- a **moderator** W (a score);
+- a **mediator** M (a score).
+
+**Three primary hypotheses:**
+- **H1 (ANCOVA):** C affects Y, adjusting for Y0.
+- **H2 (interaction):** the effect of C on Y depends on W (C × W).
+- **H3 (mediation):** C affects Y through M (C → M → Y).
+
+```mermaid
+flowchart LR
+  C["Condition C<br/>(2 groups, randomised)"] -->|a| M["Mediator M"]
+  M -->|b| Y["Outcome Y"]
+  C -->|"c' (direct)"| Y
+  W["Moderator W"] --> Y
+  W -.->|"moderates C → Y (H2)"| Y
+  Y0["Baseline Y0"] --> Y
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B
+  class C,M,Y,W,Y0 q
+```
+
+**Where each hypothesis ends in the tree today:**
+- **H1 → E23 (ANCOVA):** not in the spec. Candidates: Superpower
+  `ANCOVA_analytic()`; pwrss.
+- **H2 → E15 (moderated regression with a yes/no X):** spec only until
+  phase 3b.
+- **H3 → E16 (mediation with a yes/no X):** spec only until phase 3b.
+
+So none of the three runs in powerkit yet; the example is about what
+the forms would ask.
+
+**What the guided route's plan screen would show** (4.1, step 4), with
+all three marked primary and "each stands alone":
+
+| Card | Standard name | Inputs still needed | Backend (candidate where not built) | Status today |
+| --- | --- | --- | --- | --- |
+| H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
+| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised); reliabilities | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
+| H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
+| Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
+
+**Warning shown:** "The condition's effect on the outcome is entered in
+H1, H2 and H3 (H3's total effect = a·b + c'). The three values imply
+different effects: [values]. Check that they describe the same study."
+
+
+**What each approach asks the user for:**
+
+| | Approach A: per hypothesis | Approach B: one model for the whole study |
+| --- | --- | --- |
+| H1 (ANCOVA) | Adjusted mean difference (or d) between conditions; the SD; the correlation (or R²) between Y0 and Y; alpha; target power → N₁ | (Implied by the model.) The analysis to run: Y ~ C + Y0 |
+| H2 (C × W) | Correlations r_X_Y (C with Y), r_W_Y, r_XW_Y (the interaction), r_X_W (0, as C is randomised); reliabilities; split fixed at 50/50 → N₂ | (Implied.) The analysis: Y ~ C × W, **with or without Y0** as a covariate (a choice the user must make) |
+| H3 (C → M → Y) | Standardised paths a (C → M), b (M → Y), c' (C → Y); CI draws → N₃ | (Implied.) The analysis: M ~ C and Y ~ C + M, **with or without Y0 and W** (again a choice) |
+| The population | Not asked as such: each form describes its own | One model: C (50/50, uncorrelated with W and Y0); the correlation of Y0 with W; M = a·C (+ any path from Y0 or W); Y = c'·C + b·M + β_W·W + β_CW·C×W + β_Y0·Y0; residual variances implied by standardisation |
+| Effect-size justification | One per form | One per parameter, or per group of parameters |
+| Study result | N = max(N₁, N₂, N₃) if all three are primary; each hypothesis's power at that N | Each hypothesis's power at N, **and** the power for all three together; or the smallest N meeting the chosen rule (each, or all) |
+| Consistency | The C → Y effect is entered three times: as H1's adjusted difference, H2's r_X_Y and H3's total effect ab + c'. Nothing makes them agree unless a check is added. H1's effect is adjusted for Y0, while H2 and H3 (as specified) aren't, so even "agreeing" numbers may not mean the same thing | Agree by construction. The adjusted and unadjusted effects of C both follow from the same model |
+| What's still missing in powerkit | ANCOVA (E23); a yes/no X (phase 3b); covariates in interactions (analytic only in InteractionPoweR) and in mediation (not in the spec) | The full-model builder; running several analyses per replication; a study-level result |
+
+**What the example shows.** Approach A asks less of the user per form,
+but the user can describe three incompatible populations without
+knowing it. It also stays silent on whether Y0 and W belong in the H2
+and H3 models. Approach B makes those analysis decisions explicit and
+gives joint power, at the cost of a larger form and a departure from
+how the wrapped tools work.
+
+## 5. Open questions for the maintainer
 
 1. **Starting point.** Should the tree start from the hypothesis (as here
    and in `design-finder.md`), or offer G\*Power's design-based order
@@ -824,6 +1152,20 @@ planned effect size (2.2), which is prospective. Some tools call both
     engine accept up to nine mediators, but validation covers two
     ([coverage](coverage.md) proposes v2 for three or more). Should the
     form allow three or more before that validation exists?
+11. **The guided "plan my whole study" route (4.1).** Add it as a third
+    route? If so: is a study file that wraps several specs acceptable (a
+    schema change)? Should the combination rule (largest N; joint power;
+    alpha adjustment) be asked as in step 3? Agree that it's an added
+    option rather than a departure, given that each analysis is computed
+    as in the single-analysis routes?
+12. **Consistency (4.2).** Approach A with a consistency check, approach
+    B (whole-study simulation through the full-model builder), or the
+    middle route? Whatever is chosen: is it a departure that needs
+    recording in `docs/conventions.md`?
+13. **Analysis choices across hypotheses (4.3).** Should the app ask,
+    for each analysis, which covariates it includes? For example, is Y0
+    in the interaction and mediation models, or only in the ANCOVA? Today
+    the spec can't hold covariates for any design.
 
 ## Sources
 
@@ -864,3 +1206,9 @@ package documentation or citing papers; not read in full):
 - Rubin (2021), *Synthese*.
 - Benjamin et al. (2018), *Nature Human Behaviour*.
 - Lakens et al. (2018), *Nature Human Behaviour*.
+- Lakens & Caldwell (2021), *Advances in Methods and Practices in
+  Psychological Science*.
+- DeBruine & Barr (2021), *Advances in Methods and Practices in
+  Psychological Science*.
+- Hayes & Preacher (2014), *British Journal of Mathematical and
+  Statistical Psychology* (cited in [`coverage.md`](coverage.md)).

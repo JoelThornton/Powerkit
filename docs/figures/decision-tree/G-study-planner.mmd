@@ -1,0 +1,20 @@
+flowchart TD
+  V["1. Define the study's variables once:<br/>condition (and groups), outcome,<br/>mediators, moderators, covariates"]
+  V --> T["2. Tick the analyses planned<br/>(only those that fit the variables)"]
+  T --> AQ{"Anything ambiguous?<br/>(which effect, which path,<br/>ANCOVA or mixed interaction)"}
+  AQ -->|Yes| TQ["Ask the same question<br/>the tree would ask<br/>(F5, target path, PP2)"]
+  AQ -->|No| P
+  TQ --> P["3. Mark which analyses are primary;<br/>how do they support the claim?<br/>(each alone / all / any)"]
+  P --> PL["4. The plan"]
+  PL --> C1["One card per analysis:<br/>name and E-number, inputs still needed,<br/>backend and method, status today"]
+  PL --> CN["Combined N for the primary analyses<br/>(largest required N; which one drives it)"]
+  PL --> CW["Consistency warnings<br/>from shared variables"]
+  C1 --> R["5. Each card runs as its own<br/>single-analysis spec, through the<br/>same backend as routes 1 and 2"]
+  CN --> R
+  CW --> R
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+  class V,T,AQ,TQ,P q
+  class PL,C1,CN,CW jump
+  class R avail

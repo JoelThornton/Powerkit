@@ -1,7 +1,8 @@
 flowchart LR
-  S0{"Do you already know<br/>your analysis?"}
-  S0 -->|Yes| SC["Shortcut list:<br/>straight to the form"]
-  S0 -->|No| Q1{"Q1 What do you want<br/>your study to show?"}
+  S0{"How do you want<br/>to start?"}
+  S0 -->|I know my analysis| SC["Shortcut list:<br/>straight to the form"]
+  S0 -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
+  S0 -->|Plan my whole study| GP["Guided study planner:<br/>variables once, tick analyses,<br/>one card each + combined N"]
 
   subgraph GA["A. A difference between groups or conditions"]
     direction TB
@@ -85,7 +86,7 @@ flowchart LR
   class aE5E6,aT,aE7,aE8,bE4,cE9,dE10,dE11,dE12,eE13,eE14,k2 avail
   class cE15,dE16,eE17,k3 spec
   class aYN,aCO,aML,aOW,aE23,aE20,aE21,bE24,bE27,cL,eE38,QX,k4 later
-  class SC,cA,f1,f3,f4 jump
+  class SC,GP,cA,f1,f3,f4 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px

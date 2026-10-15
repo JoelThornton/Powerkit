@@ -51,6 +51,16 @@ fully validated. Validation runs are recorded in
   to date. The flowcharts, including a single full chart for
   presentations, are rendered in
   [`figures/decision-tree/`](figures/decision-tree/).
+  Section 4 proposes how to handle studies with several hypotheses: an
+  optional guided "plan my whole study" route (variables defined once,
+  one card per analysis, the combined N for the primary analyses, and
+  warnings when effect sizes contradict each other), two approaches to
+  consistency (per hypothesis, or whole-study simulation) left
+  undecided, and a worked example.
+- **Coverage:** [`coverage.md`](coverage.md) now also has rows for ANCOVA
+  (including pre–post), covariates in mediation, mediation with a
+  multi-category X, moderation with a 3+ group X or W, and several
+  hypotheses in one study.
 - **Validation on GitHub:** the `full-validation` workflow works: after a
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier
