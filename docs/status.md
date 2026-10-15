@@ -35,6 +35,11 @@ fully validated. Validation runs are recorded in
   InteractionPoweR and G*Power, with powerkit's status and proposed tiers.
   The tiers are for the maintainer to confirm, and the G*Power rows still
   need checking against the G*Power manual.
+  A section on needs the five tools don't cover (crossed participants and
+  stimuli, multilevel, longitudinal, SEM, sequential and Bayesian designs,
+  equivalence, precision, bias-corrected and replication planning, several
+  outcomes, ordinal outcomes) lists candidate tools for each, checked
+  against their own package sources.
 - **Validation on GitHub:** the `full-validation` workflow works: after a
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier
