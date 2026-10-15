@@ -1126,3 +1126,31 @@ process_7 and process_14 are the chunks most at risk of the limit. The existing 
 `engine/DESCRIPTION`; this one uses `renv.lock`, so its versions match the
 maintainer's machine. How to run it: `docs/validation-log.md`, "Running
 the full validation on GitHub".
+
+## 2026-10-15 · full-validation workflow: first run failed in setup (fixed)
+
+The first run of `.github/workflows/full-validation.yaml` (chunk basic, on
+main) failed while restoring packages: renv's check that igraph loads
+failed with `libglpk.so.40: cannot open shared object file`. igraph's
+Linux binary links to the GLPK library, which GitHub's Ubuntu runner
+doesn't have. igraph is in `renv.lock` because manymome imports it, and
+power4mome imports manymome. The other workflows install packages with
+`r-lib/actions/setup-r-dependencies`, which uses pak and installs each
+package's system requirements (here `libglpk-dev`) itself; renv's restore
+doesn't. The workflow now installs `libglpk-dev` first. Every other
+package in `renv.lock` with Linux system requirements (among them curl,
+openssl, stringi, V8, fs) had already installed and loaded in that run,
+so glpk was the only one missing.
+
+A second error followed: the "Write the summary" step (which ran because
+of `if: always()`) crashed with "missing value where TRUE/FALSE needed",
+because the step that set `PER_TEST` had been skipped after the failure,
+so `--cores-per-test ""` reached the script. Fixed in three ways:
+`PER_TEST` is now set for the whole job (4 for the process_* chunks, 1
+otherwise); the summary and upload steps run only if the chunk itself
+started; and `scripts/run-validation.R` stops with a clear message if
+`--cores` or `--cores-per-test` is missing a value or isn't a positive
+whole number. The chunk itself had not run (steps without an `if` are
+skipped after a failure); the workflow now also checks that the packages
+load before starting it. The run step's own limit is now 5 h 30 m (was
+5 h 40 m), leaving more of the 6 hours for setup and the upload.

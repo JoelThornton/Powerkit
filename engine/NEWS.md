@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* Validation (for maintainers): the `full-validation` GitHub workflow now
+  installs the system library igraph needs (glpk) before restoring
+  packages, checks that the packages load before the chunk starts, and
+  doesn't start or summarise a chunk if setup failed.
+  `scripts/run-validation.R` stops with a clear message if `--cores` or
+  `--cores-per-test` is missing a value or isn't a positive whole number.
+
 * Mediation and moderated-mediation simulations now run in batches of at
   most 200 replications per power4mome call (fewer above 1,000 draws per
   confidence interval), keeping only each batch's counts. Memory use no
