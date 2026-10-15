@@ -10,6 +10,9 @@
 #                       before simulating (exact or analytic); NULL means
 #                       bracket with a coarse simulation;
 #   simulate(n, nrep, seed, cores)  -> list(rejections, nrep);
+#   batch_size          most replications simulated in one backend call
+#                       (bounds memory; simulate_in_chunks()), or NULL if
+#                       the backend runs one call per core;
 #   sensitivity(n, power)           -> smallest detectable effect, or NULL
 #                       if sensitivity isn't available for the design;
 #   check_run()         -> data frame: parameter, specified, recovered, ok.
@@ -42,13 +45,19 @@ abort_not_available <- function(message) {
   abort_run(message, class = "powerkit_not_available")
 }
 
-# Rejections out of nrep, splitting the replications into one seeded chunk
-# per core. `run_chunk(nrep, seed)` returns the chunk's rejections, or
-# c(rejections, valid) if some replications can fail. Chunk seeds are seed,
-# seed + 1, ...; with one core this is a single run_chunk(nrep, seed) call,
-# so it equals one direct call to the backend with that seed.
-simulate_in_chunks <- function(nrep, seed, cores, run_chunk) {
-  chunks <- split_replications(nrep, cores)
+# Rejections out of nrep, splitting the replications into seeded chunks:
+# one per core, or more if a chunk would otherwise exceed `batch_size`
+# replications (chunks are then as equal as possible, none larger than
+# batch_size). `run_chunk(nrep, seed)` returns the chunk's rejections, or
+# c(rejections, valid) if some replications can fail; only these counts
+# are kept, so memory is bounded by one chunk per core, whatever nrep.
+# Chunk seeds are seed, seed + 1, ...; with one core and nrep <= batch_size
+# this is a single run_chunk(nrep, seed) call, so it equals one direct call
+# to the backend with that seed. The result depends on the seed and the
+# number of chunks (so on cores and batch_size), all recorded in the
+# provenance.
+simulate_in_chunks <- function(nrep, seed, cores, run_chunk, batch_size = Inf) {
+  chunks <- split_replications(nrep, number_of_chunks(nrep, cores, batch_size))
   seeds <- offset_seed(seed, seq_along(chunks) - 1)
   results <- run_in_parallel(
     seq_along(chunks),
@@ -102,10 +111,15 @@ quietly <- function(expr) {
   result
 }
 
-# Replications per parallel chunk: as equal as possible, at most `cores`
-# chunks.
-split_replications <- function(nrep, cores) {
-  k <- max(1L, min(as.integer(cores), as.integer(nrep)))
+# Chunks for nrep replications: one per core, or enough that none has more
+# than batch_size replications.
+number_of_chunks <- function(nrep, cores, batch_size = Inf) {
+  as.integer(max(cores, ceiling(nrep / batch_size)))
+}
+
+# Replications per chunk: as equal as possible, at most `chunks` chunks.
+split_replications <- function(nrep, chunks) {
+  k <- max(1L, min(as.integer(chunks), as.integer(nrep)))
   base <- nrep %/% k
   base + c(rep(1L, nrep %% k), rep(0L, k - nrep %% k))
 }

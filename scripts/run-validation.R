@@ -1,4 +1,4 @@
-# Full validation of the powerkit engine, run locally.
+# Full validation of the powerkit engine, run locally or on GitHub.
 #
 # Runs the high-replication validation tests (engine/tests/testthat/
 # test-validation-*.R) with POWERKIT_FULL_VALIDATION=true, each test in its
@@ -27,10 +27,32 @@
 #   Rscript scripts/run-validation.R --retry-failed         rerun FAIL / ERROR
 #   Rscript scripts/run-validation.R --retry-skipped        rerun SKIP
 #   Rscript scripts/run-validation.R --fresh                forget saved results
+#   Rscript scripts/run-validation.R --only process_7 --cores 4 --cores-per-test 4
+#                       one test at a time, its replications on 4 cores
+#                       (Linux and macOS only; on Windows each test uses
+#                       one core and --cores runs several tests at once)
 # From RStudio, with Powerkit.Rproj open:
 #   source("scripts/run-validation.R")
 #   run_validation(only = "interactions", cores = 2)
 #   run_validation(retry_skipped = TRUE)
+#
+# On GitHub (no need to keep a computer on; one chunk per run, up to 6
+# hours each; .github/workflows/full-validation.yaml):
+#   1. On the repository's GitHub page, open the Actions tab.
+#   2. In the list on the left, click "full-validation".
+#   3. Click "Run workflow" (on the right), pick the chunk, and click the
+#      green "Run workflow" button.
+#   4. When the run finishes (a green tick or a red cross), open it and
+#      download the artifact "validation-results-<chunk>-run-<number>"
+#      at the bottom of its Summary page. It is a zip of validation-
+#      results/: summary.txt (paste it into docs/validation-log.md) and each
+#      test's .rds and .log files.
+# Step-by-step, with what to expect: docs/validation-log.md, "Running the
+# full validation on GitHub".
+#
+# Memory: mediation simulations run in batches of at most 200
+# replications per power4mome call (simulate_in_chunks(); docs/
+# decisions.md), so a test needs well under 1 GB per core it uses.
 #
 # A test skipped for a TODO_PUBLISHED_VALUE is saved as SKIP and counts as
 # done, so it doesn't run again on its own. After filling in published
@@ -78,7 +100,8 @@ validation_minutes <- function() {
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
                             retry_skipped = FALSE, fresh = FALSE,
-                            list_only = FALSE, summary_only = FALSE) {
+                            list_only = FALSE, summary_only = FALSE,
+                            cores_per_test = 1) {
   root <- validation_root()
   old_wd <- setwd(root)
   on.exit(setwd(old_wd), add = TRUE)
@@ -91,8 +114,11 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 
   tests <- validation_tests(root, only)
   tests$done <- tests_done(tests)
+  cores <- max(1L, as.integer(cores))
+  cores_per_test <- validation_cores_per_test(cores, cores_per_test)
+  cores_label <- if (cores_per_test == 1) cores else sprintf("%d (%d per test)", cores, cores_per_test)
   if (isTRUE(summary_only)) {
-    return(invisible(write_summary(tests, results_dir, cores)))
+    return(invisible(write_summary(tests, results_dir, cores_label)))
   }
   check_test_lists(tests)
   if (isTRUE(list_only)) {
@@ -108,21 +134,38 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 
   todo <- tests[!tests$done, ]
   todo <- todo[order(-todo$estimate), ]
-  cores <- max(1L, as.integer(cores))
+  slots <- max(1L, cores %/% cores_per_test)
   cat(sprintf(
-    "powerkit validation: %d tests selected, %d already saved, %d to run, on %d core%s.\n",
-    nrow(tests), sum(tests$done), nrow(todo), cores, if (cores == 1) "" else "s"
+    "powerkit validation: %d tests selected, %d already saved, %d to run, on %d core%s%s.\n",
+    nrow(tests), sum(tests$done), nrow(todo), cores, if (cores == 1) "" else "s",
+    if (cores_per_test == 1) "" else sprintf(" (%d test%s at a time, %d cores each)", slots, if (slots == 1) "" else "s", cores_per_test)
   ))
   if (nrow(todo) > 0) {
     cat(sprintf(
       "First estimate of the time needed: %s (it is corrected as tests finish).\n",
-      format_minutes(sum(todo$estimate) / min(cores, nrow(todo)))
+      format_minutes(sum(todo$estimate) / cores_per_test / min(slots, nrow(todo)))
     ))
     cat("Stop at any time with Ctrl+C (terminal) or Esc (RStudio); rerun the same command to carry on.\n\n")
-    run_queue(todo, cores, nrow(tests) - nrow(todo), nrow(tests))
+    run_queue(todo, slots, cores_per_test, nrow(tests) - nrow(todo), nrow(tests))
   }
   tests$done <- tests_done(tests)
-  invisible(write_summary(tests, results_dir, cores))
+  invisible(write_summary(tests, results_dir, cores_label))
+}
+
+# Cores given to each test (its POWERKIT_CORES). With 1 (the default),
+# `cores` tests run at once, each on one core. With k > 1, cores %/% k tests
+# run at once, each spreading its simulation replications over k cores:
+# better for chunks of a few long tests (the mediation chunks, whose
+# replications run in batches; simulate_in_chunks() in engine/R/route.R).
+# Spreading replications over cores works on Unix-alikes only
+# (run_in_parallel()), so on Windows each test gets one core.
+validation_cores_per_test <- function(cores, cores_per_test) {
+  cores_per_test <- max(1L, min(cores, as.integer(cores_per_test)))
+  if (cores_per_test > 1 && .Platform$OS.type != "unix") {
+    message("--cores-per-test has no effect on Windows: each test runs on one core (--cores sets how many tests run at once).")
+    cores_per_test <- 1L
+  }
+  cores_per_test
 }
 
 tests_done <- function(tests) {
@@ -498,8 +541,9 @@ rscript_path <- function() {
   file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
 }
 
-# Run the queue, at most `cores` tests at a time, each in its own R process.
-run_queue <- function(todo, cores, already, total) {
+# Run the queue, at most `cores` tests at a time, each in its own R process
+# with `cores_per_test` cores for its simulations.
+run_queue <- function(todo, cores, cores_per_test, already, total) {
   rscript <- rscript_path()
   script <- file.path("scripts", "run-validation.R")
   running <- list()
@@ -523,7 +567,7 @@ run_queue <- function(todo, cores, already, total) {
           c(script, "--run-one", row$file, as.character(row$index), row$result)
         },
         stdout = log, stderr = "2>&1", cleanup = TRUE,
-        env = c("current", POWERKIT_FULL_VALIDATION = "true", POWERKIT_CORES = "1")
+        env = c("current", POWERKIT_FULL_VALIDATION = "true", POWERKIT_CORES = as.character(cores_per_test))
       )
       running[[length(running) + 1]] <- list(process = process, row = row, started = Sys.time())
       cat(sprintf("  started   %s: %s\n", row$chunk, row$test))
@@ -544,7 +588,7 @@ run_queue <- function(todo, cores, already, total) {
         status <- result$status
         if (status != "SKIP") {
           speed$actual <- speed$actual + minutes
-          speed$estimated <- speed$estimated + row$estimate
+          speed$estimated <- speed$estimated + row$estimate / cores_per_test
         }
       } else {
         status <- "DID NOT FINISH (no result saved; it will run again next time)"
@@ -552,7 +596,7 @@ run_queue <- function(todo, cores, already, total) {
       remaining <- todo$estimate[seq_len(nrow(todo)) >= next_row]
       remaining <- c(remaining, vapply(still, function(j) j$row$estimate, numeric(1)))
       factor <- if (speed$estimated > 0) speed$actual / speed$estimated else 1
-      eta <- sum(remaining) * factor / max(1, min(cores, length(remaining)))
+      eta <- sum(remaining) * factor / cores_per_test / max(1, min(cores, length(remaining)))
       cat(sprintf(
         "[%d/%d] %-5s %s: %s (%s)  |  elapsed %s, about %s left\n",
         already + finished, total, status, row$chunk, row$test, format_minutes(minutes),
@@ -727,6 +771,7 @@ if (!interactive() && sys.nframe() == 0) {
     run_validation(
       only = value_of("--only"),
       cores = as.integer(value_of("--cores") %||% 2),
+      cores_per_test = as.integer(value_of("--cores-per-test") %||% 1),
       retry_failed = "--retry-failed" %in% args,
       retry_skipped = "--retry-skipped" %in% args,
       fresh = "--fresh" %in% args,

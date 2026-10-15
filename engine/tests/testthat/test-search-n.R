@@ -61,6 +61,26 @@ test_that("replications are split evenly across cores", {
   expect_equal(sum(split_replications(1001, 8)), 1001)
 })
 
+test_that("large simulations run in batches no larger than the batch size", {
+  expect_equal(number_of_chunks(10000, 1, 500), 20)
+  expect_equal(number_of_chunks(10000, 4, 500), 20)
+  expect_equal(number_of_chunks(1000, 4, 500), 4)
+  expect_equal(number_of_chunks(1000, 4), 4)
+  expect_equal(split_replications(1001, number_of_chunks(1001, 1, 500)), c(334, 334, 333))
+
+  calls <- list()
+  run_chunk <- function(k, seed) {
+    calls[[length(calls) + 1]] <<- c(k = k, seed = seed)
+    c(k %/% 2, k - 1)
+  }
+  sim <- simulate_in_chunks(1000, seed = 7, cores = 1, run_chunk, batch_size = 300)
+  calls <- do.call(rbind, calls)
+  expect_equal(unname(calls[, "k"]), rep(250, 4))
+  expect_equal(unname(calls[, "seed"]), 7:10)
+  # Only the counts are kept, summed over batches.
+  expect_equal(sim, list(rejections = 4 * 125, nrep = 4 * 249))
+})
+
 test_that("derived seeds stay in R's valid range", {
   expect_equal(offset_seed(20261012, 0:2), 20261012 + 0:2)
   expect_equal(offset_seed(2147483646, 1), 1)

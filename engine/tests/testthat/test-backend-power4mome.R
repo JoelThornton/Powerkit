@@ -77,6 +77,41 @@ test_that("on one core, simulation equals a direct power4test call", {
   expect_equal(sim$nrep, 10)
 })
 
+test_that("a batched run gives the same rejections as the same batches run by hand", {
+  # power4test() keeps every replication in memory, so large runs are split
+  # into batches. A batch size of 4 splits 10 replications into batches of
+  # 4, 3 and 3, with seeds 7, 8 and 9.
+  local_mocked_bindings(power4mome_batch_size = function(...) 4L)
+  spec <- validate_quietly(continuous_and_reliable(sim_spec("mediation_simple")))
+  backend <- route_spec(spec, seed = 7)
+  expect_equal(backend$batch_size, 4)
+  sim <- backend$simulate(100, nrep = 10, seed = 7, cores = 1)
+  by_hand <- vapply(1:3, function(i) {
+    result <- power4mome::power4test(
+      nrep = c(4, 3, 3)[i], model = "M ~ X\nY ~ X + M", pop_es = "M ~ X: -0.25\nY ~ X: 0.1\nY ~ M: -0.3",
+      n = 100, R = 100, ci_type = "mc", test_fun = power4mome::test_indirect_effect,
+      test_args = list(x = "X", m = "M", y = "Y", mc_ci = TRUE, boot_ci = FALSE, level = 0.95),
+      iseed = 6 + i, parallel = FALSE, progress = FALSE
+    )
+    rates <- power4mome::rejection_rates(result)
+    valid <- round(rates$pvalid[1] * c(4, 3, 3)[i])
+    c(round(rates$reject[1] * valid), valid)
+  }, numeric(2))
+  expect_equal(sim$rejections, sum(by_hand[1, ]))
+  expect_equal(sim$nrep, sum(by_hand[2, ]))
+})
+
+test_that("power4mome simulations are batched, with the batch size in the adapter", {
+  spec <- validate_quietly(continuous_and_reliable(sim_spec("process_7")))
+  expect_equal(route_spec(spec, seed = 1)$batch_size, 200)
+  # Memory grows with the draws per CI, so batches shrink above 1,000.
+  expect_equal(power4mome_batch_size(100), 200)
+  expect_equal(power4mome_batch_size(1000), 200)
+  expect_equal(power4mome_batch_size(2000), 100)
+  expect_equal(power4mome_batch_size(5000), 40)
+  expect_equal(power4mome_batch_size(1e6), 10)
+})
+
 test_that("the check run catches a path put in the wrong place", {
   spec <- validate_quietly(continuous_and_reliable(sim_spec("process_7")))
   inputs <- power4mome_inputs(spec)

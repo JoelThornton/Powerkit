@@ -125,7 +125,28 @@ test_that("simulation is used on request, with Monte Carlo errors", {
   expect_equal(p$method, "simulation")
   expect_equal(p$backend_function, "Superpower::ANOVA_power")
   expect_equal(p$nrep, 100)
+  expect_identical(p$batch_size, NA_integer_)
   expect_equal(result$curve$mcse, sqrt(result$curve$power * (1 - result$curve$power) / 100))
+})
+
+test_that("provenance records the batch size of a batched backend", {
+  # A backend that simulates in batches (as power4mome does): seed and batch
+  # size together determine the result, so both are recorded.
+  local_mocked_bindings(route_spec = function(spec, seed) {
+    list(
+      name = "mock", packages = character(), methods = "simulation",
+      default_method = "simulation", functions = c(simulation = "mock"),
+      batch_size = 30L,
+      simulate = function(n, nrep, seed, cores) {
+        simulate_in_chunks(nrep, seed, cores, function(k, s) k %/% 2, batch_size = 30L)
+      },
+      check_run = function() data.frame(parameter = "x", specified = 0, recovered = 0, ok = TRUE)
+    )
+  })
+  result <- run_quietly(small_run_spec("anova_2x2_mixed", method = "simulation"))
+  expect_equal(result$provenance$batch_size, 30L)
+  # 100 replications in 4 batches of 25: 12 rejections each.
+  expect_equal(result$curve$power, 48 / 100)
 })
 
 test_that("on one core, a simulation run equals a direct ANOVA_power call", {

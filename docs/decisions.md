@@ -1014,3 +1014,99 @@ confirm that powerkit translates "no effect" correctly, but they are not
 an empirical check of the simulation's Type I error rate. Simulation
 versions of these tests are listed as an open item in
 `docs/build-guide.md`, section 6.
+
+## 2026-10-15 · Running power4mome simulations in batches
+
+**Problem.** Two full validation runs on the maintainer's laptop (7.7 GB of
+memory) ran for about 12 hours without finishing the PROCESS model 7 and
+14 direct-call tests, then the laptop froze and Windows logged an
+unexpected shutdown. Each of those tests runs two simulations of 10,000
+replications with 1,000 Monte Carlo draws (powerkit, then a direct
+power4mome call), and each simulation was a single `power4test()` call:
+`simulate_in_chunks()` made one chunk per core, and the validation script
+gives each test one core. `power4test()` keeps every replication's data,
+fitted model, draws and test results until it returns, so its memory
+grows with `nrep`.
+
+**Measured** (one `power4test()` call, the model 7 direct-call design:
+n = 250, R = 1,000 Monte Carlo draws, index of moderated mediation; R
+4.5.3, power4mome 0.2.1, Windows; peak working set of the R process, which
+used about 107 MB before the call):
+
+| nrep  | peak memory | R heap, max used | result object | time |
+|-------|-------------|------------------|---------------|------|
+| 100   | 391 MB      | 269 MB           | 299 MB        | 154 s (1.5 s per replication) |
+| 500   | 940 MB      | 755 MB           | 1,493 MB      | 530 s (1.1 s per replication) |
+| 1,000 | 1,635 MB    | 1,261 MB         | 2,986 MB      | 1,324 s (1.3 s per replication) |
+
+"Result object" is `object.size()` of the returned object, which counts
+shared parts more than once, so it overstates; peak memory is the measure
+to go by. A first nrep = 500 run gave the same memory but took 10,742 s of
+wall time, probably because the laptop slept; the rerun above (527 s of
+CPU time) is the one shown.
+
+Memory grows about linearly with `nrep`: roughly 1.1 MB of R heap and
+1.4 MB of process memory per replication, on top of a fixed part. Time
+grows linearly too (1.1 to 1.5 s per replication on one core), so the
+slowness of the crashed runs came from the memory, not from the method.
+Extrapolated, one 10,000-replication call needs about 11 GB of R heap and
+about 14 GB of process memory, more than the laptop has: memory
+exhaustion is the likely cause of the freezes (not confirmed). Two more
+calls at nrep = 100 show what drives the growth: with n = 1,000 instead
+of 250, peak memory was the same (382 MB); with 2,000 draws instead of
+1,000, it rose to 484 MB. The draws matter; n much less.
+
+**Decision.** Large power4mome simulations run in batches.
+
+- `simulate_in_chunks()` splits the replications into one chunk per core
+  as before, or into more chunks if a chunk would exceed the backend's
+  batch size; chunks are as equal as possible, none larger than the batch
+  size. Each chunk is an ordinary `power4test()` call; only its rejection
+  count and number of valid replications are kept before the next one.
+  Rejections and valid replications are summed. This changes memory use,
+  not the method.
+- Batch size (`power4mome_batch_size()`): 200 replications at up to 1,000
+  draws per confidence interval, and proportionally fewer above that
+  (100 at 2,000 draws, 40 at 5,000; at least 10). From the measurements,
+  a batch of 200 at 1,000 draws needs about 0.5 GB of process memory
+  (between the nrep = 100 and 500 rows), well under 1 GB; with 2 tests at
+  once (the script's default) a laptop needs about 1 to 2 GB in all.
+  Batching adds one `power4test()` call (model set-up) per 200
+  replications, expected to be small against 200 replications of about
+  1.4 s each; this overhead was not measured separately.
+- Seeds: chunk i (from 1) has seed `seed + i - 1`, as the per-core chunks
+  had. With one core and nrep at most the batch size, a run is still a
+  single call that equals one direct `power4test()` call with the run's
+  seed.
+- The direct-call validation helper `direct_power4mome()` uses the same
+  batches and seeds (and spreads them over POWERKIT_CORES cores, as the
+  engine does), so both sides of a direct-call test use the same approach.
+- Provenance records `batch_size` (`NA` for backends that are not run in
+  batches). A simulated result is determined by the seed, replications,
+  cores and batch size; above `cores x batch size` replications the number
+  of chunks, and so the result, no longer depends on the cores.
+
+**Not bit-identical to earlier runs.** A batched run with a given seed
+simulates different data sets from an unbatched run with the same seed
+(batch 2 starts from seed + 1, not from where batch 1's random numbers
+ended), so results differ from earlier runs within Monte Carlo error.
+Runs with nrep up to the batch size (200 at 1,000 draws) on one core are
+unchanged. No recorded mediation validation result is affected: none had
+been recorded (`docs/validation-log.md`).
+
+**Validation on GitHub.** `.github/workflows/full-validation.yaml` runs one
+chunk on demand on GitHub's standard runner (4 cores, about 16 GB), with
+the package versions in `renv.lock`, and uploads `validation-results/`.
+The mediation chunks run with `--cores-per-test 4` (new in
+`scripts/run-validation.R`): one test at a time, its batches spread over
+the 4 cores. With one core per test, a model 7 direct-call test (20,000
+replications at about 1.4 s each) would take about 8 hours, longer than
+GitHub's 6-hour limit. Estimated times on 4 cores, from one-core timings
+on the laptop: process_4 about 2.5 hours (simple and parallel mediation
+take about 0.4 s per replication), process_6 about 1 hour, process_7 and
+process_14 about 3 hours each (model 14 not timed separately; assumed
+like model 7). A runner core may be slower than the laptop's, so
+process_7 and process_14 are the chunks most at risk of the limit. The existing workflows install packages from
+`engine/DESCRIPTION`; this one uses `renv.lock`, so its versions match the
+maintainer's machine. How to run it: `docs/validation-log.md`, "Running
+the full validation on GitHub".

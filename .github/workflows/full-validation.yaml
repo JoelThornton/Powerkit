@@ -1,0 +1,104 @@
+# Full validation, one chunk per run, on demand only (never on a push or a
+# schedule). Runs scripts/run-validation.R --only <chunk> --cores 4 on
+# GitHub's standard Linux runner (4 cores, about 16 GB of memory; free for
+# public repositories), with the package versions in renv.lock, and uploads
+# validation-results/ (summary.txt and each test's .rds and .log) as an
+# artifact. How to start it and download the results: docs/validation-log.md,
+# "Running the full validation on GitHub".
+#
+# The mediation chunks (process_4, process_6, process_7, process_14) have a
+# few long tests, so they run one test at a time with all 4 cores
+# (--cores-per-test 4): each simulation's replications are split into
+# batches (simulate_in_chunks()) and the batches spread over the cores. The
+# other chunks run 4 tests at a time on one core each.
+#
+# Time: GitHub stops a job after 6 hours (timeout-minutes: 360). The run
+# step stops at 5 h 40 m, so the results finished by then are still
+# uploaded (the summary lists unfinished tests as NOT RUN). Estimates on
+# 4 cores, from one-core timings on the maintainer's laptop (1,000 Monte
+# Carlo draws; a runner core may be slower, so allow up to about twice
+# these; the first run also spends about 10 minutes installing packages,
+# later runs reuse a cache):
+#   basic, interactions   minutes
+#   anova                 about 1 hour (8 simulated tests of about 9
+#                         minutes each, 4 at a time)
+#   process_4             about 2.5 hours (8 simulations of 10,000
+#                         replications at about 0.4 s each)
+#   process_6             about 1 hour (3 simulations, about 0.4 s each)
+#   process_7, process_14 about 3 hours each (3 simulations at about
+#                         1.4 s each). The closest to the limit: if the
+#                         runner is twice as slow as the laptop, they
+#                         might not finish in 6 hours.
+# Required-n tests (now skipped until their published values are filled
+# in) run several simulations each and will make the chunks longer.
+name: full-validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      chunk:
+        description: "Validation chunk to run"
+        required: true
+        type: choice
+        options:
+          - anova
+          - interactions
+          - basic
+          - process_4
+          - process_6
+          - process_7
+          - process_14
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    name: validation (${{ inputs.chunk }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The R version recorded in renv.lock.
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: renv
+          use-public-rspm: true
+
+      # Restores the package versions in renv.lock (cached between runs).
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Choose cores per test
+        env:
+          CHUNK: ${{ inputs.chunk }}
+        run: |
+          case "$CHUNK" in
+            process_*) echo "PER_TEST=4" >> "$GITHUB_ENV" ;;
+            *) echo "PER_TEST=1" >> "$GITHUB_ENV" ;;
+          esac
+
+      - name: Run the ${{ inputs.chunk }} chunk
+        timeout-minutes: 340
+        env:
+          CHUNK: ${{ inputs.chunk }}
+        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST"
+
+      # Also runs if the chunk failed or hit the time limit, so the
+      # summary covers the results saved so far.
+      - name: Write the summary of saved results
+        if: always()
+        env:
+          CHUNK: ${{ inputs.chunk }}
+        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST" --summary
+
+      - name: Upload validation-results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-results-${{ inputs.chunk }}-run-${{ github.run_number }}
+          path: validation-results/
+          if-no-files-found: warn
+          retention-days: 30

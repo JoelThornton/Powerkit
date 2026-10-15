@@ -19,10 +19,11 @@ power4mome_backend <- function(spec, seed = NULL) {
     functions = c(simulation = sprintf("power4mome::power4test with power4mome::%s", inputs$test_name)),
     n_step = 1,
     exact_min_n = minimum_n(spec),
+    batch_size = power4mome_batch_size(inputs$ci_draws),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
         power4mome_rejections(inputs, n, k, chunk_seed)
-      })
+      }, batch_size = power4mome_batch_size(inputs$ci_draws))
     },
     sensitivity = NULL,
     check_run = function() power4mome_check_run(spec, inputs, seed)
@@ -132,6 +133,17 @@ power4mome_inputs <- function(spec) {
 # test can run), and the low-level gen_mc() and gen_boot() default to 100.
 default_ci_draws <- function() {
   as.integer(eval(formals(power4mome::q_power_mediation)$R))
+}
+
+# Most replications in one power4test() call. power4test() keeps every
+# replication's data, fit and draws until it returns, so its memory grows
+# with nrep; for PROCESS model 7 at n = 250 with 1,000 Monte Carlo draws,
+# about 1.5 to 3 MB per replication (measured; docs/decisions.md, "Running
+# power4mome simulations in batches"). 200 replications per call keep a
+# batch well under 1 GB. Memory grows with the number of draws (n matters
+# much less), so the batch shrinks in proportion above 1,000 draws.
+power4mome_batch_size <- function(ci_draws = default_ci_draws()) {
+  as.integer(max(10, floor(200 * 1000 / max(1000, ci_draws))))
 }
 
 format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = FALSE)

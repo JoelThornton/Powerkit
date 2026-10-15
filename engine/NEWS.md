@@ -1,5 +1,20 @@
 # powerkit 0.0.0.9000
 
+* Mediation and moderated-mediation simulations now run in batches of at
+  most 200 replications per power4mome call (fewer above 1,000 draws per
+  confidence interval), keeping only each batch's counts. Memory use no
+  longer grows with the number of replications: before, 10,000
+  replications of a PROCESS model 7 design needed many gigabytes, more than
+  most laptops have. The method is unchanged (each batch is an ordinary
+  `power4test()` call), but results are not identical to earlier,
+  unbatched runs with the same seed. The batch size is recorded in the
+  result's provenance (`batch_size`).
+* Validation (for maintainers): a `full-validation` GitHub Actions
+  workflow runs one validation chunk on demand on GitHub's machines and
+  uploads the results (docs/validation-log.md, "Running the full
+  validation on GitHub"); `scripts/run-validation.R --cores-per-test k`
+  gives each test k cores (Linux and macOS).
+
 * The "not available yet" messages for a yes/no (binary) X or W in
   regression interactions and mediation designs no longer suggest treating
   the variable as continuous: they say that doing so may give an
