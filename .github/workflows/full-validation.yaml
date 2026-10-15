@@ -13,7 +13,7 @@
 # other chunks run 4 tests at a time on one core each.
 #
 # Time: GitHub stops a job after 6 hours (timeout-minutes: 360). The run
-# step stops at 5 h 40 m, so the results finished by then are still
+# step stops at 5 h 30 m, so the results finished by then are still
 # uploaded (the summary lists unfinished tests as NOT RUN). Estimates on
 # 4 cores, from one-core timings on the maintainer's laptop (1,000 Monte
 # Carlo draws; a runner core may be slower, so allow up to about twice
@@ -59,8 +59,26 @@ jobs:
     timeout-minutes: 360
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      CHUNK: ${{ inputs.chunk }}
+      # Cores per test, set here for the whole job so every step has it:
+      # 4 for the mediation chunks (process_*), 1 for the others.
+      PER_TEST: ${{ startsWith(inputs.chunk, 'process_') && '4' || '1' }}
     steps:
       - uses: actions/checkout@v4
+
+      # System libraries the R packages in renv.lock need on Linux and the
+      # runner lacks. renv's restore (unlike r-lib/actions/setup-r-
+      # dependencies, which the other workflows use) doesn't install them.
+      # libglpk: igraph's binary links to it (igraph is needed by
+      # manymome, which power4mome needs). Every other package in
+      # renv.lock with Linux system requirements loads on the runner as it
+      # is (checked against a failed run's log, 15 October 2026). If a
+      # restore fails with "cannot open shared object file: libX.so", add
+      # the Ubuntu package that provides libX here.
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk-dev
 
       # The R version recorded in renv.lock.
       - uses: r-lib/actions/setup-r@v2
@@ -71,31 +89,29 @@ jobs:
       # Restores the package versions in renv.lock (cached between runs).
       - uses: r-lib/actions/setup-renv@v2
 
-      - name: Choose cores per test
-        env:
-          CHUNK: ${{ inputs.chunk }}
+      # Stops here, before the long run, if a package doesn't load.
+      - name: Check that the packages load
         run: |
-          case "$CHUNK" in
-            process_*) echo "PER_TEST=4" >> "$GITHUB_ENV" ;;
-            *) echo "PER_TEST=1" >> "$GITHUB_ENV" ;;
-          esac
+          Rscript -e 'pkgload::load_all("engine", quiet = TRUE, helpers = FALSE)' \
+                  -e 'for (p in c("power4mome", "manymome", "igraph", "lavaan", "Spower", "Superpower", "InteractionPoweR", "testthat", "processx")) loadNamespace(p)' \
+                  -e 'cat("All packages load.\n")'
 
+      # Steps without an `if` run only if every earlier step succeeded, so
+      # the chunk doesn't start if installing or loading packages failed.
       - name: Run the ${{ inputs.chunk }} chunk
-        timeout-minutes: 340
-        env:
-          CHUNK: ${{ inputs.chunk }}
+        id: run
+        timeout-minutes: 330
         run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST"
 
-      # Also runs if the chunk failed or hit the time limit, so the
-      # summary covers the results saved so far.
+      # Runs if the chunk ran, even if it failed or hit the time limit, so
+      # the summary covers the results saved so far; skipped if the chunk
+      # never started (then there is nothing to summarise).
       - name: Write the summary of saved results
-        if: always()
-        env:
-          CHUNK: ${{ inputs.chunk }}
+        if: always() && steps.run.outcome != 'skipped'
         run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST" --summary
 
       - name: Upload validation-results
-        if: always()
+        if: always() && steps.run.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: validation-results-${{ inputs.chunk }}-run-${{ github.run_number }}

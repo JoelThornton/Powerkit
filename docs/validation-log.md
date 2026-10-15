@@ -40,7 +40,10 @@ can take at most 6 hours. Nothing runs on its own; you start each run.
 
 1. When the run ends, its dot becomes a green tick (every test ran and
    none failed) or a red cross (a test failed or errored, or the chunk hit
-   the time limit). Results are uploaded either way.
+   the time limit). If the chunk ran, its results are uploaded either
+   way. If the run stopped before the chunk started (installing or
+   loading packages failed), there are no results: click the step with
+   the red cross to see why.
 2. Open the run. At the bottom of its **Summary** page, under
    **Artifacts**, click **validation-results-*chunk*-run-*number***. This
    downloads a zip file (you must be signed in to GitHub).
@@ -55,7 +58,7 @@ process_6, about an hour; process_4, about 2.5 hours; process_7 and
 process_14, about 3 hours each. A GitHub machine may be slower than the
 laptop; if it is twice as slow, **process_7 and process_14 might not fit
 in 6 hours**. If a chunk reaches the limit, the run stops at about
-5 h 40 m, the tests that finished are still in the artifact, and the
+5 h 30 m, the tests that finished are still in the artifact, and the
 summary lists the rest as NOT RUN; run those on your own machine (copy
 the downloaded `.rds` files into `validation-results/` first, and the
 script carries on from them). The first run also spends about 10 minutes

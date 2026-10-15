@@ -102,6 +102,9 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
                             retry_skipped = FALSE, fresh = FALSE,
                             list_only = FALSE, summary_only = FALSE,
                             cores_per_test = 1) {
+  cores <- whole_count(cores, "--cores (cores)")
+  cores_per_test <- validation_cores_per_test(cores, whole_count(cores_per_test, "--cores-per-test (cores_per_test)"))
+  cores_label <- if (cores_per_test == 1) cores else sprintf("%d (%d per test)", cores, cores_per_test)
   root <- validation_root()
   old_wd <- setwd(root)
   on.exit(setwd(old_wd), add = TRUE)
@@ -114,9 +117,6 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 
   tests <- validation_tests(root, only)
   tests$done <- tests_done(tests)
-  cores <- max(1L, as.integer(cores))
-  cores_per_test <- validation_cores_per_test(cores, cores_per_test)
-  cores_label <- if (cores_per_test == 1) cores else sprintf("%d (%d per test)", cores, cores_per_test)
   if (isTRUE(summary_only)) {
     return(invisible(write_summary(tests, results_dir, cores_label)))
   }
@@ -160,12 +160,25 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
 # Spreading replications over cores works on Unix-alikes only
 # (run_in_parallel()), so on Windows each test gets one core.
 validation_cores_per_test <- function(cores, cores_per_test) {
-  cores_per_test <- max(1L, min(cores, as.integer(cores_per_test)))
+  cores_per_test <- min(cores, cores_per_test)
   if (cores_per_test > 1 && .Platform$OS.type != "unix") {
     message("--cores-per-test has no effect on Windows: each test runs on one core (--cores sets how many tests run at once).")
     cores_per_test <- 1L
   }
   cores_per_test
+}
+
+# A number of cores as a positive whole number, or stop with a message
+# naming the option (`what`). Accepts a number or text such as "4".
+whole_count <- function(value, what) {
+  shown <- if (length(value) == 0) "nothing" else paste0("'", paste(value, collapse = " "), "'")
+  number <- if (length(value) == 1) suppressWarnings(as.numeric(value)) else NA
+  if (is.na(number) || number < 1 || number != round(number)) {
+    stop(sprintf(
+      "%s must be a positive whole number, such as 1 or 4; got %s.", what, shown
+    ), call. = FALSE)
+  }
+  as.integer(number)
 }
 
 tests_done <- function(tests) {
@@ -768,10 +781,22 @@ if (!interactive() && sys.nframe() == 0) {
       i <- match(flag, args)
       if (is.na(i) || i == length(args)) NULL else args[i + 1]
     }
+    # A count option: its default if the flag isn't given; otherwise the
+    # value after it, which must be there (not another --flag).
+    count_of <- function(flag, default) {
+      if (!flag %in% args) {
+        return(default)
+      }
+      value <- value_of(flag)
+      if (is.null(value) || startsWith(value, "--")) {
+        stop(sprintf("%s needs a value, such as %s 4.", flag, flag), call. = FALSE)
+      }
+      value
+    }
     run_validation(
       only = value_of("--only"),
-      cores = as.integer(value_of("--cores") %||% 2),
-      cores_per_test = as.integer(value_of("--cores-per-test") %||% 1),
+      cores = count_of("--cores", 2),
+      cores_per_test = count_of("--cores-per-test", 1),
       retry_failed = "--retry-failed" %in% args,
       retry_skipped = "--retry-skipped" %in% args,
       fresh = "--fresh" %in% args,
