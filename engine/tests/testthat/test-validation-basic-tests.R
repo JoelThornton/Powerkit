@@ -137,7 +137,7 @@ test_that("chi-square test of independence: power matches pwr (analytic)", {
 # Each test runs powerkit at the published total sample size and compares
 # with the published "actual power" at that sample size.
 
-test_that("independent t-test: matches G*Power 3.1 manual example (published)", {
+test_that("independent t-test: matches the Faul et al. (2007) G*Power example (published)", {
   skip_unless_full_validation()
   # Source: Faul, Erdfelder, Lang & Buchner (2007), "G*Power 3: A flexible
   #   statistical power analysis program for the social, behavioral, and
@@ -184,7 +184,7 @@ test_that("paired t-test: matches G*Power 3.1 manual example (published)", {
   expect_power_near(engine_power(spec), actual_power)
 })
 
-test_that("correlation: matches G*Power 3.1 bivariate normal example (published)", {
+test_that("correlation: matches the Faul et al. (2007) exact bivariate-normal example (published)", {
   skip_unless_full_validation()
   # Source: Faul, Erdfelder, Lang & Buchner (2007), Behavior Research
   #   Methods, 39(2), 175-191, footnote 4: the exact test of a bivariate
@@ -210,7 +210,7 @@ test_that("correlation: matches G*Power 3.1 bivariate normal example (published)
   expect_power_near(engine_power(spec), actual_power)
 })
 
-test_that("two proportions: matches G*Power 3.1 manual example (published)", {
+test_that("two proportions: matches a published example (published)", {
   skip_unless_full_validation()
   # Source: none yet; left TODO. There is no worked example for the z test
   #   of two independent proportions in the G*Power 3.1 manual (June 2023

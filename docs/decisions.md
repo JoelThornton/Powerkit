@@ -886,7 +886,12 @@ check and the tests rerun, which takes seconds):
 "parallel mediation: matches a published parallel example (published)",
 "PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023)
 (published)" and "PROCESS model 14: matches Donnelly, Jorgensen &
-Rudolph (2023) (published)".
+Rudolph (2023) (published)". Renamed on 15 October 2026, when their
+sources changed: "independent t-test: matches the Faul et al. (2007)
+G*Power example (published)", "correlation: matches the Faul et al.
+(2007) exact bivariate-normal example (published)" and "two proportions:
+matches a published example (published)" (no source yet). The paired
+t-test keeps its name, since it still uses the G*Power 3.1 manual.
 
 **3. Sources of the published tests (comments only).**
 
