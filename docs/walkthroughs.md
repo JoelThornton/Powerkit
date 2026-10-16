@@ -10,7 +10,13 @@ For each design in [`routing-audit.md`](routing-audit.md), this page gives:
 - a note on whether the card would make sense to someone without
   statistics training.
 
-Problems are **flagged, not fixed** (F1–F15, listed first). They cover
+Problems were **flagged, not fixed**, when the walkthroughs were first run
+(F1–F15, listed first); the table's Status column says what has since been
+fixed. Entries whose end point changed have a before/after note. Wording also
+changed on these cards without changing where any route leads: the
+validated cards' status lines (E1–E14), E5 and E8 (internal references
+removed), E36 (names non-inferiority) and E44 (dyadic wording). The flags
+cover
 anything confusing, inconsistent between routes, or claiming more than the
 audit supports. No typos were found to fix.
 
@@ -39,23 +45,23 @@ The prototype is routing only. No numbers are calculated, and a card that
 
 ## Flags
 
-| Flag | Type | What | Walkthroughs |
-| --- | --- | --- | --- |
-| F1 | Inconsistent between routes | **The guided route ignores S3's "Twice".** After the screening says each person is measured twice, the variables screen offers the same choices as for once. A condition with two groups then leads to the independent-groups end points (E2, E5) instead of the paired ones (E3, E26). | [Paired t-test](#u-paired), [Wilcoxon signed ranks](#u-wsr), [McNemar](#u-mcnemar) |
-| F2 | Inconsistent between routes | **The guided route has no outcome with several categories.** S1 combines "yes/no, or one of several categories", but the guided outcome option is "Yes/no" only. So an outcome with three categories reaches E5 (two proportions) or E27 (logistic regression). "Help me choose" reaches E6. | [Chi-square test (two groups)](#u-chi2), [Chi-square test (two or more groups)](#u-chi2b) |
-| F3 | Inconsistent between routes; claims more than the audit supports | **Factorial logistic regression gets opposite advice.** "Help me choose" and the list reach E27, which names tools (Spower's `p_glm()`, pwrss). The guided route reaches E32 ("moderation … when the outcome isn't a score"), which says there is no ready-made tool. The audit only establishes E27 for this design, so E32's no-ready-made-tool claim isn't supported here. | [Factorial logistic regression](#u-factlogit) |
-| F4 | Inconsistent between routes | **ANCOVA with a covariate other than a baseline.** "Help me choose" never asks about it and reaches E2. The list and the guided route reach E23. The audit lists this under "What's left" (item 6). | [Analysis of covariance](#u-ancova) |
-| F5 | Inconsistent between routes | **The end-point list ignores the screening.** After "Twice" it still offers the independent-groups tests, and after "Yes/no" it still offers the score tests. No scenario here picked a contradicting card, but nothing stops a user from doing so. | — (general) |
-| F6 | Inconsistent between routes | **Tests that aren't on the list by name.** These lead to the safety net (E-unsure) in "I know my analysis", but to a parametric or single-outcome end point in "Help me choose" and the guided route. Most are already in the audit's "What's left" (rank-based tests, judgement call 3.8; MANOVA; curvilinear effects). | [Multiple outcomes (MANOVA)](#manova), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [One-sample median](#u-median), [Wilcoxon–Mann–Whitney](#u-mww), [Wilcoxon signed ranks](#u-wsr), [Kruskal–Wallis](#u-kw), [Friedman](#u-friedman), [Non-parametric correlation](#u-spearman), [One-way MANOVA](#u-manova), [Multivariate multiple regression](#u-mmreg), [Canonical correlation](#u-canon) |
-| F7 | Audit mismatch; confusing | **IRT and exploratory factor analysis reach E37.** The audit says IRT is "not reachable" in every route, but Q1's "a questionnaire structure" plausibly leads an IRT user to E37. For exploratory factor analysis, the audit already notes that the nearest answer leads to E37. In both cases the card is about CFA and SEM and doesn't mention the user's analysis. | [Factor analysis (exploratory)](#efa), [IRT](#irt), [Factor analysis](#u-fa) |
-| F8 | Claims more than the audit supports (audit mismatch) | **SEM with latent variables in the guided route.** The audit's "after" column says Q1 now names SEM and leads to E37. That holds only in "Help me choose": the guided route has no SEM option, so a latent-variable model described as "X is a score" still reaches E4. | [SEM with latent variables](#sem) |
-| F9 | Claims more than the audit supports | **E44's card says treating partners as independent "would overstate power".** The audit says only that ignoring the pairing is wrong. Whether power is overstated or understated depends on the design (e.g. whether the predictor varies between or within couples). | [Dyadic data](#dyadic) |
-| F10 | Confusing | **S2 for one person, or for group averages.** A single participant's daily ratings, or a school's monthly averages, must be answered "Independent people" to reach E45. No answer describes one unit measured many times. | [Longitudinal: time series (many measurements of one unit)](#timeseries), [Longitudinal: segmented regression or interrupted time series](#segmented) |
-| F11 | Confusing; audit mismatch | **Reliability studies.** Two raters each rating once fits S3's "Twice" awkwardly, and only S4's "Estimate an effect precisely" leads to a fitting card (E46). **Audit mismatch:** the audit says test–retest reliability entered as a relationship still reaches E4. But after S3's "Twice", which is how a test–retest study would answer, the relationship path reaches E41 (within-person relationships). E4 is reached only after "Once". | [Reliability or ICC](#icc) |
-| F12 | Confusing | **Diary studies.** A within-person relationship (sleep on stressful days) goes to E35 ("measured three or more times"). E41 ("relationships measured within people") may fit better, but it isn't reachable once T1 says the measurements are over time. | [Longitudinal: diary or EMA](#diary) |
-| F13 | Confusing | **Non-inferiority.** S4 offers "equivalence or non-inferiority", but E36's card names TOST and minimum-effect tests, not non-inferiority. | [Equivalence or non-inferiority](#equivalence) |
-| F14 | Confusing | **Internal references on user-facing cards.** E5's backend line cites "Departure 5", and validated cards say "published value still to be transcribed". Neither means anything to a user. | [Binary outcome](#binary), [Fisher's exact test](#u-fisher), [Two independent samples t-test](#u-t2), [Paired t-test](#u-paired), [Correlation](#u-corr) |
-| F15 | Confusing | **The same ten closing questions on every card that runs.** "What you'd be asked next" lists the same ten questions on every card, including ones that don't apply. For example, E5 (yes/no outcome) asks about the reliability of measures and Student vs Welch. A reader can't tell which questions apply. Table 2.2 of decision-tree.md lists them for every design, which the routing prototype's PR noted as an ambiguity. | [Binary outcome](#binary), [Sequential designs with interim looks](#sequential), [Unequal variances](#unequalvar), [Attrition or missing data](#attrition), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [SEM with latent variables](#sem), [One-sample t-test](#u-onet), [One-sample median](#u-median), [Two independent samples t-test](#u-t2), [Wilcoxon–Mann–Whitney](#u-mww), [Chi-square test (two groups)](#u-chi2), [Fisher's exact test](#u-fisher), [Paired t-test](#u-paired), [Wilcoxon signed ranks](#u-wsr), [McNemar](#u-mcnemar), [Chi-square test (two or more groups)](#u-chi2b), [Factorial ANOVA](#u-factanova), [Correlation](#u-corr), [Simple linear regression](#u-slr), [Non-parametric correlation](#u-spearman), [Analysis of covariance](#u-ancova), [One-way MANOVA](#u-manova) |
+| Flag | Type | What | Status | Walkthroughs |
+| --- | --- | --- | --- | --- |
+| F1 | Inconsistent between routes | **The guided route ignores S3's "Twice".** After the screening says each person is measured twice, the variables screen offers the same choices as for once. A condition with two groups then leads to the independent-groups end points (E2, E5) instead of the paired ones (E3, E26). | **Fixed** after the walkthroughs: after "Twice" the guided route offers "The same people in two conditions, or before and after" (E3, E26), and two groups measured twice get the pre-post question. | [Paired t-test](#u-paired), [Wilcoxon signed ranks](#u-wsr), [McNemar](#u-mcnemar) |
+| F2 | Inconsistent between routes | **The guided route has no outcome with several categories.** S1 combines "yes/no, or one of several categories", but the guided outcome option is "Yes/no" only. So an outcome with three categories reaches E5 (two proportions) or E27 (logistic regression). "Help me choose" reaches E6. | **Fixed:** the guided outcome offers "One of several categories", which reaches E6. | [Chi-square test (two groups)](#u-chi2), [Chi-square test (two or more groups)](#u-chi2b) |
+| F3 | Inconsistent between routes; claims more than the audit supports | **Factorial logistic regression gets opposite advice.** "Help me choose" and the list reach E27, which names tools (Spower's `p_glm()`, pwrss). The guided route reaches E32 ("moderation … when the outcome isn't a score"), which says there is no ready-made tool. The audit only establishes E27 for this design, so E32's no-ready-made-tool claim isn't supported here. | **Fixed:** both routes reach E47, a generic card with the neutral tools sentence (open question 18 decides whether it names tools). Still open: Q1's moderation answer with a yes/no outcome leads to E32 for this design (audit, "What's left"). | [Factorial logistic regression](#u-factlogit) |
+| F4 | Inconsistent between routes | **ANCOVA with a covariate other than a baseline.** "Help me choose" never asks about it and reaches E2. The list and the guided route reach E23. The audit lists this under "What's left" (item 6). | Open: already in the audit's "What's left". | [Analysis of covariance](#u-ancova) |
+| F5 | Inconsistent between routes | **The end-point list ignores the screening.** After "Twice" it still offers the independent-groups tests, and after "Yes/no" it still offers the score tests. No scenario here picked a contradicting card, but nothing stops a user from doing so. | **Fixed:** the list shows only the analyses that fit the screening answers, and says how many it shows. | — (general) |
+| F6 | Inconsistent between routes | **Tests that aren't on the list by name.** These lead to the safety net (E-unsure) in "I know my analysis", but to a parametric or single-outcome end point in "Help me choose" and the guided route. Most are already in the audit's "What's left" (rank-based tests, judgement call 3.8; MANOVA; curvilinear effects). | Open: mostly in the audit's "What's left" (judgement call 3.8 and others). | [Multiple outcomes (MANOVA)](#manova), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [One-sample median](#u-median), [Wilcoxon–Mann–Whitney](#u-mww), [Wilcoxon signed ranks](#u-wsr), [Kruskal–Wallis](#u-kw), [Friedman](#u-friedman), [Non-parametric correlation](#u-spearman), [One-way MANOVA](#u-manova), [Multivariate multiple regression](#u-mmreg), [Canonical correlation](#u-canon) |
+| F7 | Audit mismatch; confusing | **IRT and exploratory factor analysis reach E37.** The audit says IRT is "not reachable" in every route, but Q1's "a questionnaire structure" plausibly leads an IRT user to E37. For exploratory factor analysis, the audit already notes that the nearest answer leads to E37. In both cases the card is about CFA and SEM and doesn't mention the user's analysis. | **For the maintainer:** change the route (e.g. a Q1 wording that doesn't invite IRT, or an IRT card) or change the audit (IRT reaches E37). Routing not changed. | [Factor analysis (exploratory)](#efa), [IRT](#irt), [Factor analysis](#u-fa) |
+| F8 | Claims more than the audit supports (audit mismatch) | **SEM with latent variables in the guided route.** The audit's "after" column says Q1 now names SEM and leads to E37. That holds only in "Help me choose": the guided route has no SEM option, so a latent-variable model described as "X is a score" still reaches E4. | Open: the guided route still has no SEM option. | [SEM with latent variables](#sem) |
+| F9 | Claims more than the audit supports | **E44's card says treating partners as independent "would overstate power".** The audit says only that ignoring the pairing is wrong. Whether power is overstated or understated depends on the design (e.g. whether the predictor varies between or within couples). | **Fixed:** the card now says that ignoring the pairing can overstate or understate power, depending on whether the predictor varies between or within dyads, so dyadic methods are needed. | [Dyadic data](#dyadic) |
+| F10 | Confusing | **S2 for one person, or for group averages.** A single participant's daily ratings, or a school's monthly averages, must be answered "Independent people" to reach E45. No answer describes one unit measured many times. | **Wording fixed:** S2's "Independent people" now says to choose it for one person or one unit too. | [Longitudinal: time series (many measurements of one unit)](#timeseries), [Longitudinal: segmented regression or interrupted time series](#segmented) |
+| F11 | Confusing; audit mismatch | **Reliability studies.** Two raters each rating once fits S3's "Twice" awkwardly, and only S4's "Estimate an effect precisely" leads to a fitting card (E46). **Audit mismatch:** the audit says test–retest reliability entered as a relationship still reaches E4. But after S3's "Twice", which is how a test–retest study would answer, the relationship path reaches E41 (within-person relationships). E4 is reached only after "Once". | **For the maintainer:** change the route (e.g. an inter-rater or test–retest answer) or change the audit (test–retest answered "Twice" reaches E41). Routing not changed. | [Reliability or ICC](#icc) |
+| F12 | Confusing | **Diary studies.** A within-person relationship (sleep on stressful days) goes to E35 ("measured three or more times"). E41 ("relationships measured within people") may fit better, but it isn't reachable once T1 says the measurements are over time. | **Needs a routing decision:** whether T1's "how people change" should separate within-person relationships (E41) from change over time (E35). | [Longitudinal: diary or EMA](#diary) |
+| F13 | Confusing | **Non-inferiority.** S4 offers "equivalence or non-inferiority", but E36's card names TOST and minimum-effect tests, not non-inferiority. | **Fixed:** E36's title names non-inferiority. | [Equivalence or non-inferiority](#equivalence) |
+| F14 | Confusing | **Internal references on user-facing cards.** E5's backend line cites "Departure 5", and validated cards say "published value still to be transcribed". Neither means anything to a user. | **Fixed:** internal references are out of user-facing text, and validation notes say "A check against a published example is still to come." | [Binary outcome](#binary), [Fisher's exact test](#u-fisher), [Two independent samples t-test](#u-t2), [Paired t-test](#u-paired), [Correlation](#u-corr) |
+| F15 | Confusing | **The same ten closing questions on every card that runs.** "What you'd be asked next" lists the same ten questions on every card, including ones that don't apply. For example, E5 (yes/no outcome) asks about the reliability of measures and Student vs Welch. A reader can't tell which questions apply. Table 2.2 of decision-tree.md lists them for every design, which the routing prototype's PR noted as an ambiguity. | Open: card-specific closing questions are the next PR's work. | [Binary outcome](#binary), [Sequential designs with interim looks](#sequential), [Unequal variances](#unequalvar), [Attrition or missing data](#attrition), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [SEM with latent variables](#sem), [One-sample t-test](#u-onet), [One-sample median](#u-median), [Two independent samples t-test](#u-t2), [Wilcoxon–Mann–Whitney](#u-mww), [Chi-square test (two groups)](#u-chi2), [Fisher's exact test](#u-fisher), [Paired t-test](#u-paired), [Wilcoxon signed ranks](#u-wsr), [Chi-square test (two or more groups)](#u-chi2b), [Factorial ANOVA](#u-factanova), [Correlation](#u-corr), [Simple linear regression](#u-slr), [Non-parametric correlation](#u-spearman), [Analysis of covariance](#u-ancova), [One-way MANOVA](#u-manova) |
 
 Already in the audit's "What's left", and confirmed by these walkthroughs:
 - curvilinear effects reaching E4;
@@ -72,11 +78,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 | Card | Note |
 | --- | --- |
-| [E1](figures/walkthroughs/E1.png): Compare one group's average with a fixed value | The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them, and the status line's "no published-value test for this design yet" means little to a lay reader. |
+| [E1](figures/walkthroughs/E1.png): Compare one group's average with a fixed value | The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them. |
 | [E2](figures/walkthroughs/E2.png): Compare two separate groups on a score | The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. |
 | [E3](figures/walkthroughs/E3.png): Compare the same people in two conditions (or before and after) | The title is clear. "d_z" and "SD of the differences" are opaque without training. |
 | [E4](figures/walkthroughs/E4.png): Test whether two scores are related | The title is clear. "The expected correlation r" needs a little background. |
-| [E5](figures/walkthroughs/E5.png): Compare two groups on a yes/no outcome | The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow. |
+| [E5](figures/walkthroughs/E5.png): Compare two groups on a yes/no outcome | The title is clear. The backend line's "no continuity correction" needs training (the internal reference "Departure 5" was removed after the walkthroughs). |
 | [E6](figures/walkthroughs/E6.png): Test whether two sets of categories are related | The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card. |
 | [E7](figures/walkthroughs/E7.png): Two factors crossed, different people in each of the four groups | The title is clear. "Exact (analytic)" and "cell means" assume some training. |
 | [E18](figures/walkthroughs/E18.png): Any difference among three or more groups or conditions | The title is clear. The standard name uses "omnibus", and "correlations between conditions" needs explaining. |
@@ -87,16 +93,16 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 | [E27](figures/walkthroughs/E27.png): Predict a yes/no outcome | "Predict a yes/no outcome" is clear. "Odds ratio or regression coefficients" needs training. |
 | [E28](figures/walkthroughs/E28.png): An outcome that counts how often something happened | The title is clear. "Rate ratio" and "Poisson or negative binomial" need explaining. |
 | [E29](figures/walkthroughs/E29.png): An outcome in ordered categories (e.g. a single Likert item analysed as ordinal) | The title is clear and has an example. "Odds ratio" and "proportional odds" need training. |
-| [E32](figures/walkthroughs/E32.png): Moderation or mediation when the outcome isn't a score | Clear: it says plainly that there is no ready-made tool, and what the options are. |
 | [E33](figures/walkthroughs/E33.png): Each person responds to many items or stimuli | The title is clear. "Fixed effects" and "variance components" are jargon. |
 | [E34](figures/walkthroughs/E34.png): People nested in groups (classes, teams, clinics) | The title is clear and has examples. "Intraclass correlation (ICC)" needs explaining. |
 | [E35](figures/walkthroughs/E35.png): The same people measured three or more times | The title is clear. "Depends on the model" gives a lay reader nothing to go on, and the package names won't mean much. |
-| [E36](figures/walkthroughs/E36.png): Show that an effect is absent or too small to matter | The title is clear. "TOST" and "equivalence bounds" need explaining. Non-inferiority isn't mentioned, although S4 offered it. |
+| [E36](figures/walkthroughs/E36.png): Show that an effect is absent or too small to matter (equivalence, or non-inferiority) | The title is clear and now names non-inferiority, as S4 does. "TOST" and "equivalence bounds" need explaining. |
 | [E37](figures/walkthroughs/E37.png): Check that a model or questionnaire structure fits | The title is clear for someone checking a questionnaire's structure. "RMSEA" is jargon. The card doesn't mention exploratory factor analysis or IRT, which can reach it. |
 | [E43](figures/walkthroughs/E43.png): An outcome that is the time until something happens | Clear, and it says why (some people haven't had the event when the study ends). The neutral tools sentence leaves the reader with nowhere to go next. |
-| [E44](figures/walkthroughs/E44.png): Data that come in pairs, such as couples or a parent and child | Clear, but its claim about overstated power goes beyond the audit (flag F9). |
+| [E44](figures/walkthroughs/E44.png): Data that come in pairs, such as couples or a parent and child | Clear. It now says why dyadic methods are needed: ignoring the pairing can overstate or understate power. |
 | [E45](figures/walkthroughs/E45.png): A trend over time that may change at a known point | Mostly clear. The four points explain the problem in plain words, and "autocorrelation" is explained in brackets. |
 | [E46](figures/walkthroughs/E46.png): Estimate an effect precisely (plan for a confidence-interval width) | Clear and short. As with E43, it doesn't say where to go next. |
+| [E47](figures/walkthroughs/E47.png): Two or more factors crossed, with a yes/no outcome | Clear, with an example. As with E43, the neutral tools sentence doesn't say where to go next (open question 18). |
 | [E-unsure](figures/walkthroughs/E-unsure.png): None of these fit, or I'm not sure | Clear and plain: powerkit can't advise yet; talk to a statistician. |
 
 ## Part A: designs in the audit
@@ -169,7 +175,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 ![E44 card](figures/walkthroughs/E44.png)
 
-**Would the card make sense without statistics training?** **E44:** Clear, but its claim about overstated power goes beyond the audit (flag F9).
+**Would the card make sense without statistics training?** **E44:** Clear. It now says why dyadic methods are needed: ignoring the pairing can overstate or understate power.
 
 **Flags:** [F9](#flags)
 
@@ -264,7 +270,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 ![E5 card](figures/walkthroughs/E5.png)
 
-**Would the card make sense without statistics training?** **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
+**Would the card make sense without statistics training?** **E5:** The title is clear. The backend line's "no continuity correction" needs training (the internal reference "Departure 5" was removed after the walkthroughs).
 
 **Flags:** [F14](#flags), [F15](#flags)
 
@@ -332,11 +338,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Show there's no meaningful effect*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Show there's no meaningful effect*
 
-**End point:** E36 (Show that an effect is absent or too small to matter) in all three routes.
+**End point:** E36 (Show that an effect is absent or too small to matter (equivalence, or non-inferiority)) in all three routes.
 
 ![E36 card](figures/walkthroughs/E36.png)
 
-**Would the card make sense without statistics training?** **E36:** The title is clear. "TOST" and "equivalence bounds" need explaining. Non-inferiority isn't mentioned, although S4 offered it.
+**Would the card make sense without statistics training?** **E36:** The title is clear and now names non-inferiority, as S4 does. "TOST" and "equivalence bounds" need explaining.
 
 **Flags:** [F13](#flags)
 
@@ -657,7 +663,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 ![E1 card](figures/walkthroughs/E1.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
-**Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them, and the status line's "no published-value test for this design yet" means little to a lay reader. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. The guided route can't describe a one-group design, so the user takes the safety net there. That fits the route's purpose (several analyses on shared variables).
+**Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. The guided route can't describe a one-group design, so the user takes the safety net there. That fits the route's purpose (several analyses on shared variables).
 
 **Flags:** [F15](#flags)
 
@@ -676,7 +682,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 ![E1 card](figures/walkthroughs/E1.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
-**Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them, and the status line's "no published-value test for this design yet" means little to a lay reader. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. E1 is the t-test. Judgement call 3.8's placeholder shows on the card. The guided route can't describe a one-group design, so the user takes the safety net there.
+**Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. E1 is the t-test. Judgement call 3.8's placeholder shows on the card. The guided route can't describe a one-group design, so the user takes the safety net there.
 
 **Flags:** [F6](#flags), [F15](#flags)
 
@@ -763,13 +769,15 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *Different people, outcome in categories*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → list: *Test whether two sets of categories are related*
-- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): One of several categories; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E6 (Test whether two sets of categories are related); I know my analysis: E6 (Test whether two sets of categories are related); Plan my whole study: E5 (Compare two groups on a yes/no outcome). **The routes differ.**
+**End point:** E6 (Test whether two sets of categories are related) in all three routes.
 
-![E6 card](figures/walkthroughs/E6.png) ![E5 card](figures/walkthroughs/E5.png)
+![E6 card](figures/walkthroughs/E6.png)
 
-**Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card. **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
+**Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card.
+
+**Before/after:** Plan my whole study: E5 → E6 (routing fixes after the walkthroughs, F1–F3).
 
 **Flags:** [F2](#flags), [F15](#flags)
 
@@ -788,7 +796,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 ![E5 card](figures/walkthroughs/E5.png)
 
-**Would the card make sense without statistics training?** **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow. E5 is the large-sample test. Judgement call 3.9's placeholder shows on the card.
+**Would the card make sense without statistics training?** **E5:** The title is clear. The backend line's "no continuity correction" needs training (the internal reference "Departure 5" was removed after the walkthroughs). E5 is the large-sample test. Judgement call 3.9's placeholder shows on the card.
 
 **Flags:** [F14](#flags), [F15](#flags)
 
@@ -801,13 +809,15 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 - **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with the same people in both (or one group measured twice)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *Compare the same people in two conditions (or before and after)*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E3 (Compare the same people in two conditions (or before and after)); I know my analysis: E3 (Compare the same people in two conditions (or before and after)); Plan my whole study: E2 (Compare two separate groups on a score). **The routes differ.**
+**End point:** E3 (Compare the same people in two conditions (or before and after)) in all three routes.
 
-![E3 card](figures/walkthroughs/E3.png) ![E2 card](figures/walkthroughs/E2.png)
+![E3 card](figures/walkthroughs/E3.png)
 
-**Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training. **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
+**Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training.
+
+**Before/after:** Plan my whole study: E2 → E3 (routing fixes after the walkthroughs, F1–F3).
 
 **Flags:** [F1](#flags), [F14](#flags), [F15](#flags)
 
@@ -820,13 +830,15 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 - **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with the same people in both (or one group measured twice)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *None of these fit / I'm not sure*
-- **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+- **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E3 (Compare the same people in two conditions (or before and after)); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E2 (Compare two separate groups on a score). **The routes differ.**
+**End points:** Help me choose: E3 (Compare the same people in two conditions (or before and after)); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E3 (Compare the same people in two conditions (or before and after)). **The routes differ.**
 
-![E3 card](figures/walkthroughs/E3.png) ![E-unsure card](figures/walkthroughs/E-unsure.png) ![E2 card](figures/walkthroughs/E2.png)
+![E3 card](figures/walkthroughs/E3.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
-**Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
+**Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician.
+
+**Before/after:** Plan my whole study: E2 → E3 (routing fixes after the walkthroughs, F1–F3).
 
 **Flags:** [F1](#flags), [F6](#flags), [F15](#flags)
 
@@ -839,15 +851,17 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *The same people in every condition*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → list: *The same people, a yes/no outcome in each condition*
-- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E26 (The same people, a yes/no outcome in each condition); I know my analysis: E26 (The same people, a yes/no outcome in each condition); Plan my whole study: E5 (Compare two groups on a yes/no outcome). **The routes differ.**
+**End point:** E26 (The same people, a yes/no outcome in each condition) in all three routes.
 
-![E26 card](figures/walkthroughs/E26.png) ![E5 card](figures/walkthroughs/E5.png)
+![E26 card](figures/walkthroughs/E26.png)
 
-**Would the card make sense without statistics training?** **E26:** The title is clear. "Discordant proportions" is jargon a lay reader won't follow. The Cochran's Q line (no ready-made tool) is clear. **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
+**Would the card make sense without statistics training?** **E26:** The title is clear. "Discordant proportions" is jargon a lay reader won't follow. The Cochran's Q line (no ready-made tool) is clear.
 
-**Flags:** [F1](#flags), [F15](#flags)
+**Before/after:** Plan my whole study: E5 → E26 (routing fixes after the walkthroughs, F1–F3).
+
+**Flags:** [F1](#flags)
 
 ### Three or more groups
 
@@ -896,13 +910,15 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *Different people, outcome in categories*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → list: *Test whether two sets of categories are related*
-- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with three or more groups; Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
+- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with three or more groups; Outcome (Y): One of several categories; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E6 (Test whether two sets of categories are related); I know my analysis: E6 (Test whether two sets of categories are related); Plan my whole study: E27 (Predict a yes/no outcome). **The routes differ.**
+**End point:** E6 (Test whether two sets of categories are related) in all three routes.
 
-![E6 card](figures/walkthroughs/E6.png) ![E27 card](figures/walkthroughs/E27.png)
+![E6 card](figures/walkthroughs/E6.png)
 
-**Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card. **E27:** "Predict a yes/no outcome" is clear. "Odds ratio or regression coefficients" needs training.
+**Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card.
+
+**Before/after:** Plan my whole study: E27 → E6 (routing fixes after the walkthroughs, F1–F3).
 
 **Flags:** [F2](#flags), [F15](#flags)
 
@@ -1005,14 +1021,16 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 **Answers given**
 
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *Two or more factors (e.g. a 2 x 2 design), yes/no outcome*
-- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → list: *Predict a yes/no outcome*
+- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → list: *Two or more factors crossed, with a yes/no outcome*
 - **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): Two groups or conditions; Covariates: None → analysis ticked: *Whether the effect of X depends on the moderator (X x W)*
 
-**End points:** Help me choose: E27 (Predict a yes/no outcome); I know my analysis: E27 (Predict a yes/no outcome); Plan my whole study: E32 (Moderation or mediation when the outcome isn't a score). **The routes differ.**
+**End point:** E47 (Two or more factors crossed, with a yes/no outcome) in all three routes.
 
-![E27 card](figures/walkthroughs/E27.png) ![E32 card](figures/walkthroughs/E32.png)
+![E47 card](figures/walkthroughs/E47.png)
 
-**Would the card make sense without statistics training?** **E27:** "Predict a yes/no outcome" is clear. "Odds ratio or regression coefficients" needs training. **E32:** Clear: it says plainly that there is no ready-made tool, and what the options are.
+**Would the card make sense without statistics training?** **E47:** Clear, with an example. As with E43, the neutral tools sentence doesn't say where to go next (open question 18).
+
+**Before/after:** Help me choose: E27 → E47; I know my analysis: E27 → E47; Plan my whole study: E32 → E47 (routing fixes after the walkthroughs, F1–F3).
 
 **Flags:** [F3](#flags)
 

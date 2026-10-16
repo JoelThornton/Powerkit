@@ -65,29 +65,27 @@ const SAFETY = "None of these fit / I'm not sure";
     console.log(`${ok ? 'ok  ' : 'DIFF'} ${s.id}: ${got.choose} / ${got.known} / ${got.guided}`);
   }
 
-  // One screenshot per end card reached, taken from the end-point list (the
-  // card is the same whichever route reaches it).
+  // One screenshot per end card reached. Each card is opened by replaying a
+  // scenario's "Help me choose" or "I know my analysis" answers (the card is
+  // the same whichever route reaches it; the list is filtered by the
+  // screening answers, so it can't be used for every card).
   const reached = [...new Set(scenarios.flatMap(s => Object.values(s.reaches)))];
-  const names = {};
   for (const id of reached) {
-    await home(); await button('I know my analysis');
-    await answer(['A score or scale', 'Independent people', 'Once', 'Detect an effect']);
-    if (id === 'E-unsure') {
-      await label(SAFETY);
+    const viaChoose = scenarios.find(s => s.reaches.choose === id);
+    const viaKnown = scenarios.find(s => s.reaches.known === id);
+    await home();
+    if (viaChoose) {
+      await button('Help me choose'); await answer(viaChoose.choose);
+    } else if (viaKnown) {
+      await button('I know my analysis'); await answer(viaKnown.known.answers);
+      if (!(await onCard())) await label(viaKnown.known.pick === 'safety' ? SAFETY : viaKnown.known.pick);
     } else {
-      await page.locator(`#screen button:has(.choice-help:text-is("${await helpFor(id)}"))`).first().click(); await settle();
+      console.log('skip (reached only in the guided route)', id); continue;
     }
     if ((await cardId()) !== id) throw new Error(`Opened ${await cardId()} instead of ${id}`);
     await page.mouse.move(5, 5);
     await page.locator('#screen .endpoint-card').first().screenshot({ path: path.join(OUT, `${id}.png`) });
     console.log('shot', id);
-  }
-  async function helpFor(id) {
-    if (!names[id]) {
-      const helps = await page.locator('#screen .choice-help').allTextContents();
-      for (const h of helps) { const m = h.match(/\(([^()]+)\)$/); if (m) names[m[1]] = h.trim(); }
-    }
-    return names[id];
   }
   fs.writeFileSync(path.join(require('os').tmpdir(), 'walkthroughs-last-run.json'), JSON.stringify(results, null, 1));
   await browser.close();

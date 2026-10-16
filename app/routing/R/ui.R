@@ -108,7 +108,9 @@ node_ui <- function(tree, node_id, history, ctx = list()) {
 
 # "I know my analysis" list ---------------------------------------------------
 
-known_ui <- function(tree, history = list()) {
+# With screening answers (`ctx`), the list offers only the end points that
+# fit them (endpoints_for_context()).
+known_ui <- function(tree, history = list(), ctx = NULL) {
   groups <- list(
     "Runs in powerkit (validated)" = "runs_validated",
     "Runs, validation in progress" = "runs_validation_in_progress",
@@ -116,10 +118,13 @@ known_ui <- function(tree, history = list()) {
     "Not in powerkit yet" = "not_in_powerkit"
   )
   eps <- tree$endpoints
+  total <- length(eps)
+  if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
   tagList(
     trail_ui(history),
     h2("Which analysis do you want?"),
     p(class = "lead", "Pick it by name. Each one opens its card."),
+    if (!is.null(ctx)) p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.", length(eps), total)),
     lapply(names(groups), function(g) {
       ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
       if (length(ids) == 0) return(NULL)
@@ -176,7 +181,7 @@ status_ui <- function(tree, ep) {
         not_five,
         p(tree$no_ready_made_tool_text),
         package_list(),
-        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From docs/coverage.md. ", "powerkit can't check results from other tools.")
+        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
       )
     } else {
       div(
@@ -190,7 +195,7 @@ status_ui <- function(tree, ep) {
         not_five,
         package_list(),
         if (is.character(ep$no_ready_made_tool)) p(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text),
-        p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
+        p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools.")
       )
     }
   )
@@ -258,9 +263,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     p(class = "text-muted", g$scope_note),
     placeholders_at(tree, "guided_variables"),
     lapply(g$variables, function(v) {
-      opts <- v$options
-      screened <- if (!is.null(v$screen_key)) ctx[[v$screen_key]]
-      if (!is.null(screened) && screened %in% names(opts)) opts <- opts[c(screened, "notsure")]
+      opts <- guided_options(v, ctx)
       selected <- answers[[v$id]]
       if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
       radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%")
@@ -281,11 +284,11 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       div(
         class = "analysis-row",
         checkboxInput(paste0("tick_", a$id), tags$strong(a$label), value = a$id %in% ticked, width = "100%"),
-        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), sprintf("%s (question %s)", ask$text, ask$doc_id), choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
+        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), ask$text, choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
         checkboxInput(paste0("primary_", a$id), "Primary: the study must be powered for this", value = a$id %in% primary, width = "100%")
       )
     }),
-    radioButtons("g_rule", "How do the primary analyses support the study's claim? (judgement call 3.5)",
+    radioButtons("g_rule", "How do the primary analyses support the study's claim?",
       choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
       choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
       selected = rule %||% "each", width = "100%"

@@ -90,8 +90,10 @@ server <- function(input, output, session) {
       if (!is.null(value)) state$answers[[v$id]] <- value
     }
   }
+  # The guided rules also use some screening answers (e.g. measured twice).
+  routed_answers <- function() guided_answers(tree, state$answers, state$ctx)
   save_guided_analyses <- function() {
-    apps <- applicable_analyses(tree, state$answers)
+    apps <- applicable_analyses(tree, routed_answers())
     ids <- vapply(apps, function(a) a$id, character(1))
     state$ticked <- ids[vapply(ids, function(id) isTRUE(input[[paste0("tick_", id)]]), logical(1))]
     state$primary <- ids[vapply(ids, function(id) isTRUE(input[[paste0("primary_", id)]]), logical(1))]
@@ -174,7 +176,7 @@ server <- function(input, output, session) {
     switch(
       state$screen,
       start = start_ui(tree),
-      known = known_ui(tree, state$history),
+      known = known_ui(tree, state$history, state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
         trail_ui(state$history),
@@ -182,8 +184,8 @@ server <- function(input, output, session) {
         div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
       ),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
-      g_analyses = guided_analyses_ui(tree, state$answers, state$ticked, state$primary, state$asks, isolate(state$rule)),
-      g_plan = guided_plan_ui(tree, state$answers, state$ticked, state$primary, state$asks, state$rule)
+      g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
+      g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule)
     )
   })
 }

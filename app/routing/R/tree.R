@@ -73,6 +73,12 @@ resolve_target <- function(tree, id, ctx = list(), route = "choose") {
 #' would click them. Returns where they lead (an end point id, a question id,
 #' or a route screen), or stops if a label isn't offered at that point.
 follow_answers <- function(tree, labels, route = "choose") {
+  follow_with_context(tree, labels, route)$id
+}
+
+#' As follow_answers(), but also returns the screening context (`ctx`) the
+#' answers built up: list(id, ctx).
+follow_with_context <- function(tree, labels, route = "choose") {
   ctx <- list()
   id <- resolve_target(tree, start_node(tree), ctx, route)
   for (label in labels) {
@@ -84,7 +90,7 @@ follow_answers <- function(tree, labels, route = "choose") {
     ctx <- apply_sets(ctx, chosen[[1]])
     id <- resolve_target(tree, chosen[[1]]$`next`, ctx, route)
   }
-  id
+  list(id = id, ctx = ctx)
 }
 
 #' Problems with the "Help me choose" tree: options without a target,
@@ -233,10 +239,38 @@ resolve_analysis <- function(tree, analysis, answers, ask_answer = NULL) {
   list(unmapped = "No rule in tree.yaml matched these answers.", package = NULL)
 }
 
-#' Every combination of the guided route's variable answers.
+#' The options a guided-route variable offers, given the screening answers
+#' (`ctx`): `screen_map` limits a screened variable to the options its
+#' screening answer allows, and `option_when` shows some options only for
+#' some answers. The safety net ("notsure") is always offered.
+guided_options <- function(variable, ctx = list()) {
+  opts <- variable$options
+  keep <- names(opts)
+  if (!is.null(variable$screen_key) && !is.null(ctx[[variable$screen_key]])) {
+    allowed <- unlist(variable$screen_map[[ctx[[variable$screen_key]]]])
+    if (length(allowed) > 0) keep <- intersect(keep, c(allowed, "notsure"))
+  }
+  for (key in names(variable$option_when)) {
+    if (!matches(variable$option_when[[key]], ctx)) keep <- setdiff(keep, key)
+  }
+  opts[keep]
+}
+
+#' The guided route's answers for routing: the variable answers plus the
+#' screening answers its rules use (`guided$context`, e.g. `times`).
+guided_answers <- function(tree, answers, ctx = list()) {
+  for (key in names(tree$guided$context)) {
+    if (!is.null(ctx[[key]])) answers[[key]] <- ctx[[key]]
+  }
+  answers
+}
+
+#' Every combination of the guided route's variable answers, with every
+#' value of the screening context its rules use.
 all_variable_combinations <- function(tree) {
   opts <- lapply(tree$guided$variables, function(v) names(v$options))
   names(opts) <- vapply(tree$guided$variables, function(v) v$id, character(1))
+  opts <- c(opts, lapply(tree$guided$context, unlist))
   grid <- expand.grid(opts, stringsAsFactors = FALSE)
   lapply(seq_len(nrow(grid)), function(i) as.list(grid[i, , drop = FALSE]))
 }
@@ -267,6 +301,43 @@ status_label <- function(status) {
     not_in_powerkit = "Not in powerkit yet",
     status
   )
+}
+
+#' The end points that fit a set of screening answers (`ctx`): those any
+#' route can still reach with them ("Help me choose" from Q1, or the guided
+#' route with the options it offers), plus end points no screening answer
+#' rules out (Bayes factors) and the safety net. Used to filter the
+#' end-point list.
+endpoints_for_context <- function(tree, ctx) {
+  reached <- character()
+  walk <- function(id, ctx, depth = 0) {
+    id <- resolve_target(tree, id, ctx, "choose")
+    if (is.na(id) || depth > 40) return(invisible())
+    if (is_endpoint_id(id)) {
+      reached <<- union(reached, id)
+      return(invisible())
+    }
+    node <- tree$nodes[[id]]
+    if (is.null(node)) return(invisible())
+    for (o in visible_options(tree, node, ctx, safety = FALSE)) walk(o$`next`, apply_sets(ctx, o), depth + 1)
+  }
+  walk(after_screening(tree, "choose"), ctx)
+  if (identical(ctx$times, "once") || identical(ctx$times, "twice")) {
+    vars <- tree$guided$variables
+    opts <- lapply(vars, function(v) names(guided_options(v, ctx)))
+    names(opts) <- vapply(vars, function(v) v$id, character(1))
+    grid <- expand.grid(opts, stringsAsFactors = FALSE)
+    for (i in seq_len(nrow(grid))) {
+      answers <- guided_answers(tree, as.list(grid[i, , drop = FALSE]), ctx)
+      for (a in applicable_analyses(tree, answers)) {
+        res <- resolve_analysis(tree, a, answers)
+        if (!is.null(res$endpoint)) reached <- union(reached, res$endpoint)
+        if (!is.null(res$ask)) reached <- union(reached, vapply(res$ask$options, function(o) o$endpoint, character(1)))
+      }
+    }
+  }
+  always <- names(Filter(function(e) isTRUE(e$never_screened_out), tree$endpoints))
+  intersect(names(tree$endpoints), union(reached, c(always, tree$safety_net$endpoint)))
 }
 
 endpoints_by_status <- function(tree) {

@@ -186,7 +186,7 @@ settings:
     question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
     value: null
-    shown_at: [E43, E44, E46]
+    shown_at: [E43, E44, E46, E47]
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
@@ -250,7 +250,8 @@ nodes:
   o5a:
     doc_id: O5a
     text: "How will you analyse this rating?"
-    help: "Researchers disagree about this, so we ask rather than choose for you. Your answer is stated in the write-up (decision D1)."
+    help: "Researchers disagree about this, so we ask rather than choose for you. Your answer is stated in the write-up."
+    refs: "decision D1"
     options:
       - {label: "As a score (for example, comparing mean ratings)", next: s2, sets: {outcome: score}, help: "This treats the rating as an interval scale, which is debated."}
       - {label: "As ordered categories", next: E29}
@@ -258,7 +259,7 @@ nodes:
     doc_id: S2
     text: "How are the data grouped?"
     options:
-      - {label: "Independent people", next: s3, help: "Each person's data are separate from everyone else's."}
+      - {label: "Independent people", next: s3, help: "Each person's data are separate from everyone else's. If your data come from one person or one unit (for example, a school's monthly averages), choose this too."}
       - {label: "People within groups", next: E34, help: "e.g. pupils in classes or patients in clinics, including designs where whole groups were assigned to conditions."}
       - {label: "Pairs", next: E44, help: "e.g. couples, or a parent and child, whose scores are related."}
       - {label: "Many trials or stimuli per person", next: E33, help: "e.g. each person rates 40 faces or completes 200 trials."}
@@ -322,7 +323,8 @@ nodes:
   f2a:
     doc_id: F2a
     text: "What does your hypothesis say about the groups?"
-    help: "Researchers disagree about whether to power the overall test or a specific comparison, so we ask (decision D8)."
+    help: "Researchers disagree about whether to power the overall test or a specific comparison, so we ask."
+    refs: "decision D8"
     options:
       - {label: "A specific comparison (e.g. both feedback conditions beat no feedback)", next: E19}
       - {label: "Any difference among the groups", next: E18}
@@ -342,7 +344,8 @@ nodes:
   f4a_between:
     doc_id: F4a
     text: "Will the groups be equal in size?"
-    help: "Whether every combination will have the same number of people (decisions D5, N1-N3)."
+    help: "Whether every combination will have the same number of people."
+    refs: "decisions D5, N1-N3"
     options:
       - {label: "Yes: the same number in every group", next: f5_between}
       - {label: "No: the groups will differ in size", next: E22}
@@ -357,7 +360,8 @@ nodes:
   f6_between:
     doc_id: F6
     text: "Which picture matches your prediction?"
-    help: "The shape is recorded only; you enter the means on the form (decision D6)."
+    help: "The shape is recorded only; you enter the means on the form."
+    refs: "decision D6"
     options:
       - {label: "The lines cross (the effect reverses)", next: E7}
       - {label: "One effect shrinks", next: E7}
@@ -409,7 +413,7 @@ nodes:
       - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
       - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
       - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
-      - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E27, when: {times: once}, help: "Analysed with a logistic regression that includes both factors."}
+      - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
   # A relationship ----------------------------------------------------------
@@ -490,7 +494,8 @@ nodes:
   me1:
     doc_id: ME1
     text: "What is the cause (X)?"
-    help: "The M -> Y path is not randomised, even when X is manipulated (decision D9)."
+    help: "The M -> Y path is not randomised, even when X is manipulated."
+    refs: "decision D9"
     options:
       - {label: "Two conditions you assigned, or two groups", next: me4_xbin}
       - {label: "A measured score", next: me4}
@@ -510,7 +515,8 @@ nodes:
   me3_xbin:
     doc_id: ME3
     text: "How do the mediators connect?"
-    help: "With a yes/no X, both arrangements are coming soon (phase 3b)."
+    help: "With a yes/no X, both arrangements are coming soon."
+    refs: "phase 3b"
     options:
       - {label: "Side by side: X affects each one separately", next: E16}
       - {label: "In a chain: X affects the first, which affects the next", next: E16}
@@ -630,6 +636,8 @@ justification_prompt:
 #   shows `card_text` (and `established_tools_text` if
 #   `established_tools: true`) instead of a package list.
 # card_points: extra points listed on the card.
+# never_screened_out: true for end points the end-point list shows whatever
+#   the screening answers (Bayes factors: open question 8).
 # from_coverage: false when the card's tool line isn't taken from
 #   docs/coverage.md (the card then doesn't say it is).
 # tier: MVP | v2 | later | none (the table's tier text starts with this; none for the safety net).
@@ -643,7 +651,7 @@ endpoints:
     method: Simulation
     inputs: ["Your outcome's name", "Cohen's d: (expected mean minus the fixed value) / SD"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (no published-value test for this design yet)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
   E2:
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
@@ -653,7 +661,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two groups and the outcome", "Cohen's d: (group 2 minus group 1) / pooled SD", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's test"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
   E3:
     doc_name: "Paired-samples t-test"
@@ -663,7 +671,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two conditions and the outcome", "d_z: mean of the differences (second minus first) / SD of the differences"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
   E4:
     doc_name: "Pearson correlation"
@@ -673,17 +681,18 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two variables", "The expected correlation r"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
   E5:
     doc_name: "Test of two proportions (z test)"
     plain_name: "Compare two groups on a yes/no outcome"
     template: "basic_test / two_proportions"
-    backend: "Spower: Spower() with p_prop.test() (no continuity correction, Departure 5)"
+    backend: "Spower: Spower() with p_prop.test() (no continuity correction)"
+    refs: "Departure 5 (docs/conventions.md)"
     method: Simulation
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
   E6:
     doc_name: "Chi-square test of independence"
@@ -693,7 +702,7 @@ endpoints:
     method: Simulation
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1)"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (no published-value test for this design yet)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
   E7:
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
@@ -709,7 +718,8 @@ endpoints:
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
     template: "factorial_anova / 2x2_mixed"
-    backend: "Superpower: ANOVA_exact() (not ANOVA_exact2(), Departure 2)"
+    backend: "Superpower: ANOVA_exact()"
+    refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
     method: "Exact (analytic)"
     inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
     status: runs_validated
@@ -723,7 +733,7 @@ endpoints:
     method: Simulation
     inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
     status: runs_validated
-    validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
+    validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
   E10:
     doc_name: "Simple mediation (PROCESS model 4)"
@@ -733,7 +743,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
     status: runs_validated
-    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026 (published value still to be transcribed)."}
+    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
@@ -743,7 +753,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
     status: runs_validated
-    validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested (published value still to be transcribed)."}
+    validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
   E12:
     doc_name: "Serial mediation (PROCESS model 6)"
@@ -753,7 +763,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
     status: runs_validated
-    validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested (published value still to be transcribed)."}
+    validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
   E13:
     doc_name: "First-stage moderated mediation (PROCESS model 7), index of moderated mediation"
@@ -763,7 +773,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths, including the interaction XW -> M"]
     status: runs_validated
-    validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
+    validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
   E14:
     doc_name: "Second-stage moderated mediation (PROCESS model 14)"
@@ -773,7 +783,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths, including the interaction MW -> Y"]
     status: runs_validated
-    validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
+    validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
   E15:
     doc_name: "Moderated regression with a yes/no X or W"
@@ -783,7 +793,8 @@ endpoints:
     method: Simulation
     inputs: ["Fully standardised correlations", "Groups are always 50/50 for interactions (maintainer decision; InteractionPoweR has no unequal split)"]
     status: coming_soon
-    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    coming_soon_note: "Planned next: a yes/no X or W."
+    refs: "phase 3b (build guide, section 8)"
     tier: MVP
   E16:
     doc_name: "Mediation with a yes/no X"
@@ -793,7 +804,8 @@ endpoints:
     method: Simulation
     inputs: ["Fully standardised paths", "The group split (50/50 by default)"]
     status: coming_soon
-    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    coming_soon_note: "Planned next: a yes/no X or W."
+    refs: "phase 3b (build guide, section 8)"
     tier: MVP
   E17:
     doc_name: "Moderated mediation with a yes/no X or W"
@@ -803,7 +815,8 @@ endpoints:
     method: Simulation
     inputs: ["Fully standardised paths", "A yes/no X or W must be uncorrelated with the other predictors (fits a randomised condition)"]
     status: coming_soon
-    coming_soon_note: "Phase 3b: yes/no X and W (build guide, section 8)."
+    coming_soon_note: "Planned next: a yes/no X or W."
+    refs: "phase 3b (build guide, section 8)"
     tier: MVP
   E18:
     doc_name: "One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus"
@@ -845,7 +858,8 @@ endpoints:
     status: not_in_powerkit
     inputs: ["The four expected cell means and SD", "The size of each group"]
     packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Documents unequal group sizes for ANOVA_power() only: ANOVA_design() help, argument n (\"If unequal n is entered then the design can only be passed onto ANOVA_power\"), and NEWS for 0.0.3. ANOVA_power() stops for designs with a within factor, so this covers the 2 x 2 between design, not the mixed one. The intro vignette still calls unequal sizes a planned future option. powerkit hasn't validated this use (decision N3; see docs/conventions.md, \"Superpower and unequal group sizes\")."}
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Documents unequal group sizes for ANOVA_power() only: ANOVA_design() help, argument n (\"If unequal n is entered then the design can only be passed onto ANOVA_power\"), and NEWS for 0.0.3. ANOVA_power() stops for designs with a within factor, so this covers the 2 x 2 between design, not the mixed one. The intro vignette still calls unequal sizes a planned future option. powerkit hasn't validated this use."}
+    refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
@@ -965,7 +979,7 @@ endpoints:
     tier: later
   E36:
     doc_name: "Equivalence test (TOST) or minimum-effect test"
-    plain_name: "Show that an effect is absent or too small to matter"
+    plain_name: "Show that an effect is absent or too small to matter (equivalence, or non-inferiority)"
     status: not_in_powerkit
     inputs: ["Equivalence bounds", "The expected effect"]
     packages:
@@ -1037,7 +1051,7 @@ endpoints:
     status: not_in_powerkit
     generic: true
     established_tools: true
-    card_text: "powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people would overstate power."
+    card_text: "powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (for example, couples assigned to different conditions) or within dyads (for example, each partner's own stress), so dyadic methods are needed."
     tier: later
   E45:
     doc_name: "Many measurements over time: segmented regression or interrupted time series"
@@ -1062,6 +1076,14 @@ endpoints:
     established_tools: true
     card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
     tier: later
+  E47:
+    doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
+    plain_name: "Two or more factors crossed, with a yes/no outcome"
+    status: not_in_powerkit
+    generic: true
+    established_tools: true
+    card_text: "powerkit doesn't cover designs with two or more crossed factors and a yes/no outcome yet (for example, whether people book a flu jab after a gain or loss message from a doctor or a friend)."
+    tier: later
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"
@@ -1071,6 +1093,7 @@ endpoints:
     card_text: "We suggest discussing it with a statistician."
     tier: none
   E-bayes:
+    never_screened_out: true
     doc_name: "Bayes factor design (any design)"
     plain_name: "Plan a study analysed with Bayes factors"
     status: not_in_powerkit
@@ -1089,16 +1112,23 @@ endpoints:
 # ---------------------------------------------------------------------------
 guided:
   intro: "Describe your study's variables once. Then tick the analyses you plan and mark which ones the study must be powered for."
-  scope_note: "This route assumes different people, each measured once (plus an optional baseline). The screening questions have already checked this."
+  scope_note: "This route covers different people, each measured once, or measured twice (before and after, or in two conditions). The screening questions have already checked this."
+  # Screening answers the guided rules can use (they are added to the
+  # variable answers as `times`).
+  context: {times: [once, twice]}
   many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x
       label: "Main predictor (X)"
-      options: {cond2: "A condition with two groups (or two existing groups)", cond3: "A condition with three or more groups", score: "A measured score", notsure: "None of these fit / I'm not sure"}
+      options: {cond2: "A condition with two groups (or two existing groups)", within2: "The same people in two conditions, or before and after", cond3: "A condition with three or more groups", score: "A measured score", notsure: "None of these fit / I'm not sure"}
+      # Options shown only for some screening answers.
+      option_when: {within2: {times: twice}}
     - id: outcome
       label: "Outcome (Y)"
       screen_key: outcome
-      options: {score: "A score or scale", yesno: "Yes/no", count: "A count", ordinal: "Ordered categories", notsure: "None of these fit / I'm not sure"}
+      # Which options each screening answer allows (plus the safety net).
+      screen_map: {score: [score], yesno: [yesno, categories]}
+      options: {score: "A score or scale", yesno: "Yes/no", categories: "One of several categories", count: "A count", ordinal: "Ordered categories", notsure: "None of these fit / I'm not sure"}
     - id: mediators
       label: "Mediators (go-betweens)"
       options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score", notsure: "None of these fit / I'm not sure"}
@@ -1108,10 +1138,19 @@ guided:
     - id: covariate
       label: "Covariates"
       options: {none: "None", baseline: "A baseline (before) measure of the outcome", other: "Other covariates", notsure: "None of these fit / I'm not sure"}
+      # A baseline is a second measurement of the outcome, so it needs S3 "Twice".
+      option_when: {baseline: {times: twice}}
   analyses:
     - id: compare
       label: "The effect of X on the outcome"
       rules:
+        - {when: {x: within2, outcome: score}, endpoint: E3}
+        - {when: {x: within2, outcome: [yesno, categories]}, endpoint: E26}
+        - {when: {x: [cond2, cond3], outcome: [yesno, categories], times: twice}, endpoint: E-unsure}
+        - {when: {x: cond3, times: twice, outcome: score}, endpoint: E21}
+        - {when: {x: score, times: twice, covariate: none}, endpoint: E41}
+        - {when: {outcome: categories, x: [cond2, cond3]}, endpoint: E6}
+        - {when: {outcome: categories, x: score}, endpoint: E-unsure}
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
         - {when: {outcome: count}, endpoint: E28}
@@ -1123,6 +1162,13 @@ guided:
             options:
               - {label: "ANCOVA: the outcome adjusting for the baseline", endpoint: E23}
               - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", endpoint: E8}
+        - when: {x: cond2, times: twice}
+          ask:
+            doc_id: PP2
+            text: "Each group is measured twice: which analysis do you plan to use?"
+            options:
+              - {label: "ANCOVA: the second measurement adjusting for the first", endpoint: E23}
+              - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", endpoint: E8}
         - {when: {x: cond2, covariate: other}, endpoint: E23}
         - {when: {x: cond2}, endpoint: E2}
         - {when: {x: cond3}, endpoint: E18}
@@ -1132,7 +1178,10 @@ guided:
       label: "Whether the effect of X depends on the moderator (X x W)"
       requires: {moderator: [score, two, three]}
       rules:
-        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {times: twice}, endpoint: E41}
+        - {when: {x: within2}, endpoint: E41}
+        - {when: {outcome: yesno, x: cond2, moderator: two}, endpoint: E47}
+        - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {moderator: three}, endpoint: E30}
         - {when: {x: cond3}, endpoint: E30}
         - {when: {x: cond2, moderator: two}, endpoint: E7}
@@ -1143,7 +1192,9 @@ guided:
       label: "Whether X affects the outcome through the mediator(s)"
       requires: {mediators: [one, several, notscore]}
       rules:
-        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {times: twice}, endpoint: E41}
+        - {when: {x: within2}, endpoint: E41}
+        - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
         - {when: {x: cond3}, endpoint: E42}
         - {when: {x: cond2}, endpoint: E16}
@@ -1159,7 +1210,9 @@ guided:
       label: "Whether the mediation depends on the moderator (moderated mediation)"
       requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
       rules:
-        - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
+        - {when: {times: twice}, endpoint: E41}
+        - {when: {x: within2}, endpoint: E41}
+        - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
         - {when: {mediators: several}, endpoint: E40}
         - when: {x: cond3}
@@ -1182,7 +1235,7 @@ guided:
       note: "Each analysis is a separate claim, tested at its own alpha. No correction."
     - id: all
       label: "All must be significant for the claim"
-      note: "No alpha correction is needed (intersection-union principle). The combined N gives each test its target power on its own; joint power is lower (decision-tree.md 4.1)."
+      note: "No alpha correction is needed (intersection-union principle). The combined N gives each test its target power on its own; joint power is lower."
     - id: any
       label: "Any one significant result supports the claim"
       note: "This inflates the false-positive rate, so it needs an alpha correction (e.g. Bonferroni: alpha / k for k primary analyses), which raises the required N."

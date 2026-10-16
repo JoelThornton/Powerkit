@@ -190,12 +190,12 @@ test_that("SEM with latent variables is named on Q1 and reaches the SEM card", {
   expect_identical(follow_answers(tree, c(base, "That a model fits: a questionnaire structure, or a model with latent variables (SEM)")), "E37")
 })
 
-test_that("a yes/no outcome with two or more factors reaches logistic regression, not the two-proportions test", {
+test_that("a yes/no outcome with two or more factors reaches its own card, not the two-proportions test", {
   # Found by the cross-check against the UCLA OARC table (factorial
   # logistic regression): Q3 for a yes/no difference had no answer for two
   # factors, so the nearest was "two groups" > E5.
   base <- c("Yes/no, or one of several categories", "Independent people", "Once", "Detect an effect", "A difference between groups or conditions")
-  expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E27")
+  expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E47")
 })
 
 test_that("counts no longer reach the correlation through the relationship path", {
@@ -222,7 +222,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", "Detect an effect", diff, "One", "Three or more", "Any difference among the groups"), "E18"),
     "Factorial ANOVA" = list(c(once(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: different people", "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
     "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29"),
-    "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E27"),
+    "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E47"),
     "Correlation and simple linear regression" = list(c(once(score), rel, "A score or scale"), "E4"),
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
     "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),

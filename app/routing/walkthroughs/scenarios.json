@@ -1395,7 +1395,7 @@
    ],
    "vars": {
     "x": "cond2",
-    "outcome": "yesno",
+    "outcome": "categories",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -1405,8 +1405,18 @@
   "reaches": {
    "choose": "E6",
    "known": "E6",
-   "guided": "E5"
-  }
+   "guided": "E6"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E6",
+     "known": "E6",
+     "guided": "E5"
+    }
+   }
+  ]
  },
  {
   "id": "u-fisher",
@@ -1485,7 +1495,7 @@
     "Detect an effect"
    ],
    "vars": {
-    "x": "cond2",
+    "x": "within2",
     "outcome": "score",
     "mediators": "none",
     "moderator": "none",
@@ -1496,8 +1506,18 @@
   "reaches": {
    "choose": "E3",
    "known": "E3",
-   "guided": "E2"
-  }
+   "guided": "E3"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E3",
+     "known": "E3",
+     "guided": "E2"
+    }
+   }
+  ]
  },
  {
   "id": "u-wsr",
@@ -1531,7 +1551,7 @@
     "Detect an effect"
    ],
    "vars": {
-    "x": "cond2",
+    "x": "within2",
     "outcome": "score",
     "mediators": "none",
     "moderator": "none",
@@ -1542,8 +1562,18 @@
   "reaches": {
    "choose": "E3",
    "known": "E-unsure",
-   "guided": "E2"
-  }
+   "guided": "E3"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E3",
+     "known": "E-unsure",
+     "guided": "E2"
+    }
+   }
+  ]
  },
  {
   "id": "u-mcnemar",
@@ -1576,7 +1606,7 @@
     "Detect an effect"
    ],
    "vars": {
-    "x": "cond2",
+    "x": "within2",
     "outcome": "yesno",
     "mediators": "none",
     "moderator": "none",
@@ -1587,8 +1617,18 @@
   "reaches": {
    "choose": "E26",
    "known": "E26",
-   "guided": "E5"
-  }
+   "guided": "E26"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E26",
+     "known": "E26",
+     "guided": "E5"
+    }
+   }
+  ]
  },
  {
   "id": "u-anova1",
@@ -1716,7 +1756,7 @@
    ],
    "vars": {
     "x": "cond3",
-    "outcome": "yesno",
+    "outcome": "categories",
     "mediators": "none",
     "moderator": "none",
     "covariate": "none"
@@ -1726,8 +1766,18 @@
   "reaches": {
    "choose": "E6",
    "known": "E6",
-   "guided": "E27"
-  }
+   "guided": "E6"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E6",
+     "known": "E6",
+     "guided": "E27"
+    }
+   }
+  ]
  },
  {
   "id": "u-rmanova",
@@ -1968,7 +2018,7 @@
     "Once",
     "Detect an effect"
    ],
-   "pick": "Predict a yes/no outcome"
+   "pick": "Two or more factors crossed, with a yes/no outcome"
   },
   "guided": {
    "answers": [
@@ -1987,10 +2037,20 @@
    "analysis": "moderation"
   },
   "reaches": {
-   "choose": "E27",
-   "known": "E27",
-   "guided": "E32"
-  }
+   "choose": "E47",
+   "known": "E47",
+   "guided": "E47"
+  },
+  "changes": [
+   {
+    "change": "routing fixes after the walkthroughs, F1–F3",
+    "before": {
+     "choose": "E27",
+     "known": "E27",
+     "guided": "E32"
+    }
+   }
+  ]
  },
  {
   "id": "u-corr",
