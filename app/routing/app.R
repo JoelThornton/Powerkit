@@ -23,15 +23,20 @@ app_css <- "
   .choices { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0 1.5rem 0; }
   .choice { text-align: left; padding: 0.75rem 1rem; white-space: normal; }
   .choice .choice-label { display: block; font-weight: 600; }
-  .choice .choice-help { display: block; font-size: 0.85rem; opacity: 0.8; margin-top: 0.15rem; }
+  .choice .choice-help { display: block; font-size: 0.85rem; margin-top: 0.15rem; color: #3d4852; }
+  .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #fff; }
   .trail { margin-bottom: 1rem; }
   .trail-title { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.35rem; }
   .chip { border: 1px solid #b8c2d3; background: #e8f0fb; color: #14284b; border-radius: 1rem;
           padding: 0.2rem 0.75rem; margin: 0 0.35rem 0.35rem 0; font-size: 0.85rem; }
-  .question-id, .card-eid { font-size: 0.8rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.04em; }
+  .question-id, .card-eid { font-size: 0.8rem; color: #545b62; text-transform: uppercase; letter-spacing: 0.04em; }
   .nav-buttons { display: flex; gap: 0.75rem; margin-top: 1rem; }
   .placeholders { margin-top: 1rem; }
-  .placeholder { border: 2px dashed #9a9a9a; background: #f2f2f2; color: #333; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 0.75rem; }
+  .placeholder { border: 2px dashed #9a9a9a; background: #f2f2f2; color: #333; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 0.75rem;
+                 opacity: 1; cursor: auto; display: block; min-height: 0; vertical-align: baseline; } /* overrides Bootstrap's loading-placeholder style */
+  .placeholder .text-muted, .placeholder .ref { color: #4d4d4d !important; }
+  .no-numbers { color: #545b62 !important; }
+  [tabindex='-1']:focus { outline: none; }
   .placeholder-label { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
   .placeholder .ref, .decided .ref { font-weight: 400; text-transform: none; margin-left: 0.5rem; color: #555; }
   .decided { border-left: 4px solid #2e7d4f; background: #ddf2e3; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; }
@@ -45,7 +50,7 @@ app_css <- "
                     font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; vertical-align: 1px; }
   .status-soon { background: #fff0d1; border: 1px solid #b97a00; }
   .status-not { background: #f2f2f2; border: 1px dashed #9a9a9a; }
-  .no-numbers { font-size: 0.8rem; color: #6c757d; margin: 0.75rem 0 0 0; }
+  .no-numbers { font-size: 0.8rem; margin: 0.75rem 0 0 0; }
   .placeholder-inline { display: inline-block; border: 1.5px dashed #9a9a9a; background: #f2f2f2; color: #333; border-radius: 0.35rem;
                         padding: 0.1rem 0.5rem; margin: 0.25rem 0 0.35rem 0; font-size: 0.82rem; }
   .decided-inline { display: inline-block; border-left: 3px solid #2e7d4f; background: #ddf2e3; padding: 0.1rem 0.5rem; margin: 0.25rem 0; font-size: 0.82rem; }
@@ -58,11 +63,30 @@ app_css <- "
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 "
 
+# After each screen change, move keyboard and screen-reader focus to the new
+# screen's main heading, so users don't have to tab back down from the top.
+focus_js <- "
+  $(document).on('shiny:value', function(e) {
+    if (e.name !== 'screen') return;
+    setTimeout(function() {
+      var h = document.querySelector('#screen h2');
+      if (h && document.activeElement && document.activeElement !== document.body && !document.getElementById('screen').contains(document.activeElement)) return;
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: false }); }
+    }, 0);
+  });
+"
+
 ui <- fluidPage(
-  theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5),
-  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css))),
-  prototype_banner(tree),
-  div(
+  lang = "en",
+  # A darker primary blue than the default, for 4.5:1 contrast on the page
+  # background (links, choice buttons, tabs).
+  theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
+  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css)), tags$script(HTML(focus_js))),
+  tags$header(
+    h1(class = "visually-hidden", "powerkit routing prototype"),
+    prototype_banner(tree)
+  ),
+  tags$main(
     class = "app-main",
     tabsetPanel(
       id = "tabs",

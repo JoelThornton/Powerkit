@@ -129,7 +129,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
       ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
       if (length(ids) == 0) return(NULL)
       tagList(
-        h4(class = "mt-4", g),
+        h3(class = "h4 mt-4", g),
         div(class = "choices list", lapply(ids, function(id) {
           pick_button(eps[[id]]$plain_name, paste0("ep:", id), sprintf("%s (%s)", eps[[id]]$doc_name, id))
         }))
@@ -219,7 +219,7 @@ prepare_ui <- function(tree, history = list()) {
   stopped <- Filter(function(h) identical(h$answer, tree$safety_net$label), history)
   div(
     class = "prepare",
-    h5("What to write down for a statistician"),
+    h3(class = "h5", "What to write down for a statistician"),
     p(prep$intro),
     tags$ul(
       lapply(prep$items, function(it) tags$li(tags$strong(paste0(it$label, ": ")), answer_for(unlist(it$nodes)))),
@@ -231,6 +231,9 @@ prepare_ui <- function(tree, history = list()) {
 
 card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   ep <- tree$endpoints[[ep_id]]
+  # Headings follow the page outline: the full card's title is the screen's
+  # h2; a compact card sits under the plan's h2.
+  section_heading <- function(text) (if (compact) h4 else h3)(class = "h5", text)
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
   jp <- tree$justification_prompt
   div(
@@ -238,24 +241,24 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
     div(
       class = "card-body",
       div(class = "card-eid", ep_id),
-      h3(class = "card-title", ep$plain_name),
+      (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
+      if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
         input,
         lapply(glossary_for(tree, input), function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
       )))),
       if (!compact && !isTRUE(ep$generic)) tagList(
-        h5("Where your effect size comes from"),
+        section_heading("Where your effect size comes from"),
         p(jp$text),
         tags$ul(lapply(unname(jp$types), tags$li))
       ),
       other_analyses_ui(tree, ep),
       if (runs) p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
       if (!compact && runs) tagList(
-        h5("What you'd be asked next"),
+        section_heading("What you'd be asked next"),
         tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
           q$text,
           if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
@@ -355,10 +358,10 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
   tagList(
     h2("Your plan"),
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
-    h4(class = "mt-4", "Combined sample size"),
+    h3(class = "h4 mt-4", "Combined sample size"),
     p(tags$strong("Rule:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
     div(class = "engine-placeholder", g$placeholders$combined_n),
-    h4(class = "mt-4", "Consistency between analyses"),
+    h3(class = "h4 mt-4", "Consistency between analyses"),
     if (length(shared) == 0) p("No shared relationships among the ticked analyses.") else tags$ul(lapply(shared, function(s) {
       tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
     })),
@@ -376,14 +379,15 @@ settings_table_ui <- function(tree) {
   tagList(
     h2("Undecided judgement calls and open questions"),
     p("Each is a setting in app/routing/tree.yaml. While its value is empty, the app shows a placeholder where it applies. Set the value to one of the option keys to record a decision; no code changes are needed."),
-    tags$table(
+    div(class = "table-responsive", tabindex = "0", role = "region", `aria-label` = "Undecided settings", tags$table(
       class = "table table-sm",
-      tags$thead(tags$tr(tags$th("Setting"), tags$th("Source"), tags$th("Question"), tags$th("Options (key: label)"), tags$th("Current value"))),
+      tags$caption(class = "visually-hidden", "Undecided settings, their sources, questions, options and current values"),
+      tags$thead(tags$tr(tags$th(scope = "col", "Setting"), tags$th(scope = "col", "Source"), tags$th(scope = "col", "Question"), tags$th(scope = "col", "Options (key: label)"), tags$th(scope = "col", "Current value"))),
       tags$tbody(lapply(tree$settings, function(s) tags$tr(
         tags$td(tags$code(s$key)), tags$td(s$ref), tags$td(s$question),
         tags$td(tags$ul(lapply(names(s$options), function(k) tags$li(tags$code(k), ": ", s$options[[k]])))),
         tags$td(if (is_decided(s)) s$value else tags$em("Undecided"))
       )))
-    )
+    ))
   )
 }

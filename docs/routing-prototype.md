@@ -175,6 +175,62 @@ The safety net's wording and target are in `safety_net:`. To change the
 screening wording (open question 16), edit the `s1` to `s4` and `t1`
 nodes, and the S1–S4 and T1 rows of table 2.2.
 
+## Accessibility
+
+Checked on 16 October 2026 with axe-core 4.10.2 (WCAG 2.1 A and AA, plus
+its best-practice rules) on ten screens at desktop width and at phone width
+(375 px):
+- start;
+- a screening question;
+- a card that runs (E2), a not-in-powerkit card (E45) and the safety-net
+  card;
+- the end-point list;
+- the guided route's three screens;
+- the maintainer tab.
+
+All 20 runs found no violations and no sideways scrolling. To re-run:
+`node app/routing/walkthroughs/accessibility.js`, with the prototype
+running.
+
+**Fixed in this pass:**
+- **Colour contrast:**
+  - a darker primary blue (#0a5a8c), because the default (#007bc2) was
+    4.28:1 on the page background;
+  - help text on the choice buttons was faded with opacity (3.2:1);
+  - question IDs were 4.4:1;
+  - the maintainer placeholders were faded to about 2.7:1 by a clash with
+    Bootstrap 5's own `.placeholder` class, which is now overridden.
+- **Structure:**
+  - the page declares its language;
+  - a header and a main landmark;
+  - a top-level heading, visually hidden;
+  - heading levels no longer skip: each screen's title is a second-level
+    heading, with card sections below it;
+  - the settings table has a caption and column headers, and scrolls
+    inside its own box at phone width (it made the whole page scroll
+    sideways by 360 px).
+- **Keyboard:** after each answer, focus moves to the new screen's heading.
+  Before, it fell back to the top of the page. Every choice, chip and
+  button is a native button, so Tab, Enter and Space work.
+- **Not by colour alone:** every status says what it is in words: "Runs in
+  powerkit", "Runs, validation in progress" (also a labelled badge),
+  "Coming soon", "Not in powerkit yet". The undecided placeholders are
+  labelled "Undecided: for the maintainer".
+
+**Not checked, or not clear:**
+- **Screen readers:** not tested with a real one (NVDA, VoiceOver). The
+  focus move announces the new heading in principle; that needs
+  confirming.
+- **Zoom:** 200% zoom and text-only zoom weren't tested separately from
+  the phone-width check.
+- **Touch targets:** the answer chips are smaller than 44 x 44 px on a
+  phone.
+- **Placeholder style:** the dashed grey boxes rely on a dashed border
+  and grey background to look different from user-facing text, as well as
+  on their label.
+- **Charts:** the mermaid flowcharts in `docs/` have no text alternatives
+  beyond their surrounding text.
+
 ## Run the tests
 
 In the RStudio Console, from the project folder:
