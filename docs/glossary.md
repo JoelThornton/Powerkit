@@ -23,7 +23,7 @@ one card.
 | pooled SD | The two groups' standard deviations combined into one, weighted by the groups' sizes. | E2 |
 | SD units | Differences expressed in standard deviations rather than in the outcome's own units (raw). | E7 |
 | Student's or Welch's test | Two versions of the t-test: Student's assumes the two groups' scores are equally spread out; Welch's doesn't. | E2 |
-| correlation (r) | A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship. | E4, E8, E9, E11, E15, E18, E20, E21, E23, E31, E34 |
+| correlation (r) | A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship. | E4, E8, E9, E11, E15, E18, E20, E21, E23, E31 |
 | repeated measurements | The same people measured more than once (for example, before and after, or in each condition); their scores on different occasions usually go together. | E8, E18, E20 |
 | cell means | The expected average in each combination of the factors, such as praise with a hard task (each combination is a 'cell'). | E7, E8, E20, E21, E22 |
 | factor and levels | A factor is something you vary or compare (for example, feedback); its levels are its versions (for example, praise and none). | E7, E8 |

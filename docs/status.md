@@ -37,6 +37,23 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **Card content and usability (draft PR, 16 October 2026; builds on the
+  routing fixes):**
+  - each card asks only the closing questions that apply to it, with a
+    table in [`decision-tree.md`](decision-tree.md);
+  - every technical term in "What you would enter" has a plain-English
+    hint, collected in [`glossary.md`](glossary.md);
+  - other defensible analyses for each covered card are drafted in
+    [`routing-audit.md`](routing-audit.md), with a card note that stays off
+    until decided (open question 20);
+  - every factual claim on a card has its source recorded in
+    [`card-sources.md`](card-sources.md). 51 claims are unsourced,
+    including the 42 glossary definitions;
+  - the safety-net card lists what to write down for a statistician;
+  - an accessibility pass (axe-core: no violations on ten screens at
+    desktop and phone width; focus moves to each new screen). What wasn't
+    checked is listed in [`routing-prototype.md`](routing-prototype.md);
+  - walkthroughs re-run, with before/after notes for every changed card.
 - **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
   - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
     and the wording of F10;

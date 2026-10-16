@@ -1325,7 +1325,7 @@ glossary:
   - {term: "pooled SD", pattern: "pooled SD", hint: "The two groups' standard deviations combined into one, weighted by the groups' sizes."}
   - {term: "SD units", pattern: "SD units", hint: "Differences expressed in standard deviations rather than in the outcome's own units (raw)."}
   - {term: "Student's or Welch's test", pattern: "Student's or Welch's", hint: "Two versions of the t-test: Student's assumes the two groups' scores are equally spread out; Welch's doesn't."}
-  - {term: "correlation (r)", pattern: "\\bcorrelations?\\b", hint: "A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship."}
+  - {term: "correlation (r)", pattern: "(?<!intraclass )\\bcorrelations?\\b", hint: "A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship."}
   - {term: "repeated measurements", pattern: "repeated measure(ment)?s|between conditions", hint: "The same people measured more than once (for example, before and after, or in each condition); their scores on different occasions usually go together."}
   - {term: "cell means", pattern: "cell means|four expected means", hint: "The expected average in each combination of the factors, such as praise with a hard task (each combination is a 'cell')."}
   - {term: "factor and levels", pattern: "\\bfactors?\\b", hint: "A factor is something you vary or compare (for example, feedback); its levels are its versions (for example, praise and none)."}
