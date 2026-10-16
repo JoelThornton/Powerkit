@@ -852,6 +852,116 @@ planned effect size (2.2), which is prospective. Some tools call both
 - **What the form needs:** pre-filled values (and which ones), blank
   fields, or pre-filled values plus a required reason.
 
+### 3.7 Chi-square goodness-of-fit: E6 or its own card
+
+Found by the routing audit's cross-check against the UCLA OARC table
+([routing audit](routing-audit.md)). A goodness-of-fit test compares one
+categorical variable with expected proportions. The tree has no answer for
+it, so it reaches E25 (a single proportion) or E6 (the test of
+independence).
+
+- **One chi-square routine:** G\*Power handles goodness-of-fit and
+  contingency tables in one chi-square routine, where Cohen's w and the
+  degrees of freedom differ (maintainer's recollection, 16 October 2026)
+  *(seen second-hand, to verify against the G\*Power manual)*. Spower's
+  `p_chisq.test()` does both: a probability vector (`P0`, `P`) gives a
+  goodness-of-fit test, and a matrix gives a test of independence (Spower
+  0.6.4 help page and examples) *(read in full)*. [Coverage](coverage.md)
+  lists goodness-of-fit as planned, v2.
+- **What E6 is today:** independence only. The
+  `chi_square_independence` template requires two categorical variables
+  (X and Y) and a probability table of at least 2 x 2, which the engine
+  passes to `p_chisq.test()` as a matrix
+  (`engine/inst/schema/design.schema.json`, `engine/R/backend-spower.R`;
+  read in this session). So routing goodness-of-fit to E6 would send users
+  to a form that can't take their design.
+- **The positions:**
+  - route goodness-of-fit to E6, with the card explaining how to set it
+    up. This works only after the spec gains a goodness-of-fit form (a
+    schema change and a validation test);
+  - an honest card now ("not in powerkit yet: Spower's `p_chisq.test()`
+    with a probability vector"), then E6 once the template exists.
+- **Maintainer's view (16 October 2026, not a decision):** routing to E6
+  could be correct if E6 handled goodness-of-fit; otherwise it needs an
+  honest card. Since E6 is independence only, the view points to an
+  honest card for now.
+- **Why it's a judgement call:** whether to extend E6 or give
+  goodness-of-fit its own end point is a scope decision for the spec and
+  engine (phase 3 or later). The router can't settle it alone.
+
+### 3.8 Rank-based (non-parametric) tests reaching parametric end points
+
+The audit's cross-check found that the one-sample median,
+Wilcoxon–Mann–Whitney, Wilcoxon signed-rank, Kruskal–Wallis, Friedman and
+non-parametric correlation tests reach the parametric end points (E1–E4,
+E18), because no question asks how the data will be analysed.
+
+- **Efficiency adjustment:** G\*Power plans the Mann–Whitney and Wilcoxon
+  tests by adjusting the t-test calculation with an asymptotic relative
+  efficiency that depends on the assumed parent distribution (maintainer's
+  recollection; coverage.md cites G\*Power Examples 22.1, 22.3 and 23.3,
+  with normal and Laplace parents, through Spower's documentation)
+  *(seen second-hand, to verify against the G\*Power manual)*.
+- **Simulation of the rank test itself:** Spower's `p_wilcox.test()`
+  simulates the Wilcoxon signed-rank and Mann–Whitney tests from chosen
+  parent distributions, and `p_kruskal.test()` does the same for
+  Kruskal–Wallis (Spower 0.6.4 help pages) *(read in full)*. No Friedman
+  function is among Spower 0.6.4's exported functions (checked in this
+  session). [Coverage](coverage.md) lists Wilcoxon and Mann–Whitney as
+  planned (v2) and Kruskal–Wallis as planned (later).
+- **The positions:**
+  - follow G\*Power's efficiency adjustment, recorded as the convention;
+  - simulate the rank test with Spower, which also follows an established
+    tool and needs a parent distribution from the user;
+  - keep the parametric end point and say plainly on the card that the
+    figure is the t-test's, an approximation for the rank-based test;
+  - give tests with no backend an honest card.
+- **Maintainer's view (16 October 2026, not a decision):** a card note
+  rather than a new route. Either follow G\*Power's approach and record
+  it, or say plainly that the card gives the t-test figure as an
+  approximation. Kruskal–Wallis and Friedman should get honest "no
+  ready-made tool" cards. **Note on the facts:** Spower's
+  `p_kruskal.test()` is a ready-made tool for Kruskal–Wallis, so its card
+  would say "not in powerkit yet: use Spower", not "no ready-made tool".
+  For Friedman, no ready-made tool was found in Spower.
+- **Why it's a judgement call:** the efficiency adjustment and simulation
+  can give different answers, and both depend on an assumed distribution
+  that users rarely know. Whichever is chosen becomes powerkit's
+  convention, so it needs recording in `docs/conventions.md` with a test
+  showing the size of any difference (CLAUDE.md).
+
+### 3.9 Fisher's exact test reaching the large-sample tests
+
+The audit's cross-check found that Fisher's exact test reaches E5 (two
+proportions, a large-sample test without continuity correction) or E6.
+With small samples, the large-sample calculation can be quite wrong, and
+small samples are when people choose Fisher's test.
+
+- **Exact calculation:** G\*Power has a Fisher's exact test for two
+  proportions (maintainer's recollection; coverage.md tags it [GP, search])
+  *(seen second-hand, to verify against the G\*Power manual)*. Spower's
+  `p_prop.test(exact = TRUE)` runs `fisher.test()` on each simulated data
+  set, given the proportions as a matrix (Spower 0.6.4 help page)
+  *(read in full)*. [Coverage](coverage.md) lists it as planned, v2.
+- **What E5 does today:** `p_prop.test()` with `correct = FALSE` and no
+  `exact` option (`engine/R/backend-spower.R`; read in this session).
+  Because E5 simulates, its power is for the large-sample test on finite
+  samples. It is not the power of Fisher's test.
+- **The positions:**
+  - offer the exact test (Spower `exact = TRUE`), as a test version at
+    Q-test;
+  - warn on E5 and E6 that the figure isn't reliable for small expected
+    counts;
+  - both.
+- **Maintainer's view (16 October 2026, not a decision):** check whether
+  an exact option exists. If powerkit doesn't do exact calculations, the
+  card should warn that its figure isn't reliable for small expected
+  counts. **Note on the facts:** Spower, powerkit's backend for E5, has
+  the exact option, so following it adds no new maths.
+- **Why it's a judgement call:** adding the exact test changes E5's spec
+  and needs its own validation. A warning needs a threshold for "small
+  expected counts", which is itself a convention to choose and record.
+
 ## 4. Studies with several hypotheses (proposals only)
 
 The study that motivated powerkit tested several hypotheses on the same
@@ -1291,6 +1401,12 @@ how the wrapped tools work.
    - 3.4: should simple effects become a target?
    - 3.5: should the app ask about several hypotheses?
    - 3.6: which defaults, if any, should alpha and power have?
+   - 3.7: should chi-square goodness-of-fit go to E6 (after the spec gains
+     a goodness-of-fit form) or get its own card?
+   - 3.8: for rank-based tests, follow G\*Power's efficiency adjustment,
+     simulate with Spower, or label the t-test figure as an approximation?
+   - 3.9: for Fisher's exact test, offer Spower's exact option, warn about
+     small expected counts, or both?
 6. **"Not in spec" end points.** Confirm the wording for pointing users to
    another tool, and the rule that powerkit never routes to a simpler
    stand-in test. This rule generalises decision N2 beyond 2x2 main

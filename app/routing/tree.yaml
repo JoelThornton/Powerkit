@@ -71,6 +71,24 @@ settings:
     options: {none: "Blank: the user enters both", conventional: "Pre-filled .05 and .80", conventional_reason: "Pre-filled .05 and .80, with a required reason if changed or kept", rr: "Pre-filled .05 and .90"}
     value: null
     shown_at: [card]
+  - key: chi_square_gof
+    ref: "Judgement call 3.7; open question 5"
+    question: "Chi-square goodness-of-fit (one categorical variable against expected proportions) has no answer in the tree. E6 is a test of independence only. Should goodness-of-fit go to E6 once the spec has a goodness-of-fit form, or get its own card?"
+    options: {extend_e6: "Extend E6 (spec change; Spower's p_chisq.test() takes a probability vector), with the card explaining the degrees of freedom", own_card: "Its own card: not in powerkit yet, use Spower's p_chisq.test()"}
+    value: null
+    shown_at: [E6, E25]
+  - key: rank_based_tests
+    ref: "Judgement call 3.8; open question 5"
+    question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should powerkit handle them?"
+    options: {efficiency: "Adjust the t-test calculation by an efficiency factor for an assumed distribution (G*Power's approach), recorded as the convention", simulate: "Simulate the rank test (Spower's p_wilcox.test(), p_kruskal.test()) from an assumed distribution", label: "Give the parametric figure and say plainly that it only approximates the rank-based test", honest: "Honest cards for rank-based tests until one of the above is built"}
+    value: null
+    shown_at: [E1, E2, E3, E4, E18]
+  - key: fisher_exact
+    ref: "Judgement call 3.9; open question 5"
+    question: "Fisher's exact test reaches the large-sample tests (E5, E6), which can be quite wrong with small expected counts. What should powerkit do?"
+    options: {exact: "Offer the exact test (Spower's p_prop.test(exact = TRUE)) as a test version", warn: "Warn that the figure isn't reliable for small expected counts", both: "Both"}
+    value: null
+    shown_at: [E5, E6]
   - key: starting_point
     ref: "Open question 1"
     question: "Start from the hypothesis (as here), or also offer G*Power's design-based order (parameter class, then design)?"

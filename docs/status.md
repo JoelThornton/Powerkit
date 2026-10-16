@@ -62,9 +62,17 @@ fully validated. Validation runs are recorded in
     misroute, now fixed: factorial logistic regression reaches E27. It
     also found chi-square goodness-of-fit, which has no end point and is
     left for the maintainer. The table doesn't cover nested, clustered or
-    time-series data, so the earlier list still applies. The UCLA page
-    was blocked in this session, so the maintainer should check the list
-    of analyses against it.
+    time-series data, so the earlier list still applies. The list of 31
+    analyses was checked against the page on 16 October 2026.
+  - Three new judgement calls in [`decision-tree.md`](decision-tree.md),
+    section 3, each with its positions, the maintainer's view and the
+    reason it is a judgement call:
+    - 3.7: chi-square goodness-of-fit, E6 or its own card. E6 is
+      independence only today;
+    - 3.8: rank-based tests that reach parametric end points;
+    - 3.9: Fisher's exact test that reaches the large-sample tests.
+
+    Each is an undecided setting shown on the cards it affects.
   - Still misrouting, left for the maintainer because each needs a
     statistical judgement: curvilinear effects, reliability/ICC,
     non-parametric tests, sequential designs, MANOVA, non-baseline

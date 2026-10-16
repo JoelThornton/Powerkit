@@ -231,3 +231,24 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
   )
   for (name in names(rows)) expect_identical(follow_answers(tree, rows[[name]][[1]]), rows[[name]][[2]], label = name)
 })
+
+test_that("the audit has a row for each of the 31 analyses in the UCLA OARC table, and the chi-square test twice", {
+  expected <- c("one-sample t-test", "one-sample median", "binomial test", "chi-square goodness-of-fit",
+    "two independent samples t-test", "wilcoxon–mann–whitney", "chi-square test", "fisher's exact test",
+    "one-way anova", "kruskal–wallis", "paired t-test", "wilcoxon signed ranks", "mcnemar",
+    "one-way repeated measures anova", "friedman", "repeated measures logistic regression", "factorial anova",
+    "ordered logistic regression", "factorial logistic regression", "correlation", "simple linear regression",
+    "non-parametric correlation", "simple logistic regression", "multiple regression", "analysis of covariance",
+    "multiple logistic regression", "discriminant analysis", "one-way manova", "multivariate multiple regression",
+    "factor analysis", "canonical correlation")
+  expect_length(expected, 31)
+  text <- read_doc("routing-audit.md")
+  start <- regexpr("## Cross-check against the UCLA OARC", text, fixed = TRUE)
+  end <- regexpr("**Result.**", text, fixed = TRUE)
+  lines <- strsplit(substring(text, start, end), "\n", fixed = TRUE)[[1]]
+  lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Analysis (UCLA OARC row)")]
+  names <- tolower(vapply(lines, function(l) split_row(l)[1], character(1), USE.NAMES = FALSE))
+  expect_length(names, 32)
+  expect_identical(sum(startsWith(names, "chi-square test (")), 2L)
+  expect_setequal(unique(sub(" \\(two (groups|or more groups)\\)$", "", names)), expected)
+})
