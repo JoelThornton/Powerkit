@@ -14,7 +14,8 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 - Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer.
 - Every result records: spec hash, seed, backend, R and package versions.
 - The Shiny app never computes power; it builds specs and calls the engine.
-- Citations come only from inst/citations/refs.bib. Never invent references.
+- Citations come only from inst/citations/refs.bib or a package's own citation().
+  Never invent references or write one from memory.
 - Plain-English errors for users; no stack traces in the UI.
 - powerkit follows the established tools' conventions by default. Any
   departure must be recorded in docs/conventions.md, shown to the user on the

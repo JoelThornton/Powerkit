@@ -1,10 +1,12 @@
 #' Citations for a result
 #'
 #' Lists what to cite for a [run_spec()] result: the package that computed
-#' it (its own `citation()`), that package's method paper, and powerkit.
-#' Method papers and powerkit's paper come only from powerkit's curated
-#' reference list (`inst/citations/refs.bib`); a reference not in it yet is
-#' shown as a placeholder, never filled in from elsewhere.
+#' it (its own `citation()`), that package's method paper, powerkit, and
+#' the software used underneath (the supporting packages that do real work
+#' for the backend, and R), each from its own `citation()`. Citations come
+#' only from powerkit's curated reference list (`inst/citations/refs.bib`)
+#' or a package's own `citation()`. A method paper or powerkit paper not in
+#' refs.bib yet is shown as a placeholder, never filled in from elsewhere.
 #'
 #' The methods paragraph is not written yet; the text export shows a
 #' placeholder for it.
@@ -32,16 +34,19 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
   }
   package <- result$provenance$backend
   entries <- read_bib(refs)
+  package_cit <- package_citation(package)
+  method_ref <- entries[[method_paper_key(package)]]
   items <- list(
     package = list(
       label = sprintf("%s, the package that computed this power analysis (from citation(\"%s\"))", package, package),
-      citation = package_citation(package),
+      citation = package_cit,
       key = paste0(package, "_package")
     ),
     method = list(
       label = sprintf("%s's method paper", package),
-      ref = entries[[method_paper_key(package)]],
-      key = method_paper_key(package)
+      ref = method_ref,
+      key = method_paper_key(package),
+      same_as = if (!is.null(method_ref) && same_doi(method_ref, package_cit)) paste0(package, "_package")
     ),
     powerkit = list(
       label = "powerkit, the package that set up and checked the analysis (from its DESCRIPTION)",
@@ -54,7 +59,18 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
       key = powerkit_paper_key()
     )
   )
-  text <- if (format == "text") citations_text(items, result) else citations_bibtex(items, result)
+  software <- lapply(supporting_software(package), function(s) {
+    list(
+      label = sprintf("%s, %s (from citation(\"%s\"))", s$name, s$role, s$citation),
+      citation = package_citation(s$citation),
+      key = paste0(s$name, "_package")
+    )
+  })
+  text <- if (format == "text") {
+    citations_text(items, software, result)
+  } else {
+    citations_bibtex(items, software, result)
+  }
   text <- paste(c(text, ""), collapse = "\n")
   if (is.null(file)) {
     return(text)
@@ -68,6 +84,38 @@ refs_path <- function() system.file("citations", "refs.bib", package = "powerkit
 # Keys powerkit looks up in refs.bib (listed at the top of refs.bib).
 method_paper_key <- function(package) paste0(package, "_method")
 powerkit_paper_key <- function() "powerkit"
+
+# The software doing real work underneath each backend, for the "software
+# used" section: packages the backend calls to simulate, fit or test (from
+# the backends' sources: Spower runs its simulations with SimDesign;
+# Superpower fits its ANOVAs with afex::aov_car() and generates data with
+# MASS::mvrnorm(); power4mome fits with lavaan and computes indirect effects
+# and their confidence intervals with manymome; InteractionPoweR uses base
+# R only), then R itself. `citation` is the package whose citation() is
+# used ("base" for R).
+supporting_software <- function(backend) {
+  s <- function(name, role, citation = name) list(name = name, role = role, citation = citation)
+  packages <- switch(
+    backend,
+    Spower = list(s("SimDesign", "which runs Spower's simulations")),
+    Superpower = list(
+      s("afex", "which fits Superpower's ANOVAs (aov_car())"),
+      s("MASS", "which Superpower uses to generate data (mvrnorm())")
+    ),
+    power4mome = list(
+      s("lavaan", "which fits the model to each simulated data set"),
+      s("manymome", "which computes the indirect effect or index and its confidence interval")
+    ),
+    list()
+  )
+  c(packages, list(s("R", "in which the analysis ran", "base")))
+}
+
+# Whether a refs.bib entry has the same DOI as an entry of a citation().
+same_doi <- function(ref, cit) {
+  doi <- tolower(ref$fields$doi %||% "")
+  nzchar(doi) && doi %in% tolower(unlist(lapply(unclass(cit), function(e) e$doi)))
+}
 
 # A package's own citation(). powerkit's comes from its DESCRIPTION when it
 # isn't installed (as under devtools::load_all()).
@@ -92,7 +140,7 @@ methods_placeholder <- function() {
   "[Placeholder: the methods paragraph is not written yet.]"
 }
 
-citations_text <- function(items, result) {
+citations_text <- function(items, software, result) {
   p <- result$provenance
   entry_text <- function(item) {
     if (!is.null(item$citation)) {
@@ -101,39 +149,53 @@ citations_text <- function(items, result) {
     if (is.null(item$ref)) {
       return(placeholder_text(item$key))
     }
-    bib_entry_text(item$ref)
+    text <- bib_entry_text(item$ref)
+    if (is.null(item$same_as)) text else c(text, "(The same as the package citation above.)")
   }
-  body <- unlist(lapply(items, function(item) {
-    c(paste0(item$label, ":"), paste0("  ", gsub("\n", "\n  ", entry_text(item))), "")
-  }), use.names = FALSE)
+  section <- function(items) {
+    unlist(lapply(items, function(item) {
+      c(paste0(item$label, ":"), paste0("  ", gsub("\n", "\n  ", entry_text(item))), "")
+    }), use.names = FALSE)
+  }
   c(
     "Citations for this power analysis",
     sprintf("(powerkit %s; %s %s; spec hash %s)", p$packages[["powerkit"]], p$backend, p$packages[[p$backend]], p$spec_hash),
     "",
-    body,
+    section(items),
+    "Software used (doing work underneath; each from its own citation()):",
+    "",
+    section(software),
     "Methods paragraph:",
     paste0("  ", methods_placeholder())
   )
 }
 
-citations_bibtex <- function(items, result) {
+citations_bibtex <- function(items, software, result) {
   p <- result$provenance
-  body <- unlist(lapply(items, function(item) {
-    if (!is.null(item$citation)) {
-      return(c(sprintf("%% %s", item$label), bibentry_bibtex(item$citation, item$key), ""))
-    }
-    if (is.null(item$ref)) {
-      return(c(sprintf("%% %s", item$label), paste("%", placeholder_text(item$key)), ""))
-    }
-    c(sprintf("%% %s (from powerkit's refs.bib)", item$label), item$ref$raw, "")
-  }), use.names = FALSE)
+  section <- function(items) {
+    unlist(lapply(items, function(item) {
+      if (!is.null(item$citation)) {
+        return(c(sprintf("%% %s", item$label), bibentry_bibtex(item$citation, item$key), ""))
+      }
+      if (is.null(item$ref)) {
+        return(c(sprintf("%% %s", item$label), paste("%", placeholder_text(item$key)), ""))
+      }
+      if (!is.null(item$same_as)) {
+        return(c(sprintf("%% %s: the same as %s above.", item$label, item$same_as), ""))
+      }
+      c(sprintf("%% %s (from powerkit's refs.bib)", item$label), item$ref$raw, "")
+    }), use.names = FALSE)
+  }
   c(
     sprintf(
       "%% Citations for this power analysis (powerkit %s; %s %s; spec hash %s)",
       p$packages[["powerkit"]], p$backend, p$packages[[p$backend]], p$spec_hash
     ),
     "",
-    body
+    section(items),
+    "% Software used (doing work underneath; each from its own citation())",
+    "",
+    section(software)
   )
 }
 

@@ -28,10 +28,12 @@ The citations as a single string; invisibly if \code{file} is given.
 }
 \description{
 Lists what to cite for a \code{\link[=run_spec]{run_spec()}} result: the package that computed
-it (its own \code{citation()}), that package's method paper, and powerkit.
-Method papers and powerkit's paper come only from powerkit's curated
-reference list (\code{inst/citations/refs.bib}); a reference not in it yet is
-shown as a placeholder, never filled in from elsewhere.
+it (its own \code{citation()}), that package's method paper, powerkit, and
+the software used underneath (the supporting packages that do real work
+for the backend, and R), each from its own \code{citation()}. Citations come
+only from powerkit's curated reference list (\code{inst/citations/refs.bib})
+or a package's own \code{citation()}. A method paper or powerkit paper not in
+refs.bib yet is shown as a placeholder, never filled in from elsewhere.
 }
 \details{
 The methods paragraph is not written yet; the text export shows a

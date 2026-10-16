@@ -11,10 +11,14 @@
   design `run_spec()` runs.
 * New `export_citations(result, format = "text" or "bibtex")` lists what to
   cite: the package that computed the result (its own `citation()`), its
-  method paper and powerkit. Method papers and powerkit's paper come only
-  from powerkit's curated reference list; until the maintainer adds them,
-  they are shown as placeholders. The methods paragraph is a placeholder
-  too (not written yet). The repository now has a `CITATION.cff`.
+  method paper, powerkit, and the software used underneath (SimDesign;
+  afex and MASS; lavaan and manymome; and R), each from its own
+  `citation()`. Method papers come from powerkit's curated reference list,
+  copied from the packages' own `citation()`: Superpower's and
+  InteractionPoweR's are included; Spower's and power4mome's, and
+  powerkit's own paper, are shown as placeholders. The methods paragraph
+  is a placeholder too (not written yet). The repository now has a
+  `CITATION.cff`.
 * Results record each simulated sample size's seed in
   `provenance$simulations` (with its rejections, analysable replications,
   and whether the required-n curve was fitted to it), so every simulated
@@ -25,7 +29,7 @@
   effect, so results depended slightly on earlier calls in the session (and
   on the number of cores). powerkit now seeds that step too. Results for
   these two models differ slightly from earlier runs with the same seed;
-  other designs are unchanged.
+  other designs are unchanged. Their validation is being rerun.
 * Tests that use more than 2 cores are skipped on CRAN.
 
 * `validate_spec()` no longer fails with "non-character argument" when a
