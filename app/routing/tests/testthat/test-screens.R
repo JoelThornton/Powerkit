@@ -25,7 +25,10 @@ test_that("validated cards link to the validation log", {
 })
 
 test_that("in-progress cards are labelled differently from validated ones", {
-  in_progress <- as.character(card_ui(tree, "E9"))
+  # No end point is in progress at the moment, so mark one on a copy.
+  staged <- tree
+  staged$endpoints$E9$status <- "runs_validation_in_progress"
+  in_progress <- as.character(card_ui(staged, "E9"))
   expect_match(in_progress, "status-in-progress", fixed = TRUE)
   expect_match(in_progress, "Validation in progress", fixed = TRUE)
   expect_no_match(in_progress, "status-runs\"", fixed = TRUE)

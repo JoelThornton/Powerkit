@@ -21,7 +21,9 @@ computed it. On top of those packages, powerkit adds:
 
 - one specification format for every design;
 - checks that the population you describe is possible;
-- validation against published results;
+- validation against direct calls to those packages, analytic results
+  and Type I error, with checks against published results added as they
+  are transcribed;
 - a record of exactly how each result was produced (spec hash, seed,
   package versions).
 
@@ -31,23 +33,23 @@ optional AI assistant are planned.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Results have been validated for 2 x 2 designs, basic tests and
-> the mediation designs only, and the interface may change.
+> yet.** Every design below has passed its full validation run against
+> direct calls to its backend package and Type I error, but most
+> published-value checks are still to come, and the interface may change.
 
 | Design | Status |
 | --- | --- |
 | 2 x 2 between-participants ANOVA | **Working** (via Superpower) |
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
 | Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
-| Regression interactions | Built, not yet validated (via InteractionPoweR) |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel: two mediators); checks against published examples to come |
+| Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
+| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); checks against published examples to come |
 | Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error; checks against published examples to come |
 | Shiny app and design finder | Planned |
 
-"Built, not yet validated" means the design runs and its unit tests pass,
-but its full validation (high-replication checks against published
-results, direct backend calls and Type I error) hasn't passed yet. Not
-available yet for these designs: binary X or W, measurement error in
+What "validated" means is defined at the top of the
+[validation log](docs/validation-log.md). Not available yet for these
+designs: binary X or W, measurement error in
 mediation designs, and the smallest detectable effect.
 
 powerkit can:

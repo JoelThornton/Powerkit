@@ -115,6 +115,7 @@ known_ui <- function(tree) {
     p(class = "lead", "Pick it by name. Each one opens its card."),
     lapply(names(groups), function(g) {
       ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
+      if (length(ids) == 0) return(NULL)
       tagList(
         h4(class = "mt-4", g),
         div(class = "choices list", lapply(ids, function(id) {

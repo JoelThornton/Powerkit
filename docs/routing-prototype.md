@@ -79,8 +79,8 @@ Each **end-point card** shows:
   - *Runs in powerkit* (green), validated, with links to the validation
     log and test file;
   - *Runs, validation in progress* (blue, with a badge), for designs that
-    run but whose full validation run isn't recorded yet (E9), with the
-    same links;
+    run but whose full validation run isn't recorded yet (none at present;
+    the group is hidden in the list when it's empty), with the same links;
   - *Coming soon*;
   - *Not in powerkit yet: use [package]*, with a link and one line on what
     the package does, taken from [`coverage.md`](coverage.md);
