@@ -308,11 +308,11 @@ flowchart TD
   Q3y -->|Different people, two groups,<br/>yes/no, measured once| E5["E5 Two proportions"]
   Q3y -->|Different people, categories,<br/>measured once| E6["E6 Chi-square test<br/>of independence"]
   Q3y -->|One group against a fixed<br/>value, measured once| E25["E25 One proportion"]
-  Q3y -->|Two or more factors, yes/no,<br/>measured once| E27["E27 Logistic regression"]
+  Q3y -->|Two or more factors, yes/no,<br/>measured once| E47["E47 Factorial logistic<br/>regression"]
   Q3y -->|The same people,<br/>measured twice or more| E26["E26 McNemar's test<br/>or Cochran's Q"]
   class Q3y q
   class E5,E6 avail
-  class E25,E26,E27 later
+  class E25,E26,E47 later
   class S,A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -520,7 +520,7 @@ engine can use the answer today.
 | Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
 | Q2 | What is your outcome like? | Answered by S1 and not asked again. In the relationship path, a categorical outcome asks which kind: yes/no (E27) or one of several categories (E6) | `variables.Y.type` | As S1 |
 | O5a | How will you analyse this rating? (after S1 "ordered categories", every route) | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes, the route continues as a score. Ordered: **no (flag)** → E29. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
-| Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E27, logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
+| Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E47, factorial logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
@@ -571,6 +571,42 @@ are different analyses, and the app keeps them apart:
   mean observed power. Using "power at a given N" for the planned case
   keeps the two apart. Where this document quotes another tool's label,
   it says so.
+
+### Closing questions by card
+
+The full list of closing questions is in table 2.2 (the "Every design"
+rows). Each card asks only the ones that apply to its design, following
+that table's "Engine can use it?" column:
+- reliability (Q-rel) only for regression interactions;
+- a direction (Q-dir) only for the basic tests except chi-square;
+- a test version (Q-test) only where there is a choice: Student's or
+  Welch's t-test (E2), or exact or simulation (E7, E8).
+
+Q-goal's note differs by card, because the smallest detectable effect is
+available only for the 2 x 2 designs. Cards for designs powerkit doesn't
+run don't list closing questions. `app/routing/tree.yaml`
+(`closing_questions`, `applies_to`) holds the same table, and a test keeps
+the two in step.
+
+| Card | Q-rel | Q-dir | Q-test | Q-goal | Q-alpha | Q-power | Q-effect | Q-attr | Q-multi | Q-bayes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E2 | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E3 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E4 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E5 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E6 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E7 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E8 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E9 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E10 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E11 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -635,12 +671,13 @@ taken from coverage.md, where they are proposals.
 | E44 | Paired or dyadic data (pairs of people whose scores are related) | — | Generic card, as E43. Matched pairs analysed with a paired t-test may belong at E3 instead (open question 19) | — | — | No | later | Not in spec |
 | E45 | Many measurements over time: segmented regression or interrupted time series | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; with time-series data, autocorrelation makes standard calculations too optimistic. Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
 | E46 | Precision planning (a target confidence-interval width) | — | Generic card, as E43 | — | — | No | later | Not in spec |
+| E47 | Yes/no outcome with two or more crossed factors (factorial logistic regression) | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18). Reached from Q3 (yes/no difference, two or more factors) and from the guided route's moderation analysis (yes/no outcome, X and W of two groups each), so both routes give the same card | — | — | No | later | Not in spec |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 
 **Generic cards.** Where the screening finds a design powerkit doesn't
 cover and it is unclear which specific end point applies, the route ends
-at one generic card per category (E43, E44, E46) rather than at an
+at one generic card per category (E43, E44, E46, E47) rather than at an
 invented specific one. These cards say *"Established tools exist for this
 design; powerkit hasn't checked them."* without naming tools; whether they
 should name them is open question 18. E-unsure is the safety net.
@@ -993,6 +1030,18 @@ optional route.
    - any mediator(s);
    - any moderator(s);
    - any covariates (for example, a baseline measure).
+
+   In the routing prototype, these follow the screening answers:
+   - the outcome offers only the types S1 allows (after "yes/no, or one of
+     several categories": yes/no, or one of several categories);
+   - after S3's "Twice", the condition can be "the same people in two
+     conditions, or before and after" (paired tests: E3, E26), and a
+     baseline measure can be a covariate. A baseline needs "Twice",
+     because it is a second measurement of the outcome;
+   - two groups each measured twice lead to the pre-post question
+     (ANCOVA, E23, or the mixed-ANOVA interaction, E8);
+   - moderation and mediation with two measurements lead to E41, as in
+     "Help me choose".
 
    Each variable gets the user's own label, type and, optionally, its
    reliability. These are the same `variables` fields as in a single
@@ -1474,6 +1523,12 @@ how the wrapped tools work.
 19. **Matched pairs.** S2's "Pairs" leads to the dyadic card (E44). A
     matched-pairs design analysed with a paired t-test might belong at
     E3 instead. Should S2 tell the two apart?
+20. **A note on other defensible analyses.** Covered cards could say:
+    "Other defensible analyses exist for this design (e.g. ...), and they
+    can need different sample sizes. Power the analysis you plan to run."
+    The drafts, with each card's list, are in
+    [routing-audit.md](routing-audit.md), "Other defensible analyses". Show
+    the note on the cards, or not? (It is off while undecided.)
 
 ## Sources
 

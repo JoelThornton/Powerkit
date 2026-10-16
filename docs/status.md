@@ -86,7 +86,44 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
-- **Walkthroughs (draft PR, 16 October 2026):**
+- **Card content and usability (draft PR, 16 October 2026; builds on the
+  routing fixes):**
+  - each card asks only the closing questions that apply to it, with a
+    table in [`decision-tree.md`](decision-tree.md);
+  - every technical term in "What you would enter" has a plain-English
+    hint, collected in [`glossary.md`](glossary.md);
+  - other defensible analyses for each covered card are drafted in
+    [`routing-audit.md`](routing-audit.md), with a card note that stays off
+    until decided (open question 20);
+  - every factual claim on a card has its source recorded in
+    [`card-sources.md`](card-sources.md). 51 claims are unsourced,
+    including the 42 glossary definitions;
+  - the safety-net card lists what to write down for a statistician;
+  - an accessibility pass (axe-core: no violations on ten screens at
+    desktop and phone width; focus moves to each new screen). What wasn't
+    checked is listed in [`routing-prototype.md`](routing-prototype.md);
+  - walkthroughs re-run, with before/after notes for every changed card.
+- **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
+  - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
+    and the wording of F10;
+  - the guided route uses S3's "Twice" (paired tests; the pre-post
+    question for two groups), and offers an outcome with several
+    categories (E6);
+  - the end-point list shows only the analyses that fit the screening
+    answers;
+  - factorial logistic regression reaches a new generic card, E47, in both
+    routes, with the neutral tools sentence (open question 18);
+  - the dyadic card's wording is corrected;
+  - internal references are out of user-facing text.
+
+  Left for the maintainer:
+  - F7 and F11 (change the route or change the audit);
+  - F12 (diary studies);
+  - inter-rater designs;
+  - new routing questions listed in the audit's "What's left" (items 11–13).
+
+  Walkthroughs re-run; six entries changed end point.
+- **Walkthroughs (merged in PR #19, 16 October 2026):**
   [`walkthroughs.md`](walkthroughs.md) gives an example study for each of
   the audit's 61 entries (29 designs and the 32 UCLA OARC rows).
   - Each example was run through all three routes of the prototype, with

@@ -108,7 +108,9 @@ node_ui <- function(tree, node_id, history, ctx = list()) {
 
 # "I know my analysis" list ---------------------------------------------------
 
-known_ui <- function(tree, history = list()) {
+# With screening answers (`ctx`), the list offers only the end points that
+# fit them (endpoints_for_context()).
+known_ui <- function(tree, history = list(), ctx = NULL) {
   groups <- list(
     "Runs in powerkit (validated)" = "runs_validated",
     "Runs, validation in progress" = "runs_validation_in_progress",
@@ -116,15 +118,18 @@ known_ui <- function(tree, history = list()) {
     "Not in powerkit yet" = "not_in_powerkit"
   )
   eps <- tree$endpoints
+  total <- length(eps)
+  if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
   tagList(
     trail_ui(history),
     h2("Which analysis do you want?"),
     p(class = "lead", "Pick it by name. Each one opens its card."),
+    if (!is.null(ctx)) p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.", length(eps), total)),
     lapply(names(groups), function(g) {
       ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
       if (length(ids) == 0) return(NULL)
       tagList(
-        h4(class = "mt-4", g),
+        h3(class = "h4 mt-4", g),
         div(class = "choices list", lapply(ids, function(id) {
           pick_button(eps[[id]]$plain_name, paste0("ep:", id), sprintf("%s (%s)", eps[[id]]$doc_name, id))
         }))
@@ -176,7 +181,7 @@ status_ui <- function(tree, ep) {
         not_five,
         p(tree$no_ready_made_tool_text),
         package_list(),
-        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From docs/coverage.md. ", "powerkit can't check results from other tools.")
+        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
       )
     } else {
       div(
@@ -190,14 +195,45 @@ status_ui <- function(tree, ep) {
         not_five,
         package_list(),
         if (is.character(ep$no_ready_made_tool)) p(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text),
-        p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
+        p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools.")
       )
     }
   )
 }
 
-card_ui <- function(tree, ep_id, compact = FALSE) {
+# The draft note on other defensible analyses: shown only once the setting
+# other_analyses_note is "show" (open question 20; off while undecided).
+other_analyses_ui <- function(tree, ep) {
+  if (is.null(ep$alternatives) || !identical(setting_by_key(tree, "other_analyses_note")$value, "show")) return(NULL)
+  p(class = "other-analyses", sub("{alternatives}", paste(unlist(ep$alternatives), collapse = "; "), tree$other_analyses_text, fixed = TRUE))
+}
+
+# On the safety-net card: what to write down for a statistician, filled in
+# from the answers so far (`history`: list(node, answer, ctx) entries).
+prepare_ui <- function(tree, history = list()) {
+  prep <- tree$safety_net$prepare
+  answer_for <- function(nodes) {
+    got <- vapply(Filter(function(h) h$node %in% nodes && !identical(h$answer, tree$safety_net$label), history), function(h) h$answer, character(1))
+    if (length(got) == 0) tags$em(prep$not_answered) else paste(got, collapse = "; ")
+  }
+  stopped <- Filter(function(h) identical(h$answer, tree$safety_net$label), history)
+  div(
+    class = "prepare",
+    h3(class = "h5", "What to write down for a statistician"),
+    p(prep$intro),
+    tags$ul(
+      lapply(prep$items, function(it) tags$li(tags$strong(paste0(it$label, ": ")), answer_for(unlist(it$nodes)))),
+      if (length(stopped) > 0) tags$li(tags$strong(paste0(prep$stopped_at, ": ")), tree$nodes[[stopped[[length(stopped)]]$node]]$text),
+      lapply(unlist(prep$also), tags$li)
+    )
+  )
+}
+
+card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   ep <- tree$endpoints[[ep_id]]
+  # Headings follow the page outline: the full card's title is the screen's
+  # h2; a compact card sits under the plan's h2.
+  section_heading <- function(text) (if (compact) h4 else h3)(class = "h5", text)
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
   jp <- tree$justification_prompt
   div(
@@ -205,20 +241,25 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
     div(
       class = "card-body",
       div(class = "card-eid", ep_id),
-      h3(class = "card-title", ep$plain_name),
+      (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
       status_ui(tree, ep),
+      if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, tags$li))),
+      if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
+        input,
+        lapply(glossary_for(tree, input), function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
+      )))),
       if (!compact && !isTRUE(ep$generic)) tagList(
-        h5("Where your effect size comes from"),
+        section_heading("Where your effect size comes from"),
         p(jp$text),
         tags$ul(lapply(unname(jp$types), tags$li))
       ),
+      other_analyses_ui(tree, ep),
       if (runs) p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
       if (!compact && runs) tagList(
-        h5("What you'd be asked next"),
-        tags$ol(lapply(tree$closing_questions, function(q) tags$li(
+        section_heading("What you'd be asked next"),
+        tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
           q$text,
           if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
           lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
@@ -258,9 +299,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     p(class = "text-muted", g$scope_note),
     placeholders_at(tree, "guided_variables"),
     lapply(g$variables, function(v) {
-      opts <- v$options
-      screened <- if (!is.null(v$screen_key)) ctx[[v$screen_key]]
-      if (!is.null(screened) && screened %in% names(opts)) opts <- opts[c(screened, "notsure")]
+      opts <- guided_options(v, ctx)
       selected <- answers[[v$id]]
       if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
       radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%")
@@ -281,11 +320,11 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       div(
         class = "analysis-row",
         checkboxInput(paste0("tick_", a$id), tags$strong(a$label), value = a$id %in% ticked, width = "100%"),
-        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), sprintf("%s (question %s)", ask$text, ask$doc_id), choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
+        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), ask$text, choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
         checkboxInput(paste0("primary_", a$id), "Primary: the study must be powered for this", value = a$id %in% primary, width = "100%")
       )
     }),
-    radioButtons("g_rule", "How do the primary analyses support the study's claim? (judgement call 3.5)",
+    radioButtons("g_rule", "How do the primary analyses support the study's claim?",
       choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
       choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
       selected = rule %||% "each", width = "100%"
@@ -319,10 +358,10 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
   tagList(
     h2("Your plan"),
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
-    h4(class = "mt-4", "Combined sample size"),
+    h3(class = "h4 mt-4", "Combined sample size"),
     p(tags$strong("Rule:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
     div(class = "engine-placeholder", g$placeholders$combined_n),
-    h4(class = "mt-4", "Consistency between analyses"),
+    h3(class = "h4 mt-4", "Consistency between analyses"),
     if (length(shared) == 0) p("No shared relationships among the ticked analyses.") else tags$ul(lapply(shared, function(s) {
       tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
     })),
@@ -340,14 +379,15 @@ settings_table_ui <- function(tree) {
   tagList(
     h2("Undecided judgement calls and open questions"),
     p("Each is a setting in app/routing/tree.yaml. While its value is empty, the app shows a placeholder where it applies. Set the value to one of the option keys to record a decision; no code changes are needed."),
-    tags$table(
+    div(class = "table-responsive", tabindex = "0", role = "region", `aria-label` = "Undecided settings", tags$table(
       class = "table table-sm",
-      tags$thead(tags$tr(tags$th("Setting"), tags$th("Source"), tags$th("Question"), tags$th("Options (key: label)"), tags$th("Current value"))),
+      tags$caption(class = "visually-hidden", "Undecided settings, their sources, questions, options and current values"),
+      tags$thead(tags$tr(tags$th(scope = "col", "Setting"), tags$th(scope = "col", "Source"), tags$th(scope = "col", "Question"), tags$th(scope = "col", "Options (key: label)"), tags$th(scope = "col", "Current value"))),
       tags$tbody(lapply(tree$settings, function(s) tags$tr(
         tags$td(tags$code(s$key)), tags$td(s$ref), tags$td(s$question),
         tags$td(tags$ul(lapply(names(s$options), function(k) tags$li(tags$code(k), ": ", s$options[[k]])))),
         tags$td(if (is_decided(s)) s$value else tags$em("Undecided"))
       )))
-    )
+    ))
   )
 }
