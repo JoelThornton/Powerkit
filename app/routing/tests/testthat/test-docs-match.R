@@ -84,3 +84,19 @@ test_that("docs/glossary.md lists exactly the glossary in tree.yaml, and every t
   inputs <- unlist(lapply(tree$endpoints, function(e) e$inputs))
   for (g in tree$glossary) expect_true(any(grepl(g$pattern, inputs, ignore.case = TRUE, perl = TRUE)), label = g$term)
 })
+
+test_that("docs/card-sources.md has rows for every card that states facts", {
+  lines <- strsplit(read_doc("card-sources.md"), "\n", fixed = TRUE)[[1]]
+  lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Card |")]
+  rows <- lapply(lines, split_row)
+  cards <- vapply(rows, `[`, "", 1)
+  statuses <- vapply(rows, `[`, "", 5)
+  expect_true(all(statuses %in% c("sourced", "partly sourced", "unsourced", "no claim")))
+  for (id in names(tree$endpoints)) {
+    e <- tree$endpoints[[id]]
+    states_facts <- !is.null(e$packages) || !is.null(e$card_points) || !is.null(e$validation) || !is.null(e$backend) ||
+      (!is.null(e$card_text) && id != tree$safety_net$endpoint)
+    if (states_facts) expect_true(id %in% cards, label = id)
+  }
+  for (g in tree$glossary) expect_true(any(grepl(paste0("Hint: ", g$term), lines, fixed = TRUE)), label = g$term)
+})
