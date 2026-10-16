@@ -79,7 +79,7 @@ Each **end-point card** shows:
   - *Runs in powerkit* (green), validated, with links to the validation
     log and test file;
   - *Runs, validation in progress* (blue, with a badge), for designs that
-    run but whose full validation run isn't recorded yet (E9–E14), with the
+    run but whose full validation run isn't recorded yet (E9), with the
     same links;
   - *Coming soon*;
   - *Not in powerkit yet: use [package]*, with a link and one line on what
