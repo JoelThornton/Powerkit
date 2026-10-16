@@ -13,11 +13,17 @@ fully validated. Validation runs are recorded in
   design through its backend package.
 - **Validated (full validation run passed):** 2 x 2 between and 2 x 2 mixed
   ANOVA (via Superpower); basic tests (via Spower) against analytic
-  results, direct Spower calls and Type I error.
-- **Built, not yet validated:** regression interactions (via
-  InteractionPoweR); simple, parallel and serial mediation and moderated
-  mediation, PROCESS models 4, 6, 7 and 14 (via power4mome). Their full
-  validation runs have not been recorded yet.
+  results, direct Spower calls and Type I error; simple, parallel (two
+  mediators) and serial mediation and moderated mediation, PROCESS models
+  4, 6, 7 and 14 (via power4mome), against direct power4mome calls and
+  Type I error. The mediation chunks ran on GitHub on 15–16 October 2026
+  ([validation log](validation-log.md)); their published-value tests are
+  still TODO.
+- **Run, not yet marked validated:** regression interactions (via
+  InteractionPoweR). Its chunk passed on 13 October 2026 ([validation
+  log](validation-log.md), "Before this log"), but per-test counts and
+  package versions weren't recorded, and the README and routing prototype
+  (E9) still list it as in progress.
 - **Waiting on published values:** several validation tests still have
   `TODO_PUBLISHED_VALUE` placeholders (including the G*Power published
   examples for basic tests), to be transcribed by the maintainer.
@@ -33,9 +39,10 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`. How to run it: [`routing-prototype.md`](routing-prototype.md).
   Changes before merging (16 October 2026):
-  - Regression interactions and the mediation designs (E9–E14) show
-    "Runs, validation in progress", styled apart from validated
-    designs. Flipping one to validated is a one-line change in
+  - Regression interactions (E9) shows "Runs, validation in progress",
+    styled apart from validated designs. The mediation designs (E10–E14)
+    were flipped to validated on 16 October 2026, once their runs were
+    recorded. Flipping one to validated is a one-line change in
     `tree.yaml`, plus the matching cell in `decision-tree.md`.
   - Analyses that no tool offers (E30, E32, E39, the new E42, and
     Cochran's Q in E26) say so plainly. The options are a custom
@@ -103,13 +110,10 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-1. Record the process_6 (serial mediation) run that finished on GitHub on
-   15 October in the validation log, then the full validation runs for the
-   remaining mediation and moderated mediation chunks
-   (on GitHub or locally, now that they run in batches), and the
-   remaining published values. As each run is recorded, flip that end point
-   from "validation in progress" to validated in
-   `app/routing/tree.yaml` ([how](routing-prototype.md)).
+1. Decide whether the 13 October interactions run counts as E9's full
+   validation (or rerun the interactions chunk on GitHub), and flip E9 in
+   `app/routing/tree.yaml` ([how](routing-prototype.md)). Then the
+   remaining published values for every design.
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
    section 6, open items).
 3. Binary X and W in regression interactions and mediation (phase 3b,

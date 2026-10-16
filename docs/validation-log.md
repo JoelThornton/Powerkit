@@ -52,12 +52,13 @@ can take at most 6 hours. Nothing runs on its own; you start each run.
    file (everything it printed). Artifacts are kept for 30 days.
 
 **Time.** The mediation chunks run one test at a time with all 4 cores;
-the others run 4 tests at a time. Rough times, from timings on the
-maintainer's laptop: basic and interactions, minutes; anova and
-process_6, about an hour; process_4, about 2.5 hours; process_7 and
-process_14, about 3 hours each. A GitHub machine may be slower than the
-laptop; if it is twice as slow, **process_7 and process_14 might not fit
-in 6 hours**. If a chunk reaches the limit, the run stops at about
+the others run 4 tests at a time. Measured on GitHub (15–16 October
+2026): basic, 6 minutes; process_6, 1 h 52 m; process_4, 4 h 23 m;
+process_7 and process_14, about 4 h 47 m each. Every chunk fits, but
+process_7 and process_14 finish only about 45 minutes before the script's
+5 h 30 m stop, so a slower machine could push them over. (anova and
+interactions haven't run on GitHub yet; on the maintainer's laptop they
+take about an hour and a few minutes.) If a chunk reaches the limit, the run stops at about
 5 h 30 m, the tests that finished are still in the artifact, and the
 summary lists the rest as NOT RUN; run those on your own machine (copy
 the downloaded `.rds` files into `validation-results/` first, and the
@@ -188,5 +189,136 @@ PASS    basic / two proportions: Type I error is near alpha (9s)
           success: Type I error rate 0.0482; must lie in [0.040, 0.060] for alpha = 0.05.
 PASS    basic / chi-square test of independence: Type I error is near alpha (7s)
           success: Type I error rate 0.0511; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-15 · process_6 (GitHub Actions)
+
+- **Run:** [run 38802624184](https://github.com/JoelThornton/Powerkit/actions/runs/38802624184) of the `full-validation` workflow.
+  **Commit:** 315de0e (main). **Cores:** 4, all on one test at a time;
+  power4mome simulations in batches (PR #10).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_6:** 2 PASS, 0 FAIL, 0 ERROR, 1 SKIP (of 3). powerkit matches a
+  direct power4mome call (0.9946 vs 0.9950, tolerance 0.0033), and the
+  Type I error rate with the M1->M2 link at 0 is 0.0526. The published
+  serial example skips (TODO value), as expected.
+- **Time:** 1 h 50 m of tests (1 h 52 m for the whole run).
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-15 22:22   Commit: 315de0e   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN (of 3)
+
+SKIP    process_6 / serial mediation: matches a published serial example (published) (3s)
+PASS    process_6 / serial mediation: powerkit matches a direct power4mome call (1h 13m)
+          success: powerkit's estimate 0.9946 vs the direct backend call 0.9950: difference -0.0004; the 99.9% Monte Carlo tolerance is 0.0033.
+PASS    process_6 / serial mediation: Type I error is near alpha when the M1->M2 link is 0 (0h 37m)
+          success: Type I error rate 0.0526; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-16 · process_7 (GitHub Actions)
+
+- **Run:** [run 38817441311](https://github.com/JoelThornton/Powerkit/actions/runs/38817441311) of the `full-validation` workflow.
+  **Commit:** 3d30d38 (main). **Cores:** 4, all on one test at a time;
+  power4mome simulations in batches (PR #10).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_7:** 2 PASS, 0 FAIL, 0 ERROR, 3 SKIP (of 5). powerkit matches a
+  direct power4mome call (0.9092 vs 0.9097, tolerance 0.0134), and the
+  Type I error rate with the XW->M path at 0 is 0.0508. The three
+  published-value tests skip (TODO values), as expected.
+- **Time:** 4 h 45 m of tests (4 h 46 m for the whole run). Run at the
+  same time as process_14, on a separate GitHub machine.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-16 03:15   Commit: 3d30d38   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 3 SKIP, 0 NOT RUN (of 5)
+
+SKIP    process_7 / PROCESS model 7: matches the power4mome vignette example (published) (3s)
+SKIP    process_7 / PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023) (published) (3s)
+SKIP    process_7 / PROCESS model 7: required n matches the power4mome vignette (published) (3s)
+PASS    process_7 / PROCESS model 7: powerkit matches a direct power4mome call (3h 09m)
+          success: powerkit's estimate 0.9092 vs the direct backend call 0.9097: difference -0.0005; the 99.9% Monte Carlo tolerance is 0.0134.
+PASS    process_7 / PROCESS model 7: Type I error is near alpha when the XW->M path is 0 (1h 36m)
+          success: Type I error rate 0.0508; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-16 · process_14 (GitHub Actions)
+
+- **Run:** [run 38817510781](https://github.com/JoelThornton/Powerkit/actions/runs/38817510781) of the `full-validation` workflow.
+  **Commit:** 3d30d38 (main). **Cores:** 4, all on one test at a time;
+  power4mome simulations in batches (PR #10).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_14:** 2 PASS, 0 FAIL, 0 ERROR, 2 SKIP (of 4). powerkit matches
+  a direct power4mome call (0.9093 vs 0.9105, tolerance 0.0133), and the
+  Type I error rate with the MW->Y path at 0 is 0.0485. The two
+  published-value tests skip (TODO values), as expected.
+- **Time:** 4 h 45 m of tests (4 h 47 m for the whole run).
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-16 03:16   Commit: 3d30d38   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 2 SKIP, 0 NOT RUN (of 4)
+
+SKIP    process_14 / PROCESS model 14: matches a power4mome vignette example (published) (3s)
+SKIP    process_14 / PROCESS model 14: matches Donnelly, Jorgensen & Rudolph (2023) (published) (3s)
+PASS    process_14 / PROCESS model 14: powerkit matches a direct power4mome call (3h 11m)
+          success: powerkit's estimate 0.9093 vs the direct backend call 0.9105: difference -0.0012; the 99.9% Monte Carlo tolerance is 0.0133.
+PASS    process_14 / PROCESS model 14: Type I error is near alpha when the MW->Y path is 0 (1h 34m)
+          success: Type I error rate 0.0485; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-16 · process_4 (GitHub Actions)
+
+- **Run:** [run 38868946986](https://github.com/JoelThornton/Powerkit/actions/runs/38868946986) of the `full-validation` workflow.
+  **Commit:** 1d18372 (main). **Cores:** 4, all on one test at a time;
+  power4mome simulations in batches (PR #10).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_4:** 5 PASS, 0 FAIL, 0 ERROR, 2 SKIP (of 7). Simple mediation,
+  parallel mediation and parallel mediation with correlated residuals all
+  match a direct power4mome call (differences 0.0026, -0.0017 and
+  -0.0002; tolerances 0.0175, 0.0185 and 0.0120). Type I error rates are
+  0.0489 (simple, a = 0 with b large) and 0.0486 (parallel, a null
+  specific indirect effect). The two published-value tests skip (TODO
+  values), as expected. The parallel tests use two mediators.
+- **Time:** 4 h 22 m of tests (4 h 23 m for the whole run).
+- **Commits (all four mediation runs).** The runs used three commits of
+  main (315de0e, 3d30d38, 1d18372). Between them, and up to 64c03c6, the
+  changes were a validation error message, comments in the test files and
+  packages for the app; nothing the mediation designs use. So these
+  results stand for main as of 16 October 2026.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-16 12:05   Commit: 1d18372   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 5 PASS, 0 FAIL, 0 ERROR, 2 SKIP, 0 NOT RUN (of 7)
+
+SKIP    process_4 / simple mediation: matches the power4mome Quick Template (published) (2s)
+PASS    process_4 / simple mediation: powerkit matches a direct power4mome call (1h 04m)
+          success: powerkit's estimate 0.8299 vs the direct backend call 0.8273: difference 0.0026; the 99.9% Monte Carlo tolerance is 0.0175.
+PASS    process_4 / simple mediation: Type I error is near alpha when a = 0 and b is large (0h 33m)
+          success: Type I error rate 0.0489; must lie in [0.040, 0.060] for alpha = 0.05.
+SKIP    process_4 / parallel mediation: matches a published parallel example (published) (3s)
+PASS    process_4 / parallel mediation: powerkit matches a direct power4mome call (1h 05m)
+          success: powerkit's estimate 0.8025 vs the direct backend call 0.8042: difference -0.0017; the 99.9% Monte Carlo tolerance is 0.0185.
+PASS    process_4 / parallel mediation with correlated residuals: powerkit matches a direct power4mome call (1h 07m)
+          success: powerkit's estimate 0.9277 vs the direct backend call 0.9279: difference -0.0002; the 99.9% Monte Carlo tolerance is 0.0120.
+PASS    process_4 / parallel mediation: Type I error is near alpha for a null specific indirect effect (0h 33m)
+          success: Type I error rate 0.0486; must lie in [0.040, 0.060] for alpha = 0.05.
 ===== end of summary =====
 ```

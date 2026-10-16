@@ -642,8 +642,8 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-mediation-simple.R, note: "Tests written; the full validation run has not been recorded yet."}
+    status: runs_validated
+    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
     tier: MVP
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
@@ -652,8 +652,8 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-mediation-parallel.R, note: "Tests written (two mediators); the full validation run has not been recorded yet."}
+    status: runs_validated
+    validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators (published values still to be transcribed)."}
     tier: MVP
   E12:
     doc_name: "Serial mediation (PROCESS model 6)"
@@ -662,8 +662,8 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-mediation-serial.R, note: "The process_6 chunk's run on GitHub finished on 15 October 2026; its results are not yet in the validation log."}
+    status: runs_validated
+    validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026 (published values still to be transcribed)."}
     tier: MVP
   E13:
     doc_name: "First-stage moderated mediation (PROCESS model 7), index of moderated mediation"
@@ -672,8 +672,8 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction XW -> M"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-modmed-process7.R, note: "Tests written; the full validation run has not been recorded yet."}
+    status: runs_validated
+    validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
     tier: MVP
   E14:
     doc_name: "Second-stage moderated mediation (PROCESS model 14)"
@@ -682,8 +682,8 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction MW -> Y"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-modmed-process14.R, note: "Tests written; the full validation run has not been recorded yet."}
+    status: runs_validated
+    validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
     tier: MVP
   E15:
     doc_name: "Moderated regression with a yes/no X or W"

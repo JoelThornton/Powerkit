@@ -31,8 +31,8 @@ optional AI assistant are planned.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Results have been validated for 2 x 2 designs and basic tests
-> only, and the interface may change.
+> yet.** Results have been validated for 2 x 2 designs, basic tests and
+> the mediation designs only, and the interface may change.
 
 | Design | Status |
 | --- | --- |
@@ -40,8 +40,8 @@ optional AI assistant are planned.
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
 | Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
 | Regression interactions | Built, not yet validated (via InteractionPoweR) |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | Built, not yet validated (via power4mome) |
-| Moderated mediation (PROCESS 7, 14) | Built, not yet validated (via power4mome) |
+| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel: two mediators); checks against published examples to come |
+| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error; checks against published examples to come |
 | Shiny app and design finder | Planned |
 
 "Built, not yet validated" means the design runs and its unit tests pass,
