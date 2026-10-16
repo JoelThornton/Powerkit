@@ -51,6 +51,8 @@ app_css <- "
   .decided-inline { display: inline-block; border-left: 3px solid #2e7d4f; background: #ddf2e3; padding: 0.1rem 0.5rem; margin: 0.25rem 0; font-size: 0.82rem; }
   .engine-placeholder { border: 2px dashed #3b6fb6; background: #fff; color: #14284b; border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 0.5rem 0 1rem 0; font-style: italic; }
   .analysis-row { background: #fff; border: 1px solid #dde2ea; border-radius: 0.5rem; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 0.75rem; }
+  .choice-safety { border-style: dashed; }
+  .card-points { margin-bottom: 1rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 "
 
@@ -71,8 +73,10 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   state <- reactiveValues(
     screen = "start",        # start | known | node | card | g_vars | g_analyses | g_plan
-    node = NULL,             # current node id ("Help me choose")
-    history = list(),        # list(node = id, answer = label) for each answer given
+    route = "choose",        # the route chosen on the start screen
+    node = NULL,             # current question id (screening or "Help me choose")
+    ctx = list(),            # screening answers later questions depend on
+    history = list(),        # list(node, answer, ctx) for each answer given
     endpoint = NULL,         # end point shown on the card screen
     came_from = NULL,        # "known" or "node", for the card's back button
     answers = list(),        # guided route: variable answers
@@ -98,39 +102,59 @@ server <- function(input, output, session) {
     if (!is.null(input$g_rule)) state$rule <- input$g_rule
   }
 
+  # Go to where an answer leads: a card, a question, or the route's screen
+  # after the screening ("list" or "guided").
+  go_to <- function(target) {
+    if (is_endpoint_id(target)) {
+      state$endpoint <- target; state$came_from <- "node"; state$screen <- "card"
+    } else if (identical(target, "list")) {
+      state$screen <- "known"
+    } else if (identical(target, "guided")) {
+      state$screen <- "g_vars"
+    } else {
+      state$node <- target; state$screen <- "node"
+    }
+  }
+  # Return to the question answered last, with the context as it was then.
+  step_back <- function() {
+    if (length(state$history) == 0) {
+      state$screen <- "start"
+      return(invisible())
+    }
+    last <- state$history[[length(state$history)]]
+    state$history <- state$history[-length(state$history)]
+    state$node <- last$node; state$ctx <- last$ctx; state$screen <- "node"
+  }
+
   observeEvent(input$pick, {
     pick <- input$pick
     kind <- sub(":.*$", "", pick)
     value <- sub("^[^:]*:", "", pick)
     if (pick == "home") {
-      state$screen <- "start"; state$history <- list(); state$node <- NULL
+      state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
     } else if (kind == "route") {
-      if (value == "known") state$screen <- "known"
-      if (value == "choose") { state$screen <- "node"; state$node <- start_node(tree); state$history <- list() }
-      if (value == "guided") state$screen <- "g_vars"
+      # Every route starts with the screening questions.
+      state$route <- value; state$history <- list(); state$ctx <- list()
+      go_to(resolve_target(tree, start_node(tree), state$ctx, value))
     } else if (kind == "opt") {
-      option <- tree$nodes[[state$node]]$options[[as.integer(value)]]
-      state$history <- c(state$history, list(list(node = state$node, answer = option$label)))
-      target <- option$`next`
-      if (is_endpoint_id(target)) {
-        state$endpoint <- target; state$came_from <- "node"; state$screen <- "card"
-      } else {
-        state$node <- target
-      }
+      option <- visible_options(tree, tree$nodes[[state$node]], state$ctx)[[as.integer(value)]]
+      state$history <- c(state$history, list(list(node = state$node, answer = option$label, ctx = state$ctx)))
+      state$ctx <- apply_sets(state$ctx, option)
+      go_to(resolve_target(tree, option$`next`, state$ctx, state$route))
+    } else if (kind == "continue") {
+      # From the guided route to "Help me choose", keeping the screening answers.
+      state$route <- value
+      go_to(resolve_target(tree, "continue", state$ctx, value))
     } else if (pick == "back") {
       if (state$screen == "card" && identical(state$came_from, "known")) {
         state$screen <- "known"
-      } else if (length(state$history) == 0) {
-        state$screen <- "start"
       } else {
-        last <- state$history[[length(state$history)]]
-        state$history <- state$history[-length(state$history)]
-        state$node <- last$node
-        state$screen <- "node"
+        step_back()
       }
     } else if (kind == "trail") {
       i <- as.integer(value)
       state$node <- state$history[[i]]$node
+      state$ctx <- state$history[[i]]$ctx
       state$history <- state$history[seq_len(i - 1)]
       state$screen <- "node"
     } else if (kind == "ep") {
@@ -150,14 +174,14 @@ server <- function(input, output, session) {
     switch(
       state$screen,
       start = start_ui(tree),
-      known = known_ui(tree),
-      node = node_ui(tree, state$node, state$history),
+      known = known_ui(tree, state$history),
+      node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
-        if (identical(state$came_from, "node")) trail_ui(state$history),
+        trail_ui(state$history),
         card_ui(tree, state$endpoint),
         div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
       ),
-      g_vars = guided_variables_ui(tree, state$answers),
+      g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, state$answers, state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, state$answers, state$ticked, state$primary, state$asks, state$rule)
     )

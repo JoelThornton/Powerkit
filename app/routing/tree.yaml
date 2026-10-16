@@ -147,10 +147,28 @@ settings:
     shown_at: [plan]
   - key: guided_scope
     ref: "Open question 14"
-    question: "What does the guided route do with repeated measures, many stimuli or nested data? Now: it says to use 'Help me choose' instead."
+    question: "What does the guided route do with repeated measures, many stimuli or nested data? Now: the screening questions stop nested data, stimuli and measurements over time before the guided route; three or more conditions per person are sent to 'Help me choose'."
     options: {send_to_tree: "Send users to 'Help me choose' (as now)", extend: "Extend the guided route to cover these designs", say_up_front: "Say on the start screen that the guided route is for single-session, between-person studies"}
     value: null
     shown_at: [guided_variables]
+  - key: screening_wording
+    ref: "Open question 16"
+    question: "Final wording of the screening questions (S1-S4 and T1). The wording here is a draft."
+    options: {as_drafted: "Keep the draft wording", revised: "Revised wording (edit the questions in tree.yaml and decision-tree.md)"}
+    value: null
+    shown_at: [s1, s2, s3, t1, s4]
+  - key: segmented_growth_shared
+    ref: "Open question 17"
+    question: "Should segmented regression / interrupted time series (E45) and growth curves (E35) share one end point? Now: two cards, chosen at T1."
+    options: {separate: "Keep two end points", shared: "Merge them into one 'many measurements over time' card"}
+    value: null
+    shown_at: [t1, E35, E45]
+  - key: name_other_tools
+    ref: "Open question 18"
+    question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
+    options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
+    value: null
+    shown_at: [E43, E44, E46]
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
@@ -161,27 +179,93 @@ settings:
 # ---------------------------------------------------------------------------
 # Start screen: the three routes (decision-tree.md 2.1 and 4.1).
 # ---------------------------------------------------------------------------
+# Every route starts with the screening questions (`screening_start`). The
+# screening's "Detect an effect" answer has `next: continue`, which leads to
+# the route's `after_screening`: a node id, "list" (the end-point list) or
+# "guided" (the guided route's variables screen).
 routes:
   doc_id: S0
   question: "How do you want to start?"
+  screening_start: s1
+  screening_note: "First, four questions check that your design is one powerkit can advise on. No test is suggested until then."
   options:
     - id: known
       label: "I know my analysis"
-      help: "Pick it from a list, as in G*Power's or PAMLj's menus."
+      help: "Pick it from a list, as in G*Power's or PAMLj's menus (after four screening questions)."
+      after_screening: list
     - id: choose
       label: "Help me choose"
       help: "Answer a few questions about your study, one per screen."
-      start: q1
+      after_screening: q1
     - id: guided
       label: "Plan my whole study"
       help: "For studies with several analyses on the same data: describe the variables once, tick the analyses, and get a plan."
+      after_screening: guided
 
 # ---------------------------------------------------------------------------
-# "Help me choose": one node per screen. `doc_id` is the question's ID in
+# Questions: one node per screen. `doc_id` is the question's ID in
 # decision-tree.md, section 2.2. Each option's `next` is another node id or
 # an end point id (E...). Wording follows design-finder.md.
+#
+# Screening answers that later questions depend on are kept as context:
+# - an option's `sets` records one (outcome: score | yesno; times: once |
+#   twice | many_conditions);
+# - an option's `when` shows it only for matching context;
+# - a node with `branch_on` is never shown: it routes on the context
+#   (`routes`), because the screening has already answered it.
+# Every shown question also offers the safety net (`safety_net`, below),
+# added by the app.
 # ---------------------------------------------------------------------------
 nodes:
+  # Screening (decision-tree.md 2.2, S1-S4): asked first in every route,
+  # before any test is suggested. Wording is a draft (open question 16).
+  s1:
+    doc_id: S1
+    text: "What kind of outcome will you measure?"
+    help: "The outcome is what you measure to see whether your hypothesis holds."
+    options:
+      - {label: "A score or scale", next: s2, sets: {outcome: score}, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
+      - {label: "Yes/no, or one of several categories", next: s2, sets: {outcome: yesno}, help: "e.g. passed or failed; chose option A, B or C."}
+      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
+      - {label: "Ordered categories (e.g. a single rating item)", next: o5a, help: "e.g. one item rated from 'strongly disagree' to 'strongly agree'."}
+      - {label: "The time until something happens", next: E43, help: "e.g. days until relapse, or whether and when people drop out."}
+  o5a:
+    doc_id: O5a
+    text: "How will you analyse this rating?"
+    help: "Researchers disagree about this, so we ask rather than choose for you. Your answer is stated in the write-up (decision D1)."
+    options:
+      - {label: "As a score (for example, comparing mean ratings)", next: s2, sets: {outcome: score}, help: "This treats the rating as an interval scale, which is debated."}
+      - {label: "As ordered categories", next: E29}
+  s2:
+    doc_id: S2
+    text: "How are the data grouped?"
+    options:
+      - {label: "Independent people", next: s3, help: "Each person's data are separate from everyone else's."}
+      - {label: "People within groups", next: E34, help: "e.g. pupils in classes or patients in clinics, including designs where whole groups were assigned to conditions."}
+      - {label: "Pairs", next: E44, help: "e.g. couples, or a parent and child, whose scores are related."}
+      - {label: "Many trials or stimuli per person", next: E33, help: "e.g. each person rates 40 faces or completes 200 trials."}
+  s3:
+    doc_id: S3
+    text: "How many times is each person measured on the outcome?"
+    options:
+      - {label: "Once", next: s4, sets: {times: once}}
+      - {label: "Twice", next: s4, sets: {times: twice}, help: "e.g. once before and once after, or once in each of two conditions."}
+      - {label: "Many times", next: t1, help: "Three or more measurements: in different conditions, or over time."}
+  t1:
+    doc_id: T1
+    text: "What are the repeated measurements?"
+    options:
+      - {label: "The same people in three or more conditions", next: s4, sets: {times: many_conditions}, help: "e.g. everyone completes three tasks, or every cell of a 2 x 2 design."}
+      - {label: "Measurements over time, to see whether a trend changes at a known point", next: E45, help: "e.g. weekly scores before and after a policy change (segmented regression, interrupted time series)."}
+      - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
+  s4:
+    doc_id: S4
+    text: "What's your goal?"
+    options:
+      - {label: "Detect an effect", next: continue, help: "Show that a difference, relationship or effect exists."}
+      - {label: "Show there's no meaningful effect", next: E36, help: "Equivalence or non-inferiority: the effect is smaller than a bound you set."}
+      - {label: "Estimate an effect precisely", next: E46, help: "Plan for a target confidence-interval width rather than for power."}
+
   q1:
     doc_id: Q1
     text: "What do you want your study to show?"
@@ -193,41 +277,14 @@ nodes:
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
       - {label: "That an effect is absent, or too small to matter", next: E36}
-      - {label: "That a model or questionnaire structure fits", next: E37}
+      - {label: "That a model fits: a questionnaire structure, or a model with latent variables (SEM)", next: E37}
 
   # A difference ------------------------------------------------------------
   q2_diff:
     doc_id: Q2
-    text: "What is your outcome like?"
-    help: "The outcome is what you measure to see whether your hypothesis holds."
-    options:
-      - {label: "A score or scale", next: q3_diff, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
-      - {label: "A rating on a few points (a single item)", next: o5a}
-      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
-      - {label: "Yes/no, or one of several categories", next: q3_cat}
-  o5a:
-    doc_id: O5a
-    text: "How will you analyse this rating?"
-    help: "Researchers disagree about this, so we ask rather than choose for you. Your answer is stated in the write-up (decision D1)."
-    options:
-      - {label: "As a score (for example, comparing mean ratings)", next: q3_diff, help: "This treats the rating as an interval scale, which is debated."}
-      - {label: "As ordered categories", next: E29}
-  q3_diff:
-    doc_id: Q3
-    text: "Who gives the data?"
-    help: "How participants relate to your conditions or measurements."
-    options:
-      - {label: "Different people in each group or condition", next: f1}
-      - {label: "The same people in every condition", next: f1}
-      - {label: "People respond to many items or stimuli", next: E33}
-      - {label: "People are nested in groups (classes, teams, clinics)", next: E34}
-      - {label: "The same people measured over time", next: t1}
-  t1:
-    doc_id: T1
-    text: "How many times is each person measured?"
-    options:
-      - {label: "Twice (for example, before and after)", next: f1}
-      - {label: "Three or more times", next: E35}
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: f1, yesno: q3_cat}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
@@ -240,10 +297,10 @@ nodes:
     doc_id: F2
     text: "How many groups or conditions?"
     options:
-      - {label: "One group, compared with a fixed value", next: E1}
-      - {label: "Two, with different people in each", next: E2}
-      - {label: "Two, with the same people in both (or one group measured twice)", next: E3}
-      - {label: "Three or more", next: f2a}
+      - {label: "One group, compared with a fixed value", next: E1, when: {times: once}}
+      - {label: "Two, with different people in each", next: E2, when: {times: once}}
+      - {label: "Two, with the same people in both (or one group measured twice)", next: E3, when: {times: twice}}
+      - {label: "Three or more", next: f2a, when: {times: [once, many_conditions]}}
   f2a:
     doc_id: F2a
     text: "What does your hypothesis say about the groups?"
@@ -261,9 +318,9 @@ nodes:
     doc_id: F4
     text: "For each factor: did different people get each level, or did everyone get both?"
     options:
-      - {label: "Both factors: different people", next: f4a_between}
-      - {label: "One factor different people, the other everyone got both", next: f4a_mixed}
-      - {label: "Both factors: everyone got both", next: E20}
+      - {label: "Both factors: different people", next: f4a_between, when: {times: once}}
+      - {label: "One factor different people, the other everyone got both", next: f4a_mixed, when: {times: twice}}
+      - {label: "Both factors: everyone got both", next: E20, when: {times: many_conditions}}
   f4a_between:
     doc_id: F4a
     text: "Will the groups be equal in size?"
@@ -331,25 +388,28 @@ nodes:
     doc_id: Q3
     text: "Who gives the data?"
     options:
-      - {label: "Different people, two groups, yes/no outcome", next: E5}
-      - {label: "Different people, outcome in categories", next: E6}
-      - {label: "One group, compared with a fixed proportion", next: E25}
-      - {label: "The same people in every condition", next: E26}
+      - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
+      - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
+      - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
+      - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
-    text: "What is your outcome like?"
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: q3_rel, yesno: q2_rel_cat}
+  q2_rel_cat:
+    doc_id: Q2
+    text: "Which kind of categorical outcome?"
     options:
-      - {label: "A score or scale", next: q3_rel}
       - {label: "Yes/no", next: E27}
       - {label: "One of several categories (and the other variable is categories too)", next: E6}
   q3_rel:
     doc_id: Q3
-    text: "Who gives the data?"
-    options:
-      - {label: "Each person is measured once, on both variables", next: r1}
-      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: r1, twice: E41, many_conditions: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
@@ -361,16 +421,14 @@ nodes:
   # Moderation --------------------------------------------------------------
   q2_mod:
     doc_id: Q2
-    text: "What is your outcome like?"
-    options:
-      - {label: "A score or scale", next: q3_mod}
-      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: q3_mod, yesno: E32}
   q3_mod:
     doc_id: Q3
-    text: "Who gives the data?"
-    options:
-      - {label: "Different people, each measured once", next: mo1}
-      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: mo1, twice: E41, many_conditions: E41}
   mo1:
     doc_id: MO1
     text: "What is your main predictor (X)?"
@@ -402,16 +460,14 @@ nodes:
   # Mediation ---------------------------------------------------------------
   q2_med:
     doc_id: Q2
-    text: "What is your outcome like?"
-    options:
-      - {label: "A score or scale", next: q3_med}
-      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: q3_med, yesno: E32}
   q3_med:
     doc_id: Q3
-    text: "Who gives the data?"
-    options:
-      - {label: "Different people, each measured once", next: me1}
-      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: me1, twice: E41, many_conditions: E41}
   me1:
     doc_id: ME1
     text: "What is the cause (X)?"
@@ -461,16 +517,14 @@ nodes:
   # Moderated mediation -----------------------------------------------------
   q2_modmed:
     doc_id: Q2
-    text: "What is your outcome like?"
-    options:
-      - {label: "A score or scale", next: q3_modmed}
-      - {label: "Not a score (yes/no, a count, categories)", next: E32}
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: q3_modmed, yesno: E32}
   q3_modmed:
     doc_id: Q3
-    text: "Who gives the data?"
-    options:
-      - {label: "Different people, each measured once", next: mm1}
-      - {label: "The same people repeatedly, or people nested in groups", next: E41}
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: mm1, twice: E41, many_conditions: E41}
   mm1:
     doc_id: MM1
     text: "What is the cause (X)?"
@@ -515,6 +569,16 @@ closing_questions:
   - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses}
   - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry}
 
+# Added by the app to every question, in every route (and to the end-point
+# list): leads to a card saying powerkit can't advise on the design yet.
+safety_net:
+  label: "None of these fit / I'm not sure"
+  endpoint: E-unsure
+
+# Shown on generic "not covered" cards that have `established_tools: true`.
+# Whether such cards should name the tools is open question 18.
+established_tools_text: "Established tools exist for this design; powerkit hasn't checked them."
+
 # Shown on cards for end points with `no_ready_made_tool`.
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
 
@@ -542,7 +606,14 @@ justification_prompt:
 #   shows the text in `no_ready_made_tool_text` (above).
 # five_tools: "not covered" when none of the five tools powerkit builds on
 #   covers the end point (the card says so).
-# tier: MVP | v2 | later (the table's tier text starts with this).
+# generic: true for one card per category of design powerkit doesn't
+#   cover, where it is unclear which specific end point applies. The card
+#   shows `card_text` (and `established_tools_text` if
+#   `established_tools: true`) instead of a package list.
+# card_points: extra points listed on the card.
+# from_coverage: false when the card's tool line isn't taken from
+#   docs/coverage.md (the card then doesn't say it is).
+# tier: MVP | v2 | later | none (the table's tier text starts with this; none for the safety net).
 # ---------------------------------------------------------------------------
 endpoints:
   E1:
@@ -933,6 +1004,53 @@ endpoints:
     packages:
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
+  E43:
+    doc_name: "Time-to-event (survival) outcome"
+    plain_name: "An outcome that is the time until something happens"
+    status: not_in_powerkit
+    generic: true
+    established_tools: true
+    card_text: "powerkit doesn't cover outcomes that are the time until something happens (survival or time-to-event analysis), where some people may not reach the event before the study ends."
+    tier: later
+  E44:
+    doc_name: "Paired or dyadic data (pairs of people whose scores are related)"
+    plain_name: "Data that come in pairs, such as couples or a parent and child"
+    status: not_in_powerkit
+    generic: true
+    established_tools: true
+    card_text: "powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people would overstate power."
+    tier: later
+  E45:
+    doc_name: "Many measurements over time: segmented regression or interrupted time series"
+    plain_name: "A trend over time that may change at a known point"
+    status: not_in_powerkit
+    no_ready_made_tool: true
+    from_coverage: false
+    card_points:
+      - "With a known breakpoint (for example, the date an intervention started), the change in slope can be treated as an added predictor in a regression (a segmented regression)."
+      - "With a breakpoint that is estimated from the data, a custom simulation is needed."
+      - "With time-series data, autocorrelation (each measurement depending on the previous ones) makes standard power calculations too optimistic."
+      - "A before/after comparison of means (a t-test) asks a different question: whether the average level differs, not whether the trend changes."
+    inputs: ["Depends on the model you write: the number and spacing of measurements, the breakpoint, the expected change in level and slope, and the autocorrelation"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    tier: later
+  E46:
+    doc_name: "Precision planning (a target confidence-interval width)"
+    plain_name: "Estimate an effect precisely (plan for a confidence-interval width)"
+    status: not_in_powerkit
+    generic: true
+    established_tools: true
+    card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
+    tier: later
+  E-unsure:
+    doc_name: "No matching design (safety net)"
+    plain_name: "None of these fit, or I'm not sure"
+    status: not_in_powerkit
+    generic: true
+    card_heading: "powerkit can't advise on this design yet."
+    card_text: "We suggest discussing it with a statistician."
+    tier: none
   E-bayes:
     doc_name: "Bayes factor design (any design)"
     plain_name: "Plan a study analysed with Bayes factors"
@@ -952,23 +1070,25 @@ endpoints:
 # ---------------------------------------------------------------------------
 guided:
   intro: "Describe your study's variables once. Then tick the analyses you plan and mark which ones the study must be powered for."
-  scope_note: "This route assumes different people, each measured once (plus an optional baseline). For repeated measures, stimuli or nested data, use 'Help me choose'."
+  scope_note: "This route assumes different people, each measured once (plus an optional baseline). The screening questions have already checked this."
+  many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x
       label: "Main predictor (X)"
-      options: {cond2: "A condition with two groups (or two existing groups)", cond3: "A condition with three or more groups", score: "A measured score"}
+      options: {cond2: "A condition with two groups (or two existing groups)", cond3: "A condition with three or more groups", score: "A measured score", notsure: "None of these fit / I'm not sure"}
     - id: outcome
       label: "Outcome (Y)"
-      options: {score: "A score or scale", yesno: "Yes/no", count: "A count", ordinal: "Ordered categories"}
+      screen_key: outcome
+      options: {score: "A score or scale", yesno: "Yes/no", count: "A count", ordinal: "Ordered categories", notsure: "None of these fit / I'm not sure"}
     - id: mediators
       label: "Mediators (go-betweens)"
-      options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score"}
+      options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score", notsure: "None of these fit / I'm not sure"}
     - id: moderator
       label: "Moderator (W)"
-      options: {none: "None", score: "A measured score", two: "Two groups or conditions", three: "Three or more groups"}
+      options: {none: "None", score: "A measured score", two: "Two groups or conditions", three: "Three or more groups", notsure: "None of these fit / I'm not sure"}
     - id: covariate
       label: "Covariates"
-      options: {none: "None", baseline: "A baseline (before) measure of the outcome", other: "Other covariates"}
+      options: {none: "None", baseline: "A baseline (before) measure of the outcome", other: "Other covariates", notsure: "None of these fit / I'm not sure"}
   analyses:
     - id: compare
       label: "The effect of X on the outcome"

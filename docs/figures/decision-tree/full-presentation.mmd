@@ -1,18 +1,17 @@
 flowchart LR
   S0{"How do you want<br/>to start?"}
-  S0 -->|I know my analysis| SC["Shortcut list:<br/>straight to the form"]
-  S0 -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
-  S0 -->|Plan my whole study| GP["Guided study planner:<br/>variables once, tick analyses,<br/>one card each + combined N"]
+  S0 --> SCR{"Screening, every route:<br/>outcome, grouping,<br/>times measured, goal"}
+  SCR -->|Not covered| SX["E28, E29, E33 to E36,<br/>E43 to E46; or E-unsure<br/>(none of these fit)"]
+  SCR -->|I know my analysis| SC["Shortcut list:<br/>straight to the form"]
+  SCR -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
+  SCR -->|Plan my whole study| GP["Guided study planner:<br/>variables once, tick analyses,<br/>one card each + combined N"]
 
   subgraph GA["A. A difference between groups or conditions"]
     direction TB
     a2{"Outcome?"}
     a2 -->|Yes/no or categories,<br/>different people| aE5E6["E5 Two proportions<br/>E6 Chi-square"]
     a2 -->|Yes/no, same people<br/>or one group| aYN["E25 One proportion<br/>E26 McNemar"]
-    a2 -->|Count or ordinal| aCO["E28 Count<br/>E29 Ordinal"]
-    a2 -->|Score| a3{"Who gives the data?"}
-    a3 -->|Stimuli, nested,<br/>3+ occasions| aML["E33 to E35<br/>Mixed, multilevel,<br/>longitudinal"]
-    a3 -->|Different or<br/>same people| aF1{"How many factors?"}
+    a2 -->|Score| aF1{"How many factors?"}
     aF1 -->|One| aF2{"How many groups?"}
     aF2 -->|One or two| aT["E1 One-sample t<br/>E2 Independent t<br/>E3 Paired t"]
     aF2 -->|Three or more| aOW["E18 One-way ANOVA<br/>E19 Planned contrast"]
@@ -83,10 +82,10 @@ flowchart LR
     k4["Not in powerkit yet:<br/>points to another tool"]
   end
 
-  class S0,Q1,a2,a3,aF1,aF2,aF4,b1,c1,d1,e1,f2,k1 q
+  class S0,SCR,Q1,a2,aF1,aF2,aF4,b1,c1,d1,e1,f2,k1 q
   class aE5E6,aT,aE7,aE8,bE4,cE9,dE10,dE11,dE12,eE13,eE14,k2 avail
   class cE15,dE16,eE17,k3 spec
-  class aYN,aCO,aML,aOW,aE23,aE20,aE21,bE24,bE27,cL,dE42,eE38,QX,k4 later
+  class SX,aYN,aOW,aE23,aE20,aE21,bE24,bE27,cL,dE42,eE38,QX,k4 later
   class SC,GP,cA,f1,f3,f4 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
