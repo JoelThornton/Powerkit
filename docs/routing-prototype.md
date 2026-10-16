@@ -111,7 +111,11 @@ Each **end-point card** shows:
     says it isn't covered by the five tools powerkit builds on.
 
 Screenshots of each route are in
-[`figures/routing-prototype/`](figures/routing-prototype/).
+[`figures/routing-prototype/`](figures/routing-prototype/). Worked examples for every design
+in the routing audit, with a screenshot of each end card, are in
+[`walkthroughs.md`](walkthroughs.md). To re-run them against the running
+prototype: `node app/routing/walkthroughs/screenshots.js` (needs Node and
+Playwright; the script's header explains).
 
 ## Recording your decisions
 
@@ -184,6 +188,9 @@ They take a few seconds and check:
   these fit / I'm not sure";
 - that each misroute found by the [routing audit](routing-audit.md) now
   reaches the right end point (`test-misroutes.R`);
+- that each worked example in [`walkthroughs.md`](walkthroughs.md) still
+  reaches the end point recorded for it, in all three routes
+  (`test-walkthroughs.R`);
 - that every guided-route answer combination leads somewhere;
 - that every "not in powerkit" end point has a package, a link and a
   description (generic cards: their own text instead);
