@@ -1523,6 +1523,12 @@ how the wrapped tools work.
 19. **Matched pairs.** S2's "Pairs" leads to the dyadic card (E44). A
     matched-pairs design analysed with a paired t-test might belong at
     E3 instead. Should S2 tell the two apart?
+20. **A note on other defensible analyses.** Covered cards could say:
+    "Other defensible analyses exist for this design (e.g. ...), and they
+    can need different sample sizes. Power the analysis you plan to run."
+    The drafts, with each card's list, are in
+    [routing-audit.md](routing-audit.md), "Other defensible analyses". Show
+    the note on the cards, or not? (It is off while undecided.)
 
 ## Sources
 

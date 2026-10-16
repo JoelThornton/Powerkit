@@ -187,6 +187,12 @@ settings:
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
     value: null
     shown_at: [E43, E44, E46, E47]
+  - key: other_analyses_note
+    ref: "Open question 20"
+    question: "Show a note on covered cards that other defensible analyses exist for the design (listed per card, e.g. Student's vs Welch's t), and that they can need different sample sizes? The drafts are in docs/routing-audit.md, 'Other defensible analyses'. Off while undecided."
+    options: {show: "Show the note on covered cards", hide: "Don't show it"}
+    value: null
+    shown_at: []
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
@@ -619,6 +625,10 @@ safety_net:
 established_tools_text: "Established tools exist for this design; powerkit hasn't checked them."
 
 # Shown on cards for end points with `no_ready_made_tool`.
+# Draft note for covered cards; {alternatives} is the card's list. Shown
+# only when other_analyses_note is "show".
+other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
+
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
 
 # The effect-size justification prompt on every card (spec field
@@ -650,6 +660,9 @@ justification_prompt:
 #   shows `card_text` (and `established_tools_text` if
 #   `established_tools: true`) instead of a package list.
 # card_points: extra points listed on the card.
+# alternatives: other analyses that could be defended for the same question
+#   (covered end points). The card note that lists them is shown only when
+#   the setting other_analyses_note is "show" (open question 20).
 # never_screened_out: true for end points the end-point list shows whatever
 #   the screening answers (Bayes factors: open question 8).
 # from_coverage: false when the card's tool line isn't taken from
@@ -667,6 +680,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
+    alternatives: ["the one-sample Wilcoxon signed-rank test", "the sign test"]
   E2:
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
     plain_name: "Compare two separate groups on a score"
@@ -677,6 +691,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["Student's or Welch's t-test", "the Mann-Whitney test", "a permutation test"]
   E3:
     doc_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
@@ -687,6 +702,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["the Wilcoxon signed-rank test", "the sign test"]
   E4:
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
@@ -697,6 +713,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["Pearson's, Spearman's or Kendall's correlation"]
   E5:
     doc_name: "Test of two proportions (z test)"
     plain_name: "Compare two groups on a yes/no outcome"
@@ -708,6 +725,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:
     doc_name: "Chi-square test of independence"
     plain_name: "Test whether two sets of categories are related"
@@ -718,6 +736,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
+    alternatives: ["the chi-square test with or without a continuity correction (2 x 2 tables)", "Fisher's exact test", "a likelihood-ratio (G) test"]
   E7:
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
     plain_name: "Two factors crossed, different people in each of the four groups"
@@ -728,6 +747,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
+    alternatives: ["tests of the simple effects", "a planned contrast"]
   E8:
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
@@ -739,6 +759,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
+    alternatives: ["for a before-and-after design, ANCOVA on the after score adjusting for the before score", "for a before-and-after design, a t-test on change scores", "a mixed model"]
   E9:
     doc_name: "Moderated regression (continuous × continuous)"
     plain_name: "Does the effect of one score depend on another score?"
@@ -749,6 +770,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["a latent-variable interaction model that allows for measurement error"]
   E10:
     doc_name: "Simple mediation (PROCESS model 4)"
     plain_name: "X affects Y through one go-between (M)"
@@ -759,6 +781,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
     plain_name: "X affects Y through several go-betweens side by side"
@@ -769,6 +792,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["a bootstrap confidence interval", "the joint-significance test", "testing each specific indirect effect or the total indirect effect"]
   E12:
     doc_name: "Serial mediation (PROCESS model 6)"
     plain_name: "X affects Y through a chain of go-betweens"
@@ -779,6 +803,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["a bootstrap confidence interval", "the joint-significance test", "testing the full serial path or each shorter path"]
   E13:
     doc_name: "First-stage moderated mediation (PROCESS model 7), index of moderated mediation"
     plain_name: "Mediation where W changes the X -> M link"
@@ -789,6 +814,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["conditional indirect effects at chosen values of W"]
   E14:
     doc_name: "Second-stage moderated mediation (PROCESS model 14)"
     plain_name: "Mediation where W changes the M -> Y link"
@@ -799,6 +825,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
+    alternatives: ["conditional indirect effects at chosen values of W"]
   E15:
     doc_name: "Moderated regression with a yes/no X or W"
     plain_name: "Does an effect depend on a moderator, when X or W is two groups?"
@@ -810,6 +837,7 @@ endpoints:
     coming_soon_note: "Planned next: a yes/no X or W."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
+    alternatives: ["a latent-variable interaction model that allows for measurement error"]
   E16:
     doc_name: "Mediation with a yes/no X"
     plain_name: "Mediation where X is two conditions or two groups"
@@ -821,6 +849,7 @@ endpoints:
     coming_soon_note: "Planned next: a yes/no X or W."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
+    alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
   E17:
     doc_name: "Moderated mediation with a yes/no X or W"
     plain_name: "Moderated mediation where X or W is two groups"
@@ -832,6 +861,7 @@ endpoints:
     coming_soon_note: "Planned next: a yes/no X or W."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
+    alternatives: ["conditional indirect effects for each group"]
   E18:
     doc_name: "One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus"
     plain_name: "Any difference among three or more groups or conditions"

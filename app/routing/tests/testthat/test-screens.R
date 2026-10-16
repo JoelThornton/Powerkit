@@ -146,3 +146,18 @@ test_that("hints explain terms and never suggest a value to choose", {
     expect_no_match(g$hint, "\\b(small|medium|large|typical)\\b|usually choose|we recommend|should be|default", label = g$term)
   }
 })
+
+test_that("the note on other defensible analyses is off until the maintainer turns it on", {
+  covered <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon"), tree$endpoints))
+  expect_setequal(names(Filter(function(e) !is.null(e$alternatives), tree$endpoints)), covered)
+  expect_null(setting_by_key(tree, "other_analyses_note")$value)
+  for (id in covered) expect_no_match(as.character(card_ui(tree, id)), "Other defensible analyses exist", fixed = TRUE, label = id)
+  t2 <- tree
+  for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "other_analyses_note") t2$settings[[i]]$value <- "show"
+  for (id in covered) {
+    html <- as.character(card_ui(t2, id))
+    expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
+    expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
+  }
+  expect_no_match(as.character(card_ui(t2, "E28")), "Other defensible analyses exist", fixed = TRUE)
+})

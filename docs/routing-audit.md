@@ -195,6 +195,46 @@ study". Verdicts are as defined at the top of this page.
 - one new misroute is left: chi-square goodness-of-fit;
 - the rank-based rows (judgement call 3.8), Fisher's exact test (3.9), goodness-of-fit (3.7), MANOVA and repeated yes/no outcomes come down to judgement calls. Each is listed below, and 3.7–3.9 are in [`decision-tree.md`](decision-tree.md), section 3, with the positions, the maintainer's view and the reason each is a judgement call.
 
+## Other defensible analyses for covered end points
+
+For each end point that powerkit runs or will run (E1–E17), this table lists
+other analyses that could be defended for the same research question.
+Different analyses can need different sample sizes, so a power analysis for
+one doesn't carry over to another.
+
+**These lists are drafts, not decisions.** Which analysis a study should use
+is a judgement for the researcher, and nothing here recommends one. Some
+choices are already judgement calls in [`decision-tree.md`](decision-tree.md):
+- simple effects versus the interaction (3.4);
+- rank-based tests (3.8);
+- Fisher's exact test (3.9).
+
+**The card note is off by default.** The draft note below is written for
+the card, and it is hidden behind the setting `other_analyses_note`
+(open question 20), so the maintainer can review it first. Its wording is
+in `tree.yaml` (`other_analyses_text`), and each card's list is the
+`alternatives` field.
+
+| End point | Other defensible analyses | Draft card note |
+| --- | --- | --- |
+| E1 (One-sample t-test) | the one-sample Wilcoxon signed-rank test; the sign test | Other defensible analyses exist for this design (e.g. the one-sample Wilcoxon signed-rank test; the sign test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E2 (Independent-samples t-test (Student's; Welch's as an option)) | Student's or Welch's t-test; the Mann-Whitney test; a permutation test | Other defensible analyses exist for this design (e.g. Student's or Welch's t-test; the Mann-Whitney test; a permutation test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E3 (Paired-samples t-test) | the Wilcoxon signed-rank test; the sign test | Other defensible analyses exist for this design (e.g. the Wilcoxon signed-rank test; the sign test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E4 (Pearson correlation) | Pearson's, Spearman's or Kendall's correlation | Other defensible analyses exist for this design (e.g. Pearson's, Spearman's or Kendall's correlation), and they can need different sample sizes. Power the analysis you plan to run. |
+| E5 (Test of two proportions (z test)) | the z test with or without a continuity correction; Fisher's exact test; logistic regression | Other defensible analyses exist for this design (e.g. the z test with or without a continuity correction; Fisher's exact test; logistic regression), and they can need different sample sizes. Power the analysis you plan to run. |
+| E6 (Chi-square test of independence) | the chi-square test with or without a continuity correction (2 x 2 tables); Fisher's exact test; a likelihood-ratio (G) test | Other defensible analyses exist for this design (e.g. the chi-square test with or without a continuity correction (2 x 2 tables); Fisher's exact test; a likelihood-ratio (G) test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E7 (2 x 2 between-participants ANOVA (main effect or interaction)) | tests of the simple effects; a planned contrast | Other defensible analyses exist for this design (e.g. tests of the simple effects; a planned contrast), and they can need different sample sizes. Power the analysis you plan to run. |
+| E8 (2 x 2 mixed ANOVA (incl. group × time)) | for a before-and-after design, ANCOVA on the after score adjusting for the before score; for a before-and-after design, a t-test on change scores; a mixed model | Other defensible analyses exist for this design (e.g. for a before-and-after design, ANCOVA on the after score adjusting for the before score; for a before-and-after design, a t-test on change scores; a mixed model), and they can need different sample sizes. Power the analysis you plan to run. |
+| E9 (Moderated regression (continuous × continuous)) | a latent-variable interaction model that allows for measurement error | Other defensible analyses exist for this design (e.g. a latent-variable interaction model that allows for measurement error), and they can need different sample sizes. Power the analysis you plan to run. |
+| E10 (Simple mediation (PROCESS model 4)) | a bootstrap confidence interval; the joint-significance test; the Sobel test | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; the Sobel test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E11 (Parallel mediation (PROCESS model 4)) | a bootstrap confidence interval; the joint-significance test; testing each specific indirect effect or the total indirect effect | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; testing each specific indirect effect or the total indirect effect), and they can need different sample sizes. Power the analysis you plan to run. |
+| E12 (Serial mediation (PROCESS model 6)) | a bootstrap confidence interval; the joint-significance test; testing the full serial path or each shorter path | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; testing the full serial path or each shorter path), and they can need different sample sizes. Power the analysis you plan to run. |
+| E13 (First-stage moderated mediation (PROCESS model 7), index of moderated mediation) | conditional indirect effects at chosen values of W | Other defensible analyses exist for this design (e.g. conditional indirect effects at chosen values of W), and they can need different sample sizes. Power the analysis you plan to run. |
+| E14 (Second-stage moderated mediation (PROCESS model 14)) | conditional indirect effects at chosen values of W | Other defensible analyses exist for this design (e.g. conditional indirect effects at chosen values of W), and they can need different sample sizes. Power the analysis you plan to run. |
+| E15 (Moderated regression with a yes/no X or W) | a latent-variable interaction model that allows for measurement error | Other defensible analyses exist for this design (e.g. a latent-variable interaction model that allows for measurement error), and they can need different sample sizes. Power the analysis you plan to run. |
+| E16 (Mediation with a yes/no X) | a bootstrap confidence interval; the joint-significance test; the Sobel test | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; the Sobel test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E17 (Moderated mediation with a yes/no X or W) | conditional indirect effects for each group | Other defensible analyses exist for this design (e.g. conditional indirect effects for each group), and they can need different sample sizes. Power the analysis you plan to run. |
+
 ## What's left
 
 **Fixed in this PR** (tested in `app/routing/tests/testthat/test-misroutes.R`):

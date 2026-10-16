@@ -201,6 +201,13 @@ status_ui <- function(tree, ep) {
   )
 }
 
+# The draft note on other defensible analyses: shown only once the setting
+# other_analyses_note is "show" (open question 20; off while undecided).
+other_analyses_ui <- function(tree, ep) {
+  if (is.null(ep$alternatives) || !identical(setting_by_key(tree, "other_analyses_note")$value, "show")) return(NULL)
+  p(class = "other-analyses", sub("{alternatives}", paste(unlist(ep$alternatives), collapse = "; "), tree$other_analyses_text, fixed = TRUE))
+}
+
 card_ui <- function(tree, ep_id, compact = FALSE) {
   ep <- tree$endpoints[[ep_id]]
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
@@ -223,6 +230,7 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
         p(jp$text),
         tags$ul(lapply(unname(jp$types), tags$li))
       ),
+      other_analyses_ui(tree, ep),
       if (runs) p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
       if (!compact && runs) tagList(
         h5("What you'd be asked next"),
