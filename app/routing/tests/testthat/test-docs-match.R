@@ -74,3 +74,13 @@ test_that("the closing questions each card asks match decision-tree.md, 'Closing
   with_questions <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon"), tree$endpoints))
   expect_setequal(cards, with_questions)
 })
+
+test_that("docs/glossary.md lists exactly the glossary in tree.yaml, and every term is used on a card", {
+  lines <- strsplit(read_doc("glossary.md"), "\n", fixed = TRUE)[[1]]
+  lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Term |")]
+  rows <- lapply(lines, split_row)
+  expect_identical(vapply(rows, `[`, "", 1), vapply(tree$glossary, function(g) g$term, character(1)))
+  expect_identical(vapply(rows, `[`, "", 2), vapply(tree$glossary, function(g) g$hint, character(1)))
+  inputs <- unlist(lapply(tree$endpoints, function(e) e$inputs))
+  for (g in tree$glossary) expect_true(any(grepl(g$pattern, inputs, ignore.case = TRUE, perl = TRUE)), label = g$term)
+})

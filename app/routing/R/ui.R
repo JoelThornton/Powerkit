@@ -214,7 +214,10 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
       status_ui(tree, ep),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, tags$li))),
+      if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
+        input,
+        lapply(glossary_for(tree, input), function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
+      )))),
       if (!compact && !isTRUE(ep$generic)) tagList(
         h5("Where your effect size comes from"),
         p(jp$text),

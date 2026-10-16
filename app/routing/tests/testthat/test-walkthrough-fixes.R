@@ -90,7 +90,7 @@ test_that("F14: user-facing text has no internal references", {
   g <- tree$guided
   texts <- c(texts, g$intro, g$scope_note, g$many_conditions_note, unlist(lapply(g$combination_rules, function(r) c(r$label, r$note))))
   for (a in g$analyses) for (rule in a$rules) if (!is.null(rule$ask)) texts <- c(texts, rule$ask$text)
-  pattern <- "Departure [0-9]|decisions? [DN][0-9]|[Pp]hase 3b|transcribed|docs/|decision-tree\\.md|judgement call|build guide"
+  pattern <- "Departure [0-9]|decisions? [DN][0-9]|maintainer decision|[Pp]hase 3b|transcribed|docs/|decision-tree\\.md|judgement call|build guide"
   expect_identical(texts[grepl(pattern, texts)], character())
   html <- paste(vapply(names(tree$endpoints), function(id) {
     h <- as.character(card_ui(tree, id))

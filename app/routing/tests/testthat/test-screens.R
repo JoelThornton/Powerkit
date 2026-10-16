@@ -124,3 +124,25 @@ test_that("each card lists only the closing questions that apply to it", {
   expect_match(e7, "All three are available for this design.", fixed = TRUE)
   expect_match(e5, "isn&#39;t available for this design yet|isn't available for this design yet")
 })
+
+test_that("every technical term in 'What you would enter' has a plain-English hint beside it", {
+  jargon <- c("Cohen", "d_z", "\\bSD", "correlation", "cell", "reliab", "standardised", "Monte Carlo", "residual",
+    "indirect", "contrast", "adjusted", "covariate", "R-squared", "discordant", "odds", "coefficient", "rate ratio",
+    "product", "fixed effects", "variance", "ICC", "cluster", "equivalence", "RMSEA", "breakpoint", "autocorrelation",
+    "prior", "mediator", "predictor", "interaction", "factor", "\\bCI\\b", "parameters", "Welch")
+  for (id in names(tree$endpoints)) {
+    for (input in tree$endpoints[[id]]$inputs) {
+      hits <- jargon[vapply(jargon, function(j) grepl(j, input, ignore.case = TRUE, perl = TRUE), logical(1))]
+      if (length(hits) == 0) next
+      expect_gt(length(glossary_for(tree, input)), 0, label = paste(id, input))
+    }
+  }
+  html <- as.character(card_ui(tree, "E26"))
+  expect_match(html, "<dfn>discordant proportions</dfn>", fixed = TRUE)
+})
+
+test_that("hints explain terms and never suggest a value to choose", {
+  for (g in tree$glossary) {
+    expect_no_match(g$hint, "\\b(small|medium|large|typical)\\b|usually choose|we recommend|should be|default", label = g$term)
+  }
+})

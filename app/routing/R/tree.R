@@ -348,6 +348,11 @@ compute_endpoints_for_context <- function(tree, ctx) {
   intersect(names(tree$endpoints), union(reached, c(always, tree$safety_net$endpoint)))
 }
 
+#' Glossary entries whose term appears in a piece of text (case-insensitive).
+glossary_for <- function(tree, text) {
+  Filter(function(g) grepl(g$pattern, text, ignore.case = TRUE, perl = TRUE), tree$glossary)
+}
+
 #' The closing questions a card asks: those whose `applies_to` is "all" or
 #' names the card, each with its card-specific note if it has one.
 closing_questions_for <- function(tree, ep_id) {

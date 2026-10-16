@@ -805,7 +805,7 @@ endpoints:
     template: "regression_interaction / two_way (X or W yes/no)"
     backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (planned)"
     method: Simulation
-    inputs: ["Fully standardised correlations", "Groups are always 50/50 for interactions (maintainer decision; InteractionPoweR has no unequal split)"]
+    inputs: ["Fully standardised correlations", "Groups are always 50/50 for interactions (InteractionPoweR has no unequal split)"]
     status: coming_soon
     coming_soon_note: "Planned next: a yes/no X or W."
     refs: "phase 3b (build guide, section 8)"
@@ -1266,6 +1266,58 @@ guided:
     - id: x_m
       label: "the effect of X on the mediator"
       in: [mediation, modmed]
+
+# ---------------------------------------------------------------------------
+# Glossary: a one-line plain-English hint for each technical term in the
+# cards' "What you would enter" lists, shown beside the input. `pattern` is
+# a case-insensitive (Perl) regular expression that finds the term. Hints
+# say what a term means; they never say what value to choose (where effect
+# sizes come from is an open judgement call, 3.2). docs/glossary.md lists
+# the same terms; a test keeps the two in step.
+# ---------------------------------------------------------------------------
+glossary:
+  - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}
+  - {term: "d_z", pattern: "\\bd_z\\b", hint: "The average change within people (for example, after minus before), divided by how much that change varies from person to person."}
+  - {term: "SD (standard deviation)", pattern: "\\bSDs?\\b", hint: "How spread out the scores are around their average."}
+  - {term: "pooled SD", pattern: "pooled SD", hint: "The two groups' standard deviations combined into one, weighted by the groups' sizes."}
+  - {term: "SD units", pattern: "SD units", hint: "Differences expressed in standard deviations rather than in the outcome's own units (raw)."}
+  - {term: "Student's or Welch's test", pattern: "Student's or Welch's", hint: "Two versions of the t-test: Student's assumes the two groups' scores are equally spread out; Welch's doesn't."}
+  - {term: "correlation (r)", pattern: "\\bcorrelations?\\b", hint: "A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship."}
+  - {term: "repeated measurements", pattern: "repeated measure(ment)?s|between conditions", hint: "The same people measured more than once (for example, before and after, or in each condition); their scores on different occasions usually go together."}
+  - {term: "cell means", pattern: "cell means|four expected means", hint: "The expected average in each combination of the factors, such as praise with a hard task (each combination is a 'cell')."}
+  - {term: "factor and levels", pattern: "\\bfactors?\\b", hint: "A factor is something you vary or compare (for example, feedback); its levels are its versions (for example, praise and none)."}
+  - {term: "between factor and within factor", pattern: "between factor|within factor", hint: "A between factor has different people at each level; a within factor has the same people at every level."}
+  - {term: "interaction", pattern: "\\binteractions?\\b", hint: "Whether the effect of one factor or variable depends on the level of another."}
+  - {term: "reliability", pattern: "\\breliabilit(y|ies)\\b", hint: "How consistently a measure gives the same result; 1 means no measurement error."}
+  - {term: "standardised paths", pattern: "standardised paths|fully standardised", hint: "The strength of each arrow in the model (for example, X to M), expressed in standard deviations so that arrows between differently scaled measures can be compared."}
+  - {term: "Monte Carlo draws per CI", pattern: "Monte Carlo draws", hint: "How many random draws are used to build each confidence interval for the indirect effect; more draws give a more stable interval."}
+  - {term: "residuals", pattern: "residuals", hint: "The part of each mediator that X doesn't explain; their correlation says how much the mediators overlap beyond X."}
+  - {term: "indirect path", pattern: "indirect (path|effect)", hint: "The route from X to the outcome through a mediator (X to M to Y)."}
+  - {term: "contrast weights", pattern: "contrast weights", hint: "Numbers that say which groups a specific comparison sets against which (for example, 1, 1 and -2 compare the first two groups together with the third)."}
+  - {term: "adjusted group means", pattern: "adjusted", hint: "Group averages after taking the covariate into account."}
+  - {term: "covariate", pattern: "covariate", hint: "A variable measured alongside the outcome (for example, a before score) that the analysis takes into account."}
+  - {term: "R-squared", pattern: "R-squared", hint: "The share of the differences in the outcome that the predictors explain, from 0 to 1."}
+  - {term: "R-squared change", pattern: "R-squared change", hint: "How much R-squared goes up when the predictor or predictors of interest are added."}
+  - {term: "discordant proportions", pattern: "discordant", hint: "Among people measured twice, the share who change from yes to no and the share who change from no to yes."}
+  - {term: "odds ratio", pattern: "odds ratio", hint: "How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference."}
+  - {term: "regression coefficients", pattern: "regression coefficients", hint: "How much the outcome is expected to change for a one-unit change in a predictor."}
+  - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
+  - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
+  - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
+  - {term: "variance components", pattern: "variance components", hint: "How much scores vary because some participants, and some stimuli, score higher or lower than others overall."}
+  - {term: "intraclass correlation (ICC)", pattern: "intraclass correlation|\\bICC\\b", hint: "How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1."}
+  - {term: "cluster size", pattern: "cluster size", hint: "How many people there are in each group (for example, pupils per class)."}
+  - {term: "equivalence bounds", pattern: "equivalence bounds", hint: "The smallest difference you would care about, in each direction; a difference inside them counts as negligible."}
+  - {term: "RMSEA", pattern: "\\bRMSEA\\b", hint: "A number summarising how far a model's predictions are from the data, allowing for the model's complexity; smaller means a closer fit."}
+  - {term: "relative indirect effects", pattern: "relative indirect effects", hint: "With three or more groups, the indirect effect for each group compared with one chosen reference group."}
+  - {term: "breakpoint", pattern: "breakpoint", hint: "The point in time at which the trend may change (for example, when an intervention started)."}
+  - {term: "level and slope", pattern: "level and slope", hint: "The level is how high the trend is; the slope is how fast it rises or falls."}
+  - {term: "autocorrelation", pattern: "autocorrelation", hint: "How much each measurement depends on the ones just before it."}
+  - {term: "mediator", pattern: "\\bmediators?('s|s')?\\b", hint: "A variable through which X affects the outcome (a go-between)."}
+  - {term: "predictor", pattern: "\\bpredictors?\\b", hint: "A variable used to explain or predict the outcome."}
+  - {term: "confidence interval (CI)", pattern: "\\bCI\\b", hint: "A range of plausible values for an effect, estimated from the data."}
+  - {term: "model parameters", pattern: "model parameters", hint: "The numbers that define a model, such as the strength of each path."}
+  - {term: "prior", pattern: "\\bprior\\b", hint: "The range of effect sizes you consider plausible before seeing the data, written as a distribution."}
 
 # ---------------------------------------------------------------------------
 # Coverage map: every coverage.md row in the MVP tier, and where it appears
