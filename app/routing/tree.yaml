@@ -391,6 +391,7 @@ nodes:
       - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
       - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
       - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
+      - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E27, when: {times: once}, help: "Analysed with a logistic regression that includes both factors."}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
   # A relationship ----------------------------------------------------------

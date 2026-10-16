@@ -5,10 +5,11 @@ flowchart TD
   Q3y -->|Different people, two groups,<br/>yes/no, measured once| E5["E5 Two proportions"]
   Q3y -->|Different people, categories,<br/>measured once| E6["E6 Chi-square test<br/>of independence"]
   Q3y -->|One group against a fixed<br/>value, measured once| E25["E25 One proportion"]
+  Q3y -->|Two or more factors, yes/no,<br/>measured once| E27["E27 Logistic regression"]
   Q3y -->|The same people,<br/>measured twice or more| E26["E26 McNemar's test<br/>or Cochran's Q"]
   class Q3y q
   class E5,E6 avail
-  class E25,E26 later
+  class E25,E26,E27 later
   class S,A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px

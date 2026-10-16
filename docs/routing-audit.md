@@ -102,6 +102,100 @@ answers "a difference", "a relationship", "moderation" and "mediation".
 | Meta-analysis | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 | Network models | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 
+## Cross-check against the UCLA OARC test-selection table
+
+**Source.** UCLA OARC Statistical Methods and Data Analytics, [*Choosing
+the Correct Statistical Test in SAS, Stata, SPSS and R*](https://stats.oarc.ucla.edu/other/mult-pkg/whatstat/).
+The page credits James D. Leeper, from whose table it is adapted with his
+permission. It is a widely used map from a study's variables to a test.
+Its table and text are not reproduced here. The rows below use only the
+names of the analyses it lists, grouped and described in our own words,
+and each is traced through powerkit's routes after this PR.
+
+**What it doesn't cover.** The table assumes independent observations. It
+has no rows for nested, clustered or time-series data, crossed random
+effects, dyads, time-to-event outcomes, equivalence or precision. So the
+audit above still applies to those designs. This cross-check adds to it
+and doesn't replace it.
+
+**How the list was compiled.** This session's network policy blocked the
+page itself. The list of analyses was compiled from search results that
+quote the page and from its companion pages for SPSS and Stata ("What
+statistical analysis should I use?"). **The maintainer should check the
+list against the page.** In particular, the rows for discriminant analysis
+and multivariate multiple regression were not confirmed by those results.
+
+**Routes.** Paths start after the screening answers shown, with "detect
+an effect" at S4. **K** is "I know my analysis"; **G** is "Plan my whole
+study". Verdicts are as defined at the top of this page.
+
+### One group against a fixed value
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| One-sample t-test | Score, once → difference → One → One group, compared with a fixed value → E1 | E1 | Not offered (the guided route needs a predictor X); safety net | **Covered (E1)** |
+| One-sample median test | As the t-test → E1. As ordered categories (S1 → O5a) → E29 | E1, E29 | As above | **Judgement needed:** is a t-test's power an acceptable plan for a median test? (non-parametric tests, "What's left") |
+| Binomial test | Yes/no, once → difference → One group, compared with a fixed proportion → E25 | E25 | Not offered; safety net | **Honest card (E25)** |
+| Chi-square goodness-of-fit | Yes/no or categories, once → difference: no answer for one variable with three or more categories against expected proportions. The nearest are "One group, compared with a fixed proportion" → E25, a single proportion, and "outcome in categories" → E6, a test of independence | Not by name | Not offered | **MISROUTES** (to E25 or E6). Not fixed: there is no end point for it ("What's left") |
+
+### Two groups
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| Two independent samples t-test | Score, once → difference → One → Two, with different people in each → E2 | E2 | X: two groups, outcome: score → E2 | **Covered (E2)** |
+| Wilcoxon–Mann–Whitney test | As the t-test → E2; as ordered categories → E29 | E2, E29 | E2 | **Judgement needed** (non-parametric) |
+| Chi-square test of independence | Yes/no or categories, once → difference → Different people, outcome in categories → E6. Also: relationship → One of several categories → E6 | E6 | Yes/no outcome, two groups → E5 | **Covered (E6; E5 for two proportions)** |
+| Fisher's exact test | As the chi-square test → E5 or E6 | E5, E6 | E5 | **Judgement needed:** at small samples, an exact test's power differs from that of the large-sample test powerkit plans for |
+| Paired t-test | Score, twice → difference → One → Two, with the same people in both → E3 | E3 | Not offered for two measurements of one group (a baseline covariate leads to E23 or E8) | **Covered (E3)** |
+| Wilcoxon signed-rank test | As the paired t-test → E3 | E3 | — | **Judgement needed** (non-parametric) |
+| McNemar's test | Yes/no, twice → difference → The same people in every condition → E26 | E26 | Not offered | **Honest card (E26)** |
+
+### Three or more groups
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| One-way ANOVA | Score, once → difference → One → Three or more → Any difference among the groups → E18 (or a specific comparison → E19) | E18, E19 | X: three or more groups → E18 | **Honest card (E18, E19)** |
+| Kruskal–Wallis test | As the one-way ANOVA → E18 | E18 | E18 | **Judgement needed** (non-parametric) |
+| One-way repeated measures ANOVA | Score, many times → The same people in three or more conditions → difference → One → Three or more → E18 | E18 | Sent to "Help me choose" (three or more conditions per person) | **Honest card (E18)** |
+| Friedman test | As the repeated measures ANOVA → E18 | E18 | As above | **Judgement needed** (non-parametric) |
+| Repeated measures logistic regression | Yes/no, twice or many times → difference → The same people in every condition → E26 (McNemar's test or Cochran's Q). Many yes/no trials per person stop at S2 → E33 | E26, E33 | Not offered | **Honest card (E26 or E33).** **Judgement needed:** does a model-based analysis of repeated yes/no outcomes need its own card? |
+
+### Two or more factors
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| Factorial ANOVA | Score, once → difference → Two, crossed → Yes: 2 x 2 → Both factors: different people → … → E7. Larger designs → E21; within or mixed → E8, E20 | E7, E8, E20, E21 | X two groups × W two groups → E7 | **Covered (E7, E8)** for 2 x 2; **honest card (E20, E21)** otherwise |
+| Ordered logistic regression | Ordered categories → O5a → As ordered categories → E29 | E29 | Not offered (S1 sends ordered categories to O5a first) | **Honest card (E29)** |
+| Factorial logistic regression | Yes/no, once → difference → **Two or more factors (e.g. a 2 x 2 design), yes/no outcome → E27** (added by this cross-check). Before, Q3 had no answer for two factors, and the nearest, "Different people, two groups, yes/no outcome", led to E5 | E27 | Not offered for two factors | **Was MISROUTES (to E5); fixed: honest card (E27)** |
+
+### Relationships and regression
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| Correlation | Score, once → relationship → A score or scale → E4 | E4 | X: a score, outcome: score → E4 | **Covered (E4)** |
+| Simple linear regression | As correlation → E4 | E4 | E4 | **Covered (E4):** the test of the slope in a simple regression is the same test as the test of r |
+| Non-parametric correlation | As correlation → E4 | E4 | E4 | **Judgement needed** (non-parametric) |
+| Simple logistic regression | Yes/no, once → relationship → Yes/no → E27 | E27 | Yes/no outcome, X a score → E27 | **Honest card (E27)** |
+| Multiple regression | Score, once → relationship → Several predictors at once, or controlling for other variables → E24 | E24 | X a score with covariates → E24 | **Honest card (E24)** |
+| Analysis of covariance | Score, twice → … → before and after → ANCOVA → E23. A covariate other than a baseline isn't asked about in a two-group comparison → E2 | E23 | X two groups with covariates → E23 | **Honest card (E23).** **Judgement needed** for non-baseline covariates (already in "What's left") |
+| Multiple logistic regression | As simple logistic regression → E27 | E27 | E27 | **Honest card (E27)** |
+| Discriminant analysis | Not reachable: no answer predicts group membership from several scores. Safety net | Not by name | Not offered | **Not reachable** (safety net) |
+
+### Several outcomes, or no outcome
+
+| Analysis (UCLA OARC row) | Help me choose (after this PR) | K | G | Verdict |
+| --- | --- | --- | --- | --- |
+| One-way MANOVA | Not reachable: users pick one outcome and reach that outcome's end point (e.g. E18) | Not by name | Not offered | **Not reachable.** **Judgement needed** on powering each outcome separately (already in "What's left") |
+| Multivariate multiple regression | As MANOVA | Not by name | Not offered | **Not reachable** (as MANOVA) |
+| Canonical correlation | Not reachable | Not by name | Not offered | **Not reachable** (safety net) |
+| Factor analysis | Q1 "That a model fits: a questionnaire structure, or a model with latent variables (SEM)" → E37 (confirmatory). Exploratory factor analysis isn't reachable by name | E37 | Not offered | **Honest card (E37)** for confirmatory; **not reachable** for exploratory (already in the audit) |
+
+**Result.** Of these analyses:
+- every one powerkit runs is covered: the one-sample, independent and paired t-tests, correlation and simple regression, two proportions, the chi-square test of independence, and the 2 x 2 ANOVAs;
+- one new misroute was found and fixed: factorial logistic regression now reaches E27;
+- one new misroute is left: chi-square goodness-of-fit;
+- the non-parametric rows, Fisher's exact test, MANOVA and repeated yes/no outcomes come down to judgement calls already listed below.
+
 ## What's left
 
 **Fixed in this PR** (tested in `app/routing/tests/testthat/test-misroutes.R`):
@@ -115,7 +209,9 @@ answers "a difference", "a relationship", "moderation" and "mediation".
   - time-to-event outcomes;
   - precision;
   - equivalence in the guided route;
-  - SEM with latent variables, through Q1's wording.
+  - SEM with latent variables, through Q1's wording;
+  - factorial logistic regression (found by the UCLA OARC cross-check):
+    a yes/no outcome with two or more factors now reaches E27.
 
 **Still misrouting or not reachable.** These are left for the maintainer,
 because each needs a statistical judgement or a new end point that the docs
@@ -133,7 +229,16 @@ don't define:
 7. **Latent-variable mediation** entered as mediation: reaches E10.
 8. **Matched pairs** answered as "Pairs" at S2: reach the dyadic card
    (E44), although a paired t-test (E3) may be right.
-9. **Counts and ratings in the rel, mod and med paths:** now caught at S1.
+9. **Chi-square goodness-of-fit** (found by the UCLA OARC cross-check):
+   one categorical variable with three or more categories against expected
+   proportions has no answer and no end point. It reaches E25 (a single
+   proportion) or E6 (a test of independence). Does it need its own card?
+10. **Non-parametric tests, by name:** the UCLA OARC rows for the
+    one-sample median, Wilcoxon–Mann–Whitney, Wilcoxon signed-rank,
+    Kruskal–Wallis, Friedman and non-parametric correlation tests reach
+    the parametric end points (item 3). So does Fisher's exact test, which
+    reaches the large-sample tests (E5, E6).
+11. **Counts and ratings in the rel, mod and med paths:** now caught at S1.
    Whether decision D1 (a rating may be analysed as a score) applies beyond
    differences is still open.
 

@@ -308,10 +308,11 @@ flowchart TD
   Q3y -->|Different people, two groups,<br/>yes/no, measured once| E5["E5 Two proportions"]
   Q3y -->|Different people, categories,<br/>measured once| E6["E6 Chi-square test<br/>of independence"]
   Q3y -->|One group against a fixed<br/>value, measured once| E25["E25 One proportion"]
+  Q3y -->|Two or more factors, yes/no,<br/>measured once| E27["E27 Logistic regression"]
   Q3y -->|The same people,<br/>measured twice or more| E26["E26 McNemar's test<br/>or Cochran's Q"]
   class Q3y q
   class E5,E6 avail
-  class E25,E26 later
+  class E25,E26,E27 later
   class S,A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -519,7 +520,7 @@ engine can use the answer today.
 | Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
 | Q2 | What is your outcome like? | Answered by S1 and not asked again. In the relationship path, a categorical outcome asks which kind: yes/no (E27) or one of several categories (E6) | `variables.Y.type` | As S1 |
 | O5a | How will you analyse this rating? (after S1 "ordered categories", every route) | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes, the route continues as a score. Ordered: **no (flag)** → E29. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
-| Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
+| Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E27, logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |

@@ -190,7 +190,44 @@ test_that("SEM with latent variables is named on Q1 and reaches the SEM card", {
   expect_identical(follow_answers(tree, c(base, "That a model fits: a questionnaire structure, or a model with latent variables (SEM)")), "E37")
 })
 
+test_that("a yes/no outcome with two or more factors reaches logistic regression, not the two-proportions test", {
+  # Found by the cross-check against the UCLA OARC table (factorial
+  # logistic regression): Q3 for a yes/no difference had no answer for two
+  # factors, so the nearest was "two groups" > E5.
+  base <- c("Yes/no, or one of several categories", "Independent people", "Once", "Detect an effect", "A difference between groups or conditions")
+  expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E27")
+})
+
 test_that("counts no longer reach the correlation through the relationship path", {
   # On main: rel offered no count answer, so a count went in as a score > E4.
   expect_all_routes("A count", "E28")
+})
+
+test_that("the analyses in the UCLA OARC test-selection table reach the end points recorded in docs/routing-audit.md", {
+  once <- function(outcome) c(outcome, "Independent people", "Once", "Detect an effect")
+  twice <- function(outcome) c(outcome, "Independent people", "Twice", "Detect an effect")
+  score <- "A score or scale"
+  yesno <- "Yes/no, or one of several categories"
+  diff <- "A difference between groups or conditions"
+  rel <- "A relationship between two things you measure"
+  rows <- list(
+    "One-sample t-test" = list(c(once(score), diff, "One", "One group, compared with a fixed value"), "E1"),
+    "Binomial test" = list(c(once(yesno), diff, "One group, compared with a fixed proportion"), "E25"),
+    "Two independent samples t-test" = list(c(once(score), diff, "One", "Two, with different people in each"), "E2"),
+    "Chi-square test of independence" = list(c(once(yesno), diff, "Different people, outcome in categories"), "E6"),
+    "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
+    "Paired t-test" = list(c(twice(score), diff, "One", "Two, with the same people in both (or one group measured twice)"), "E3"),
+    "McNemar's test" = list(c(twice(yesno), diff, "The same people in every condition"), "E26"),
+    "One-way ANOVA" = list(c(once(score), diff, "One", "Three or more", "Any difference among the groups"), "E18"),
+    "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", "Detect an effect", diff, "One", "Three or more", "Any difference among the groups"), "E18"),
+    "Factorial ANOVA" = list(c(once(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: different people", "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
+    "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29"),
+    "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E27"),
+    "Correlation and simple linear regression" = list(c(once(score), rel, "A score or scale"), "E4"),
+    "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
+    "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),
+    "Analysis of covariance" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "One factor different people, the other everyone got both", "Yes: the same number in every group", "Yes: before and after", "Yes, randomly assigned", "ANCOVA: the after score, adjusting for the before score"), "E23"),
+    "Factor analysis (confirmatory)" = list(c(once(score), "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"), "E37")
+  )
+  for (name in names(rows)) expect_identical(follow_answers(tree, rows[[name]][[1]]), rows[[name]][[2]], label = name)
 })

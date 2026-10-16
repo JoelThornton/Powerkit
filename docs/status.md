@@ -57,6 +57,14 @@ fully validated. Validation runs are recorded in
       and precision (E46);
     - the safety net (E-unsure).
   - Each fixed misroute has a test (`test-misroutes.R`).
+  - The audit is cross-checked against UCLA OARC's test-selection table
+    (adapted from Leeper), with one row per analysis. That found one more
+    misroute, now fixed: factorial logistic regression reaches E27. It
+    also found chi-square goodness-of-fit, which has no end point and is
+    left for the maintainer. The table doesn't cover nested, clustered or
+    time-series data, so the earlier list still applies. The UCLA page
+    was blocked in this session, so the maintainer should check the list
+    of analyses against it.
   - Still misrouting, left for the maintainer because each needs a
     statistical judgement: curvilinear effects, reliability/ICC,
     non-parametric tests, sequential designs, MANOVA, non-baseline
