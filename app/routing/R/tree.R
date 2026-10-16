@@ -309,6 +309,14 @@ status_label <- function(status) {
 #' rules out (Bayes factors) and the safety net. Used to filter the
 #' end-point list.
 endpoints_for_context <- function(tree, ctx) {
+  key <- paste(tree$version, ctx$outcome %||% "", ctx$times %||% "", sep = "|")
+  if (!is.null(context_cache[[key]])) return(context_cache[[key]])
+  context_cache[[key]] <- compute_endpoints_for_context(tree, ctx)
+}
+
+context_cache <- new.env(parent = emptyenv())
+
+compute_endpoints_for_context <- function(tree, ctx) {
   reached <- character()
   walk <- function(id, ctx, depth = 0) {
     id <- resolve_target(tree, id, ctx, "choose")

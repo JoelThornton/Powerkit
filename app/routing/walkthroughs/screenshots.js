@@ -21,19 +21,25 @@ const SAFETY = "None of these fit / I'm not sure";
   const browser = await chromium.launch(launch);
   const page = await browser.newPage({ viewport: { width: 1000, height: 900 } });
   const settle = () => page.waitForTimeout(350);
+  // Click the button with exactly this label, waiting up to 10 s for the
+  // screen to render it.
   const label = async (text) => {
-    const target = page.locator('#screen button .choice-label').filter({ hasText: text });
-    const n = await target.count();
-    let clicked = false;
-    for (let i = 0; i < n; i++) {
-      if ((await target.nth(i).textContent()).trim() === text) { await target.nth(i).click(); clicked = true; break; }
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const target = page.locator('#screen button .choice-label').filter({ hasText: text });
+      const n = await target.count();
+      for (let i = 0; i < n; i++) {
+        if ((await target.nth(i).textContent()).trim() === text) { await target.nth(i).click(); await settle(); return; }
+      }
+      await page.waitForTimeout(250);
     }
-    if (!clicked) throw new Error(`No button labelled "${text}"`);
-    await settle();
+    throw new Error(`No button labelled "${text}"`);
   };
   const button = async (text) => { await page.locator('#screen button', { hasText: text }).first().click(); await settle(); };
   const home = async () => { await page.goto(URL); await page.waitForSelector('.prototype-banner'); await settle(); };
-  const cardId = async () => (await page.locator('#screen .endpoint-card .card-eid').first().textContent()).trim();
+  const cardId = async () => {
+    await page.waitForSelector('#screen .endpoint-card .card-eid', { timeout: 10000 });
+    return (await page.locator('#screen .endpoint-card .card-eid').first().textContent()).trim();
+  };
   const answer = async (labels) => { for (const l of labels) await label(l); };
   const onCard = async () => (await page.locator('#screen .endpoint-card').count()) > 0;
   const results = [];
@@ -58,6 +64,7 @@ const SAFETY = "None of these fit / I'm not sure";
       await page.check(`#tick_${s.guided.analysis}`); await settle();
       if (s.guided.ask) { await page.check(`input[name="ask_${s.guided.analysis}"][value="${s.guided.ask}"]`); await settle(); }
       await button('Show my plan');
+      await page.waitForSelector('#screen .plan-item .card-eid', { timeout: 10000 });
       got.guided = (await page.locator('#screen .plan-item .card-eid').first().textContent()).trim();
     }
     const ok = ['choose', 'known', 'guided'].every(r => got[r] === s.reaches[r]);
