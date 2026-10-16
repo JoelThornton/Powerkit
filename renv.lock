@@ -2198,6 +2198,16 @@
       ],
       "Hash": "adfa41db3678b41bf9235c514c51799a"
     },
+    "pwrss": {
+      "Package": "pwrss",
+      "Version": "1.3.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "881b159a60c5964100a37e6dbe96f743"
+    },
     "qs2": {
       "Package": "qs2",
       "Version": "0.3.1",
@@ -2487,6 +2497,21 @@
         "xtable"
       ],
       "Hash": "e71fb3fcf73db153eccd8afed293984f"
+    },
+    "simsem": {
+      "Package": "simsem",
+      "Version": "0.5-17",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "graphics",
+        "lavaan",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "473f8d8bdc5bd83d70fafd7c49d810c0"
     },
     "sourcetools": {
       "Package": "sourcetools",

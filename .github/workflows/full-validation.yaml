@@ -25,6 +25,10 @@
 #   process_4             about 2.5 hours (8 simulations of 10,000
 #                         replications at about 0.4 s each)
 #   process_6             about 1 hour (3 simulations, about 0.4 s each)
+#   mediation_crosscheck  about 1.5 hours (4 tests at a time, one core
+#                         each; the longest is a powerkit simulation of
+#                         10,000 replications at about 0.4 s each; an
+#                         estimate, not yet measured)
 #   process_7, process_14 about 3 hours each (3 simulations at about
 #                         1.4 s each). The closest to the limit: if the
 #                         runner is twice as slow as the laptop, they
@@ -48,6 +52,7 @@ on:
           - process_6
           - process_7
           - process_14
+          - mediation_crosscheck
 
 permissions:
   contents: read
@@ -93,7 +98,7 @@ jobs:
       - name: Check that the packages load
         run: |
           Rscript -e 'pkgload::load_all("engine", quiet = TRUE, helpers = FALSE)' \
-                  -e 'for (p in c("power4mome", "manymome", "igraph", "lavaan", "Spower", "Superpower", "InteractionPoweR", "testthat", "processx")) loadNamespace(p)' \
+                  -e 'for (p in c("power4mome", "manymome", "igraph", "lavaan", "Spower", "Superpower", "InteractionPoweR", "pwrss", "simsem", "testthat", "processx")) loadNamespace(p)' \
                   -e 'cat("All packages load.\n")'
 
       # Steps without an `if` run only if every earlier step succeeded, so

@@ -90,8 +90,9 @@ test_that("docs/card-sources.md has rows for every card that states facts", {
   lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Card |")]
   rows <- lapply(lines, split_row)
   cards <- vapply(rows, `[`, "", 1)
-  statuses <- vapply(rows, `[`, "", 5)
-  expect_true(all(statuses %in% c("sourced", "partly sourced", "unsourced", "no claim")))
+  statuses <- vapply(rows, function(r) r[length(r)], "")
+  expect_true(all(lengths(rows) == 7))
+  expect_true(all(statuses %in% c("sourced", "partly sourced", "candidate, not verified", "contradicted", "unsourced", "no claim")))
   for (id in names(tree$endpoints)) {
     e <- tree$endpoints[[id]]
     states_facts <- !is.null(e$packages) || !is.null(e$card_points) || !is.null(e$validation) || !is.null(e$backend) ||

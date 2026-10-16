@@ -11,7 +11,7 @@ fully validated. Validation runs are recorded in
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.
-- **Phase 4, part 1 (draft PR #20, 16 October 2026): script and citation
+- **Phase 4, part 1 (merged in PR #20, 16 October 2026): script and citation
   exports.** `export_script()` writes a standalone R script that reproduces
   a result by calling Spower, Superpower, InteractionPoweR or power4mome
   directly, with a comment on each argument. A test for each runnable end
@@ -51,6 +51,26 @@ fully validated. Validation runs are recorded in
   is defined at the top of the [validation log](validation-log.md).
 - **Validation in progress:** moderated mediation, PROCESS models 7 and 14
   (E13, E14): rerun needed after the seeding fix (above).
+- **Independent cross-check for mediation (merged in PR #23, 16 October
+  2026; not run yet).** The mediation validation so far compares powerkit with
+  direct power4mome calls, which checks the wrapping but not power4mome
+  itself. A new validation chunk, `mediation_crosscheck`, compares simple
+  mediation with two independently written tools:
+  - powerkit's Monte Carlo CI against pwrss's Monte Carlo interval test;
+  - the joint-significance test in power4mome against simsem and against
+    pwrss.
+
+  pwrss and simsem are in Suggests and renv.lock. The tolerance rule is in
+  the [validation log](validation-log.md); its 0.02 allowance for the
+  normal-theory comparisons is proposed, for the maintainer to confirm.
+  Only a smoke test (100 replications) has run locally; the chunk itself
+  is to be run on GitHub. Why power4mome is used, and its established
+  alternatives, are in [decisions](decisions.md), 16 October 2026.
+- **Drafts for the maintainer:** a message to Shu Fai Cheung (power4mome)
+  in [`upstream-questions.md`](upstream-questions.md) (seeding with product
+  terms; multi-category X), not sent; and the statistical decisions phase
+  3b needs before coding, in [`phase-3b-questions.md`](phase-3b-questions.md)
+  (options and what the backends' docs say; nothing chosen).
 - **Waiting on published values:** several validation tests still have
   `TODO_PUBLISHED_VALUE` placeholders (including the G*Power published
   examples for basic tests), to be transcribed by the maintainer.
@@ -66,8 +86,31 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
-- **Card content and usability (draft PR, 16 October 2026; builds on the
-  routing fixes):**
+- **Routing decisions and card sourcing (draft PR, 16 October 2026):**
+  - E15 (a yes/no X or W) no longer asks about reliability: misclassification
+    in a 0/1 variable is a different problem from unreliable scores
+    ([decisions](decisions.md), 16 October 2026);
+  - the routing audit now says test-retest answered "Twice" reaches E41
+    (F11) and IRT reaches E37 (F7); E37 says IRT designs aren't covered.
+    Routing unchanged;
+  - every claim in [`card-sources.md`](card-sources.md) now has a source,
+    or a status saying why not. Sources were opened and read: R package
+    documentation (help pages, vignettes, CRAN manuals), UCLA OARC pages
+    and David Kenny's dyadic-analysis pages. Of the 53 claims that were
+    unsourced or partly sourced: 31 sourced, 20 partly sourced, 1 candidate
+    (not verified), 1 contradicted;
+  - **contradiction:** E45 says "No ready-made tool", but the PITS package
+    (on CRAN since 30 June 2026) estimates power for interrupted time series
+    with a known breakpoint. The card is unchanged, for the maintainer;
+  - partly sourced claims are mostly glossary hints whose details differ
+    from the source (for example, fixed effects with random slopes, the
+    pooled SD's weighting, autocorrelation as dependence on the previous
+    measurement only); each is listed in `card-sources.md`;
+  - no references were added to `engine/inst/citations/refs.bib`: the
+    sources opened are package documentation and web pages, and refs.bib
+    holds only entries copied from a package's own `citation()` (a test
+    checks this). Papers that couldn't be opened are listed as candidates.
+- **Card content and usability (merged in PR #22, 16 October 2026):**
   - each card asks only the closing questions that apply to it, with a
     table in [`decision-tree.md`](decision-tree.md);
   - every technical term in "What you would enter" has a plain-English
@@ -76,14 +119,15 @@ fully validated. Validation runs are recorded in
     [`routing-audit.md`](routing-audit.md), with a card note that stays off
     until decided (open question 20);
   - every factual claim on a card has its source recorded in
-    [`card-sources.md`](card-sources.md). 51 claims are unsourced,
-    including the 42 glossary definitions;
+    [`card-sources.md`](card-sources.md). 51 claims were unsourced at
+    merge, including the 42 glossary definitions (now sourced: see the
+    entry above);
   - the safety-net card lists what to write down for a statistician;
   - an accessibility pass (axe-core: no violations on ten screens at
     desktop and phone width; focus moves to each new screen). What wasn't
     checked is listed in [`routing-prototype.md`](routing-prototype.md);
   - walkthroughs re-run, with before/after notes for every changed card.
-- **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
+- **Routing fixes from the walkthroughs (merged in PR #21, 16 October 2026):**
   - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
     and the wording of F10;
   - the guided route uses S3's "Twice" (paired tests; the pre-post
@@ -97,7 +141,8 @@ fully validated. Validation runs are recorded in
   - internal references are out of user-facing text.
 
   Left for the maintainer:
-  - F7 and F11 (change the route or change the audit);
+  - F7 and F11 (decided 16 October 2026: the audit changes, routing
+    doesn't; see the entry above);
   - F12 (diary studies);
   - inter-rater designs;
   - new routing questions listed in the audit's "What's left" (items 11–13).
@@ -228,21 +273,28 @@ fully validated. Validation runs are recorded in
 3. Binary X and W in regression interactions and mediation (phase 3b,
    build guide section 8). It comes next after phase 3 closes, before
    phase 4. The maintainer has decided its effect-size convention, group
-   split and handling of correlated predictors.
-4. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
+   split and handling of correlated predictors. The decisions still open
+   before coding are listed in [`phase-3b-questions.md`](phase-3b-questions.md).
+4. Run the `mediation_crosscheck` chunk on GitHub, confirm its tolerance
+   allowance, and consider independent cross-checks for parallel, serial
+   and moderated mediation. Send (or edit) the draft message to Shu Fai
+   Cheung in [`upstream-questions.md`](upstream-questions.md).
+5. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
    its G*Power and MorePower rows against the G*Power manual and the
    MorePower paper.
-5. The rest of phase 4: the methods paragraph and preregistration text;
+6. The rest of phase 4: the methods paragraph and preregistration text;
    the method-paper and powerkit entries in `engine/inst/citations/refs.bib`
    (the maintainer adds them); and, once phase 3b lands, scripts for
    binary X and W. After PR #20 is merged, rerun the process_7 and
    process_14 validation chunks on GitHub and mark E13 and E14 validated
    again if they pass.
-6. Decide what to do about the walkthrough flags (F1–F15 in
+7. Decide on E45's "No ready-made tool" now that PITS exists, and on the
+   partly sourced hints in [`card-sources.md`](card-sources.md). Decide what
+   to do about the remaining walkthrough flags (in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).
-7. Phase 5: the Shiny app, starting from the routing prototype's
+8. Phase 5: the Shiny app, starting from the routing prototype's
    `app/routing/tree.yaml` and guided by [`decision-tree.md`](decision-tree.md)
    and [`design-finder.md`](design-finder.md), once the maintainer has
    answered their open questions.

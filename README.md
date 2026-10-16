@@ -112,6 +112,10 @@ plain English. Example specs for every design are in
   "find my design" route.
 - [Conventions](docs/conventions.md): what the established tools do by
   default, what powerkit does, and every departure.
+- [Phase 3b questions](docs/phase-3b-questions.md): the statistical
+  decisions a binary X or W needs before it is coded.
+- [Upstream questions](docs/upstream-questions.md): draft questions for
+  the authors of the packages powerkit builds on.
 - [Engine news](engine/NEWS.md): user-visible changes.
 - [CLAUDE.md](CLAUDE.md): project rules for contributors and coding
   assistants.

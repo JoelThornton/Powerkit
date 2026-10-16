@@ -577,7 +577,10 @@ are different analyses, and the app keeps them apart:
 The full list of closing questions is in table 2.2 (the "Every design"
 rows). Each card asks only the ones that apply to its design, following
 that table's "Engine can use it?" column:
-- reliability (Q-rel) only for regression interactions;
+- reliability (Q-rel) only for regression interactions with scores (E9).
+  Not E15: misclassification in a yes/no X or W is a different problem
+  from unreliable scores (maintainer decision, 16 October 2026; see
+  `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square;
 - a test version (Q-test) only where there is a choice: Student's or
   Welch's t-test (E2), or exact or simulation (E7, E8).
@@ -604,7 +607,7 @@ the two in step.
 | E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
@@ -1341,7 +1344,7 @@ all three marked primary and "each stands alone":
 | Card | Standard name | Inputs still needed | Backend (candidate where not built) | Status today |
 | --- | --- | --- | --- | --- |
 | H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
-| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised); reliabilities | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
+| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
 | H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
 | Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
 

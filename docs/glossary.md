@@ -13,7 +13,9 @@ cards ask for a justification instead.
 
 The terms and hints are in `app/routing/tree.yaml` (`glossary`). A test
 checks that this page matches them, and that every term appears on at least
-one card.
+one card. Where each definition comes from (the source opened, where in it, and
+what it supports) is in [`card-sources.md`](card-sources.md); some hints are
+only partly supported, and the details are listed there.
 
 | Term | Plain-English hint | On the cards |
 | --- | --- | --- |
