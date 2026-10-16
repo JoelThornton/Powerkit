@@ -66,7 +66,27 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
-- **Walkthroughs (draft PR, 16 October 2026):**
+- **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
+  - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
+    and the wording of F10;
+  - the guided route uses S3's "Twice" (paired tests; the pre-post
+    question for two groups), and offers an outcome with several
+    categories (E6);
+  - the end-point list shows only the analyses that fit the screening
+    answers;
+  - factorial logistic regression reaches a new generic card, E47, in both
+    routes, with the neutral tools sentence (open question 18);
+  - the dyadic card's wording is corrected;
+  - internal references are out of user-facing text.
+
+  Left for the maintainer:
+  - F7 and F11 (change the route or change the audit);
+  - F12 (diary studies);
+  - inter-rater designs;
+  - new routing questions listed in the audit's "What's left" (items 11–13).
+
+  Walkthroughs re-run; six entries changed end point.
+- **Walkthroughs (merged in PR #19, 16 October 2026):**
   [`walkthroughs.md`](walkthroughs.md) gives an example study for each of
   the audit's 61 entries (29 designs and the 32 UCLA OARC rows).
   - Each example was run through all three routes of the prototype, with

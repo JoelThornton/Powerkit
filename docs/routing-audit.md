@@ -55,7 +55,7 @@ answers "a difference", "a relationship", "moderation" and "mediation".
 | Nested or multilevel data | Honest card (E34) | diff + score: "People are nested in groups" → honest card (E34). rel, mod, med: "The same people repeatedly, or people nested in groups" → honest card (E41). **MISROUTES** with a yes/no outcome: diff → Yes/no → Different people, two groups, yes/no outcome → **E5** (Q3 for categories has no "nested" answer) | **MISROUTES**: the scope note asks users to go elsewhere, but nothing stops them. A cond2 X with a score outcome reaches **E2** | S2 "People within groups" → **E34** in every route and for every outcome |
 | Crossed random effects (participants × stimuli) | Honest card (E33) | diff + score: "People respond to many items or stimuli" → honest card (E33). **MISROUTES** with a yes/no outcome per trial (e.g. accuracy): diff → Yes/no → The same people in every condition → **E26** McNemar. rel has no stimuli answer: Each person is measured once → Score → **E4** (**MISROUTES**) | **MISROUTES** (as above: E2 or E4) | S2 "Many trials or stimuli per person" → **E33** in every route |
 | Cluster-randomised designs | Honest card (E34) | Honest (E34) if the user answers "People are nested in groups". **MISROUTES** if they answer "Different people in each group or condition": diff → Score → Different people → One → Two, with different people → **E2**. Nothing asks whether groups, rather than people, were assigned. With a yes/no outcome: **E5** | **MISROUTES** (E2) | S2 "People within groups (including when whole groups, such as classes, were assigned)" → **E34** |
-| Dyadic data (couples, parent–child) | **Not reachable** | **MISROUTES**: no answer describes pairs. E.g. rel → Score → Each person is measured once → Score → **E4**, which treats partners' scores as independent | **MISROUTES** (E4 or E2) | S2 "Pairs (e.g. couples)" → **E44**, a generic card. **Judgement needed:** matched-pairs designs analysed with a paired t-test may belong at E3 instead (decision-tree.md, open question 19) |
+| Dyadic data (couples, parent–child) | **Not reachable** | **MISROUTES**: no answer describes pairs. E.g. rel → Score → Each person is measured once → Score → **E4**, which treats partners' scores as independent | **MISROUTES** (E4 or E2) | S2 "Pairs (e.g. couples)" → **E44**, a generic card. Its text says that treating partners as independent can overstate or understate power, depending on whether the predictor varies between or within dyads (reworded after the walkthroughs, F9). **Judgement needed:** matched-pairs designs analysed with a paired t-test may belong at E3 instead (decision-tree.md, open question 19) |
 | Longitudinal: growth curves | Honest card (E35) | diff + score: "The same people measured over time" → Three or more times → honest card (E35). rel, mod, med: → honest card (E41) | **MISROUTES**: the baseline covariate leads to E23 or E8 for a study with many waves | S3 "Many times" → T1 "Over time, to see how people change" → **E35** |
 | Longitudinal: diary or EMA | Honest card (E35, "experience sampling"; E41) | Honest card (E35 or E41) as for growth curves | **MISROUTES** (as for growth curves) | S3 "Many times" → T1 → **E35** |
 | Longitudinal: time series (many measurements of one unit) | **Not reachable** (E35 is about people measured on a few occasions) | Score: "The same people measured over time" → Three or more → E35, an honest card that doesn't mention autocorrelation. Counts per period: diff → A count → **E28** (honest that counts aren't covered, but for the wrong reason). **Judgement needed** on whether E35 fits | **MISROUTES** (E2 or E4) | S3 "Many times" → T1 "Over time, to see whether a trend changes at a known point" → **E45**, which states the autocorrelation point. Time series with a count outcome stop at S1 → E28 first. **Judgement needed:** the right card for a count time series |
@@ -74,7 +74,7 @@ answers "a difference", "a relationship", "moderation" and "mediation".
 
 | Design | K (on `main`) | C (on `main`) | G (on `main`) | After this PR |
 | --- | --- | --- | --- | --- |
-| Equivalence or non-inferiority | Honest card (E36) | Q1 "That an effect is absent, or too small to matter" → honest card (E36). **Judgement needed:** E36 names TOST and minimum-effect tests, not non-inferiority by name | **MISROUTES**: the guided route has no goal question, so it plans a test to detect an effect | S4 "Show there's no meaningful effect (equivalence or non-inferiority)" → **E36** in every route |
+| Equivalence or non-inferiority | Honest card (E36) | Q1 "That an effect is absent, or too small to matter" → honest card (E36). **Judgement needed:** E36 names TOST and minimum-effect tests, not non-inferiority by name | **MISROUTES**: the guided route has no goal question, so it plans a test to detect an effect | S4 "Show there's no meaningful effect (equivalence or non-inferiority)" → **E36** in every route. E36's title now names non-inferiority (walkthroughs, F13); its tool line is unchanged |
 | Precision (CI width) | **Not reachable** | **MISROUTES**: no answer fits. Users answer Q1 as if detecting an effect and reach a power end point (E2, E4 and the rest). Power and precision planning answer different questions | **MISROUTES** | S4 "Estimate an effect precisely (a target confidence-interval width)" → **E46**, a generic card |
 | Sequential designs with interim looks | **Not reachable** | Not reachable: no question asks about interim analyses, so a sequential design reaches a fixed-sample end point. **Judgement needed:** whether that counts as a misroute | As C | **Not fixed** (listed, see "What's left"). The safety net is available at every question |
 
@@ -142,11 +142,11 @@ study". Verdicts are as defined at the top of this page.
 | --- | --- | --- | --- | --- |
 | Two independent samples t-test | Score, once → difference → One → Two, with different people in each → E2 | E2 | X: two groups, outcome: score → E2 | **Covered (E2)** |
 | Wilcoxon–Mann–Whitney | As the t-test → E2; as ordered categories → E29 | E2, E29 | E2 | **Judgement needed** (rank-based test; judgement call 3.8) |
-| Chi-square test (two groups) | Yes/no or categories, once → difference → Different people, two groups, yes/no outcome → E5 (two proportions), or Different people, outcome in categories → E6. Also: relationship → One of several categories → E6 | E5, E6 | Yes/no outcome, two groups → E5 | **Covered (E5, E6)** |
+| Chi-square test (two groups) | Yes/no or categories, once → difference → Different people, two groups, yes/no outcome → E5 (two proportions), or Different people, outcome in categories → E6. Also: relationship → One of several categories → E6 | E5, E6 | Yes/no outcome, two groups → E5; outcome "One of several categories", two groups → E6 (added after the walkthroughs, F2) | **Covered (E5, E6)** |
 | Fisher's exact test | As the chi-square test → E5 or E6 | E5, E6 | E5 | **Judgement needed** (judgement call 3.9): at small samples, an exact test's power differs from that of the large-sample test E5 plans for. Spower, E5's backend, has an exact option (`p_prop.test(exact = TRUE)`) |
-| Paired t-test | Score, twice → difference → One → Two, with the same people in both → E3 | E3 | Not offered for two measurements of one group (a baseline covariate leads to E23 or E8) | **Covered (E3)** |
-| Wilcoxon signed ranks | As the paired t-test → E3 | E3 | — | **Judgement needed** (rank-based test; judgement call 3.8) |
-| McNemar | Yes/no, twice → difference → The same people in every condition → E26 | E26 | Not offered | **Honest card (E26)** |
+| Paired t-test | Score, twice → difference → One → Two, with the same people in both → E3 | E3 | After S3 "Twice": X "The same people in two conditions, or before and after" → E3 (added after the walkthroughs, F1; before, a two-group X led to E2) | **Covered (E3)** |
+| Wilcoxon signed ranks | As the paired t-test → E3 | E-unsure (not on the list by name) | As the paired t-test → E3 | **Judgement needed** (rank-based test; judgement call 3.8) |
+| McNemar | Yes/no, twice → difference → The same people in every condition → E26 | E26 | After "Twice": X "The same people in two conditions, or before and after", outcome yes/no → E26 (F1; before, E5) | **Honest card (E26)** |
 
 ### Three or more groups
 
@@ -154,7 +154,7 @@ study". Verdicts are as defined at the top of this page.
 | --- | --- | --- | --- | --- |
 | One-way ANOVA | Score, once → difference → One → Three or more → Any difference among the groups → E18 (or a specific comparison → E19) | E18, E19 | X: three or more groups → E18 | **Honest card (E18, E19)** |
 | Kruskal–Wallis | As the one-way ANOVA → E18 | E18 | E18 | **Judgement needed** (rank-based test; judgement call 3.8) |
-| Chi-square test (two or more groups) | Yes/no or categories, once → difference → Different people, outcome in categories → E6 (any table of at least 2 x 2: groups by outcome categories) | E6 | Not offered for three or more groups with a yes/no outcome (the guided route sends a yes/no outcome to E27) | **Covered (E6)** |
+| Chi-square test (two or more groups) | Yes/no or categories, once → difference → Different people, outcome in categories → E6 (any table of at least 2 x 2: groups by outcome categories) | E6 | X three or more groups, outcome "One of several categories" → E6 (F2; before, E27) | **Covered (E6)** |
 | One-way repeated measures ANOVA | Score, many times → The same people in three or more conditions → difference → One → Three or more → E18 | E18 | Sent to "Help me choose" (three or more conditions per person) | **Honest card (E18)** |
 | Friedman | As the repeated measures ANOVA → E18 | E18 | As above | **Judgement needed** (rank-based test; judgement call 3.8) |
 | Repeated measures logistic regression | Yes/no, twice or many times → difference → The same people in every condition → E26 (McNemar's test or Cochran's Q). Many yes/no trials per person stop at S2 → E33 | E26, E33 | Not offered | **Honest card (E26 or E33).** **Judgement needed:** does a model-based analysis of repeated yes/no outcomes need its own card? |
@@ -165,7 +165,7 @@ study". Verdicts are as defined at the top of this page.
 | --- | --- | --- | --- | --- |
 | Factorial ANOVA | Score, once → difference → Two, crossed → Yes: 2 x 2 → Both factors: different people → … → E7. Larger designs → E21; within or mixed → E8, E20 | E7, E8, E20, E21 | X two groups × W two groups → E7 | **Covered (E7, E8)** for 2 x 2; **honest card (E20, E21)** otherwise |
 | Ordered logistic regression | Ordered categories → O5a → As ordered categories → E29 | E29 | Not offered (S1 sends ordered categories to O5a first) | **Honest card (E29)** |
-| Factorial logistic regression | Yes/no, once → difference → **Two or more factors (e.g. a 2 x 2 design), yes/no outcome → E27** (added by this cross-check). Before, Q3 had no answer for two factors, and the nearest, "Different people, two groups, yes/no outcome", led to E5 | E27 | Not offered for two factors | **Was MISROUTES (to E5); fixed: honest card (E27).** E27's card says "Not in powerkit yet: use Spower or pwrss" (Spower's `p_glm()` with a binomial family; pwrss for analytic power). It is not a no-ready-made-tool card |
+| Factorial logistic regression | Yes/no, once → difference → **Two or more factors (e.g. a 2 x 2 design), yes/no outcome → E47**. Before the UCLA cross-check, Q3 had no answer for two factors and the nearest led to E5; the cross-check sent it to E27 | E47 | Moderation: X two groups, W two groups, yes/no outcome → **E47** (before: E32) | **Honest card (E47)**, the same in every route (walkthroughs, F3). E47 is a generic card with the neutral sentence "Established tools exist for this design; powerkit hasn't checked them." Whether it names tools is open question 18. **Not changed:** "Help me choose" through Q1's moderation answer, with a yes/no outcome, still leads to E32 for this design (see "What's left") |
 
 ### Relationships and regression
 
@@ -210,7 +210,23 @@ study". Verdicts are as defined at the top of this page.
   - equivalence in the guided route;
   - SEM with latent variables, through Q1's wording;
   - factorial logistic regression (found by the UCLA OARC cross-check):
-    a yes/no outcome with two or more factors now reaches E27.
+    a yes/no outcome with two or more factors now reaches E47 in
+    "Help me choose" and the guided route.
+
+**Fixed after the walkthroughs** ([`walkthroughs.md`](walkthroughs.md), flags
+F1–F3, F5, F9, F13, F14; tested in `test-walkthrough-fixes.R`):
+- the guided route uses S3's "Twice": paired designs reach E3 or E26, two
+  groups measured twice reach the pre-post question (E23 or E8), and a
+  baseline covariate needs "Twice";
+- the guided route has an outcome with several categories, reaching E6;
+- the end-point list offers only the analyses that fit the screening
+  answers;
+- factorial logistic regression reaches the same card (E47) in both routes;
+- the dyadic card's wording;
+- E36 names non-inferiority;
+- internal references (decision and departure numbers, build phases, file
+  names) are out of user-facing text. They stay in the docs, and in
+  `refs:` fields in `tree.yaml` that the app doesn't show.
 
 **Still misrouting or not reachable.** These are left for the maintainer,
 because each needs a statistical judgement or a new end point that the docs
@@ -243,7 +259,22 @@ don't define:
     for Friedman. Fisher's exact test reaches the large-sample tests (E5,
     E6): judgement call 3.9. Spower's `p_prop.test(exact = TRUE)` is an
     exact option.
-11. **Counts and ratings in the rel, mod and med paths:** now caught at S1.
+11. **Factorial logistic regression through Q1's moderation answer:**
+    "That an effect depends on something else" with a yes/no outcome
+    leads to E32 ("no ready-made tool") for every moderation design,
+    including two binary factors, which reach E47 by the other paths. Does
+    Q2 for moderation need a question that separates them?
+12. **Several categories, same people:** an outcome with several
+    categories measured twice reaches E26 (McNemar's test or Cochran's Q,
+    both for yes/no outcomes), in "Help me choose" and in the guided
+    route. Does it need its own card?
+13. **Two groups, a yes/no or categorical outcome, measured twice** (e.g.
+    yes/no before and after, in a treatment and a control group): the
+    guided route now gives the safety net (E-unsure) rather than a wrong
+    test. "Help me choose" offers only "The same people in every
+    condition" (E26), which compares conditions within people, not
+    groups. This needs a routing decision and possibly a new card.
+14. **Counts and ratings in the rel, mod and med paths:** now caught at S1.
    Whether decision D1 (a rating may be analysed as a score) applies beyond
    differences is still open.
 

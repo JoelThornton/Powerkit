@@ -72,15 +72,19 @@ statistician. Why this exists: [`routing-audit.md`](routing-audit.md).
 
 After the screening:
 
-- **I know my analysis.** A list of every end point, grouped into "Runs in
-  powerkit (validated)", "Runs, validation in progress", "Coming soon" and
-  "Not in powerkit yet". Clicking one opens its
-  card.
+- **I know my analysis.** A list of the end points that fit your
+  screening answers, grouped into "Runs in powerkit (validated)", "Runs,
+  validation in progress", "Coming soon" and "Not in powerkit yet". For
+  example, after "Twice" it doesn't offer the independent-groups tests.
+  Clicking one opens its card.
 - **Help me choose.** The tree, one question per screen. A row of chips
   shows your answers so far: click any chip to go back to that question.
   **Back** steps back one question. The tree ends on an end-point card.
 - **Plan my whole study** (the guided route). Describe the variables once
-  (main predictor, outcome, mediators, moderator, covariates). Then tick the
+  (main predictor, outcome, mediators, moderator, covariates). The options
+  follow the screening answers: the outcome types S1 allows, and, after
+  "Twice", "the same people in two conditions, or before and after" and a
+  baseline covariate. Then tick the
   analyses you plan, mark the primary ones, and choose how they support the
   claim (each alone; all must be significant; any one is enough). The plan
   shows one card per analysis, plus clearly marked placeholders where the
