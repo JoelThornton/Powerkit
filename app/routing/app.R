@@ -182,7 +182,7 @@ server <- function(input, output, session) {
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
         trail_ui(state$history),
-        card_ui(tree, state$endpoint),
+        card_ui(tree, state$endpoint, history = state$history),
         div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
       ),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),

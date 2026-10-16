@@ -619,6 +619,19 @@ closing_questions:
 safety_net:
   label: "None of these fit / I'm not sure"
   endpoint: E-unsure
+  # Shown on the safety-net card: what to write down for a statistician,
+  # filled in from the user's screening answers (the nodes named in each
+  # item; "not answered yet" when the user hasn't reached that question).
+  prepare:
+    intro: "Before you meet a statistician, write down these points. Your answers so far are filled in."
+    items:
+      - {label: "What kind of outcome you will measure", nodes: [s1, o5a]}
+      - {label: "How the data are grouped", nodes: [s2]}
+      - {label: "How many times each person (or unit) is measured", nodes: [s3, t1]}
+      - {label: "Your goal", nodes: [s4]}
+    not_answered: "not answered yet"
+    stopped_at: "Where nothing fitted"
+    also: ["Your hypothesis, in one sentence", "The effect you expect, and where that number comes from", "How many participants you could realistically recruit", "How you plan to analyse the data, if you know"]
 
 # Shown on generic "not covered" cards that have `established_tools: true`.
 # Whether such cards should name the tools is open question 18.

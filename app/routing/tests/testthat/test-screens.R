@@ -161,3 +161,22 @@ test_that("the note on other defensible analyses is off until the maintainer tur
   }
   expect_no_match(as.character(card_ui(t2, "E28")), "Other defensible analyses exist", fixed = TRUE)
 })
+
+test_that("the safety-net card says what to write down for a statistician, using the screening answers", {
+  html <- as.character(card_ui(tree, "E-unsure"))
+  expect_match(html, "What to write down for a statistician", fixed = TRUE)
+  for (it in tree$safety_net$prepare$items) expect_match(html, htmltools::htmlEscape(it$label), fixed = TRUE)
+  expect_match(html, "not answered yet", fixed = TRUE)
+  history <- list(
+    list(node = "s1", answer = "A score or scale", ctx = list()),
+    list(node = "s2", answer = "Independent people", ctx = list(outcome = "score")),
+    list(node = "s3", answer = "Once", ctx = list(outcome = "score")),
+    list(node = "s4", answer = "Detect an effect", ctx = list(outcome = "score", times = "once")),
+    list(node = "q1", answer = tree$safety_net$label, ctx = list(outcome = "score", times = "once"))
+  )
+  html <- as.character(card_ui(tree, "E-unsure", history = history))
+  for (a in c("A score or scale", "Independent people", "Once", "Detect an effect")) expect_match(html, a, fixed = TRUE)
+  expect_no_match(html, "not answered yet", fixed = TRUE)
+  expect_match(html, "Where nothing fitted", fixed = TRUE)
+  expect_match(html, htmltools::htmlEscape(tree$nodes$q1$text), fixed = TRUE)
+})

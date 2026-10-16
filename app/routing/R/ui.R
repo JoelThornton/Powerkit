@@ -208,7 +208,28 @@ other_analyses_ui <- function(tree, ep) {
   p(class = "other-analyses", sub("{alternatives}", paste(unlist(ep$alternatives), collapse = "; "), tree$other_analyses_text, fixed = TRUE))
 }
 
-card_ui <- function(tree, ep_id, compact = FALSE) {
+# On the safety-net card: what to write down for a statistician, filled in
+# from the answers so far (`history`: list(node, answer, ctx) entries).
+prepare_ui <- function(tree, history = list()) {
+  prep <- tree$safety_net$prepare
+  answer_for <- function(nodes) {
+    got <- vapply(Filter(function(h) h$node %in% nodes && !identical(h$answer, tree$safety_net$label), history), function(h) h$answer, character(1))
+    if (length(got) == 0) tags$em(prep$not_answered) else paste(got, collapse = "; ")
+  }
+  stopped <- Filter(function(h) identical(h$answer, tree$safety_net$label), history)
+  div(
+    class = "prepare",
+    h5("What to write down for a statistician"),
+    p(prep$intro),
+    tags$ul(
+      lapply(prep$items, function(it) tags$li(tags$strong(paste0(it$label, ": ")), answer_for(unlist(it$nodes)))),
+      if (length(stopped) > 0) tags$li(tags$strong(paste0(prep$stopped_at, ": ")), tree$nodes[[stopped[[length(stopped)]]$node]]$text),
+      lapply(unlist(prep$also), tags$li)
+    )
+  )
+}
+
+card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   ep <- tree$endpoints[[ep_id]]
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
   jp <- tree$justification_prompt
@@ -220,6 +241,7 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
       h3(class = "card-title", ep$plain_name),
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
       status_ui(tree, ep),
+      if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
         input,
