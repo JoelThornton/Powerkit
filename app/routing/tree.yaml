@@ -582,17 +582,31 @@ nodes:
 # `setting` names the undecided setting(s) shown, as a compact labelled
 # placeholder, next to that question on the card.
 # ---------------------------------------------------------------------------
+# Closing questions (decision-tree.md, table 2.2, "Every design" rows).
+# Each card shows only the questions whose `applies_to` names it ("all" for
+# every card that runs or is coming soon), following table 2.2's "Engine can
+# use it?" column. decision-tree.md, "Closing questions by card", has the
+# same table; a test keeps them in step. `card_notes` gives a card-specific
+# note in place of `note`.
 closing_questions:
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", note: "Used by regression interactions; mediation refuses it for now."}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", note: "One-sided tests only for directional basic tests.", setting: one_sided_tests}
-  - {doc_id: Q-test, text: "Which version of the test? (where there is a choice)", note: "e.g. Student or Welch; exact or simulation for 2 x 2 designs."}
-  - {doc_id: Q-goal, text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?", note: "Smallest detectable effect: 2 x 2 designs only for now. Observed power (from the study's own result) is not offered.", setting: [analysis_types, observed_power]}
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults}
-  - {doc_id: Q-power, text: "What power do you want?"}
-  - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks}
-  - {doc_id: Q-attr, text: "How many participants do you expect to lose?"}
-  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry}
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E15]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5]}
+  - doc_id: Q-test
+    text: "Which version of the test?"
+    applies_to: [E2, E7, E8]
+    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact (analytic) or simulation.", E8: "Exact (analytic) or simulation."}
+  - doc_id: Q-goal
+    text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
+    note: "The smallest detectable effect isn't available for this design yet. Observed power (from the study's own result) is not offered."
+    card_notes: {E7: "All three are available for this design. Observed power (from the study's own result) is not offered.", E8: "All three are available for this design. Observed power (from the study's own result) is not offered."}
+    setting: [analysis_types, observed_power]
+    applies_to: all
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all}
+  - {doc_id: Q-power, text: "What power do you want?", applies_to: all}
+  - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
+  - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all}
+  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.

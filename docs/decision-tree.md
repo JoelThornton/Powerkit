@@ -572,6 +572,42 @@ are different analyses, and the app keeps them apart:
   keeps the two apart. Where this document quotes another tool's label,
   it says so.
 
+### Closing questions by card
+
+The full list of closing questions is in table 2.2 (the "Every design"
+rows). Each card asks only the ones that apply to its design, following
+that table's "Engine can use it?" column:
+- reliability (Q-rel) only for regression interactions;
+- a direction (Q-dir) only for the basic tests except chi-square;
+- a test version (Q-test) only where there is a choice: Student's or
+  Welch's t-test (E2), or exact or simulation (E7, E8).
+
+Q-goal's note differs by card, because the smallest detectable effect is
+available only for the 2 x 2 designs. Cards for designs powerkit doesn't
+run don't list closing questions. `app/routing/tree.yaml`
+(`closing_questions`, `applies_to`) holds the same table, and a test keeps
+the two in step.
+
+| Card | Q-rel | Q-dir | Q-test | Q-goal | Q-alpha | Q-power | Q-effect | Q-attr | Q-multi | Q-bayes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E2 | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E3 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E4 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E5 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E6 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E7 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E8 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E9 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E10 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E11 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
 ### 2.3 End points
 
 Validation status is from [`coverage.md`](coverage.md) and

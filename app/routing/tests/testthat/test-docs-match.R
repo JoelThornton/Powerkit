@@ -58,3 +58,19 @@ test_that("every setting that cites an open question names one that exists in de
     }
   }
 })
+
+test_that("the closing questions each card asks match decision-tree.md, 'Closing questions by card'", {
+  rows <- table_rows(read_doc("decision-tree.md"), "### Closing questions by card", "### 2.3 End points")
+  header <- rows[[1]]
+  qids <- header[-1]
+  expect_identical(qids, vapply(tree$closing_questions, function(q) q$doc_id, character(1)))
+  cards <- character()
+  for (r in rows[-1]) {
+    id <- r[1]
+    cards <- c(cards, id)
+    asked <- vapply(closing_questions_for(tree, id), function(q) q$doc_id, character(1))
+    expect_identical(qids[r[-1] == "✓"], asked, label = id)
+  }
+  with_questions <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon"), tree$endpoints))
+  expect_setequal(cards, with_questions)
+})

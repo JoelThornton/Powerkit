@@ -223,7 +223,7 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
       if (runs) p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
       if (!compact && runs) tagList(
         h5("What you'd be asked next"),
-        tags$ol(lapply(tree$closing_questions, function(q) tags$li(
+        tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
           q$text,
           if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
           lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
