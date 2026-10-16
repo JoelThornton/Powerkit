@@ -1,0 +1,2535 @@
+[
+ {
+  "id": "nested",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Nested or multilevel data",
+  "example": "We will compare a new reading programme with usual teaching in 20 primary-school classes, about 25 pupils per class. Each pupil's reading score is measured once, at the end of the year.",
+  "choose": [
+   "A score or scale",
+   "People within groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "People within groups"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "People within groups"
+   ]
+  },
+  "reaches": {
+   "choose": "E34",
+   "known": "E34",
+   "guided": "E34"
+  }
+ },
+ {
+  "id": "crossed",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Crossed random effects (participants × stimuli)",
+  "example": "Participants will rate 40 faces for trustworthiness after a happy or a neutral mood induction. Every participant rates every face, and we want to know whether mood shifts the ratings.",
+  "choose": [
+   "A score or scale",
+   "Many trials or stimuli per person"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Many trials or stimuli per person"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Many trials or stimuli per person"
+   ]
+  },
+  "reaches": {
+   "choose": "E33",
+   "known": "E33",
+   "guided": "E33"
+  }
+ },
+ {
+  "id": "cluster",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Cluster-randomised designs",
+  "example": "Twelve GP practices will be randomly assigned to offer a brief anxiety leaflet or not, and patients' anxiety will be measured a month later. Whole practices, not individual patients, are assigned.",
+  "choose": [
+   "A score or scale",
+   "People within groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "People within groups"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "People within groups"
+   ]
+  },
+  "reaches": {
+   "choose": "E34",
+   "known": "E34",
+   "guided": "E34"
+  }
+ },
+ {
+  "id": "dyadic",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Dyadic data",
+  "example": "We will recruit 150 couples and measure each partner's stress and relationship satisfaction once. We want to know whether one partner's stress relates to the other partner's satisfaction.",
+  "choose": [
+   "A score or scale",
+   "Pairs"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Pairs"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Pairs"
+   ]
+  },
+  "reaches": {
+   "choose": "E44",
+   "known": "E44",
+   "guided": "E44"
+  }
+ },
+ {
+  "id": "growth",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Longitudinal: growth curves",
+  "example": "Adolescents will complete a self-esteem questionnaire every six months for three years. We want to know whether self-esteem rises faster for girls than for boys.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "Measurements over time, to see how people change"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see how people change"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see how people change"
+   ]
+  },
+  "reaches": {
+   "choose": "E35",
+   "known": "E35",
+   "guided": "E35"
+  }
+ },
+ {
+  "id": "diary",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Longitudinal: diary or EMA",
+  "example": "For 14 days, students will report each evening how stressed they felt and how long they slept. We want to know whether sleep is shorter on more stressful days.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "Measurements over time, to see how people change"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see how people change"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see how people change"
+   ]
+  },
+  "reaches": {
+   "choose": "E35",
+   "known": "E35",
+   "guided": "E35"
+  }
+ },
+ {
+  "id": "timeseries",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Longitudinal: time series (many measurements of one unit)",
+  "example": "One participant with chronic pain will rate pain intensity from 0 to 100 every day for 120 days, and a relaxation routine starts on day 60. We want to know whether the pain trend changes after day 60.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "Measurements over time, to see whether a trend changes at a known point"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see whether a trend changes at a known point"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see whether a trend changes at a known point"
+   ]
+  },
+  "reaches": {
+   "choose": "E45",
+   "known": "E45",
+   "guided": "E45"
+  }
+ },
+ {
+  "id": "segmented",
+  "part": "A",
+  "section": "Dependence",
+  "design": "Longitudinal: segmented regression or interrupted time series",
+  "example": "A school introduced a phone ban last September, and we have its average wellbeing score for every month in the two years before and the year after. We want to know whether the trend in wellbeing changed when the ban started.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "Measurements over time, to see whether a trend changes at a known point"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see whether a trend changes at a known point"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "Measurements over time, to see whether a trend changes at a known point"
+   ]
+  },
+  "reaches": {
+   "choose": "E45",
+   "known": "E45",
+   "guided": "E45"
+  }
+ },
+ {
+  "id": "binary",
+  "part": "A",
+  "section": "Outcome type",
+  "design": "Binary outcome",
+  "example": "Participants will read a CV with either a male or a female applicant's name and decide whether to invite them to interview (yes or no). We want to know whether the invitation rate differs between the two versions.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Different people, two groups, yes/no outcome"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two groups on a yes/no outcome"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E5",
+   "known": "E5",
+   "guided": "E5"
+  }
+ },
+ {
+  "id": "count",
+  "part": "A",
+  "section": "Outcome type",
+  "design": "Count outcome",
+  "example": "We will count how many times children interrupt during a 20-minute task, comparing children with and without an ADHD diagnosis. Most children interrupt only a few times, and many not at all.",
+  "choose": [
+   "A count"
+  ],
+  "known": {
+   "answers": [
+    "A count"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A count"
+   ]
+  },
+  "reaches": {
+   "choose": "E28",
+   "known": "E28",
+   "guided": "E28"
+  }
+ },
+ {
+  "id": "ordinal",
+  "part": "A",
+  "section": "Outcome type",
+  "design": "Single ordinal item",
+  "example": "After using one of two versions of an app, participants will rate one statement, 'I would recommend this app', from 1 (strongly disagree) to 5 (strongly agree). We plan to analyse the ratings as ordered categories.",
+  "choose": [
+   "Ordered categories (e.g. a single rating item)",
+   "As ordered categories"
+  ],
+  "known": {
+   "answers": [
+    "Ordered categories (e.g. a single rating item)",
+    "As ordered categories"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "Ordered categories (e.g. a single rating item)",
+    "As ordered categories"
+   ]
+  },
+  "reaches": {
+   "choose": "E29",
+   "known": "E29",
+   "guided": "E29"
+  }
+ },
+ {
+  "id": "tte",
+  "part": "A",
+  "section": "Outcome type",
+  "design": "Time-to-event outcome",
+  "example": "After a stop-smoking session, participants will be followed for six months and we will record the day each first smokes again. Some will not relapse before the study ends.",
+  "choose": [
+   "The time until something happens"
+  ],
+  "known": {
+   "answers": [
+    "The time until something happens"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "The time until something happens"
+   ]
+  },
+  "reaches": {
+   "choose": "E43",
+   "known": "E43",
+   "guided": "E43"
+  }
+ },
+ {
+  "id": "equivalence",
+  "part": "A",
+  "section": "Goal",
+  "design": "Equivalence or non-inferiority",
+  "example": "We want to show that an online version of a memory test gives the same average score as the paper version, within 2 points. Each participant does one version once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Show there's no meaningful effect"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Show there's no meaningful effect"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Show there's no meaningful effect"
+   ]
+  },
+  "reaches": {
+   "choose": "E36",
+   "known": "E36",
+   "guided": "E36"
+  }
+ },
+ {
+  "id": "precision",
+  "part": "A",
+  "section": "Goal",
+  "design": "Precision (CI width)",
+  "example": "We want to estimate the correlation between empathy and helping in teenagers, with a confidence interval no wider than plus or minus 0.10. We aren't testing a hypothesis, only measuring how strong the relationship is.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Estimate an effect precisely"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Estimate an effect precisely"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Estimate an effect precisely"
+   ]
+  },
+  "reaches": {
+   "choose": "E46",
+   "known": "E46",
+   "guided": "E46"
+  }
+ },
+ {
+  "id": "sequential",
+  "part": "A",
+  "section": "Goal",
+  "design": "Sequential designs with interim looks",
+  "example": "We plan a two-group experiment on a gratitude exercise, looking at the data after every 50 participants and stopping early if the effect is clear. We want to know the most participants we might need.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two separate groups on a score"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E2",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "ancova",
+  "part": "A",
+  "section": "Extensions",
+  "design": "ANCOVA or covariates",
+  "example": "Patients will be randomly assigned to CBT or a waiting list, with depression measured before and after. We will compare the after scores, adjusting for the before scores.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Twice",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Two, crossed (every combination appears)",
+   "Yes: 2 x 2",
+   "One factor different people, the other everyone got both",
+   "Yes: the same number in every group",
+   "Yes: before and after",
+   "Yes, randomly assigned",
+   "ANCOVA: the after score, adjusting for the before score"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "pick": "Compare groups adjusting for a covariate (e.g. the before score)"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "baseline"
+   },
+   "analysis": "compare",
+   "ask": "ANCOVA: the outcome adjusting for the baseline"
+  },
+  "reaches": {
+   "choose": "E23",
+   "known": "E23",
+   "guided": "E23"
+  }
+ },
+ {
+  "id": "manova",
+  "part": "A",
+  "section": "Extensions",
+  "design": "Multiple outcomes (MANOVA)",
+  "example": "We will compare three therapy groups on anxiety and depression, analysed together as two outcomes. Each participant is measured once, after therapy.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Three or more",
+   "Any difference among the groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond3",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E18",
+   "known": "E-unsure",
+   "guided": "E18"
+  }
+ },
+ {
+  "id": "unequalvar",
+  "part": "A",
+  "section": "Extensions",
+  "design": "Unequal variances",
+  "example": "We will compare reaction times between older and younger adults, expecting the older group's times to vary much more. Each person does the task once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two separate groups on a score"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E2",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "attrition",
+  "part": "A",
+  "section": "Extensions",
+  "design": "Attrition or missing data",
+  "example": "A 12-week exercise programme will be compared with a control group on mood at the end, and we expect about one in five participants to drop out. Mood is measured once, at the end.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two separate groups on a score"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E2",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "curvilinear",
+  "part": "A",
+  "section": "Extensions",
+  "design": "Curvilinear effects",
+  "example": "We expect an inverted-U relationship between arousal and test performance, with the best performance at moderate arousal. Each student is measured once on both.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "A score or scale"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E4",
+   "known": "E-unsure",
+   "guided": "E4"
+  }
+ },
+ {
+  "id": "nonparam",
+  "part": "A",
+  "section": "Extensions",
+  "design": "Non-parametric tests",
+  "example": "We will compare pain ratings between two clinics with a Mann–Whitney test, because the ratings are very skewed. Each patient gives one rating.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E-unsure",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "sem",
+  "part": "A",
+  "section": "Specialised",
+  "design": "SEM with latent variables",
+  "example": "We will test whether latent perfectionism, measured by three questionnaires, predicts latent burnout, measured by three more, in 400 teachers. The analysis is a structural equation model.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Check that a model or questionnaire structure fits"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E37",
+   "guided": "E4"
+  }
+ },
+ {
+  "id": "cfa",
+  "part": "A",
+  "section": "Specialised",
+  "design": "CFA",
+  "example": "We will check whether a new 12-item loneliness scale has the three-factor structure we designed it to have. 300 students complete it once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Check that a model or questionnaire structure fits"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E37",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "invariance",
+  "part": "A",
+  "section": "Specialised",
+  "design": "Measurement invariance",
+  "example": "We will test whether a depression questionnaire measures the same thing in men and in women. Each person completes it once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Check that a model or questionnaire structure fits"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E37",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "icc",
+  "part": "A",
+  "section": "Specialised",
+  "design": "Reliability or ICC",
+  "example": "Two clinicians will each rate the symptom severity of the same 50 patients. We want the inter-rater reliability (an ICC) estimated to within plus or minus 0.1.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Twice",
+   "Estimate an effect precisely"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Estimate an effect precisely"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Estimate an effect precisely"
+   ]
+  },
+  "reaches": {
+   "choose": "E46",
+   "known": "E46",
+   "guided": "E46"
+  }
+ },
+ {
+  "id": "efa",
+  "part": "A",
+  "section": "Specialised",
+  "design": "Factor analysis (exploratory)",
+  "example": "We have written 30 items about climate anxiety and want to find out how many underlying factors they form. 400 adults will answer them once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Check that a model or questionnaire structure fits"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E37",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "irt",
+  "part": "A",
+  "section": "Specialised",
+  "design": "IRT",
+  "example": "We want to calibrate a 25-item maths anxiety test with an item response theory model. About 500 pupils will take it once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "meta",
+  "part": "A",
+  "section": "Specialised",
+  "design": "Meta-analysis",
+  "example": "We plan a meta-analysis of studies on mindfulness and attention and want to know how many studies we need to detect an average effect. Our data will be published effect sizes, not participants.",
+  "choose": [
+   "None of these fit / I'm not sure"
+  ],
+  "known": {
+   "answers": [
+    "None of these fit / I'm not sure"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "None of these fit / I'm not sure"
+   ]
+  },
+  "reaches": {
+   "choose": "E-unsure",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "network",
+  "part": "A",
+  "section": "Specialised",
+  "design": "Network models",
+  "example": "We will measure 15 depression symptoms in 600 adults and estimate a network of how the symptoms relate to each other. We want to know how many people we need for a stable network.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "None of these fit / I'm not sure"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E-unsure",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-onet",
+  "part": "B",
+  "section": "One group against a fixed value",
+  "design": "One-sample t-test",
+  "example": "We will test whether students' average score on a mindfulness scale differs from the published norm of 50. Each student completes the scale once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "One group, compared with a fixed value"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare one group's average with a fixed value"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E1",
+   "known": "E1",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-median",
+  "part": "B",
+  "section": "One group against a fixed value",
+  "design": "One-sample median",
+  "example": "Students' reported sleep the night before an exam is very skewed, so we will test whether the median differs from 7 hours. Each student reports once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "One group, compared with a fixed value"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E1",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-binom",
+  "part": "B",
+  "section": "One group against a fixed value",
+  "design": "Binomial test",
+  "example": "We will test whether more than half of participants choose the fair split in an ultimatum game. Each person makes one choice.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One group, compared with a fixed proportion"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare one group's proportion with a fixed value"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E25",
+   "known": "E25",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-gof",
+  "part": "B",
+  "section": "One group against a fixed value",
+  "design": "Chi-square goodness-of-fit",
+  "example": "We will test whether people's choices among four snacks differ from equal preference, 25% each. Each person chooses once.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One group, compared with a fixed proportion"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare one group's proportion with a fixed value"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E25",
+   "known": "E25",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-t2",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Two independent samples t-test",
+  "example": "We will compare exam anxiety between students who did a breathing exercise and students who didn't. Each student completes the anxiety scale once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two separate groups on a score"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E2",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "u-mww",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Wilcoxon–Mann–Whitney",
+  "example": "Time spent on social media is very skewed, so we will compare two groups given different app settings with a Mann–Whitney test. Each person is measured once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E-unsure",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "u-chi2",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Chi-square test (two groups)",
+  "example": "People will be shown a menu with or without a 'climate-friendly' label, and we will record whether they choose the vegetarian, fish or meat dish. Each person chooses once.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Different people, outcome in categories"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Test whether two sets of categories are related"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E6",
+   "known": "E6",
+   "guided": "E5"
+  }
+ },
+ {
+  "id": "u-fisher",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Fisher's exact test",
+  "example": "In a pilot with 20 patients, we will compare the proportion who improve on a new drug with the proportion on placebo, using Fisher's exact test. Each patient is classed once as improved or not.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Different people, two groups, yes/no outcome"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare two groups on a yes/no outcome"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E5",
+   "known": "E5",
+   "guided": "E5"
+  }
+ },
+ {
+  "id": "u-paired",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Paired t-test",
+  "example": "Participants will rate their mood before and after a 10-minute walk outdoors. We want to know whether mood improves.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Twice",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with the same people in both (or one group measured twice)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "pick": "Compare the same people in two conditions (or before and after)"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E3",
+   "known": "E3",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "u-wsr",
+  "part": "B",
+  "section": "Two groups",
+  "design": "Wilcoxon signed ranks",
+  "example": "Puzzle completion times are very skewed, so we will compare each person's time before and after training with a Wilcoxon signed-rank test. Everyone does both sessions.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Twice",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with the same people in both (or one group measured twice)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E3",
+   "known": "E-unsure",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "u-mcnemar",
+  "part": "B",
+  "section": "Two groups",
+  "design": "McNemar",
+  "example": "We will ask the same people before and after a documentary whether they support a sugar tax (yes or no). We want to know whether support changes.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Twice",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "The same people in every condition"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "pick": "The same people, a yes/no outcome in each condition"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Twice",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E26",
+   "known": "E26",
+   "guided": "E5"
+  }
+ },
+ {
+  "id": "u-anova1",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "One-way ANOVA",
+  "example": "We will compare memory scores among students using three study techniques: rereading, self-testing and concept mapping. Different students use each technique and are tested once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Three or more",
+   "Any difference among the groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Any difference among three or more groups or conditions"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond3",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E18",
+   "known": "E18",
+   "guided": "E18"
+  }
+ },
+ {
+  "id": "u-kw",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "Kruskal–Wallis",
+  "example": "Patient satisfaction ratings are very skewed, so we will compare three hospital wards with a Kruskal–Wallis test. Each patient rates once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Three or more",
+   "Any difference among the groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond3",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E18",
+   "known": "E-unsure",
+   "guided": "E18"
+  }
+ },
+ {
+  "id": "u-chi2b",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "Chi-square test (two or more groups)",
+  "example": "We will ask students from four faculties whether they prefer online, hybrid or in-person teaching. Each student gives one answer.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Different people, outcome in categories"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Test whether two sets of categories are related"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond3",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E6",
+   "known": "E6",
+   "guided": "E27"
+  }
+ },
+ {
+  "id": "u-rmanova",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "One-way repeated measures ANOVA",
+  "example": "Each participant will do a Stroop task in silence, with low noise and with high noise. We want to know whether reaction times differ across the noise levels.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "The same people in three or more conditions",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Three or more",
+   "Any difference among the groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "pick": "Any difference among three or more groups or conditions"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "continue": [
+    "A difference between groups or conditions",
+    "One",
+    "Three or more",
+    "Any difference among the groups"
+   ]
+  },
+  "reaches": {
+   "choose": "E18",
+   "known": "E18",
+   "guided": "E18"
+  }
+ },
+ {
+  "id": "u-friedman",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "Friedman",
+  "example": "Each participant will rate how much they like three logos, and the ratings are very skewed, so we plan a Friedman test. Everyone rates all three.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Many times",
+   "The same people in three or more conditions",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Three or more",
+   "Any difference among the groups"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "continue": [
+    "A difference between groups or conditions",
+    "One",
+    "Three or more",
+    "Any difference among the groups"
+   ]
+  },
+  "reaches": {
+   "choose": "E18",
+   "known": "E-unsure",
+   "guided": "E18"
+  }
+ },
+ {
+  "id": "u-rmlogit",
+  "part": "B",
+  "section": "Three or more groups",
+  "design": "Repeated measures logistic regression",
+  "example": "Each participant will attempt one puzzle with no help, one with a hint and one with a worked example, and we record whether each is solved. We want to know whether success differs across the three conditions.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Many times",
+   "The same people in three or more conditions",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "The same people in every condition"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "pick": "The same people, a yes/no outcome in each condition"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Many times",
+    "The same people in three or more conditions",
+    "Detect an effect"
+   ],
+   "continue": [
+    "A difference between groups or conditions",
+    "The same people in every condition"
+   ]
+  },
+  "reaches": {
+   "choose": "E26",
+   "known": "E26",
+   "guided": "E26"
+  }
+ },
+ {
+  "id": "u-factanova",
+  "part": "B",
+  "section": "Two or more factors",
+  "design": "Factorial ANOVA",
+  "example": "We will cross feedback (praise or none) with task difficulty (easy or hard), with different students in each of the four groups. We want to know whether praise helps more on hard tasks.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Two, crossed (every combination appears)",
+   "Yes: 2 x 2",
+   "Both factors: different people",
+   "Yes: the same number in every group",
+   "Whether the effect of one depends on the other (the interaction)",
+   "One effect shrinks"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Two factors crossed, different people in each of the four groups"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "two",
+    "covariate": "none"
+   },
+   "analysis": "moderation"
+  },
+  "reaches": {
+   "choose": "E7",
+   "known": "E7",
+   "guided": "E7"
+  }
+ },
+ {
+  "id": "u-ologit",
+  "part": "B",
+  "section": "Two or more factors",
+  "design": "Ordered logistic regression",
+  "example": "We will test whether age group and training condition predict a single confidence rating from 1 to 5, analysed as ordered categories. Each person rates once.",
+  "choose": [
+   "Ordered categories (e.g. a single rating item)",
+   "As ordered categories"
+  ],
+  "known": {
+   "answers": [
+    "Ordered categories (e.g. a single rating item)",
+    "As ordered categories"
+   ]
+  },
+  "guided": {
+   "answers": [
+    "Ordered categories (e.g. a single rating item)",
+    "As ordered categories"
+   ]
+  },
+  "reaches": {
+   "choose": "E29",
+   "known": "E29",
+   "guided": "E29"
+  }
+ },
+ {
+  "id": "u-factlogit",
+  "part": "B",
+  "section": "Two or more factors",
+  "design": "Factorial logistic regression",
+  "example": "We will cross message framing (gain or loss) with the messenger (a doctor or a friend) and record whether each participant books a flu jab. Different people are in each of the four groups.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Predict a yes/no outcome"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "two",
+    "covariate": "none"
+   },
+   "analysis": "moderation"
+  },
+  "reaches": {
+   "choose": "E27",
+   "known": "E27",
+   "guided": "E32"
+  }
+ },
+ {
+  "id": "u-corr",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Correlation",
+  "example": "We will test whether hours of sleep and reaction time are related in 200 adults. Each adult is measured once on both.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "A score or scale"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Test whether two scores are related"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E4",
+   "known": "E4",
+   "guided": "E4"
+  }
+ },
+ {
+  "id": "u-slr",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Simple linear regression",
+  "example": "We will predict students' exam scores from how many hours they revised. 150 students report both once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "A score or scale"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Test whether two scores are related"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E4",
+   "known": "E4",
+   "guided": "E4"
+  }
+ },
+ {
+  "id": "u-spearman",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Non-parametric correlation",
+  "example": "We will test whether pupils' popularity rank and their rank in class achievement are related, using Spearman's correlation. Each pupil is ranked once on both.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "A score or scale"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E4",
+   "known": "E-unsure",
+   "guided": "E4"
+  }
+ },
+ {
+  "id": "u-slogit",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Simple logistic regression",
+  "example": "We will test whether a risk-taking questionnaire score predicts whether people choose to gamble in a lab task (yes or no). Each person is measured once.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "Yes/no"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Predict a yes/no outcome"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E27",
+   "known": "E27",
+   "guided": "E27"
+  }
+ },
+ {
+  "id": "u-mreg",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Multiple regression",
+  "example": "We will predict life satisfaction from income, social support and health together, in 300 adults. Each is measured once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "Several predictors at once, or controlling for other variables"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Several predictors at once, or one predictor controlling for others"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "other"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E24",
+   "known": "E24",
+   "guided": "E24"
+  }
+ },
+ {
+  "id": "u-ancova",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Analysis of covariance",
+  "example": "We will compare two teaching methods on final test scores, adjusting for students' prior attainment on a different test taken at the start. The final test is taken once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Compare groups adjusting for a covariate (e.g. the before score)"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "other"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E23",
+   "guided": "E23"
+  }
+ },
+ {
+  "id": "u-mlogit",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Multiple logistic regression",
+  "example": "We will predict whether students drop out of their course (yes or no) from first-term grades, attendance and wellbeing together. Each is measured once.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "Yes/no"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Predict a yes/no outcome"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "other"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E27",
+   "known": "E27",
+   "guided": "E27"
+  }
+ },
+ {
+  "id": "u-discrim",
+  "part": "B",
+  "section": "Relationships and regression",
+  "design": "Discriminant analysis",
+  "example": "We want to classify patients into three diagnostic groups from their scores on five cognitive tests. Each patient is tested once.",
+  "choose": [
+   "Yes/no, or one of several categories",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "None of these fit / I'm not sure"
+  ],
+  "known": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "Yes/no, or one of several categories",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "yesno",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E-unsure",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-manova",
+  "part": "B",
+  "section": "Several outcomes, or no outcome",
+  "design": "One-way MANOVA",
+  "example": "We will compare a mindfulness group and a control group on stress, sleep quality and concentration, analysed together. Each is measured once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions",
+   "One",
+   "Two, with different people in each"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E2",
+   "known": "E-unsure",
+   "guided": "E2"
+  }
+ },
+ {
+  "id": "u-mmreg",
+  "part": "B",
+  "section": "Several outcomes, or no outcome",
+  "design": "Multivariate multiple regression",
+  "example": "We will predict both anxiety and depression from childhood adversity and current social support. 400 adults are measured once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "Several predictors at once, or controlling for other variables"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "score",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "other"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E24",
+   "known": "E-unsure",
+   "guided": "E24"
+  }
+ },
+ {
+  "id": "u-fa",
+  "part": "B",
+  "section": "Several outcomes, or no outcome",
+  "design": "Factor analysis",
+  "example": "We will find out how many factors underlie 20 items about workplace wellbeing. 350 employees answer them once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "Check that a model or questionnaire structure fits"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E37",
+   "known": "E37",
+   "guided": "E-unsure"
+  }
+ },
+ {
+  "id": "u-canon",
+  "part": "B",
+  "section": "Several outcomes, or no outcome",
+  "design": "Canonical correlation",
+  "example": "We want to relate a set of three personality scores to a set of four job-performance ratings in 250 employees. Each is measured once.",
+  "choose": [
+   "A score or scale",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A relationship between two things you measure",
+   "Several predictors at once, or controlling for other variables"
+  ],
+  "known": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "safety"
+  },
+  "guided": {
+   "answers": [
+    "A score or scale",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "notsure",
+    "outcome": "score",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
+  },
+  "reaches": {
+   "choose": "E24",
+   "known": "E-unsure",
+   "guided": "E-unsure"
+  }
+ }
+]

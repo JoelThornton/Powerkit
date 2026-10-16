@@ -37,7 +37,24 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
-- **Recognising designs powerkit doesn't cover (draft PR, 16 October
+- **Walkthroughs (draft PR, 16 October 2026):**
+  [`walkthroughs.md`](walkthroughs.md) gives an example study for each of
+  the audit's 61 entries (29 designs and the 32 UCLA OARC rows).
+  - Each example was run through all three routes of the prototype, with
+    a screenshot of every end card and a note on whether a reader without
+    statistics training would follow it.
+  - All 183 route runs reached the end points recorded for them, and a
+    test keeps the recorded paths in step with the tree.
+  - It flags 14 problems, without fixing them. The main ones:
+    - the guided route ignores the screening's "Twice" (F1) and has no
+      outcome with several categories (F2);
+    - factorial logistic regression gets "use these tools" in one route
+      and "no ready-made tool" in another (F3);
+    - the end-point list ignores the screening (F5);
+    - the dyadic card claims more than the audit supports (F9);
+    - two places where the audit's description doesn't match what users
+      reach (F7, F11).
+- **Recognising designs powerkit doesn't cover (merged in PR #18, 16 October
   2026):** a tester's segmented regression was routed to a paired t-test,
   and on another path to a t-test.
   - [`routing-audit.md`](routing-audit.md) traces 29 designs through all
@@ -151,7 +168,8 @@ fully validated. Validation runs are recorded in
    MorePower paper.
 5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-6. Decide the routing audit's open items: the screening wording and
+6. Decide what to do about the walkthrough flags (F1–F14 in
+   [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).
 7. Phase 5: the Shiny app, starting from the routing prototype's
