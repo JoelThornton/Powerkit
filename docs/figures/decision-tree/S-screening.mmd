@@ -1,0 +1,29 @@
+flowchart TD
+  S0{"How do you want to start?<br/>(any of the three routes)"} --> S1{"S1 What kind of outcome<br/>will you measure?"}
+  S1 -->|A count| E28["E28 Count outcome"]
+  S1 -->|Ordered categories| O5a{"O5a Analyse the rating as a<br/>score or as ordered categories?"}
+  O5a -->|As ordered categories| E29["E29 Ordinal outcome"]
+  O5a -->|As a score| S2
+  S1 -->|The time until<br/>something happens| E43["E43 Time-to-event"]
+  S1 -->|A score, or yes/no<br/>or categories| S2{"S2 How are the<br/>data grouped?"}
+  S2 -->|People within groups| E34["E34 Multilevel or<br/>cluster design"]
+  S2 -->|Pairs| E44["E44 Paired or<br/>dyadic data"]
+  S2 -->|Many trials or<br/>stimuli per person| E33["E33 Crossed participants<br/>and stimuli"]
+  S2 -->|Independent people| S3{"S3 How many times is<br/>each person measured?"}
+  S3 -->|Many times| T1{"T1 What are the<br/>repeated measurements?"}
+  T1 -->|Over time: does a trend<br/>change at a known point?| E45["E45 Segmented regression,<br/>interrupted time series"]
+  T1 -->|Over time: how<br/>people change| E35["E35 Longitudinal"]
+  T1 -->|Three or more<br/>conditions| S4
+  S3 -->|Once or twice| S4{"S4 What's your goal?"}
+  S4 -->|Show there's no<br/>meaningful effect| E36["E36 Equivalence or<br/>non-inferiority"]
+  S4 -->|Estimate an effect<br/>precisely| E46["E46 Precision planning"]
+  S4 -->|Detect an effect| R["The route continues: the shortcut<br/>list, Q1 (chart 0) or the guided planner"]
+  ANY["Every question also offers<br/>'None of these fit / I'm not sure'"] --> EU["E-unsure: powerkit can't advise<br/>on this design yet; discuss it<br/>with a statistician"]
+  class S0,S1,O5a,S2,S3,T1,S4 q
+  class E28,E29,E43,E34,E44,E33,E45,E35,E36,E46,EU later
+  class R,ANY jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3

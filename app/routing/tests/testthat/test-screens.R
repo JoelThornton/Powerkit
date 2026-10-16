@@ -10,8 +10,8 @@ test_that("every end-point card renders, with its status and inputs", {
   for (id in names(tree$endpoints)) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
-    expect_match(html, "What you would enter", fixed = TRUE, label = id)
-    expected <- switch(tree$endpoints[[id]]$status,
+    if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, "What you would enter", fixed = TRUE, label = id)
+    expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
       runs_validated = "Runs in powerkit.", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else "Not in powerkit yet: use")
@@ -58,7 +58,7 @@ test_that("end points outside the five tools say so", {
 })
 
 test_that("every question screen renders with a back button", {
-  for (id in names(tree$nodes)) {
+  for (id in names(Filter(Negate(is_automatic), tree$nodes))) {
     html <- as.character(node_ui(tree, id, list()))
     expect_match(html, htmltools::htmlEscape(tree$nodes[[id]]$text), fixed = TRUE, label = id)
     expect_match(html, "&#39;back&#39;", fixed = TRUE, label = id)

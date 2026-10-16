@@ -60,6 +60,7 @@ start_ui <- function(tree) {
   tagList(
     h2(tree$routes$question),
     div(class = "choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
+    p(class = "text-muted", tree$routes$screening_note),
     placeholders_at(tree, "start")
   )
 }
@@ -83,17 +84,22 @@ trail_ui <- function(history) {
 
 # One question screen ("Help me choose") ------------------------------------
 
-node_ui <- function(tree, node_id, history) {
+# `ctx` holds the screening answers so far; options are filtered by it and
+# the safety net comes last. "opt:i" refers to the i-th option shown.
+node_ui <- function(tree, node_id, history, ctx = list()) {
   node <- tree$nodes[[node_id]]
   label <- node$sub_id %||% node$doc_id
+  opts <- visible_options(tree, node, ctx)
+  screening <- node$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1")
   tagList(
     trail_ui(history),
-    div(class = "question-id", sprintf("Question %s", label)),
+    div(class = "question-id", sprintf("%s %s", if (screening) "Screening question" else "Question", label)),
     h2(node$text),
     if (!is.null(node$help)) p(class = "lead", node$help),
-    div(class = "choices", lapply(seq_along(node$options), function(i) {
-      o <- node$options[[i]]
-      pick_button(o$label, paste0("opt:", i), o$help)
+    div(class = "choices", lapply(seq_along(opts), function(i) {
+      o <- opts[[i]]
+      pick_button(o$label, paste0("opt:", i), o$help,
+        class = if (isTRUE(o$safety)) "btn btn-outline-secondary choice choice-safety" else "btn btn-outline-primary choice")
     })),
     placeholders_at(tree, node_id),
     div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
@@ -102,7 +108,7 @@ node_ui <- function(tree, node_id, history) {
 
 # "I know my analysis" list ---------------------------------------------------
 
-known_ui <- function(tree) {
+known_ui <- function(tree, history = list()) {
   groups <- list(
     "Runs in powerkit (validated)" = "runs_validated",
     "Runs, validation in progress" = "runs_validation_in_progress",
@@ -111,6 +117,7 @@ known_ui <- function(tree) {
   )
   eps <- tree$endpoints
   tagList(
+    trail_ui(history),
     h2("Which analysis do you want?"),
     p(class = "lead", "Pick it by name. Each one opens its card."),
     lapply(names(groups), function(g) {
@@ -123,7 +130,8 @@ known_ui <- function(tree) {
         }))
       )
     }),
-    div(class = "nav-buttons", pick_button("Start again", "home", class = "btn btn-link"))
+    div(class = "choices list mt-4", pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety")),
+    div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
   )
 }
 
@@ -154,14 +162,21 @@ status_ui <- function(tree, ep) {
       tags$strong("Runs, validation in progress."), " ", ep$validation$note, " ", validation_links()
     ),
     coming_soon = div(class = "status status-soon", tags$strong("Coming soon."), " ", ep$coming_soon_note),
-    not_in_powerkit = if (isTRUE(ep$no_ready_made_tool)) {
+    not_in_powerkit = if (isTRUE(ep$generic)) {
+      div(
+        class = "status status-not",
+        tags$strong(ep$card_heading %||% "Not in powerkit yet."),
+        p(class = if (!isTRUE(ep$established_tools)) "mb-0", ep$card_text),
+        if (isTRUE(ep$established_tools)) p(class = "mb-0", tree$established_tools_text)
+      )
+    } else if (isTRUE(ep$no_ready_made_tool)) {
       div(
         class = "status status-not",
         tags$strong("Not in powerkit yet."),
         not_five,
         p(tree$no_ready_made_tool_text),
         package_list(),
-        p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
+        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From docs/coverage.md. ", "powerkit can't check results from other tools.")
       )
     } else {
       div(
@@ -193,9 +208,9 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
       h3(class = "card-title", ep$plain_name),
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
       status_ui(tree, ep),
-      h5("What you would enter"),
-      tags$ul(lapply(ep$inputs, tags$li)),
-      if (!compact) tagList(
+      if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
+      if (!is.null(ep$inputs)) tagList(h5("What you would enter"), tags$ul(lapply(ep$inputs, tags$li))),
+      if (!compact && !isTRUE(ep$generic)) tagList(
         h5("Where your effect size comes from"),
         p(jp$text),
         tags$ul(lapply(unname(jp$types), tags$li))
@@ -209,7 +224,7 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
           lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
         )))
       ),
-      if (!compact && ep$status == "not_in_powerkit") div(
+      if (!compact && ep$status == "not_in_powerkit" && !isTRUE(ep$generic)) div(
         lapply(c("not_in_spec_wording", "r_script_for_uncovered"), function(key) div(placeholder_inline(setting_by_key(tree, key))))
       ),
       if (!compact) placeholders_at(tree, ep_id),
@@ -220,15 +235,35 @@ card_ui <- function(tree, ep_id, compact = FALSE) {
 
 # Guided route ----------------------------------------------------------------
 
-guided_variables_ui <- function(tree, answers) {
+# `ctx` holds the screening answers: a variable with `screen_key` offers
+# only the option the screening chose (plus the safety net).
+guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   g <- tree$guided
+  if (identical(ctx$times, "many_conditions")) {
+    return(tagList(
+      trail_ui(history),
+      h2("Plan my whole study: your variables"),
+      div(class = "status status-soon", g$many_conditions_note),
+      placeholders_at(tree, "guided_variables"),
+      div(class = "nav-buttons",
+        pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"),
+        pick_button("Back", "back", class = "btn btn-secondary"),
+        pick_button("Start again", "home", class = "btn btn-link"))
+    ))
+  }
   tagList(
+    trail_ui(history),
     h2("Plan my whole study: your variables"),
     p(class = "lead", g$intro),
     p(class = "text-muted", g$scope_note),
     placeholders_at(tree, "guided_variables"),
     lapply(g$variables, function(v) {
-      radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(v$options)), choiceValues = names(v$options), selected = answers[[v$id]] %||% names(v$options)[1], width = "100%")
+      opts <- v$options
+      screened <- if (!is.null(v$screen_key)) ctx[[v$screen_key]]
+      if (!is.null(screened) && screened %in% names(opts)) opts <- opts[c(screened, "notsure")]
+      selected <- answers[[v$id]]
+      if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
+      radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%")
     }),
     div(class = "nav-buttons", pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"), pick_button("Start again", "home", class = "btn btn-link"))
   )
@@ -246,7 +281,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       div(
         class = "analysis-row",
         checkboxInput(paste0("tick_", a$id), tags$strong(a$label), value = a$id %in% ticked, width = "100%"),
-        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), sprintf("%s (question %s)", ask$text, ask$doc_id), choices = vapply(ask$options, function(o) o$label, character(1)), selected = asks[[a$id]] %||% character(0), width = "100%"),
+        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), sprintf("%s (question %s)", ask$text, ask$doc_id), choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
         checkboxInput(paste0("primary_", a$id), "Primary: the study must be powered for this", value = a$id %in% primary, width = "100%")
       )
     }),

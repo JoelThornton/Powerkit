@@ -182,6 +182,7 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 | Small / medium / large defaults offered (G\*Power tooltips; power4mome labels) | No defaults; a justification is required (`effect_justification`) | **Departure,** recorded in the build guide (section 4: it "stops 'medium effect' defaults"). See judgement call 3.2 |
 | One analysis reported per run (G\*Power, Spower) or all effects at once (Superpower) | One **target** effect per run (F5, `target_test.effect`) | Follows G\*Power and Spower. Superpower's all-effects output could be shown as secondary information. See judgement call 3.5 |
 | One analysis planned at a time (all tools; Superpower: all effects of one ANOVA design) | Single-analysis routes kept exactly as in the established tools, **plus** an optional guided "plan my whole study" route (section 4.1): shared variables, one card per analysis, combined N | **Added option, not a statistical departure:** each analysis is still computed by its backend as in the single-analysis routes |
+| No screening of the design before a test is chosen: the user picks a test (G\*Power, PAMLj) or a model (Superpower, power4mome, InteractionPoweR), and the tool assumes its data structure | Four screening questions first, in every route (outcome, grouping, times measured, goal); designs outside powerkit's scope leave at an honest card, and every question offers "None of these fit / I'm not sure" | **Added routing step, not a statistical departure:** nothing is computed differently. It exists so that powerkit never routes a design it doesn't cover to the nearest simple test ([routing audit](routing-audit.md)) |
 | No contested choices asked (all tools) | Contested choices are asked, never made silently (design finder, principle P1) | **Departure,** by maintainer decision P1 |
 
 ## 2. The tree
@@ -190,10 +191,21 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 
 The first screen offers three routes: "I know my analysis" (the
 shortcut list), "Help me choose" (this tree) and the optional guided
-"Plan my whole study" (section 4.1). The tree is drawn as an overview
-(chart 0), one chart per goal (A to E)
-and one chart for the closing questions every design shares (F). End
-points are numbered E1 to E41; the table in 2.3 gives the details.
+"Plan my whole study" (section 4.1). **Every route starts with four
+screening questions (chart S):** what kind of outcome, how the data are
+grouped, how many times each person is measured, and the goal. Designs
+powerkit doesn't cover leave at an honest end point there, before any
+test is suggested ([routing audit](routing-audit.md)). Every question
+also offers **"None of these fit / I'm not sure"**, which leads to a card
+saying powerkit can't advise on the design yet and suggesting a
+statistician (E-unsure).
+
+The tree is drawn as the screening (chart S), an overview (chart 0), one
+chart per goal (A to E) and one chart for the closing questions every
+design shares (F). In charts B to E, Q2 and Q3 are answered automatically
+from the screening (S1 and S3) and aren't asked again. End points are
+numbered E1 to E46, plus E-unsure and E-bayes; the table in 2.3 gives the
+details.
 
 **Colours:**
 - **blue:** a question;
@@ -216,21 +228,56 @@ npx -p @mermaid-js/mermaid-cli@11.4.2 mmdc -c docs/figures/decision-tree/theme.j
   -b white -s 3 -i docs/figures/decision-tree/<chart>.mmd -o docs/figures/decision-tree/<chart>.png
 ```
 
+#### Chart S: screening (before every route)
+
+```mermaid
+flowchart TD
+  S0{"How do you want to start?<br/>(any of the three routes)"} --> S1{"S1 What kind of outcome<br/>will you measure?"}
+  S1 -->|A count| E28["E28 Count outcome"]
+  S1 -->|Ordered categories| O5a{"O5a Analyse the rating as a<br/>score or as ordered categories?"}
+  O5a -->|As ordered categories| E29["E29 Ordinal outcome"]
+  O5a -->|As a score| S2
+  S1 -->|The time until<br/>something happens| E43["E43 Time-to-event"]
+  S1 -->|A score, or yes/no<br/>or categories| S2{"S2 How are the<br/>data grouped?"}
+  S2 -->|People within groups| E34["E34 Multilevel or<br/>cluster design"]
+  S2 -->|Pairs| E44["E44 Paired or<br/>dyadic data"]
+  S2 -->|Many trials or<br/>stimuli per person| E33["E33 Crossed participants<br/>and stimuli"]
+  S2 -->|Independent people| S3{"S3 How many times is<br/>each person measured?"}
+  S3 -->|Many times| T1{"T1 What are the<br/>repeated measurements?"}
+  T1 -->|Over time: does a trend<br/>change at a known point?| E45["E45 Segmented regression,<br/>interrupted time series"]
+  T1 -->|Over time: how<br/>people change| E35["E35 Longitudinal"]
+  T1 -->|Three or more<br/>conditions| S4
+  S3 -->|Once or twice| S4{"S4 What's your goal?"}
+  S4 -->|Show there's no<br/>meaningful effect| E36["E36 Equivalence or<br/>non-inferiority"]
+  S4 -->|Estimate an effect<br/>precisely| E46["E46 Precision planning"]
+  S4 -->|Detect an effect| R["The route continues: the shortcut<br/>list, Q1 (chart 0) or the guided planner"]
+  ANY["Every question also offers<br/>'None of these fit / I'm not sure'"] --> EU["E-unsure: powerkit can't advise<br/>on this design yet; discuss it<br/>with a statistician"]
+  class S0,S1,O5a,S2,S3,T1,S4 q
+  class E28,E29,E43,E34,E44,E33,E45,E35,E36,E46,EU later
+  class R,ANY jump
+  classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
+  classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
+  classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
+  classDef later fill:#F2F2F2,stroke:#9A9A9A,color:#4D4D4D,stroke-width:1px,stroke-dasharray:4 3
+  classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
+```
+
 #### Chart 0: overview
 
 ```mermaid
 flowchart TD
   S0{"How do you want<br/>to start?"}
-  S0 -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
-  S0 -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
-  S0 -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
+  S0 --> SCR["Chart S: four screening questions<br/>(every route; designs powerkit<br/>doesn't cover leave here)"]
+  SCR -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
+  SCR -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
+  SCR -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
   Q1 -->|A difference between<br/>groups or conditions| A["Chart A"]
   Q1 -->|A relationship between<br/>two measured things| B["Chart B"]
   Q1 -->|An effect that depends<br/>on something else| C["Chart C"]
   Q1 -->|An effect that works<br/>through something else| D["Chart D"]
   Q1 -->|Both| E["Chart E"]
   Q1 -->|That an effect is<br/>absent or negligible| E36["E36 Equivalence test"]
-  Q1 -->|That a model or<br/>questionnaire fits| E37["E37 CFA or SEM"]
+  Q1 -->|That a model fits, incl. SEM with<br/>latent variables| E37["E37 CFA or SEM"]
   SC --> F["Chart F: closing questions<br/>(same for every design)"]
   A --> F
   B --> F
@@ -238,7 +285,7 @@ flowchart TD
   D --> F
   E --> F
   class S0,Q1 q
-  class SC,A,B,C,D,E,F,G jump
+  class SC,SCR,A,B,C,D,E,F,G jump
   class E36,E37 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -247,29 +294,26 @@ flowchart TD
   classDef jump fill:#FFFFFF,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px,stroke-dasharray:6 3
 ```
 
-#### Chart A1: a difference (the outcome and who gives the data)
+#### Chart A1: a difference (the outcome)
+
+Q2 and Q3 are answered by the screening (S1 and S3), so they aren't asked
+again. Counts, ratings analysed as ordered categories, stimuli, nesting and
+measurements over time have already left at the screening (chart S).
 
 ```mermaid
 flowchart TD
-  Q2{"Q2 What is your outcome like?"}
-  Q2 -->|A score or scale| Q3{"Q3 Who gives the data?"}
-  Q2 -->|A rating on a few points| O5a{"O5a Analyse it as a score<br/>or as ordered categories?"}
-  O5a -->|As a score| Q3
-  O5a -->|Ordered categories| E29["E29 Ordinal outcome"]
-  Q2 -->|A count| E28["E28 Count outcome"]
-  Q2 -->|Yes/no, or one of<br/>several categories| Q3y{"Q3 Who gives the data?"}
-  Q3y -->|Different people,<br/>two groups, yes/no| E5["E5 Two proportions"]
-  Q3y -->|Different people,<br/>categories| E6["E6 Chi-square test<br/>of independence"]
-  Q3y -->|One group against<br/>a fixed value| E25["E25 One proportion"]
-  Q3y -->|The same people| E26["E26 McNemar's test<br/>or Cochran's Q"]
-  Q3 -->|Different people,<br/>or the same people| A2["Chart A2: factors"]
-  Q3 -->|Many items or stimuli| E33["E33 Crossed participants<br/>and stimuli"]
-  Q3 -->|Nested in groups| E34["E34 Multilevel or<br/>cluster design"]
-  Q3 -->|Measured 3 or more times| E35["E35 Longitudinal"]
-  class Q2,O5a,Q3,Q3y q
+  S["From the screening (chart S):<br/>S1 outcome, S3 times measured"]
+  S -->|A score or scale| A2["Chart A2: factors"]
+  S -->|Yes/no, or one of<br/>several categories| Q3y{"Q3 Who gives the data?"}
+  Q3y -->|Different people, two groups,<br/>yes/no, measured once| E5["E5 Two proportions"]
+  Q3y -->|Different people, categories,<br/>measured once| E6["E6 Chi-square test<br/>of independence"]
+  Q3y -->|One group against a fixed<br/>value, measured once| E25["E25 One proportion"]
+  Q3y -->|Two or more factors, yes/no,<br/>measured once| E27["E27 Logistic regression"]
+  Q3y -->|The same people,<br/>measured twice or more| E26["E26 McNemar's test<br/>or Cochran's Q"]
+  class Q3y q
   class E5,E6 avail
-  class E25,E26,E28,E29,E33,E34,E35 later
-  class A2 jump
+  class E25,E26,E27 later
+  class S,A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -467,11 +511,16 @@ engine can use the answer today.
 | ID | Question (as the user sees it) | Options | Spec fields | Engine can use it? |
 | --- | --- | --- | --- | --- |
 | S0 | Do you already know which analysis you want? | Yes (searchable list) / No | `design`, `template` directly | Yes |
-| Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; an effect is absent; a model fits | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
-| Q2 | What is your outcome like? | Score; yes/no; one of several categories; a count; a rating on a few points | `variables.Y.type`: `continuous`, `binary`, `categorical` | Yes for score, yes/no and categories. **No (flag)** for count and ordinal |
-| O5a | How will you analyse this rating? | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes. Ordered: **no (flag)**. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
-| Q3 | Who gives the data? | Different people; the same people; many items or stimuli; nested in groups; measured over time (T1: twice / three or more) | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Different and same people: yes. Stimuli, nesting, three or more times: **no (flag)** |
-| T1 | How many times is each person measured? (after "measured over time" in Q3) | Twice (for example, before and after) / three or more times | Twice: as "the same people" (`within_factor`); three or more: — | Twice: yes. Three or more: **no (flag)**, goes to E35 |
+| S1 | What kind of outcome will you measure? (screening, every route) | A score or scale / yes-no, or one of several categories / a count / ordered categories (e.g. a single rating item) / the time until something happens | `variables.Y.type`: `continuous`, `binary`, `categorical` | Score, yes/no and categories: yes, and the route continues. Count → E28, ordered categories → O5a, time until an event → E43: **no (flag)**. Sets Q2's answer, which isn't asked again |
+| S2 | How are the data grouped? (screening) | Independent people / people within groups (including whole groups assigned) / pairs (e.g. couples) / many trials or stimuli per person | — | Independent people: routing only, the route continues. Within groups → E34, pairs → E44, trials or stimuli → E33: **no (flag)** |
+| S3 | How many times is each person measured on the outcome? (screening) | Once / twice / many times (→ T1) | Once: `between_factor`; twice: `within_factor` (as Q3) | Once and twice: yes. Sets Q3's answer, which isn't asked again, and hides options that contradict it (e.g. "the same people" after "once") |
+| T1 | What are the repeated measurements? (after S3 "many times") | The same people in three or more conditions / over time, to see whether a trend changes at a known point / over time, to see how people change | — | Three or more conditions: routing only, the route continues (E18–E21 and E26 are reached later). A trend that changes → E45, how people change → E35: **no (flag)** |
+| S4 | What's your goal? (screening) | Detect an effect / show there's no meaningful effect / estimate an effect precisely | `goal` (detect only) | Detect: yes, the route continues. No meaningful effect → E36, estimate precisely → E46: **no (flag)** |
+| Every question | None of these fit / I'm not sure | (safety net, on every question in every route and on the shortcut list) | — | Leads to E-unsure: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." |
+| Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
+| Q2 | What is your outcome like? | Answered by S1 and not asked again. In the relationship path, a categorical outcome asks which kind: yes/no (E27) or one of several categories (E6) | `variables.Y.type` | As S1 |
+| O5a | How will you analyse this rating? (after S1 "ordered categories", every route) | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes, the route continues as a score. Ordered: **no (flag)** → E29. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
+| Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E27, logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
@@ -582,7 +631,19 @@ taken from coverage.md, where they are proposals.
 | E40 | Moderated mediation with two or more mediators | — | power4mome as a general lavaan model → R script export | — | Standardised paths | No | later | Not in spec |
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
+| E43 | Time-to-event (survival) outcome | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18) | — | — | No | later | Not in spec |
+| E44 | Paired or dyadic data (pairs of people whose scores are related) | — | Generic card, as E43. Matched pairs analysed with a paired t-test may belong at E3 instead (open question 19) | — | — | No | later | Not in spec |
+| E45 | Many measurements over time: segmented regression or interrupted time series | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; with time-series data, autocorrelation makes standard calculations too optimistic. Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
+| E46 | Precision planning (a target confidence-interval width) | — | Generic card, as E43 | — | — | No | later | Not in spec |
+| E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
+
+**Generic cards.** Where the screening finds a design powerkit doesn't
+cover and it is unclear which specific end point applies, the route ends
+at one generic card per category (E43, E44, E46) rather than at an
+invented specific one. These cards say *"Established tools exist for this
+design; powerkit hasn't checked them."* without naming tools; whether they
+should name them is open question 18. E-unsure is the safety net.
 
 **For "not in spec" end points the card says so plainly.** It names the
 analysis, the tool from [coverage.md](coverage.md) that covers it, and
@@ -790,6 +851,116 @@ planned effect size (2.2), which is prospective. Some tools call both
   compromise analysis put this into practice ([coverage](coverage.md)).
 - **What the form needs:** pre-filled values (and which ones), blank
   fields, or pre-filled values plus a required reason.
+
+### 3.7 Chi-square goodness-of-fit: E6 or its own card
+
+Found by the routing audit's cross-check against the UCLA OARC table
+([routing audit](routing-audit.md)). A goodness-of-fit test compares one
+categorical variable with expected proportions. The tree has no answer for
+it, so it reaches E25 (a single proportion) or E6 (the test of
+independence).
+
+- **One chi-square routine:** G\*Power handles goodness-of-fit and
+  contingency tables in one chi-square routine, where Cohen's w and the
+  degrees of freedom differ (maintainer's recollection, 16 October 2026)
+  *(seen second-hand, to verify against the G\*Power manual)*. Spower's
+  `p_chisq.test()` does both: a probability vector (`P0`, `P`) gives a
+  goodness-of-fit test, and a matrix gives a test of independence (Spower
+  0.6.4 help page and examples) *(read in full)*. [Coverage](coverage.md)
+  lists goodness-of-fit as planned, v2.
+- **What E6 is today:** independence only. The
+  `chi_square_independence` template requires two categorical variables
+  (X and Y) and a probability table of at least 2 x 2, which the engine
+  passes to `p_chisq.test()` as a matrix
+  (`engine/inst/schema/design.schema.json`, `engine/R/backend-spower.R`;
+  read in this session). So routing goodness-of-fit to E6 would send users
+  to a form that can't take their design.
+- **The positions:**
+  - route goodness-of-fit to E6, with the card explaining how to set it
+    up. This works only after the spec gains a goodness-of-fit form (a
+    schema change and a validation test);
+  - an honest card now ("not in powerkit yet: Spower's `p_chisq.test()`
+    with a probability vector"), then E6 once the template exists.
+- **Maintainer's view (16 October 2026, not a decision):** routing to E6
+  could be correct if E6 handled goodness-of-fit; otherwise it needs an
+  honest card. Since E6 is independence only, the view points to an
+  honest card for now.
+- **Why it's a judgement call:** whether to extend E6 or give
+  goodness-of-fit its own end point is a scope decision for the spec and
+  engine (phase 3 or later). The router can't settle it alone.
+
+### 3.8 Rank-based (non-parametric) tests reaching parametric end points
+
+The audit's cross-check found that the one-sample median,
+Wilcoxon–Mann–Whitney, Wilcoxon signed-rank, Kruskal–Wallis, Friedman and
+non-parametric correlation tests reach the parametric end points (E1–E4,
+E18), because no question asks how the data will be analysed.
+
+- **Efficiency adjustment:** G\*Power plans the Mann–Whitney and Wilcoxon
+  tests by adjusting the t-test calculation with an asymptotic relative
+  efficiency that depends on the assumed parent distribution (maintainer's
+  recollection; coverage.md cites G\*Power Examples 22.1, 22.3 and 23.3,
+  with normal and Laplace parents, through Spower's documentation)
+  *(seen second-hand, to verify against the G\*Power manual)*.
+- **Simulation of the rank test itself:** Spower's `p_wilcox.test()`
+  simulates the Wilcoxon signed-rank and Mann–Whitney tests from chosen
+  parent distributions, and `p_kruskal.test()` does the same for
+  Kruskal–Wallis (Spower 0.6.4 help pages) *(read in full)*. No Friedman
+  function is among Spower 0.6.4's exported functions (checked in this
+  session). [Coverage](coverage.md) lists Wilcoxon and Mann–Whitney as
+  planned (v2) and Kruskal–Wallis as planned (later).
+- **The positions:**
+  - follow G\*Power's efficiency adjustment, recorded as the convention;
+  - simulate the rank test with Spower, which also follows an established
+    tool and needs a parent distribution from the user;
+  - keep the parametric end point and say plainly on the card that the
+    figure is the t-test's, an approximation for the rank-based test;
+  - give tests with no backend an honest card.
+- **Maintainer's view (16 October 2026, not a decision):** a card note
+  rather than a new route. Either follow G\*Power's approach and record
+  it, or say plainly that the card gives the t-test figure as an
+  approximation. Kruskal–Wallis and Friedman should get honest "no
+  ready-made tool" cards. **Note on the facts:** Spower's
+  `p_kruskal.test()` is a ready-made tool for Kruskal–Wallis, so its card
+  would say "not in powerkit yet: use Spower", not "no ready-made tool".
+  For Friedman, no ready-made tool was found in Spower.
+- **Why it's a judgement call:** the efficiency adjustment and simulation
+  can give different answers, and both depend on an assumed distribution
+  that users rarely know. Whichever is chosen becomes powerkit's
+  convention, so it needs recording in `docs/conventions.md` with a test
+  showing the size of any difference (CLAUDE.md).
+
+### 3.9 Fisher's exact test reaching the large-sample tests
+
+The audit's cross-check found that Fisher's exact test reaches E5 (two
+proportions, a large-sample test without continuity correction) or E6.
+With small samples, the large-sample calculation can be quite wrong, and
+small samples are when people choose Fisher's test.
+
+- **Exact calculation:** G\*Power has a Fisher's exact test for two
+  proportions (maintainer's recollection; coverage.md tags it [GP, search])
+  *(seen second-hand, to verify against the G\*Power manual)*. Spower's
+  `p_prop.test(exact = TRUE)` runs `fisher.test()` on each simulated data
+  set, given the proportions as a matrix (Spower 0.6.4 help page)
+  *(read in full)*. [Coverage](coverage.md) lists it as planned, v2.
+- **What E5 does today:** `p_prop.test()` with `correct = FALSE` and no
+  `exact` option (`engine/R/backend-spower.R`; read in this session).
+  Because E5 simulates, its power is for the large-sample test on finite
+  samples. It is not the power of Fisher's test.
+- **The positions:**
+  - offer the exact test (Spower `exact = TRUE`), as a test version at
+    Q-test;
+  - warn on E5 and E6 that the figure isn't reliable for small expected
+    counts;
+  - both.
+- **Maintainer's view (16 October 2026, not a decision):** check whether
+  an exact option exists. If powerkit doesn't do exact calculations, the
+  card should warn that its figure isn't reliable for small expected
+  counts. **Note on the facts:** Spower, powerkit's backend for E5, has
+  the exact option, so following it adds no new maths.
+- **Why it's a judgement call:** adding the exact test changes E5's spec
+  and needs its own validation. A warning needs a threshold for "small
+  expected counts", which is itself a convention to choose and record.
 
 ## 4. Studies with several hypotheses (proposals only)
 
@@ -1230,6 +1401,12 @@ how the wrapped tools work.
    - 3.4: should simple effects become a target?
    - 3.5: should the app ask about several hypotheses?
    - 3.6: which defaults, if any, should alpha and power have?
+   - 3.7: should chi-square goodness-of-fit go to E6 (after the spec gains
+     a goodness-of-fit form) or get its own card?
+   - 3.8: for rank-based tests, follow G\*Power's efficiency adjustment,
+     simulate with Spower, or label the t-test figure as an approximation?
+   - 3.9: for Fisher's exact test, offer Spower's exact option, warn about
+     small expected counts, or both?
 6. **"Not in spec" end points.** Confirm the wording for pointing users to
    another tool, and the rule that powerkit never routes to a simpler
    stand-in test. This rule generalises decision N2 beyond 2x2 main
@@ -1279,6 +1456,24 @@ how the wrapped tools work.
     should the moderation and mediation analyses leave them out (as the
     spec does today), include them (a spec change), or ask per analysis?
     Related to open question 13.
+16. **Wording of the screening questions (S1–S4, T1).** The wording is a
+    draft. In particular: does S3's "Twice (e.g. once before and once
+    after)" separate a two-measurement design clearly enough from a trend
+    over time? Someone with a segmented-regression design who answers
+    "Twice" still reaches the before/after tests.
+17. **Segmented regression and growth curves.** Should E45 (segmented
+    regression, interrupted time series) and E35 (growth curves, diary
+    and panel studies) share one end point? Now they are two cards,
+    chosen at T1.
+18. **Naming other tools on "not covered" cards.** Should cards name other
+    established tools (e.g. simr, G\*Power's logistic and Poisson
+    routines)? For now the generic cards (E43, E44, E46) say only
+    "Established tools exist for this design; powerkit hasn't checked
+    them." The cards built from [coverage](coverage.md) still list its
+    tools; the decision would apply to them too.
+19. **Matched pairs.** S2's "Pairs" leads to the dyadic card (E44). A
+    matched-pairs design analysed with a paired t-test might belong at
+    E3 instead. Should S2 tell the two apart?
 
 ## Sources
 

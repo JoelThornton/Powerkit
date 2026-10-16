@@ -29,38 +29,59 @@ fully validated. Validation runs are recorded in
   reported and fixed upstream on GitHub; powerkit keeps its workarounds
   until the fixes reach CRAN ([conventions](conventions.md), Departures 4
   and 8).
-- **Routing prototype (draft PR):** a clickable Shiny prototype of
+- **Routing prototype (merged in PR #15):** a clickable Shiny prototype of
   [`decision-tree.md`](decision-tree.md), in `app/routing/`. Routing only:
   no engine calls and no calculations. It covers the three routes (I know
   my analysis; help me choose; plan my whole study), end-point cards, and
   placeholders for the undecided judgement calls, which are settings in
   `app/routing/tree.yaml`. A test keeps that file in step with
-  `decision-tree.md`. How to run it: [`routing-prototype.md`](routing-prototype.md).
-  Changes before merging (16 October 2026):
-  - Every design powerkit runs (E1–E14) is now marked validated: the
-    mediation designs (E10–E14) and regression interactions (E9) were
-    flipped on 16 October 2026, once their runs were recorded. The
-    "Runs, validation in progress" style stays for future designs; the
-    list hides that group while it's empty. Parallel and serial mediation
-    cards say they were validated with two mediators, and three or more
-    are not yet tested.
-  - Analyses that no tool offers (E30, E32, E39, the new E42, and
-    Cochran's Q in E26) say so plainly. The options are a custom
-    simulation in R (for example with Spower) or advice from a
+  `decision-tree.md`, and the prototype's tests run on GitHub on every
+  pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **Recognising designs powerkit doesn't cover (draft PR, 16 October
+  2026):** a tester's segmented regression was routed to a paired t-test,
+  and on another path to a t-test.
+  - [`routing-audit.md`](routing-audit.md) traces 29 designs through all
+    three routes. It found misroutes for nested, crossed,
+    cluster-randomised and dyadic data, time series and segmented
+    regression, time-to-event outcomes, precision planning, equivalence
+    in the guided route, and SEM with latent variables.
+  - Every route now starts with four screening questions (outcome,
+    grouping, times measured, goal). Designs outside powerkit's scope
+    leave at an honest card before any test is suggested. Every question
+    offers "None of these fit / I'm not sure", which suggests a
     statistician.
-  - E22 (2 x 2 with unequal groups) now cites where Superpower documents
-    unequal group sizes: the `ANOVA_design()` help, for `ANOVA_power()`
-    and between designs only.
-  - `decision-tree.md` and `tree.yaml` gained T1 and MO2 rows in table
-    2.2, and the mediators questions on the mediation path with a yes/no
-    X. Mediation with three or more conditions now has its own end
-    point (E42, not covered by the five tools).
-  - Four more undecided settings, recorded as open questions: storing
-    PP1/F6, guided-route covariates (15), where Bayes factors enter
-    (8), and the guided route's scope (14).
-  - shiny and the packages it needs are now in `renv.lock`, and the
-    prototype's tests run on GitHub on every pull request
-    (`routing-prototype-tests.yaml`).
+  - There are new cards:
+    - E45 (segmented regression and interrupted time series; no
+      ready-made tool);
+    - generic cards for time-to-event outcomes (E43), dyadic data (E44)
+      and precision (E46);
+    - the safety net (E-unsure).
+  - Each fixed misroute has a test (`test-misroutes.R`).
+  - The audit is cross-checked against UCLA OARC's test-selection table
+    (adapted from Leeper), with one row per analysis. That found one more
+    misroute, now fixed: factorial logistic regression reaches E27. It
+    also found chi-square goodness-of-fit, which has no end point and is
+    left for the maintainer. The table doesn't cover nested, clustered or
+    time-series data, so the earlier list still applies. The list of 31
+    analyses was checked against the page on 16 October 2026.
+  - Three new judgement calls in [`decision-tree.md`](decision-tree.md),
+    section 3, each with its positions, the maintainer's view and the
+    reason it is a judgement call:
+    - 3.7: chi-square goodness-of-fit, E6 or its own card. E6 is
+      independence only today;
+    - 3.8: rank-based tests that reach parametric end points;
+    - 3.9: Fisher's exact test that reaches the large-sample tests.
+
+    Each is an undecided setting shown on the cards it affects.
+  - Still misrouting, left for the maintainer because each needs a
+    statistical judgement: curvilinear effects, reliability/ICC,
+    non-parametric tests, sequential designs, MANOVA, non-baseline
+    covariates and latent-variable mediation entered as mediation (audit,
+    "What's left").
+  - New undecided settings: the screening wording (open question 16),
+    whether E45 and E35 share an end point (17), and whether "not
+    covered" cards name other tools (18). Matched pairs versus dyads is
+    open question 19.
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
   (#4). It stays an open draft, kept as a starting point for phase 5
   ([decisions](decisions.md), 15 October 2026). The `validate_spec()` bug
@@ -130,7 +151,10 @@ fully validated. Validation runs are recorded in
    MorePower paper.
 5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-6. Phase 5: the Shiny app, starting from the routing prototype's
+6. Decide the routing audit's open items: the screening wording and
+   open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
+   remaining misroutes listed in [`routing-audit.md`](routing-audit.md).
+7. Phase 5: the Shiny app, starting from the routing prototype's
    `app/routing/tree.yaml` and guided by [`decision-tree.md`](decision-tree.md)
    and [`design-finder.md`](design-finder.md), once the maintainer has
    answered their open questions.

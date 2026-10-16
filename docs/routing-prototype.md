@@ -53,7 +53,24 @@ the editor.
 
 ## What you'll see
 
-The first screen offers three routes (decision-tree.md, 4.1):
+The first screen offers three routes (decision-tree.md, 4.1). **Every
+route starts with four screening questions** (decision-tree.md, chart S):
+
+1. What kind of outcome?
+2. How are the data grouped?
+3. How many times is each person measured?
+4. What's your goal?
+
+Designs powerkit doesn't cover, such as counts, nested or dyadic data,
+trends over time, equivalence and precision, leave there at an honest card
+before any test is suggested. Your screening answers also shape the later
+questions: for example, after "Once", options for the same people measured
+twice aren't offered, and the outcome and "who gives the data" questions
+aren't asked again. Every question, and the end-point list, also offers
+**"None of these fit / I'm not sure"**, which leads to a card suggesting a
+statistician. Why this exists: [`routing-audit.md`](routing-audit.md).
+
+After the screening:
 
 - **I know my analysis.** A list of every end point, grouped into "Runs in
   powerkit (validated)", "Runs, validation in progress", "Coming soon" and
@@ -82,6 +99,10 @@ Each **end-point card** shows:
     run but whose full validation run isn't recorded yet (none at present;
     the group is hidden in the list when it's empty), with the same links;
   - *Coming soon*;
+  - a generic card for a category of design powerkit doesn't cover
+    (time-to-event, dyadic data, precision), with the neutral sentence
+    *"Established tools exist for this design; powerkit hasn't checked
+    them."* (whether to name the tools is open question 18);
   - *Not in powerkit yet: use [package]*, with a link and one line on what
     the package does, taken from [`coverage.md`](coverage.md);
   - for analyses no tool offers (E30, E32, E39, E42, and Cochran's Q in
@@ -134,6 +155,18 @@ Edit `app/routing/tree.yaml`. If you add, remove or rename an end point or a
 question, make the same change in `decision-tree.md` (table 2.2 or 2.3),
 or the docs-match test will fail. That is deliberate.
 
+Three fields in `tree.yaml` carry the screening answers through the tree
+(its comment above `nodes:` explains them):
+- `sets` on an option records an answer, for example `sets: {times: once}`;
+- `when` on an option shows it only for matching answers, for example
+  `when: {times: twice}`;
+- a node with `branch_on` is never shown. It routes on a recorded answer,
+  because the screening already asked it.
+
+The safety net's wording and target are in `safety_net:`. To change the
+screening wording (open question 16), edit the `s1` to `s4` and `t1`
+nodes, and the S1–S4 and T1 rows of table 2.2.
+
 ## Run the tests
 
 In the RStudio Console, from the project folder:
@@ -144,10 +177,16 @@ testthat::test_dir("app/routing/tests/testthat")
 
 They take a few seconds and check:
 - that every route reaches an end point, with no dead ends, unreachable
-  questions or loops;
+  questions or loops, following the screening answers as a user would;
+- that every route starts with the screening, and that no test powerkit
+  runs is suggested before it ends;
+- that every question, in every context a user can reach, offers "None of
+  these fit / I'm not sure";
+- that each misroute found by the [routing audit](routing-audit.md) now
+  reaches the right end point (`test-misroutes.R`);
 - that every guided-route answer combination leads somewhere;
 - that every "not in powerkit" end point has a package, a link and a
-  description;
+  description (generic cards: their own text instead);
 - that every MVP capability in `coverage.md` appears in the app;
 - that every screen renders with the prototype banner;
 - that the app never calls the engine;

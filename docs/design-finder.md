@@ -13,6 +13,14 @@ option:
 
 This is a specification for the app (build phase 5). It is not built yet.
 
+**Screening first.** In the routing prototype, four screening questions now
+come before Q1 in every route: the outcome, how the data are grouped, how
+many times each person is measured, and the goal. They are drafts, and
+their wording is in [`decision-tree.md`](decision-tree.md) (section 2.2,
+S1–S4 and T1; open question 16). Where the screening has already answered
+Q2 or Q3 below, the prototype doesn't ask it again. Every question also
+offers "None of these fit / I'm not sure". Why: [`routing-audit.md`](routing-audit.md).
+
 ## Rules the finder follows
 
 - **Deterministic.** The same answers always lead to the same form. There is

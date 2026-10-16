@@ -1,15 +1,16 @@
 flowchart TD
   S0{"How do you want<br/>to start?"}
-  S0 -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
-  S0 -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
-  S0 -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
+  S0 --> SCR["Chart S: four screening questions<br/>(every route; designs powerkit<br/>doesn't cover leave here)"]
+  SCR -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
+  SCR -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
+  SCR -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
   Q1 -->|A difference between<br/>groups or conditions| A["Chart A"]
   Q1 -->|A relationship between<br/>two measured things| B["Chart B"]
   Q1 -->|An effect that depends<br/>on something else| C["Chart C"]
   Q1 -->|An effect that works<br/>through something else| D["Chart D"]
   Q1 -->|Both| E["Chart E"]
   Q1 -->|That an effect is<br/>absent or negligible| E36["E36 Equivalence test"]
-  Q1 -->|That a model or<br/>questionnaire fits| E37["E37 CFA or SEM"]
+  Q1 -->|That a model fits, incl. SEM with<br/>latent variables| E37["E37 CFA or SEM"]
   SC --> F["Chart F: closing questions<br/>(same for every design)"]
   A --> F
   B --> F
@@ -17,7 +18,7 @@ flowchart TD
   D --> F
   E --> F
   class S0,Q1 q
-  class SC,A,B,C,D,E,F,G jump
+  class SC,SCR,A,B,C,D,E,F,G jump
   class E36,E37 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
