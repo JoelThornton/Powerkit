@@ -595,7 +595,10 @@ nodes:
 # same table; a test keeps them in step. `card_notes` gives a card-specific
 # note in place of `note`.
 closing_questions:
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E15]}
+  # Not E15 (a yes/no X or W): misclassification in a 0/1 variable is a
+  # different problem from unreliable scores (maintainer decision,
+  # 16 October 2026; docs/decisions.md).
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5]}
   - doc_id: Q-test
     text: "Which version of the test?"
@@ -1051,6 +1054,9 @@ endpoints:
     inputs: ["RMSEA or model parameters"]
     packages:
       - {name: semPower, url: "https://cran.r-project.org/package=semPower", what: "A priori, post hoc and compromise power for SEM, including CFA, measurement invariance and RMSEA-based fit."}
+    # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
+    # card through Q1's "a questionnaire structure" answer.
+    card_points: ["This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."]
     tier: later
   E38:
     doc_name: "PROCESS models 8, 58, 59"
