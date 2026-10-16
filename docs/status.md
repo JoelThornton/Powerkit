@@ -13,17 +13,15 @@ fully validated. Validation runs are recorded in
   design through its backend package.
 - **Validated (full validation run passed):** 2 x 2 between and 2 x 2 mixed
   ANOVA (via Superpower); basic tests (via Spower) against analytic
-  results, direct Spower calls and Type I error; simple, parallel (two
-  mediators) and serial mediation and moderated mediation, PROCESS models
-  4, 6, 7 and 14 (via power4mome), against direct power4mome calls and
-  Type I error. The mediation chunks ran on GitHub on 15–16 October 2026
-  ([validation log](validation-log.md)); their published-value tests are
-  still TODO.
-- **Run, not yet marked validated:** regression interactions (via
-  InteractionPoweR). Its chunk passed on 13 October 2026 ([validation
-  log](validation-log.md), "Before this log"), but per-test counts and
-  package versions weren't recorded, and the README and routing prototype
-  (E9) still list it as in progress.
+  results, direct Spower calls and Type I error; simple, parallel and
+  serial mediation (with two mediators; three or more not yet tested) and
+  moderated mediation, PROCESS models 4, 6, 7 and 14 (via power4mome),
+  against direct power4mome calls and Type I error; regression
+  interactions (via InteractionPoweR), against analytic results, direct
+  InteractionPoweR calls and Type I error. The mediation and interactions
+  chunks ran on GitHub on 15–16 October 2026; their published-value tests
+  are still TODO. What "validated" means is defined at the top of the
+  [validation log](validation-log.md).
 - **Waiting on published values:** several validation tests still have
   `TODO_PUBLISHED_VALUE` placeholders (including the G*Power published
   examples for basic tests), to be transcribed by the maintainer.
@@ -39,11 +37,13 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`. How to run it: [`routing-prototype.md`](routing-prototype.md).
   Changes before merging (16 October 2026):
-  - Regression interactions (E9) shows "Runs, validation in progress",
-    styled apart from validated designs. The mediation designs (E10–E14)
-    were flipped to validated on 16 October 2026, once their runs were
-    recorded. Flipping one to validated is a one-line change in
-    `tree.yaml`, plus the matching cell in `decision-tree.md`.
+  - Every design powerkit runs (E1–E14) is now marked validated: the
+    mediation designs (E10–E14) and regression interactions (E9) were
+    flipped on 16 October 2026, once their runs were recorded. The
+    "Runs, validation in progress" style stays for future designs; the
+    list hides that group while it's empty. Parallel and serial mediation
+    cards say they were validated with two mediators, and three or more
+    are not yet tested.
   - Analyses that no tool offers (E30, E32, E39, the new E42, and
     Cochran's Q in E26) say so plainly. The options are a custom
     simulation in R (for example with Spower) or advice from a
@@ -101,6 +101,11 @@ fully validated. Validation runs are recorded in
   setup fix (PR #11), the basic chunk passed there on 15 October 2026
   (20 PASS, 4 SKIP for TODO published values), matching the earlier
   Windows runs ([validation log](validation-log.md)).
+- **Known risk, time limit:** process_7 and process_14 finish about 45
+  minutes inside the GitHub time limit (4 h 47 m against the script's
+  5 h 30 m stop). If either ever runs out of time, the fix is to split
+  that chunk (for example, the direct-call and Type I error tests as
+  separate chunks).
 - **Memory:** mediation and moderated-mediation simulations run in batches
   of at most 200 replications, so they no longer need more memory than an
   ordinary laptop has (an unbatched 10,000-replication run did). The
@@ -110,10 +115,10 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-1. Decide whether the 13 October interactions run counts as E9's full
-   validation (or rerun the interactions chunk on GitHub), and flip E9 in
-   `app/routing/tree.yaml` ([how](routing-prototype.md)). Then the
-   remaining published values for every design.
+1. The remaining published values for every design (the maintainer
+   transcribes them), and validation with three or more mediators for
+   parallel and serial mediation (open question 10 in
+   [`decision-tree.md`](decision-tree.md)).
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
    section 6, open items).
 3. Binary X and W in regression interactions and mediation (phase 3b,

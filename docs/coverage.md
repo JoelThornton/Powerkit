@@ -143,7 +143,7 @@ and from each package's own GitHub repository for the development version.
 
 | Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Two-way interaction, continuous X and W, simulated | InteractionPoweR `power_interaction()` [IP] | done | MVP *(build guide)* | Tests written, full run not recorded: `test-validation-regression-interaction.R` | |
+| Two-way interaction, continuous X and W, simulated | InteractionPoweR `power_interaction()` [IP] | done | MVP *(build guide)* | Full run passed (16 Oct 2026; published values TODO): `test-validation-regression-interaction.R` | |
 | Two-way interaction, analytic | InteractionPoweR `power_interaction_r2()` [IP] | partial | MVP | Same file | Used only to bracket n; reported results always come from simulation ([conventions](conventions.md), Known differences 1) |
 | Reliability of X, W and Y | InteractionPoweR `rel.x1`, `rel.x2`, `rel.y` [IP] | done | MVP *(build guide)* | Same file (measurement-error published test TODO) | |
 | Binary X or W | InteractionPoweR `k.x1 = 2` / `k.x2 = 2`, simulation only, split 50/50 [IP]; power4mome `x_fun` with `rbinary_rs()` [p4m] | planned | MVP: next phase (3b) | No | Maintainer's decisions in build guide section 8 |

@@ -15,6 +15,32 @@ Chunks: basic, anova, interactions, process_4 (simple and parallel
 mediation), process_6 (serial mediation), process_7, process_14; plus the
 on-demand interaction_grid.
 
+## What "validated" means
+
+A design is marked validated (`status: runs_validated` in
+`app/routing/tree.yaml`, a green "Runs in powerkit" card; "Yes" in table
+2.3 of `docs/decision-tree.md`; "Working" in the README) when a full run
+of its chunk, recorded in this log, shows all of the following:
+
+1. **No failures or errors.** The only skips allowed are published-value
+   tests that still have `TODO_PUBLISHED_VALUE`.
+2. **Agreement with direct backend calls.** powerkit's power matches a
+   direct call to the package that computes it (power4mome, Spower,
+   Superpower or InteractionPoweR) within the 99.9% Monte Carlo
+   tolerance, and matches analytic results where the design has them.
+3. **Type I error within tolerance.** With the target effect set to zero,
+   the rejection rate lies in [0.040, 0.060] at alpha = .05.
+
+**Published-value checks can still be pending.** They are the second kind
+of test in the build guide (section 6), and a design can be validated
+before its published values are transcribed. Its card then says so
+("published values still to be transcribed"), and no card says a design
+matches published results until those tests have passed.
+
+**Validated means validated as tested.** If the tests cover only part of
+what the spec allows (for example two mediators, where the spec allows
+more), the card says what was tested and what wasn't.
+
 ## Running the full validation on GitHub
 
 The validation can run on GitHub's computers instead of yours: the
@@ -320,5 +346,48 @@ PASS    process_4 / parallel mediation with correlated residuals: powerkit match
           success: powerkit's estimate 0.9277 vs the direct backend call 0.9279: difference -0.0002; the 99.9% Monte Carlo tolerance is 0.0120.
 PASS    process_4 / parallel mediation: Type I error is near alpha for a null specific indirect effect (0h 33m)
           success: Type I error rate 0.0486; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-16 · interactions (GitHub Actions)
+
+- **Run:** [run 38919436842](https://github.com/JoelThornton/Powerkit/actions/runs/38919436842) of the `full-validation` workflow.
+  **Commit:** 2678f37 (main). **Cores:** 4, one per test.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **interactions:** 5 PASS, 0 FAIL, 0 ERROR, 3 SKIP (of 8). Both analytic
+  tests agree with simulation (0.6343 vs 0.6363 perfectly measured; 0.5483
+  vs 0.5544 with unreliable measures, the same values as the 13 October
+  run); powerkit matches a direct `InteractionPoweR::power_interaction()`
+  call (0.5286 vs 0.5286); Type I error rates 0.0509 and 0.0516. The three
+  published-value tests (InteractionPoweR tutorial) skip (TODO values), as
+  expected. This run supersedes the 13 October entry, which didn't record
+  per-test counts or versions.
+- **Warning in the log:** "executing %dopar% sequentially: no parallel
+  backend registered", from the direct `power_interaction()` call. It
+  means that call ran on one core; it doesn't change the result.
+- **Time:** 3 m 28 s for the whole run (4 tests at a time).
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-16 14:56   Commit: 2678f37   Cores: 4
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 5 PASS, 0 FAIL, 0 ERROR, 3 SKIP, 0 NOT RUN (of 8)
+
+PASS    interactions / interaction, perfectly measured: power matches power_interaction_r2 (analytic) (0h 01m)
+          success: Reference power 0.6343; must lie in [0.6205, 0.6521] around powerkit's estimate 0.6363 (MCSE 0.0048, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    interactions / interaction with unreliable measures: power matches power_interaction_r2 (analytic) (0h 01m)
+          success: Reference power 0.5483; must lie in [0.5380, 0.5708] around powerkit's estimate 0.5544 (MCSE 0.0050, 99.9% Monte Carlo interval plus rounding of the reference).
+SKIP    interactions / interaction: matches the InteractionPoweR tutorial example (published) (4s)
+SKIP    interactions / interaction with measurement error: matches the InteractionPoweR tutorial (published) (4s)
+SKIP    interactions / interaction: required N matches the InteractionPoweR tutorial (published) (4s)
+PASS    interactions / interaction: powerkit matches a direct InteractionPoweR::power_interaction call (0h 02m)
+          warning: executing %dopar% sequentially: no parallel backend registered
+          success: powerkit's estimate 0.5286 vs the direct backend call 0.5286: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0232.
+PASS    interactions / interaction: Type I error is near alpha when main effects exist (52s)
+          success: Type I error rate 0.0509; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    interactions / interaction with unreliable measures: Type I error is near alpha (37s)
+          success: Type I error rate 0.0516; must lie in [0.040, 0.060] for alpha = 0.05.
 ===== end of summary =====
 ```

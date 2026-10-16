@@ -553,7 +553,7 @@ endpoints:
     method: Simulation
     inputs: ["Your outcome's name", "Cohen's d: (expected mean minus the fixed value) / SD"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (G*Power published values still to be transcribed)."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (no published-value test for this design yet)."}
     tier: MVP
   E2:
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
@@ -563,7 +563,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two groups and the outcome", "Cohen's d: (group 2 minus group 1) / pooled SD", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's test"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
     tier: MVP
   E3:
     doc_name: "Paired-samples t-test"
@@ -573,7 +573,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two conditions and the outcome", "d_z: mean of the differences (second minus first) / SD of the differences"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
     tier: MVP
   E4:
     doc_name: "Pearson correlation"
@@ -583,7 +583,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the two variables", "The expected correlation r"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
     tier: MVP
   E5:
     doc_name: "Test of two proportions (z test)"
@@ -593,7 +593,7 @@ endpoints:
     method: Simulation
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (published value still to be transcribed)."}
     tier: MVP
   E6:
     doc_name: "Chi-square test of independence"
@@ -603,7 +603,7 @@ endpoints:
     method: Simulation
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1)"]
     status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed."}
+    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed (no published-value test for this design yet)."}
     tier: MVP
   E7:
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
@@ -632,8 +632,8 @@ endpoints:
     backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
     method: Simulation
     inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-regression-interaction.R, note: "Tests written; the full validation run has not been recorded yet."}
+    status: runs_validated
+    validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
     tier: MVP
   E10:
     doc_name: "Simple mediation (PROCESS model 4)"
@@ -643,7 +643,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
     status: runs_validated
-    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026 (published values still to be transcribed)."}
+    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026 (published value still to be transcribed)."}
     tier: MVP
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
@@ -653,7 +653,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
     status: runs_validated
-    validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators (published values still to be transcribed)."}
+    validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested (published value still to be transcribed)."}
     tier: MVP
   E12:
     doc_name: "Serial mediation (PROCESS model 6)"
@@ -663,7 +663,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
     status: runs_validated
-    validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026 (published values still to be transcribed)."}
+    validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested (published value still to be transcribed)."}
     tier: MVP
   E13:
     doc_name: "First-stage moderated mediation (PROCESS model 7), index of moderated mediation"
