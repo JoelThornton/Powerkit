@@ -212,6 +212,12 @@ running.
 - **Keyboard:** after each answer, focus moves to the new screen's heading.
   Before, it fell back to the top of the page. Every choice, chip and
   button is a native button, so Tab, Enter and Space work.
+- **Touch targets:** the answer chips are at least 44 x 44 px (fixed
+  16 October 2026).
+- **Question IDs:** "Question Q1" and "Screening question S2" are hidden
+  from users and screen readers (`hidden`, `aria-hidden`), and kept in the
+  page source (`data-question-id`) for tests and reviewers. The E-number
+  on each card is still shown.
 - **Not by colour alone:** every status says what it is in words: "Runs in
   powerkit", "Runs, validation in progress" (also a labelled badge),
   "Coming soon", "Not in powerkit yet". The undecided placeholders are
@@ -223,8 +229,6 @@ running.
   confirming.
 - **Zoom:** 200% zoom and text-only zoom weren't tested separately from
   the phone-width check.
-- **Touch targets:** the answer chips are smaller than 44 x 44 px on a
-  phone.
 - **Placeholder style:** the dashed grey boxes rely on a dashed border
   and grey background to look different from user-facing text, as well as
   on their label.

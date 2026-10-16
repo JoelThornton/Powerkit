@@ -180,3 +180,17 @@ test_that("the safety-net card says what to write down for a statistician, using
   expect_match(html, "Where nothing fitted", fixed = TRUE)
   expect_match(html, htmltools::htmlEscape(tree$nodes$q1$text), fixed = TRUE)
 })
+
+test_that("question IDs stay in the page source but are hidden from users", {
+  html <- as.character(node_ui(tree, "q1", list()))
+  expect_match(html, '<div class="question-id" hidden aria-hidden="true" data-question-id="Q1">Question Q1</div>', fixed = TRUE)
+  html <- as.character(node_ui(tree, "s1", list()))
+  expect_match(html, 'data-question-id="S1"', fixed = TRUE)
+})
+
+test_that("answer chips are at least 44 px tall and wide (touch targets)", {
+  css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  chip <- regmatches(css, regexpr("\\.chip \\{[^}]*\\}", css))
+  expect_match(chip, "min-height: 44px", fixed = TRUE)
+  expect_match(chip, "min-width: 44px", fixed = TRUE)
+})

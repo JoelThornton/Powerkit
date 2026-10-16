@@ -81,8 +81,9 @@ test_that("docs/glossary.md lists exactly the glossary in tree.yaml, and every t
   rows <- lapply(lines, split_row)
   expect_identical(vapply(rows, `[`, "", 1), vapply(tree$glossary, function(g) g$term, character(1)))
   expect_identical(vapply(rows, `[`, "", 2), vapply(tree$glossary, function(g) g$hint, character(1)))
-  inputs <- unlist(lapply(tree$endpoints, function(e) e$inputs))
-  for (g in tree$glossary) expect_true(any(grepl(g$pattern, inputs, ignore.case = TRUE, perl = TRUE)), label = g$term)
+  # Hints are shown beside inputs, standard names and backend lines.
+  texts <- unlist(lapply(tree$endpoints, function(e) c(e$inputs, e$doc_name, e$backend, e$method)))
+  for (g in tree$glossary) expect_true(any(grepl(g$pattern, texts, ignore.case = TRUE, perl = TRUE)), label = g$term)
 })
 
 test_that("docs/card-sources.md has rows for every card that states facts", {
@@ -100,4 +101,17 @@ test_that("docs/card-sources.md has rows for every card that states facts", {
     if (states_facts) expect_true(id %in% cards, label = id)
   }
   for (g in tree$glossary) expect_true(any(grepl(paste0("Hint: ", g$term), lines, fixed = TRUE)), label = g$term)
+})
+
+test_that("docs/judgement-calls.md covers every placeholder setting and open question", {
+  doc <- read_doc("judgement-calls.md")
+  for (s in tree$settings) expect_match(doc, paste0("`", s$key, "`"), fixed = TRUE, label = s$key)
+  dt <- read_doc("decision-tree.md")
+  section5 <- sub("\n## Sources.*", "", sub(".*\n## 5\\. Open questions for the maintainer", "", dt))
+  n_open <- length(gregexpr("\n[0-9]+\\. \\*\\*", section5)[[1]])
+  expect_gte(n_open, 20)
+  covered <- c(1:4, 6:20)  # open question 5 is the judgement calls 3.1-3.9, covered one by one
+  for (i in covered) expect_match(doc, sprintf("open questions? (%d\\b|[0-9]+ and %d\\b)", i, i), label = paste("open question", i))
+  for (j in sprintf("3.%d", 1:9)) expect_match(doc, paste0("judgement call ", j), fixed = TRUE, label = j)
+  expect_match(doc, "(phase-3b-questions.md)", fixed = TRUE)
 })

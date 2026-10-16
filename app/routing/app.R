@@ -27,8 +27,9 @@ app_css <- "
   .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #fff; }
   .trail { margin-bottom: 1rem; }
   .trail-title { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.35rem; }
-  .chip { border: 1px solid #b8c2d3; background: #e8f0fb; color: #14284b; border-radius: 1rem;
-          padding: 0.2rem 0.75rem; margin: 0 0.35rem 0.35rem 0; font-size: 0.85rem; }
+  .chip { border: 1px solid #b8c2d3; background: #e8f0fb; color: #14284b; border-radius: 1.4rem;
+          padding: 0.45rem 0.9rem; margin: 0 0.35rem 0.5rem 0; font-size: 0.85rem;
+          min-height: 44px; min-width: 44px; } /* touch target at least 44 x 44 px (WCAG 2.5.5) */
   .question-id, .card-eid { font-size: 0.8rem; color: #545b62; text-transform: uppercase; letter-spacing: 0.04em; }
   .nav-buttons { display: flex; gap: 0.75rem; margin-top: 1rem; }
   .placeholders { margin-top: 1rem; }
