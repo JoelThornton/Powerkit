@@ -391,3 +391,30 @@ PASS    interactions / interaction with unreliable measures: Type I error is nea
           success: Type I error rate 0.0516; must lie in [0.040, 0.060] for alpha = 0.05.
 ===== end of summary =====
 ```
+
+## 2026-10-16 · process_7 and process_14 need a rerun (no run; a note)
+
+The process_7 and process_14 runs above (16 October 2026, commit 3d30d38)
+no longer validate the current code, so PROCESS models 7 and 14 (E13 and
+E14) are back to "Runs, validation in progress".
+
+**Why.** PR #20 fixed how power4mome calls are seeded. For a model with a
+product term, `power4test()` standardises the population by Monte Carlo
+(100,000 draws) before its `iseed` takes effect, using whatever state R's
+random-number generator is in. powerkit now runs each call under
+`set.seed(seed)` as well as `iseed = seed` (`docs/decisions.md`,
+16 October 2026). The simulated data sets are the same, but the
+standardisation uses different draws, so results for models 7 and 14
+differ slightly from the runs above with the same seeds. The method is
+unchanged, and the earlier runs are expected to be statistically
+equivalent. But "validated" means a recorded full run of the current code,
+so both chunks are rerun after PR #20 is merged.
+
+**Not affected.** Models without a product term (simple, parallel and
+serial mediation; process_4 and process_6) are standardised analytically,
+so their results are identical. E10–E12 stay validated.
+
+**To do after merge:** run the process_7 and process_14 chunks of the
+`full-validation` workflow and record them here; then set E13 and E14 back
+to `runs_validated` (tree.yaml, decision-tree.md table 2.3, coverage.md,
+README).

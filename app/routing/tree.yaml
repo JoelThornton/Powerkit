@@ -772,8 +772,9 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction XW -> M"]
-    status: runs_validated
-    validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
+    status: runs_validation_in_progress
+    validation: {file: test-validation-modmed-process7.R, note: "The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be rerun. A check against a published example is still to come."}
+    refs: "PR #20 (power4mome seeding fix); docs/validation-log.md"
     tier: MVP
   E14:
     doc_name: "Second-stage moderated mediation (PROCESS model 14)"
@@ -782,8 +783,9 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction MW -> Y"]
-    status: runs_validated
-    validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
+    status: runs_validation_in_progress
+    validation: {file: test-validation-modmed-process14.R, note: "The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be rerun. A check against a published example is still to come."}
+    refs: "PR #20 (power4mome seeding fix); docs/validation-log.md"
     tier: MVP
   E15:
     doc_name: "Moderated regression with a yes/no X or W"
