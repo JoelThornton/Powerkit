@@ -11,17 +11,46 @@ fully validated. Validation runs are recorded in
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.
+- **Phase 4, part 1 (draft PR #20, 16 October 2026): script and citation
+  exports.** `export_script()` writes a standalone R script that reproduces
+  a result by calling Spower, Superpower, InteractionPoweR or power4mome
+  directly, with a comment on each argument. A test for each runnable end
+  point (E1–E14) runs the script in a fresh R session and checks it matches
+  powerkit; all matched exactly. `export_citations()` gives the package's
+  own `citation()`, its method paper, the supporting packages doing work
+  underneath ("software used", each from its own `citation()`) and
+  powerkit's citation; the repository has a `CITATION.cff`. Citations come
+  only from refs.bib or a package's own `citation()`. refs.bib now has the
+  method papers that `citation()` gives (Superpower, InteractionPoweR);
+  Spower's and power4mome's method papers and powerkit's own citation are
+  placeholders. The methods paragraph is a placeholder too.
+  - **Known gaps in the script tests:** sample-size scripts for power4mome
+    and InteractionPoweR have not been run (only Spower's and the exact
+    2 x 2 ones); allocation ratios other than 1 and per-cell SDs have not
+    been tested in exported scripts; multi-core runs on Linux and macOS are
+    untested (the GitHub rerun of process_7 and process_14 will cover
+    Linux).
+  - **Seeding fix:** while writing the scripts, a reproducibility bug was
+    found and fixed. PROCESS model 7 and 14 results depended slightly on
+    earlier calls in the session, because power4mome standardises models
+    with a product term by Monte Carlo before its own seed takes effect.
+    Their results now differ slightly from the 16 October validation runs
+    with the same seed, so **E13 and E14 are back to "validation in
+    progress"** until process_7 and process_14 are rerun after merge
+    ([validation log](validation-log.md); [decisions](decisions.md),
+    16 October 2026).
 - **Validated (full validation run passed):** 2 x 2 between and 2 x 2 mixed
   ANOVA (via Superpower); basic tests (via Spower) against analytic
   results, direct Spower calls and Type I error; simple, parallel and
-  serial mediation (with two mediators; three or more not yet tested) and
-  moderated mediation, PROCESS models 4, 6, 7 and 14 (via power4mome),
-  against direct power4mome calls and Type I error; regression
-  interactions (via InteractionPoweR), against analytic results, direct
-  InteractionPoweR calls and Type I error. The mediation and interactions
-  chunks ran on GitHub on 15–16 October 2026; their published-value tests
-  are still TODO. What "validated" means is defined at the top of the
-  [validation log](validation-log.md).
+  serial mediation, PROCESS models 4 and 6 (via power4mome; with two
+  mediators, three or more not yet tested), against direct power4mome
+  calls and Type I error; regression interactions (via InteractionPoweR),
+  against analytic results, direct InteractionPoweR calls and Type I error.
+  The mediation and interactions chunks ran on GitHub on 15–16 October
+  2026; their published-value tests are still TODO. What "validated" means
+  is defined at the top of the [validation log](validation-log.md).
+- **Validation in progress:** moderated mediation, PROCESS models 7 and 14
+  (E13, E14): rerun needed after the seeding fix (above).
 - **Waiting on published values:** several validation tests still have
   `TODO_PUBLISHED_VALUE` placeholders (including the G*Power published
   examples for basic tests), to be transcribed by the maintainer.
@@ -166,8 +195,12 @@ fully validated. Validation runs are recorded in
 4. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
    its G*Power and MorePower rows against the G*Power manual and the
    MorePower paper.
-5. Phase 4: script export, methods paragraph, citations and
-   preregistration text.
+5. The rest of phase 4: the methods paragraph and preregistration text;
+   the method-paper and powerkit entries in `engine/inst/citations/refs.bib`
+   (the maintainer adds them); and, once phase 3b lands, scripts for
+   binary X and W. After PR #20 is merged, rerun the process_7 and
+   process_14 validation chunks on GitHub and mark E13 and E14 validated
+   again if they pass.
 6. Decide what to do about the walkthrough flags (F1–F15 in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the

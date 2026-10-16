@@ -25,17 +25,20 @@ computed it. On top of those packages, powerkit adds:
   and Type I error, with checks against published results added as they
   are transcribed;
 - a record of exactly how each result was produced (spec hash, seed,
-  package versions).
+  package versions);
+- an R script for each result that reproduces it with the backend package
+  alone, and the citations for that package and its method paper.
 
-A point-and-click app, a design finder, script and write-up exports, and an
-optional AI assistant are planned.
+A point-and-click app, a design finder, a methods paragraph (write-up)
+export, and an optional AI assistant are planned.
 
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Every design below has passed its full validation run against
-> direct calls to its backend package and Type I error, but most
-> published-value checks are still to come, and the interface may change.
+> yet.** Every design below except moderated mediation has passed its full
+> validation run against direct calls to its backend package and Type I
+> error (moderated mediation is being rerun), but most published-value
+> checks are still to come, and the interface may change.
 
 | Design | Status |
 | --- | --- |
@@ -44,7 +47,7 @@ optional AI assistant are planned.
 | Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
 | Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
 | Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); checks against published examples to come |
-| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error; checks against published examples to come |
+| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validation in progress: its full run passed on 16 October 2026, but a fix to how power4mome calls are seeded changed its results slightly, so it will be rerun; checks against published examples to come |
 | Shiny app and design finder | Planned |
 
 What "validated" means is defined at the top of the
@@ -86,6 +89,11 @@ spec
 
 result <- run_spec(spec)
 result
+
+# A standalone script that reproduces the result with Superpower alone,
+# and what to cite.
+export_script(spec, result, "reproduce.R")
+cat(export_citations(result))
 ```
 
 A spec is a JSON file. `read_spec()` checks it and explains any problem in

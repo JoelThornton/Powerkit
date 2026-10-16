@@ -2,6 +2,8 @@
 
 S3method(print,powerkit_result)
 S3method(print,powerkit_spec)
+export(export_citations)
+export(export_script)
 export(read_spec)
 export(run_spec)
 export(spec_hash)

@@ -45,10 +45,15 @@
 #'     values;
 #'   * `provenance`: spec hash, method, seed, replications, cores, batch
 #'     size (the most replications simulated in one backend call; `NA` if
-#'     the backend isn't run in batches), backend and backend function, R
-#'     and package versions, and run time. A simulated result is reproduced
-#'     by the same seed, replications and batch size; for a backend run in
-#'     batches, the number of cores doesn't change it.
+#'     the backend isn't run in batches), `simulations` (for a simulated
+#'     result, a data frame with one row per simulated n: its `seed`,
+#'     `rejections`, analysable replications `nrep`, and `fitted`, whether
+#'     the curve for the required n was fitted to it; `NA` for an exact
+#'     result), backend and backend function, R and package versions, and
+#'     run time. A simulated result is reproduced by the same seed,
+#'     replications and batch size; for a backend run in batches, the
+#'     number of cores doesn't change it. [export_script()] writes an R
+#'     script that reproduces a result with the backend package alone.
 #' @export
 #' @examples
 #' \donttest{
@@ -84,10 +89,9 @@ run_spec <- function(spec) {
   goal <- spec$goal
   outcome <- switch(
     goal$type,
-    power = list(
-      curve = power_at_n(backend, goal$n, simulating, nrep, seed, cores),
-      n_required = NA,
-      sensitivity = NA
+    power = c(
+      power_at_n(backend, goal$n, simulating, nrep, seed, cores),
+      list(n_required = NA, sensitivity = NA)
     ),
     sample_size = c(
       if (simulating) {
@@ -112,7 +116,8 @@ run_spec <- function(spec) {
       list(
         curve = data.frame(n = goal$n, power = found$power, mcse = 0),
         n_required = NA,
-        sensitivity = found
+        sensitivity = found,
+        simulations = NA
       )
     }
   )
@@ -131,6 +136,7 @@ run_spec <- function(spec) {
         nrep = nrep,
         cores = if (simulating) cores else NA_integer_,
         batch_size = if (simulating) backend$batch_size %||% NA_integer_ else NA_integer_,
+        simulations = outcome$simulations,
         backend = backend$name,
         backend_function = backend$functions[[method]],
         r_version = R.version.string,
@@ -143,13 +149,18 @@ run_spec <- function(spec) {
   )
 }
 
+# Power at a fixed n: list(curve, simulations), with `simulations` NA for
+# exact power.
 power_at_n <- function(backend, n, simulating, nrep, seed, cores) {
   if (!simulating) {
-    return(data.frame(n = n, power = backend$exact_power(n), mcse = 0))
+    return(list(curve = data.frame(n = n, power = backend$exact_power(n), mcse = 0), simulations = NA))
   }
   sim <- backend$simulate(n, nrep, seed, cores)
   p <- sim$rejections / sim$nrep
-  data.frame(n = n, power = p, mcse = sqrt(p * (1 - p) / sim$nrep))
+  list(
+    curve = data.frame(n = n, power = p, mcse = sqrt(p * (1 - p) / sim$nrep)),
+    simulations = simulation_record(n, seed, sim$rejections, sim$nrep)
+  )
 }
 
 package_versions <- function(packages) {

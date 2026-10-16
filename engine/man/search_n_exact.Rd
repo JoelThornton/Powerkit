@@ -15,7 +15,8 @@ search_n_exact(spec, backend, power)
 }
 \value{
 As for \code{\link[=search_n]{search_n()}}; \code{curve} holds exact power (MCSE 0) at the
-required n and three valid sizes either side.
+required n and three valid sizes either side, and \code{simulations} is
+\code{NA}.
 }
 \description{
 The smallest valid total sample size whose exact power reaches \code{power}.

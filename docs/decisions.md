@@ -1226,3 +1226,93 @@ those tools' user-facing capabilities against powerkit's status. Its tiers
 are proposals for the maintainer to confirm. The G*Power rows could not
 be checked against the manual in this session (the manual's host was not
 reachable), so they are marked for checking.
+
+## 2026-10-16 · Phase 4, part 1: script and citation exports
+
+**What the exported script reproduces.** `export_script()` writes a script
+that calls the backend package directly and repeats exactly what powerkit
+did, so that with the same package versions it gives the same numbers, not
+merely numbers within Monte Carlo error:
+
+- the same seeds and the same split of replications into batches (one per
+  core for Spower, Superpower and InteractionPoweR, whose results therefore
+  depend on the number of cores; batches of at most `batch_size` for
+  power4mome, which don't);
+- for a sample-size goal, every sample size powerkit simulated, with its
+  seed, and powerkit's probit fit to the ones it used. To make this
+  possible, results now record each simulated n's seed, counts and whether
+  it was in the final fit (`provenance$simulations`). powerkit's quicker
+  first pass, which only chose the sizes, is not repeated;
+- for exact 2x2 results, `ANOVA_exact()` under the run's seed
+  (Departure 3); an exact required n is shown as the first of powerkit's
+  curve sizes that reaches the target, the one before it not reaching it;
+- for sensitivity, the same scaling of the pattern of means and the same
+  `uniroot()` search.
+
+The tests run each script with `Rscript --vanilla` (no powerkit, nothing
+from the test session) and require agreement within the validation
+tolerance and to 1e-10; on this machine every end point matched exactly.
+They start a separate R session each, so they are skipped on CRAN.
+
+**Writing the script surfaced a reproducibility bug (fixed).** For a model
+with a product term (PROCESS models 7 and 14), `power4test()` standardises
+the population by Monte Carlo (`psi_std_monte_carlo()`, 100,000 draws)
+before `iseed` takes effect, from whatever state R's generator is in. In
+powerkit that state was left by the previous call (the check run, the
+previous batch or sample size), so a result depended on the order of calls
+and, on Linux and macOS, on the number of cores (forked batches all start
+from the parent's state). The script, run in a fresh session, couldn't
+match (0.52 or 0.53 against powerkit's 0.51 in one test). powerkit now
+runs every `power4test()` call under `set.seed(seed)` as well as
+`iseed = seed`, and the exported script does the same. The simulated data
+sets are unchanged (`iseed` still sets them); only the standardisation's
+draws are now fixed. Results for models 7 and 14 therefore differ slightly
+from earlier runs with the same seed, including the full validation runs
+of 16 October 2026; models without a product term are standardised
+analytically and are unchanged. The direct-call helper used by the
+validation tests seeds the same way.
+
+
+## 2026-10-16 · Maintainer follow-up on PR #20: seeding, validation status, citation rule
+
+**(a) The seeding fix, and a guarantee that didn't hold until now.** PR #10
+(running power4mome simulations in batches, above) recorded that "the same
+seed, replications and batch size give the same result on any machine". For
+PROCESS models 7 and 14 (E13, E14) that didn't hold until the seeding fix
+above: `power4test()` standardises a model with a product term by Monte
+Carlo before `iseed` takes effect, from whatever state R's generator is in,
+so results depended on earlier calls in the session and, on Linux and
+macOS, on how batches were shared out over cores. It holds now: every
+`power4test()` call runs under `set.seed(seed)` as well as `iseed = seed`.
+For models without a product term (E10–E12) it always held: their
+standardisation is analytic. Because the fix changed E13's and E14's
+numbers slightly, the 16 October validation runs no longer validate the
+current code; both are back to "Runs, validation in progress" until
+process_7 and process_14 are rerun on GitHub after merge
+(`docs/validation-log.md`). E10–E12 stay validated (identical results).
+
+**(b) Citation rule (maintainer's decision).** Citations come only from
+`inst/citations/refs.bib` or a package's own `citation()`; no reference is
+written from memory. CLAUDE.md and the build guide now say so. In practice:
+
+- the citations export gives the backend's `citation()`, its method paper
+  from refs.bib, powerkit's citation, and a "software used" section with
+  the supporting packages that do real work underneath, each from its own
+  `citation()`: SimDesign (Spower's simulations); afex (`aov_car()`, which
+  fits Superpower's ANOVAs) and MASS (`mvrnorm()`, which generates its
+  data); lavaan (model fits) and manymome (indirect effects and their
+  confidence intervals) for power4mome; none for InteractionPoweR, which
+  uses base R; and R itself (`citation()`). These were found in the
+  backends' sources (`Spower()` calls `SimDesign::runSimulation()`;
+  Superpower's `ANOVA_exact()` and `ANOVA_power()` call `aov_car()` and
+  `mvrnorm()`; power4mome imports lavaan and manymome). Superpower also
+  calls emmeans for its pairwise comparisons, which powerkit doesn't
+  report, so emmeans isn't listed;
+- refs.bib entries are copied from the installed package's `citation()`
+  (`toBibtex()`), with the package and version noted. Superpower 0.2.4.1
+  and InteractionPoweR 0.2.4 give method papers (Lakens and Caldwell, 2021;
+  Baranger et al., 2023, the first of InteractionPoweR's two entries).
+  Spower 0.6.4 and power4mome 0.2.1 give only their manuals, so their
+  method-paper keys stay placeholders; powerkit's own citation is a
+  placeholder until the maintainer decides how powerkit is cited. A test
+  checks every refs.bib entry's DOI against its package's `citation()`.

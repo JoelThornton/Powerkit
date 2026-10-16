@@ -23,8 +23,10 @@ from it.}
 \item{level}{Confidence level for the interval around the required n.}
 }
 \value{
-A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}) and
-\code{curve} (data frame of \code{n}, \code{power} and \code{mcse} at each simulated n).
+A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}),
+\code{curve} (data frame of \code{n}, \code{power} and \code{mcse} at each simulated n) and
+\code{simulations} (data frame of \code{n}, \code{seed}, \code{rejections}, \code{nrep} and
+\code{fitted}: whether the final probit curve was fitted to that n).
 }
 \description{
 Searches for the smallest total sample size whose power reaches \code{power},
