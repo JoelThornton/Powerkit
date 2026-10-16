@@ -440,3 +440,22 @@ methods paragraph.
   powerkit reports simulated power only; after the grid comparison the
   maintainer decided not to offer the analytic method (`docs/decisions.md`).
   The difference between the two is in "Known differences", 1.
+- **power4mome calls are seeded with `set.seed()` as well as `iseed`.**
+  For a model with a product term (PROCESS models 7 and 14),
+  `power4test()` standardises the population by Monte Carlo (100,000
+  draws, its `n_std`) before `iseed` takes effect, from whatever state R's
+  random-number generator is in [p4m-src: `ptable_pop()`, `psi_std()`,
+  `psi_std_monte_carlo()`]. powerkit runs each call with the generator
+  seeded by the call's own seed, so a result depends only on the seed and
+  batch size. The method is unchanged (the standardisation is a
+  100,000-draw Monte Carlo estimate either way); only which draws it uses
+  is fixed, so there is no systematic difference to measure. Models
+  without a product term are standardised analytically and are unaffected.
+  Test: `test-backend-power4mome.R`, "with a product term, a batch's
+  result depends only on its seed" [powerkit, `docs/decisions.md`].
+- **Exported scripts reproduce powerkit's procedure.** `export_script()`
+  calls the backend package directly, with powerkit's seeds and batches,
+  and for a sample-size goal powerkit's own search (above), not the
+  backend's. It adds no method of its own, so it gives powerkit's numbers
+  with the same package versions. Tests: `test-export-script.R`, one per
+  end point E1-E14 [powerkit].

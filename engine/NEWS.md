@@ -1,5 +1,33 @@
 # powerkit 0.0.0.9000
 
+* New `export_script(spec, result, file)` writes a standalone R script that
+  reproduces a result by calling the package that computed it (Spower,
+  Superpower, InteractionPoweR or power4mome) directly, with your values
+  filled in and a comment on each argument. powerkit isn't needed to run
+  it. With the same package versions it gives the same numbers: it uses
+  powerkit's seeds and batches, and for a sample-size goal it simulates the
+  same sample sizes and fits the same curve. It ends by comparing its
+  numbers with powerkit's and printing `sessionInfo()`. Available for every
+  design `run_spec()` runs.
+* New `export_citations(result, format = "text" or "bibtex")` lists what to
+  cite: the package that computed the result (its own `citation()`), its
+  method paper and powerkit. Method papers and powerkit's paper come only
+  from powerkit's curated reference list; until the maintainer adds them,
+  they are shown as placeholders. The methods paragraph is a placeholder
+  too (not written yet). The repository now has a `CITATION.cff`.
+* Results record each simulated sample size's seed in
+  `provenance$simulations` (with its rejections, analysable replications,
+  and whether the required-n curve was fitted to it), so every simulated
+  value can be reproduced.
+* Moderated mediation (PROCESS models 7 and 14): a run's result now depends
+  only on its seed. For a model with a product term, power4mome
+  standardises the population by Monte Carlo before its own seed takes
+  effect, so results depended slightly on earlier calls in the session (and
+  on the number of cores). powerkit now seeds that step too. Results for
+  these two models differ slightly from earlier runs with the same seed;
+  other designs are unchanged.
+* Tests that use more than 2 cores are skipped on CRAN.
+
 * `validate_spec()` no longer fails with "non-character argument" when a
   field that accepts more than one kind of value is `null`, such as
   `population > sd` in the 2x2 ANOVA designs (reported in PR #4). It now

@@ -27,10 +27,15 @@ with the \code{scale} applied to the specified pattern, the scaled cell
 values;
 \item \code{provenance}: spec hash, method, seed, replications, cores, batch
 size (the most replications simulated in one backend call; \code{NA} if
-the backend isn't run in batches), backend and backend function, R
-and package versions, and run time. A simulated result is reproduced
-by the same seed, replications and batch size; for a backend run in
-batches, the number of cores doesn't change it.
+the backend isn't run in batches), \code{simulations} (for a simulated
+result, a data frame with one row per simulated n: its \code{seed},
+\code{rejections}, analysable replications \code{nrep}, and \code{fitted}, whether
+the curve for the required n was fitted to it; \code{NA} for an exact
+result), backend and backend function, R and package versions, and
+run time. A simulated result is reproduced by the same seed,
+replications and batch size; for a backend run in batches, the
+number of cores doesn't change it. \code{\link[=export_script]{export_script()}} writes an R
+script that reproduces a result with the backend package alone.
 }
 }
 \description{

@@ -25,8 +25,10 @@
 #' @param cores Cores to spread replications over.
 #' @param level Confidence level for the interval around the required n.
 #'
-#' @return A list with `n_required` (list of `n`, `lower`, `upper`) and
-#'   `curve` (data frame of `n`, `power` and `mcse` at each simulated n).
+#' @return A list with `n_required` (list of `n`, `lower`, `upper`),
+#'   `curve` (data frame of `n`, `power` and `mcse` at each simulated n) and
+#'   `simulations` (data frame of `n`, `seed`, `rejections`, `nrep` and
+#'   `fitted`: whether the final probit curve was fitted to that n).
 #' @keywords internal
 search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95) {
   step <- backend$n_step
@@ -44,12 +46,13 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
 
   spacing <- step * max(1, round(0.05 * n_guess / step))
   grid <- pmax(n_min, n_guess + spacing * (-3:3))
-  points <- data.frame(n = numeric(), rejections = numeric(), nrep = numeric())
+  points <- data.frame(n = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric())
   simulate_at <- function(ns) {
     ns <- setdiff(unique(ns), points$n)
     for (n in ns) {
-      sim <- backend$simulate(n, nrep, offset_seed(seed, 10007 * nrow(points)), cores)
-      points[nrow(points) + 1, ] <<- c(n, sim$rejections, sim$nrep)
+      n_seed <- offset_seed(seed, 10007 * nrow(points))
+      sim <- backend$simulate(n, nrep, n_seed, cores)
+      points[nrow(points) + 1, ] <<- c(n, n_seed, sim$rejections, sim$nrep)
     }
   }
   simulate_at(grid)
@@ -71,11 +74,13 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
   # The smooth curve is trusted only near the target: re-centre a local grid
   # on the estimate if needed, and fit to the points within 20% of it.
   estimate <- n_from_curve(points, power, step, level)
+  fitted_n <- points$n
   if (!is.na(estimate$n)) {
     near <- function() points[abs(points$n / estimate$n - 1) <= 0.2, ]
     if (nrow(near()) < 5) {
       simulate_at(to_step(estimate$n * (1 + 0.05 * (-3:3))))
     }
+    fitted_n <- near()$n
     estimate <- n_from_curve(near(), power, step, level)
   }
   if (is.na(estimate$upper)) {
@@ -86,7 +91,21 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
   p <- points$rejections / points$nrep
   list(
     n_required = estimate,
-    curve = data.frame(n = points$n, power = p, mcse = sqrt(p * (1 - p) / points$nrep))
+    curve = data.frame(n = points$n, power = p, mcse = sqrt(p * (1 - p) / points$nrep)),
+    simulations = simulation_record(
+      points$n, points$seed, points$rejections, points$nrep, points$n %in% fitted_n
+    )
+  )
+}
+
+# One row per simulated n: its seed, rejections and analysable
+# replications, and whether the probit curve for the required n was fitted
+# to it (NA unless the goal is a sample size). Kept in the provenance so
+# that every simulated value can be reproduced (export_script()).
+simulation_record <- function(n, seed, rejections, nrep, fitted = NA) {
+  data.frame(
+    n = n, seed = as.integer(seed), rejections = rejections, nrep = nrep,
+    fitted = fitted, row.names = NULL
   )
 }
 
@@ -157,7 +176,8 @@ n_from_curve <- function(points, target, step, level) {
 #'
 #' @inheritParams search_n
 #' @return As for [search_n()]; `curve` holds exact power (MCSE 0) at the
-#'   required n and three valid sizes either side.
+#'   required n and three valid sizes either side, and `simulations` is
+#'   `NA`.
 #' @keywords internal
 search_n_exact <- function(spec, backend, power) {
   step <- backend$n_step
@@ -174,6 +194,7 @@ search_n_exact <- function(spec, backend, power) {
   ns <- ns[ns >= n_start]
   list(
     n_required = list(n = n, lower = n, upper = n),
-    curve = data.frame(n = ns, power = vapply(ns, backend$exact_power, numeric(1)), mcse = 0)
+    curve = data.frame(n = ns, power = vapply(ns, backend$exact_power, numeric(1)), mcse = 0),
+    simulations = NA
   )
 }

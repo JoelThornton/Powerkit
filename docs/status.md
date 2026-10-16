@@ -11,6 +11,22 @@ fully validated. Validation runs are recorded in
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.
+- **Phase 4, part 1 (draft PR, 16 October 2026): script and citation
+  exports.** `export_script()` writes a standalone R script that reproduces
+  a result by calling Spower, Superpower, InteractionPoweR or power4mome
+  directly, with a comment on each argument. A test for each validated end
+  point (E1–E14) runs the script in a fresh R session and checks it matches
+  powerkit; all matched exactly. `export_citations()` gives the package's
+  own `citation()`, its method paper and powerkit's citation, and the
+  repository has a `CITATION.cff`. refs.bib is still empty, so the method
+  papers and powerkit's paper are placeholders until the maintainer adds
+  them; the methods paragraph is a placeholder too.
+  - While writing the scripts, a reproducibility bug was found and fixed:
+    PROCESS model 7 and 14 results depended slightly on earlier calls in the
+    session, because power4mome standardises models with a product term
+    by Monte Carlo before its own seed takes effect. These two models'
+    results now differ slightly from the 16 October validation runs with
+    the same seed ([decisions](decisions.md), 16 October 2026).
 - **Validated (full validation run passed):** 2 x 2 between and 2 x 2 mixed
   ANOVA (via Superpower); basic tests (via Spower) against analytic
   results, direct Spower calls and Type I error; simple, parallel and
@@ -149,8 +165,11 @@ fully validated. Validation runs are recorded in
 4. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
    its G*Power and MorePower rows against the G*Power manual and the
    MorePower paper.
-5. Phase 4: script export, methods paragraph, citations and
-   preregistration text.
+5. The rest of phase 4: the methods paragraph and preregistration text;
+   the method-paper and powerkit entries in `engine/inst/citations/refs.bib`
+   (the maintainer adds them); and, once phase 3b lands, scripts for
+   binary X and W. Decide whether to rerun the process_7 and process_14
+   validation chunks after the seeding fix.
 6. Decide the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).

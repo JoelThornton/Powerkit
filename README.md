@@ -25,10 +25,12 @@ computed it. On top of those packages, powerkit adds:
   and Type I error, with checks against published results added as they
   are transcribed;
 - a record of exactly how each result was produced (spec hash, seed,
-  package versions).
+  package versions);
+- an R script for each result that reproduces it with the backend package
+  alone, and the citations for that package and its method paper.
 
-A point-and-click app, a design finder, script and write-up exports, and an
-optional AI assistant are planned.
+A point-and-click app, a design finder, a methods paragraph (write-up)
+export, and an optional AI assistant are planned.
 
 ## Status
 
@@ -86,6 +88,11 @@ spec
 
 result <- run_spec(spec)
 result
+
+# A standalone script that reproduces the result with Superpower alone,
+# and what to cite.
+export_script(spec, result, "reproduce.R")
+cat(export_citations(result))
 ```
 
 A spec is a JSON file. `read_spec()` checks it and explains any problem in
