@@ -12,8 +12,10 @@ each chunk run. Published-value tests that still have a
 that follow from a run go in `docs/decisions.md`.
 
 Chunks: basic, anova, interactions, process_4 (simple and parallel
-mediation), process_6 (serial mediation), process_7, process_14; plus the
-on-demand interaction_grid.
+mediation), process_6 (serial mediation), process_7, process_14,
+mediation_crosscheck (simple mediation against pwrss and simsem; see
+"Independent cross-check for mediation" below); plus the on-demand
+interaction_grid.
 
 ## What "validated" means
 
@@ -93,6 +95,87 @@ installing packages; later runs reuse them.
 
 **Versions.** The run uses R and the package versions in `renv.lock`, as
 on your machine, so its results can be compared with local ones.
+
+## Independent cross-check for mediation
+
+**Why.** The mediation chunks compare powerkit with direct power4mome
+calls. That checks that powerkit passes the right arguments, but not
+power4mome itself: both sides run the same power4mome code on the same
+simulated data. The `mediation_crosscheck` chunk
+(`test-validation-mediation-crosscheck.R`, helpers in
+`helper-crosscheck.R`) compares simple mediation with two tools written
+independently of power4mome:
+
+- **pwrss** 1.3.3 (Bulus and Jentschke), `power.z.mediation()`: power
+  from normal-theory formulas. It doesn't simulate data.
+- **simsem** 0.5-17 (Pornprasertmanit, Miller, Schoemann and Jorgensen):
+  it simulates data and fits them with lavaan. It shares lavaan with
+  power4mome, so it checks power4mome's data generation and its use of
+  lavaan, not lavaan itself.
+
+Both are in Suggests and `renv.lock`. They are used only by this chunk,
+never by the regular test suite.
+
+**Designs.** Standardised paths, power in the sensitive middle range:
+a = b = 0.3, c' = 0.1, n = 100; and a = 0.2, b = 0.4, c' = 0, n = 200.
+alpha = .05, 10,000 replications, 1,000 Monte Carlo draws per CI.
+
+**What is compared with what, and why differences are or aren't expected.**
+The tools offer different tests, so each comparison pairs the same test:
+
+1. **powerkit (power4mome, Monte Carlo CI) vs pwrss
+   `method = "monte.carlo"`.** This is the same test: the indirect effect
+   is significant if the Monte Carlo interval excludes 0. But it is
+   computed differently. powerkit simulates data sets and fits each one,
+   so each replication's estimates and standard errors vary. pwrss draws
+   the estimates of a and b from their large-sample normal sampling
+   distributions, with standard errors fixed at their population values
+   (computed with 1/n). It also checks only the lower limit, after making
+   both paths positive. So the two can differ by more than Monte Carlo
+   error at small n. The difference should shrink as n grows.
+2. **The joint-significance test (a and b both significant) in power4mome
+   vs simsem.** This is the same test and the same estimator (lavaan
+   maximum likelihood z tests, two-sided, alpha = .05), on data generated
+   independently by each tool. No difference beyond Monte Carlo error is
+   expected. This pairing is the sharpest check of power4mome's data
+   generation. power4mome runs it with `test_parameters()` and
+   `rejection_rates(collapse = "all_sig")`; for simsem, the joint test is
+   computed from each replication's estimates and standard errors.
+3. **Both joint tests vs pwrss `method = "joint"`.** pwrss's joint test is
+   analytic: power(a) times power(b), with z tests and fixed standard
+   errors. Small differences are expected, for the same reasons as in 1.
+
+Sobel-type tests (pwrss's `"sobel"`, `"aroian"`, `"goodman"`) are not
+compared: powerkit doesn't use them, and they are known to differ from
+interval tests. **Unsourced**: that last claim isn't backed by a reference
+in refs.bib.
+
+**Tolerance rule.** Two estimates agree if their difference is at most the
+combined 99.9% Monte Carlo half-width, z(.9995) × sqrt(MCSE1² + MCSE2²),
+plus an allowance (`expect_power_agrees_within()`):
+
+- **allowance 0** for comparison 2 (same test, same estimator). This is
+  the rule the direct-call tests use (`expect_power_agrees()` in
+  `helper-validation.R`): chance alone rarely fails it.
+- **allowance 0.02** (2 points of power) for comparisons 1 and 3, where
+  one side is a normal-theory approximation. **This value is proposed, not
+  decided; the maintainer to confirm** (`crosscheck_allowance()`). The
+  reasoning: the approximations' main effect is ignoring the sampling
+  variability of the standard errors, which matters little at these sample
+  sizes. 0.02 is small enough that a real error in power4mome's data
+  generation or test of the size the validation is meant to catch (0.03,
+  build guide section 6) is still likely to fail comparison 2. It can
+  still pass comparisons 1 and 3, which are a sanity check, not the main
+  evidence. **Unsourced**: no measurement or reference yet shows how
+  large the approximation error is for these designs. The first full run
+  will show the observed differences, and the allowance can be revisited
+  then.
+
+**Status.** Not run yet. Only a smoke test with 100 replications and 100
+draws has been run locally, to check that the code runs (16 October 2026).
+Its numbers are too imprecise to report as results. To run it: the
+`full-validation` workflow, chunk **mediation_crosscheck** (about
+1.5 hours, estimated).
 
 ## Before this log
 
