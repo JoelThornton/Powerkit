@@ -180,7 +180,7 @@ status_label <- function(status) {
   switch(
     status,
     runs_validated = "Runs in powerkit",
-    runs_not_yet_validated = "Runs in powerkit",
+    runs_validation_in_progress = "Runs, validation in progress",
     coming_soon = "Coming soon",
     not_in_powerkit = "Not in powerkit yet",
     status

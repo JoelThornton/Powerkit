@@ -19,8 +19,8 @@ library(Superpower)
 library(pwr)
 library(testthat)
 
-# Routing prototype (app/routing/; no engine calls). shiny is not yet in
-# renv.lock; record it when the phase 5 app is set up.
+# Routing prototype (app/routing/; no engine calls). All three are in
+# renv.lock.
 library(bslib)
 library(shiny)
 library(yaml)

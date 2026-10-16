@@ -632,7 +632,13 @@ Not sure? Example: *self-affirmation vs control task.*
 **A measured score** *(picture: a ruler)*
 Not sure? Example: *workload measured with a questionnaire.*
 
-Both lead to ME2. (The spec allows X to be binary or continuous.)
+**Three or more conditions or groups** *(picture: three boxes)*
+Not sure? Example: *two self-affirmation tasks and a control task.*
+→ Card: not covered by the five tools; no ready-made tool. The options are
+a custom simulation in R (for example with Spower) or advice from a
+statistician (decision tree E42).
+
+The first two lead to ME2. (The spec allows X to be binary or continuous.)
 
 Notes on the final card and in the write-up (decision D9), stated neutrally:
 

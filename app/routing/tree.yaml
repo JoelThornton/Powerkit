@@ -94,7 +94,13 @@ settings:
     question: "Where should answers the spec can't store go (rating analysed as a score; randomised or not; why ANCOVA or the mixed interaction; expected interaction shape; manipulated or measured)?"
     options: {new_field: "A new spec field (schema change)", notes: "effect_justification.notes", app_only: "Keep them in the app only"}
     value: null
-    shown_at: [o5a, pp1, pp2, f6_between, f6_mixed, me1, mm1]
+    shown_at: [o5a, pp2, me1, mm1]
+  - key: pp1_f6_stored
+    ref: "Open question 4 (PP1 and F6)"
+    question: "PP1 (were people randomised?) and F6 (the expected interaction shape) don't change the end point. Should their answers be stored with the study (for the write-up and the shape check), or only shown on screen?"
+    options: {store: "Store them (needs a place in the spec; see open question 4)", screen_only: "Show them on screen only", drop: "Don't ask them until there is somewhere to store them"}
+    value: null
+    shown_at: [pp1, f6_between, f6_mixed]
   - key: not_in_spec_wording
     ref: "Open question 6"
     question: "Confirm the wording that points users to another tool, and the rule that powerkit never routes to a simpler stand-in test."
@@ -108,10 +114,10 @@ settings:
     options: {"no": "No", "yes": "Yes, clearly labelled as not validated by powerkit"}
     value: null
     shown_at: [card]
-  - key: ask_bayes
+  - key: bayes_entry
     ref: "Open question 8"
-    question: "Ask 'p-values or Bayes factors?' up front, or leave Bayesian designs to the shortcut list?"
-    options: {up_front: "Ask up front", shortcut: "Shortcut list only"}
+    question: "Where do Bayes factors enter the tree? Now: the Bayes factor end point (E-bayes) is reachable only from 'I know my analysis', and every card lists 'p-values or Bayes factors?' among the questions asked next."
+    options: {start: "Ask 'p-values or Bayes factors?' on the start screen", after_goal: "Ask it after Q1, before the design questions", closing: "Ask it with the closing questions on each card", shortcut: "Shortcut list only (as now)"}
     value: null
     shown_at: [start]
   - key: parallel_mediators_max
@@ -133,6 +139,18 @@ settings:
     options: {per_hypothesis: "Per hypothesis, with a consistency check", whole_study: "Whole-study simulation", both: "Both"}
     value: null
     shown_at: [plan]
+  - key: guided_covariates
+    ref: "Open question 15"
+    question: "In the guided route, a covariate changes only the comparison of conditions (to ANCOVA, or multiple regression for a score X). Should covariates also enter the moderation and mediation analyses? (No template has covariates yet.)"
+    options: {ignore: "No: comparison only (as now), saying so on the plan", include: "Yes, once the templates support covariates", ask: "Ask per analysis whether the covariate is included"}
+    value: null
+    shown_at: [plan]
+  - key: guided_scope
+    ref: "Open question 14"
+    question: "What does the guided route do with repeated measures, many stimuli or nested data? Now: it says to use 'Help me choose' instead."
+    options: {send_to_tree: "Send users to 'Help me choose' (as now)", extend: "Extend the guided route to cover these designs", say_up_front: "Say on the start screen that the guided route is for single-session, between-person studies"}
+    value: null
+    shown_at: [guided_variables]
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
@@ -205,8 +223,7 @@ nodes:
       - {label: "People are nested in groups (classes, teams, clinics)", next: E34}
       - {label: "The same people measured over time", next: t1}
   t1:
-    doc_id: Q3
-    sub_id: T1
+    doc_id: T1
     text: "How many times is each person measured?"
     options:
       - {label: "Twice (for example, before and after)", next: f1}
@@ -400,8 +417,28 @@ nodes:
     text: "What is the cause (X)?"
     help: "The M -> Y path is not randomised, even when X is manipulated (decision D9)."
     options:
-      - {label: "Conditions you assigned, or two groups", next: E16}
+      - {label: "Two conditions you assigned, or two groups", next: me4_xbin}
       - {label: "A measured score", next: me4}
+      - {label: "Three or more conditions or groups", next: E42}
+  me4_xbin:
+    doc_id: ME4
+    text: "Are your mediators scores?"
+    options:
+      - {label: "Yes", next: me2_xbin}
+      - {label: "No, at least one is yes/no or a category", next: E39}
+  me2_xbin:
+    doc_id: ME2
+    text: "How many go-betweens (mediators)?"
+    options:
+      - {label: "One", next: E16}
+      - {label: "Two or more", next: me3_xbin}
+  me3_xbin:
+    doc_id: ME3
+    text: "How do the mediators connect?"
+    help: "With a yes/no X, both arrangements are coming soon (phase 3b)."
+    options:
+      - {label: "Side by side: X affects each one separately", next: E16}
+      - {label: "In a chain: X affects the first, which affects the next", next: E16}
   me4:
     doc_id: ME4
     text: "Are your mediators scores?"
@@ -476,7 +513,10 @@ closing_questions:
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?"}
   - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: ask_bayes}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry}
+
+# Shown on cards for end points with `no_ready_made_tool`.
+no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
 
 # The effect-size justification prompt on every card (spec field
 # effect_justification; build guide section 4).
@@ -491,7 +531,17 @@ justification_prompt:
 # ---------------------------------------------------------------------------
 # End points (decision-tree.md, table 2.3). `doc_name` is copied exactly
 # from the table; `plain_name` is what the card shows.
-# status: runs_validated | runs_not_yet_validated | coming_soon | not_in_powerkit
+# status: runs_validated | runs_validation_in_progress | coming_soon | not_in_powerkit
+#   To mark an end point validated once its full run is recorded in
+#   docs/validation-log.md: change `status: runs_validation_in_progress` to
+#   `status: runs_validated`, update `validation: note`, and change the
+#   "Validated?" cell of decision-tree.md table 2.3 to start with "Yes"
+#   (test-docs-match.R checks the two agree).
+# no_ready_made_tool: true when no tool offers this analysis, or names the
+#   part of the end point that has none (e.g. "Cochran's Q"). The card then
+#   shows the text in `no_ready_made_tool_text` (above).
+# five_tools: "not covered" when none of the five tools powerkit builds on
+#   covers the end point (the card says so).
 # tier: MVP | v2 | later (the table's tier text starts with this).
 # ---------------------------------------------------------------------------
 endpoints:
@@ -582,7 +632,7 @@ endpoints:
     backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
     method: Simulation
     inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-regression-interaction.R, note: "Tests written; the full validation run has not been recorded yet."}
     tier: MVP
   E10:
@@ -592,7 +642,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-mediation-simple.R, note: "Tests written; the full validation run has not been recorded yet."}
     tier: MVP
   E11:
@@ -602,7 +652,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-mediation-parallel.R, note: "Tests written (two mediators); the full validation run has not been recorded yet."}
     tier: MVP
   E12:
@@ -612,7 +662,7 @@ endpoints:
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
     inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-mediation-serial.R, note: "The process_6 chunk's run on GitHub finished on 15 October 2026; its results are not yet in the validation log."}
     tier: MVP
   E13:
@@ -622,7 +672,7 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction XW -> M"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-modmed-process7.R, note: "Tests written; the full validation run has not been recorded yet."}
     tier: MVP
   E14:
@@ -632,7 +682,7 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction MW -> Y"]
-    status: runs_not_yet_validated
+    status: runs_validation_in_progress
     validation: {file: test-validation-modmed-process14.R, note: "Tests written; the full validation run has not been recorded yet."}
     tier: MVP
   E15:
@@ -705,7 +755,7 @@ endpoints:
     status: not_in_powerkit
     inputs: ["The four expected cell means and SD", "The size of each group"]
     packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "ANOVA_power() accepts unequal group sizes for between-participants designs only; powerkit hasn't validated that use (decision N3)."}
+      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Documents unequal group sizes for ANOVA_power() only: ANOVA_design() help, argument n (\"If unequal n is entered then the design can only be passed onto ANOVA_power\"), and NEWS for 0.0.3. ANOVA_power() stops for designs with a within factor, so this covers the 2 x 2 between design, not the mixed one. The intro vignette still calls unequal sizes a planned future option. powerkit hasn't validated this use (decision N3; see docs/conventions.md, \"Superpower and unequal group sizes\")."}
     tier: v2
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
@@ -737,9 +787,10 @@ endpoints:
     doc_name: "McNemar's test (same people, yes/no); Cochran's Q"
     plain_name: "The same people, a yes/no outcome in each condition"
     status: not_in_powerkit
+    no_ready_made_tool: "Cochran's Q"
     inputs: ["The expected discordant proportions"]
     packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for McNemar's test (p_mcnemar.test()). No tool found for Cochran's Q."}
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for McNemar's test (p_mcnemar.test())."}
     tier: v2
   E27:
     doc_name: "Logistic regression (yes/no outcome)"
@@ -772,9 +823,10 @@ endpoints:
     doc_name: "Moderator with three or more groups"
     plain_name: "Moderation where X or W has three or more groups"
     status: not_in_powerkit
+    no_ready_made_tool: true
     inputs: ["Depends on the model you write"]
     packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made function for this design was found."}
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E31:
     doc_name: "Three-way interaction"
@@ -788,9 +840,10 @@ endpoints:
     doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
     plain_name: "Moderation or mediation when the outcome isn't a score"
     status: not_in_powerkit
+    no_ready_made_tool: true
     inputs: ["Depends on the model you write"]
     packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made template was found."}
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E33:
     doc_name: "Crossed participants and stimuli"
@@ -848,9 +901,10 @@ endpoints:
     doc_name: "Mediation with a yes/no or categorical mediator"
     plain_name: "Mediation when a mediator isn't a score"
     status: not_in_powerkit
+    no_ready_made_tool: true
     inputs: ["Depends on the model you write"]
     packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself. No ready-made function was found."}
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E40:
     doc_name: "Moderated mediation with two or more mediators"
@@ -868,6 +922,16 @@ endpoints:
     packages:
       - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
+    tier: later
+  E42:
+    doc_name: "Mediation with a condition of three or more groups (multi-category X)"
+    plain_name: "Mediation where X has three or more conditions or groups"
+    status: not_in_powerkit
+    five_tools: not covered
+    no_ready_made_tool: true
+    inputs: ["Depends on the model you write (relative indirect effects for each comparison with a reference group)"]
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E-bayes:
     doc_name: "Bayes factor design (any design)"
@@ -942,9 +1006,7 @@ guided:
       rules:
         - {when: {outcome: [yesno, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
-        - when: {x: cond3}
-          unmapped: "Mediation with a condition of three or more groups has no end point in decision-tree.md. coverage.md: none of the five tools documents a multi-category X for mediation."
-          package: {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "General Monte Carlo power engine: you write the data-generating and analysis code yourself."}
+        - {when: {x: cond3}, endpoint: E42}
         - {when: {x: cond2}, endpoint: E16}
         - {when: {x: score, mediators: one}, endpoint: E10}
         - when: {x: score, mediators: several}

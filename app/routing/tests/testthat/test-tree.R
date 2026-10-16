@@ -29,7 +29,7 @@ test_that("every end point has a name, inputs and a known status", {
     ep <- tree$endpoints[[id]]
     expect_true(nzchar(ep$plain_name %||% ""), label = id)
     expect_gt(length(ep$inputs), 0, label = id)
-    expect_true(ep$status %in% c("runs_validated", "runs_not_yet_validated", "coming_soon", "not_in_powerkit"), label = id)
+    expect_true(ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon", "not_in_powerkit"), label = id)
     expect_true(ep$tier %in% c("MVP", "v2", "later"), label = id)
   }
 })
@@ -37,7 +37,7 @@ test_that("every end point has a name, inputs and a known status", {
 test_that("end points that run have a backend, a method and a validation file", {
   for (id in names(tree$endpoints)) {
     ep <- tree$endpoints[[id]]
-    if (ep$status %in% c("runs_validated", "runs_not_yet_validated")) {
+    if (ep$status %in% c("runs_validated", "runs_validation_in_progress")) {
       expect_true(nzchar(ep$backend %||% ""), label = id)
       expect_true(nzchar(ep$method %||% ""), label = id)
       expect_match(ep$validation$file, "^test-validation-.*\\.R$", label = id)
@@ -70,7 +70,7 @@ test_that("every MVP capability in coverage.md appears in the app", {
 })
 
 test_that("every setting is either undecided or set to one of its options, and appears somewhere", {
-  screens <- c("start", "card", "plan", names(tree$nodes), names(tree$endpoints))
+  screens <- c("start", "card", "plan", "guided_variables", names(tree$nodes), names(tree$endpoints))
   for (s in tree$settings) {
     expect_true(is.null(s$value) || s$value %in% names(s$options), label = s$key)
     expect_gt(length(s$options), 0, label = s$key)

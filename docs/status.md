@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 15 October 2026. Update this page with every PR.*
+*Last updated: 16 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -32,6 +32,28 @@ fully validated. Validation runs are recorded in
   placeholders for the undecided judgement calls, which are settings in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`. How to run it: [`routing-prototype.md`](routing-prototype.md).
+  Changes before merging (16 October 2026):
+  - Regression interactions and the mediation designs (E9–E14) show
+    "Runs, validation in progress", styled apart from validated
+    designs. Flipping one to validated is a one-line change in
+    `tree.yaml`, plus the matching cell in `decision-tree.md`.
+  - Analyses that no tool offers (E30, E32, E39, the new E42, and
+    Cochran's Q in E26) say so plainly. The options are a custom
+    simulation in R (for example with Spower) or advice from a
+    statistician.
+  - E22 (2 x 2 with unequal groups) now cites where Superpower documents
+    unequal group sizes: the `ANOVA_design()` help, for `ANOVA_power()`
+    and between designs only.
+  - `decision-tree.md` and `tree.yaml` gained T1 and MO2 rows in table
+    2.2, and the mediators questions on the mediation path with a yes/no
+    X. Mediation with three or more conditions now has its own end
+    point (E42, not covered by the five tools).
+  - Four more undecided settings, recorded as open questions: storing
+    PP1/F6, guided-route covariates (15), where Bayes factors enter
+    (8), and the guided route's scope (14).
+  - shiny and the packages it needs are now in `renv.lock`, and the
+    prototype's tests run on GitHub on every pull request
+    (`routing-prototype-tests.yaml`).
 - **App:** a prototype Shiny app for the 2 x 2 designs is in a draft PR
   (#4). It stays an open draft, kept as a starting point for phase 5
   ([decisions](decisions.md), 15 October 2026). The `validate_spec()` bug
@@ -51,7 +73,7 @@ fully validated. Validation runs are recorded in
   draft spec of how an app user gets from their study to a power analysis,
   for phase 5. It covers how G*Power, Superpower, Spower, power4mome,
   InteractionPoweR and PAMLj route users; a question tree mapped to the
-  spec schema, with end points E1 to E40; the judgement calls where
+  spec schema, with end points E1 to E42; the judgement calls where
   methodologists disagree, left undecided; and open questions. All of it
   is a proposal for the maintainer to confirm. It builds on
   [`design-finder.md`](design-finder.md), whose status labels are now up
@@ -85,7 +107,9 @@ fully validated. Validation runs are recorded in
    15 October in the validation log, then the full validation runs for the
    remaining mediation and moderated mediation chunks
    (on GitHub or locally, now that they run in batches), and the
-   remaining published values.
+   remaining published values. As each run is recorded, flip that end point
+   from "validation in progress" to validated in
+   `app/routing/tree.yaml` ([how](routing-prototype.md)).
 2. Simulation versions of the 2 x 2 ANOVA Type I error tests (build guide,
    section 6, open items).
 3. Binary X and W in regression interactions and mediation (phase 3b,

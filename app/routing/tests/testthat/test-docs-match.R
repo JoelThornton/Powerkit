@@ -17,7 +17,7 @@ test_that("each end point's status and tier match decision-tree.md", {
   doc <- doc_endpoints()
   expected_status <- function(status, validated) {
     if (startsWith(status, "Runs")) {
-      if (startsWith(validated, "Yes")) "runs_validated" else "runs_not_yet_validated"
+      if (startsWith(validated, "Yes")) "runs_validated" else "runs_validation_in_progress"
     } else if (startsWith(status, "Spec only")) {
       "coming_soon"
     } else {
@@ -45,6 +45,16 @@ test_that("the guided route's follow-up questions use question IDs from decision
   for (a in tree$guided$analyses) {
     for (rule in a$rules) {
       if (!is.null(rule$ask)) expect_true(rule$ask$doc_id %in% ids, label = paste(a$id, rule$ask$doc_id))
+    }
+  }
+})
+
+test_that("every setting that cites an open question names one that exists in decision-tree.md", {
+  doc <- strsplit(read_doc("decision-tree.md"), "\n")[[1]]
+  for (s in tree$settings) {
+    nums <- regmatches(s$ref, gregexpr("(?<=[Oo]pen question )[0-9]+", s$ref, perl = TRUE))[[1]]
+    for (n in nums) {
+      expect_true(any(grepl(sprintf("^%s\\. ", n), doc)), label = paste(s$key, "open question", n))
     }
   }
 })

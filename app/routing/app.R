@@ -40,7 +40,9 @@ app_css <- "
   .standard-name { color: #444; }
   .status { border-radius: 0.4rem; padding: 0.6rem 0.9rem; margin: 0.5rem 0 1rem 0; }
   .status-runs { background: #ddf2e3; border: 1px solid #2e7d4f; }
-  .status-runs-unvalidated { background: #eef7f1; border: 1px solid #2e7d4f; }
+  .status-in-progress { background: #e8f0fb; border: 1px solid #3b6fb6; }
+  .badge-progress { display: inline-block; background: #3b6fb6; color: #fff; border-radius: 1rem; padding: 0.05rem 0.6rem;
+                    font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; vertical-align: 1px; }
   .status-soon { background: #fff0d1; border: 1px solid #b97a00; }
   .status-not { background: #f2f2f2; border: 1px dashed #9a9a9a; }
   .no-numbers { font-size: 0.8rem; color: #6c757d; margin: 0.75rem 0 0 0; }

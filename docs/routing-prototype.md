@@ -21,16 +21,21 @@ You need R and RStudio. You don't need to know Shiny.
 1. **Open the project.** In RStudio: *File → Open Project…* and choose
    `Powerkit.Rproj` in the repository folder. (This also starts renv, which
    keeps the project's packages separate from your others.)
-2. **Install the three packages it needs, once.** In the RStudio
-   *Console* (bottom left), paste this and press Enter:
+2. **Install the packages it needs, once.** `shiny`, `bslib` and `yaml`
+   are all recorded in `renv.lock`, so in the RStudio *Console* (bottom
+   left) you can paste this and press Enter:
+
+   ```r
+   renv::restore()
+   ```
+
+   That installs the versions the project records (it installs the
+   engine's packages too, which takes a while the first time). If you only
+   want the prototype, this is enough:
 
    ```r
    install.packages(c("shiny", "bslib", "yaml"))
    ```
-
-   `bslib` and `yaml` are already in `renv.lock`. `shiny` isn't yet, so
-   `renv::status()` will list it as "used but not recorded". That's
-   expected; record it when the phase 5 app is set up.
 3. **Start the prototype.** In the Console:
 
    ```r
@@ -51,7 +56,8 @@ the editor.
 The first screen offers three routes (decision-tree.md, 4.1):
 
 - **I know my analysis.** A list of every end point, grouped into "Runs in
-  powerkit", "Coming soon" and "Not in powerkit yet". Clicking one opens its
+  powerkit (validated)", "Runs, validation in progress", "Coming soon" and
+  "Not in powerkit yet". Clicking one opens its
   card.
 - **Help me choose.** The tree, one question per screen. A row of chips
   shows your answers so far: click any chip to go back to that question.
@@ -70,11 +76,18 @@ Each **end-point card** shows:
 - the effect-size justification prompt;
 - the backend and default method;
 - its status:
-  - *Runs in powerkit*, with its validation status and links to the
-    validation log and test file;
+  - *Runs in powerkit* (green), validated, with links to the validation
+    log and test file;
+  - *Runs, validation in progress* (blue, with a badge), for designs that
+    run but whose full validation run isn't recorded yet (E9–E14), with the
+    same links;
   - *Coming soon*;
   - *Not in powerkit yet: use [package]*, with a link and one line on what
-    the package does, taken from [`coverage.md`](coverage.md).
+    the package does, taken from [`coverage.md`](coverage.md);
+  - for analyses no tool offers (E30, E32, E39, E42, and Cochran's Q in
+    E26): *no ready-made tool*, with the two options, a custom simulation
+    in R (for example with Spower) or advice from a statistician. E42 also
+    says it isn't covered by the five tools powerkit builds on.
 
 Screenshots of each route are in
 [`figures/routing-prototype/`](figures/routing-prototype/).
@@ -99,6 +112,21 @@ keys, for example:
 Restart the prototype and the placeholder becomes "Maintainer decision: …".
 No code changes are needed. One setting also changes the routing: setting
 `guided_route` to `"no"` removes the "Plan my whole study" route.
+
+## Marking an end point as validated
+
+When a full validation run is recorded in `docs/validation-log.md`, flip
+the end point's status in `app/routing/tree.yaml`:
+
+```yaml
+  E9:
+    status: runs_validated              # was: runs_validation_in_progress
+    validation:
+      note: "Full run passed (date)."   # what the card says
+```
+
+Then change the same row's "Validated?" cell in `decision-tree.md` (table
+2.3) to start with "Yes". The docs-match test checks the two agree.
 
 ## Changing the tree
 
@@ -125,4 +153,7 @@ They take a few seconds and check:
 - that the app never calls the engine;
 - that `tree.yaml` matches `decision-tree.md`.
 
-These tests aren't part of the engine's `devtools::test()` or GitHub CI yet.
+They run on GitHub on every pull request and push
+(`.github/workflows/routing-prototype-tests.yaml`). That job installs only
+the prototype's packages; it doesn't install or run the engine. They
+aren't part of the engine's `devtools::test()`.

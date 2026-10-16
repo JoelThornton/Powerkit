@@ -12,8 +12,9 @@ test_that("every end-point card renders, with its status and inputs", {
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
     expect_match(html, "What you would enter", fixed = TRUE, label = id)
     expected <- switch(tree$endpoints[[id]]$status,
-      runs_validated = "Runs in powerkit.", runs_not_yet_validated = "Runs in powerkit.",
-      coming_soon = "Coming soon.", not_in_powerkit = "Not in powerkit yet: use")
+      runs_validated = "Runs in powerkit.", runs_validation_in_progress = "Runs, validation in progress.",
+      coming_soon = "Coming soon.",
+      not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
   }
 })
@@ -21,6 +22,36 @@ test_that("every end-point card renders, with its status and inputs", {
 test_that("validated cards link to the validation log", {
   html <- as.character(card_ui(tree, "E7"))
   expect_match(html, tree$links$validation_log, fixed = TRUE)
+})
+
+test_that("in-progress cards are labelled differently from validated ones", {
+  in_progress <- as.character(card_ui(tree, "E9"))
+  expect_match(in_progress, "status-in-progress", fixed = TRUE)
+  expect_match(in_progress, "Validation in progress", fixed = TRUE)
+  expect_no_match(in_progress, "status-runs\"", fixed = TRUE)
+  expect_no_match(as.character(card_ui(tree, "E7")), "status-in-progress", fixed = TRUE)
+})
+
+test_that("end points with no ready-made tool say so plainly, with the two options", {
+  text <- htmltools::htmlEscape(tree$no_ready_made_tool_text)
+  expect_match(text, "custom simulation in R", fixed = TRUE)
+  expect_match(text, "statistician", fixed = TRUE)
+  for (id in c("E30", "E32", "E39", "E42")) {
+    html <- as.character(card_ui(tree, id))
+    expect_match(html, "No ready-made tool.", fixed = TRUE, label = id)
+    expect_match(html, text, fixed = TRUE, label = id)
+  }
+  e26 <- as.character(card_ui(tree, "E26"))
+  expect_match(e26, htmltools::htmlEscape("Cochran's Q:"), fixed = TRUE)
+  expect_match(e26, text, fixed = TRUE)
+})
+
+test_that("end points outside the five tools say so", {
+  for (id in names(tree$endpoints)) {
+    if (!identical(tree$endpoints[[id]]$five_tools, "not covered")) next
+    expect_match(as.character(card_ui(tree, id)), "Not covered by the five tools", fixed = TRUE, label = id)
+  }
+  expect_match(as.character(card_ui(tree, "E42")), "Not covered by the five tools", fixed = TRUE)
 })
 
 test_that("every question screen renders with a back button", {

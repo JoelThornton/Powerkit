@@ -104,7 +104,8 @@ node_ui <- function(tree, node_id, history) {
 
 known_ui <- function(tree) {
   groups <- list(
-    "Runs in powerkit" = c("runs_validated", "runs_not_yet_validated"),
+    "Runs in powerkit (validated)" = "runs_validated",
+    "Runs, validation in progress" = "runs_validation_in_progress",
     "Coming soon" = "coming_soon",
     "Not in powerkit yet" = "not_in_powerkit"
   )
@@ -129,38 +130,59 @@ known_ui <- function(tree) {
 
 status_ui <- function(tree, ep) {
   links <- tree$links
+  validation_links <- function() tagList(
+    tags$a(href = links$validation_log, target = "_blank", "Validation log"), " · ",
+    tags$a(href = paste0(links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file))
+  )
+  package_list <- function() tags$ul(lapply(ep$packages, function(pk) {
+    tags$li(HTML(sprintf("<strong><a href=\"%s\" target=\"_blank\">%s</a></strong>: %s",
+      htmltools::htmlEscape(pk$url), htmltools::htmlEscape(pk$name), htmltools::htmlEscape(pk$what))))
+  }))
+  not_five <- if (identical(ep$five_tools, "not covered")) {
+    p(tags$strong("Not covered by the five tools"), " powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
+  }
   switch(
     ep$status,
     runs_validated = div(
       class = "status status-runs",
-      tags$strong("Runs in powerkit."), " Validated: ", ep$validation$note, " ",
-      tags$a(href = links$validation_log, target = "_blank", "Validation log"), " · ",
-      tags$a(href = paste0(links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file))
+      tags$strong("Runs in powerkit."), " Validated: ", ep$validation$note, " ", validation_links()
     ),
-    runs_not_yet_validated = div(
-      class = "status status-runs-unvalidated",
-      tags$strong("Runs in powerkit."), " ", ep$validation$note, " ",
-      tags$a(href = links$validation_log, target = "_blank", "Validation log"), " · ",
-      tags$a(href = paste0(links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file))
+    runs_validation_in_progress = div(
+      class = "status status-in-progress",
+      tags$span(class = "badge-progress", "Validation in progress"),
+      tags$strong("Runs, validation in progress."), " ", ep$validation$note, " ", validation_links()
     ),
     coming_soon = div(class = "status status-soon", tags$strong("Coming soon."), " ", ep$coming_soon_note),
-    not_in_powerkit = div(
-      class = "status status-not",
-      tags$strong("Not in powerkit yet: use ",
-        lapply(seq_along(ep$packages), function(i) {
-          pk <- ep$packages[[i]]
-          tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
-        })
-      ),
-      tags$ul(lapply(ep$packages, function(pk) tags$li(HTML(sprintf("<strong>%s</strong>: %s", htmltools::htmlEscape(pk$name), htmltools::htmlEscape(pk$what)))))),
-      p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
-    )
+    not_in_powerkit = if (isTRUE(ep$no_ready_made_tool)) {
+      div(
+        class = "status status-not",
+        tags$strong("Not in powerkit yet."),
+        not_five,
+        p(tree$no_ready_made_tool_text),
+        package_list(),
+        p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
+      )
+    } else {
+      div(
+        class = "status status-not",
+        tags$strong("Not in powerkit yet: use ",
+          lapply(seq_along(ep$packages), function(i) {
+            pk <- ep$packages[[i]]
+            tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
+          })
+        ),
+        not_five,
+        package_list(),
+        if (is.character(ep$no_ready_made_tool)) p(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text),
+        p(class = "small mb-0", "From docs/coverage.md. powerkit can't check results from other tools.")
+      )
+    }
   )
 }
 
 card_ui <- function(tree, ep_id, compact = FALSE) {
   ep <- tree$endpoints[[ep_id]]
-  runs <- ep$status %in% c("runs_validated", "runs_not_yet_validated", "coming_soon")
+  runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
   jp <- tree$justification_prompt
   div(
     class = paste("card endpoint-card", if (compact) "compact"),
@@ -203,6 +225,7 @@ guided_variables_ui <- function(tree, answers) {
     h2("Plan my whole study: your variables"),
     p(class = "lead", g$intro),
     p(class = "text-muted", g$scope_note),
+    placeholders_at(tree, "guided_variables"),
     lapply(g$variables, function(v) {
       radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(v$options)), choiceValues = names(v$options), selected = answers[[v$id]] %||% names(v$options)[1], width = "100%")
     }),
