@@ -374,17 +374,21 @@ flowchart TD
   Q2 -->|A score| Q3{"Q3 Who gives the data?"}
   Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
   Q3 -->|Different people| ME1{"ME1 What is the cause (X)?"}
-  ME1 -->|Conditions you assigned<br/>or two groups| E16["E16 Mediation<br/>with yes/no X"]
+  ME1 -->|Three or more<br/>conditions or groups| E42["E42 Multi-category X<br/>(not covered by the five tools)"]
+  ME1 -->|Conditions you assigned<br/>or two groups| ME4B{"ME4 Are your<br/>mediators scores?"}
+  ME4B -->|No| E39
+  ME4B -->|Yes| ME2B{"ME2 How many mediators?<br/>ME3 How do they connect?"}
+  ME2B -->|One, side by side<br/>or in a chain| E16["E16 Mediation<br/>with yes/no X"]
   ME1 -->|A measured score| ME4{"ME4 Are your<br/>mediators scores?"}
   ME4 -->|No| E39["E39 Yes/no or<br/>categorical mediator"]
   ME4 -->|Yes| ME2{"ME2 How many mediators?<br/>ME3 How do they connect?"}
   ME2 -->|One| E10["E10 Simple mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two or more,<br/>side by side| E11["E11 Parallel mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two to four,<br/>in a chain| E12["E12 Serial mediation<br/>(PROCESS model 6)"]
-  class Q2,Q3,ME1,ME2,ME4 q
+  class Q2,Q3,ME1,ME2,ME4,ME2B,ME4B q
   class E10,E11,E12 avail
   class E16 spec
-  class E32,E39,E41 later
+  class E32,E39,E41,E42 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -467,6 +471,7 @@ engine can use the answer today.
 | Q2 | What is your outcome like? | Score; yes/no; one of several categories; a count; a rating on a few points | `variables.Y.type`: `continuous`, `binary`, `categorical` | Yes for score, yes/no and categories. **No (flag)** for count and ordinal |
 | O5a | How will you analyse this rating? | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes. Ordered: **no (flag)**. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
 | Q3 | Who gives the data? | Different people; the same people; many items or stimuli; nested in groups; measured over time (T1: twice / three or more) | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Different and same people: yes. Stimuli, nesting, three or more times: **no (flag)** |
+| T1 | How many times is each person measured? (after "measured over time" in Q3) | Twice (for example, before and after) / three or more times | Twice: as "the same people" (`within_factor`); three or more: — | Twice: yes. Three or more: **no (flag)**, goes to E35 |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
@@ -475,11 +480,12 @@ engine can use the answer today.
 | F5 | Which result matters most for your study? | Effect of A; effect of B; the interaction | `target_test.effect`: `main_effect_A`, `main_effect_B`, `interaction` | Yes |
 | F6 | Which picture matches your prediction? (interaction) | Lines cross; one effect shrinks; one disappears (decision D6) | — | **No (flag):** the shape is used only for a warning on the form. It isn't stored, so the write-up can't mention it (open question 4) |
 | R1 | What is the other variable like? | Score; groups; several predictors | `variables.X.type` | Score / groups: yes. Several predictors: **no (flag)** |
-| MO1, MO2 | What is X? What does the effect depend on (W)? | Two conditions you assigned; two groups that exist; a score; three or more groups | `variables.X.type`, `variables.W.type`: `binary` or `continuous` | Score × score: yes. Binary: the spec accepts it but `run_spec()` refuses it until phase 3b. Three or more groups: **no (flag)**. "Assigned vs existing" isn't stored (only used for wording): **flag** |
+| MO1 | What is your main predictor (X)? | Two conditions you assigned or two groups that exist; a score; three or more groups | `variables.X.type`: `binary` or `continuous` | Score: yes. Binary: the spec accepts it but `run_spec()` refuses it until phase 3b. Three or more groups: **no (flag)**, goes to E30. "Assigned vs existing" isn't stored (only used for wording): **flag** |
+| MO2 | What does the effect depend on (the moderator, W)? | Two conditions or two groups; a score; three or more groups. Asked after either answer to MO1; with a yes/no X, "two groups" leads to the 2 x 2 factor questions | `variables.W.type`: `binary` or `continuous` | Score × score: yes. Binary: refused until phase 3b. Three or more groups: **no (flag)**, goes to E30 |
 | MO3 | Does a third variable change the interaction again? | No / yes | — | Yes → **no (flag)**, three-way not in spec |
-| ME1, MM1 | What is the cause (X)? | Conditions you assigned / a measured score | `variables.X.type` | Score: yes. Binary: refused until phase 3b. "Manipulated vs measured" (decision D9 notes) isn't stored: **flag** |
-| ME2, ME3 | How many mediators? Side by side or in a chain? | One; two or more side by side; two to four in a chain | `template`: `process_4` (mediator `M`, or `M1`–`M9`) or `process_6` (`M1`–`M4`); `variables.M*` | Yes. Parallel mediation is validated with two mediators only |
-| ME4 | Are your mediators scores? | Yes / no | `variables.M*.type = continuous` | No → **no (flag)** |
+| ME1, MM1 | What is the cause (X)? | Conditions you assigned or two groups / a measured score / (ME1 only) three or more conditions or groups | `variables.X.type` | Score: yes. Binary: refused until phase 3b. Three or more conditions (ME1): **no (flag)**, goes to E42. "Manipulated vs measured" (decision D9 notes) isn't stored: **flag** |
+| ME2, ME3 | How many mediators? Side by side or in a chain? (asked for a yes/no X too, after ME4) | One; two or more side by side; two to four in a chain | `template`: `process_4` (mediator `M`, or `M1`–`M9`) or `process_6` (`M1`–`M4`); `variables.M*` | Yes. Parallel mediation is validated with two mediators only |
+| ME4 | Are your mediators scores? (asked after either answer to ME1) | Yes / no | `variables.M*.type = continuous` | No → **no (flag)** |
 | (form) | Which indirect path is your hypothesis about? | e.g. X → M1 → M2 → Y | `target_test.path` | Yes |
 | MM2 | What does part of the process depend on (W)? | Two groups / a score | `variables.W.type` | As MO2 |
 | MM3, MM4 | How many mediators? Which link does W change? | One / more; X → M; M → Y; both; X → M and X → Y | `template`: `process_7` or `process_14` | Yes for 7 and 14. Others: **no (flag)** |
@@ -542,12 +548,12 @@ taken from coverage.md, where they are proposals.
 | E6 | Chi-square test of independence | `basic_test / chi_square_independence` | `Spower::p_chisq.test()` | Simulation | Cell probabilities (rows = X, columns = Y, summing to 1) | Yes: `test-validation-basic-tests.R` | MVP | Runs |
 | E7 | 2 x 2 between-participants ANOVA (main effect or interaction) | `factorial_anova / 2x2_between` | `Superpower::ANOVA_exact()`; `ANOVA_power()` if simulation is chosen | Exact (analytic) | Four cell means (raw or in SD units) and the SD (one, or one per cell) | Yes: `test-validation-anova-2x2-between.R` (full run passed) | MVP | Runs; sensitivity available |
 | E8 | 2 x 2 mixed ANOVA (incl. group × time) | `factorial_anova / 2x2_mixed` | As E7 (`ANOVA_exact()`, not `ANOVA_exact2()`, Departure 2) | Exact (analytic) | Four cell means, SD, correlation between the repeated measures | Yes: `test-validation-anova-2x2-mixed.R` (full run passed) | MVP | Runs; sensitivity available |
-| E9 | Moderated regression (continuous × continuous) | `regression_interaction / two_way` | `InteractionPoweR::power_interaction()`; `power_interaction_r2()` only brackets n | Simulation | Correlations r_X_Y, r_W_Y, r_XW_Y (the interaction), r_X_W; optional reliabilities | Tests written, full run not recorded: `test-validation-regression-interaction.R` | MVP | Runs |
-| E10 | Simple mediation (PROCESS model 4) | `mediation / process_4`, mediator `M` | `power4mome::power4test()` with `test_indirect_effect()`, Monte Carlo CI, batches of ≤ 200 | Simulation | Standardised paths X→M, M→Y, X→Y | Tests written, full run not recorded: `test-validation-mediation-simple.R` | MVP | Runs |
-| E11 | Parallel mediation (PROCESS model 4) | `mediation / process_4`, `M1`–`M9` | As E10 | Simulation | Standardised paths; residual correlations between mediators (free, Departure 7) | Tests written, full run not recorded: `test-validation-mediation-parallel.R` (two mediators) | MVP (two); v2 for three or more ([coverage](coverage.md)) | Runs |
-| E12 | Serial mediation (PROCESS model 6) | `mediation / process_6`, `M1`–`M4` | As E10 | Simulation | Standardised paths, every forward path | The process_6 chunk's full run on GitHub finished on 15 October 2026 with the workflow marked as succeeded ([run 38802624184](https://github.com/JoelThornton/Powerkit/actions/runs/38802624184)). Its test results are not yet recorded in the validation log: `test-validation-mediation-serial.R` | MVP | Runs |
-| E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | Tests written, full run not recorded: `test-validation-modmed-process7.R` | MVP | Runs |
-| E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | Tests written, full run not recorded: `test-validation-modmed-process14.R` | MVP | Runs |
+| E9 | Moderated regression (continuous × continuous) | `regression_interaction / two_way` | `InteractionPoweR::power_interaction()`; `power_interaction_r2()` only brackets n | Simulation | Correlations r_X_Y, r_W_Y, r_XW_Y (the interaction), r_X_W; optional reliabilities | In progress: tests written, full run not recorded: `test-validation-regression-interaction.R` | MVP | Runs |
+| E10 | Simple mediation (PROCESS model 4) | `mediation / process_4`, mediator `M` | `power4mome::power4test()` with `test_indirect_effect()`, Monte Carlo CI, batches of ≤ 200 | Simulation | Standardised paths X→M, M→Y, X→Y | In progress: tests written, full run not recorded: `test-validation-mediation-simple.R` | MVP | Runs |
+| E11 | Parallel mediation (PROCESS model 4) | `mediation / process_4`, `M1`–`M9` | As E10 | Simulation | Standardised paths; residual correlations between mediators (free, Departure 7) | In progress: tests written, full run not recorded: `test-validation-mediation-parallel.R` (two mediators) | MVP (two); v2 for three or more ([coverage](coverage.md)) | Runs |
+| E12 | Serial mediation (PROCESS model 6) | `mediation / process_6`, `M1`–`M4` | As E10 | Simulation | Standardised paths, every forward path | In progress: the process_6 chunk's full run on GitHub finished on 15 October 2026 with the workflow marked as succeeded ([run 38802624184](https://github.com/JoelThornton/Powerkit/actions/runs/38802624184)). Its test results are not yet recorded in the validation log: `test-validation-mediation-serial.R` | MVP | Runs |
+| E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | In progress: tests written, full run not recorded: `test-validation-modmed-process7.R` | MVP | Runs |
+| E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | In progress: tests written, full run not recorded: `test-validation-modmed-process14.R` | MVP | Runs |
 | E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)` (planned) | Simulation | Fully standardised correlations; groups 50/50 (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
@@ -555,31 +561,35 @@ taken from coverage.md, where they are proposals.
 | E19 | Planned contrast | — | Candidates: Superpower emmeans contrasts; pwranova `pwrcontrast()` | — | Contrast weights and means | No | v2 | Not in spec |
 | E20 | 2 x 2 within-participants ANOVA | — | Candidate: Superpower `"2w*2w"` | — | Means, SD, correlation matrix | No | v2 | Not in spec |
 | E21 | Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...) | — | Candidates: Superpower (up to three factors); pwranova (more, from partial η²) | — | Means, SDs, correlations | No | v2 for 2x3, 3x3, 2x2x2; later for the rest | Not in spec |
-| E22 | 2 x 2 ANOVA with unequal group sizes | — | None validated (decision N3: needs an independent reference) | — | — | No | v2 | Not in spec |
+| E22 | 2 x 2 ANOVA with unequal group sizes | — | Superpower documents unequal n for `ANOVA_power()` only: `ANOVA_design()` help, argument `n` ("If unequal n is entered then the design can only be passed onto ANOVA_power"), and NEWS for 0.0.3 [SP]. `ANOVA_power()` stops for designs with a within factor, so this covers 2 x 2 between, not mixed. None validated by powerkit (decision N3: needs an independent reference) | — | — | No | v2 | Not in spec |
 | E23 | ANCOVA (incl. pre–post with a baseline covariate) | — | Candidates: Superpower `ANCOVA_analytic()`; pwrss `power.f.ancova()` | — | Means, SD, covariate R² | No | v2 | Not in spec |
 | E24 | Multiple regression (R² or one coefficient) | — | Candidates: Spower `p_lm.R2()`, `p_glm()`; pwrss | — | R², or R² change | No | v2 | Not in spec |
 | E25 | One proportion against a fixed value | — | Candidate: Spower `p_prop.test()` (binomial) | — | Proportion and test value | No | v2 | Not in spec |
-| E26 | McNemar's test (same people, yes/no); Cochran's Q | — | Candidate: Spower `p_mcnemar.test()`. Cochran's Q: none found → R script export | — | Discordant proportions | No | v2 | Not in spec |
+| E26 | McNemar's test (same people, yes/no); Cochran's Q | — | Candidate: Spower `p_mcnemar.test()`. Cochran's Q: no ready-made tool (custom simulation in R, e.g. with Spower, or advice from a statistician) | — | Discordant proportions | No | v2 | Not in spec |
 | E27 | Logistic regression (yes/no outcome) | — | Candidates: Spower `p_glm(family = binomial())`; pwrss; PAMLj | — | Odds ratio or coefficients | No | v2 | Not in spec |
 | E28 | Count outcome (Poisson or negative binomial) | — | Candidates: Spower `p_glm(family = poisson())`; pwrss; WebPower | — | Rate ratio | No | v2 | Not in spec |
 | E29 | Ordinal outcome (ordered categories) | — | Candidates: Hmisc `popower()`; powertools `propodds()`; PAMLj | — | Category proportions and odds ratio | No | v2 | Not in spec |
-| E30 | Moderator with three or more groups | — | None in the backends' templates; power4mome as a general lavaan model → R script export | — | — | No | later | Not in spec |
+| E30 | Moderator with three or more groups | — | No ready-made tool: custom simulation in R (e.g. with Spower; power4mome as a general lavaan model) or advice from a statistician | — | — | No | later | Not in spec |
 | E31 | Three-way interaction | — | Candidate: InteractionPoweR `power_interaction_3way_r2()` (analytic only) | — | Correlations among x1, x2, x3, products and y | No | v2 | Not in spec |
-| E32 | Moderation or mediation with a yes/no, count or categorical outcome | — | None found as a template → R script export | — | — | No | later | Not in spec |
+| E32 | Moderation or mediation with a yes/no, count or categorical outcome | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
 | E33 | Crossed participants and stimuli | — | Candidates: simr; mixpower | — | Fixed effects and variance components | No | v2 | Not in spec |
 | E34 | Multilevel or cluster design | — | Candidates: mlmpower; PowerUpR; clusterPower; PAMLj; WebPower. A design-effect approximation is a decided option for later (decision D4) | — | ICC, cluster size, effect | No | v2 | Not in spec |
 | E35 | Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling) | — | Candidates: longpower; powRICLPM; semPower; PowerAnalysisIL | — | Model-specific | No | later | Not in spec |
 | E36 | Equivalence test (TOST) or minimum-effect test | — | Candidate: TOSTER (`power_t_TOST()` and others) | — | Equivalence bounds and the expected effect | No | v2 | Not in spec |
 | E37 | CFA, SEM model fit, measurement invariance | — | Candidates: semPower; simsem; pwrSEM | — | RMSEA or model parameters | No | later | Not in spec |
 | E38 | PROCESS models 8, 58, 59 | — | Candidate: power4mome as a general lavaan model (no template); WebPower `wp.modmed.m8()`, `m58()` | — | Standardised paths | No | v2 (build guide) | Not in spec |
-| E39 | Mediation with a yes/no or categorical mediator | — | None found → R script export | — | — | No | later | Not in spec |
+| E39 | Mediation with a yes/no or categorical mediator | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
 | E40 | Moderated mediation with two or more mediators | — | power4mome as a general lavaan model → R script export | — | Standardised paths | No | later | Not in spec |
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
+| E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 
 **For "not in spec" end points the card says so plainly.** It names the
 analysis, the tool from [coverage.md](coverage.md) that covers it, and
-whether the R script export can help. A proposed wording: *"powerkit
+whether the R script export can help. Where no tool offers the analysis
+(E30, E32, E39, E42, and Cochran's Q in E26), the card says plainly: no
+ready-made tool; the options are a custom simulation in R (for example
+with Spower) or advice from a statistician. A proposed wording: *"powerkit
 doesn't cover [analysis name] yet. [Tool] does: see [link]. powerkit
 can't check results from other tools."* The finder never routes such a
 design to a simpler test as a stand-in (decision N2's principle,
@@ -1206,7 +1216,9 @@ how the wrapped tools work.
 
    Add a spec field (for example `design_notes`), put them in
    `effect_justification.notes`, or keep them in the app only? A new field
-   is a schema change (spec version).
+   is a schema change (spec version). PP1 (randomised) and F6 (expected
+   shape) are a separate undecided setting in the routing prototype: store
+   them, show them on screen only, or drop them.
 5. **Judgement calls (section 3).** For each: ask the user, set a default
    with a recorded reason, or leave it to the user without comment?
    Specifically:
@@ -1229,7 +1241,10 @@ how the wrapped tools work.
    is not planned anywhere yet.
 8. **Bayes factors.** Ask "p-values or Bayes factors?" up front (and route
    Bayes factors to "not available"), or leave Bayesian designs to the
-   shortcut list?
+   shortcut list? Where in the tree it enters is undecided: at the start,
+   after "what do you want to find out?", among the closing questions
+   (where the prototype shows Q-bayes for now), or only in the shortcut
+   list.
 9. **`design-finder.md` status labels.** Updated in this PR: the basic
    tests, regression interactions and mediation now show **Available**;
    a yes/no X or W in moderation or mediation shows **Coming later (spec
@@ -1253,6 +1268,17 @@ how the wrapped tools work.
     for each analysis, which covariates it includes? For example, is Y0
     in the interaction and mediation models, or only in the ANCOVA? Today
     the spec can't hold covariates for any design.
+14. **What the guided route does with repeated measures, stimuli or
+    nested data.** The guided route (4.1) assumes different people, each
+    measured once. Today a study with repeated measures, many stimuli or
+    nesting is sent to "Help me choose". Keep that, extend the guided route
+    to these designs, or say up front that it covers only the simpler
+    case?
+15. **Covariates in the guided route's moderation and mediation
+    analyses.** When the user lists covariates on the variables screen,
+    should the moderation and mediation analyses leave them out (as the
+    spec does today), include them (a spec change), or ask per analysis?
+    Related to open question 13.
 
 ## Sources
 

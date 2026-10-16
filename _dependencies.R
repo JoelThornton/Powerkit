@@ -18,3 +18,9 @@ library(Superpower)
 # Tests
 library(pwr)
 library(testthat)
+
+# Routing prototype (app/routing/; no engine calls). All three are in
+# renv.lock.
+library(bslib)
+library(shiny)
+library(yaml)

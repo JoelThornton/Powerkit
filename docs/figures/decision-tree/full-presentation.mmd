@@ -48,6 +48,7 @@ flowchart LR
     d1 -->|Side by side| dE11["E11 Parallel mediation"]
     d1 -->|In a chain| dE12["E12 Serial mediation"]
     d1 -->|X is yes/no| dE16["E16 Yes/no X"]
+    d1 -->|X has 3+ groups| dE42["E42 Multi-category X"]
   end
 
   subgraph GE["E. Moderated mediation"]
@@ -85,7 +86,7 @@ flowchart LR
   class S0,Q1,a2,a3,aF1,aF2,aF4,b1,c1,d1,e1,f2,k1 q
   class aE5E6,aT,aE7,aE8,bE4,cE9,dE10,dE11,dE12,eE13,eE14,k2 avail
   class cE15,dE16,eE17,k3 spec
-  class aYN,aCO,aML,aOW,aE23,aE20,aE21,bE24,bE27,cL,eE38,QX,k4 later
+  class aYN,aCO,aML,aOW,aE23,aE20,aE21,bE24,bE27,cL,dE42,eE38,QX,k4 later
   class SC,GP,cA,f1,f3,f4 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px

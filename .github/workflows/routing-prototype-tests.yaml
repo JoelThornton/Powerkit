@@ -1,0 +1,45 @@
+# Tests for the routing prototype (app/routing/), on every pull request and
+# push. The prototype makes no engine calls, so this job installs only the
+# app's packages, not the engine or its backends. See
+# docs/routing-prototype.md.
+name: routing-prototype-tests
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  app-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # Install the packages directly; keep the repo-root renv project (for
+      # local development) out of the way, as in R-CMD-check.yaml.
+      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::shiny
+            any::bslib
+            any::yaml
+            any::htmltools
+            any::testthat
+
+      - name: Run the routing prototype's tests
+        shell: Rscript {0}
+        run: |
+          testthat::test_dir("app/routing/tests/testthat", stop_on_failure = TRUE)
