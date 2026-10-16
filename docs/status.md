@@ -45,7 +45,7 @@ fully validated. Validation runs are recorded in
     statistics training would follow it.
   - All 183 route runs reached the end points recorded for them, and a
     test keeps the recorded paths in step with the tree.
-  - It flags 14 problems, without fixing them. The main ones:
+  - It flags 15 problems, without fixing them. The main ones:
     - the guided route ignores the screening's "Twice" (F1) and has no
       outcome with several categories (F2);
     - factorial logistic regression gets "use these tools" in one route
@@ -168,7 +168,7 @@ fully validated. Validation runs are recorded in
    MorePower paper.
 5. Phase 4: script export, methods paragraph, citations and
    preregistration text.
-6. Decide what to do about the walkthrough flags (F1–F14 in
+6. Decide what to do about the walkthrough flags (F1–F15 in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).

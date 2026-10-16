@@ -10,7 +10,7 @@ For each design in [`routing-audit.md`](routing-audit.md), this page gives:
 - a note on whether the card would make sense to someone without
   statistics training.
 
-Problems are **flagged, not fixed** (F1–F14, listed first). They cover
+Problems are **flagged, not fixed** (F1–F15, listed first). They cover
 anything confusing, inconsistent between routes, or claiming more than the
 audit supports. No typos were found to fix.
 
@@ -27,7 +27,8 @@ audit supports. No typos were found to fix.
 - **Screenshots:** there is one per end card, in
   [`figures/walkthroughs/`](figures/walkthroughs/), taken from the
   end-point list. A card's text is the same whichever route reaches it;
-  only the row of answer chips above it differs.
+  only the row of answer chips above it differs. The grey dashed boxes on
+  the cards are the maintainer's undecided settings, not text for users.
 - **The answers are a judgement:** they are what a plausible user would
   click. In the guided route, where the variables screen can't describe a
   design, the user picks "None of these fit / I'm not sure" for the main
@@ -54,6 +55,7 @@ The prototype is routing only. No numbers are calculated, and a card that
 | F12 | Confusing | **Diary studies.** A within-person relationship (sleep on stressful days) goes to E35 ("measured three or more times"). E41 ("relationships measured within people") may fit better, but it isn't reachable once T1 says the measurements are over time. | [Longitudinal: diary or EMA](#diary) |
 | F13 | Confusing | **Non-inferiority.** S4 offers "equivalence or non-inferiority", but E36's card names TOST and minimum-effect tests, not non-inferiority. | [Equivalence or non-inferiority](#equivalence) |
 | F14 | Confusing | **Internal references on user-facing cards.** E5's backend line cites "Departure 5", and validated cards say "published value still to be transcribed". Neither means anything to a user. | [Binary outcome](#binary), [Fisher's exact test](#u-fisher), [Two independent samples t-test](#u-t2), [Paired t-test](#u-paired), [Correlation](#u-corr) |
+| F15 | Confusing | **The same ten closing questions on every card that runs.** "What you'd be asked next" lists the same ten questions on every card, including ones that don't apply. For example, E5 (yes/no outcome) asks about the reliability of measures and Student vs Welch. A reader can't tell which questions apply. Table 2.2 of decision-tree.md lists them for every design, which the routing prototype's PR noted as an ambiguity. | [Binary outcome](#binary), [Sequential designs with interim looks](#sequential), [Unequal variances](#unequalvar), [Attrition or missing data](#attrition), [Curvilinear effects](#curvilinear), [Non-parametric tests](#nonparam), [SEM with latent variables](#sem), [One-sample t-test](#u-onet), [One-sample median](#u-median), [Two independent samples t-test](#u-t2), [Wilcoxon–Mann–Whitney](#u-mww), [Chi-square test (two groups)](#u-chi2), [Fisher's exact test](#u-fisher), [Paired t-test](#u-paired), [Wilcoxon signed ranks](#u-wsr), [McNemar](#u-mcnemar), [Chi-square test (two or more groups)](#u-chi2b), [Factorial ANOVA](#u-factanova), [Correlation](#u-corr), [Simple linear regression](#u-slr), [Non-parametric correlation](#u-spearman), [Analysis of covariance](#u-ancova), [One-way MANOVA](#u-manova) |
 
 Already in the audit's "What's left", and confirmed by these walkthroughs:
 - curvilinear effects reaching E4;
@@ -264,7 +266,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
 
-**Flags:** [F14](#flags)
+**Flags:** [F14](#flags), [F15](#flags)
 
 <a id="count"></a>
 #### Count outcome
@@ -372,6 +374,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. The card plans a fixed sample and says nothing about interim looks. The audit lists sequential designs as a judgement call ("What's left", item 4).
 
+**Flags:** [F15](#flags)
+
 ### Extensions
 
 <a id="ancova"></a>
@@ -427,6 +431,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
 
+**Flags:** [F15](#flags)
+
 <a id="attrition"></a>
 #### Attrition or missing data
 
@@ -443,6 +449,8 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 ![E2 card](figures/walkthroughs/E2.png)
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
+
+**Flags:** [F15](#flags)
 
 <a id="curvilinear"></a>
 #### Curvilinear effects
@@ -461,7 +469,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E4:** The title is clear. "The expected correlation r" needs a little background. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. E4 is a straight-line correlation, so it doesn't fit an inverted U (audit, "What's left", item 1).
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 <a id="nonparam"></a>
 #### Non-parametric tests
@@ -480,7 +488,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. E2 is the t-test. Judgement call 3.8's placeholder shows on the card.
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 ### Specialised
 
@@ -501,7 +509,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Would the card make sense without statistics training?** **E37:** The title is clear for someone checking a questionnaire's structure. "RMSEA" is jargon. The card doesn't mention exploratory factor analysis or IRT, which can reach it. **E4:** The title is clear. "The expected correlation r" needs a little background.
 
-**Flags:** [F8](#flags)
+**Flags:** [F8](#flags), [F15](#flags)
 
 <a id="cfa"></a>
 #### CFA
@@ -651,6 +659,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them, and the status line's "no published-value test for this design yet" means little to a lay reader. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. The guided route can't describe a one-group design, so the user takes the safety net there. That fits the route's purpose (several analyses on shared variables).
 
+**Flags:** [F15](#flags)
+
 <a id="u-median"></a>
 #### One-sample median
 
@@ -668,7 +678,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E1:** The title is clear. "What you would enter" asks for Cohen's d and an SD without explaining them, and the status line's "no published-value test for this design yet" means little to a lay reader. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. E1 is the t-test. Judgement call 3.8's placeholder shows on the card. The guided route can't describe a one-group design, so the user takes the safety net there.
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 <a id="u-binom"></a>
 #### Binomial test
@@ -723,7 +733,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
 
-**Flags:** [F14](#flags)
+**Flags:** [F14](#flags), [F15](#flags)
 
 <a id="u-mww"></a>
 #### Wilcoxon–Mann–Whitney
@@ -742,7 +752,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician.
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 <a id="u-chi2"></a>
 #### Chi-square test (two groups)
@@ -761,7 +771,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card. **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
 
-**Flags:** [F2](#flags)
+**Flags:** [F2](#flags), [F15](#flags)
 
 <a id="u-fisher"></a>
 #### Fisher's exact test
@@ -780,7 +790,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow. E5 is the large-sample test. Judgement call 3.9's placeholder shows on the card.
 
-**Flags:** [F14](#flags)
+**Flags:** [F14](#flags), [F15](#flags)
 
 <a id="u-paired"></a>
 #### Paired t-test
@@ -799,7 +809,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training. **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
 
-**Flags:** [F1](#flags), [F14](#flags)
+**Flags:** [F1](#flags), [F14](#flags), [F15](#flags)
 
 <a id="u-wsr"></a>
 #### Wilcoxon signed ranks
@@ -818,7 +828,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E3:** The title is clear. "d_z" and "SD of the differences" are opaque without training. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician. **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation.
 
-**Flags:** [F1](#flags), [F6](#flags)
+**Flags:** [F1](#flags), [F6](#flags), [F15](#flags)
 
 <a id="u-mcnemar"></a>
 #### McNemar
@@ -837,7 +847,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E26:** The title is clear. "Discordant proportions" is jargon a lay reader won't follow. The Cochran's Q line (no ready-made tool) is clear. **E5:** The title is clear. The backend line says "no continuity correction, Departure 5", an internal reference a user can't follow.
 
-**Flags:** [F1](#flags)
+**Flags:** [F1](#flags), [F15](#flags)
 
 ### Three or more groups
 
@@ -894,7 +904,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E6:** The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show on this card. **E27:** "Predict a yes/no outcome" is clear. "Odds ratio or regression coefficients" needs training.
 
-**Flags:** [F2](#flags)
+**Flags:** [F2](#flags), [F15](#flags)
 
 <a id="u-rmanova"></a>
 #### One-way repeated measures ANOVA
@@ -968,6 +978,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E7:** The title is clear. "Exact (analytic)" and "cell means" assume some training.
 
+**Flags:** [F15](#flags)
+
 <a id="u-ologit"></a>
 #### Ordered logistic regression
 
@@ -1023,7 +1035,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E4:** The title is clear. "The expected correlation r" needs a little background.
 
-**Flags:** [F14](#flags)
+**Flags:** [F14](#flags), [F15](#flags)
 
 <a id="u-slr"></a>
 #### Simple linear regression
@@ -1042,6 +1054,8 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E4:** The title is clear. "The expected correlation r" needs a little background. E4's title ("two scores are related") fits, and the audit notes that the slope test is the same test as the test of r. Someone thinking "regression" may not recognise it.
 
+**Flags:** [F15](#flags)
+
 <a id="u-spearman"></a>
 #### Non-parametric correlation
 
@@ -1059,7 +1073,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E4:** The title is clear. "The expected correlation r" needs a little background. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician.
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 <a id="u-slogit"></a>
 #### Simple logistic regression
@@ -1112,7 +1126,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. **E23:** The title is clear and gives an example. "R-squared" needs explaining.
 
-**Flags:** [F4](#flags)
+**Flags:** [F4](#flags), [F15](#flags)
 
 <a id="u-mlogit"></a>
 #### Multiple logistic regression
@@ -1167,7 +1181,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Would the card make sense without statistics training?** **E2:** The title is clear. The inputs use Cohen's d, a pooled SD and "Student's or Welch's test" without explanation. **E-unsure:** Clear and plain: powerkit can't advise yet; talk to a statistician.
 
-**Flags:** [F6](#flags)
+**Flags:** [F6](#flags), [F15](#flags)
 
 <a id="u-mmreg"></a>
 #### Multivariate multiple regression
