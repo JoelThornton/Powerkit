@@ -53,9 +53,9 @@ first-hand.
 | E11 | Backend | power4mome: power4test() with test_indirect_effect() | engine/R (backend code) | sourced |
 | E12 | Status line | Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-mediation-serial.R | sourced |
 | E12 | Backend | power4mome: power4test() with test_indirect_effect() | engine/R (backend code) | sourced |
-| E13 | Status line | Full validation run passed on 16 October 2026. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-modmed-process7.R | sourced |
+| E13 | Status line | The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be … | docs/validation-log.md; engine/tests/testthat/test-validation-modmed-process7.R | sourced |
 | E13 | Backend | power4mome: power4test() with test_index_of_mome() | engine/R (backend code) | sourced |
-| E14 | Status line | Full validation run passed on 16 October 2026. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-modmed-process14.R | sourced |
+| E14 | Status line | The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be … | docs/validation-log.md; engine/tests/testthat/test-validation-modmed-process14.R | sourced |
 | E14 | Backend | power4mome: power4test() with test_index_of_mome() | engine/R (backend code) | sourced |
 | E15 | Backend | InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (planned) | docs/build-guide.md (planned backend); docs/decisions.md | sourced |
 | E15 | Coming soon | Planned next: a yes/no X or W. | docs/build-guide.md, section 8 (phase 3b) | sourced |

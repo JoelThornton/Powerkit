@@ -222,7 +222,7 @@ The finder ends on one design form, shows the path taken ("Different people · s
 | Methods paragraph | APA style; design, effect size and justification, alpha, target power, method and replications, n, software and versions; editable before copy |
 | R script | Standalone script that calls the backend package directly, with seed and `sessionInfo()`; runs without your tool |
 | Spec file | The JSON spec, re-uploadable to reproduce the run |
-| Citations | APA and BibTeX for the method and packages, from the curated `refs.bib` only |
+| Citations | APA and BibTeX for the method and packages, from the curated `refs.bib` or each package's own `citation()` only |
 | Preregistration text | Sample size section for OSF or AsPredicted |
 | Report PDF | All of the above plus plots, with the spec hash |
 
@@ -302,7 +302,8 @@ See docs/build-guide.md.
   transcribed from published sources by the maintainer. Report failures.
 - Every result records spec hash, seed, backend, R + package versions.
 - The Shiny app never computes power; it builds specs and calls the engine.
-- Citations come only from inst/citations/refs.bib. Never invent references.
+- Citations come only from inst/citations/refs.bib or a package's own citation().
+  Never invent references or write one from memory.
 - Plain-English errors for users; no stack traces in the UI.
 
 ## Conventions

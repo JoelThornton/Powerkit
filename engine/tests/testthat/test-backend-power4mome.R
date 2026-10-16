@@ -101,12 +101,35 @@ test_that("a batched run gives the same rejections as the same batches run by ha
   expect_equal(sim$nrep, sum(by_hand[2, ]))
 })
 
+test_that("with a product term, a batch's result depends only on its seed", {
+  # For PROCESS models 7 and 14, power4test() standardises the population by
+  # Monte Carlo before its iseed takes effect. Before each call was seeded,
+  # the simulated data (and so the result) depended on the random-number
+  # state left by earlier calls: here the data differed after set.seed(1)
+  # and set.seed(2).
+  spec <- validate_quietly(continuous_and_reliable(sim_spec("process_7")))
+  inputs <- power4mome_inputs(spec)
+  data_after <- function(state) {
+    set.seed(state)
+    sim <- power4mome_call(inputs, 100, 1, 7, do_the_test = FALSE)
+    as.data.frame(power4mome::pool_sim_data(sim))
+  }
+  expect_identical(data_after(1), data_after(2))
+  # Seeded calls leave the caller's random-number state alone.
+  set.seed(3)
+  before <- .Random.seed
+  power4mome_call(inputs, 100, 1, 7, do_the_test = FALSE)
+  expect_identical(.Random.seed, before)
+})
+
 test_that("the same seed and batch size give the same result on any number of cores", {
   # The batches depend only on nrep and the batch size: 10 replications in
   # batches of at most 4 are 3 batches (4, 3, 3) on 1 core or on 4 (one
   # core then idle), and 20 are 5 batches, with the same seeds. On Linux
   # and macOS the 4-core runs fork (parallel::mclapply()); on Windows they
-  # run the same batches one after another.
+  # run the same batches one after another. Skipped on CRAN, which allows
+  # at most 2 cores.
+  skip_on_cran()
   local_mocked_bindings(power4mome_batch_size = function(...) 4L)
   spec <- validate_quietly(continuous_and_reliable(sim_spec("mediation_simple")))
   backend <- route_spec(spec, seed = 7)

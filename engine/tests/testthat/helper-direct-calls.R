@@ -158,7 +158,8 @@ direct_interactionpower_simulation <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
 # power4test() keeps every replication's data, fit and draws, so memory
 # grows with nrep. Large runs are split into batches of at most
 # `batch_size` replications (as equal as possible), each an ordinary
-# power4test() call with seed seed, seed + 1, ...; only each batch's
+# power4test() call with seed seed, seed + 1, ... (both iseed and
+# set.seed()); only each batch's
 # rejections and valid replications are kept. This is the engine's
 # approach (simulate_in_chunks(), with its batch size), so both sides
 # simulate the same data sets, on any number of cores. Batches are spread
@@ -186,6 +187,10 @@ direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
   batches <- ceiling(nrep / batch_size)
   sizes <- nrep %/% batches + c(rep(1L, nrep %% batches), rep(0L, batches - nrep %% batches))
   counts <- run_in_parallel(seq_len(batches), function(i) {
+    # As in the engine: R's generator is seeded too, because for a model with
+    # a product term power4test() standardises the population by Monte Carlo
+    # before iseed takes effect.
+    set.seed(seed + i - 1)
     result <- power4mome::power4test(
       nrep = sizes[i],
       model = model,

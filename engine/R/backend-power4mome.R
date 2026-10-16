@@ -150,13 +150,24 @@ format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = 
 
 # power4test() re-evaluates parts of its own call, so arguments are given
 # as values (via do.call()), not as expressions to look up.
+#
+# The call also runs with R's random-number generator seeded (set.seed(seed)
+# first, as well as iseed = seed). For a model with a product term (PROCESS
+# models 7 and 14), power4test() standardises the population by Monte Carlo
+# (100,000 draws, power4mome's n_std) before iseed takes effect, so those
+# draws come from whatever state the generator is in. Unseeded, a call's
+# result depended on the calls before it (the check run, earlier batches)
+# and, on several cores, on how the batches were shared out. Seeded, each
+# call depends only on its own seed. iseed alone still sets the simulated
+# data sets, so models without a product term give the same results as
+# before.
 power4mome_call <- function(inputs, n, nrep, seed, ...) {
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
     list(...),
     list(iseed = seed, parallel = FALSE, progress = FALSE)
   )
-  call_backend("power4mome", quietly(do.call(power4mome::power4test, args)))
+  call_backend("power4mome", with_seed(seed, quietly(do.call(power4mome::power4test, args))))
 }
 
 # Rejections in `nrep` replications at n, and how many replications could

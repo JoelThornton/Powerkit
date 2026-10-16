@@ -1,5 +1,47 @@
 % powerkit curated references.
 %
-% The write-up and citation exports may cite ONLY entries in this file
-% (see CLAUDE.md). Entries are added and checked by the maintainer; do not
-% generate them automatically. Empty until build phase 4 (exports).
+% The write-up and citation exports cite ONLY entries in this file or a
+% package's own citation() (see CLAUDE.md). Entries are added and checked by
+% the maintainer. Never write an entry from memory: copy it from the
+% installed package's citation() (toBibtex(citation("pkg"))), and say which
+% package and version it came from.
+%
+% Keys the citations export (export_citations()) looks for. Until an entry
+% with the key exists, the export shows a placeholder in its place:
+%   powerkit                 powerkit's own paper (placeholder: the
+%                            maintainer decides how powerkit is cited)
+%   Spower_method            Spower's method paper (placeholder:
+%                            citation("Spower") 0.6.4 gives only the manual)
+%   Superpower_method        Superpower's method paper (below)
+%   InteractionPoweR_method  InteractionPoweR's method paper (below)
+%   power4mome_method        power4mome's method paper (placeholder:
+%                            citation("power4mome") 0.2.1 gives only the
+%                            manual)
+% Each package's own citation() is exported as well, from the installed
+% package, so it needs no entry here.
+
+% From citation("Superpower"), Superpower 0.2.4.1 (its only entry).
+@Article{Superpower_method,
+  doi = {10.1177/2515245920951503},
+  url = {https://doi.org/10.1177/2515245920951503},
+  year = {2021},
+  volume = {4},
+  number = {1},
+  pages = {251524592095150},
+  author = {Daniel Lakens and Aaron Caldwell},
+  title = {Simulation-Based Power Analysis for Factorial Analysis of Variance Designs},
+  journal = {Advances in Methods and Practices in Psychological Science},
+}
+
+% From citation("InteractionPoweR"), InteractionPoweR 0.2.4 (the first of
+% its two entries; the second, Castillo et al. (2026), is on when
+% interaction effects stabilise and is exported with the package citation).
+@Article{InteractionPoweR_method,
+  author = {David A. A. Baranger and Megan C. Finsaas and Brandon L. Goldstein and Colin E. Vize and Donald R. Lynam and Thomas M. Olino},
+  doi = {10.1177/25152459231187531},
+  journal = {Advances in Methods and Practices in Psychological Science},
+  title = {Tutorial: Power analyses for interaction effects in cross-sectional regressions},
+  volume = {6},
+  number = {3},
+  year = {2023},
+}
