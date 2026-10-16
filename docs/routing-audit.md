@@ -96,9 +96,9 @@ answers "a difference", "a relationship", "moderation" and "mediation".
 | SEM with latent variables | Honest card (E37, "SEM model fit") | Q1 "That a model or questionnaire structure fits" → honest card (E37). **MISROUTES** when the hypothesis is a path between latent variables: med → … → **E10** (observed-variable mediation) | **MISROUTES** (E10) | Q1's answer now names "a model with latent variables (SEM)" → **E37**. The med path is still there for people who don't recognise their model as SEM. **Judgement needed:** whether E10 with reliabilities is ever an acceptable stand-in |
 | CFA | Honest card (E37) | Honest card (E37) | Not reachable | Unchanged |
 | Measurement invariance | Honest card (E37) | Honest card (E37) | Not reachable | Unchanged |
-| Reliability or ICC | **Not reachable** | **MISROUTES**: test–retest reliability entered as a relationship reaches **E4** (power to detect r > 0, not the precision of a reliability coefficient). **Judgement needed** on the right card | Not reachable | S4 "Estimate an effect precisely" → E46 catches planning for a CI width. The rel path to E4 is still there. Listed under "What's left" |
+| Reliability or ICC | **Not reachable** | Test–retest reliability entered as a relationship: after S3's "Twice" (how a test–retest study would answer), rel reaches **E41** (relationships measured within people), not E4. Only after "Once" does it reach **E4** (power to detect r > 0, not the precision of a reliability coefficient). Corrected on 16 October 2026 from the walkthroughs (flag F11); routing unchanged. **Judgement needed** on the right card | Not reachable | S4 "Estimate an effect precisely" → E46 catches planning for a CI width. The rel path still reaches E41 after "Twice" (E4 after "Once"). Listed under "What's left" |
 | Factor analysis (exploratory) | **Not reachable** (E37 is confirmatory) | Not reachable. The nearest answer is "That a model or questionnaire structure fits" → E37 | Not reachable | Unchanged; the safety net is available |
-| IRT | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
+| IRT | **Not reachable** | Q1 "That a model fits: a questionnaire structure, or a model with latent variables (SEM)" → **E37** (the SEM and CFA card). Corrected on 16 October 2026 from the walkthroughs (flag F7). The card now says IRT designs aren't covered | Not reachable | Unchanged routing; E37 now says IRT isn't covered. The safety net is available |
 | Meta-analysis | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 | Network models | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 
@@ -195,6 +195,46 @@ study". Verdicts are as defined at the top of this page.
 - one new misroute is left: chi-square goodness-of-fit;
 - the rank-based rows (judgement call 3.8), Fisher's exact test (3.9), goodness-of-fit (3.7), MANOVA and repeated yes/no outcomes come down to judgement calls. Each is listed below, and 3.7–3.9 are in [`decision-tree.md`](decision-tree.md), section 3, with the positions, the maintainer's view and the reason each is a judgement call.
 
+## Other defensible analyses for covered end points
+
+For each end point that powerkit runs or will run (E1–E17), this table lists
+other analyses that could be defended for the same research question.
+Different analyses can need different sample sizes, so a power analysis for
+one doesn't carry over to another.
+
+**These lists are drafts, not decisions.** Which analysis a study should use
+is a judgement for the researcher, and nothing here recommends one. Some
+choices are already judgement calls in [`decision-tree.md`](decision-tree.md):
+- simple effects versus the interaction (3.4);
+- rank-based tests (3.8);
+- Fisher's exact test (3.9).
+
+**The card note is off by default.** The draft note below is written for
+the card, and it is hidden behind the setting `other_analyses_note`
+(open question 20), so the maintainer can review it first. Its wording is
+in `tree.yaml` (`other_analyses_text`), and each card's list is the
+`alternatives` field.
+
+| End point | Other defensible analyses | Draft card note |
+| --- | --- | --- |
+| E1 (One-sample t-test) | the one-sample Wilcoxon signed-rank test; the sign test | Other defensible analyses exist for this design (e.g. the one-sample Wilcoxon signed-rank test; the sign test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E2 (Independent-samples t-test (Student's; Welch's as an option)) | Student's or Welch's t-test; the Mann-Whitney test; a permutation test | Other defensible analyses exist for this design (e.g. Student's or Welch's t-test; the Mann-Whitney test; a permutation test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E3 (Paired-samples t-test) | the Wilcoxon signed-rank test; the sign test | Other defensible analyses exist for this design (e.g. the Wilcoxon signed-rank test; the sign test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E4 (Pearson correlation) | Pearson's, Spearman's or Kendall's correlation | Other defensible analyses exist for this design (e.g. Pearson's, Spearman's or Kendall's correlation), and they can need different sample sizes. Power the analysis you plan to run. |
+| E5 (Test of two proportions (z test)) | the z test with or without a continuity correction; Fisher's exact test; logistic regression | Other defensible analyses exist for this design (e.g. the z test with or without a continuity correction; Fisher's exact test; logistic regression), and they can need different sample sizes. Power the analysis you plan to run. |
+| E6 (Chi-square test of independence) | the chi-square test with or without a continuity correction (2 x 2 tables); Fisher's exact test; a likelihood-ratio (G) test | Other defensible analyses exist for this design (e.g. the chi-square test with or without a continuity correction (2 x 2 tables); Fisher's exact test; a likelihood-ratio (G) test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E7 (2 x 2 between-participants ANOVA (main effect or interaction)) | tests of the simple effects; a planned contrast | Other defensible analyses exist for this design (e.g. tests of the simple effects; a planned contrast), and they can need different sample sizes. Power the analysis you plan to run. |
+| E8 (2 x 2 mixed ANOVA (incl. group × time)) | for a before-and-after design, ANCOVA on the after score adjusting for the before score; for a before-and-after design, a t-test on change scores; a mixed model | Other defensible analyses exist for this design (e.g. for a before-and-after design, ANCOVA on the after score adjusting for the before score; for a before-and-after design, a t-test on change scores; a mixed model), and they can need different sample sizes. Power the analysis you plan to run. |
+| E9 (Moderated regression (continuous × continuous)) | a latent-variable interaction model that allows for measurement error | Other defensible analyses exist for this design (e.g. a latent-variable interaction model that allows for measurement error), and they can need different sample sizes. Power the analysis you plan to run. |
+| E10 (Simple mediation (PROCESS model 4)) | a bootstrap confidence interval; the joint-significance test; the Sobel test | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; the Sobel test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E11 (Parallel mediation (PROCESS model 4)) | a bootstrap confidence interval; the joint-significance test; testing each specific indirect effect or the total indirect effect | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; testing each specific indirect effect or the total indirect effect), and they can need different sample sizes. Power the analysis you plan to run. |
+| E12 (Serial mediation (PROCESS model 6)) | a bootstrap confidence interval; the joint-significance test; testing the full serial path or each shorter path | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; testing the full serial path or each shorter path), and they can need different sample sizes. Power the analysis you plan to run. |
+| E13 (First-stage moderated mediation (PROCESS model 7), index of moderated mediation) | conditional indirect effects at chosen values of W | Other defensible analyses exist for this design (e.g. conditional indirect effects at chosen values of W), and they can need different sample sizes. Power the analysis you plan to run. |
+| E14 (Second-stage moderated mediation (PROCESS model 14)) | conditional indirect effects at chosen values of W | Other defensible analyses exist for this design (e.g. conditional indirect effects at chosen values of W), and they can need different sample sizes. Power the analysis you plan to run. |
+| E15 (Moderated regression with a yes/no X or W) | a latent-variable interaction model that allows for measurement error | Other defensible analyses exist for this design (e.g. a latent-variable interaction model that allows for measurement error), and they can need different sample sizes. Power the analysis you plan to run. |
+| E16 (Mediation with a yes/no X) | a bootstrap confidence interval; the joint-significance test; the Sobel test | Other defensible analyses exist for this design (e.g. a bootstrap confidence interval; the joint-significance test; the Sobel test), and they can need different sample sizes. Power the analysis you plan to run. |
+| E17 (Moderated mediation with a yes/no X or W) | conditional indirect effects for each group | Other defensible analyses exist for this design (e.g. conditional indirect effects for each group), and they can need different sample sizes. Power the analysis you plan to run. |
+
 ## What's left
 
 **Fixed in this PR** (tested in `app/routing/tests/testthat/test-misroutes.R`):
@@ -234,7 +274,8 @@ don't define:
 
 1. **Curvilinear effects:** rel → … → E4. Is the right card E24 (regression
    with a quadratic term) or a generic card?
-2. **Reliability or ICC planning** entered as a relationship: → E4.
+2. **Reliability or ICC planning** entered as a relationship: → E41 after
+   S3's "Twice" (how a test–retest study would answer), or E4 after "Once".
 3. **Non-parametric tests:** reach the t-tests. Now judgement call 3.8 (see item 10).
 4. **Sequential designs:** reach fixed-sample end points. Is that a
    misroute?
@@ -278,5 +319,8 @@ don't define:
    Whether decision D1 (a rating may be analysed as a score) applies beyond
    differences is still open.
 
-Exploratory factor analysis, IRT, meta-analysis and network models reach no
-end point. The safety net now gives them an honest exit on every screen.
+Meta-analysis and network models reach no end point. IRT reaches E37
+through Q1's "a questionnaire structure" answer (E37 now says IRT isn't
+covered), and that answer is also the nearest one for exploratory factor
+analysis. The safety net now gives all of them an
+honest exit on every screen.

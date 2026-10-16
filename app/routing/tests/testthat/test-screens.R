@@ -109,3 +109,74 @@ test_that("the prototype never calls the engine or a power function", {
     expect_false(grepl(pattern, code, fixed = TRUE), label = pattern)
   }
 })
+
+test_that("each card lists only the closing questions that apply to it", {
+  e5 <- as.character(card_ui(tree, "E5"))
+  expect_no_match(e5, "how reliable your measures are", fixed = TRUE)
+  expect_no_match(e5, "Which version of the test?", fixed = TRUE)
+  expect_match(e5, "Does your hypothesis predict a direction?", fixed = TRUE)
+  e9 <- as.character(card_ui(tree, "E9"))
+  expect_match(e9, "how reliable your measures are", fixed = TRUE)
+  expect_no_match(e9, "Does your hypothesis predict a direction?", fixed = TRUE)
+  e2 <- as.character(card_ui(tree, "E2"))
+  expect_match(e2, "Student&#39;s or Welch&#39;s t-test.|Student's or Welch's t-test.")
+  e7 <- as.character(card_ui(tree, "E7"))
+  expect_match(e7, "All three are available for this design.", fixed = TRUE)
+  expect_match(e5, "isn&#39;t available for this design yet|isn't available for this design yet")
+})
+
+test_that("every technical term in 'What you would enter' has a plain-English hint beside it", {
+  jargon <- c("Cohen", "d_z", "\\bSD", "correlation", "cell", "reliab", "standardised", "Monte Carlo", "residual",
+    "indirect", "contrast", "adjusted", "covariate", "R-squared", "discordant", "odds", "coefficient", "rate ratio",
+    "product", "fixed effects", "variance", "ICC", "cluster", "equivalence", "RMSEA", "breakpoint", "autocorrelation",
+    "prior", "mediator", "predictor", "interaction", "factor", "\\bCI\\b", "parameters", "Welch")
+  for (id in names(tree$endpoints)) {
+    for (input in tree$endpoints[[id]]$inputs) {
+      hits <- jargon[vapply(jargon, function(j) grepl(j, input, ignore.case = TRUE, perl = TRUE), logical(1))]
+      if (length(hits) == 0) next
+      expect_gt(length(glossary_for(tree, input)), 0, label = paste(id, input))
+    }
+  }
+  html <- as.character(card_ui(tree, "E26"))
+  expect_match(html, "<dfn>discordant proportions</dfn>", fixed = TRUE)
+})
+
+test_that("hints explain terms and never suggest a value to choose", {
+  for (g in tree$glossary) {
+    expect_no_match(g$hint, "\\b(small|medium|large|typical)\\b|usually choose|we recommend|should be|default", label = g$term)
+  }
+})
+
+test_that("the note on other defensible analyses is off until the maintainer turns it on", {
+  covered <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon"), tree$endpoints))
+  expect_setequal(names(Filter(function(e) !is.null(e$alternatives), tree$endpoints)), covered)
+  expect_null(setting_by_key(tree, "other_analyses_note")$value)
+  for (id in covered) expect_no_match(as.character(card_ui(tree, id)), "Other defensible analyses exist", fixed = TRUE, label = id)
+  t2 <- tree
+  for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "other_analyses_note") t2$settings[[i]]$value <- "show"
+  for (id in covered) {
+    html <- as.character(card_ui(t2, id))
+    expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
+    expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
+  }
+  expect_no_match(as.character(card_ui(t2, "E28")), "Other defensible analyses exist", fixed = TRUE)
+})
+
+test_that("the safety-net card says what to write down for a statistician, using the screening answers", {
+  html <- as.character(card_ui(tree, "E-unsure"))
+  expect_match(html, "What to write down for a statistician", fixed = TRUE)
+  for (it in tree$safety_net$prepare$items) expect_match(html, htmltools::htmlEscape(it$label), fixed = TRUE)
+  expect_match(html, "not answered yet", fixed = TRUE)
+  history <- list(
+    list(node = "s1", answer = "A score or scale", ctx = list()),
+    list(node = "s2", answer = "Independent people", ctx = list(outcome = "score")),
+    list(node = "s3", answer = "Once", ctx = list(outcome = "score")),
+    list(node = "s4", answer = "Detect an effect", ctx = list(outcome = "score", times = "once")),
+    list(node = "q1", answer = tree$safety_net$label, ctx = list(outcome = "score", times = "once"))
+  )
+  html <- as.character(card_ui(tree, "E-unsure", history = history))
+  for (a in c("A score or scale", "Independent people", "Once", "Detect an effect")) expect_match(html, a, fixed = TRUE)
+  expect_no_match(html, "not answered yet", fixed = TRUE)
+  expect_match(html, "Where nothing fitted", fixed = TRUE)
+  expect_match(html, htmltools::htmlEscape(tree$nodes$q1$text), fixed = TRUE)
+})

@@ -17,6 +17,8 @@ library(Superpower)
 
 # Tests
 library(pwr)
+library(pwrss)   # pwrss and simsem: the mediation_crosscheck validation chunk
+library(simsem)
 library(testthat)
 
 # Routing prototype (app/routing/; no engine calls). All three are in

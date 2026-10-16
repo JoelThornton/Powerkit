@@ -572,6 +572,45 @@ are different analyses, and the app keeps them apart:
   keeps the two apart. Where this document quotes another tool's label,
   it says so.
 
+### Closing questions by card
+
+The full list of closing questions is in table 2.2 (the "Every design"
+rows). Each card asks only the ones that apply to its design, following
+that table's "Engine can use it?" column:
+- reliability (Q-rel) only for regression interactions with scores (E9).
+  Not E15: misclassification in a yes/no X or W is a different problem
+  from unreliable scores (maintainer decision, 16 October 2026; see
+  `decisions.md`);
+- a direction (Q-dir) only for the basic tests except chi-square;
+- a test version (Q-test) only where there is a choice: Student's or
+  Welch's t-test (E2), or exact or simulation (E7, E8).
+
+Q-goal's note differs by card, because the smallest detectable effect is
+available only for the 2 x 2 designs. Cards for designs powerkit doesn't
+run don't list closing questions. `app/routing/tree.yaml`
+(`closing_questions`, `applies_to`) holds the same table, and a test keeps
+the two in step.
+
+| Card | Q-rel | Q-dir | Q-test | Q-goal | Q-alpha | Q-power | Q-effect | Q-attr | Q-multi | Q-bayes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E2 | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E3 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E4 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E5 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E6 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E7 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E8 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E9 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E10 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E11 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
 ### 2.3 End points
 
 Validation status is from [`coverage.md`](coverage.md) and
@@ -1305,7 +1344,7 @@ all three marked primary and "each stands alone":
 | Card | Standard name | Inputs still needed | Backend (candidate where not built) | Status today |
 | --- | --- | --- | --- | --- |
 | H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
-| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised); reliabilities | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
+| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
 | H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
 | Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
 
@@ -1487,6 +1526,12 @@ how the wrapped tools work.
 19. **Matched pairs.** S2's "Pairs" leads to the dyadic card (E44). A
     matched-pairs design analysed with a paired t-test might belong at
     E3 instead. Should S2 tell the two apart?
+20. **A note on other defensible analyses.** Covered cards could say:
+    "Other defensible analyses exist for this design (e.g. ...), and they
+    can need different sample sizes. Power the analysis you plan to run."
+    The drafts, with each card's list, are in
+    [routing-audit.md](routing-audit.md), "Other defensible analyses". Show
+    the note on the cards, or not? (It is off while undecided.)
 
 ## Sources
 

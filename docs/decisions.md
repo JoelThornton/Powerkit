@@ -1316,3 +1316,76 @@ written from memory. CLAUDE.md and the build guide now say so. In practice:
   method-paper keys stay placeholders; powerkit's own citation is a
   placeholder until the maintainer decides how powerkit is cited. A test
   checks every refs.bib entry's DOI against its package's `citation()`.
+
+## 2026-10-16 · Why power4mome for mediation and moderated mediation
+
+**Why it is used.** powerkit runs simple, parallel and serial mediation
+and first- and second-stage moderated mediation (PROCESS models 4, 6, 7
+and 14) through power4mome:
+
+- **It is built on established packages.** Its own DESCRIPTION says it
+  fits models with lavaan (Rosseel, 2012) or multiple regression and uses
+  manymome (Cheung and Cheung, 2024) to specify and test the indirect and
+  conditional indirect paths. Both papers are what `citation("lavaan")`
+  and `citation("manymome")` give; they are listed in the citations
+  export's "software used".
+- **It is actively maintained.** The `power4mome.bz` bug powerkit
+  reported on 13 October 2026 was confirmed and fixed on GitHub the next
+  day (`docs/conventions.md`, Departure 8). Its CRAN release, 0.2.1, was
+  published on 24 March 2026 (its DESCRIPTION).
+- **It fits the designs.** It covers mediation and moderated mediation
+  with observed variables, Monte Carlo and bootstrap confidence intervals,
+  and the index of moderated mediation (`test_index_of_mome()`). It also
+  has binary exogenous variables through `x_fun`, which phase 3b needs.
+
+**Established alternatives** (listed neutrally; none is ruled out):
+
+- **simsem** (Pornprasertmanit, Miller, Schoemann and Jorgensen; CRAN
+  0.5-17, published 2 April 2025): "an easy framework for Monte Carlo
+  simulation in structural equation modeling", including power analysis
+  (its DESCRIPTION). General-purpose: the user writes the generating and
+  analysis models.
+- **pwrss** (Bulus and Jentschke; CRAN 1.3.3, published 14 October
+  2026): power for many common tests, including the indirect effect in
+  simple mediation (`power.z.mediation()`: Sobel-type z tests, the joint
+  test and a Monte Carlo interval test) from normal-theory formulas,
+  without simulating data.
+- **Mplus**: commercial SEM software with a Monte Carlo simulation
+  facility often used for mediation power analysis. **Unsourced**: not
+  checked against Mplus's documentation here.
+
+Some statisticians would prefer longer-established tools, such as Mplus
+or simsem, to power4mome. That is a reasonable position, and powerkit
+doesn't argue it away with power4mome's reputation or its authors'.
+**The evidence relied on is the cross-check:**
+power4mome's results for simple mediation are compared with pwrss and
+simsem in the `mediation_crosscheck` validation chunk
+(`docs/validation-log.md`, "Independent cross-check for mediation").
+Until that chunk has passed, power4mome is validated only against
+itself (direct calls) and Type I error. The cross-check covers simple
+mediation only; parallel, serial and moderated mediation have no
+independent check yet.
+
+## 2026-10-16 · Routing prototype: maintainer decisions from PRs #21 and #22
+
+Three items those PRs left for the maintainer, decided on 16 October 2026.
+App and docs only; the engine is unchanged.
+
+- **E15 (moderated regression with a yes/no X or W) doesn't ask the
+  reliability question (Q-rel).** This is an exception to "reliability for
+  regression interactions" in `decision-tree.md` ("Closing questions by
+  card"). **Reason:** misclassification in a 0/1 variable is a different
+  problem from unreliable scores, so a reliability coefficient isn't the
+  right input for it. Q-rel stays on E9 (both X and W scores). The engine's
+  spec still accepts `variables.*.reliability` for regression interactions
+  of any type; whether it should refuse it for a binary X or W is for the
+  engine, not this change. The worked example's H2 row (moderated
+  regression with a yes/no condition) no longer lists reliabilities.
+- **Flag F11 (test–retest reliability):** the routing audit now says that
+  a test–retest study entered as a relationship reaches E41 after S3's
+  "Twice", and E4 only after "Once". Routing unchanged.
+- **Flag F7 (IRT):** the routing audit now says IRT reaches E37 through
+  Q1's "a questionnaire structure" answer. E37 gains one line: "This card
+  is about confirmatory factor analysis (CFA) and structural equation
+  models (SEM). Item response theory (IRT) designs aren't covered."
+  Routing unchanged.

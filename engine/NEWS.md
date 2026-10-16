@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* Validation (for maintainers): a new `mediation_crosscheck` chunk
+  (`scripts/run-validation.R --only mediation_crosscheck`, and the
+  `full-validation` workflow) compares simple mediation with two tools
+  written independently of power4mome: pwrss's `power.z.mediation()`
+  (Monte Carlo interval and joint tests) and simsem (joint test). pwrss and
+  simsem are new Suggests, used only by this chunk. The tolerance rule is
+  in docs/validation-log.md.
+
 * New `export_script(spec, result, file)` writes a standalone R script that
   reproduces a result by calling the package that computed it (Spower,
   Superpower, InteractionPoweR or power4mome) directly, with your values

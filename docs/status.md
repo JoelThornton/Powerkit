@@ -51,6 +51,26 @@ fully validated. Validation runs are recorded in
   is defined at the top of the [validation log](validation-log.md).
 - **Validation in progress:** moderated mediation, PROCESS models 7 and 14
   (E13, E14): rerun needed after the seeding fix (above).
+- **Independent cross-check for mediation (draft PR, 16 October 2026; not
+  run yet).** The mediation validation so far compares powerkit with
+  direct power4mome calls, which checks the wrapping but not power4mome
+  itself. A new validation chunk, `mediation_crosscheck`, compares simple
+  mediation with two independently written tools:
+  - powerkit's Monte Carlo CI against pwrss's Monte Carlo interval test;
+  - the joint-significance test in power4mome against simsem and against
+    pwrss.
+
+  pwrss and simsem are in Suggests and renv.lock. The tolerance rule is in
+  the [validation log](validation-log.md); its 0.02 allowance for the
+  normal-theory comparisons is proposed, for the maintainer to confirm.
+  Only a smoke test (100 replications) has run locally; the chunk itself
+  is to be run on GitHub. Why power4mome is used, and its established
+  alternatives, are in [decisions](decisions.md), 16 October 2026.
+- **Drafts for the maintainer:** a message to Shu Fai Cheung (power4mome)
+  in [`upstream-questions.md`](upstream-questions.md) (seeding with product
+  terms; multi-category X), not sent; and the statistical decisions phase
+  3b needs before coding, in [`phase-3b-questions.md`](phase-3b-questions.md)
+  (options and what the backends' docs say; nothing chosen).
 - **Waiting on published values:** several validation tests still have
   `TODO_PUBLISHED_VALUE` placeholders (including the G*Power published
   examples for basic tests), to be transcribed by the maintainer.
@@ -66,6 +86,23 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **Card content and usability (draft PR, 16 October 2026; builds on the
+  routing fixes):**
+  - each card asks only the closing questions that apply to it, with a
+    table in [`decision-tree.md`](decision-tree.md);
+  - every technical term in "What you would enter" has a plain-English
+    hint, collected in [`glossary.md`](glossary.md);
+  - other defensible analyses for each covered card are drafted in
+    [`routing-audit.md`](routing-audit.md), with a card note that stays off
+    until decided (open question 20);
+  - every factual claim on a card has its source recorded in
+    [`card-sources.md`](card-sources.md). 51 claims are unsourced,
+    including the 42 glossary definitions;
+  - the safety-net card lists what to write down for a statistician;
+  - an accessibility pass (axe-core: no violations on ten screens at
+    desktop and phone width; focus moves to each new screen). What wasn't
+    checked is listed in [`routing-prototype.md`](routing-prototype.md);
+  - walkthroughs re-run, with before/after notes for every changed card.
 - **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
   - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
     and the wording of F10;
@@ -211,21 +248,26 @@ fully validated. Validation runs are recorded in
 3. Binary X and W in regression interactions and mediation (phase 3b,
    build guide section 8). It comes next after phase 3 closes, before
    phase 4. The maintainer has decided its effect-size convention, group
-   split and handling of correlated predictors.
-4. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
+   split and handling of correlated predictors. The decisions still open
+   before coding are listed in [`phase-3b-questions.md`](phase-3b-questions.md).
+4. Run the `mediation_crosscheck` chunk on GitHub, confirm its tolerance
+   allowance, and consider independent cross-checks for parallel, serial
+   and moderated mediation. Send (or edit) the draft message to Shu Fai
+   Cheung in [`upstream-questions.md`](upstream-questions.md).
+5. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
    its G*Power and MorePower rows against the G*Power manual and the
    MorePower paper.
-5. The rest of phase 4: the methods paragraph and preregistration text;
+6. The rest of phase 4: the methods paragraph and preregistration text;
    the method-paper and powerkit entries in `engine/inst/citations/refs.bib`
    (the maintainer adds them); and, once phase 3b lands, scripts for
    binary X and W. After PR #20 is merged, rerun the process_7 and
    process_14 validation chunks on GitHub and mark E13 and E14 validated
    again if they pass.
-6. Decide what to do about the walkthrough flags (F1–F15 in
+7. Decide what to do about the walkthrough flags (F1–F15 in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).
-7. Phase 5: the Shiny app, starting from the routing prototype's
+8. Phase 5: the Shiny app, starting from the routing prototype's
    `app/routing/tree.yaml` and guided by [`decision-tree.md`](decision-tree.md)
    and [`design-finder.md`](design-finder.md), once the maintainer has
    answered their open questions.

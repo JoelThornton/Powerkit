@@ -58,3 +58,45 @@ test_that("every setting that cites an open question names one that exists in de
     }
   }
 })
+
+test_that("the closing questions each card asks match decision-tree.md, 'Closing questions by card'", {
+  rows <- table_rows(read_doc("decision-tree.md"), "### Closing questions by card", "### 2.3 End points")
+  header <- rows[[1]]
+  qids <- header[-1]
+  expect_identical(qids, vapply(tree$closing_questions, function(q) q$doc_id, character(1)))
+  cards <- character()
+  for (r in rows[-1]) {
+    id <- r[1]
+    cards <- c(cards, id)
+    asked <- vapply(closing_questions_for(tree, id), function(q) q$doc_id, character(1))
+    expect_identical(qids[r[-1] == "✓"], asked, label = id)
+  }
+  with_questions <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon"), tree$endpoints))
+  expect_setequal(cards, with_questions)
+})
+
+test_that("docs/glossary.md lists exactly the glossary in tree.yaml, and every term is used on a card", {
+  lines <- strsplit(read_doc("glossary.md"), "\n", fixed = TRUE)[[1]]
+  lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Term |")]
+  rows <- lapply(lines, split_row)
+  expect_identical(vapply(rows, `[`, "", 1), vapply(tree$glossary, function(g) g$term, character(1)))
+  expect_identical(vapply(rows, `[`, "", 2), vapply(tree$glossary, function(g) g$hint, character(1)))
+  inputs <- unlist(lapply(tree$endpoints, function(e) e$inputs))
+  for (g in tree$glossary) expect_true(any(grepl(g$pattern, inputs, ignore.case = TRUE, perl = TRUE)), label = g$term)
+})
+
+test_that("docs/card-sources.md has rows for every card that states facts", {
+  lines <- strsplit(read_doc("card-sources.md"), "\n", fixed = TRUE)[[1]]
+  lines <- lines[startsWith(lines, "| ") & !startsWith(lines, "| ---") & !startsWith(lines, "| Card |")]
+  rows <- lapply(lines, split_row)
+  cards <- vapply(rows, `[`, "", 1)
+  statuses <- vapply(rows, `[`, "", 5)
+  expect_true(all(statuses %in% c("sourced", "partly sourced", "unsourced", "no claim")))
+  for (id in names(tree$endpoints)) {
+    e <- tree$endpoints[[id]]
+    states_facts <- !is.null(e$packages) || !is.null(e$card_points) || !is.null(e$validation) || !is.null(e$backend) ||
+      (!is.null(e$card_text) && id != tree$safety_net$endpoint)
+    if (states_facts) expect_true(id %in% cards, label = id)
+  }
+  for (g in tree$glossary) expect_true(any(grepl(paste0("Hint: ", g$term), lines, fixed = TRUE)), label = g$term)
+})
