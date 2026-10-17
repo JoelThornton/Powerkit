@@ -156,18 +156,50 @@ comes from, and expected attrition).
   not a number, out of range), naming each by its label. It then builds a
   design spec and checks it with the engine's `validate_spec()`, showing
   the engine's messages with the screen's field names in place of spec
-  paths. **No power is calculated**: a valid spec shows a "Calculation not
-  wired in yet" panel with the spec as JSON.
+  paths.
+- **E1–E8 calculate** (phase 5, part 1; draft, needs the maintainer's
+  yes): a valid spec goes to the engine's `run_spec()` and the screen
+  shows the result. **E9–E14 don't calculate yet**: a valid spec shows a
+  "Calculation not wired in yet" panel with the spec as JSON (plan:
+  [`phase5-simulations.md`](phase5-simulations.md)).
 - **Copy my answers** copies the route taken, the end point and the values
   entered as plain text, to share with a colleague. The text is also shown
   in a box, in case the browser blocks copying.
 - The screens are described in `app/routing/forms.yaml`; the logic is in
   `R/forms.R` and the screen in `R/forms_ui.R`.
 
+### The result screen (E1–E8)
+
+- **The number in plain English**, matching what the user asked for: the
+  required N (with the size per group or per cell), the power at the given
+  N, or the smallest detectable effect (E7, E8). Simulated results give
+  their 95% interval or Monte Carlo standard error. A fixed line says
+  this is planned power, not "observed power".
+- **The inputs it used** (the values entered), **the backend credited by
+  name** with its version and the function powerkit called, the **validation
+  status** (green "Validated" or "Validation in progress", with the card's
+  validation note), and **where powerkit differs from the tool's defaults**
+  (the card's departures, from `conventions.md`).
+- **Download R script** (the engine's `export_script()`: reproduces the
+  result with the backend package alone) and **Citations**
+  (`export_citations()`).
+- **The methods paragraph** is a placeholder.
+- A reproducibility record (backend, method, seed, spec hash, R and
+  package versions, check run, run time) and the spec that was run.
+- The app draws a seed for each calculation and writes it into the spec,
+  so the result and its script can be reproduced.
+- Undecided, shown as placeholders on the screen: how results are worded
+  (`result_wording`), how N is rounded and reported (`n_rounding`), and
+  whether to show a power curve (`power_curve`), and which seed a
+  calculation uses (`calculation_seed`); `judgement-calls.md` B11–B13
+  and B15.
+- The logic is in `R/results.R`.
+
 **The engine is used read-only.** The prototype uses the installed
 `powerkit` package if there is one, or loads `engine/` with
 `pkgload::load_all()` (about 5 seconds, once per session). It calls only
-`validate_spec()`. Where neither is available, the screen says the spec
+`validate_spec()`, `run_spec()` (E1–E8), `export_script()` and
+`export_citations()`; it never computes power itself. Where neither is available, the screen says the spec
 couldn't be checked, and the tests that need the engine are skipped
 locally. **On GitHub the app-tests job installs the engine** (from
 `engine/`, with the package versions in `renv.lock`), so those tests run

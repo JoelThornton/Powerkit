@@ -182,7 +182,7 @@ methods paragraph, and covered by a test showing the size of the difference
   that Sommet et al.'s formula reproduces their published N from the spec's
   effect, and that powerkit's exact N is 260 / 1,028 and at least the
   published N.
-- **Shown to users / in the methods paragraph:** to do (build phases 4–5).
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 2. Mixed designs: `ANOVA_exact()`, not `ANOVA_exact2()`
 
@@ -222,7 +222,7 @@ methods paragraph, and covered by a test showing the size of the difference
   Table 5.4). **There is no test yet that shows the `ANOVA_exact2()` values
   above**, which CLAUDE.md now requires; it belongs in `engine/tests/` (to
   do).
-- **Shown to users / in the methods paragraph:** to do (build phases 4–5).
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 3. `ANOVA_exact()` is run under the run's seed
 
@@ -239,6 +239,7 @@ methods paragraph, and covered by a test showing the size of the difference
 - **Size:** about 1e-15 in power, so this has no practical effect.
 - **Test:** `engine/tests/testthat/test-run-spec.R`, "exact results are
   reproducible bit for bit and leave the RNG alone".
+- **Shown to users / in the methods paragraph:** shown on the result screen for E7 and E8 (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 4. One-sided basic tests (retired 17 October 2026: Spower 0.7 has the fix)
 
@@ -300,7 +301,7 @@ kept so later departures keep theirs.
 - **Test:** `test-backend-spower.R`, "departure: no continuity correction,
   unlike Spower's default (correct = TRUE)", which also checks that
   powerkit's run equals the uncorrected value.
-- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 6. Mediation fits: lavaan maximum likelihood, not PROCESS's OLS
 

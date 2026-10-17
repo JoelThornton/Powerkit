@@ -47,7 +47,7 @@ The statistical decisions phase 3b needs before coding are in
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
-- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B10
+- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B15
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
@@ -599,6 +599,106 @@ is kept below as the record of the options.
     each labelled with its source (not effect sizes).
 - **Recorded in:** setting `effect_size_inputs` (shown on the input
   screens).
+
+### B11. How results are worded
+
+- **Question:** the result screen (E1–E8, phase 5 part 1) gives the
+  number in a sentence. Keep the draft wording, or change it?
+  - Draft for a sample size: "You need 206 participants in total (103 per
+    group) for 80% power to detect the effect you entered, with a
+    two-sided test at alpha = .05."
+  - Draft for power: "With 120 participants in total (60 per group), the
+    study has 61% power: if the true effect is the one you entered, about
+    61 in 100 studies like this would give a significant result …"
+  - Every result adds: "This is planned power for the effect you entered,
+    before the study is run. It is not "observed power" calculated from a
+    finished study's results, which says nothing beyond the study's
+    p-value."
+- **Options:** keep the draft; a shorter number-first wording; other
+  wording.
+- **What tools and sources do:** not yet checked against a source for
+  this entry (unsourced). The "observed power" line states the build
+  guide's intent; it cites no reference, and the claim that observed
+  power "says nothing beyond the p-value" needs a source from `refs.bib`
+  before release (unsourced).
+- **Who might disagree, and why:**
+  - A sentence is easier to read and to copy into a methods section.
+  - A number first is quicker to scan.
+  - Some find the "observed power" line unnecessary for planning.
+- **Knock-on effects:** the methods paragraph (still a placeholder); the
+  wording of the same numbers in the exported script's comments.
+- **Recorded in:** setting `result_wording` (shown on the result screen).
+
+### B12. Rounding of N
+
+- **Question:** how is the required N rounded and reported?
+- **Now:** the engine gives the smallest total N in steps that keep groups
+  whole (even totals for two equal groups; multiples of 4 for a 2 x 2
+  between design; with an allocation ratio, steps that keep both groups
+  whole). The screen adds the size per group (or per cell). Nothing is
+  rounded on the screen itself.
+- **Options:** total and per group (as now); total only; per group first.
+- **What tools and sources do:** G\*Power reports both a total and group
+  sizes (unsourced here; to check in its manual).
+- **Who might disagree, and why:** per-group numbers are what a recruiter
+  plans with; the total is what a preregistration usually states.
+- **Knock-on effects:** attrition (the recruitment target is reported
+  separately once attrition is wired in).
+- **Recorded in:** setting `n_rounding` (shown on the result screen).
+
+### B13. A power curve
+
+- **Question:** should the result screen show a power curve (power
+  against N)?
+- **Now:** no curve; the number only. For a simulated sample size the
+  engine already returns the points it simulated.
+- **Options:** no curve; a table of the computed points; a plot.
+- **What tools and sources do:** G\*Power can plot power against N
+  (unsourced here; to check in its manual).
+- **Who might disagree, and why:** a curve shows how sensitive the N is to
+  the target power, but simulated points are noisy and can look jagged.
+- **Knock-on effects:** for simulated results, a curve needs more
+  simulated sample sizes than the search uses.
+- **Recorded in:** setting `power_curve` (shown on the result screen).
+
+### B14. The prototype banner, now that E1–E8 calculate
+
+- **Question:** the banner says "Prototype: shows which analysis you need;
+  it doesn't calculate anything yet.", and each card ends "No numbers are
+  calculated in this prototype." Both are now out of date for E1–E8,
+  which calculate on their input screen. The banner was left unchanged
+  (the maintainer's instruction that it stays).
+- **Options:** keep both as they are; change the banner to say that some
+  analyses calculate; change the card line only on E1–E8.
+- **Who might disagree, and why:** an accurate banner avoids confusing
+  testers; an unchanged banner keeps expectations low while results are
+  under review.
+- **Recorded in:** this entry only (no setting).
+
+### B15. The seed for a calculation
+
+- **Question:** which random-number seed does a calculation on the result
+  screen use?
+- **Now:** a new random seed each time. It's recorded in the spec that was
+  run, in the reproducibility record and in the R script, so any one
+  result can be reproduced exactly. But the same answers entered twice
+  can give slightly different simulated results. In the screenshots for
+  this PR, E2's required N came out as 196, 198 and 200 on three runs.
+  That's Monte Carlo noise within the reported 95% interval.
+- **Options:**
+  - a new random seed each time (as now);
+  - a fixed default seed, so the same answers always give the same
+    result;
+  - ask the user, with a default.
+- **What tools and sources do:** not checked for this entry (unsourced).
+- **Who might disagree, and why:**
+  - A fixed seed avoids confusion when a user reruns and sees a different
+    N.
+  - A random seed avoids treating one simulated draw as exact.
+- **Knock-on effects:** exact results (E7, E8) don't depend on the seed in
+  practice (Departure 3).
+- **Recorded in:** setting `calculation_seed` (shown on the result
+  screen).
 
 ## C. Which card users reach
 

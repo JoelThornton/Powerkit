@@ -101,7 +101,7 @@ test_that("every MVP capability in coverage.md appears in the app", {
 })
 
 test_that("every setting is either undecided or set to one of its options, and appears somewhere", {
-  screens <- c("start", "card", "plan", "guided_variables", "form", names(Filter(Negate(is_automatic), tree$nodes)), names(tree$endpoints))
+  screens <- c("start", "card", "plan", "guided_variables", "form", "result", names(Filter(Negate(is_automatic), tree$nodes)), names(tree$endpoints))
   for (s in tree$settings) {
     expect_true(is.null(s$value) || s$value %in% names(s$options), label = s$key)
     expect_gt(length(s$options), 0, label = s$key)
