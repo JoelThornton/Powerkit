@@ -6,10 +6,11 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
 [`validation-log.md`](validation-log.md).
 
+For a short summary and the working rules, see [`handover.md`](handover.md).
+
 ## Where things are
 
-- **G\*Power parity and E4/E5 methods (17 October 2026; docs only,
-  waiting for the maintainer).** [`gpower-parity.md`](gpower-parity.md)
+- **G\*Power parity and E4/E5 methods (PR #37, merged 17 October 2026; docs only).** [`gpower-parity.md`](gpower-parity.md)
   compares E1–E14 with the matching G\*Power tests (inputs, outputs and
   the effect-size calculator). pwr's Fisher's z method for E4 differs
   from the exact method by at most 0.004 in power (1 participant at
@@ -17,6 +18,16 @@ fully validated. Validation runs are recorded in
   (3 per group). Three new judgement calls (G4–G6): what the methods
   paragraph reports, showing actual power at the rounded N, and the E4/E5
   method. G\*Power screenshots are needed to confirm the marked items.
+- **Phase 5, part 2: E9 (interaction) calculates in the app (PR #36,
+  merged 17 October 2026 with the maintainer's yes).** E9's input screen runs
+  the engine in a background R process, with an estimated progress bar
+  (from the usual run time: about 5 seconds for power, 80 seconds for a
+  required N) and a Cancel button. Same result screen, fixed seed, R
+  script and citations as E1–E8. Tests check that the background result
+  equals a direct `run_spec()` call with the same spec and seed, that the
+  exported script reproduces it, and that a cancelled run stops. The
+  banner now says calculations are available for E1–E9. E10–E14 wait for
+  the maintainer's decision on [`phase5-simulations.md`](phase5-simulations.md).
 - **Routing design options (17 October 2026; docs only).**
   [`routing-design-options.md`](routing-design-options.md) compares the
   current question tree with a "design profile" (the same six questions
@@ -39,8 +50,8 @@ fully validated. Validation runs are recorded in
   other tests, frequentist or Bayesian in the screening, and which
   cross-cutting features go into v1. ANCOVA and Fisher's exact test are
   confirmed in G\*Power's menu.
-- **Phase 5, part 1: calculations in the app for E1–E8 (PR #34, 17
-  October 2026).** The input screens for the basic tests and the 2 x 2
+- **Phase 5, part 1: calculations in the app for E1–E8 (PR #34, merged
+  17 October 2026).** The input screens for the basic tests and the 2 x 2
   ANOVAs run the engine's `run_spec()` on the checked spec and show the
   result: the number in plain English, the inputs, the backend credited by
   name, the validation status, the departures that apply, and buttons for
@@ -413,9 +424,9 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-1. Rerun the `basic` validation chunk on the pwr default (17 October 2026),
-   and wire E9 into the app (next PR; E10–E14 wait for the maintainer's
-   decision on [`phase5-simulations.md`](phase5-simulations.md)).
+1. Rerun the `basic` validation chunk on the pwr default (17 October 2026).
+   Decide how E10–E14 run in the app ([`phase5-simulations.md`](phase5-simulations.md),
+   questions 1–4); then wire them.
 1. The remaining published values for every design (the maintainer
    transcribes them), and validation with three or more mediators for
    parallel and serial mediation (open question 10 in
