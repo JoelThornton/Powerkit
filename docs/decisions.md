@@ -1403,3 +1403,49 @@ An entry with neither a matching `citation()` DOI nor such a note fails
 the test. Neither the text nor the BibTeX citations export prints the verification
 note: it is provenance, not part of the reference (maintainer's decision,
 17 October 2026). No entries were added.
+
+## 2026-10-17 · CI installs packages from renv.lock
+
+**What happened.** Spower 0.7 reached CRAN on 16 October 2026 with the
+one-sided fix powerkit reported. R-CMD-check, nightly-validation and the
+routing prototype's app-tests installed the latest CRAN versions (from
+`engine/DESCRIPTION`), so CI picked up Spower 0.7 straight away. The
+engine's departure test for one-sided tests (Departure 4), written against
+Spower 0.6.4's behaviour, then failed, and CI was red on every PR.
+
+**Decision (maintainer, 17 October 2026).** Every workflow installs the
+package versions in `renv.lock`, as full-validation already did
+(`r-lib/actions/setup-r` with `r-version: renv`, then
+`r-lib/actions/setup-renv`). A new release of a backend can then change CI
+results only through a PR that updates `renv.lock`, where the change can
+be checked. This follows the project rule that CRAN versions are pinned,
+with powerkit's workarounds, until a fix reaches CRAN and is adopted in
+its own PR.
+
+- Spower stays at **0.6.4** for now, so behaviour doesn't change. Moving
+  to 0.7 (and removing the one-sided workaround and Departure 4) is a
+  separate PR that waits for the maintainer's approval.
+- **pwrss 1.3.3** and **simsem 0.5-17**, the versions the mediation
+  cross-check used, are pinned in `renv.lock` (already recorded there).
+- `rcmdcheck`, which only runs R CMD check, isn't in `renv.lock`; the
+  R-CMD-check job installs it on top.
+- The nightly job now runs the tests with `testthat::test_local()` instead
+  of `devtools::test()`, so it doesn't need devtools (not in `renv.lock`).
+- app-tests now restores the whole of `renv.lock`, engine packages
+  included, so it takes longer on the first run (later runs use a cache).
+
+## 2026-10-17 · Who merges PRs
+
+**Arrangement (maintainer, 17 October 2026).** For this stretch the
+Claude session that owns the routing prototype also owns `engine/`,
+`renv.lock` and the workflows, and may merge PRs itself under these rules:
+
+- merge only when every CI check is green;
+- squash and merge, one PR at a time; before merging the next one, update
+  its branch from main and resolve any conflicts;
+- check that each PR's changed files match what its description says it
+  changes;
+- **exception:** a PR that changes statistical behaviour (results, the
+  tests used, defaults, departures) waits for the maintainer's explicit
+  yes. Its evidence is posted on the PR first. At the time of writing this
+  covers only the Spower 0.7 / Departure 4 PR.

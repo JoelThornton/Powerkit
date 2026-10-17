@@ -1,7 +1,6 @@
 # Tests for the routing prototype (app/routing/), on every pull request and
-# push. The prototype makes no engine calls, so this job installs only the
-# app's packages, not the engine or its backends. See
-# docs/routing-prototype.md.
+# push. Packages come from renv.lock, as in R-CMD-check.yaml, so the app is
+# tested with the versions recorded there. See docs/routing-prototype.md.
 name: routing-prototype-tests
 
 on:
@@ -15,30 +14,30 @@ permissions:
 jobs:
   app-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      # Install the packages directly; keep the repo-root renv project (for
-      # local development) out of the way, as in R-CMD-check.yaml.
-      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
     steps:
       - uses: actions/checkout@v4
 
+      # System libraries the packages in renv.lock need (see
+      # full-validation.yaml).
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk-dev
+
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: renv
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::shiny
-            any::bslib
-            any::yaml
-            any::htmltools
-            any::testthat
+      # Restores the package versions in renv.lock (cached between runs).
+      - uses: r-lib/actions/setup-renv@v2
 
+      # Runs from the repository root, so its .Rprofile activates renv.
       - name: Run the routing prototype's tests
         shell: Rscript {0}
         run: |

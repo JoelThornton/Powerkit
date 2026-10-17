@@ -8,6 +8,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **CI installs packages from `renv.lock` (17 October 2026).** Spower 0.7
+  reached CRAN on 16 October and CI picked it up, which broke the
+  one-sided departure test on every PR. All workflows now restore the
+  versions in `renv.lock` (Spower stays at 0.6.4 until a separate PR,
+  which waits for the maintainer, moves to 0.7). Who may merge PRs, and
+  when: [decisions](decisions.md), 17 October 2026.
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.
