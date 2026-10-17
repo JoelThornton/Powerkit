@@ -595,12 +595,15 @@ nodes:
 # same table; a test keeps them in step. `card_notes` gives a card-specific
 # note in place of `note`.
 closing_questions:
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E15]}
+  # Not E15 (a yes/no X or W): misclassification in a 0/1 variable is a
+  # different problem from unreliable scores (maintainer decision,
+  # 16 October 2026; docs/decisions.md).
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E7, E8]
-    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact (analytic) or simulation.", E8: "Exact (analytic) or simulation."}
+    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from the study's own result) is not offered."
@@ -666,6 +669,7 @@ justification_prompt:
 # no_ready_made_tool: true when no tool offers this analysis, or names the
 #   part of the end point that has none (e.g. "Cochran's Q"). The card then
 #   shows the text in `no_ready_made_tool_text` (above).
+# status_text: replaces no_ready_made_tool_text on that card only (E45).
 # five_tools: "not covered" when none of the five tools powerkit builds on
 #   covers the end point (the card says so).
 # generic: true for one card per category of design powerkit doesn't
@@ -755,7 +759,7 @@ endpoints:
     plain_name: "Two factors crossed, different people in each of the four groups"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -767,7 +771,7 @@ endpoints:
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact()"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -1051,6 +1055,9 @@ endpoints:
     inputs: ["RMSEA or model parameters"]
     packages:
       - {name: semPower, url: "https://cran.r-project.org/package=semPower", what: "A priori, post hoc and compromise power for SEM, including CFA, measurement invariance and RMSEA-based fit."}
+    # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
+    # card through Q1's "a questionnaire structure" answer.
+    card_points: ["This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."]
     tier: later
   E38:
     doc_name: "PROCESS models 8, 58, 59"
@@ -1117,11 +1124,15 @@ endpoints:
     plain_name: "A trend over time that may change at a known point"
     status: not_in_powerkit
     no_ready_made_tool: true
+    # Shown instead of no_ready_made_tool_text (maintainer decision, 17 October
+    # 2026): a package for the known-breakpoint case was released in 2026.
+    # Naming it on the card waits for open question 18; see card-sources.md.
+    status_text: "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it."
     from_coverage: false
     card_points:
       - "With a known breakpoint (for example, the date an intervention started), the change in slope can be treated as an added predictor in a regression (a segmented regression)."
       - "With a breakpoint that is estimated from the data, a custom simulation is needed."
-      - "With time-series data, autocorrelation (each measurement depending on the previous ones) makes standard power calculations too optimistic."
+      - "Autocorrelation makes standard power calculations wrong: too optimistic when it's positive, too pessimistic when it's negative."
       - "A before/after comparison of means (a t-test) asks a different question: whether the average level differs, not whether the trend changes."
     inputs: ["Depends on the model you write: the number and spacing of measurements, the breakpoint, the expected change in level and slope, and the autocorrelation"]
     packages:

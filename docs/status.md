@@ -99,8 +99,42 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
-- **Card content and usability (draft PR, 16 October 2026; builds on the
-  routing fixes):**
+- **Routing decisions and card sourcing (draft PR, 16 October 2026):**
+  - E15 (a yes/no X or W) no longer asks about reliability: misclassification
+    in a 0/1 variable is a different problem from unreliable scores
+    ([decisions](decisions.md), 16 October 2026);
+  - the routing audit now says test-retest answered "Twice" reaches E41
+    (F11) and IRT reaches E37 (F7); E37 says IRT designs aren't covered.
+    Routing unchanged;
+  - every claim in [`card-sources.md`](card-sources.md) now has a source,
+    or a status saying why not. Sources were opened and read: R package
+    documentation (help pages, vignettes, CRAN manuals), UCLA OARC pages
+    and David Kenny's dyadic-analysis pages. Of the 53 claims that were
+    unsourced or partly sourced: 34 sourced (E45's autocorrelation point
+    after its rewording, below) and 19 partly sourced;
+  - **contradictions, now fixed (17 October 2026):** E45 said "No ready-made
+    tool", but the PITS package (on CRAN since 30 June 2026) estimates power
+    for interrupted time series with a known breakpoint. E45 now says "A
+    recently released package addresses the known-breakpoint case; powerkit
+    hasn't checked it", without naming the package (open question 18). E7
+    and E8 said "Exact (analytic)"; they now say "Exact dataset (no
+    repeated simulation)", following Superpower's own help;
+  - two papers supplied by the maintainer were read: Albers and Lakens
+    (2018) now sources the pilot-study warning's reason; Zhang, Wagner and
+    Ross-Degnan (2011) qualified E45's autocorrelation point (negative
+    autocorrelation raises power). The maintainer reworded it on
+    17 October 2026: "Autocorrelation makes standard power calculations
+    wrong: too optimistic when it's positive, too pessimistic when it's
+    negative.", sourced to their Table 1. No contradictions remain open;
+  - partly sourced claims are mostly glossary hints whose details differ
+    from the source (for example, fixed effects with random slopes, the
+    pooled SD's weighting, autocorrelation as dependence on the previous
+    measurement only); each is listed in `card-sources.md`;
+  - no references were added to `engine/inst/citations/refs.bib`: the
+    sources opened are package documentation and web pages, and refs.bib
+    holds only entries copied from a package's own `citation()` (a test
+    checks this). Papers that couldn't be opened are listed as candidates.
+- **Card content and usability (merged in PR #22, 16 October 2026):**
   - each card asks only the closing questions that apply to it, with a
     table in [`decision-tree.md`](decision-tree.md);
   - every technical term in "What you would enter" has a plain-English
@@ -109,14 +143,15 @@ fully validated. Validation runs are recorded in
     [`routing-audit.md`](routing-audit.md), with a card note that stays off
     until decided (open question 20);
   - every factual claim on a card has its source recorded in
-    [`card-sources.md`](card-sources.md). 51 claims are unsourced,
-    including the 42 glossary definitions;
+    [`card-sources.md`](card-sources.md). 51 claims were unsourced at
+    merge, including the 42 glossary definitions (now sourced: see the
+    entry above);
   - the safety-net card lists what to write down for a statistician;
   - an accessibility pass (axe-core: no violations on ten screens at
     desktop and phone width; focus moves to each new screen). What wasn't
     checked is listed in [`routing-prototype.md`](routing-prototype.md);
   - walkthroughs re-run, with before/after notes for every changed card.
-- **Routing fixes from the walkthroughs (draft PR, 16 October 2026):**
+- **Routing fixes from the walkthroughs (merged in PR #21, 16 October 2026):**
   - fixes F1–F3, F5, F9, F13 and F14 from [`walkthroughs.md`](walkthroughs.md),
     and the wording of F10;
   - the guided route uses S3's "Twice" (paired tests; the pre-post
@@ -130,7 +165,8 @@ fully validated. Validation runs are recorded in
   - internal references are out of user-facing text.
 
   Left for the maintainer:
-  - F7 and F11 (change the route or change the audit);
+  - F7 and F11 (decided 16 October 2026: the audit changes, routing
+    doesn't; see the entry above);
   - F12 (diary studies);
   - inter-rater designs;
   - new routing questions listed in the audit's "What's left" (items 11–13).
