@@ -16,9 +16,10 @@
 #      independently generated data (tolerance: Monte Carlo interval only);
 #   3. both against pwrss's analytic joint test (Monte Carlo interval plus
 #      the allowance).
-# The allowance (crosscheck_allowance()) is proposed, for the maintainer to
-# confirm. Run as its own chunk: scripts/run-validation.R --only
-# mediation_crosscheck. Skipped unless POWERKIT_FULL_VALIDATION=true.
+# The allowance (crosscheck_allowance(), 0.02 at n >= 100) is the
+# maintainer's decision of 17 October 2026. Run as its own chunk:
+# scripts/run-validation.R --only mediation_crosscheck. Skipped unless
+# POWERKIT_FULL_VALIDATION=true.
 
 crosscheck_designs <- list(
   # Two designs with power in the sensitive middle range (about .6 to .8).
@@ -41,7 +42,7 @@ for (name in names(crosscheck_designs)) {
       d$a, d$b, d$c_prime, d$n, alpha = 0.05, method = "monte.carlo",
       nrep = validation_nrep(), draws = validation_ci_draws(), seed = d$seed + 1
     )
-    expect_power_agrees_within(engine_power(spec), pwrss_mc, crosscheck_allowance())
+    expect_power_agrees_within(engine_power(spec), pwrss_mc, crosscheck_allowance(d$n))
   })
 
   test_that(sprintf("cross-check (%s): the joint test agrees in power4mome, simsem and pwrss", name), {
@@ -54,7 +55,7 @@ for (name in names(crosscheck_designs)) {
     analytic <- pwrss_mediation(d$a, d$b, d$c_prime, d$n, alpha = 0.05, method = "joint")
     # Same test and estimator, independent data generation: no allowance.
     expect_power_agrees_within(p4m, sem, allowance = 0)
-    expect_power_agrees_within(p4m, analytic, crosscheck_allowance())
-    expect_power_agrees_within(sem, analytic, crosscheck_allowance())
+    expect_power_agrees_within(p4m, analytic, crosscheck_allowance(d$n))
+    expect_power_agrees_within(sem, analytic, crosscheck_allowance(d$n))
   })
 }
