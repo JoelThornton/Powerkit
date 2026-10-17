@@ -10,6 +10,16 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **E5 validated again (17 October 2026).** The `basic` chunk was rerun
+  on main after #42 (unequal groups by pwrss;
+  [run 39073022227](https://github.com/JoelThornton/Powerkit/actions/runs/39073022227)):
+  no failures, the usual 4 published-value skips. Unequal groups are
+  checked against G\*Power in `test-backend-pwr.R`. As the maintainer
+  asked, E5's card says "Validated" again.
+- **E6 G\*Power reference (df 1).** The maintainer's screenshot (w .3,
+  α .05, N 100, df 1: power 0.8508388, λ 9, critical χ² 3.8414588)
+  matches pwr to 7 decimals; recorded in
+  [`gpower-parity.md`](gpower-parity.md). df 2 is still needed.
 - **E5 switch to G\*Power's z test (17 October 2026; the maintainer
   said yes).** Two proportions in equal groups now use base R's
   `power.prop.test(strict = TRUE)`, which matches G\*Power to seven

@@ -1,5 +1,9 @@
 # powerkit 0.0.0.9000
 
+* The app prototype's card for two proportions (E5) says "Validated"
+  again, after the `basic` validation chunk was rerun with the z test
+  (pwrss for unequal groups).
+
 * Two proportions (E5) in unequal groups now use pwrss's z test
   (`pwrss::power.z.twoprops(std.error = "pooled")`), which matches
   G*Power's power, instead of Cohen's h, which under-estimated the
