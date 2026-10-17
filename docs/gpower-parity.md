@@ -22,13 +22,18 @@ calls G4–G6 in [`judgement-calls.md`](judgement-calls.md).
   names used here, so each end point names the section it was matched
   to. No G\*Power program or screen was used; nothing here is written
   from memory of G\*Power.
+- **G\*Power screenshots:** G\*Power 3.1.9.7, sent by the maintainer on
+  17 October 2026 for the tests the manual doesn't cover. They are in
+  [`figures/gpower/`](figures/gpower/), and cells cite them as
+  "screenshot". Where a dialog is shown, the setting is as it was in the
+  maintainer's copy; whether that is the program's default is said only
+  where the screenshot shows a fresh dialog.
 - **Not in the manual:** the manual says it "is not yet complete". It has
   no section for the z test of two independent proportions (E5), for a
   chi-square test of a contingency table (E6), or for repeated measures
-  ANOVA (E8). Those cells say "to confirm (not in the 2023 manual;
-  screenshot needed)". The maintainer offered screenshots of those
-  tests. One E4 point (the default of the exact-distribution threshold)
-  also needs a screenshot.
+  ANOVA (E8). The maintainer's screenshots now cover E5, E8 and the E4
+  options dialog. E6 is still "to confirm (not in the 2023 manual;
+  screenshot needed)".
 
 **Marks** for powerkit's side:
 
@@ -142,7 +147,7 @@ matched here to "Correlation: bivariate normal model".
 | Tails | Yes: "Tail(s)" (section 3.3, p. 9) | Yes | **Has** | |
 | Effect size | "Correlation ρ H1" (section 3.3, p. 9) | r | **Has** | |
 | Null value ρ H0 | Yes: "Correlation ρ H0"; the worked example uses 0.60 (section 3.3, p. 9) | 0 only | **Not exposed** with Spower (`p_r(rho = )`); **Not possible** with pwr (`pwr.r.test()` has no null value) | With Spower 0.7, a non-zero `rho` gives a two-sided p-value whatever `alternative` says (`R/p_r.R`) |
-| Method | The options dialog offers "Use exact distribution if N < x" or "Use large sample approximation (Fisher Z)" (section 3.2, p. 9). The worked example sets x = 10000 (section 3.3); the manual doesn't state the default: to confirm (screenshot needed) | Formula (pwr: Fisher's z) or simulation (Spower: Monte Carlo of the exact t test of ρ = 0) | **Has** (both) | Size of the difference: judgement call G6. Fisher's z kept: Departure 10 (`conventions.md`) |
+| Method | The options dialog offers "Use exact distribution if N < x" or "Use large sample approximation (Fisher Z)" (section 3.2, p. 9). The worked example sets x = 10000 (section 3.3). The dialog as it opened in the maintainer's copy has "use exact distribution if N < 10000" selected (screenshot `E4_options_default.png`), so G\*Power uses the exact method for any N below 10,000 | Formula (pwr: Fisher's z) or simulation (Spower: Monte Carlo of the exact t test of ρ = 0) | **Has** (both) | Size of the difference: judgement call G6. Fisher's z kept: Departure 10 (`conventions.md`) |
 
 Outputs: G\*Power shows lower and upper critical r (or z when the
 approximation is used), total sample size and actual power (sections 3.2
@@ -151,22 +156,46 @@ uses a critical value internally but doesn't return it).
 
 ## E5: two proportions
 
-Matching G\*Power test: Proportions, "Two independent groups: z-test"
-(also "Fisher's exact" and the unconditional exact tests, which powerkit
-doesn't run). The manual has no section for the z test. Section 6,
-"Exact: Proportions - inequality of two independent groups (Fisher's
-exact-test)", p. 17, covers Fisher's exact test only.
+Matching G\*Power test: z tests, "Proportions: Difference between two
+independent proportions" (screenshots `E5_z_test_*.png`). The manual has
+no section for it. G\*Power also has Fisher's exact test (Exact,
+"Proportions: Inequality, two independent groups (Fisher's exact
+test)"; section 6, p. 17, and screenshot `E5_fisher_exact_a_priori.png`),
+which powerkit doesn't run.
 
 | Input | G\*Power | powerkit | Mark | Note |
 | --- | --- | --- | --- | --- |
-| Tails | Yes | Yes | **Has** | |
-| Effect size | To confirm (not in the 2023 manual; screenshot needed): proportions p1, p2, and whether also h or an odds ratio | p1, p2 | **Has** | pwr gets Cohen's h from them (`ES.h()`), so this already works like "Determine" from proportions |
-| Allocation ratio | Yes | Yes | **Has** | `pwr.2p2n.test(n1, n2)` |
-| Continuity correction | To confirm (not in the 2023 manual; screenshot needed) | No correction (Departure 5) | **Not exposed** (Spower `correct = TRUE`) | |
-| Exact test | Separate tests. Fisher's exact test: effect size by "directly specifying the two proportions π1 and π2", and "This test has no options" (sections 6.2 and 6.3, p. 17). The manual has no section on the unconditional exact tests | — | **Not exposed** (Spower `exact = TRUE`) | Judgement call 3.9 |
-| Method | To confirm (not in the 2023 manual; screenshot needed): z test, pooled or unpooled | Formula (pwr: Cohen's h, the arcsine transformation) or simulation (Spower: `prop.test()`) | **Has** | The arcsine formula differs from a pooled z test by up to 0.018 in power and 3 per group in N (judgement call G6) |
+| Tails | Yes: "Tail(s)" (screenshot) | Yes | **Has** | |
+| Effect size | "Proportion p1" and "Proportion p2"; the options dialog can switch the input to "Cohen's effect size index h" (screenshot) | p1, p2 | **Has** | h as input: **Not exposed** |
+| Allocation ratio | Yes: "Allocation ratio N2/N1" (screenshot) | Yes | **Has** | |
+| Continuity correction | Option "Use continuity correction", off in the maintainer's copy (screenshot) | No correction (Departure 5) | **Not exposed** (Spower `correct = TRUE`) | Departure 5 matches G\*Power |
+| Arcsine transformation | Option "Use arcsin transform", off in the maintainer's copy (screenshot) | pwr's arcsine (Cohen's h) formula | **Has** | So G\*Power's z test is not the arcsine formula powerkit uses now; see "Method" |
+| Exact test | Separate test. Fisher's exact test: effect size by "directly specifying the two proportions π1 and π2", and "This test has no options" (sections 6.2 and 6.3, p. 17). Its "Determine" drawer computes p1 from a difference, ratio or odds ratio (screenshot) | — | **Not exposed** (Spower `exact = TRUE`) | Judgement call 3.9. Screenshot values, one tail, p1 = .5, p2 = .6, α .05, power .95: 557 + 557 = 1114, actual power 0.9500348, actual α 0.0448913 |
+| Method | z test with the default options (screenshot) | Formula (pwr: Cohen's h, the arcsine transformation) or simulation (Spower: `prop.test()`) | **Has** | See the check below. Judgement call G6 |
 
-Outputs: noncentrality, critical value: **Not possible**.
+**Check against base R (17 October 2026).** G\*Power's z test with its
+default options equals `stats::power.prop.test(strict = TRUE)` (R 4.3.3)
+to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
+.25:
+
+| Case | G\*Power (screenshot) | `power.prop.test(strict = TRUE)` | `strict = FALSE` (its default) | pwr arcsine (powerkit now) |
+| --- | --- | --- | --- | --- |
+| Post hoc, 20 per group | 0.2344921 | 0.2344921 | 0.2339595 | 0.2477934 |
+| A priori, power .95, equal groups | 164 + 164, actual power 0.9502464 | 164 per group; 0.9502464 at 164 | | 160 per group |
+| A priori, power .95, N2/N1 = 2 | 123 + 247 = 370, actual power 0.9498668 | Equal groups only | | |
+
+- G\*Power counts rejections in both tails, as `strict = TRUE` does.
+- With unequal groups, the same z test (pooled variance under the null,
+  unpooled under the alternative) gives 0.9498668 at 123 and 247.
+  `pwrss::power.z.twoprops(std.error = "pooled")` (pwrss 1.3.3)
+  reproduces that power, but its a-priori answer is 124 + 247 = 371
+  (power 0.9509). G\*Power's 123 + 247 is slightly under the target
+  power (0.9498668 < .95), so G\*Power rounds the groups differently.
+
+Outputs: G\*Power shows critical z and power (post hoc) or the two group
+sizes, total sample size and actual power (a priori) (screenshot).
+powerkit: critical value: **Not possible** with pwr or
+`power.prop.test()` (neither returns it).
 
 ## E6: chi-square test of independence
 
@@ -214,23 +243,39 @@ it is to check. Critical value, df: **Not exposed** (in `aov_result`, an
 
 ## E8: 2 x 2 mixed ANOVA
 
-Matching G\*Power tests: Means, "Repeated measures: within-between
-interactions, ANOVA-approach" (and "between factors" for the group
-effect). The manual has no section for repeated measures ANOVA; it only
-lists "ANOVA: Repeated measures, between factors" as a related test
-(section 10.4, p. 25).
+Matching G\*Power tests: F tests, "ANOVA: Repeated measures,
+within-between interaction" (and "between factors" for the group
+effect); screenshot `E8_rm_within_between_options.png`. The manual has
+no section for repeated measures ANOVA; it only lists "ANOVA: Repeated
+measures, between factors" as a related test (section 10.4, p. 25).
 
 | Input | G\*Power | powerkit | Mark | Note |
 | --- | --- | --- | --- | --- |
-| Effect size | To confirm (not in the 2023 manual; screenshot needed): f | Four cell means and an SD | **Has** | |
-| Correlation among repeated measures | To confirm (not in the 2023 manual; screenshot needed) | One r | **Has** | |
-| Number of measurements | To confirm (not in the 2023 manual; screenshot needed) | 2 (fixed) | **Has** (fixed) | |
-| Nonsphericity correction ε | To confirm (not in the 2023 manual; screenshot needed) | — | n/a with two levels | Superpower `correction` (GG, HF) for more levels |
-| MANOVA approach | Separate test; not in the 2023 manual | — | **Not exposed** (`manova_results`) | Roadmap A28, A30 |
-| Per-cell SDs | To confirm (not in the 2023 manual; screenshot needed) | One SD | **Not exposed** (Superpower `sd` vector) | |
+| Effect size | "Effect size f", with a "Determine" drawer (screenshot) | Four cell means and an SD | **Has** | f as input: **Not exposed** |
+| Effect-size convention | Options: "as in GPower 3.0" (selected in the maintainer's copy), "as in GPower 3.0 with implicit rho", "as in SPSS", "as in Cohen (1988) - recommended" (screenshot) | Means, SD and r | n/a | Superpower's reported Cohen's f is a different quantity from G\*Power's f; see the check below |
+| Correlation among repeated measures | "Corr among rep measures" (screenshot) | One r | **Has** | |
+| Number of groups, measurements | "Number of groups", "Number of measurements" (screenshot) | 2 and 2 (fixed) | **Has** (fixed) | |
+| Nonsphericity correction ε | "Nonsphericity correction ε" (screenshot) | — | n/a with two levels | Superpower `correction` (GG, HF) for more levels |
+| MANOVA approach | Separate test, "MANOVA: Repeated measures, within-between interaction", with Pillai V and O'Brien and Shieh's (1999) algorithm selected in the maintainer's copy (screenshot `E8_manova_within_between_options.png`) | — | **Not exposed** (`manova_results`) | Roadmap A28, A30. Screenshot: f(V) .25, α .05, power .80, 2 groups, 2 measurements: N 128, actual power 0.8014596 |
+| Per-cell SDs | Not in the main window (screenshot) | One SD | **Not exposed** (Superpower `sd` vector) | |
 
-Outputs: as E7 on powerkit's side. G\*Power's outputs for this test: to
-confirm (not in the 2023 manual; screenshot needed).
+**Check against Superpower (17 October 2026).** G\*Power, with "as in
+GPower 3.0": f = .25, α .05, power .80, 2 groups, 2 measurements, r =
+.5, ε = 1 gives λ 8.5, critical F 4.1490974, df 1 and 32, total N 34,
+actual power 0.8070367 (screenshot). The same design in Superpower
+0.2.4.1, `ANOVA_exact()` with `"2b*2w"`, means (1, 0, 0, 0), SD 1, r =
+.5 and 17 per group (in G\*Power's convention f = .25: each interaction
+effect is ±0.25 SD) gives interaction power 80.70367% and noncentrality
+8.5, the same to the decimals shown. At 16 per group it gives 78.14%,
+so the required N is also 34. Superpower reports Cohen's f = 0.515 for
+this interaction, because its f comes from partial η² of the repeated
+measures analysis, which includes the correlation; G\*Power's f = .25
+doesn't. A user who copies f from one tool into the other gets a
+different design.
+
+Outputs: G\*Power shows noncentrality λ, critical F, numerator and
+denominator df, total sample size and actual power (screenshot).
+powerkit: as E7.
 
 ## E9: moderated regression (continuous × continuous)
 
@@ -280,10 +325,10 @@ critical value, df: **Not possible** (simulation of a CI-based test).
 | E2 | d from two means and one SD, or two means and two SDs with equal n (section 21.1, p. 52) | d only | Spower `p_t.test(means, sds)` | **Not exposed** |
 | E3 | d_z from the mean and SD of the differences, or from two means, two SDs and their correlation (section 19.1, p. 48) | d_z only | None found for d_z | unknown |
 | E4 | ρ H1 from the coefficient of determination r² (section 3.1, p. 9) | r | — | n/a |
-| E5 | To confirm (not in the 2023 manual; screenshot needed) | From two proportions (h computed) | pwr `ES.h()` | **Has** |
+| E5 | The z test takes p1 and p2 (or h, by option); Fisher's exact test's drawer computes p1 from a difference, ratio or odds ratio (screenshots) | From two proportions (h computed) | pwr `ES.h()` | **Has** |
 | E6 | To confirm (not in the 2023 manual; screenshot needed) | From cell probabilities (w computed) | pwr `ES.w2()`; `ES.w1()` for goodness-of-fit | **Has** |
 | E7 | f from the effect and error variances, or from partial η² (section 11.1, p. 27) | From means and SDs (Superpower's input) | Superpower; f or partial η² as input: **Not exposed** | **Has** (means) |
-| E8 | To confirm (not in the 2023 manual; screenshot needed) | From means and SDs (Superpower's input) | Superpower; f or partial η² as input: **Not exposed** | **Has** (means) |
+| E8 | "Determine" drawer present; its contents not in the screenshot | From means and SDs (Superpower's input) | Superpower; f or partial η² as input: **Not exposed** | **Has** (means) |
 | E9 | f² from the effect and residual variances, or from partial R² (section 14.1, p. 36). Only the omnibus R² test's drawer works from predictor correlations (section 13.1, p. 33) | From correlations | — | **Has** (correlations) |
 | E10–E14 | No matching test | Standardised paths | power4mome | **Has** (paths) |
 

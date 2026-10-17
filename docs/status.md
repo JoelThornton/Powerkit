@@ -10,6 +10,16 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **G\*Power screenshots checked (17 October 2026; docs only).** The
+  maintainer's G\*Power 3.1.9.7 screenshots are in
+  [`figures/gpower/`](figures/gpower/) and recorded in
+  [`gpower-parity.md`](gpower-parity.md). E5: G\*Power's z test equals
+  base R's `power.prop.test(strict = TRUE)` to seven decimals, so the E5
+  switch can go ahead once the maintainer says yes. E8: Superpower's
+  `ANOVA_exact()` reproduces G\*Power's within-between interaction
+  (N 34, power 0.8070367). E4: G\*Power's default is the exact method
+  below N = 10,000. Still needed: a screenshot of the contingency-table
+  test for E6.
 - **Sources and the G\*Power manual checked (17 October 2026; docs
   only).** With the texts the maintainer supplied, the Rubin entries (B6,
   G7–G9, `inference-question-design.md`), B11 and the roadmap now quote
