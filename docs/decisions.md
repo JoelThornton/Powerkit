@@ -1389,3 +1389,26 @@ App and docs only; the engine is unchanged.
   is about confirmatory factor analysis (CFA) and structural equation
   models (SEM). Item response theory (IRT) designs aren't covered."
   Routing unchanged.
+
+## 2026-10-17 · Routing prototype: the two contradictions from PR #24
+
+Decided by the maintainer on 17 October 2026. App and docs only.
+
+- **E7 and E8: "Exact dataset (no repeated simulation)"** replaces
+  "Exact (analytic)" as the default method and in the Q-test note.
+  **Reason:** Superpower's help says `ANOVA_exact()` "Simulates an exact
+  dataset (mu, sd, and r represent empirical, not population, mean and
+  covariance matrix)", and Superpower keeps "analytic" for other
+  functions. The new wording follows the package.
+- **E45: "A recently released package addresses the known-breakpoint
+  case; powerkit hasn't checked it."** replaces "No ready-made tool".
+  **Reason:** PITS 0.1.0 (CRAN, 30 June 2026) estimates power for
+  interrupted time series with a known breakpoint. The card doesn't name
+  it until open question 18 (naming other tools) is decided; PITS is
+  recorded in `card-sources.md` and `judgement-calls.md`.
+- **Two papers supplied by the maintainer** were read: Zhang, Wagner and
+  Ross-Degnan (2011) and Albers and Lakens (2018). The second supports the
+  reason given for the pilot-study warning. The first qualifies E45's
+  autocorrelation point: power falls as positive autocorrelation rises,
+  but negative autocorrelation raises it. That point is unchanged and
+  marked "contradicted" in part, for the maintainer.

@@ -125,7 +125,8 @@ test_that("segmented regression no longer reaches a t-test or a correlation, in 
   expect_match(card, "estimated from the data, a custom simulation is needed", fixed = TRUE)
   expect_match(card, "autocorrelation", fixed = TRUE)
   expect_match(card, "too optimistic", fixed = TRUE)
-  expect_match(card, "No ready-made tool.", fixed = TRUE)
+  # Until 17 October 2026 the card said "No ready-made tool" (docs/decisions.md).
+  expect_match(card, "A recently released package addresses the known-breakpoint case", fixed = TRUE)
 })
 
 test_that("two measurements still reach the before/after tests, and one measurement can't reach a same-people test", {

@@ -179,7 +179,7 @@ status_ui <- function(tree, ep) {
         class = "status status-not",
         tags$strong("Not in powerkit yet."),
         not_five,
-        p(tree$no_ready_made_tool_text),
+        p(ep$status_text %||% tree$no_ready_made_tool_text),
         package_list(),
         p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
       )

@@ -20,3 +20,20 @@ test_that("a test-retest study answered 'Twice' reaches E41, as the audit says (
   audit <- read_doc("routing-audit.md")
   expect_match(audit, "rel reaches **E41** (relationships measured within people)", fixed = TRUE)
 })
+
+# Maintainer decisions of 17 October 2026 (docs/decisions.md).
+
+test_that("E7 and E8 describe ANOVA_exact() in Superpower's own terms", {
+  for (id in c("E7", "E8")) {
+    html <- as.character(card_ui(tree, id))
+    expect_no_match(html, "analytic", ignore.case = TRUE, label = id)
+    expect_match(html, "Exact dataset (no repeated simulation)", fixed = TRUE, label = id)
+  }
+})
+
+test_that("E45 says a recent package covers the known-breakpoint case, without naming it", {
+  html <- as.character(card_ui(tree, "E45"))
+  expect_match(html, "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it.", fixed = TRUE)
+  expect_no_match(html, "No ready-made tool", fixed = TRUE)
+  expect_no_match(html, "PITS", fixed = TRUE)
+})
