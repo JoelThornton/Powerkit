@@ -8,6 +8,28 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Routing design options (17 October 2026; docs only).**
+  [`routing-design-options.md`](routing-design-options.md) compares the
+  current question tree with a "design profile" (the same six questions
+  every time, matched against a rule table), on one screen or one
+  question at a time. Of 28 recorded misroutes and route conflicts, the
+  current tree now prevents 15 (3 partly) and a profile with exact
+  matching would likely have prevented 19 (2 partly); 7 need a further
+  question in either approach. It drafts the rule table for E1–E14.
+  Options and evidence only; nothing decided.
+- **Coverage roadmap (17 October 2026; docs only).**
+  [`coverage-roadmap.md`](coverage-roadmap.md) is the master list of
+  everything powerkit might cover: G\*Power 3.1.9.7's 49 tests, 69
+  designs beyond G\*Power and 12 cross-cutting features, each with its
+  end point, status, the analysis types its backend supports, and a
+  candidate function found in the package's help. 15 rows are done
+  (validated and wired, E1–E8) and 8 more run and are validated; 37 a
+  foundation tool can do but aren't planned; 11 only G\*Power covers; 49
+  of the 118 tests and designs can't be reached as themselves by the
+  question tree. Three new judgement calls (G1–G3): scope for G\*Power's
+  other tests, frequentist or Bayesian in the screening, and which
+  cross-cutting features go into v1. ANCOVA and Fisher's exact test are
+  confirmed in G\*Power's menu.
 - **Phase 5, part 1: calculations in the app for E1–E8 (PR #34, 17
   October 2026).** The input screens for the basic tests and the 2 x 2
   ANOVAs run the engine's `run_spec()` on the checked spec and show the

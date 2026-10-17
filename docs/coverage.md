@@ -1,6 +1,6 @@
 # Coverage matrix
 
-*Last updated: 16 October 2026.*
+*Last updated: 17 October 2026.*
 
 This page lists the user-facing capabilities of the five tools powerkit
 builds on: Superpower, Spower, power4mome, InteractionPoweR and G\*Power.
@@ -16,6 +16,9 @@ this is noted below.
 **The tiers are proposals for the maintainer to confirm.** Rows marked
 *(proposal)* in the Tier column have not been agreed. Tiers already set in
 the build guide (section 2) are marked *(build guide)*.
+
+The master list organised by what users want to test, including
+designs beyond these tools, is [`coverage-roadmap.md`](coverage-roadmap.md).
 
 ## How to read the table
 
@@ -91,7 +94,7 @@ and from each package's own GitHub repository for the development version.
 | Tetrachoric, polychoric and polyserial correlation | Spower `p_r.cat()` [Sp]; G\*Power Example 31.3 (tetrachoric) [GP via Sp] | planned | later *(proposal)* | No | |
 | One proportion against a constant (binomial or exact) | Spower `p_prop.test()` (`binom.test()`) [Sp]; G\*Power exact test, proportion: difference from constant (Example 4.3) [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Two independent proportions | Spower `p_prop.test()` [Sp]; G\*Power [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | No continuity correction (Departure 5) |
-| Fisher's exact test for two proportions | Spower `p_prop.test(exact = TRUE)` [Sp]; G\*Power Fisher's exact test [GP, search] | planned | v2 *(proposal)* | No | |
+| Fisher's exact test for two proportions | Spower `p_prop.test(exact = TRUE)` [Sp]; G\*Power "Two independent groups: Fisher's exact" (3.1.9.7 Tests menu, maintainer's list, 17 October 2026) | planned | v2 *(proposal)* | No | |
 | Two dependent proportions (McNemar) | Spower `p_mcnemar.test()` [Sp]; G\*Power Example 5.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Chi-square test of independence | Spower `p_chisq.test()` [Sp]; G\*Power chi-square tests [GP, search] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |
 | Chi-square goodness of fit | Spower `p_chisq.test(w, df)` or `P0`/`P` [Sp] | planned | v2 *(proposal)* | No | |
@@ -135,7 +138,7 @@ and from each package's own GitHub repository for the development version.
 | MANOVA results for designs with within factors | Superpower `ANOVA_power()` (`manova_results`) [SP]; G\*Power MANOVA and Hotelling's T² [GP, search] | planned | later *(proposal)* | No | |
 | Correction for multiple ANOVA effects | Superpower `ANOVA_power(p_adjust = )` [SP] | planned | v2 *(proposal)* | No | |
 | Simple effects, pairwise comparisons and custom contrasts (emmeans), with their own corrections | Superpower `emm`, `emm_comp`, `contrast_type`, `emm_p_adjust`; `emmeans_power()` [SP] | planned | v2 *(proposal)* | No | |
-| ANCOVA (one-way and factorial) and ANCOVA contrasts, including a pre–post design with the baseline as covariate | Superpower `power_oneway_ancova()`, `ANCOVA_analytic()` (cell means, SD, the covariates' R² `r2` and their number `n_cov`), `ANCOVA_contrast()` [SP]; G\*Power: the 2023 manual's contents list no ANCOVA chapter (checked by the maintainer's copy), although search results describe an ANCOVA option in the program [GP, search]. Also pwrss `power.f.ancova()` (Keppel and Shieh methods; see "Not covered by the five tools") | planned | v2 *(build guide)* | No | Decision tree E23. Needed for the pre–post route in the design finder (decision D2) and for the worked example in [decision-tree.md](decision-tree.md), section 4.3 |
+| ANCOVA (one-way and factorial) and ANCOVA contrasts, including a pre–post design with the baseline as covariate | Superpower `power_oneway_ancova()`, `ANCOVA_analytic()` (cell means, SD, the covariates' R² `r2` and their number `n_cov`), `ANCOVA_contrast()` [SP]; G\*Power: "ANCOVA: main effects and interactions" is in G\*Power 3.1.9.7's Tests menu (maintainer's list, 17 October 2026), although the 2023 manual's contents list no ANCOVA chapter. Also pwrss `power.f.ancova()` (Keppel and Shieh methods; see "Not covered by the five tools") | planned | v2 *(build guide)* | No | Decision tree E23. Needed for the pre–post route in the design finder (decision D2) and for the worked example in [decision-tree.md](decision-tree.md), section 4.3 |
 | ANCOVA with covariates in a regression model (covariates in an interaction) | InteractionPoweR `power_interaction_r2_covs()` (analytic) [IP]; Spower `p_glm()` with covariates in the formula (fixed predictors) [Sp] | planned | v2 *(proposal)* | No | See also "Covariates" under regression interactions |
 | Exact (empirical) and simulated power | Superpower `ANOVA_exact()` and `ANOVA_power()` [SP] | done | MVP | Yes (2x2 tests) | `options > method` |
 | Means plot and power-by-n plot | Superpower `ANOVA_design(plot = TRUE)`, `plot_power()` [SP] | planned | MVP (phase 5) | No | The app draws these from the engine's results |

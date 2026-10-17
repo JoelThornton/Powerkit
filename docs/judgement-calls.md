@@ -1,6 +1,6 @@
 # Judgement calls and open questions
 
-*Last updated: 16 October 2026.*
+*Last updated: 17 October 2026.*
 
 Every open question about the routing prototype, in one place, for the
 maintainer to decide in one session. **Nothing here is decided, and
@@ -52,6 +52,7 @@ The statistical decisions phase 3b needs before coding are in
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
 - [F. Validation](#f-validation): F1
+- [G. Coverage and scope](#g-coverage-and-scope): G1–G3
 
 ## A. What the cards say
 
@@ -991,7 +992,9 @@ is kept below as the record of the options.
   - both.
 - **What tools and sources do:**
   - Spower's exact option (opened).
-  - G\*Power's Fisher's exact test (second-hand).
+  - G\*Power's Fisher's exact test: confirmed in G\*Power 3.1.9.7's Tests
+    menu (Proportions: "Two independent groups: Fisher's exact"), from the
+    maintainer's list, 17 October 2026.
 - **Who might disagree, and why:**
   - A warning needs a threshold for "small", itself a convention.
   - The exact test changes E5's spec and needs validation.
@@ -1356,3 +1359,98 @@ joint test only).
   Carlo interval; pwrss has no parallel or serial mediation.
 - **Recorded in:** this entry; `validation-log.md`, "Parallel and serial
   mediation (joint test against simsem)".
+
+## G. Coverage and scope
+
+Added on 17 October 2026 with [`coverage-roadmap.md`](coverage-roadmap.md),
+which lists every test and design powerkit might cover, with its status.
+
+**Checks closed (17 October 2026).** ANCOVA ("ANCOVA: main effects and
+interactions", Means) and Fisher's exact test ("Two independent groups:
+Fisher's exact", Proportions) are both in G\*Power 3.1.9.7's Tests menu, as
+listed by the maintainer. This closes the open check in `coverage.md`
+(the 2023 manual's contents list no ANCOVA chapter) and the second-hand
+source for Fisher's exact test in C11.
+
+### G1. Scope for the G\*Power tests powerkit doesn't run
+
+- **Question:** for a G\*Power test powerkit doesn't run, what does the
+  user see?
+- **Options:**
+  - a card that says "G\*Power covers this" (naming G\*Power);
+  - add the tests later, in waves (for example, first the ones a
+    foundation tool already does);
+  - out of scope, with no card.
+- **What the roadmap shows:** of G\*Power's 49 tests, powerkit runs 10
+  (validated, and wired in the app since PR #34), 4 are planned, 23 a foundation tool can do
+  but aren't planned, 11 no foundation tool covers (Hotelling's T²,
+  MANOVA, the unconditional exact tests and the five generic tests), and
+  1 needs checking ([roadmap](coverage-roadmap.md), Part A).
+- **What tools and sources do:** `coverage.md` proposes "not planned" for
+  the generic tests ("the full-model builder and R script export are the
+  route") and for variance tests ("rare as a study's main hypothesis in
+  psychology") (opened). The build guide says basic tests are for
+  "G\*Power parity" (opened).
+- **Who might disagree, and why:**
+  - Users who come from G\*Power expect every test there.
+  - Naming G\*Power on a card is naming another tool, which A1 leaves
+    open.
+  - Waves keep scope small but leave gaps that users meet first.
+- **Knock-on effects:** A1 (naming tools); new cards or none; validation
+  work per test added.
+- **Recorded in:** this entry; [`coverage-roadmap.md`](coverage-roadmap.md),
+  Part A.
+
+### G2. Frequentist or Bayesian in the screening
+
+- **Question:** does the screening ask whether the analysis is
+  frequentist or Bayesian, and where does Bayesian planning sit?
+- **Options:**
+  - a screening question (S5, or a sixth profile question in the "design
+    profile" options in [`routing-design-options.md`](routing-design-options.md));
+  - after Q1 or among the closing questions (D3's options);
+  - only in the shortcut list;
+  - Bayesian planning as its own route, separate from the screening.
+- **What tools and sources do:**
+  - None of the tools reviewed routes between p-values and Bayes factors
+    (D3) (opened).
+  - The build guide puts Bayesian design analysis at "Later", with
+    Spower and BFDA as likely backends (opened).
+  - Spower documents "expected power" with an effect drawn from a prior,
+    and user-written Bayes-factor, posterior-probability and ROPE
+    experiments (its help and vignette, opened 17 October 2026; roadmap
+    rows B58–B62).
+- **Who might disagree, and why:**
+  - Bayesian users want to say so early.
+  - Most users plan with p-values; an extra screening question adds a
+    step for them and invites answers they aren't sure of.
+  - Expected power over a prior can be offered to frequentist users too,
+    so it may not belong behind a Bayesian question.
+- **Knock-on effects:** D3; the screening (C1); which end points need a
+  Bayesian version.
+- **Recorded in:** this entry; D3; roadmap B58–B62 and C12.
+
+### G3. Which cross-cutting features belong in v1
+
+- **Question:** which of the roadmap's Part C features go into v1?
+- **Options (each separately):** alpha correction (C1); joint power
+  across hypotheses (C2); attrition (C3, already in the engine); unequal
+  allocation (C4, two-group tests now); unreliability (C5, E9 now);
+  non-normal data and unequal variances (C6); covariates (C7);
+  one- vs two-tailed (C8, basic tests now); effect-size formats and
+  conversion (C9); bias-corrected effect sizes (C10); power curves and
+  sensitivity plots (C11); Bayesian framework (C12).
+- **What tools and sources do:** the build guide lists "attrition and
+  missing data, unequal group sizes, measurement reliability,
+  multiple-comparison correction, non-normal data, and a sensitivity
+  analysis" as options "every design needs" (opened). Which foundation
+  tool supports each is in the roadmap, Part C.
+- **Who might disagree, and why:**
+  - Each feature added to v1 needs validation for every end point it
+    applies to.
+  - Leaving one out (for example covariates) can make the planned N
+    wrong for the analysis people actually run.
+- **Knock-on effects:** spec fields, input screens, validation, the
+  methods paragraph.
+- **Recorded in:** this entry; [`coverage-roadmap.md`](coverage-roadmap.md),
+  Part C.
