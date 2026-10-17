@@ -28,7 +28,11 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/paired_t" = ,
     "basic_test/correlation" = ,
     "basic_test/two_proportions" = ,
-    "basic_test/chi_square_independence" = spower_backend(spec, seed),
+    "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
+      pwr_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "regression_interaction/two_way" = interactionpower_backend(spec, seed),
     "mediation/process_4" = ,
     "mediation/process_6" = ,
@@ -39,6 +43,12 @@ route_spec <- function(spec, seed = NULL) {
       gsub("_", " ", spec$design), spec$template
     ))
   )
+}
+
+# Basic tests use pwr's exact formula unless simulation is requested or
+# the test isn't one pwr covers (Welch's t-test), when Spower simulates.
+basic_test_method <- function(spec) {
+  spec$options$method %||% if (pwr_covers(spec)) "exact" else "simulation"
 }
 
 abort_not_available <- function(message) {

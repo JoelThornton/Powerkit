@@ -29,6 +29,11 @@
 # Defaults of the tool each end point wraps, read from the installed
 # packages' function signatures on 17 October 2026.
 tool_defaults:
+  pwr:
+    alpha: 0.05
+    alpha_source: "pwr's default (pwr.t.test(sig.level = 0.05), pwr 1.3-0)"
+    power_source: "pwr has no default target power (pwr.t.test(power = NULL)); enter one"
+    alternative_source: "pwr's default (two-sided: pwr.t.test(alternative = \"two.sided\"), pwr 1.3-0)"
   Spower:
     alpha: 0.05
     alpha_source: "Spower's default (Spower(sig.level = 0.05), Spower 0.7)"
@@ -48,9 +53,41 @@ tool_defaults:
     power: 0.8
     power_source: "power4mome's default (n_region_from_power(target_power = 0.8), power4mome 0.2.1)"
 
+# The seed a calculation uses unless the user changes it (judgement-calls.md
+# B15): fixed, so the same answers always give the same result. It is shown
+# on the input screen and the result screen, recorded in the result and
+# written into the exported R script.
+default_seed: 1
+
+# How E1-E6 are calculated (docs/decisions.md, 17 October 2026): pwr's
+# formula by default; Spower simulation if the user expects their data
+# won't meet the test's assumptions. Welch's t-test (E2) has no pwr formula,
+# so it is always simulated and the choice isn't shown.
+basic_method_field: {id: calc_method, label: "How power is worked out", type: select, path: options.method, optional: true,
+  choices: {exact: "Formula (pwr): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
+  default: exact, default_source: "powerkit's default for basic tests (docs/decisions.md, 17 October 2026)"}
+
+# End points whose calculation runs on the input screen (phase 5, part 1).
+# Each runs in seconds on one core (measured 17 October 2026 with the
+# example values and 1,000 replications: 1 to 19 seconds, the longest a
+# correlation's sample size). The simulation-heavy end points (E9-E14) are
+# not wired yet: docs/phase5-simulations.md.
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8]
+
+# Departures from the wrapped tool's conventions, shown on the result screen
+# (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
+departures:
+  "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
+  "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
+  "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
+  "9": "Calculated with pwr's formula, not Spower's simulation (powerkit's earlier default): exact for the t-tests and the chi-square test, and approximate for a correlation (Fisher's z) and two proportions (Cohen's h), with no simulation noise. In the examples checked, the two differ by less than 0.01 in power, within the simulation's own noise."
+  "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
+
 forms:
   E1:
-    tool: Spower
+    departures: ["9"]
+    tool: pwr
+    basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: one_sample_t,
            variables: {"Y": {type: continuous}}, population: {metric: standardised},
@@ -64,7 +101,9 @@ forms:
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
 
   E2:
-    tool: Spower
+    departures: ["9"]
+    tool: pwr
+    basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: independent_t,
            variables: {X: {type: binary}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -82,15 +121,17 @@ forms:
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
-             default: 1, default_source: "Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
+             default: 1, default_source: "equal groups, as in pwr.t.test() (pwr 1.3-0) and Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
       - input: "Student's or Welch's test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)"},
-             default: student_t, default_source: "Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
+             default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
 
   E3:
-    tool: Spower
+    departures: ["9"]
+    tool: pwr
+    basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: paired_t,
            variables: {X: {type: within_factor}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -107,7 +148,9 @@ forms:
           - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
 
   E4:
-    tool: Spower
+    departures: ["9"]
+    tool: pwr
+    basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: correlation,
            variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
@@ -122,7 +165,9 @@ forms:
           - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
 
   E5:
-    tool: Spower
+    departures: ["9", "5"]
+    tool: pwr
+    basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: two_proportions,
            variables: {X: {type: binary}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
@@ -141,10 +186,12 @@ forms:
       - input: "The size of group 2 relative to group 1"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
-             default: 1, default_source: "Spower's default: equal groups (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.7)"}
+             default: 1, default_source: "equal groups, as in pwr.2p.test() (pwr 1.3-0) and Spower's default (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.7)"}
 
   E6:
-    tool: Spower
+    departures: ["9", "5"]
+    tool: pwr
+    basic_method: true
     directional: false
     base: {spec_version: "0.1", design: basic_test, template: chi_square_independence,
            variables: {X: {type: categorical}, "Y": {type: categorical}}, population: {metric: proportion},
@@ -161,6 +208,7 @@ forms:
           - {id: probabilities, label: "Proportions: one line per category of the first variable, one number per category of the second, separated by commas", type: table, path: population.probabilities, effect: true}
 
   E7:
+    departures: ["1", "3"]
     tool: Superpower
     directional: false
     sensitivity: true
@@ -212,6 +260,7 @@ forms:
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
   E8:
+    departures: ["2", "3"]
     tool: Superpower
     directional: false
     sensitivity: true

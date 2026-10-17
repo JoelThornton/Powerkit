@@ -106,7 +106,7 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
   }
   div(class = "engine-placeholder not-wired", role = "status", tabindex = "-1",
     h3(class = "h5", "Calculation not wired in yet"),
-    p("Your answers make a valid design spec: powerkit's checker (validate_spec()) accepted it. This prototype doesn't calculate anything; in the full app this spec would go to powerkit's engine."),
+    p("Your answers make a valid design spec: powerkit's checker (validate_spec()) accepted it. The calculation for this design isn't wired into the prototype yet; in the full app this spec would go to powerkit's engine."),
     if (length(check$advice)) tagList(p(tags$strong("Notes from the checker:")), tags$ul(lapply(check$advice, tags$li))),
     tags$details(tags$summary("The checked design spec (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
   )

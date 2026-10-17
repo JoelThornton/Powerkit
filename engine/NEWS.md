@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Basic tests (one-sample, independent and paired t-tests, correlation, two
+  proportions, chi-square test of independence) are now calculated by
+  formula with the pwr package by default, not by simulation: the same
+  inputs always give the same answer, with no Monte Carlo noise. Spower
+  simulation stays available with `options > method = "simulation"`, and
+  is used for Welch's t-test, which pwr doesn't cover. The correlation and
+  two-proportion formulas are approximations (Fisher's z, Cohen's h). The
+  exported R script calls pwr, and the citations export credits pwr. pwr is
+  now a dependency (Imports). Departure 9 in `docs/conventions.md`.
+
 * Basic tests now need Spower 0.7 or later. One-sided tests use Spower's
   own one-sided test (its new `alternative` argument) instead of powerkit's
   workaround for Spower 0.6.4, which halved the two-sided p-value whatever

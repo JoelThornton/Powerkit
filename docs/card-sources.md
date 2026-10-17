@@ -46,17 +46,17 @@ None open. Resolved:
 | Card | Where on the card | Claim | Source | Where in the source | What it supports | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | E1 | Status line | Full validation run passed. No published example has been checked for this design yet. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E1 | Backend | Spower: Spower() with p_t.test() | engine/R (backend code) | — | — | sourced |
+| E1 | Backend | pwr: pwr.t.test() (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E2 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E2 | Backend | Spower: Spower() with p_t.test() | engine/R (backend code) | — | — | sourced |
+| E2 | Backend | pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E3 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E3 | Backend | Spower: Spower() with p_t.test(type = 'paired') | engine/R (backend code) | — | — | sourced |
+| E3 | Backend | pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E4 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E4 | Backend | Spower: Spower() with p_r() | engine/R (backend code) | — | — | sourced |
+| E4 | Backend | pwr: pwr.r.test() (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E5 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E5 | Backend | Spower: Spower() with p_prop.test() (no continuity correction) | engine/R (backend code); docs/conventions.md, Departure 5 | — | — | sourced |
+| E5 | Backend | pwr: pwr.2p2n.test() with Cohen's h, no continuity correction (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/conventions.md, Departures 5 and 9; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E6 | Status line | Full validation run passed. No published example has been checked for this design yet. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E6 | Backend | Spower: Spower() with p_chisq.test() | engine/R (backend code) | — | — | sourced |
+| E6 | Backend | pwr: pwr.chisq.test() (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E7 | Status line | Full validation run passed. Smallest detectable effect is available for this design. | docs/validation-log.md; engine/tests/testthat/test-validation-anova-2x2-between.R | — | — | sourced |
 | E7 | Backend | Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen) | engine/R (backend code) | — | — | sourced |
 | E8 | Status line | Full validation run passed. Smallest detectable effect is available for this design. | docs/validation-log.md; engine/tests/testthat/test-validation-anova-2x2-mixed.R | — | — | sourced |

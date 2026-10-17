@@ -283,7 +283,9 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
         lapply(c("not_in_spec_wording", "r_script_for_uncovered"), function(key) div(placeholder_inline(setting_by_key(tree, key))))
       ),
       if (!compact) placeholders_at(tree, ep_id),
-      p(class = "no-numbers", "No numbers are calculated in this prototype.")
+      # End points that calculate on their input screen (forms.yaml,
+      # `calculates`, copied into tree$calculates when the app starts).
+      if (!ep_id %in% unlist(tree$calculates)) p(class = "no-numbers", "No numbers are calculated in this prototype.")
     )
   )
 }

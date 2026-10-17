@@ -1,10 +1,19 @@
 # Every screen renders from the data file, shows the prototype banner, and
-# the app never calculates power (from the engine it uses only
-# validate_spec(), on the input screens).
+# the app never calculates power itself: it builds specs and calls the
+# engine (validate_spec(), run_spec() and the exports).
 
-test_that("the banner says it's a prototype that calculates nothing", {
-  expect_identical(tree$banner, "Prototype: shows which analysis you need; it doesn't calculate anything yet.")
+test_that("the banner says which designs calculate (judgement call B14)", {
+  expect_identical(tree$banner, "Prototype: calculations are available for E1–E8; other designs show guidance only for now.")
   expect_match(as.character(prototype_banner(tree)), tree$banner, fixed = TRUE)
+})
+
+test_that("only cards that don't calculate say 'No numbers are calculated'", {
+  for (id in unlist(forms$calculates)) {
+    expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
+  }
+  for (id in c("E9", "E10", "E14", "E18", "E45")) {
+    expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
+  }
 })
 
 test_that("every end-point card renders, with its status and inputs", {
@@ -103,16 +112,20 @@ test_that("the plan screen shows placeholders for the combined N and the consist
   expect_match(html, "E16", fixed = TRUE)
 })
 
-test_that("the prototype never calls a power function; from the engine it uses only validate_spec()", {
+test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec() and exports", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
-  for (pattern in c("run_spec", "powerkit::", "load_engine", "Spower::", "Superpower::", "power4mome::", "InteractionPoweR::", "power.t.test", "pwr::", "export_script", "search_n")) {
+  # No backend package, power formula or engine internals are called directly.
+  for (pattern in c("powerkit::", "powerkit:::", "Spower::", "Superpower::", "power4mome::", "InteractionPoweR::", "power.t.test", "pwr::", "search_n(")) {
     expect_false(grepl(pattern, code, fixed = TRUE), label = pattern)
   }
-  # Every function taken from the engine is validate_spec().
-  taken <- regmatches(code, gregexpr('(getExportedValue\\("powerkit", "[^"]+"\\)|get\\("[^"]+", envir = asNamespace\\("powerkit"\\)\\))', code))[[1]]
-  expect_gt(length(taken), 0)
-  for (t in taken) expect_match(t, '"validate_spec"', fixed = TRUE)
+  # Engine functions are taken by name through engine_function(), and only
+  # these four (CLAUDE.md: the app builds specs and calls the engine).
+  used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
+  used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
+  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations"))
+  # Calculations run only for the end points listed in forms.yaml.
+  expect_setequal(unlist(forms$calculates), paste0("E", 1:8))
 })
 
 test_that("each card lists only the closing questions that apply to it", {

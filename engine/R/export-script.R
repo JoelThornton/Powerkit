@@ -1,7 +1,7 @@
 #' Write an R script that reproduces a result
 #'
 #' Writes a standalone R script that reproduces a [run_spec()] result by
-#' calling the package that computed it (Spower, Superpower,
+#' calling the package that computed it (pwr, Spower, Superpower,
 #' InteractionPoweR or power4mome) directly, with the design's values
 #' filled in and a comment on each argument. powerkit is not needed to run
 #' the script.
@@ -16,7 +16,9 @@
 #'   simulated and fits the same probit curve to find the required n and
 #'   its 95% interval (powerkit's quicker first pass, which only chose
 #'   those sizes, is not repeated);
-#' * exact 2x2 results use `ANOVA_exact()` under the run's seed.
+#' * exact 2x2 results use `ANOVA_exact()` under the run's seed;
+#' * exact basic-test results call pwr's formula (for a sample-size goal, at
+#'   the sizes powerkit computed, around the required n).
 #'
 #' The script ends by comparing its numbers with powerkit's and printing
 #' `sessionInfo()`. It doesn't repeat the check run.
@@ -40,6 +42,7 @@ export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
   lines <- switch(
     result$provenance$backend,
+    pwr = pwr_script(spec, result),
     Spower = spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -251,6 +254,11 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
+    } else if (identical(p$backend, "pwr")) {
+      sprintf(
+        "# powerkit recorded seed %s for this run; pwr's formulas draw no random numbers, so it isn't used.",
+        p$seed
+      )
     } else {
       sprintf("seed <- %s # powerkit's seed for this run (see below)", r_code(p$seed))
     }
@@ -379,6 +387,122 @@ comparison_section <- function() {
     "}",
     "",
     "sessionInfo()"
+  )
+}
+
+# pwr -----------------------------------------------------------------------------
+
+pwr_script <- function(spec, result) {
+  inputs <- pwr_inputs(spec)
+  c(
+    script_header(spec, result, "pwr", inputs$description),
+    "library(pwr)",
+    "",
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    goal_inputs(spec, result),
+    "",
+    "# Power at a total sample size, from pwr's formula.",
+    "power_at <- function(n_total) {",
+    pwr_script_call_lines(spec, inputs),
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The body of power_at(): group sizes if needed, then the pwr call with a
+# comment on each argument. powerkit passes the same values (pwr_inputs()).
+pwr_script_call_lines <- function(spec, inputs) {
+  alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
+  alt <- sprintf("alternative = %s # %s", r_code(alternative), switch(
+    alternative,
+    two.sided = "two-sided test",
+    greater = "one-sided: the effect is positive",
+    less = "one-sided: the effect is negative"
+  ))
+  groups <- c(
+    "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+    "  n_group2 <- n_total - n_group1"
+  )
+  ratio <- spec$options$allocation_ratio %||% 1
+  call <- switch(
+    spec$template,
+    one_sample_t = list(head = "pwr.t.test(", args = c(
+      "n = n_total", "d = d", "sig.level = alpha", "type = \"one.sample\"", alt
+    )),
+    independent_t = if (isTRUE(all.equal(ratio, 1))) {
+      list(head = "pwr.t.test(", args = c(
+        "n = n_total / 2 # pwr's n is the size of each group",
+        "d = d # group 2 minus group 1; pwr's \"greater\" means d > 0",
+        "sig.level = alpha",
+        "type = \"two.sample\" # Student's t-test (equal variances)",
+        alt
+      ))
+    } else {
+      list(pre = groups, head = "pwr.t2n.test(", args = c(
+        "n1 = n_group1", "n2 = n_group2",
+        "d = d # group 2 minus group 1; pwr's \"greater\" means d > 0",
+        "sig.level = alpha", alt
+      ))
+    },
+    paired_t = list(head = "pwr.t.test(", args = c(
+      "n = n_total # number of pairs", "d = dz # for a paired test, pwr's d is d_z",
+      "sig.level = alpha", "type = \"paired\"", alt
+    )),
+    correlation = list(head = "pwr.r.test( # Fisher's z approximation", args = c(
+      "n = n_total", "r = r", "sig.level = alpha", alt
+    )),
+    two_proportions = list(
+      pre = groups,
+      head = "pwr.2p2n.test( # Cohen's h (arcsine approximation), no continuity correction",
+      args = c(
+        "h = ES.h(proportions[2], proportions[1]) # positive when group 2's proportion is higher",
+        "n1 = n_group1", "n2 = n_group2", "sig.level = alpha", alt
+      )
+    ),
+    chi_square_independence = list(head = "pwr.chisq.test(", args = c(
+      "w = ES.w2(probabilities) # Cohen's w for the table of proportions",
+      "N = n_total",
+      "df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1)",
+      "sig.level = alpha"
+    ))
+  )
+  c(call$pre, paste0("  ", call$head), paste0("    ", ensure_commas(call$args)), "  )$power")
+}
+
+pwr_goal_section <- function(spec, result) {
+  switch(
+    spec$goal$type,
+    power = c(
+      "# Power at n_total ----",
+      "power <- power_at(n_total)",
+      "cat(sprintf(\"Power with n = %s: %.4f\\n\", n_total, power))",
+      "",
+      "reproduced <- list(power = power)",
+      sprintf("powerkit_result <- list(power = %s)", r_code(result$curve$power)),
+      ""
+    ),
+    sample_size = c(
+      "# Required n ----",
+      "# Power at the required n that powerkit found and at three valid sizes",
+      sprintf("# either side (valid sizes are multiples of %s). Power rises with n, so", valid_n_step(spec)),
+      "# the required n is the first of these that reaches the target power: the",
+      "# size before it doesn't.",
+      sprintf("sizes <- %s", r_code(result$curve$n)),
+      "power <- vapply(sizes, power_at, numeric(1))",
+      "n_required <- sizes[which(power >= target_power)[1]]",
+      "print(data.frame(n = sizes, power = power))",
+      "cat(sprintf(\"Required n: %s\\n\", n_required))",
+      "",
+      "reproduced <- list(n = n_required, power = power)",
+      sprintf(
+        "powerkit_result <- list(n = %s, power = %s)",
+        r_code(result$n_required$n), r_code(result$curve$power)
+      ),
+      ""
+    )
   )
 }
 

@@ -47,7 +47,7 @@ The statistical decisions phase 3b needs before coding are in
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
-- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B10
+- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B15
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
@@ -601,6 +601,158 @@ is kept below as the record of the options.
     each labelled with its source (not effect sizes).
 - **Recorded in:** setting `effect_size_inputs` (shown on the input
   screens).
+
+### B11. How results are worded
+
+- **Question:** the result screen (E1–E8, phase 5 part 1) gives the
+  number in a sentence. Keep the draft wording, or change it?
+  - Draft for a sample size: "You need 206 participants in total (103 per
+    group) for 80% power to detect the effect you entered, with a
+    two-sided test at alpha = .05."
+  - Draft for power: "With 120 participants in total (60 per group), the
+    study has 61% power: if the true effect is the one you entered, about
+    61 in 100 studies like this would give a significant result …"
+  - Every result adds: "This is planned power for the effect you entered,
+    before the study is run. It is not "observed power" calculated from a
+    finished study's results, which says nothing beyond the study's
+    p-value."
+- **Options:** keep the draft; a shorter number-first wording; other
+  wording.
+- **What tools and sources do:** not yet checked against a source for
+  this entry (unsourced). The "observed power" line states the build
+  guide's intent; it cites no reference, and the claim that observed
+  power "says nothing beyond the p-value" needs a source from `refs.bib`
+  before release.
+  - **Maintainer's decision (17 October 2026):** keep the "planned power,
+    not observed power" line.
+  - **Candidate source, not verified:** Hoenig and Heisey's paper on the
+    abuse of power calculations, DOI 10.1198/000313001300339897. On
+    17 October 2026 the DOI resolved at doi.org, and its metadata (from
+    doi.org) gives "The Abuse of Power", John M. Hoenig and Dennis M.
+    Heisey, *The American Statistician*, 55(1), 19–24, 2001. The article
+    itself couldn't be opened: the publisher's page
+    (tandfonline.com) returned 403 Forbidden to this session, and the
+    metadata has no abstract. So the claim that observed power adds
+    nothing beyond the p-value has not been checked against it, and it
+    is **not** in `refs.bib`. Status: candidate, for the maintainer to
+    open and verify.
+- **Who might disagree, and why:**
+  - A sentence is easier to read and to copy into a methods section.
+  - A number first is quicker to scan.
+  - Some find the "observed power" line unnecessary for planning.
+- **Knock-on effects:** the methods paragraph (still a placeholder); the
+  wording of the same numbers in the exported script's comments.
+- **Recorded in:** setting `result_wording` (shown on the result screen).
+
+### B12. Rounding of N
+
+- **Question:** how is the required N rounded and reported?
+- **Now:** the engine gives the smallest total N in steps that keep groups
+  whole (even totals for two equal groups; multiples of 4 for a 2 x 2
+  between design; with an allocation ratio, steps that keep both groups
+  whole). The screen adds the size per group (or per cell). Nothing is
+  rounded on the screen itself.
+- **Options:** total and per group (as now); total only; per group first.
+- **What tools and sources do:** G\*Power reports both a total and group
+  sizes (unsourced here; to check in its manual).
+- **Who might disagree, and why:** per-group numbers are what a recruiter
+  plans with; the total is what a preregistration usually states.
+- **Knock-on effects:** attrition (the recruitment target is reported
+  separately once attrition is wired in).
+- **Recorded in:** setting `n_rounding` (shown on the result screen).
+
+### B13. A power curve
+
+- **Question:** should the result screen show a power curve (power
+  against N)?
+- **Now:** no curve; the number only. For a simulated sample size the
+  engine already returns the points it simulated.
+- **Options:** no curve; a table of the computed points; a plot.
+- **What tools and sources do:** G\*Power can plot power against N
+  (unsourced here; to check in its manual).
+- **Who might disagree, and why:** a curve shows how sensitive the N is to
+  the target power, but simulated points are noisy and can look jagged.
+- **Knock-on effects:** for simulated results, a curve needs more
+  simulated sample sizes than the search uses.
+- **Recorded in:** setting `power_curve` (shown on the result screen).
+
+### B14. The prototype banner, now that E1–E8 calculate
+
+- **Question:** the banner said "Prototype: shows which analysis you need;
+  it doesn't calculate anything yet.", and each card ended "No numbers are
+  calculated in this prototype." Both were out of date for E1–E8, which
+  calculate on their input screen.
+- **Maintainer's decision (17 October 2026):** make the text accurate.
+  - The banner now reads "Prototype: calculations are available for
+    E1–E8; other designs show guidance only for now."
+  - E1–E8's cards no longer say "No numbers are calculated"; every other
+    card keeps it.
+  - The input screens that don't calculate yet (E9–E14) say "The
+    calculation for this design isn't wired into the prototype yet".
+- **Knock-on effects:** when another end point is wired in, the banner's
+  list changes with it (`tree.yaml`, `banner`; the card line follows
+  `forms.yaml`, `calculates`).
+- **Recorded in:** this entry, `tree.yaml` (`banner`) and `forms.yaml`
+  (`calculates`).
+
+### B15. The seed for a calculation
+
+- **Question:** which random-number seed does a calculation on the result
+  screen use?
+- **Before:** a new random seed each time, recorded with the result. The
+  same answers entered twice could give slightly different simulated
+  results: in the screenshots for PR #34, E2's required N came out as 196,
+  198 and 200 on three runs (Monte Carlo noise within the reported 95%
+  interval).
+- **Options:**
+  - a fixed default seed, so the same answers always give the same
+    result;
+  - a new random seed each time;
+  - more replications, so the result moves less from seed to seed (at
+    the cost of time).
+- **Maintainer's decision (17 October 2026): a fixed default seed is now
+  in place.** The seed is 1 (`forms.yaml`, `default_seed`). It is a field
+  on every input screen ("Random seed"), which the user can change; it is
+  shown on the result screen, recorded in the result (spec and
+  reproducibility record) and written into the exported R script. A
+  simulated result also says: "Calculated by simulation with [k]
+  replications; a different seed can shift the result slightly."
+- **What tools and sources do:** not checked for this entry (unsourced).
+- **Who might disagree, and why:**
+  - A fixed seed avoids confusion when a user reruns and sees a different
+    N.
+  - A random seed avoids treating one simulated draw as exact.
+  - More replications reduce the noise rather than hide it.
+- **Knock-on effects:** exact results (E1–E6 by formula, E7, E8) don't
+  depend on the seed in practice (Departure 3 for E7 and E8). The seed
+  field is shown on every screen, including those whose default doesn't
+  simulate.
+- **Recorded in:** setting `calculation_seed` (now `fixed`, shown on the
+  result screen).
+
+### B16. Simulation for "data that won't meet the assumptions" (E1–E6)
+
+- **Question:** E1–E6 offer Spower simulation "if you expect your data
+  won't meet the test's assumptions" (maintainer's decision, 17 October
+  2026). As wired, Spower simulates normal data with equal variances
+  (Welch's aside), the same assumptions as pwr's formula. So the
+  simulation gives the formula's answer up to Monte Carlo noise; it
+  doesn't yet model the data the user is worried about.
+- **Options:**
+  - keep the option as is, and say on the screen that it simulates
+    normal data;
+  - let the user describe the departure (for example skewness, unequal
+    variances, a different distribution), which needs new spec fields
+    and Spower's other data generators;
+  - remove the option until the spec can describe the departure.
+- **What tools and sources do:** Spower's experiment functions accept
+  custom data generators (its documentation; not checked in detail for
+  this entry).
+- **Who might disagree, and why:** offering the option now signals the
+  direction; offering it before it does anything different may mislead.
+- **Knock-on effects:** the spec format (new fields), validation for each
+  new generator.
+- **Recorded in:** this entry only (no setting).
 
 ## C. Which card users reach
 
@@ -1230,7 +1382,7 @@ source for Fisher's exact test in C11.
     foundation tool already does);
   - out of scope, with no card.
 - **What the roadmap shows:** of G\*Power's 49 tests, powerkit runs 10
-  (validated, not wired yet), 4 are planned, 23 a foundation tool can do
+  (validated, and wired in the app since PR #34), 4 are planned, 23 a foundation tool can do
   but aren't planned, 11 no foundation tool covers (Hotelling's T²,
   MANOVA, the unconditional exact tests and the five generic tests), and
   1 needs checking ([roadmap](coverage-roadmap.md), Part A).

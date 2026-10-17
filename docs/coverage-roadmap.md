@@ -27,10 +27,9 @@ test, and links each row to an end point in
 | Next step | What would move the row on |
 | Blocking decision | An entry in [`judgement-calls.md`](judgement-calls.md), or — |
 
-**"Wired"** means the app runs the calculation. On `main` no end point is
-wired yet: the input screens build and check a spec but don't calculate.
-PR #34 (draft, waiting for the maintainer) wires E1–E8; when it merges,
-the rows for E1–E8 become **Done**.
+**"Wired"** means the app runs the calculation. E1–E8 are wired (PR #34,
+merged 17 October 2026); E9–E14 run in the engine but the app shows
+guidance only.
 
 **Foundation tools** are the packages powerkit is built on and credits:
 Spower, Superpower, power4mome, InteractionPoweR, and pwr (being added as
@@ -44,7 +43,7 @@ Every function named below was found in the package's help pages
 (`man/*.Rd`) in its CRAN source, at the version listed, opened on
 17 October 2026 from cran.r-project.org. The packages were not installed
 or run here, except pwr and pwrss (installed for the E4 comparison in
-the Task 3 PR, judgement call G6). Packages not on CRAN are
+judgement call G6). Packages not on CRAN are
 taken from [`coverage.md`](coverage.md), which read their GitHub sources on
 15 October 2026; they are marked *(coverage.md)*.
 
@@ -80,13 +79,13 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Validated, not wired | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decide E4's default method (see note 1); ρ0 ≠ 0 is in Spower but not exposed | G6 (added in the Task 3 PR) |
+| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decide E4's default method (see note 1); ρ0 ≠ 0 is in Spower but not exposed | G6 (added in the Task 3 PR) |
 | A2 | Correlation: point biserial model | GP | E2 (the same test, with r converted to d; E2 takes d only) | Foundation tool can do it, not planned | Now: — (AP, PN through E2 with d). Could: AP, PN, S, Co, Cr | Spower `p_t.test(r = )` (its G\*Power examples vignette, Example 16.3) | Accept r on E2, or a card note | [G3][] |
 | A3 | Correlation: tetrachoric model | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_r.cat()` (tetrachoric, polychoric, polyserial; Example 31.3) | — | [G1][] |
 | A4 | Two dependent Pearson r's (common index) | GP | none: no answer fits; nearest E4 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_2r()` (default test `"steiger1980"` for overlapping correlations; Example 28.3.2). pwrss `power.z.twocors.steiger(common.index = TRUE)` (cross-check) | — | [G1][] |
 | A5 | Two dependent Pearson r's (no common index) | GP | none: no answer fits; nearest E4 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_2r()` with `r.ad`, `r.bd`, `r.cd` (Example 28.3.1) | — | [G1][] |
 | A6 | Two independent Pearson r's | GP | none: no answer fits *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_2r(r.ab, r.ab2, n2_n1)` (default test `"fisher1925"`; Example 27.3) | — | [G1][] |
-| A7 | Linear bivariate regression: one group, size of slope | GP; UCLA | E4 (the test of a slope of 0 is the test of r = 0; audit) | Validated, not wired | Now: AP, PN (as r). Could: AP, PN, S, Co, Cr | Spower `p_slr(beta, sd_x, sd_y, beta0)` (Example 12.3); pwr `pwr.r.test()` for a slope of 0 | Accept slope and SDs on E4, or a card note; a non-zero null slope needs `p_slr()` | [G3][] |
+| A7 | Linear bivariate regression: one group, size of slope | GP; UCLA | E4 (the test of a slope of 0 is the test of r = 0; audit) | Done (validated and wired) | Now: AP, PN (as r). Could: AP, PN, S, Co, Cr | Spower `p_slr(beta, sd_x, sd_y, beta0)` (Example 12.3); pwr `pwr.r.test()` for a slope of 0 | Accept slope and SDs on E4, or a card note; a non-zero null slope needs `p_slr()` | [G3][] |
 | A8 | Linear bivariate regression: two groups, difference between intercepts | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` with a user-written data generator (Examples 17.3 and 18.3 in Spower's vignette write one) | — | [G1][] |
 | A9 | Linear bivariate regression: two groups, difference between slopes | GP | E15 (a yes/no W × continuous X interaction is a difference in slopes) | Planned (phase 3b) | Now: —. Could: AP, PN (InteractionPoweR, by a grid over N) | InteractionPoweR `power_interaction(k.x2 = 2)`: groups split 50/50 only. Spower `p_glm()` as A8 for unequal groups | Phase 3b; G\*Power allows unequal groups, InteractionPoweR doesn't | [E4][] |
 | A10 | Linear multiple regression: fixed model, R² deviation from zero | GP; UCLA | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_lm.R2(R2, k)` (Example 13.1); pwr `pwr.f2.test()` | coverage.md proposes v2 | [G1][] |
@@ -110,20 +109,20 @@ comparison is judgement call G6, added to
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A16 | One group: difference from constant | GP; UCLA | E1 | Validated, not wired | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_t.test(type = "one.sample")` (Example 20.3); pwr `pwr.t.test(type = "one.sample")` | Wire (PR #34) | — |
+| A16 | One group: difference from constant | GP; UCLA | E1 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_t.test(type = "one.sample")` (Example 20.3); pwr `pwr.t.test(type = "one.sample")` | — | — |
 | A17 | One group: Wilcoxon | GP; UCLA (one-sample median) | none: reaches E1 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "one.sample", parent1)` (Examples 22.1, 22.3) | Decide judgement call 3.8 | [C10][] |
-| A18 | Two dependent groups (matched pairs) | GP; UCLA | E3 | Validated, not wired | As A16 | Spower `p_t.test(type = "paired")` (Example 19.3); pwr `pwr.t.test(type = "paired")` | Wire (PR #34) | — |
+| A18 | Two dependent groups (matched pairs) | GP; UCLA | E3 | Done (validated and wired) | As A16 | Spower `p_t.test(type = "paired")` (Example 19.3); pwr `pwr.t.test(type = "paired")` | — | — |
 | A19 | Two dependent groups: Wilcoxon | GP; UCLA | none: reaches E3 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "paired")` (Example 23.3) | As A17 | [C10][] |
-| A20 | Two independent groups | GP; UCLA | E2 | Validated, not wired | As A16 | Spower `p_t.test(n2_n1)`; pwr `pwr.t.test()`, `pwr.t2n.test()` (unequal groups) | Wire (PR #34) | — |
+| A20 | Two independent groups | GP; UCLA | E2 | Done (validated and wired) | As A16 | Spower `p_t.test(n2_n1)`; pwr `pwr.t.test()`, `pwr.t2n.test()` (unequal groups) | — | — |
 | A21 | Two independent groups: Wilcoxon | GP; UCLA | none: reaches E2 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "two.sample", n2_n1, parent1, parent2)` | As A17 | [C10][] |
 | A22 | ANCOVA: main effects and interactions | GP; UCLA; BG | E23 | Planned (v2 in the build guide, section 2; no phase named) | Could: PN, AP (by a search over n) | Superpower `ANCOVA_analytic()`, `power_oneway_ancova()`, `ANCOVA_contrast()`. Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Name a phase | [C15][], [D7][] |
 | A23 | ANOVA: one-way | GP; UCLA | E18 | Foundation tool can do it, not planned | Could: PN, AP (Superpower); AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Superpower `power_oneway_between()`, `ANOVA_design("kb")`; Spower `p_anova.test(n.ratios, var.equal)` (Example 10.3); pwr `pwr.anova.test()` (balanced only) | coverage.md proposes v2 | [G1][] |
-| A24 | ANOVA: main effects and interactions (two or more IVs) | GP; UCLA | E7 (2 x 2); E21 (larger) | Validated, not wired | Now: AP, PN, S (2 x 2). Could: Co (Superpower `ANOVA_compromise()`) | Superpower `ANOVA_exact()`, `ANOVA_power()`; `power_twoway_between()`, `power_threeway_between()` for larger designs | 2 x 2 only; 2 x 2 x 2 is in the build guide's MVP family with no phase | [G1][] |
-| A25 | Repeated measures: between factors, ANOVA-approach | GP | E8 (the group effect in a 2 x 2 mixed design) | Validated, not wired | Now: AP, PN, S (2 x 2 mixed) | Superpower `ANOVA_exact()` (`"2b*2w"` and larger designs) | Larger designs: E21 | [G1][] |
+| A24 | ANOVA: main effects and interactions (two or more IVs) | GP; UCLA | E7 (2 x 2); E21 (larger) | Done (validated and wired) | Now: AP, PN, S (2 x 2). Could: Co (Superpower `ANOVA_compromise()`) | Superpower `ANOVA_exact()`, `ANOVA_power()`; `power_twoway_between()`, `power_threeway_between()` for larger designs | 2 x 2 only; 2 x 2 x 2 is in the build guide's MVP family with no phase | [G1][] |
+| A25 | Repeated measures: between factors, ANOVA-approach | GP | E8 (the group effect in a 2 x 2 mixed design) | Done (validated and wired) | Now: AP, PN, S (2 x 2 mixed) | Superpower `ANOVA_exact()` (`"2b*2w"` and larger designs) | Larger designs: E21 | [G1][] |
 | A26 | Repeated measures: between factors, MANOVA-approach | GP | none: not reachable | Unknown (check whether Superpower's `manova_results` includes the between-factor effect; its help says only that MANOVA results are given "if a within-subjects factor is included") | — | Superpower `ANOVA_exact()` / `ANOVA_power()`, element `manova_results` (candidate) | Check | [G1][] |
-| A27 | Repeated measures: within factors, ANOVA-approach | GP; UCLA | E8 (2 x 2 mixed); E18 and E20 (honest cards) | Validated, not wired | Now: AP, PN, S (2 x 2 mixed's within effect) | Superpower `power_oneway_within()`, `ANOVA_design("kw")`, `"2w*2w"`; sphericity `correction` (GG, HF) in `ANOVA_power()` | One-way and 2 x 2 within: coverage.md proposes v2 | [G1][] |
+| A27 | Repeated measures: within factors, ANOVA-approach | GP; UCLA | E8 (2 x 2 mixed); E18 and E20 (honest cards) | Done (validated and wired) | Now: AP, PN, S (2 x 2 mixed's within effect) | Superpower `power_oneway_within()`, `ANOVA_design("kw")`, `"2w*2w"`; sphericity `correction` (GG, HF) in `ANOVA_power()` | One-way and 2 x 2 within: coverage.md proposes v2 | [G1][] |
 | A28 | Repeated measures: within factors, MANOVA-approach | GP | none: not reachable | Foundation tool can do it, not planned | Could: PN | Superpower `ANOVA_exact()` / `ANOVA_power()`, element `manova_results` (given when a within factor is included) | Report `manova_results`, which E8 already computes | [G1][] |
-| A29 | Repeated measures: within-between interactions, ANOVA-approach | GP | E8 | Validated, not wired | Now: AP, PN, S | Superpower `ANOVA_exact()` (`"2b*2w"`) | Wire (PR #34) | — |
+| A29 | Repeated measures: within-between interactions, ANOVA-approach | GP | E8 | Done (validated and wired) | Now: AP, PN, S | Superpower `ANOVA_exact()` (`"2b*2w"`) | — | — |
 | A30 | Repeated measures: within-between interactions, MANOVA-approach | GP | none: not reachable | Foundation tool can do it, not planned | Could: PN | As A28 | As A28 | [G1][] |
 | A31 | Hotelling T², one group | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown (none found in the foundation tools' help) | — | [G1][] |
 | A32 | Hotelling T², two groups | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown in the foundation tools. BUCSS `ss_buc_manova()` (two-group multivariate comparison, with bias correction) is a candidate | — | [G1][] |
@@ -140,7 +139,7 @@ comparison is judgement call G6, added to
 | A38 | Two independent groups: Fisher's exact | GP; UCLA | none: reaches E5 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_prop.test(exact = TRUE)` (`prop` as a matrix; `fisher.test()`). pwrss `power.exact.fisher()` (cross-check). Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Decide judgement call 3.9 | [C11][] |
 | A39 | Two independent groups: unconditional exact | GP | none: reaches E5 *(inferred)* | G\*Power covers it, powerkit doesn't | — | unknown (no unconditional exact test found in the foundation tools' help) | — | [G1][] |
 | A40 | Two independent groups: inequality with offset, unconditional exact | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown | — | [G1][] |
-| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Validated, not wired | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Compare pwr's arcsine method with G\*Power's z test (Task 3 PR, parity tables) | — |
+| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Compare pwr's arcsine method with G\*Power's z test (Task 3 PR, parity tables) | — |
 | A42 | Multigroup: goodness-of-fit | GP; UCLA | none: reaches E25 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_chisq.test(w, df)` or `P0`, `P`; pwr `pwr.chisq.test()`, `ES.w1()` | Decide judgement call 3.7 | [C9][] |
 
 ### Variances
@@ -170,7 +169,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B1 | Continuous × continuous | ML; BG | E9 | Validated, not wired | Now: AP, PN. Could: AP, PN, S (by grids over N and effect) | InteractionPoweR `power_interaction()`; `power_interaction_r2()` (analytic, brackets N) | Wire (draft PR from the other thread) | — |
 | B2 | Binary × continuous | ML; BG | E15 | Planned (phase 3b) | Could: AP, PN, S | InteractionPoweR `power_interaction(k.x1 = 2)` (50/50 split only) | Phase 3b | [E4][], [E5][] |
-| B3 | Binary × binary | ML | E7 (2 x 2 between ANOVA interaction) | Validated, not wired | Now: AP, PN, S | Superpower `ANOVA_exact()`; InteractionPoweR `k.x1 = 2, k.x2 = 2` as a cross-check (build guide, phase 3b c) | — | — |
+| B3 | Binary × binary | ML | E7 (2 x 2 between ANOVA interaction) | Done (validated and wired) | Now: AP, PN, S | Superpower `ANOVA_exact()`; InteractionPoweR `k.x1 = 2, k.x2 = 2` as a cross-check (build guide, phase 3b c) | — | — |
 | B4 | Categorical moderator with 3+ levels | ML; Audit | E30 | No ready-made tool | — | InteractionPoweR's `k.x1`/`k.x2` make ordered (binary or ordinal) variables, not unordered categories (coverage.md) | — | [A1][] |
 | B5 | Three-way interaction | ML; BG | E31 | Foundation tool can do it, not planned | Could: PN, AP (by grid) | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
 | B6 | Simple slopes | ML | none: no card asks (E9's target is the interaction) | Foundation tool can do it, not planned | Could: PN | InteractionPoweR `power_interaction(detailed_results = TRUE)`, `plot_simple_slope()`, `simple.slopes.3way()` | — | [B7][] |
@@ -215,7 +214,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B24 | Welch's t | ML | E2 (an option) | Validated, not wired | Now: AP, PN (Spower). Could: AP, PN, S, Co, Cr | Spower `p_t.test(var.equal = FALSE)`. pwr has no Welch test, so Welch stays on simulation under PR #34 | Wire | — |
+| B24 | Welch's t | ML | E2 (an option) | Done (validated and wired) | Now: AP, PN (Spower). Could: AP, PN, S, Co, Cr | Spower `p_t.test(var.equal = FALSE)`. pwr has no Welch test, so Welch stays on simulation under PR #34 | — | — |
 | B25 | Kruskal–Wallis | ML; UCLA | none: reaches E18 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_kruskal.test(n, k, means, n.ratios)` | Decide judgement call 3.8 | [C10][] |
 | B26 | Friedman | ML; UCLA | none: reaches E18 | Unknown (no Friedman power function in the foundation tools or the 47 other packages opened; check further) | — | unknown | Search | [C10][] |
 | B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found | — | [C6][] |
@@ -304,11 +303,11 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | C1 | Alpha correction for multiple tests | None: one target test per spec; the user can lower alpha by hand | Foundation tool can do it, not planned | Superpower `ANOVA_power(p_adjust = )` and `emm_p_adjust` for ANOVA effects and contrasts; elsewhere a corrected alpha passed to the backend | [G3][] |
 | C2 | Joint power across several hypotheses | None | Foundation tool can do it, not planned | power4mome `rejection_rates(collapse = "all_sig")` (and at least one, at least k); Spower user-written experiments returning one TRUE/FALSE | [B6][], [D6][], [G3][] |
 | C3 | Attrition/missing-data inflation of N | `options > attrition` turns the analysed N into a recruitment target (unit-tested; not a validation test); asked on every card | Planned (phase 5: on the input screens, PR #34) | Missing data beyond attrition: power4mome `missing_values()` | [G3][] |
-| C4 | Unequal allocation ratios | Two-group tests (`options > allocation_ratio`); E7 between designs no | Validated, not wired | Spower `n2_n1`, `n.ratios`; pwr `pwr.t2n.test()`, `pwr.2p2n.test()`; Superpower `ANOVA_power()` with an n vector (between designs only) | [G3][] |
+| C4 | Unequal allocation ratios | Two-group tests (`options > allocation_ratio`); E7 between designs no | Done (validated and wired) | Spower `n2_n1`, `n.ratios`; pwr `pwr.t2n.test()`, `pwr.2p2n.test()`; Superpower `ANOVA_power()` with an n vector (between designs only) | [G3][] |
 | C5 | Measurement unreliability | E9 (reliability of X, W, Y) | Validated, not wired | InteractionPoweR `rel.x1`, `rel.x2`, `rel.y`; power4mome latent models (`reliability`) for mediation | [B8][], [G3][] |
-| C6 | Non-normal data and unequal variances (simulation option) | Unequal variances: Welch (E2), cell SDs (E7, E8). Non-normal data: none | Validated, not wired (unequal variances only) | Spower `parent1`/`parent2` (Wilcoxon), `gen_fun`; power4mome `x_fun`/`e_fun` with `rbeta_rs()`, `rexp_rs()`, `rlnorm_rs()`, `rt_rs()`, `runif_rs()`, `rpgnorm_rs()` | [G3][] |
+| C6 | Non-normal data and unequal variances (simulation option) | Unequal variances: Welch (E2), cell SDs (E7, E8). Non-normal data: none | Done (validated and wired; unequal variances only) | Spower `parent1`/`parent2` (Wilcoxon), `gen_fun`; power4mome `x_fun`/`e_fun` with `rbeta_rs()`, `rexp_rs()`, `rlnorm_rs()`, `rt_rs()`, `runif_rs()`, `rpgnorm_rs()` | [G3][] |
 | C7 | Covariates | None (ANCOVA, E23, is an honest card) | Planned (v2 in the build guide for ANCOVA; no phase) | Superpower `ANCOVA_analytic()`; InteractionPoweR `power_interaction_r2_covs()`; power4mome lavaan models; Spower `p_glm()` | [D7][], [C15][] |
-| C8 | One- vs two-tailed | Two-sided default; one-sided for basic tests | Validated, not wired | Spower `alternative`; pwr `alternative` | [B3][] |
+| C8 | One- vs two-tailed | Two-sided default; one-sided for basic tests | Done (validated and wired) | Spower `alternative`; pwr `alternative` | [B3][] |
 | C9 | Effect-size input formats and conversion | One format per end point (d, d_z, r, proportions, cell probabilities, means and SDs, standardised paths, correlations) | Unknown (decide which formats; conversion is planned for phase 5 as effect-size helpers, coverage.md) | pwr `ES.h()`, `ES.w1()`, `ES.w2()`; Superpower `mu_from_ES()`; pwrss `means.to.d()`, `etasq.to.f()`, `f.to.rsq()` and others (cross-check package) | [B10][], [G3][] |
 | C10 | Effect sizes from pilots or the literature (bias correction) | None (warnings only) | Unknown (decide the approach) | BUCSS `ss_buc_*()`; mixpower `mp_safeguard_effect()` | [B2][], [A8][] |
 | C11 | Power curves and sensitivity plots | `curve` in the result (power by N); sensitivity for E7, E8 | Validated, not wired | Spower `SpowerCurve()`; power4mome `power_curve()`; InteractionPoweR `plot_power_curve()`; Superpower `plot_power()`, `morey_plot()`; pwr `plot.power.htest()` | [G3][] |
@@ -331,8 +330,8 @@ Counts are of the rows above. Parts A, B and C have 49, 69 and 12 rows.
 
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
-| Done (validated and wired) | 0 | 0 | 0 | 0 |
-| Validated, not wired | 10 | 8 | 5 | 23 |
+| Done (validated and wired) | 10 | 2 | 3 | 15 |
+| Validated, not wired | 0 | 6 | 2 | 8 |
 | Planned | 4 | 25 | 3 | 32 |
 | Foundation tool can do it, not planned | 23 | 12 | 2 | 37 |
 | G\*Power covers it, powerkit doesn't | 11 | 0 | 0 | 11 |
@@ -341,8 +340,6 @@ Counts are of the rows above. Parts A, B and C have 49, 69 and 12 rows.
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
-When PR #34 merges, the E1–E8 rows move from "Validated, not wired" to
-"Done".
 
 **Cheapest additions** (a foundation tool already does it, and powerkit
 needs only a routing change, a new field or an output it already has):

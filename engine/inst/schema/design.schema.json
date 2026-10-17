@@ -370,7 +370,7 @@
           "exclusiveMinimum": 0
         },
         "method": {
-          "description": "How power is computed. exact: exact calculation for the specified population (2x2 ANOVA designs only, and their default). simulation: Monte Carlo simulation with nrep replications (the default for every other design).",
+          "description": "How power is computed. exact: exact calculation for the specified population (the default for 2x2 ANOVA designs, via Superpower, and for basic tests other than Welch's t-test, via pwr's analytic formulas). simulation: Monte Carlo simulation with nrep replications (the default for every other design; available for basic tests and 2x2 ANOVA designs on request).",
           "enum": [
             "exact",
             "simulation"
