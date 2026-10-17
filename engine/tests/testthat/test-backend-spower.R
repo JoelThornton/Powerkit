@@ -73,24 +73,41 @@ test_that("unequal groups need a total n that splits in the allocation ratio", {
 })
 
 test_that("one-sided tests use the direction of the spec's effect", {
-  p_value <- function(template, alternative, ...) {
-    set.seed(1)
-    spower_one_sided_p(template, alternative, ...)
+  # Spower's two-sample, paired and two-proportion tests compare the first
+  # group with the second, and powerkit passes the effect with its sign
+  # reversed, so the spec's "greater" is Spower's "less" for those.
+  expect_equal(spower_alternative("independent_t", "greater"), "less")
+  expect_equal(spower_alternative("paired_t", "less"), "greater")
+  expect_equal(spower_alternative("two_proportions", "greater"), "less")
+  expect_equal(spower_alternative("one_sample_t", "greater"), "greater")
+  expect_equal(spower_alternative("correlation", "less"), "less")
+  expect_equal(spower_alternative("independent_t", "two_sided"), "two.sided")
+  # A large positive effect in the spec's own terms: almost every data set
+  # rejects for "greater", almost none for "less".
+  rate <- function(template, alternative, population) {
+    spec <- sim_spec(template, goal = list(type = "power", n = 200))
+    spec$population <- utils::modifyList(spec$population, population)
+    spec$target_test$alternative <- alternative
+    inputs <- spower_inputs(validate_quietly(spec))
+    spower_rejections(inputs, 200, 200, seed = 1) / 200
   }
-  # A large positive effect: tiny p for "greater", p near 1 for "less".
-  expect_lt(p_value("independent_t", "greater", "gen_t.test", n = 200, d = -1, type = "two.sample", n2_n1 = 1, var.equal = TRUE), 1e-6)
-  expect_gt(p_value("independent_t", "less", "gen_t.test", n = 200, d = -1, type = "two.sample", n2_n1 = 1, var.equal = TRUE), 1 - 1e-6)
-  expect_lt(p_value("paired_t", "greater", "gen_t.test", n = 200, d = -sqrt(2), type = "paired"), 1e-6)
-  expect_lt(p_value("correlation", "greater", "gen_r", n = 200, r = 0.6), 1e-6)
-  expect_lt(p_value("two_proportions", "greater", "gen_prop.test", n = 500, prop = c(0.2, 0.6), n.ratios = c(1, 1)), 1e-6)
-  expect_lt(p_value("one_sample_t", "greater", "gen_t.test", n = 200, d = 1, type = "one.sample"), 1e-6)
+  for (case in list(
+    list("independent_t", list(d = 0.8)),
+    list("paired_t", list(dz = 0.6)),
+    list("correlation", list(r = 0.5)),
+    list("two_proportions", list(p1 = 0.3, p2 = 0.7)),
+    list("one_sample_t", list(d = 0.6))
+  )) {
+    expect_gt(rate(case[[1]], "greater", case[[2]]), 0.95)
+    expect_lt(rate(case[[1]], "less", case[[2]]), 0.01)
+  }
 })
 
-test_that("a one-sided run records its stats test", {
+test_that("a one-sided run records Spower's alternative", {
   spec <- sim_spec("correlation", goal = list(type = "power", n = 80))
   spec$target_test$alternative <- "less"
   result <- run_quietly(spec)
-  expect_match(result$provenance$backend_function, "stats::cor.test(alternative = \"less\")", fixed = TRUE)
+  expect_match(result$provenance$backend_function, "Spower::p_r(alternative = \"less\")", fixed = TRUE)
   # The example's r is negative, so a test for "less" has more power than a
   # two-sided one.
   two_sided <- run_quietly(sim_spec("correlation", goal = list(type = "power", n = 80)))
@@ -122,23 +139,41 @@ test_that("a sample-size search brackets n by coarse simulation", {
 
 # Departures from Spower's defaults (docs/conventions.md) ------------------------
 
-test_that("departure: one-sided tests check the direction, unlike Spower's two.tailed = FALSE", {
-  # With no effect, Spower's halved two-sided p-value rejects about 2 * alpha
-  # (results in the wrong direction count too); powerkit's test rejects
-  # about alpha.
-  set.seed(4)
-  halved <- Spower::Spower(
-    Spower::p_t.test(n = 50, d = 0, two.tailed = FALSE),
-    replications = 5000, verbose = FALSE
-  )$power
-  inputs <- list(
-    alternative = "greater", template = "independent_t", generator = "gen_t.test",
-    alpha = 0.05,
-    args = function(n) list(n = 50, d = 0, type = "two.sample", n2_n1 = 1, var.equal = TRUE)
-  )
-  powerkit <- spower_rejections(inputs, 100, 5000, seed = 4) / 5000
-  expect_equal(halved, 0.1022)
-  expect_equal(powerkit, 0.0482)
+test_that("one-sided tests: powerkit and Spower's own one-sided test agree", {
+  # Spower 0.7 and later test one side with `alternative`; powerkit calls
+  # Spower's own functions (Departure 4, retired 17 October 2026). The same
+  # seed gives the same data sets, so the results are identical.
+  independent <- function(d, alternative) {
+    spec <- sim_spec("independent_t", goal = list(type = "power", n = 100))
+    spec$population$d <- d
+    spec$target_test$alternative <- alternative
+    spower_inputs(validate_quietly(spec))
+  }
+  direct <- function(d_spower, ...) {
+    set.seed(4)
+    Spower::Spower(
+      Spower::p_t.test(n = 50, d = d_spower, ...),
+      replications = 2000, parallel = FALSE, verbose = FALSE
+    )$power
+  }
+  # No effect: both reject about alpha (Spower 0.6.4's halved p-value
+  # rejected about twice alpha).
+  powerkit_null <- spower_rejections(independent(0, "greater"), 100, 2000, seed = 4) / 2000
+  expect_equal(powerkit_null, direct(0, alternative = "less"))
+  expect_equal(direct(0, two.tailed = FALSE), direct(0, alternative = "greater"))
+  expect_lt(abs(powerkit_null - 0.05), 0.015)
+  # An effect in the tested direction: identical to Spower's own call.
+  powerkit_right <- spower_rejections(independent(0.5, "greater"), 100, 2000, seed = 4) / 2000
+  expect_equal(powerkit_right, direct(-0.5, alternative = "less"))
+  expect_gt(powerkit_right, 0.75)
+  # The wrong direction: the true effect is negative (group 2 lower) but the
+  # test expects it to be positive. Neither powerkit nor Spower's own
+  # one-sided test (two.tailed = FALSE, effect in Spower's orientation)
+  # counts it as significant.
+  powerkit_wrong <- spower_rejections(independent(-0.5, "greater"), 100, 2000, seed = 4) / 2000
+  spower_wrong <- direct(-0.5, two.tailed = FALSE)
+  expect_lt(powerkit_wrong, 0.001)
+  expect_lt(spower_wrong, 0.001)
 })
 
 test_that("departure: no continuity correction, unlike Spower's default (correct = TRUE)", {

@@ -31,9 +31,9 @@
 tool_defaults:
   Spower:
     alpha: 0.05
-    alpha_source: "Spower's default (Spower(sig.level = 0.05), Spower 0.6.4)"
+    alpha_source: "Spower's default (Spower(sig.level = 0.05), Spower 0.7)"
     power_source: "Spower has no default target power (Spower(power = NA)); enter one"
-    alternative_source: "Spower's default (two.tailed = TRUE, Spower 0.6.4)"
+    alternative_source: "Spower's default (two-sided: two.tailed = TRUE, alternative = NULL, Spower 0.7)"
   Superpower:
     alpha: 0.05
     alpha_source: "Superpower's default (Superpower_options(\"alpha_level\") is 0.05, Superpower 0.2.4.1)"
@@ -82,12 +82,12 @@ forms:
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
-             default: 1, default_source: "Spower's default (p_t.test(n2_n1 = 1), Spower 0.6.4)"}
+             default: 1, default_source: "Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
       - input: "Student's or Welch's test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)"},
-             default: student_t, default_source: "Spower's default (p_t.test(var.equal = TRUE), Spower 0.6.4)"}
+             default: student_t, default_source: "Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
 
   E3:
     tool: Spower
@@ -141,7 +141,7 @@ forms:
       - input: "The size of group 2 relative to group 1"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
-             default: 1, default_source: "Spower's default: equal groups (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.6.4)"}
+             default: 1, default_source: "Spower's default: equal groups (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.7)"}
 
   E6:
     tool: Spower

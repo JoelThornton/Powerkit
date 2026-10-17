@@ -26,7 +26,7 @@ Imports:
     jsonvalidate (>= 1.3.0),
     parallel,
     power4mome,
-    Spower,
+    Spower (>= 0.7),
     stats,
     Superpower,
     utils

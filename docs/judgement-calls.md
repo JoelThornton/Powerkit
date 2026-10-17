@@ -424,8 +424,9 @@ is kept below as the record of the options.
   - G\*Power asks for the number of tails (opened).
   - Cho and Abe (2013) and Ruxton and Neuhäuser (2010) set conditions for
     one-tailed tests (second-hand).
-  - powerkit's Departure 4 already defines what one-sided counts
-    (`conventions.md`) (opened).
+  - A one-sided test counts only effects in the stated direction: Spower's
+    own one-sided test since Spower 0.7 (before that, powerkit's
+    Departure 4, now retired; `conventions.md`) (opened).
 - **Who might disagree, and why:**
   - Some see one-sided tests as legitimate for directional hypotheses.
   - Others, including many journals, treat them as suspect unless

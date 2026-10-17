@@ -50,13 +50,15 @@ and from each package's own GitHub repository for the development version.
 
 ## Differences between the CRAN and development versions
 
-- **Spower 0.7 (GitHub) vs 0.6.4.** One-sided tests: `p_r()`, `p_2r()`,
-  `p_prop.test()`, `p_ks.test()`, `p_scale()` and others gain an
-  `alternative` argument passed to the underlying test, replacing the
-  halved two-sided p-value. `two.tailed` is removed from `p_anova.test()`,
-  `p_mcnemar.test()` and `p_mediation()`. This is the upstream fix behind
-  powerkit's Departure 4 ([conventions](conventions.md)). The set of
-  exported functions is unchanged [Sp, Sp-dev].
+- **Spower 0.7 (CRAN since 16 October 2026; `renv.lock` from 17 October
+  2026) vs 0.6.4.** One-sided tests: `p_t.test()`, `p_r()`, `p_2r()`,
+  `p_prop.test()`, `p_ks.test()`, `p_var.test()`, `p_wilcox.test()` and
+  `p_scale()` gain an `alternative` argument passed to the underlying
+  test, replacing the halved two-sided p-value. `two.tailed` is removed
+  from `p_anova.test()`, `p_mcnemar.test()` and `p_mediation()`. This is
+  the upstream fix behind powerkit's Departure 4, now retired
+  ([conventions](conventions.md)). The set of exported functions is
+  unchanged [Sp, Sp-dev].
 - **power4mome 0.2.1.33 (GitHub) vs 0.2.1.** New in the development version
   [p4m-dev, `NEWS.md`]: power for SAM (structural-after-measurement,
   `lavaan::sam()`); `rig_rs()` for correlated non-normal variables;
@@ -78,7 +80,7 @@ and from each package's own GitHub repository for the development version.
 
 | Capability | Tool(s) | powerkit | Tier | Validated? | Notes |
 | --- | --- | --- | --- | --- | --- |
-| One-sample t-test | Spower `p_t.test(type = "one.sample")` [Sp]; G\*Power t test, means: difference from constant (Example 20.3) [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` (full run passed; G\*Power published values TODO) | One-sided tests follow Departure 4 |
+| One-sample t-test | Spower `p_t.test(type = "one.sample")` [Sp]; G\*Power t test, means: difference from constant (Example 20.3) [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` (full run passed; G\*Power published values TODO) | One-sided tests use Spower's `alternative` (Spower 0.7) |
 | Independent-samples t-test, equal or unequal groups, Student or Welch | Spower `p_t.test()` with `n2_n1`, `var.equal` [Sp]; G\*Power t test, two independent means [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | Unequal groups via `options > allocation_ratio` |
 | Paired-samples t-test | Spower `p_t.test(type = "paired")` [Sp]; G\*Power t test, matched pairs (Example 19.3) [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | Effect size d_z |
 | Pearson correlation against 0 | Spower `p_r()` [Sp]; G\*Power exact test, bivariate normal model [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |

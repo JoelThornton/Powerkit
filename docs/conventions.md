@@ -29,7 +29,9 @@ different answer, the difference is listed in "Known differences".
     directly here (no web access).
   - **[Spower-src]** Spower 0.6.4, installed source and help pages
     (`p_t.test()`, `gen_t.test()`, `p_r()`, `p_prop.test()`,
-    `p_chisq.test()`, `Spower()`), checked in build phase 3.
+    `p_chisq.test()`, `Spower()`), checked in build phase 3; and Spower
+    0.7 (CRAN, 16 October 2026), its source compared file by file with
+    0.6.4's on 17 October 2026.
   - **[IP-src]** InteractionPoweR 0.2.4, installed source and help pages
     (`power_interaction()`, `power_interaction_r2()`,
     `generate_interaction()`, `test_interaction()`), phase 3.
@@ -56,8 +58,8 @@ different answer, the difference is listed in "Known differences".
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (interactions only): to check | | |
 | power4mome | Not covered: to check | | |
-| Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | `two.tailed = FALSE` halves the two-sided p-value regardless of direction (Departure 4); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
-| **powerkit** | Spower's `p_t.test()` for two-sided tests; for one-sided tests, Spower's `gen_t.test()` data with `t.test(alternative = ...)` (Departure 4). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
+| Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | One-sided tests: `alternative` (`"two.sided"`, `"greater"`, `"less"`; Spower 0.7), or `two.tailed = FALSE`, which means `"greater"` in Spower's orientation (group 1 minus group 2). Spower 0.6.4's `two.tailed = FALSE` halved the two-sided p-value regardless of direction (Departure 4, retired); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
+| **powerkit** | Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
 
 ### Correlation, two proportions, chi-square test of independence
 
@@ -69,7 +71,7 @@ different answer, the difference is listed in "Known differences".
 | InteractionPoweR | Not covered: to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
-| **powerkit** | Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()` (two-sided); one-sided correlation and proportions tests use Spower's generators with `cor.test()` / `prop.test()` and `alternative` (Departure 4) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
+| **powerkit** | Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
 ## Factorial ANOVA
 
@@ -238,43 +240,49 @@ methods paragraph, and covered by a test showing the size of the difference
 - **Test:** `engine/tests/testthat/test-run-spec.R`, "exact results are
   reproducible bit for bit and leave the RNG alone".
 
-### 4. One-sided basic tests: a directional test, not Spower's halved p-value
+### 4. One-sided basic tests (retired 17 October 2026: Spower 0.7 has the fix)
 
-- **Established convention:** Spower's `two.tailed = FALSE` returns half
-  the two-sided p-value whatever the direction of the observed effect
-  (`p_t.test()`, `p_r()`, `p_prop.test()`) [Spower-src].
-- **powerkit:** for one-sided tests, data from Spower's generator analysed
-  with `t.test()`, `cor.test()` or `prop.test()` and `alternative`, so only
-  effects in the tested direction count. Two-sided tests use Spower's own
-  functions unchanged.
-- **Size:** with no effect, Spower's one-sided t-test rejects about twice
-  alpha: 0.1022 against powerkit's 0.0482 (5,000 seeded replications,
-  alpha = .05), and 0.1009 against 0.0495 in
-  `docs/upstream/spower-one-sided-tests.R` (10,000). With a real effect in
-  the tested direction the two agree (0.7931 and 0.7931 for d = 0.5, n = 50
-  per group).
-- **Test:** `engine/tests/testthat/test-backend-spower.R`, "departure:
-  one-sided tests check the direction, unlike Spower's two.tailed = FALSE".
-- **Upstream status:** reported 13 October 2026 as
-  [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3); confirmed and fixed by Phil Chalmers, and
-  the issue closed. On GitHub (Spower 0.7, commits of 14 October 2026)
-  every `p_*` function passes `alternative = "greater"` (or `"less"` where
-  appropriate) to the underlying test instead of halving the two-sided
-  p-value, and a new `alternative` argument (`"two.sided"`, `"greater"`,
-  `"less"`) overrides `two.tailed`. The fix is not on CRAN yet: CRAN is
-  still 0.6.4, which predates the fix (checked 15 October 2026). powerkit keeps
-  its directional workaround until a CRAN release has the fix.
-- **When a CRAN release has the fix:** retire this departure and use
-  Spower's own functions with `alternative`. Before retiring it, a test
-  must confirm the direction mapping, so that powerkit's `"greater"` lands
-  on the right side of Spower's: powerkit's `"greater"` means the effect is
-  positive (d = mean of group 2 minus group 1; d_z = second condition
-  minus first), and powerkit currently passes -d (and -sqrt(2) * d_z) to
-  Spower, which puts d in group 1 or the first time point. The existing
-  departure test ("one-sided tests check the direction, unlike Spower's
-  two.tailed = FALSE") is expected to fail after that upgrade: that
-  failure is the signal to retire the departure, not a bug.
-- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+**Retired.** powerkit now uses Spower's own one-sided test. The number is
+kept so later departures keep theirs.
+
+- **What it was:** Spower 0.6.4's `two.tailed = FALSE` returned half the
+  two-sided p-value whatever the direction of the observed effect
+  (`p_t.test()`, `p_r()`, `p_prop.test()`) [Spower-src, 0.6.4], so with no
+  effect it rejected about twice alpha (0.1022 against 0.0482, 5,000 seeded
+  replications, alpha = .05). powerkit used Spower's generators with
+  `t.test()`, `cor.test()` or `prop.test()` and `alternative` instead.
+- **Upstream fix:** reported 13 October 2026 as
+  [philchalmers/Spower#3](https://github.com/philchalmers/Spower/issues/3)
+  and fixed by Phil Chalmers. **Spower 0.7 reached CRAN on 16 October
+  2026.** Spower 0.7 has no NEWS file; the change was read from the source
+  of 0.6.4 and 0.7 on CRAN [Spower-src]: each one-sided `p_*` function
+  (`p_t.test()`, `p_r()`, `p_2r()`, `p_prop.test()`, `p_ks.test()`,
+  `p_var.test()`, `p_wilcox.test()`, `p_scale()`) gains an `alternative`
+  argument passed to the underlying test, `two.tailed = FALSE` becomes
+  `alternative = "greater"` (`"less"` in `p_scale()`), and the line
+  `p <- ifelse(two.tailed, p, p/2)` is gone.
+- **powerkit now (Spower 0.7, `renv.lock`):** Spower's `p_t.test()`,
+  `p_r()` and `p_prop.test()` with `alternative`, translated to Spower's
+  orientation by `spower_alternative()`. Spower compares group 1 with
+  group 2 (first time point with second; p1 with p2), and powerkit passes
+  the effect with its sign reversed, so powerkit's `"greater"` (the effect
+  is positive: group 2 higher, second condition higher, p2 > p1) is
+  Spower's `"less"` for two-sample, paired and two-proportion tests. For
+  one-sample t-tests and correlations the direction carries over.
+- **Size of the change:** none in results. With the same seeds, every
+  one-sided and two-sided basic test gives identical power under the old
+  code with Spower 0.6.4 and the new code with Spower 0.7 (10 one-sided
+  and 6 two-sided cases, 2,000 replications each; PR description,
+  17 October 2026). The same data sets are analysed by the same test; only
+  which function runs it changed.
+- **Test:** `engine/tests/testthat/test-backend-spower.R`, "one-sided
+  tests: powerkit and Spower's own one-sided test agree" (identical
+  results with no effect and with an effect in the tested direction; with
+  the effect in the wrong direction, neither powerkit nor Spower's
+  `two.tailed = FALSE` counts it as significant) and "one-sided tests use
+  the direction of the spec's effect" (the orientation mapping).
+- **Shown to users / in the methods paragraph:** nothing to show now: no
+  departure.
 
 ### 5. Two proportions and chi-square: no continuity correction (Spower applies one by default)
 

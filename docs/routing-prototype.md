@@ -148,7 +148,7 @@ comes from, and expected attrition).
   screen; `judgement-calls.md`, B10).
 - **Other settings start at the default of the tool powerkit wraps**, and
   each says whose default it is (for example "Spower's default
-  (Spower(sig.level = 0.05), Spower 0.6.4)"). The defaults were read from
+  (Spower(sig.level = 0.05), Spower 0.7)"). The defaults were read from
   the installed packages' function signatures. Where a tool has no
   default (Spower, Superpower and InteractionPoweR have no target power),
   the field starts empty and says so.

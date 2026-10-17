@@ -309,7 +309,7 @@
     },
     "Spower": {
       "Package": "Spower",
-      "Version": "0.6.4",
+      "Version": "0.7",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -328,7 +328,7 @@
         "polycor",
         "stats"
       ],
-      "Hash": "80a9977ce9db3b499685673e9050bf58"
+      "Hash": "87028ed39c530296c03fa26d77541890"
     },
     "Superpower": {
       "Package": "Superpower",
