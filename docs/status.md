@@ -10,6 +10,17 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Sources and the G\*Power manual checked (17 October 2026; docs
+  only).** With the texts the maintainer supplied, the Rubin entries (B6,
+  G7–G9, `inference-question-design.md`), B11 and the roadmap now quote
+  Mark Rubin (2021, 2024), Mikael Rubin (2025) and Uttley (2019) directly,
+  and say where the earlier description differed (for example, Rubin's
+  conditions for "any one is enough", and Mikael Rubin's wording on
+  attrition). The G\*Power 3.1 manual settles most of the parity table's
+  "to confirm" items and confirms E4's exact method: pwrss reproduces its
+  examples. E5, E6 and E8 aren't in the manual and still need
+  screenshots. Roadmap C3 corrected: attrition is asked but not yet
+  applied to N.
 - **The maintainer's decisions on G5, G6 and the Spower flag, and the Rubin
   addendum (17 October 2026).**
   - **Actual power at the rounded N (G5):** an exact required N now comes

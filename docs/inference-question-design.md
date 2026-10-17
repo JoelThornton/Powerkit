@@ -18,24 +18,38 @@ to alpha, power and N.
 - The three cases are from Mark Rubin's work on multiple testing: Rubin
   (2021), *Synthese*, 199, 10969–11000, doi:10.1007/s11229-021-03276-4, and
   Rubin (2024), *Methods in Psychology*, 10, 100140,
-  doi:10.1016/j.metip.2024.100140. **Neither paper could be opened in this
-  session** (candidate, not opened). The cases and the two conditions for
-  disjunction below are stated **as the maintainer described them**, not
-  quoted.
-- **Rubin's framework is about when to adjust alpha. Applying it to power
-  analysis (what to power the study for, and how N changes) is powerkit's
-  own extension. It should be checked with Mark Rubin before it is used.**
+  doi:10.1016/j.metip.2024.100140. **Both were opened on 17 October 2026**
+  from texts the maintainer supplied. Rubin (2021) was read in the author
+  preprint (SSRN abstract 3904565), which gives no volume or pages; the
+  volume and pages above are as printed in Rubin (2024)'s reference list.
+  Page numbers for Rubin (2021) below are the preprint's. Rubin (2024) was
+  read in the published version.
+- The cases below are now quoted from the papers. The conditions for
+  disjunction are fuller in the paper than in the maintainer's earlier
+  description; the differences are set out under "Guidance on choosing
+  'any one is enough'".
+- **Rubin's framework is about when to adjust alpha.** He does discuss
+  power, for example: conjunction tests "lack statistical power" (Rubin,
+  2021, author preprint, p. 7, with a worked example; also pp. 16, 17, 19
+  and 20), and inconsistent
+  corrections "lead to an unjustifiable loss of statistical power" (Rubin,
+  2024, p. 4). **What to power the study for in each case, and how N
+  changes (the tables below), is not in either paper. That part is
+  powerkit's own extension and should be checked with Mark Rubin before it
+  is used.**
 - **Two different authors.** Mark Rubin (2021, 2024) wrote the multiple
   testing papers. Mikael Rubin (2025, *International Journal of
   Psychology*, doi:10.1002/ijop.70017) wrote a review of power analysis in
   R, cited elsewhere in the roadmap. They should not be confused in
   citations.
-- The competing view is represented by Frane (2019), as listed in Rubin
-  (2024): "Misguided opposition to multiplicity adjustment remains a
-  problem", *Journal of Modern Applied Statistical Methods*, 18(2),
-  doi:10.22237/jmasm/1556669400 (candidate, not opened; details from the
-  reference list Elsevier deposited with Crossref, not from the printed
-  page).
+- The competing view is represented by Frane (2019), not opened. As
+  printed in Rubin (2024)'s reference list: "Frane, A.V., 2019. Misguided
+  opposition to multiplicity adjustment remains a problem. J. Mod. Appl.
+  Stat. Methods 18 (2), eP2836. https://doi.org/10.22237/jmasm/1556669400."
+- Mark Rubin's blog post on redundant corrections
+  (markrubin.substack.com/p/redundant-multiple-testing-corrections) could
+  not be fetched: the session's proxy refused the host (403). Nothing here
+  draws on it.
 
 ## The question
 
@@ -75,8 +89,11 @@ Other ways to ask it (options, not chosen):
 
 ### 1. Each separately (individual testing)
 
-Each conclusion stands or falls on its own test. As the maintainer
-describes Rubin (2021), no correction is needed. Power is planned for each
+Each conclusion stands or falls on its own test. Rubin (2021, author
+preprint, p. 7): "individual testing does not require an adjustment to the
+alpha level of each test", and this applies "even when multiple instances
+of individual testing take place side-by-side within the same study"
+(p. 8). Power is planned for each
 test as if it were the only one, which is what the single-analysis routes
 and the established tools already do. The study's N is the largest of the
 separate Ns.
@@ -90,9 +107,11 @@ largest one any of your tests needs."
 If any one significant result would support the claim, there are several
 chances to get a false positive for that one claim. With independent tests
 at alpha = .05 and every null true, the chance of at least one false
-positive is .098 for 2 tests and .143 for 3 (table 2 below). So a
-correction is needed (as the maintainer describes Rubin, 2021). The
-correction lowers each test's alpha and so raises the N each test needs.
+positive is .098 for 2 tests and .143 for 3 (table 2 below; Rubin, 2021,
+author preprint, p. 5, gives the same .098 for two tests). So a correction
+is needed: "alpha adjustment is only appropriate in the case of
+disjunction testing" (Rubin, 2021, author preprint, p. 1). The correction
+lowers each test's alpha and so raises the N each test needs.
 
 *Plain-English explanation for the screen:* "Because any one of your
 results would count, chance alone has more opportunities to give you a
@@ -102,11 +121,15 @@ divided by the number of tests), which needs a larger sample."
 ### 3. One overall idea, supported only if all are significant (conjunction)
 
 If the claim needs every test to be significant, a false positive on the
-claim needs every test to give one. No correction is needed (as the
-maintainer describes Rubin, 2021; the same point is made by the
-intersection–union principle, `decision-tree.md` 3.5, second-hand). But
-the chance of getting **all** significant results is lower than each test's
-own power: two independent tests at .80 each give .80 × .80 = .64.
+claim needs every test to give one. No correction is needed: conjunction
+testing "does not require an adjustment to the alpha level for tests of
+each constituent null hypothesis" (Rubin, 2021, author preprint, p. 6,
+citing Berger, 1982, among others; the intersection–union principle,
+`decision-tree.md` 3.5). But the chance of getting **all** significant
+results is lower than each test's own power: two independent tests at .80
+each give .80 × .80 = .64. This is Rubin's own example: two tests "each
+tested with a power value of .80" give "a power level of .64, which is
+lower than the desired power of .80" (p. 7).
 
 *Plain-English explanation for the screen:* "Your claim needs every test to
 come out significant. That doesn't need a stricter alpha, but it is harder
@@ -115,29 +138,88 @@ has less than 80% power for the claim as a whole."
 
 ## Guidance on choosing "any one is enough"
 
-As the maintainer describes Rubin's conditions (not opened), a set of tests
-treated as "any one is enough" should meet both of these:
+**What the maintainer described (17 October 2026), before the papers were
+opened:** a set of tests treated as "any one is enough" should meet both
+of these:
 
-1. **The family includes all, and only, the relevant hypotheses.** Every
-   test that could support the overall claim is in the set, and no test
-   that couldn't is in it.
-2. **The hypotheses are interchangeable for the joint claim.** It doesn't
-   matter which one is significant: any of them would support the claim in
-   the same way.
+1. **The family includes all, and only, the relevant hypotheses.**
+2. **The hypotheses are interchangeable for the joint claim.**
 
-Possible guidance text: "Choose this only if every test in the set bears on
-the same overall idea, any one of them would count equally, and you have
-included all the tests that would count. If it matters *which* test is
-significant, choose 'each separately' instead."
+**What Rubin (2021, author preprint, pp. 16–17) says.** He gives two
+requirements for testing *any* joint hypothesis (disjunction or
+conjunction), and one extra assumption for disjunction:
+
+- **First requirement (any joint hypothesis):** "the hypothesis should
+  allow a statistical inference that has relevant and meaningful
+  theoretical and/or practical implications". To meet it, "the family must
+  contain all relevant constituent hypotheses and no irrelevant constituent
+  hypotheses" (p. 16).
+- **Second requirement (any joint hypothesis): the right form of testing.**
+  "Researchers should use disjunction testing when the rejection of any of
+  the constituent hypotheses is sufficient to reject the joint hypothesis
+  as a whole and the extent of generalisation across constituent
+  hypotheses is unimportant" (p. 16). Conjunction testing is for "when it
+  is important to demonstrate the confirmation of all constituent
+  hypotheses" (p. 16).
+- **Extra assumption for disjunction: exchangeability.** "In the case of
+  disjunction testing, researchers also need to assume that the
+  constituent hypotheses are theoretically exchangeable with regards to
+  inferences about the joint hypothesis under investigation" (p. 16): "a
+  significant result in relation to any of the constituent hypotheses must
+  provide the same logical basis for rejecting the joint null hypothesis"
+  (p. 16). He adds: "the exchangeability assumption is violated if
+  researchers have an a priori theoretical expectation that one or more of their
+  constituent hypotheses will yield a different result to the others"
+  (pp. 16–17). Rubin (2024, p. 2) uses the word "interchangeable" for the
+  same idea.
+- **His summary** (p. 17): researchers "should only undertake the
+  disjunction testing of a joint null hypothesis when that hypothesis (a)
+  enables a relevant theoretical and/or practical inference and (b) is
+  better suited to disjunction testing rather than conjunction testing."
+
+**How this differs from the earlier description:**
+
+- "All, and only, the relevant hypotheses" is in the paper, but as part of
+  a requirement for every joint hypothesis, including conjunction, not
+  only for disjunction.
+- "Interchangeable" matches; the paper's word is "exchangeable" (2021),
+  and it adds that an a priori expectation that one test will differ
+  breaks it.
+- The paper adds two things the earlier description didn't have: the
+  joint hypothesis must support a "relevant and meaningful" inference, and
+  disjunction fits when "the extent of generalisation across constituent
+  hypotheses is unimportant".
+- The paper also says conjunction suits theory testing: "it is more
+  logical for researchers to use conjunction testing rather than
+  disjunction testing when they want to make a statistical inference about
+  a joint hypothesis that comprises a family of hypotheses that belong to
+  the same theory" (p. 17).
+
+Possible guidance text (an option, now checked against the paper's
+conditions): "Choose this only if the overall idea is one you would report
+as a finding in its own right, every test in the set bears on it, any one
+of them would count equally, and you have included all the tests that
+would count. If you expect one test to come out differently, or it matters
+*which* test is significant, choose 'each separately' instead. If your
+theory predicts all of them, consider 'all must be significant'."
 
 ## The competing view
 
 Some methodologists hold that multiple tests in one study call for a
-correction more generally, whatever the claim. Frane (2019) is listed in
-Rubin (2024) as an example of that position; its title is "Misguided
-opposition to multiplicity adjustment remains a problem". **Its arguments
-were not read**, so this page doesn't summarise them. Ways powerkit could
-show this view (options):
+correction more generally, whatever the claim. Rubin (2021, author
+preprint, p. 2) calls this "the most common view": "alpha adjustment is
+almost always required during multiple testing". He quotes Bennett et al.
+(2009, p. 417): "it is a statistical necessity that we must adapt our
+threshold criteria to the number of statistical tests completed on the
+same dataset" (second-hand, quoted in Rubin, 2021, p. 2).
+
+Frane (2019) has the title "Misguided opposition to multiplicity
+adjustment remains a problem". An earlier draft of this page said Rubin
+(2024) lists it as an example of that position. That overstated it: Rubin
+(2024, p. 1) cites Frane only for a phrase, "this is not an
+"anti-adjustment article" (Frane, 2019, p. 3)", and doesn't describe
+Frane's arguments. **Frane's arguments were not read**, so this page
+doesn't summarise them. Ways powerkit could show this view (options):
 
 - a note under the question: "Some methodologists recommend a correction
   whenever several tests are run. You can choose a correction for any
@@ -228,8 +310,11 @@ compute joint power directly (power4mome `rejection_rates(collapse =
   continuous endpoints)?
 - Is a correction offered for answers 1 and 3, to reflect the competing
   view (G7)?
-- Check the extension of Rubin's framework to power with Mark Rubin, and
-  open both papers before any wording is attributed to him.
+- Check the extension of Rubin's framework to power with Mark Rubin.
+  Both papers are now opened; wording attributed to him on screen should
+  use the quotes above.
+- Should the guidance for "any one is enough" use Rubin's fuller
+  conditions (above), or the shorter two-point version?
 
 ## Appendix: R code and output
 

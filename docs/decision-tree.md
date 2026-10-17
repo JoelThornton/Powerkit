@@ -851,8 +851,10 @@ planned effect size (2.2), which is prospective. Some tools call both
   been ignored (Maxwell, 2004, *Psychological Methods*, 9(2),
   147–163) *(seen second-hand, to verify)*.
 - **Whether to correct alpha:** Rubin (2021, *Synthese*, 199,
-  10969–11000, doi:10.1007/s11229-021-03276-4) *(seen second-hand, to verify)* distinguishes three
-  cases:
+  10969–11000, doi:10.1007/s11229-021-03276-4) *(read in full, in the
+  author preprint; volume and pages as listed in Rubin, 2024, *Methods in
+  Psychology*, 10, 100140)*
+  distinguishes three cases:
   - *disjunction* testing (any one significant result supports the
     claim): alpha needs adjusting;
   - *conjunction* testing (all results must be significant): no
@@ -860,9 +862,13 @@ planned effect size (2.2), which is prospective. Some tools call both
   - *individual* testing (each claim stands alone): no adjustment
     needed.
 
-  Rubin argues adjustment shouldn't be automatic. The same split appears
-  elsewhere: rejecting only when every test rejects (an intersection–union
-  test) needs no correction (Berger, 1982 *(seen second-hand, to verify)*), while confirmatory studies
+  Rubin argues adjustment shouldn't be automatic: "researchers should not
+  automatically (mindlessly) assume that alpha adjustment is necessary
+  during multiple testing" (author preprint, p. 1). Quotes and pages are
+  in [`judgement-calls.md`](judgement-calls.md), B6 and G7. The same split
+  appears elsewhere: rejecting only when every test rejects (an
+  intersection–union test) needs no correction (Berger, 1982 *(seen
+  second-hand, to verify; Rubin, 2021, p. 6, cites it for this)*), while confirmatory studies
   need an adjustment when several tests feed one conclusion (Bender &
   Lange, 2001 *(seen second-hand, to verify)*).
 - **In powerkit:** section 4 proposes a study level, with the combination
@@ -1071,7 +1077,7 @@ optional route.
      needed. Rejecting the combined null only when every test rejects
      keeps the overall false-positive rate at or below alpha (the
      intersection–union principle; Berger, 1982, *Technometrics*, 24,
-     295–300 *(seen second-hand, to verify)*; Rubin, 2021 *(seen second-hand, to verify)*). The cost is lower joint power (see
+     295–300 *(seen second-hand, to verify)*; Rubin, 2021 *(read in full, author preprint)*). The cost is lower joint power (see
      below);
    - **any one is enough** for the claim: this inflates the
      false-positive rate. With three independent tests at α = .05 the
@@ -1080,7 +1086,7 @@ optional route.
      (α / k for k tests), and the correction **raises the required N**.
      Bender and Lange (2001, *Journal of Clinical Epidemiology*, 54,
      343–349) *(seen second-hand, to verify)* state that confirmatory studies need a multiplicity
-     adjustment when several tests feed one conclusion; Rubin (2021) *(seen second-hand, to verify)*
+     adjustment when several tests feed one conclusion; Rubin (2021) *(read in full, author preprint)*
      makes the same distinction between "disjunction" and "conjunction"
      testing.
 
@@ -1549,6 +1555,11 @@ tools do, in [`judgement-calls.md`](judgement-calls.md).
   a protection against imprecise power estimates. *Perspectives on
   Psychological Science*, 9(3), 319–332. doi:10.1177/1745691614528519
   (provided by the maintainer; read in full).
+- Rubin, M. (2021). When to adjust alpha during multiple testing: A
+  consideration of disjunction, conjunction, and individual testing.
+  *Synthese*. https://doi.org/10.1007/s11229-021-03276-4 (as printed on
+  the author preprint, SSRN abstract 3904565; provided by the maintainer;
+  read in full in the preprint, not the published version).
 - Package sources and documentation as in [`coverage.md`](coverage.md),
   "Sources": Superpower 0.2.4.1, Spower 0.6.4, power4mome 0.2.1 (and its
   GitHub website articles), InteractionPoweR 0.2.4, PAMLj 1.2.0, and the
@@ -1574,7 +1585,6 @@ package documentation or citing papers; not read in full):
 - Giner-Sorolla (2018), "Powering your interaction" (blog).
 - Sommet, Weissman, Cheutin & Elliot (2023), *AMPPS*.
 - Maxwell (2004), *Psychological Methods*.
-- Rubin (2021), *Synthese*.
 - Benjamin et al. (2018), *Nature Human Behaviour*.
 - Lakens et al. (2018), *Nature Human Behaviour*.
 - Berger (1982), *Technometrics*.
