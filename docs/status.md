@@ -99,6 +99,29 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **Judgement-calls pack and small fixes (draft PR, 16 October 2026; builds
+  on the routing-decisions PR):**
+  - [`judgement-calls.md`](judgement-calls.md) collects every open
+    question in one place, for the maintainer to decide in one session.
+    Included:
+    - `decision-tree.md`'s open questions and judgement calls;
+    - the prototype's placeholder settings;
+    - the routing decisions left by PRs #21 and #22;
+    - the questions raised by the sourcing (E45 and PITS, the dyadic
+      wording, hints whose details differ from their sources);
+    - links to [`phase-3b-questions.md`](phase-3b-questions.md).
+
+    Each entry gives the options, what established tools or sources do,
+    who might disagree and why, and the knock-on effects. Nothing is
+    recommended. A test checks that every placeholder setting and open
+    question has an entry;
+  - question IDs ("Question Q1") are hidden from users and screen readers,
+    and kept in the page source;
+  - the answer chips are at least 44 x 44 px (touch targets);
+  - hints now also explain terms in the standard names and backend lines
+    (for example omnibus and TOST), with the same rule: meaning only, never
+    a value;
+  - walkthroughs re-run.
 - **Routing decisions and card sourcing (draft PR, 16 October 2026):**
   - E15 (a yes/no X or W) no longer asks about reliability: misclassification
     in a 0/1 variable is a different problem from unreliable scores
@@ -308,7 +331,10 @@ fully validated. Validation runs are recorded in
    the method-paper and powerkit entries in `engine/inst/citations/refs.bib`
    (the maintainer adds them); and, once phase 3b lands, scripts for
    binary X and W.
-7. Decide what to do about the walkthrough flags (F1–F15 in
+7. Decide the open questions collected in [`judgement-calls.md`](judgement-calls.md),
+   including whether to name PITS on E45 (A1), and the partly sourced hints
+   in [`card-sources.md`](card-sources.md). Decide what to do about the
+   remaining walkthrough flags (in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).

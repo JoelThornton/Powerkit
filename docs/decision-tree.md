@@ -1419,6 +1419,10 @@ how the wrapped tools work.
 
 ## 5. Open questions for the maintainer
 
+All of these, the judgement calls in section 3 and the prototype's other
+open questions are collected, with their options and what established
+tools do, in [`judgement-calls.md`](judgement-calls.md).
+
 1. **Starting point.** Should the tree start from the hypothesis (as here
    and in `design-finder.md`), or offer G\*Power's design-based order
    (parameter class, then design) as an alternative route alongside the

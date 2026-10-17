@@ -180,3 +180,33 @@ test_that("the safety-net card says what to write down for a statistician, using
   expect_match(html, "Where nothing fitted", fixed = TRUE)
   expect_match(html, htmltools::htmlEscape(tree$nodes$q1$text), fixed = TRUE)
 })
+
+test_that("question IDs stay in the page source but are hidden from users", {
+  html <- as.character(node_ui(tree, "q1", list()))
+  expect_match(html, '<div class="question-id" hidden aria-hidden="true" data-question-id="Q1">Question Q1</div>', fixed = TRUE)
+  html <- as.character(node_ui(tree, "s1", list()))
+  expect_match(html, 'data-question-id="S1"', fixed = TRUE)
+})
+
+test_that("answer chips are at least 44 px tall and wide (touch targets)", {
+  css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  chip <- regmatches(css, regexpr("\\.chip \\{[^}]*\\}", css))
+  expect_match(chip, "min-height: 44px", fixed = TRUE)
+  expect_match(chip, "min-width: 44px", fixed = TRUE)
+})
+
+test_that("hints also explain terms in standard names and backend lines, once per card", {
+  e18 <- as.character(card_ui(tree, "E18"))
+  expect_match(e18, "<dfn>omnibus test</dfn>", fixed = TRUE)
+  e36 <- as.character(card_ui(tree, "E36"))
+  expect_match(e36, "<dfn>equivalence test (TOST)</dfn>", fixed = TRUE)
+  e5 <- as.character(card_ui(tree, "E5"))
+  expect_match(e5, "<dfn>continuity correction</dfn>", fixed = TRUE)
+  # A term in both the standard name and the backend line is explained once.
+  e7 <- as.character(card_ui(tree, "E7"))
+  expect_equal(lengths(regmatches(e7, gregexpr("<dfn>ANOVA</dfn>", e7, fixed = TRUE))), 1)
+  # "Bayes factor" isn't explained as a factor in a design.
+  eb <- as.character(card_ui(tree, "E-bayes"))
+  expect_no_match(eb, "<dfn>factor and levels</dfn>", fixed = TRUE)
+  expect_match(eb, "<dfn>Bayes factor</dfn>", fixed = TRUE)
+})

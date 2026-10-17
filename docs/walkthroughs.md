@@ -26,6 +26,16 @@ cover
 anything confusing, inconsistent between routes, or claiming more than the
 audit supports. No typos were found to fix.
 
+**Re-run after the judgement-calls PR (16 October 2026).** No end point
+changed. What the screenshots now show differently:
+- question IDs ("Question Q1") are hidden;
+- the answer chips are larger (at least 44 x 44 px);
+- hints also explain terms in standard names and backend lines (for
+  example omnibus, TOST, ANOVA);
+- E37 says IRT designs aren't covered;
+- E15 no longer asks about reliability (its card isn't in the
+  screenshots, because no walkthrough reaches it).
+
 **How this was produced.**
 - The examples and answers are in
   [`app/routing/walkthroughs/scenarios.json`](../app/routing/walkthroughs/scenarios.json).
