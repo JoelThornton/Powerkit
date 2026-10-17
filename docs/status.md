@@ -10,6 +10,9 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Walkthrough pictures re-rendered (17 October 2026).** All 26 pictures
+  in `docs/figures/walkthroughs/` come from the current prototype (after
+  #44), so E4's card shows Fisher's z and E5's says "Validated".
 - **E5 validated again (17 October 2026).** The `basic` chunk was rerun
   on main after #42 (unequal groups by pwrss;
   [run 39073022227](https://github.com/JoelThornton/Powerkit/actions/runs/39073022227)):
