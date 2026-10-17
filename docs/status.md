@@ -8,6 +8,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Independent cross-checks for parallel and serial mediation (draft PR,
+  17 October 2026; not run yet).** Two new validation chunks,
+  `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
+  compare the joint test in power4mome and simsem for two designs each
+  ([validation log](validation-log.md), "Parallel and serial mediation").
+  They run on GitHub after merging.
 - **CI installs packages from `renv.lock` (17 October 2026).** Spower 0.7
   reached CRAN on 16 October and CI picked it up, which broke the
   one-sided departure test on every PR. All workflows now restore the

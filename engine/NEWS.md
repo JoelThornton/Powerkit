@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* Validation (for maintainers): two new chunks,
+  `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
+  compare the joint-significance test for parallel and serial mediation
+  in power4mome (with powerkit's translation of the spec) and in simsem,
+  with data generated from residual variances worked out separately from
+  the engine. Run with `scripts/run-validation.R --only <chunk>` or the
+  `full-validation` workflow.
+
 * Validation (for maintainers): a new `mediation_crosscheck` chunk
   (`scripts/run-validation.R --only mediation_crosscheck`, and the
   `full-validation` workflow) compares simple mediation with two tools

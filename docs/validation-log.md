@@ -14,7 +14,9 @@ that follow from a run go in `docs/decisions.md`.
 Chunks: basic, anova, interactions, process_4 (simple and parallel
 mediation), process_6 (serial mediation), process_7, process_14,
 mediation_crosscheck (simple mediation against pwrss and simsem; see
-"Independent cross-check for mediation" below); plus the on-demand
+"Independent cross-check for mediation" below),
+mediation_crosscheck_parallel and mediation_crosscheck_serial (parallel
+and serial mediation against simsem; same section); plus the on-demand
 interaction_grid.
 
 ## What "validated" means
@@ -176,6 +178,61 @@ draws has been run locally, to check that the code runs (16 October 2026).
 Its numbers are too imprecise to report as results. To run it: the
 `full-validation` workflow, chunk **mediation_crosscheck** (about
 1.5 hours, estimated).
+
+### Parallel and serial mediation (joint test against simsem)
+
+**Why.** The cross-check above covers simple mediation only. Two more
+chunks follow the same pattern for two mediators:
+`mediation_crosscheck_parallel` (PROCESS model 4,
+`test-validation-mediation-crosscheck-parallel.R`) and
+`mediation_crosscheck_serial` (PROCESS model 6,
+`test-validation-mediation-crosscheck-serial.R`).
+
+**What is compared.** Only comparison 2 above: the joint-significance test
+in power4mome and in simsem. For parallel mediation, both paths of the
+target indirect effect significant (for X -> M1 -> Y, X -> M1 and M1 -> Y);
+for serial mediation, all three paths of X -> M1 -> M2 -> Y. pwrss has no
+parallel or serial mediation, so comparisons 1 and 3 have no counterpart.
+Same test and estimator (lavaan ML z tests, two-sided, alpha = .05) on
+independently generated data, so **allowance 0**: the 99.9% Monte Carlo
+interval only. No judgement call on the tolerance.
+
+- **power4mome side:** powerkit's own translation of the spec
+  (`power4mome_inputs()`: the model, the paths and, for parallel
+  mediators, the residual covariance), with `test_parameters()` and
+  `rejection_rates(collapse = "all_sig")`.
+- **simsem side:** data generated from the standardised paths, with
+  residual variances (and the parallel mediators' residual covariance)
+  worked out separately from the engine (`standardised_residuals()`:
+  implied covariance A Psi A', residual variances adjusted until every
+  variable has variance 1). The model fitted is the same as power4mome's
+  (parallel mediators' residuals free to correlate, as in powerkit).
+  A mistake in powerkit's translation of the spec would therefore show as
+  a difference.
+- **Not checked:** powerkit's default test, the Monte Carlo confidence
+  interval for the indirect effect. No independent tool computes it for
+  two mediators, so this check covers power4mome's data generation and
+  model fitting, not its interval.
+
+**Designs** (standardised paths, power in the middle range):
+
+| Chunk | Design | Paths | Residual r (M1, M2) | Target | n |
+| --- | --- | --- | --- | --- | --- |
+| parallel | correlated_residuals | X->M1 .3, X->M2 .3, M1->Y .2, M2->Y .2, X->Y .1 | .3 | X -> M1 -> Y | 200 |
+| parallel | uncorrelated_residuals | X->M1 .25, X->M2 .4, M1->Y .3, M2->Y .15, X->Y 0 | 0 | X -> M2 -> Y | 300 |
+| serial | all_paths | X->M1 .3, X->M2 .1, M1->M2 .3, M1->Y .1, M2->Y .3, X->Y .05 | — | X -> M1 -> M2 -> Y | 110 |
+| serial | no_direct_paths | X->M1 .4, X->M2 0, M1->M2 .2, M1->Y 0, M2->Y .25, X->Y 0 | — | X -> M1 -> M2 -> Y | 250 |
+
+alpha = .05, 10,000 replications per tool.
+
+**Status.** Not run yet. A local smoke test (17 October 2026, 200
+replications, 2 cores) checked only that the code runs and that the
+residual variances from `standardised_residuals()` equal the engine's
+(they matched to 6 decimals in all four designs). Its power estimates are
+too imprecise to report. To run: the `full-validation` workflow, chunks
+**mediation_crosscheck_parallel** and **mediation_crosscheck_serial**
+(estimated 30 to 60 minutes each: about 17 seconds per 100 replications
+of both tools on 2 cores locally).
 
 ## Before this log
 
