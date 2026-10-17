@@ -8,6 +8,12 @@
   ignores how missing data will be handled (Rubin, 2025), and the exported
   R script works it out too.
 
+* `refs.bib` now holds four sources the maintainer checked in full text:
+  Rubin (2021), Rubin (2024), Mikael Rubin (2025) and Frane (2019). An
+  entry may now be verified "from full-text PDF held by the maintainer" as
+  well as from a URL a session opened. `pwrss_method` and `stats_method`
+  stay placeholders: neither package's `citation()` names a method paper.
+
 * Two proportions (E5) in unequal groups now use pwrss's z test
   (`pwrss::power.z.twoprops(std.error = "pooled")`), which matches
   G*Power's power, instead of Cohen's h, which under-estimated the

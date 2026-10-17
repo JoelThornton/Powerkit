@@ -36,6 +36,25 @@ it affects.
   opened and when (for example the full texts the maintainer supplied on
   17 October 2026: Rubin, 2021, author preprint; Rubin, 2024; Mikael
   Rubin, 2025; Uttley, 2019).
+- **(verified, maintainer)**: the maintainer checked the full-text PDF
+  and confirmed the details quoted (17 October 2026). These are in
+  `engine/inst/citations/refs.bib` with the note "Verified 2026-10-17
+  from full-text PDF held by the maintainer":
+  - Rubin (2021, *Synthese*; `Rubin2021_alpha`): states the individual,
+    disjunction and conjunction framework and gives the .80 × .80 = .64
+    conjunction example (p. 7);
+  - Rubin (2024, *Methods in Psychology*; `Rubin2024_inconsistent`):
+    section 7 covers sensitivity analysis, justified alpha and one-sided
+    tests;
+  - Mikael Rubin (2025, *International Journal of Psychology*;
+    `RubinMikael2025_power`): Table 1 names MLMPower, Longpower, PowerLMM,
+    MixedPower and SimR, and it cites Dziak et al. (2020);
+  - Frane (2019; `Frane2019_misguided`): the reference as printed in
+    Rubin (2024)'s reference list. Frane's own arguments were not read.
+
+  Still candidates: Dziak et al. (until its published version is
+  checked), Lakens et al. (2018), Hoenig and Heisey (2001) and the
+  G\*Power manual.
 - **(second-hand)**: `decision-tree.md` tags it *seen second-hand, to
   verify*.
 - **(unsourced)**: no source was found or checked.
@@ -512,7 +531,7 @@ is kept below as the record of the options.
     how the question could be worded).
 - **What tools and sources do:**
   - **Rubin's framework** (opened 17 October 2026, from texts the
-    maintainer supplied). Rubin (2021), *Synthese*,
+    maintainer supplied; verified, maintainer, the same day). Rubin (2021), *Synthese*,
     doi:10.1007/s11229-021-03276-4, was read in the author preprint
     (SSRN abstract 3904565); the preprint gives no volume or pages, so
     "199, 10969–11000" is as printed in Rubin (2024)'s reference list.
@@ -563,7 +582,8 @@ is kept below as the record of the options.
     case. The power targets and N
     in [`inference-question-design.md`](inference-question-design.md) are
     still powerkit's extension.
-  - **The competing view:** Frane (2019), not opened. As printed in Rubin
+  - **The competing view:** Frane (2019) (verified, maintainer: the
+    reference only; Frane's text not read). As printed in Rubin
     (2024)'s reference list: "Frane, A.V., 2019. Misguided opposition to
     multiplicity adjustment remains a problem. J. Mod. Appl. Stat. Methods
     18 (2), eP2836. https://doi.org/10.22237/jmasm/1556669400." Rubin
@@ -1799,7 +1819,8 @@ source for Fisher's exact test in C11.
     good reason" (p. 4). He reports, from García-Pérez (2023)'s review of
     109 articles (second-hand), that such corrections "are very common"
     (p. 4).
-  - Frane (2019) (not opened). As printed in Rubin (2024)'s reference
+  - Frane (2019) (verified, maintainer: the reference only; Frane's text
+    not read). As printed in Rubin (2024)'s reference
     list: "Frane, A.V., 2019. Misguided opposition to multiplicity
     adjustment remains a problem. J. Mod. Appl. Stat. Methods 18 (2),
     eP2836. https://doi.org/10.22237/jmasm/1556669400." The title

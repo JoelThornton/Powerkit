@@ -1732,3 +1732,35 @@ recruit, and each group's), `NA` without attrition. For a sample-size goal
 it starts from the required N; for power and sensitivity, from the N
 entered (which is the number analysed: `goal > n`).
 
+## 2026-10-17 · Sources the maintainer checked in full text
+
+**Decided (maintainer, 17 October 2026):** the verification-note rule for
+`refs.bib` also accepts "Verified YYYY-MM-DD from full-text PDF held by
+the maintainer", for a source the maintainer has checked in full text
+(the PDFs aren't committed). The test in `test-export-citations.R`
+accepts it. Added on that basis, with fields copied from the PDFs:
+- Rubin (2021, *Synthese*): the individual, disjunction and conjunction
+  framework and the .80 × .80 = .64 conjunction example (p. 7). The
+  maintainer's copy is the author preprint, so volume and pages are as
+  printed in Rubin (2024)'s reference list;
+- Rubin (2024, *Methods in Psychology*): section 7 covers sensitivity
+  analysis, justified alpha and one-sided tests;
+- Mikael Rubin (2025, *International Journal of Psychology*): Table 1
+  names MLMPower, Longpower, PowerLMM, MixedPower and SimR, and it cites
+  Dziak et al. (2020);
+- Frane (2019): as printed in Rubin (2024)'s reference list. Frane's own
+  text was not read.
+
+Still candidates, not in `refs.bib`: Dziak et al. (until its published
+version is checked), Lakens et al. (2018), Hoenig and Heisey (2001) and
+the G\*Power manual.
+
+**`stats_method` and `pwrss_method`:** the maintainer asked for them to
+be filled from the packages' own `citation()`, under the rule that a
+method paper `citation()` doesn't give stays a placeholder. Checked on
+17 October 2026: `citation("pwrss")` (1.3.3) gives only the package
+manual (Bulus and Jentschke, 2026), and `citation("stats")` gives R
+itself (R Core Team). Neither names a method paper, so both stay
+placeholders; the citations export already lists each package's own
+`citation()`.
+
