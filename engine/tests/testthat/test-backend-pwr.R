@@ -141,8 +141,9 @@ test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
 test_that("departure: correlation by Fisher's z, not G*Power's exact method (Departure 10)", {
   # pwr.r.test() uses Fisher's z; G*Power uses the exact distribution of r
   # (docs/conventions.md, Departure 10). Reference values: pwrss 1.3.3,
-  # power.exact.onecor(), which its help describes as the exact method of
-  # Barabesi and Greco (2002), validated using G*Power. Two-sided, alpha .05.
+  # power.exact.onecor(), the exact method of Barabesi and Greco (2002) that
+  # G*Power uses; it reproduces the G*Power 3.1 manual's examples for this
+  # test (section 3.3: N = 1928; power 0.482927). Two-sided, alpha .05.
   exact <- list(
     "0.3" = c(`20` = 0.2539, `50` = 0.5722, `100` = 0.8652),
     "0.4" = c(`20` = 0.4303, `50` = 0.8352, `100` = 0.9871),

@@ -403,8 +403,11 @@ kept so later departures keep theirs.
 ### 10. Correlation (E4): Fisher's z, not G\*Power's exact method
 
 - **Established convention:** G\*Power computes power for a correlation
-  (ρ0 = 0) from the exact distribution of r, below N = 10,000 by default
-  (maintainer, from G\*Power 3.1.9.7; screenshot to confirm).
+  from the exact distribution of r by default, using "the algorithm
+  described in Barabesi and Greco (2002)"; its Options dialog says "Use
+  exact distribution if N <: 10000", and otherwise the Fisher z
+  approximation (G\*Power 3.1 manual, June 1, 2023, section 3, pp. 9–10,
+  supplied by the maintainer).
 - **powerkit:** pwr's `pwr.r.test()` (pwr 1.3-0), whose help says "These
   calculations use the Z' transformation of correlation coefficient:
   Z'=arctanh(r) and a bias correction is applied". Kept as the default by
@@ -412,8 +415,11 @@ kept so later departures keep theirs.
   Spower simulation, which estimates the exact test's power, stays
   available.
 - **Size:** two-sided, alpha .05, against pwrss 1.3.3's
-  `power.exact.onecor()` (the exact method; its help says it was validated
-  using G\*Power; not checked against G\*Power directly here). For
+  `power.exact.onecor()`, the exact method. It reproduces both of the
+  manual's examples for this test to the printed precision: N = 1928 for
+  ρ = .65 against ρ0 = .60, alpha = .05, power .95 (manual: 1928), and
+  power 0.4829271 for ρ = .3 against ρ0 = .8, N = 8 (manual: 0.482927;
+  section 3.3, p. 9). For
   r = .3 to .5 and N = 20 to 100 the power differs by at most 0.0038
   (N = 20, r = .5; one-sided, at most 0.0047). The required N for 80%
   power differs by at most 1: 85 rather than 84 at r = .3; the same at

@@ -32,7 +32,10 @@ it affects.
 - **(opened)**: the source was opened and read. Either it was opened on
   16 October 2026 (listed in [`card-sources.md`](card-sources.md),
   "Sources opened"), or it is tagged *read in full* or *read directly* in
-  [`decision-tree.md`](decision-tree.md).
+  [`decision-tree.md`](decision-tree.md), or the entry says which text was
+  opened and when (for example the full texts the maintainer supplied on
+  17 October 2026: Rubin, 2021, author preprint; Rubin, 2024; Mikael
+  Rubin, 2025; Uttley, 2019).
 - **(second-hand)**: `decision-tree.md` tags it *seen second-hand, to
   verify*.
 - **(unsourced)**: no source was found or checked.
@@ -377,7 +380,11 @@ is kept below as the record of the options.
   - G\*Power's manual reproduces SPSS's "Observed Power" column with its
     "post hoc" analysis (opened, read directly).
   - Hoenig and Heisey (2001) argue it adds nothing to the p-value
-    (second-hand).
+    (second-hand; still not opened). Uttley (2019) quotes them (see B11).
+  - Mikael Rubin (2025, *International Journal of Psychology*,
+    doi:10.1002/ijop.70017; opened): "post hoc power analyses are useless
+    at best, misleading at worst (Dziak et al. 2020)" (p. 14 of 15). He
+    also notes that "it is sometimes requested by reviewers" (same page).
   - Perugini et al. (2014) note post hoc power can describe a body of
     research (opened, read in full).
 - **Who might disagree, and why:**
@@ -504,25 +511,72 @@ is kept below as the record of the options.
     [`inference-question-design.md`](inference-question-design.md) for
     how the question could be worded).
 - **What tools and sources do:**
-  - **Rubin's framework** (Rubin, 2021, *Synthese*, 199, 10969–11000,
-    doi:10.1007/s11229-021-03276-4; Rubin, 2024, *Methods in Psychology*,
-    10, 100140, doi:10.1016/j.metip.2024.100140) (candidate, not opened:
-    as described by the maintainer). Whether alpha needs adjusting depends
-    on the claim the tests support:
-    - *individual testing*: each hypothesis supports its own claim. No
-      correction;
-    - *disjunction testing* ("at least one"): one claim is supported if
-      any one test is significant. A correction is needed;
-    - *conjunction testing* ("all", for example co-primary endpoints): one
-      claim is supported only if every test is significant. No correction
-      is needed, but the power to get all of them falls: two independent
-      tests at .80 each give .80 × .80 = .64.
-  - **The competing view:** Frane (2019), as listed in Rubin (2024)'s
-    reference list ("Misguided opposition to multiplicity adjustment
-    remains a problem", *Journal of Modern Applied Statistical Methods*,
-    18(2), doi:10.22237/jmasm/1556669400) (candidate, not opened; title
-    and details from Crossref). Its title indicates it defends
-    multiplicity adjustment; its arguments were not read.
+  - **Rubin's framework** (opened 17 October 2026, from texts the
+    maintainer supplied). Rubin (2021), *Synthese*,
+    doi:10.1007/s11229-021-03276-4, was read in the author preprint
+    (SSRN abstract 3904565); the preprint gives no volume or pages, so
+    "199, 10969–11000" is as printed in Rubin (2024)'s reference list.
+    Rubin (2024), *Methods in Psychology*, 10, 100140,
+    doi:10.1016/j.metip.2024.100140, was read in the published version.
+    Whether alpha needs adjusting depends on the type of multiple testing:
+    - *individual testing*: "each individual result must be significant in
+      order to reject each associated individual null hypothesis" (Rubin,
+      2021, author preprint, p. 1). "Like conjunction testing, individual
+      testing does not require an adjustment to the alpha level of each
+      test" (p. 7), "even when multiple instances of individual testing
+      take place side-by-side within the same study" (p. 8);
+    - *disjunction testing*: "at least one test result must be significant
+      in order to reject the associated joint null hypothesis". "It is
+      argued that alpha adjustment is only appropriate in the case of
+      disjunction testing" (both p. 1);
+    - *conjunction testing*: "all relevant results must be significant in
+      order to reject the joint null hypothesis" (p. 1). It "does not
+      require an adjustment to the alpha level for tests of each
+      constituent null hypothesis" (p. 6). Endnote 5 adds that the
+      constituent alpha "cannot be higher than" the joint alpha (p. 30).
+      The power cost is Rubin's own example: two constituent tests "each
+      tested with a power value of .80" give "a power level of .64, which
+      is lower than the desired power of .80" (p. 7). This matches the
+      .80 × .80 = .64 figure this entry gave. Rubin's examples are clinical
+      (a therapy "effective on both cognition and global clinical scores",
+      p. 7); "co-primary endpoints" is powerkit's term, not his.
+    - Rubin also says conjunction suits theory testing: "it is more
+      logical for researchers to use conjunction testing rather than
+      disjunction testing when they want to make a statistical inference
+      about a joint hypothesis that comprises a family of hypotheses that
+      belong to the same theory" (p. 17).
+    - Rubin (2024) names the mismatch: "an inconsistent correction occurs
+      when a researcher corrects their alpha level during multiple testing
+      but does not make an inference about a union alternative hypothesis"
+      (abstract, p. 1).
+    - **Where the maintainer's earlier description differed:** the three
+      cases and the correction rules match the papers. The conditions for
+      choosing disjunction are fuller in the paper than in the earlier
+      description; see
+      [`inference-question-design.md`](inference-question-design.md),
+      "Guidance on choosing 'any one is enough'".
+  - **Rubin on power.** Both papers discuss power: Rubin (2021) returns
+    to the low power of conjunction tests several times (author preprint,
+    pp. 7, 16, 17, 19 and 20), and Rubin (2024, section 5, p. 4) says
+    "Inconsistent corrections also lead to an unjustifiable loss of
+    statistical power". Neither paper sets out how to plan N for each
+    case. The power targets and N
+    in [`inference-question-design.md`](inference-question-design.md) are
+    still powerkit's extension.
+  - **The competing view:** Frane (2019), not opened. As printed in Rubin
+    (2024)'s reference list: "Frane, A.V., 2019. Misguided opposition to
+    multiplicity adjustment remains a problem. J. Mod. Appl. Stat. Methods
+    18 (2), eP2836. https://doi.org/10.22237/jmasm/1556669400." Rubin
+    (2024) cites it once, for a phrase: "this is not an "anti-adjustment
+    article" (Frane, 2019, p. 3). It is a pro-consistency article!"
+    (p. 1). He doesn't summarise Frane's arguments, and they were not
+    read here. Rubin (2021) states the view he argues against: "The most
+    common view is that alpha adjustment is almost always required during
+    multiple testing" (author preprint, p. 2), quoting Bennett et al.
+    (2009) and Goeman and Solari (2014) for it (second-hand).
+  - Rubin's blog post on redundant corrections
+    (markrubin.substack.com) could not be fetched: the session's proxy
+    refused the host (403). It is not used here.
   - Maxwell (2004) on the "curse of multiplicities" (second-hand).
   - Tools: power4mome 0.2.1 `rejection_rates(collapse = )` gives "none",
     "all_sig", "at_least_one_sig" and "at_least_k_sig" (opened). Superpower
@@ -531,15 +585,16 @@ is kept below as the record of the options.
     `coprimary.t()` (all) and `altprimary()` (at least one) (opened). Full
     list in [`coverage-roadmap.md`](coverage-roadmap.md), row C2.
 - **Who might disagree, and why:**
-  - Those who correct by default (the position Frane's title suggests)
-    would see "no correction" for individual or conjunction testing as
-    too lenient.
-  - Rubin argues that a correction belongs only where the claim is a
-    disjunction (as described by the maintainer).
+  - Those who correct by default (the position Frane's title suggests,
+    and the "most common view" Rubin, 2021, p. 2, describes) would see
+    "no correction" for individual or conjunction testing as too lenient.
+  - Rubin argues that alpha adjustment belongs only to disjunction
+    testing (Rubin, 2021, author preprint, p. 1, quoted above).
   - Users may not know in advance which claim they will make; asking may
     add a step they can't answer.
-  - Applying Rubin's framework to *power* (rather than to alpha) is
-    powerkit's extension, to be checked with him.
+  - Rubin discusses the power cost of conjunction tests and of
+    inconsistent corrections, but not how to plan N for each case. That
+    part is powerkit's extension, to be checked with him.
 - **Knock-on effects:**
   - D4 and D6 (the guided route and its study-level result); G7 (any
     correction by default); the methods paragraph must state which of the
@@ -667,38 +722,69 @@ is kept below as the record of the options.
   before release.
   - **Maintainer's decision (17 October 2026):** keep the "planned power,
     not observed power" line.
-  - **Candidate source, not verified:** Hoenig and Heisey's paper on the
-    abuse of power calculations, DOI 10.1198/000313001300339897. On
-    17 October 2026 the DOI resolved at doi.org, and its metadata (from
-    doi.org) gives "The Abuse of Power", John M. Hoenig and Dennis M.
-    Heisey, *The American Statistician*, 55(1), 19–24, 2001. The article
-    itself couldn't be opened: the publisher's page
-    (tandfonline.com) returned 403 Forbidden to this session, and the
-    metadata has no abstract. So the claim that observed power adds
-    nothing beyond the p-value has not been checked against it, and it
-    is **not** in `refs.bib`. Status: candidate, for the maintainer to
-    open and verify.
-  - **Second source, author manuscript opened (17 October 2026):** Dziak,
-    Dierker and Abar, "The interpretation of statistical power after the
-    data have been gathered", *Current Psychology*, 39(3), 870–877
-    (online 2018; print 2020), DOI 10.1007/s12144-018-0018-1. The
-    published article (link.springer.com) served a browser challenge to
-    this session and was not opened; its Crossref metadata was. The
-    author manuscript was read in full from PMC (PMC7286546, NIHMS1508709;
-    plain text from the PMC Open Access data bucket,
+  - **Hoenig and Heisey (2001): still not opened.** DOI
+    10.1198/000313001300339897. On 17 October 2026 the DOI resolved at
+    doi.org; its metadata gives "The Abuse of Power", John M. Hoenig and
+    Dennis M. Heisey, *The American Statistician*, 55(1), 19–24, 2001. The
+    publisher's page (tandfonline.com) returned 403 Forbidden, so the
+    article itself wasn't read.
+    - **Quoted in Uttley (2019)** (second-hand). Uttley (2019, *LEUKOS*,
+      15(2–3), 143–162, doi:10.1080/15502724.2018.1533851; opened) quotes
+      Hoenig and Heisey (2001, p. 23): "Power calculations tell us how
+      well we might be able to characterize nature in the future given a
+      particular state and statistical study design, but they cannot use
+      information in the data to tell us about the likely states of
+      nature" (Uttley, p. 156). Uttley's reference list gives the full
+      title as "The abuse of power: the pervasive fallacy of power
+      calculations for data analysis". Uttley's own words, same page:
+      "Post hoc calculation of observed power, using the observed effect
+      size and sample size used, provides almost no information of
+      value."
+    - The quoted sentence says power calculations can't tell us about
+      the state of nature from the data. It does not itself say observed
+      power adds "nothing beyond the p-value". That claim still rests on
+      Dziak et al. (below), not on a sentence read from Hoenig and Heisey.
+    - It is **not** in `refs.bib`.
+  - **Dziak, Dierker and Abar: author manuscript opened (17 October
+    2026).** "The interpretation of statistical power after the data have
+    been gathered", *Current Psychology*, 39(3), 870–877 (online 2018;
+    print 2020), DOI 10.1007/s12144-018-0018-1. The published article
+    (link.springer.com) served a browser challenge to this session and was
+    not opened; its Crossref metadata was. The author manuscript was read
+    in full from PMC (PMC7286546, NIHMS1508709; plain text from the PMC
+    Open Access data bucket,
     `pmc-oa-opendata.s3.amazonaws.com/PMC7286546.1/PMC7286546.1.txt`).
     Its abstract says post hoc power "is a monotone function of the
     p-value and therefore contains no additional helpful information",
     and its introduction says it explains why post hoc power "should never
     be used in practice, following explanations given by Hoenig and Heisey
     (2001)". This supports the line's claim that observed power "says
-    nothing beyond the study's p-value". Status: candidate for `refs.bib`;
-    the maintainer should check the quotes against the published version
-    before adding the entry. It is **not** in `refs.bib`.
+    nothing beyond the study's p-value". Mikael Rubin (2025, reference
+    list) gives the same journal, volume, pages and DOI. Status: candidate
+    for `refs.bib`; the maintainer should check the quotes against the
+    published version before adding the entry. It is **not** in
+    `refs.bib`.
+  - **A third source agreeing:** Mikael Rubin (2025, *International
+    Journal of Psychology*, doi:10.1002/ijop.70017; opened): "it has been
+    well established (and is worth noting again) that post hoc power
+    analyses are useless at best, misleading at worst (Dziak et al.
+    2020)" (p. 14 of 15).
+  - **The competing view: not fetched.** Joel linked a Replication Index
+    post (replicationindex.com/2016/01/14/the-abuse-of-hoenig/). The
+    session's proxy refused the host (403), so its author, title, date and
+    claim could not be read from the page. `decision-tree.md` 3.1 lists it
+    second-hand as "The abuse of Hoenig and Heisey" (2016) and says it
+    argues against broad readings of Hoenig and Heisey; that summary is
+    still unverified.
 - **Who might disagree, and why:**
   - A sentence is easier to read and to copy into a methods section.
   - A number first is quicker to scan.
   - Some find the "observed power" line unnecessary for planning.
+  - Those who read Hoenig and Heisey narrowly might find "says nothing"
+    too broad: Perugini et al. (2014, p. 319, opened) write that post hoc
+    power "can also be useful for characterizing entire domains of
+    research" (`decision-tree.md` 3.1). The Replication Index post may
+    argue this too (not fetched).
 - **Knock-on effects:** the methods paragraph (still a placeholder); the
   wording of the same numbers in the exported script's comments.
 - **Recorded in:** setting `result_wording` (shown on the result screen).
@@ -1658,6 +1744,14 @@ source for Fisher's exact test in C11.
   - E4: keep pwr's Fisher's z, recorded as Departure 10 in
     [`conventions.md`](conventions.md) and shown on the card and the
     result screen.
+  - **Checked against the G\*Power manual (17 October 2026):** the
+    manual (June 1, 2023, section 3, pp. 9–10) confirms the exact method
+    (Barabesi and Greco, 2002) with "Use exact distribution if N <:
+    10000". pwrss's `power.exact.onecor()`, the reference used above,
+    reproduces both of the manual's examples (N = 1928; power 0.482927),
+    so the sizes in this entry are sizes against G\*Power's method. The
+    manual has no section for E5's z test, so E5 still needs a
+    screenshot.
   - E5: the default should be the z test (or chi-square) most
     psychologists run, not the arcsine. Base R's `power.prop.test()` is to
     be checked against G\*Power's "Two independent groups: inequality,
@@ -1681,12 +1775,30 @@ source for Fisher's exact test in C11.
   - leave it to the user, with no prompt (as now: the user can lower
     alpha by hand).
 - **What tools and sources do:**
-  - Rubin (2021) (candidate, not opened; as described by the
-    maintainer): a correction is needed for disjunction testing only, not
-    for individual or conjunction testing.
-  - Frane (2019), as listed in Rubin (2024) (candidate, not opened): the
-    title, "Misguided opposition to multiplicity adjustment remains a
-    problem", indicates the opposite position.
+  - Rubin (2021) (opened, author preprint): "researchers only need to
+    adjust their alpha level when they undertake disjunction testing of a
+    joint null hypothesis" (p. 17). His conclusion: "researchers should be
+    cautious about applying default corrections for multiple testing in
+    relation to studywise and multiway ANOVAwise families of hypotheses"
+    (p. 22).
+  - Rubin (2024) (opened) calls a default correction "the alpha adjustment
+    ritual": "the automatic adjustment of alpha levels whenever multiple
+    testing occurs, regardless of whether statistical inferences are made
+    about individual null hypotheses or intersection null hypotheses"
+    (p. 4). If a researcher corrects but makes only individual inferences,
+    "they will have lowered the power of their individual tests for no
+    good reason" (p. 4). He reports, from García-Pérez (2023)'s review of
+    109 articles (second-hand), that such corrections "are very common"
+    (p. 4).
+  - Frane (2019) (not opened). As printed in Rubin (2024)'s reference
+    list: "Frane, A.V., 2019. Misguided opposition to multiplicity
+    adjustment remains a problem. J. Mod. Appl. Stat. Methods 18 (2),
+    eP2836. https://doi.org/10.22237/jmasm/1556669400." The title
+    indicates the opposite position. Rubin (2024, p. 1) cites it only for
+    the phrase "anti-adjustment article"; he doesn't summarise it.
+  - Rubin's blog post on redundant corrections
+    (markrubin.substack.com/p/redundant-multiple-testing-corrections)
+    could not be fetched: the proxy refused the host (403). Not used.
   - Tools: Superpower 0.2.4.1 `ANOVA_power()` has `p_adjust = "none"` and
     `emm_p_adjust = "none"` as defaults (`man/ANOVA_power.Rd`, opened);
     power4mome 0.2.1 `rejection_rates()` defaults to `collapse = "none"`
@@ -1699,7 +1811,8 @@ source for Fisher's exact test in C11.
 - **Who might disagree, and why:**
   - Reviewers and methodologists who correct by default would want it on.
   - Those following Rubin would see a default correction as wrong for
-    individual and conjunction testing, and as a needless cost in N.
+    individual and conjunction testing, and as a needless cost in N
+    ("an unjustifiable loss of statistical power", Rubin, 2024, p. 4).
   - A default is a nudge either way; asking the inference question (B6)
     avoids a default but adds a step.
 - **Knock-on effects:** B6 (the inference question); D4 and D6; the
@@ -1714,8 +1827,14 @@ source for Fisher's exact test in C11.
   (2 x 2 mixed ANOVA, via Superpower) report power for **one** effect the
   user chooses (factor A, factor B or the interaction), at the alpha the
   user enters, with **no ANOVA-wise correction**. This is consistent with
-  individual testing in Rubin (2021) (as described by the maintainer;
-  not opened). Where seen:
+  individual testing in Rubin (2021) (opened, author preprint). On
+  multiway ANOVAs he writes: "it is unlikely that researchers would ever
+  have reasonable grounds for adjusting their alpha to compensate for
+  multiple testing in a multiway ANOVA" (p. 21). Endnote 9 gives the
+  exception: corrections "may be necessary in multiway ANOVAs when a
+  factor contains more than two levels and multiple comparisons are
+  conducted between those levels" (p. 31). E7 and E8 have two levels per
+  factor. Where seen:
   - `engine/inst/schema/design.schema.json:215`: `target_test` is "The
     one effect the power analysis is about"; lines 944–948: `effect` is
     one of `main_effect_A`, `main_effect_B`, `interaction`;
@@ -1753,10 +1872,37 @@ source for Fisher's exact test in C11.
     methods paragraph when filled in.
 - **What tools and sources do:**
   - Lakens et al. (2018), "Justify your alpha"
-    (doi:10.1038/s41562-018-0311-x) (candidate, not opened). The repo's
+    (doi:10.1038/s41562-018-0311-x) (still not opened). The repo's
     `decision-tree.md` 3.6 summarises it second-hand: every design choice,
     alpha included, should be justified rather than set by convention.
-    That summary has not been checked against the paper.
+    Two supplied papers describe it the same way (second-hand):
+    - Uttley (2019, *LEUKOS*, doi:10.1080/15502724.2018.1533851; opened):
+      "Other researchers suggest that this is unwise and that instead we
+      should justify all experimental design and analytical choices made,
+      including the P-value threshold used to identify a real effect
+      (Lakens et al. 2018)" (p. 144), and "the choice of alpha to use
+      should not be inflexible (Lakens et al. 2018)" (p. 158);
+    - Rubin (2024, *Methods in Psychology*; opened) lists, among ritual
+      habits, to "use a conventional alpha level when an alternative
+      unconventional alpha level is more appropriate (Lakens et al.,
+      2018)" (p. 7).
+    The summary still hasn't been checked against the paper itself.
+  - Rubin (2021, author preprint; opened) separates choosing alpha from
+    correcting it: "In every significance testing situation, researchers
+    need to specify their alpha level in the context of a range of
+    external background factors" (p. 13), including "the theoretical
+    and/or practical costs of Type I and Type II errors, the smallest
+    effect size of interest, the sample size, and the variability in the
+    data" (p. 13). He calls this "alpha specification", "quite different
+    from" alpha adjustment for disjunction testing (p. 13).
+  - On tails: Rubin (2024, p. 7) also lists, as a ritual habit, to "use a
+    two-sided test when a one-sided test is more consistent with one's
+    statistical inference (Georgiev, 2018; Rubin, 2022)". Uttley (2019,
+    p. 157) found that "Justification for use of a one-tailed test was
+    also absent in nearly all reviewed papers", and gives the size of the
+    difference in one case: power "is 0.15 for a one-tailed dependent
+    t-test. This reduces to 0.09 when a two-tailed t-test is used", for
+    "a group sample size of 20 and an effect size of 0.2".
   - G\*Power asks for the number of tails (B3, opened); its alpha is
     pre-filled (to confirm from screenshots).
   - pwr 1.3-0, Spower 0.7, Superpower 0.2.4.1 and InteractionPoweR 0.2.4
@@ -1820,6 +1966,27 @@ source for Fisher's exact test in C11.
       statistically detectable effect, the width of the confidence
       interval around the effect size, and to plot a sensitivity power
       analysis, in relation to the sample size that was collected."
+  - Rubin (2024, *Methods in Psychology*; opened) lists, among ritual
+    habits, to "conduct an a priori power analysis when there is no clear
+    basis for an effect size estimate and a sensitivity power analysis is
+    more appropriate (Lakens, 2022; Perugini et al., 2018)" (p. 7). This
+    is one published view in favour of the "default when no effect size
+    can be justified" option. It is Rubin's reading of Lakens (2022), so
+    second-hand for Lakens.
+  - Mikael Rubin (2025, *International Journal of Psychology*,
+    doi:10.1002/ijop.70017; opened): "the researcher needs to evaluate the
+    impact of the effect size on power, either by exploring a range of
+    effect sizes or by determining the sample size needed to achieve power
+    for the smallest effect size of interest (Anvari and Lakens 2021)"
+    (p. 2). In his conclusions: "power analyses should be reported as
+    ranges of effect sizes, power and sample sizes. This is not the
+    standard in the field" (p. 14 of 15).
+  - Uttley (2019, *LEUKOS*, doi:10.1080/15502724.2018.1533851; opened),
+    as an alternative to an effect size from the literature: "state the
+    minimum effect size that you are willing to accept as detectable with
+    your study or to assess what the minimum effect size would be for it
+    to be meaningful and not trivial (the smallest effect size of
+    interest; Albers and Lakens 2018)" (p. 158).
   - G\*Power offers sensitivity as one of five analysis types (B5, opened,
     manual p. 2).
   - Spower sets the type by which argument is `NA` (B5, opened);
