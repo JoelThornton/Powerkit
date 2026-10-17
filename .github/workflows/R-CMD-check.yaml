@@ -1,6 +1,11 @@
 # R CMD check on the engine package, on every push.
 # High-replication validation tests are skipped here (they run nightly; see
 # nightly-validation.yaml).
+#
+# Packages come from renv.lock (the versions the validation runs used), not
+# the latest CRAN releases, so a new backend release can't change results
+# in CI until renv.lock is updated in its own PR (docs/decisions.md,
+# 17 October 2026).
 name: R-CMD-check
 
 on:
@@ -17,21 +22,33 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # CI installs packages from engine/DESCRIPTION; keep the repo-root
-      # renv project (for local development) out of the way.
-      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
     steps:
       - uses: actions/checkout@v4
 
+      # System libraries the packages in renv.lock need and the runner
+      # lacks (see full-validation.yaml).
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk-dev
+
+      # The R version recorded in renv.lock.
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: renv
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          working-directory: engine
-          extra-packages: any::rcmdcheck
-          needs: check
+      # Restores the package versions in renv.lock (cached between runs).
+      - uses: r-lib/actions/setup-renv@v2
+
+      # rcmdcheck runs the check; it isn't in renv.lock (it doesn't affect
+      # results). Then point the later steps, which run in engine/ where the
+      # repository's .Rprofile doesn't activate renv, at the renv library.
+      - name: Use the renv library in later steps
+        run: |
+          Rscript -e 'if (!requireNamespace("rcmdcheck", quietly = TRUE)) renv::install("rcmdcheck", prompt = FALSE)' \
+                  -e 'cat("Spower", format(packageVersion("Spower")), "\n")' \
+                  -e 'cat("R_LIBS_USER=", .libPaths()[1], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)'
 
       - uses: r-lib/actions/check-r-package@v2
         with:
