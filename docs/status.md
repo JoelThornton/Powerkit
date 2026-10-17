@@ -80,12 +80,29 @@ fully validated. Validation runs are recorded in
   and 8).
 - **Routing prototype (merged in PR #15):** a clickable Shiny prototype of
   [`decision-tree.md`](decision-tree.md), in `app/routing/`. Routing only:
-  no engine calls and no calculations. It covers the three routes (I know
+  no calculations (the input screens, added later, use the engine's
+  `validate_spec()` only). It covers the three routes (I know
   my analysis; help me choose; plan my whole study), end-point cards, and
   placeholders for the undecided judgement calls, which are settings in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **Input screens for the end points that run (draft PR, 17 October 2026;
+  phase 5 groundwork, no maths):** each of E1–E14 has an input screen,
+  reached from its card, with one field per value the card lists and the
+  plain-English hints beside them.
+  - Effect sizes start empty and are required (undecided setting
+    `effect_size_inputs`); other settings start at the wrapped tool's
+    default, each labelled with its source.
+  - On submit, the screen builds a design spec and checks it with the
+    engine's `validate_spec()` (read-only), showing its messages in plain
+    English. Nothing is calculated: a valid spec shows "Calculation not
+    wired in yet" and the spec.
+  - "Copy my answers" copies the route, end point and values as text.
+  - Tests for every screen; axe-core finds no violations on the screen at
+    desktop and phone width. The engine checks are skipped on GitHub,
+    where the app-tests job doesn't install the engine
+    ([`routing-prototype.md`](routing-prototype.md)).
 - **Judgement-calls pack and small fixes (draft PR, 16 October 2026; builds
   on the routing-decisions PR):**
   - [`judgement-calls.md`](judgement-calls.md) collects every open

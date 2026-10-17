@@ -1,0 +1,338 @@
+# Input screens for the end points powerkit runs (E1-E14).
+#
+# Routing prototype, phase 5 groundwork: a screen collects the values listed
+# under "What you would enter" on the card, builds a design spec and checks
+# it with the engine's validate_spec(). Nothing is calculated.
+#
+# Each form has `groups`, one per line of the card's "What you would enter"
+# (`input` is that line, copied from tree.yaml; a test checks they match),
+# plus the shared closing fields (goal, alpha, power, direction, effect-size
+# justification, attrition) that R/forms.R adds.
+#
+# Field keys:
+#   id       input id (prefixed "f_" in the app)
+#   label    the field's own label
+#   type     text | number | select | levels (comma-separated names) |
+#            table (rows of comma-separated numbers)
+#   path     where the value goes in the spec ("a.b.c"; levels.1 = first level)
+#   effect   true for population values (effect sizes, SDs, correlations):
+#            they start empty and are required (setting effect_size_inputs)
+#   required true if the screen can't build a spec without it
+#   optional true if it may be left empty (then the engine's default applies)
+#   default  a starting value for a non-effect field, with default_source
+#            saying whose default it is
+#   min, max limits checked by the screen before the engine sees the spec
+
+# Defaults of the tool each end point wraps, read from the installed
+# packages' function signatures on 17 October 2026.
+tool_defaults:
+  Spower:
+    alpha: 0.05
+    alpha_source: "Spower's default (Spower(sig.level = 0.05), Spower 0.6.4)"
+    power_source: "Spower has no default target power (Spower(power = NA)); enter one"
+    alternative_source: "Spower's default (two.tailed = TRUE, Spower 0.6.4)"
+  Superpower:
+    alpha: 0.05
+    alpha_source: "Superpower's default (Superpower_options(\"alpha_level\") is 0.05, Superpower 0.2.4.1)"
+    power_source: "Superpower reports power and has no default target power; enter one"
+  InteractionPoweR:
+    alpha: 0.05
+    alpha_source: "InteractionPoweR's default (power_interaction(alpha = 0.05), InteractionPoweR 0.2.4)"
+    power_source: "InteractionPoweR has no default target power (power_estimate() needs power_target); enter one"
+  power4mome:
+    alpha: 0.05
+    alpha_source: "power4mome's default (95% confidence intervals: n_region_from_power(ci_level = 0.95), power4mome 0.2.1)"
+    power: 0.8
+    power_source: "power4mome's default (n_region_from_power(target_power = 0.8), power4mome 0.2.1)"
+
+forms:
+  E1:
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: one_sample_t,
+           variables: {"Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: mean, method: t_test}}
+    groups:
+      - input: "Your outcome's name"
+        fields:
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "Cohen's d: (expected mean minus the fixed value) / SD"
+        fields:
+          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
+
+  E2:
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: independent_t,
+           variables: {X: {type: binary}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: mean_difference}}
+    groups:
+      - input: "Names of the two groups and the outcome"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "Cohen's d: (group 2 minus group 1) / pooled SD"
+        fields:
+          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
+      - input: "The size of group 2 relative to group 1 (1 = equal)"
+        fields:
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "Spower's default (p_t.test(n2_n1 = 1), Spower 0.6.4)"}
+      - input: "Student's or Welch's test"
+        fields:
+          - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)"},
+             default: student_t, default_source: "Spower's default (p_t.test(var.equal = TRUE), Spower 0.6.4)"}
+
+  E3:
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: paired_t,
+           variables: {X: {type: within_factor}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: mean_difference, method: t_test}}
+    groups:
+      - input: "Names of the two conditions and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, session)", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "First condition", type: text, path: variables.X.levels.1, required: true}
+          - {id: X_level2, label: "Second condition", type: text, path: variables.X.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "d_z: mean of the differences (second minus first) / SD of the differences"
+        fields:
+          - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
+
+  E4:
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: correlation,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: correlation, method: pearson}}
+    groups:
+      - input: "Names of the two variables"
+        fields:
+          - {id: X_label, label: "First variable", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Second variable", type: text, path: variables.Y.label, required: true}
+      - input: "The expected correlation r"
+        fields:
+          - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
+
+  E5:
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: two_proportions,
+           variables: {X: {type: binary}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
+           target_test: {effect: proportion_difference, method: z_test}}
+    groups:
+      - input: "Names of the groups and the outcome"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
+          - {id: Y_label, label: "Yes/no outcome (for example, attended)", type: text, path: variables.Y.label, required: true}
+      - input: "The expected proportion of 'yes' in each group"
+        fields:
+          - {id: p1, label: "Proportion of 'yes' in group 1 (0 to 1)", type: number, path: population.p1, effect: true, min: 0, max: 1}
+          - {id: p2, label: "Proportion of 'yes' in group 2 (0 to 1)", type: number, path: population.p2, effect: true, min: 0, max: 1}
+      - input: "The size of group 2 relative to group 1"
+        fields:
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "Spower's default: equal groups (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.6.4)"}
+
+  E6:
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: basic_test, template: chi_square_independence,
+           variables: {X: {type: categorical}, "Y": {type: categorical}}, population: {metric: proportion},
+           target_test: {effect: association, method: pearson_chi_square}}
+    groups:
+      - input: "The categories of each variable"
+        fields:
+          - {id: X_label, label: "First variable", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "Its categories, separated by commas", type: levels, path: variables.X.levels, required: true}
+          - {id: Y_label, label: "Second variable", type: text, path: variables.Y.label, required: true}
+          - {id: Y_levels, label: "Its categories, separated by commas", type: levels, path: variables.Y.levels, required: true}
+      - input: "The expected proportion of people in each combination (adding up to 1)"
+        fields:
+          - {id: probabilities, label: "Proportions: one line per category of the first variable, one number per category of the second, separated by commas", type: table, path: population.probabilities, effect: true}
+
+  E7:
+    tool: Superpower
+    directional: false
+    sensitivity: true
+    base: {spec_version: "0.1", design: factorial_anova, template: 2x2_between,
+           variables: {A: {type: between_factor}, B: {type: between_factor}, "Y": {type: continuous}},
+           target_test: {method: anova_f}}
+    groups:
+      - input: "Names of the two factors, their levels and the outcome"
+        fields:
+          - {id: A_label, label: "Factor A", type: text, path: variables.A.label, required: true}
+          - {id: A_level1, label: "Factor A, level 1", type: text, path: variables.A.levels.1, required: true}
+          - {id: A_level2, label: "Factor A, level 2", type: text, path: variables.A.levels.2, required: true}
+          - {id: B_label, label: "Factor B", type: text, path: variables.B.label, required: true}
+          - {id: B_level1, label: "Factor B, level 1", type: text, path: variables.B.levels.1, required: true}
+          - {id: B_level2, label: "Factor B, level 2", type: text, path: variables.B.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The four expected cell means (raw or in SD units)"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: m11, label: "Mean: A level 1, B level 1", type: number, path: population.means.1.1, effect: true}
+          - {id: m12, label: "Mean: A level 1, B level 2", type: number, path: population.means.1.2, effect: true}
+          - {id: m21, label: "Mean: A level 2, B level 1", type: number, path: population.means.2.1, effect: true}
+          - {id: m22, label: "Mean: A level 2, B level 2", type: number, path: population.means.2.2, effect: true}
+      - input: "The SD (one, or one per cell)"
+        fields:
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "Which effect: factor A, factor B or the interaction"
+        fields:
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
+    extra:
+      - {id: method, label: "Method", type: select, path: options.method, required: true,
+         choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
+         default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
+
+  E8:
+    tool: Superpower
+    directional: false
+    sensitivity: true
+    base: {spec_version: "0.1", design: factorial_anova, template: 2x2_mixed,
+           variables: {A: {type: between_factor}, B: {type: within_factor}, "Y": {type: continuous}},
+           target_test: {method: anova_f}}
+    groups:
+      - input: "Names of the factors, their levels and the outcome"
+        fields:
+          - {id: A_label, label: "Between factor (for example, group)", type: text, path: variables.A.label, required: true}
+          - {id: A_level1, label: "Between factor, level 1", type: text, path: variables.A.levels.1, required: true}
+          - {id: A_level2, label: "Between factor, level 2", type: text, path: variables.A.levels.2, required: true}
+          - {id: B_label, label: "Within factor (for example, time)", type: text, path: variables.B.label, required: true}
+          - {id: B_level1, label: "Within factor, level 1", type: text, path: variables.B.levels.1, required: true}
+          - {id: B_level2, label: "Within factor, level 2", type: text, path: variables.B.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The four expected cell means"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: m11, label: "Mean: between level 1, within level 1", type: number, path: population.means.1.1, effect: true}
+          - {id: m12, label: "Mean: between level 1, within level 2", type: number, path: population.means.1.2, effect: true}
+          - {id: m21, label: "Mean: between level 2, within level 1", type: number, path: population.means.2.1, effect: true}
+          - {id: m22, label: "Mean: between level 2, within level 2", type: number, path: population.means.2.2, effect: true}
+      - input: "The SD"
+        fields:
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "The correlation between the two repeated measurements"
+        fields:
+          - {id: r, label: "Correlation between the two measurements", type: number, path: population.r, effect: true, min: -1, max: 1}
+      - input: "Which effect: between factor, within factor or the interaction"
+        fields:
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {main_effect_A: "The between factor", main_effect_B: "The within factor", interaction: "The interaction"}}
+    extra:
+      - {id: method, label: "Method", type: select, path: options.method, required: true,
+         choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
+         default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
+
+  E9:
+    tool: InteractionPoweR
+    directional: false
+    base: {spec_version: "0.1", design: regression_interaction, template: two_way,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: interaction, method: ols_t}}
+    names: [X, W, "Y"]
+    groups:
+      - input: "Correlations: X with Y, W with Y, the interaction XW with Y, and X with W"
+        fields:
+          - {id: r_X_Y, label: "Correlation of X with Y", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
+          - {id: r_W_Y, label: "Correlation of W with Y", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
+          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
+          - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
+      - input: "Optional: reliability of X, W and Y"
+        fields:
+          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+
+  E10:
+    tool: power4mome
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: process_4,
+           variables: {X: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: monte_carlo_ci}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "Standardised paths X -> M, M -> Y and X -> Y"
+        fields:
+          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
+          - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
+          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
+      - input: "Number of Monte Carlo draws per CI (optional)"
+        fields:
+          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, min: 100, max: 100000, integer: true}
+
+  E11:
+    tool: power4mome
+    directional: false
+    mediators: parallel
+    base: {spec_version: "0.1", design: mediation, template: process_4,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, method: monte_carlo_ci}}
+    names: [X, "Y"]
+    # Generated by R/forms.R for the chosen number of mediators: the paths
+    # for each mediator, the residual correlations and the target path.
+    groups:
+      - input: "Standardised paths for each mediator"
+        generated: parallel_paths
+      - input: "Correlations between the mediators' residuals"
+        generated: residual_correlations
+      - input: "Which indirect path the hypothesis is about"
+        generated: target_path
+
+  E12:
+    tool: power4mome
+    directional: false
+    mediators: serial
+    base: {spec_version: "0.1", design: mediation, template: process_6,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, method: monte_carlo_ci}}
+    names: [X, "Y"]
+    groups:
+      - input: "Standardised paths, every forward path"
+        generated: serial_paths
+      - input: "Which indirect path the hypothesis is about"
+        generated: target_path
+
+  E13:
+    tool: power4mome
+    directional: false
+    base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
+           variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: index_of_moderated_mediation, method: monte_carlo_ci}}
+    names: [X, W, M, "Y"]
+    groups:
+      - input: "Standardised paths, including the interaction XW -> M"
+        fields:
+          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
+          - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true}
+          - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true}
+          - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
+          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
+          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+
+  E14:
+    tool: power4mome
+    directional: false
+    base: {spec_version: "0.1", design: moderated_mediation, template: process_14,
+           variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: index_of_moderated_mediation, method: monte_carlo_ci}}
+    names: [X, W, M, "Y"]
+    groups:
+      - input: "Standardised paths, including the interaction MW -> Y"
+        fields:
+          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
+          - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
+          - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
+          - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true}
+          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
+          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}

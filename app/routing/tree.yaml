@@ -193,6 +193,12 @@ settings:
     options: {show: "Show the note on covered cards", hide: "Don't show it"}
     value: null
     shown_at: []
+  - key: effect_size_inputs
+    ref: "Input screens (17 October 2026); judgement call 3.2"
+    question: "On the input screens, effect sizes, SDs and correlations start empty and must be filled in, with a justification. Should they instead offer suggested values (for example conventional benchmarks) that the user can change?"
+    options: {empty_required: "Start empty and required, with a justification (as now)", suggested: "Offer suggested values the user can change, still with a justification"}
+    value: null
+    shown_at: [form]
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"

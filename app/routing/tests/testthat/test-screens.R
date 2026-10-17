@@ -1,5 +1,6 @@
 # Every screen renders from the data file, shows the prototype banner, and
-# the app never calls the engine or calculates power.
+# the app never calculates power (from the engine it uses only
+# validate_spec(), on the input screens).
 
 test_that("the banner says it's a prototype that calculates nothing", {
   expect_identical(tree$banner, "Prototype: shows which analysis you need; it doesn't calculate anything yet.")
@@ -102,12 +103,16 @@ test_that("the plan screen shows placeholders for the combined N and the consist
   expect_match(html, "E16", fixed = TRUE)
 })
 
-test_that("the prototype never calls the engine or a power function", {
+test_that("the prototype never calls a power function; from the engine it uses only validate_spec()", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
-  for (pattern in c("run_spec", "powerkit::", "load_engine", "Spower::", "Superpower::", "power4mome::", "InteractionPoweR::", "power.t.test", "pwr::")) {
+  for (pattern in c("run_spec", "powerkit::", "load_engine", "Spower::", "Superpower::", "power4mome::", "InteractionPoweR::", "power.t.test", "pwr::", "export_script", "search_n")) {
     expect_false(grepl(pattern, code, fixed = TRUE), label = pattern)
   }
+  # Every function taken from the engine is validate_spec().
+  taken <- regmatches(code, gregexpr('(getExportedValue\\("powerkit", "[^"]+"\\)|get\\("[^"]+", envir = asNamespace\\("powerkit"\\)\\))', code))[[1]]
+  expect_gt(length(taken), 0)
+  for (t in taken) expect_match(t, '"validate_spec"', fixed = TRUE)
 })
 
 test_that("each card lists only the closing questions that apply to it", {
