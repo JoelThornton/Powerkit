@@ -16,7 +16,7 @@ form_examples <- list(
               Y_levels = "Single, In a relationship", probabilities = "0.3, 0.25\n0.12, 0.08\n0.15, 0.1"), closing_ok),
   E7 = c(list(A_label = "Feedback", A_level1 = "None", A_level2 = "Praise", B_label = "Task difficulty",
               B_level1 = "Easy", B_level2 = "Hard", Y_label = "Persistence (minutes)", metric = "raw",
-              m11 = "10", m12 = "10", m21 = "10", m22 = "13", sd = "6", effect = "interaction", method = "exact"), closing_ok),
+              m11 = "10", m12 = "10", m21 = "10", m22 = "13", sd_mode = "one", sd = "6", effect = "interaction", method = "exact"), closing_ok),
   E8 = c(list(A_label = "Group", A_level1 = "Waitlist", A_level2 = "Therapy", B_label = "Time",
               B_level1 = "Pre", B_level2 = "Post", Y_label = "Depression score", metric = "standardised",
               m11 = "0", m12 = "0", m21 = "0", m22 = "-0.4", sd = "1", r = "0.6", effect = "interaction", method = "exact"), closing_ok),

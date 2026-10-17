@@ -105,9 +105,12 @@ fully validated. Validation runs are recorded in
     English. Nothing is calculated: a valid spec shows "Calculation not
     wired in yet" and the spec.
   - "Copy my answers" copies the route, end point and values as text.
+  - E7 (2 x 2 between) takes one SD for all cells or one per cell (17
+    October 2026), as the design spec and `validate_spec()` accept; the
+    fields that don't apply are hidden. E8 still takes one SD.
   - Tests for every screen; axe-core finds no violations on the screen at
-    desktop and phone width. The engine checks are skipped on GitHub,
-    where the app-tests job doesn't install the engine
+    desktop and phone width. The app-tests job on GitHub now installs the
+    engine, so the engine checks run there too
     ([`routing-prototype.md`](routing-prototype.md)).
 - **Judgement-calls pack and small fixes (draft PR, 16 October 2026; builds
   on the routing-decisions PR):**

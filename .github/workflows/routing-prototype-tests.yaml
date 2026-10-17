@@ -37,8 +37,18 @@ jobs:
       # Restores the package versions in renv.lock (cached between runs).
       - uses: r-lib/actions/setup-renv@v2
 
+      # The input screens check specs with the engine's validate_spec()
+      # (read-only). Install the engine into the renv library so those
+      # tests run here instead of skipping.
+      - name: Install the engine
+        run: Rscript -e 'utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1])' -e 'cat("powerkit", format(packageVersion("powerkit")), "installed\n")'
+
       # Runs from the repository root, so its .Rprofile activates renv.
+      # POWERKIT_APP_TESTS_NEED_ENGINE makes the engine tests fail, not
+      # skip, if the engine can't be loaded.
       - name: Run the routing prototype's tests
+        env:
+          POWERKIT_APP_TESTS_NEED_ENGINE: "true"
         shell: Rscript {0}
         run: |
           testthat::test_dir("app/routing/tests/testthat", stop_on_failure = TRUE)

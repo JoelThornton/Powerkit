@@ -22,6 +22,9 @@
 #   default  a starting value for a non-effect field, with default_source
 #            saying whose default it is
 #   min, max limits checked by the screen before the engine sees the spec
+#   shown_if {field: <id>, is: <value>} or {field: <id>, is_not: <value>}:
+#            the field is shown, checked and put in the spec only when the
+#            other field's choice matches (E7's per-cell SDs)
 
 # Defaults of the tool each end point wraps, read from the installed
 # packages' function signatures on 17 October 2026.
@@ -184,7 +187,21 @@ forms:
           - {id: m22, label: "Mean: A level 2, B level 2", type: number, path: population.means.2.2, effect: true}
       - input: "The SD (one, or one per cell)"
         fields:
-          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          # The spec's population > sd is one number or a 2 x 2 array of
+          # positive numbers (rows = levels of A), as validate_spec() accepts.
+          - {id: sd_mode, label: "One SD, or one per cell", type: select, required: true,
+             choices: {one: "One SD for all four cells", per_cell: "A different SD in each cell"},
+             default: one, default_source: "the simpler choice; the design spec accepts either"}
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is_not: per_cell}}
+          - {id: sd11, label: "SD: A level 1, B level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd12, label: "SD: A level 1, B level 2", type: number, path: population.sd.1.2, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd21, label: "SD: A level 2, B level 1", type: number, path: population.sd.2.1, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd22, label: "SD: A level 2, B level 2", type: number, path: population.sd.2.2, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
       - input: "Which effect: factor A, factor B or the interaction"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,

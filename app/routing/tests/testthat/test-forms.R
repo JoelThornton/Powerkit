@@ -1,11 +1,17 @@
 # Input screens for the end points powerkit runs (forms.yaml, R/forms.R).
-# The engine is loaded read-only for validate_spec(); tests that need it are
-# skipped where it isn't available (the app-tests CI job installs only the
-# app's packages).
+# The engine is loaded read-only for validate_spec(). Tests that need it
+# are skipped where it isn't available, except on GitHub: the app-tests job
+# installs the engine and sets POWERKIT_APP_TESTS_NEED_ENGINE, so there a
+# missing engine fails the tests instead.
 
 form_ids <- names(forms$forms)
 validate <- engine_validator(file.path(repo_dir, "engine"))
-skip_without_engine <- function() skip_if(is.null(validate), "powerkit's engine isn't available here")
+skip_without_engine <- function() {
+  if (is.null(validate) && identical(Sys.getenv("POWERKIT_APP_TESTS_NEED_ENGINE"), "true")) {
+    fail("powerkit's engine couldn't be loaded, but this run needs it (POWERKIT_APP_TESTS_NEED_ENGINE).")
+  }
+  skip_if(is.null(validate), "powerkit's engine isn't available here")
+}
 
 values_for <- function(ep) form_examples[[ep]]
 fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
@@ -49,7 +55,11 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
     problems <- form_problems(form_fields(groups), list())
-    for (f in effect) expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
+    # Fields shown only for another choice (E7's per-cell SDs) are checked
+    # in their own test.
+    for (f in Filter(function(f) field_applies(f, list()), effect)) {
+      expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
+    }
     expect_true(any(grepl("powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
   }
 })
@@ -153,6 +163,40 @@ test_that("the engine's messages name the screen's fields, in plain English", {
   check <- check_spec(build_spec(forms, "E1", fields_for("E1"), v), fields_for("E1"), validate)
   expect_identical(check$status, "ok")
   expect_match(check$advice, "Pilot estimates are very imprecise", fixed = TRUE)
+})
+
+test_that("E7 takes one SD or one per cell, as validate_spec() accepts", {
+  fields <- fields_for("E7")
+  ids <- vapply(fields, `[[`, "", "id")
+  expect_true(all(c("sd_mode", "sd", "sd11", "sd12", "sd21", "sd22") %in% ids))
+  # One SD: the per-cell fields are ignored, even if filled.
+  one <- values_for("E7")
+  one$sd11 <- "99"
+  expect_length(form_problems(fields, one), 0)
+  spec <- build_spec(forms, "E7", fields, one)
+  expect_identical(spec$population$sd, 6)
+  # One per cell: a 2 x 2 array (rows = levels of A); the single SD is ignored.
+  per_cell <- utils::modifyList(values_for("E7"), list(sd_mode = "per_cell", sd = "", sd11 = "5", sd12 = "6", sd21 = "5.5", sd22 = "7"))
+  expect_length(form_problems(fields, per_cell), 0)
+  spec <- build_spec(forms, "E7", fields, per_cell)
+  expect_identical(spec$population$sd, list(list(5, 6), list(5.5, 7)))
+  # Missing or non-positive cell SDs are caught on the screen.
+  bad <- utils::modifyList(per_cell, list(sd12 = "", sd22 = "0"))
+  problems <- form_problems(fields, bad)
+  expect_match(problems, "“SD: A level 1, B level 2” is empty", fixed = TRUE, all = FALSE)
+  expect_match(problems, "“SD: A level 2, B level 2” must be more than 0", fixed = TRUE, all = FALSE)
+  # The copied answers list only the SDs that apply.
+  text <- answers_text(tree, "Help me choose", list(), "E7", fields, per_cell)
+  expect_match(text, "SD: A level 2, B level 2: 7", fixed = TRUE)
+  expect_no_match(text, "SD (one value for all four cells)", fixed = TRUE)
+  # The screen hides the fields that don't apply, in the browser.
+  html <- as.character(form_ui(tree, forms, "E7", form_groups(forms, "E7")))
+  expect_match(html, "input.f_sd_mode == &#39;per_cell&#39;|input.f_sd_mode == 'per_cell'")
+  expect_match(html, "input.f_sd_mode != &#39;per_cell&#39;|input.f_sd_mode != 'per_cell'")
+  # And the engine accepts per-cell SDs.
+  skip_without_engine()
+  check <- check_spec(spec, fields, validate)
+  expect_identical(check$status, "ok", label = paste(check$problems, collapse = "; "))
 })
 
 test_that("results say plainly that nothing is calculated", {
