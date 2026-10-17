@@ -212,6 +212,29 @@ result_sentences <- function(spec, result) {
   )
 }
 
+# The power the reported N actually gives (judgement-calls.md G5; the
+# maintainer's decision of 17 October 2026). Rounding up to whole people,
+# and to equal groups, puts it at or a little above the target. Exact
+# results only: the engine's curve holds the exact power at the reported
+# N. A simulated N comes from a fitted curve, with no simulation at
+# exactly that N, so nothing is shown for it.
+actual_power_sentence <- function(spec, result) {
+  if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
+  n <- result$n_required$n
+  at_n <- result$curve$power[result$curve$n == n]
+  if (length(at_n) != 1) return(NULL)
+  sizes <- group_sizes(spec, n)
+  who <- if (is.null(sizes)) {
+    sprintf("With %s participants", whole(n))
+  } else if (length(unique(sizes)) == 1) {
+    unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
+    sprintf("With %s %s", whole(sizes[1]), unit)
+  } else {
+    sprintf("With %s in group 1 and %s in group 2", whole(sizes[1]), whole(sizes[2]))
+  }
+  sprintf("%s, power is %.1f%%.", who, 100 * at_n)
+}
+
 # Planned power, not "observed power" (setting result_wording).
 not_observed_power <- "This is planned power for the effect you entered, before the study is run. It is not \"observed power\" calculated from a finished study's results, which says nothing beyond the study's p-value."
 
@@ -258,9 +281,10 @@ departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   # Departure 1 is about the interaction's required N only.
   if (!identical(spec$target_test$effect, "interaction")) keys <- setdiff(keys, "1")
-  # Departure 9 (pwr's formula for basic tests) applies only when the
-  # formula was used, not to simulation or Welch's t-test.
-  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "9")
+  # Departures 9 and 10 (pwr's formula for basic tests; Fisher's z for a
+  # correlation) apply only when the formula was used, not to simulation
+  # or Welch's t-test.
+  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, c("9", "10"))
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
@@ -303,6 +327,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
+    if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     p(class = "result-detail", words[["detail"]]),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-seed small",

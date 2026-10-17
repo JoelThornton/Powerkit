@@ -10,6 +10,31 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **The maintainer's decisions on G5, G6 and the Spower flag, and the Rubin
+  addendum (17 October 2026).**
+  - **Actual power at the rounded N (G5):** an exact required N now comes
+    with the power it gives ("With 64 per group, power is 80.1%."); not
+    shown for a simulated N.
+  - **E4 keeps Fisher's z (G6):** Departure 10 in
+    [`conventions.md`](conventions.md), shown on the card and the result
+    screen, with a test of its size (at most 0.004 in power, 1 in N).
+  - **E5 (G6):** the maintainer wants a z test by default. Base R's
+    `power.prop.test()` matches pwrss's pooled z test to 1e-16 when it
+    counts both tails (`strict = TRUE`), and differs from pwr's arcsine by
+    up to 0.018. The switch waits for G\*Power screenshots and the
+    maintainer's yes; `power.prop.test()` handles equal groups only.
+  - **Spower:** `p_r()`'s two-sided p-value when `rho != 0` is recorded in
+    `decisions.md` and the roadmap, with a draft note to Phil Chalmers in
+    [`upstream-questions.md`](upstream-questions.md) (not sent).
+  - **Multiple hypotheses (Rubin addendum, docs only):** B6 now uses Mark
+    Rubin's individual / disjunction / conjunction framework, with Frane's
+    competing view; new judgement calls G7 (a correction by default?), G8
+    (alpha and tails as required inputs with a reason) and G9
+    (sensitivity analysis first-class); a second candidate source for
+    B11; joint-power tools in roadmap row C2; multilevel and longitudinal
+    candidates; and [`inference-question-design.md`](inference-question-design.md)
+    (options only). Most sources couldn't be opened here and are marked
+    "candidate (not opened)".
 - **G\*Power parity and E4/E5 methods (PR #37, merged 17 October 2026; docs only).** [`gpower-parity.md`](gpower-parity.md)
   compares E1–E14 with the matching G\*Power tests (inputs, outputs and
   the effect-size calculator). pwr's Fisher's z method for E4 differs

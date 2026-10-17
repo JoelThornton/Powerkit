@@ -1604,3 +1604,38 @@ the same answer up to Monte Carlo noise. Simulating data that don't meet
 the assumptions (for example skewed scores or unequal variances) would
 need the user to describe how, which the spec can't hold yet. Recorded in
 `judgement-calls.md` (B16).
+
+## 2026-10-17 · The maintainer's decisions on G4–G6 and the Spower flag
+
+**G5: actual power at the rounded N (yes).** When powerkit reports a
+required N, the result screen also shows the power that N actually
+gives, in a plain sentence: "With 64 per group, power is 80.1%." It
+appears for exact results (pwr and Superpower's exact dataset), where the
+engine's `curve` holds the exact power at the reported N. A simulated N
+comes from a fitted curve with no simulation at exactly that N, so
+nothing is shown for it (powerkit's default; judgement-calls.md G5).
+
+**G6, E4: keep pwr's Fisher's z method.** Recorded as Departure 10 in
+`conventions.md`: G\*Power uses the exact distribution of r. For
+r = .3 to .5 and N = 20 to 100 (two-sided, alpha .05) the power differs
+by at most 0.004, and the required N by at most 1 (85 rather than 84 at
+r = .3). Shown on E4's card and on the result screen; a test checks the
+size.
+
+**G6, E5: match the test most psychologists run.** The default should be
+the z test (or chi-square) for two proportions, not the arcsine
+transformation. powerkit is to check base R's `power.prop.test()` against
+G\*Power's "Two independent groups: inequality, z-test" before changing
+anything; that change waits for the maintainer's yes.
+
+**G4 (what the methods paragraph reports):** left for the maintainer's
+judgement session.
+
+**Spower: one-sided tests against a non-zero null correlation.** In
+Spower 0.7, `p_r()` replaces the p-value when `rho != 0` with
+`pnorm(abs(t), lower.tail=FALSE)*2` (`R/p_r.R`, line 75), which is
+two-sided whatever `two.tailed` or `alternative` says. With `rho = 0`
+the p-value comes from `cor.test()` and follows `alternative`. powerkit
+doesn't use a non-zero null correlation, so nothing is affected. A draft
+note to Phil Chalmers is in `upstream-questions.md` (not sent).
+

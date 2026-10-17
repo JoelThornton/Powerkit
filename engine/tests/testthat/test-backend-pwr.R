@@ -137,3 +137,27 @@ test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
     expect_lte(abs(simulated$power - formula$power), 2 * simulated$mcse, label = name)
   }
 })
+
+test_that("departure: correlation by Fisher's z, not G*Power's exact method (Departure 10)", {
+  # pwr.r.test() uses Fisher's z; G*Power uses the exact distribution of r
+  # (docs/conventions.md, Departure 10). Reference values: pwrss 1.3.3,
+  # power.exact.onecor(), which its help describes as the exact method of
+  # Barabesi and Greco (2002), validated using G*Power. Two-sided, alpha .05.
+  exact <- list(
+    "0.3" = c(`20` = 0.2539, `50` = 0.5722, `100` = 0.8652),
+    "0.4" = c(`20` = 0.4303, `50` = 0.8352, `100` = 0.9871),
+    "0.5" = c(`20` = 0.6417, `50` = 0.9672, `100` = 0.9997)
+  )
+  for (r in names(exact)) {
+    for (n in names(exact[[r]])) {
+      spec <- pwr_spec("correlation", list(type = "power", n = as.integer(n)))
+      spec$population$r <- as.numeric(r)
+      power <- run_quietly(spec)$curve$power
+      expect_lt(abs(power - exact[[r]][[n]]), 0.004, label = paste("r =", r, "n =", n))
+    }
+  }
+  # Required N for 80% power at r = .3: 85 by Fisher's z, 84 exactly.
+  spec <- pwr_spec("correlation", list(type = "sample_size", power = 0.8))
+  spec$population$r <- 0.3
+  expect_identical(as.integer(run_quietly(spec)$n_required$n), 85L)
+})

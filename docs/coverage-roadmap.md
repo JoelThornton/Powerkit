@@ -70,6 +70,9 @@ taken from [`coverage.md`](coverage.md), which read their GitHub sources on
 | irtsim | 0.2.0 | powerly | 1.10.0 |
 | scan | 0.68.1 | powerSurvEpi | 0.1.5 |
 | npsurvSS | 1.1.0 | kappaSize | 1.2 |
+| twoCoprimary | 1.1.1 | rPowerSampleSize | 1.0.2 |
+| PUMP | 1.0.5 | crt2power | 1.2.2 |
+| powerlmm | 0.4.0 (CRAN archive; archived 2021) | mixedpower | 0.1.0 (GitHub only, commit 69680b3) |
 
 ## Part A: G\*Power 3.1.9.7 Tests menu (49 tests)
 
@@ -79,7 +82,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decide E4's default method (see note 1); ρ0 ≠ 0 is in Spower but not exposed | [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5) |
+| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decided: keep Fisher's z (Departure 10, see note 1). ρ0 ≠ 0 is in Spower but not exposed, and its one-sided p-value has a flag (below) | — |
 | A2 | Correlation: point biserial model | GP | E2 (the same test, with r converted to d; E2 takes d only) | Foundation tool can do it, not planned | Now: — (AP, PN through E2 with d). Could: AP, PN, S, Co, Cr | Spower `p_t.test(r = )` (its G\*Power examples vignette, Example 16.3) | Accept r on E2, or a card note | [G3][] |
 | A3 | Correlation: tetrachoric model | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_r.cat()` (tetrachoric, polychoric, polyserial; Example 31.3) | — | [G1][] |
 | A4 | Two dependent Pearson r's (common index) | GP | none: no answer fits; nearest E4 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_2r()` (default test `"steiger1980"` for overlapping correlations; Example 28.3.2). pwrss `power.z.twocors.steiger(common.index = TRUE)` (cross-check) | — | [G1][] |
@@ -97,14 +100,15 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 
 **Note 1 (A1, the method for correlations).** The maintainer reports that
 G\*Power uses the exact distribution of r below N = 10,000 by default and
-Fisher's z above. powerkit's E4 today uses Spower, whose power is a Monte
-Carlo estimate of the exact t test's power. The pwr default in PR #34 uses
-Fisher's z (pwr's help: "These calculations use the Z' transformation of
+Fisher's z above. powerkit's E4 uses pwr's formula by default (PR #34),
+which uses Fisher's z (pwr's help: "These calculations use the Z' transformation of
 correlation coefficient"). At N = 20–100 and r = .3–.5 the two differ by
 at most 0.004 in power, and by 1 in the required N at r = .3 (the
 comparison is judgement call
 [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5);
 the full parity tables are in [`gpower-parity.md`](gpower-parity.md)).
+The maintainer decided on 17 October 2026 to keep Fisher's z, recorded as
+Departure 10 in [`conventions.md`](conventions.md).
 
 ### Means
 
@@ -140,7 +144,7 @@ the full parity tables are in [`gpower-parity.md`](gpower-parity.md)).
 | A38 | Two independent groups: Fisher's exact | GP; UCLA | none: reaches E5 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_prop.test(exact = TRUE)` (`prop` as a matrix; `fisher.test()`). pwrss `power.exact.fisher()` (cross-check). Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Decide judgement call 3.9 | [C11][] |
 | A39 | Two independent groups: unconditional exact | GP | none: reaches E5 *(inferred)* | G\*Power covers it, powerkit doesn't | — | unknown (no unconditional exact test found in the foundation tools' help) | — | [G1][] |
 | A40 | Two independent groups: inequality with offset, unconditional exact | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown | — | [G1][] |
-| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Decide E5's method (see [`gpower-parity.md`](gpower-parity.md), E5) | [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5) |
+| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Default to a z test (maintainer, 17 October 2026): check base R's `power.prop.test()` against G\*Power's screenshots, then switch | G\*Power screenshots; the maintainer's yes |
 | A42 | Multigroup: goodness-of-fit | GP; UCLA | none: reaches E25 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_chisq.test(w, df)` or `P0`, `P`; pwr `pwr.chisq.test()`, `ES.w1()` | Decide judgement call 3.7 | [C9][] |
 
 ### Variances
@@ -230,19 +234,19 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B33 | Crossover and counterbalanced designs | ML | E3 or E8 *(inferred)* | Unknown (check whether an AB/BA crossover analysed with order as a factor matches E8's 2 x 2 mixed design) | — | candidate: Superpower `"2b*2w"`. powertools `crt.xo.cont()` covers cluster crossover trials only | Check | — |
-| B34 | Many trials per participant (trials vs participants trade-off) | ML; BG | E33 | Planned (phase 6: mixed-effects) | Could: AP, PN | simr `powerSim()`, `powerCurve()`; mixpower `mp_power()`, `mp_solve_sample_size()`; faux `sim_mixed_cc()` (data only) | Phase 6 | — |
+| B34 | Many trials per participant (trials vs participants trade-off) | ML; BG | E33 | Planned (phase 6: mixed-effects) | Could: AP, PN | simr `powerSim()`, `powerCurve()`; mixpower `mp_power()`, `mp_solve_sample_size()`; faux `sim_mixed_cc()` (data only); mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Phase 6 | — |
 | B35 | Stimuli as a random factor | ML; BG | E33 | Planned (phase 6: mixed-effects) | As B34 | As B34 | Phase 6 | — |
 
 ### Dependence
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B36 | Multilevel/nested | ML; BG; Audit | E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mlmpower `power_analysis()`; simr `powerSim()` | Phase 6 | — |
+| B36 | Multilevel/nested | ML; BG; Audit | E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mlmpower `power_analysis()`; simr `powerSim()`; mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Phase 6 | — |
 | B37 | Crossed random effects | ML; BG; Audit | E33 | Planned (phase 6: mixed-effects) | As B34 | As B34 | Phase 6 | — |
 | B38 | Mixed models with binary outcomes | ML | E33 or E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mixpower `mp_scenario_lme4_binomial()`; simr `powerSim()` (glmer models) | Phase 6 | — |
 | B39 | Cluster-randomised | ML; Audit | E34 | Planned (phase 6: mixed-effects) | Could: AP, PN, S | WebPower `wp.crt2arm()`, `wp.crt3arm()`; powertools `crt.parallel.cont()`, `crt.parallel.bin()` | Phase 6 | — |
 | B40 | Dyadic (APIM) | ML; Audit | E44 | Unknown (no APIM power function in the packages opened; check for a dedicated tool) | — | unknown | Search | [A5][], [C2][] |
-| B41 | Growth curves | ML; BG; Audit | E35 | Planned (later in the build guide; no phase) | — | longpower `lmmpower()`; semPower `semPower.powerLGCM()`; WebPower `wp.lcsm()` | — | [A6][] |
+| B41 | Growth curves | ML; BG; Audit | E35 | Planned (later in the build guide; no phase) | — | longpower `lmmpower()`, `power.mmrm()`; mlmpower `power_analysis()` with `within_time_predictor()`; powerlmm `study_parameters()`, `get_power()` *(archived on CRAN in 2021; 0.4.0)*; semPower `semPower.powerLGCM()`; WebPower `wp.lcsm()` | — | [A6][] |
 | B42 | Diary/EMA and intensive longitudinal | ML; BG; Audit | E35 or E41 | Planned (later in the build guide; no phase) | — | PowerAnalysisIL *(coverage.md; GitHub, not on CRAN)* | — | [C3][] |
 | B43 | Cross-lagged panel models (including random-intercept versions) | ML; BG | E35 | Planned (later in the build guide; no phase) | — | powRICLPM `powRICLPM()`; semPower `semPower.powerCLPM()`, `semPower.powerRICLPM()` | — | — |
 | B44 | Segmented regression and interrupted time series | ML; Audit | E45 | Unknown (check PITS against the known-breakpoint case) | — | PITS `calculate_power()`, `run_its_power()` (single-site ITS). Estimated breakpoint: none found | Check PITS | [A2][], [A6][] |
@@ -302,8 +306,8 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Feature | Current support | Status | Candidate approach | Blocking decision |
 | --- | --- | --- | --- | --- | --- |
 | C1 | Alpha correction for multiple tests | None: one target test per spec; the user can lower alpha by hand | Foundation tool can do it, not planned | Superpower `ANOVA_power(p_adjust = )` and `emm_p_adjust` for ANOVA effects and contrasts; elsewhere a corrected alpha passed to the backend | [G3][] |
-| C2 | Joint power across several hypotheses | None | Foundation tool can do it, not planned | power4mome `rejection_rates(collapse = "all_sig")` (and at least one, at least k); Spower user-written experiments returning one TRUE/FALSE | [B6][], [D6][], [G3][] |
-| C3 | Attrition/missing-data inflation of N | `options > attrition` turns the analysed N into a recruitment target (unit-tested; not a validation test); asked on every card | Planned (phase 5: on the input screens, PR #34) | Missing data beyond attrition: power4mome `missing_values()` | [G3][] |
+| C2 | Several hypotheses in one study: power for each test separately (individual testing), for "at least one significant" (disjunction) or for "all significant" (conjunction) | None: one target test per spec, at the alpha the user enters; E7 and E8 give power for one chosen effect with no correction | Foundation tool can do it, not planned | Simulation (foundation tools): power4mome 0.2.1 `rejection_rates(collapse = "none" / "all_sig" / "at_least_one_sig" / "at_least_k_sig")`; Spower 0.7 user-written experiments that return one TRUE/FALSE (its vignettes describe joint criteria); Superpower 0.2.4.1 `ANOVA_power(p_adjust = , emm_p_adjust = )` corrects ANOVA effects and contrasts but reports power per effect. Analytic (not foundation tools): powertools 1.0.0 `coprimary.z()`, `coprimary.t()` (all) and `altprimary()` (at least one; Bonferroni by passing alpha / K); twoCoprimary 1.1.1 (two co-primary endpoints, all); rPowerSampleSize 1.0.2 (at least r of m endpoints, with Bonferroni, Holm or Hochberg); PUMP 1.0.5 (multilevel randomised trials: individual, at least one, all); crt2power 1.2.2 (cluster trials with two co-primary outcomes). pwr 1.3-0: none found. G\*Power: to confirm from screenshots | [B6][], [D6][], [G3][], [G7][] |
+| C3 | Attrition/missing-data inflation of N | `options > attrition` turns the analysed N into a recruitment target (unit-tested; not a validation test); asked on every card | Planned (phase 5: on the input screens, PR #34) | Missing data beyond attrition: power4mome `missing_values()`; mlmpower `MCAR()`, `MAR()`; longpower `power.mmrm()` (retention per group); powerlmm dropout patterns (`dropout_weibull()`, `dropout_manual()`; archived on CRAN). Per the maintainer, Mikael Rubin (2025) calls simple N inflation a common but crude heuristic (article not opened; to be checked) | [G3][] |
 | C4 | Unequal allocation ratios | Two-group tests (`options > allocation_ratio`); E7 between designs no | Done (validated and wired) | Spower `n2_n1`, `n.ratios`; pwr `pwr.t2n.test()`, `pwr.2p2n.test()`; Superpower `ANOVA_power()` with an n vector (between designs only) | [G3][] |
 | C5 | Measurement unreliability | E9 (reliability of X, W, Y) | Validated, not wired | InteractionPoweR `rel.x1`, `rel.x2`, `rel.y`; power4mome latent models (`reliability`) for mediation | [B8][], [G3][] |
 | C6 | Non-normal data and unequal variances (simulation option) | Unequal variances: Welch (E2), cell SDs (E7, E8). Non-normal data: none | Done (validated and wired; unequal variances only) | Spower `parent1`/`parent2` (Wilcoxon), `gen_fun`; power4mome `x_fun`/`e_fun` with `rbeta_rs()`, `rexp_rs()`, `rlnorm_rs()`, `rt_rs()`, `runif_rs()`, `rpgnorm_rs()` | [G3][] |
@@ -379,17 +383,33 @@ A and B:
 So 49 of the 118 rows (18 + 31) can't be reached as themselves. Rows marked
 *(inferred)* were worked out for this page, not walked through.
 
+**Multilevel and longitudinal candidates (added 17 October 2026).** The
+maintainer notes that Mikael Rubin (2025, *International Journal of
+Psychology*, doi:10.1002/ijop.70017; a different author from Mark Rubin)
+names mlmpower, simr, longpower, powerlmm and mixedpower. The article
+couldn't be opened here (the publisher returned 403), so which packages it
+names wasn't checked. Each package was checked in its own source:
+mlmpower 1.0.11, simr 1.0.11 and longpower 1.0.27 are on CRAN; powerlmm
+was archived on CRAN on 7 June 2021 (0.4.0 read from the archive);
+mixedpower isn't on CRAN (0.1.0 read from GitHub, DejanDraschkow/mixedpower,
+commit 69680b3). They are added to rows B34, B36 and B41 as candidates;
+their missing-data options are under C3.
+
 **Flagged while writing this page:**
 
 - Spower 0.7's `p_r()` with `rho` ≠ 0 always returns a two-sided p-value
   (`pnorm(abs(t), lower.tail = FALSE) * 2`), whatever `alternative` says
   (Spower source, `R/p_r.R`). powerkit doesn't use a non-zero ρ0 yet; if
   it does, one-sided tests against ρ0 would need a workaround or an
-  upstream fix.
+  upstream fix. Recorded in [`decisions.md`](decisions.md) (17 October
+  2026); a draft note to Spower's author is in
+  [`upstream-questions.md`](upstream-questions.md) (not sent).
 - pwr's two-proportion functions (`pwr.2p.test()`, `pwr.2p2n.test()`) use
   Cohen's h (the arcsine transformation), which isn't the z test G\*Power
   lists (A41). The size of the difference is in
   [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5).
+  The maintainer wants a z test as E5's default; base R's
+  `power.prop.test()` is being checked against G\*Power first.
 
 [A1]: judgement-calls.md#a1-naming-other-tools-on-not-covered-cards
 [A2]: judgement-calls.md#a2-e45-says-no-ready-made-tool-but-pits-exists
@@ -428,3 +448,4 @@ So 49 of the 118 rows (18 + 31) can't be reached as themselves. Rows marked
 [G1]: judgement-calls.md#g1-scope-for-the-gpower-tests-powerkit-doesnt-run
 [G2]: judgement-calls.md#g2-frequentist-or-bayesian-in-the-screening
 [G3]: judgement-calls.md#g3-which-cross-cutting-features-belong-in-v1
+[G7]: judgement-calls.md#g7-a-multiple-testing-correction-by-default

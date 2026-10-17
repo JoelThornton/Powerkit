@@ -400,6 +400,32 @@ kept so later departures keep theirs.
   screen when the formula was used (`app/routing/forms.yaml`,
   `departures`). The methods paragraph is still a placeholder.
 
+### 10. Correlation (E4): Fisher's z, not G\*Power's exact method
+
+- **Established convention:** G\*Power computes power for a correlation
+  (ρ0 = 0) from the exact distribution of r, below N = 10,000 by default
+  (maintainer, from G\*Power 3.1.9.7; screenshot to confirm).
+- **powerkit:** pwr's `pwr.r.test()` (pwr 1.3-0), whose help says "These
+  calculations use the Z' transformation of correlation coefficient:
+  Z'=arctanh(r) and a bias correction is applied". Kept as the default by
+  the maintainer's decision of 17 October 2026 (`docs/decisions.md`).
+  Spower simulation, which estimates the exact test's power, stays
+  available.
+- **Size:** two-sided, alpha .05, against pwrss 1.3.3's
+  `power.exact.onecor()` (the exact method; its help says it was validated
+  using G\*Power; not checked against G\*Power directly here). For
+  r = .3 to .5 and N = 20 to 100 the power differs by at most 0.0038
+  (N = 20, r = .5; one-sided, at most 0.0047). The required N for 80%
+  power differs by at most 1: 85 rather than 84 at r = .3; the same at
+  r = .4 (46) and r = .5 (29). The full table is in
+  [`judgement-calls.md`](judgement-calls.md), G6.
+- **Test:** `test-backend-pwr.R`, "departure: correlation by Fisher's z,
+  not G\*Power's exact method (Departure 10)".
+- **Shown to users / in the methods paragraph:** on E4's card (backend
+  line) and on the result screen when the formula was used
+  (`app/routing/forms.yaml`, `departures`). The methods paragraph is
+  still a placeholder.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

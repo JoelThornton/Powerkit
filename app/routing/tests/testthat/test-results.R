@@ -130,6 +130,31 @@ test_that("a sample-size result and a sensitivity result are worded from the eng
   expect_match(words[["headline"]], sprintf("Cohen's f = %.3f", calc$result$sensitivity$cohen_f), fixed = TRUE)
 })
 
+test_that("an exact required N shows the power it actually gives (G5); a simulated one doesn't", {
+  skip_without_run()
+  spec <- light_spec("E4", goal = list(type = "sample_size", power = 0.8))
+  spec$options$nrep <- NULL
+  calc <- run_calculation(spec, run, seed = 3L)
+  n <- calc$result$n_required$n
+  at_n <- calc$result$curve$power[calc$result$curve$n == n]
+  expect_gte(at_n, 0.8)
+  expect_identical(actual_power_sentence(calc$spec, calc$result), sprintf("With %s participants, power is %.1f%%.", n, 100 * at_n))
+
+  spec <- light_spec("E7", goal = list(type = "sample_size", power = 0.8))
+  calc <- run_calculation(spec, run, seed = 3L)
+  n <- calc$result$n_required$n
+  at_n <- calc$result$curve$power[calc$result$curve$n == n]
+  sentence <- actual_power_sentence(calc$spec, calc$result)
+  expect_identical(sentence, sprintf("With %s per cell, power is %.1f%%.", n / 4, 100 * at_n))
+  html <- as.character(result_panel_ui(tree, forms, "E7", form_fields(form_groups(forms, "E7")), form_examples[["E7"]], calc))
+  expect_match(html, sentence, fixed = TRUE)
+
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$options$method <- "simulation"
+  calc <- run_calculation(spec, run, seed = 3L)
+  expect_null(actual_power_sentence(calc$spec, calc$result))
+})
+
 test_that("the result screen shows the number, inputs, backend, validation status, departures and exports", {
   skip_without_run()
   spec <- light_spec("E5")
