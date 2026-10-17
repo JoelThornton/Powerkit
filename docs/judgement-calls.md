@@ -91,8 +91,9 @@ The statistical decisions phase 3b needs before coding are in
 released package addresses the known-breakpoint case; powerkit hasn't
 checked it." PITS isn't named on the card while A1 (open question 18) is
 open; it is recorded in `card-sources.md` and `decision-tree.md`. Still
-open: whether to name it (A1), and E45's autocorrelation point (A6). The
-entry is kept below as the record of the options.
+open: whether to name it (A1). E45's autocorrelation point (A6) was
+decided later the same day. The entry is kept below as the record of the
+options.
 
 
 - **Question:** E45 (segmented regression, interrupted time series) says
@@ -213,6 +214,14 @@ entry is kept below as the record of the options.
 
 ### A6. The segmented-regression card's points, and E45 vs E35
 
+**Autocorrelation point decided 17 October 2026** (`decisions.md`): E45
+now says "Autocorrelation makes standard power calculations wrong: too
+optimistic when it's positive, too pessimistic when it's negative.",
+sourced to Zhang, Wagner and Ross-Degnan (2011), Table 1. The
+contradiction below is **resolved**; `card-sources.md` lists it under
+"Contradictions" as resolved. Still open: the estimated-breakpoint point
+and whether E45 and E35 share a card.
+
 - **Question:**
   - Should E45's points stay as they are? Two are only partly supported:
     - "With a breakpoint that is estimated from the data, a custom
@@ -238,8 +247,8 @@ entry is kept below as the record of the options.
     maintainer): power falls as positive autocorrelation rises but rises
     with negative autocorrelation (Table 1: effect size 0.5, N = 24, power
     0.25 at 0, 0.18 at +0.5, 0.43 at −0.5). So the card's "too optimistic"
-    holds for positive autocorrelation only; `card-sources.md` marks it
-    "contradicted" in part.
+    held for positive autocorrelation only; `card-sources.md` marked it
+    "contradicted" in part (resolved 17 October 2026, above).
 - **Who might disagree, and why:**
   - The direction may hold only for positive autocorrelation, which is
     the common case in time series; some would keep the simple warning

@@ -1132,7 +1132,7 @@ endpoints:
     card_points:
       - "With a known breakpoint (for example, the date an intervention started), the change in slope can be treated as an added predictor in a regression (a segmented regression)."
       - "With a breakpoint that is estimated from the data, a custom simulation is needed."
-      - "With time-series data, autocorrelation (each measurement depending on the previous ones) makes standard power calculations too optimistic."
+      - "Autocorrelation makes standard power calculations wrong: too optimistic when it's positive, too pessimistic when it's negative."
       - "A before/after comparison of means (a t-test) asks a different question: whether the average level differs, not whether the trend changes."
     inputs: ["Depends on the model you write: the number and spacing of measurements, the breakpoint, the expected change in level and slope, and the autocorrelation"]
     packages:
