@@ -21,8 +21,10 @@
 #'   `power.prop.test()` (equal groups) or pwrss (unequal groups) (for a sample-size goal, at
 #'   the sizes powerkit computed, around the required n).
 #'
-#' The script ends by comparing its numbers with powerkit's and printing
-#' `sessionInfo()`. It doesn't repeat the check run.
+#' When the spec gives `options > attrition`, the script also works out the
+#' number to recruit, as [run_spec()] does. It ends by comparing its numbers
+#' with powerkit's and printing `sessionInfo()`. It doesn't repeat the check
+#' run.
 #'
 #' @param spec The spec the result was run from: a list, a JSON string or a
 #'   path to a JSON file.
@@ -54,6 +56,7 @@ export_script <- function(spec, result, file = NULL) {
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
   )
+  lines <- add_recruitment_section(lines, spec, result)
   text <- paste(c(lines, ""), collapse = "\n")
   if (is.null(file)) {
     return(text)
@@ -376,6 +379,48 @@ simulation_goal_section <- function(spec, result, n_step) {
     ")",
     ""
   )
+}
+
+# Participants to recruit (run_spec()'s `recruitment`), placed before the
+# comparison with powerkit's result and compared with it too. Nothing is
+# added when the spec gives no attrition.
+add_recruitment_section <- function(lines, spec, result) {
+  r <- result$recruitment
+  if (!is.list(r)) {
+    return(lines)
+  }
+  at <- match("# Compare with powerkit's result ----", lines)
+  analysed <- if (identical(spec$goal$type, "sample_size")) "n_required" else "n_total"
+  split <- switch(
+    spec$template,
+    independent_t = ,
+    two_proportions = c(
+      sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
+      "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
+    ),
+    "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
+    "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    "groups_analysed <- n_analysed # one group"
+  )
+  section <- c(
+    "# Participants to recruit ----",
+    "# n is the number analysed. To allow for attrition, each group's analysed",
+    "# size is divided by (1 - attrition) and rounded up. This is a common but",
+    "# crude heuristic: it ignores how missing data will be handled (Rubin, M.,",
+    "# 2025, International Journal of Psychology, doi:10.1002/ijop.70017).",
+    sprintf("attrition <- %s # proportion of those recruited who won't be analysed", r_code(r$attrition)),
+    sprintf("n_analysed <- %s", analysed),
+    split,
+    "groups_recruit <- ceiling(groups_analysed / (1 - attrition) - 1e-9)",
+    "n_recruit <- sum(groups_recruit)",
+    "cat(sprintf(\"Analysed: %s. To recruit: %s (%s), allowing for %s%% attrition.\\n\",",
+    "  n_analysed, n_recruit, paste(groups_recruit, collapse = \" + \"), 100 * attrition))",
+    "",
+    "reproduced$n_recruit <- n_recruit",
+    sprintf("powerkit_result$n_recruit <- %s", r_code(r$n_recruit)),
+    ""
+  )
+  c(lines[seq_len(at - 1)], section, lines[at:length(lines)])
 }
 
 comparison_section <- function() {
