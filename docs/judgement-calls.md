@@ -1255,7 +1255,7 @@ source for Fisher's exact test in C11.
   frequentist or Bayesian, and where does Bayesian planning sit?
 - **Options:**
   - a screening question (S5, or a sixth profile question in the "design
-    profile" option being drafted in `routing-design-options.md`);
+    profile" options in [`routing-design-options.md`](routing-design-options.md));
   - after Q1 or among the closing questions (D3's options);
   - only in the shortcut list;
   - Bayesian planning as its own route, separate from the screening.

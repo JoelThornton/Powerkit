@@ -8,6 +8,15 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Routing design options (17 October 2026; docs only).**
+  [`routing-design-options.md`](routing-design-options.md) compares the
+  current question tree with a "design profile" (the same six questions
+  every time, matched against a rule table), on one screen or one
+  question at a time. Of 28 recorded misroutes and route conflicts, the
+  current tree now prevents 15 (3 partly) and a profile with exact
+  matching would likely have prevented 19 (2 partly); 7 need a further
+  question in either approach. It drafts the rule table for E1–E14.
+  Options and evidence only; nothing decided.
 - **Coverage roadmap (17 October 2026; docs only).**
   [`coverage-roadmap.md`](coverage-roadmap.md) is the master list of
   everything powerkit might cover: G\*Power 3.1.9.7's 49 tests, 69
