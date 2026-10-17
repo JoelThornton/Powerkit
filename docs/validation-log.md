@@ -288,14 +288,18 @@ interval only. No judgement call on the tolerance.
 
 alpha = .05, 10,000 replications per tool.
 
-**Status.** Not run yet. A local smoke test (17 October 2026, 200
-replications, 2 cores) checked only that the code runs and that the
-residual variances from `standardised_residuals()` equal the engine's
-(they matched to 6 decimals in all four designs). Its power estimates are
-too imprecise to report. To run: the `full-validation` workflow, chunks
-**mediation_crosscheck_parallel** and **mediation_crosscheck_serial**
-(estimated 30 to 60 minutes each: about 17 seconds per 100 replications
-of both tools on 2 cores locally).
+**Status.** Both chunks passed on GitHub on 17 October 2026 (entries
+below): all four designs agree within the Monte Carlo interval, with no
+allowance. Joint-test power, power4mome vs simsem:
+
+| Chunk | Design | power4mome | simsem | Difference | Tolerance |
+| --- | --- | --- | --- | --- | --- |
+| parallel | correlated_residuals | 0.7837 | 0.7863 | −0.0026 | 0.0191 |
+| parallel | uncorrelated_residuals | 0.7196 | 0.7146 | 0.0050 | 0.0210 |
+| serial | all_paths | 0.6948 | 0.7026 | −0.0078 | 0.0214 |
+| serial | no_direct_paths | 0.8278 | 0.8187 | 0.0091 | 0.0177 |
+
+Each chunk took under half an hour (2 tests at a time, 2 cores each).
 
 ## Before this log
 
@@ -743,5 +747,61 @@ PASS    mediation_crosscheck / cross-check (unequal_paths): the joint test agree
           success: Estimates 0.8175 and 0.8177 differ by -0.0002; the tolerance is 0.0180 (99.9% Monte Carlo interval plus an allowance of 0.000).
           success: Estimates 0.8175 and 0.8230 differ by -0.0055; the tolerance is 0.0327 (99.9% Monte Carlo interval plus an allowance of 0.020).
           success: Estimates 0.8177 and 0.8230 differ by -0.0053; the tolerance is 0.0327 (99.9% Monte Carlo interval plus an allowance of 0.020).
+===== end of summary =====
+```
+
+## 2026-10-17 · mediation_crosscheck_parallel (GitHub Actions; first run)
+
+The first run of the parallel-mediation cross-check ("Parallel and serial
+mediation (joint test against simsem)", above).
+
+- **Run:** [run 39032678608](https://github.com/JoelThornton/Powerkit/actions/runs/39032678608) of the `full-validation` workflow.
+  **Commit:** ee88276 (main, PR #30 merged). **Cores:** 4, 2 per test,
+  2 tests at a time.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below; simsem, not listed there,
+  is 0.5-17 in `renv.lock`).
+- **mediation_crosscheck_parallel:** 2 PASS, 0 FAIL, 0 ERROR, 0 SKIP (of
+  2). Every test ran.
+- **Time:** 28 minutes of tests (about 30 minutes for the whole run).
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 12:58   Commit: ee88276   Cores: 4 (2 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 0 SKIP, 0 NOT RUN (of 2)
+
+PASS    mediation_crosscheck_parallel / cross-check, parallel mediation (correlated_residuals): the joint test agrees in power4mome and simsem (0h 28m)
+          success: Estimates 0.7837 and 0.7863 differ by -0.0026; the tolerance is 0.0191 (99.9% Monte Carlo interval plus an allowance of 0.000).
+PASS    mediation_crosscheck_parallel / cross-check, parallel mediation (uncorrelated_residuals): the joint test agrees in power4mome and simsem (0h 28m)
+          success: Estimates 0.7196 and 0.7146 differ by 0.0050; the tolerance is 0.0210 (99.9% Monte Carlo interval plus an allowance of 0.000).
+===== end of summary =====
+```
+
+## 2026-10-17 · mediation_crosscheck_serial (GitHub Actions; first run)
+
+The first run of the serial-mediation cross-check (same section).
+
+- **Run:** [run 39032680185](https://github.com/JoelThornton/Powerkit/actions/runs/39032680185) of the `full-validation` workflow.
+  **Commit:** ee88276 (main, PR #30 merged). **Cores:** 4, 2 per test,
+  2 tests at a time.
+- **Platform:** as for the parallel run, on a separate GitHub machine at
+  the same time.
+- **mediation_crosscheck_serial:** 2 PASS, 0 FAIL, 0 ERROR, 0 SKIP (of 2).
+  Every test ran.
+- **Time:** 26 minutes of tests (about 27 minutes for the whole run).
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 12:55   Commit: ee88276   Cores: 4 (2 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 0 SKIP, 0 NOT RUN (of 2)
+
+PASS    mediation_crosscheck_serial / cross-check, serial mediation (all_paths): the joint test agrees in power4mome and simsem (0h 26m)
+          success: Estimates 0.6948 and 0.7026 differ by -0.0078; the tolerance is 0.0214 (99.9% Monte Carlo interval plus an allowance of 0.000).
+PASS    mediation_crosscheck_serial / cross-check, serial mediation (no_direct_paths): the joint test agrees in power4mome and simsem (0h 26m)
+          success: Estimates 0.8278 and 0.8187 differ by 0.0091; the tolerance is 0.0177 (99.9% Monte Carlo interval plus an allowance of 0.000).
 ===== end of summary =====
 ```
