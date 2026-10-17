@@ -52,6 +52,12 @@
 #'     with the `scale` applied to the specified pattern, the scaled cell
 #'     `means`, the target `effect` in the user's units (with an
 #'     `effect_description`), its `cohen_f`, and the `power` reached;
+#'   * `recruitment`: `NA` unless `options > attrition` is above 0;
+#'     otherwise a list with the `attrition`, `n_analysed` (the required n,
+#'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
+#'     `groups_recruit`: each group's analysed n divided by
+#'     (1 - attrition) and rounded up. This common heuristic ignores how
+#'     missing data will be handled (Rubin, 2025, doi:10.1002/ijop.70017);
 #'   * `check_run`: data frame comparing specified and recovered population
 #'     values;
 #'   * `provenance`: spec hash, method, seed, replications, cores, batch
@@ -133,12 +139,15 @@ run_spec <- function(spec) {
     }
   )
 
+  n_analysed <- if (identical(goal$type, "sample_size")) outcome$n_required$n else goal$n
+
   structure(
     list(
       goal_type = goal$type,
       curve = outcome$curve,
       n_required = outcome$n_required,
       sensitivity = outcome$sensitivity,
+      recruitment = recruitment_target(spec, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),
@@ -199,6 +208,13 @@ print.powerkit_result <- function(x, ...) {
     cat(sprintf(
       "Smallest detectable effect: %s = %s (Cohen's f = %.3f)\n",
       s$effect_description, format(signif(s$effect, 4)), s$cohen_f
+    ))
+  }
+  r <- x$recruitment
+  if (is.list(r)) {
+    cat(sprintf(
+      "To recruit: %s (analysed n %s / (1 - %s attrition), rounded up per group)\n",
+      r$n_recruit, r$n_analysed, format(r$attrition)
     ))
   }
   p <- x$provenance

@@ -10,6 +10,13 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Attrition applied (17 October 2026; the maintainer said yes).** With
+  an attrition rate, the result now gives the number analysed and the
+  number to recruit: each group's analysed N divided by (1 − attrition),
+  rounded up (64 + 64 analysed at 10% → 72 + 72 = 144 to recruit). The
+  result screen adds a caveat that this common heuristic ignores how
+  missing data will be handled (Mikael Rubin, 2025), and the exported R
+  script works it out and checks it.
 - **E5 switch to G\*Power's z test (17 October 2026; the maintainer
   said yes).** Two proportions in equal groups now use base R's
   `power.prop.test(strict = TRUE)`, which matches G\*Power to seven

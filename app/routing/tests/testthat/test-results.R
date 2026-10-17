@@ -258,3 +258,30 @@ test_that("an engine error is shown in plain English, without a stack trace", {
   expect_no_match(calc$message, "internal detail", fixed = TRUE)
   expect_identical(run_calculation(list(), run = NULL)$status, "error")
 })
+
+test_that("with attrition, the result shows the number analysed and the number to recruit", {
+  skip_without_run()
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$options$nrep <- NULL
+  spec$options$attrition <- 0.1
+  calc <- run_calculation(spec, run, seed = 3L)
+  r <- calc$result$recruitment
+  n <- calc$result$n_required$n
+  expect_equal(r$n_analysed, n)
+  expect_equal(r$n_recruit, 2 * ceiling(n / 2 / 0.9 - 1e-9))
+  lines <- recruitment_lines(calc$result)
+  expect_identical(lines[["analysed"]], sprintf("Analysed: %s participants (%s per group).", n, n / 2))
+  expect_match(lines[["recruit"]], sprintf("To recruit: %s participants (%s per group), allowing for 10%% attrition", r$n_recruit, r$n_recruit / 2), fixed = TRUE)
+  expect_match(lines[["caveat"]], "common but crude heuristic", fixed = TRUE)
+  expect_match(lines[["caveat"]], "doi:10.1002/ijop.70017", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
+  expect_match(html, "To recruit:", fixed = TRUE)
+  expect_match(script(calc$spec, calc$result), "n_recruit <- sum(groups_recruit)", fixed = TRUE)
+
+  # No attrition: nothing about recruiting.
+  spec$options$attrition <- NULL
+  calc <- run_calculation(spec, run, seed = 3L)
+  expect_null(recruitment_lines(calc$result))
+  html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
+  expect_no_match(html, "To recruit:", fixed = TRUE)
+})

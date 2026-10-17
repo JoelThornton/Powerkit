@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* Attrition is now applied. With `options > attrition`, `run_spec()`
+  returns the number to recruit (`recruitment`): each group's analysed n
+  divided by (1 - attrition) and rounded up, for example 72 + 72 = 144 to
+  recruit for 64 + 64 analysed at 10%. The app's result screen shows the
+  numbers analysed and to recruit, with a caveat that this common heuristic
+  ignores how missing data will be handled (Rubin, 2025), and the exported
+  R script works it out too.
+
 * Two proportions (E5) in unequal groups now use pwrss's z test
   (`pwrss::power.z.twoprops(std.error = "pooled")`), which matches
   G*Power's power, instead of Cohen's h, which under-estimated the
