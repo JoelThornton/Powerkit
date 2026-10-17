@@ -169,7 +169,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
-  expect_match(html, "Validation in progress.", fixed = TRUE)            # full run to repeat for the z test
+  expect_match(html, "Validated. ", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
