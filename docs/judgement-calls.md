@@ -1116,7 +1116,11 @@ The statistical decisions phase 3b needs before coding are in
   separate arguments (help page; opened). The help page doesn't say
   whether a reliability is meaningful for a binary variable.
 - **Who might disagree, and why:** the same as B8.
-- **Knock-on effects:** an engine change, for the engine's owner; phase
-  3b (E4).
+- **Knock-on effects:**
+  - an engine change, for the engine's owner; phase 3b (E4);
+  - separately, InteractionPoweR's `power_interaction_r2()`, which powerkit
+    uses only to narrow the sample-size search for E9, is documented as
+    valid for continuous, normally distributed variables (help page;
+    opened). Whether E15 could reuse it is for phase 3b.
 - **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
   setting.
