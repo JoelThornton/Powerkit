@@ -1556,3 +1556,51 @@ the mapping test guards this.
     Spower's `two.tailed = FALSE`.
 - **Validation to rerun after merging:** the `basic` chunk (the only chunk
   that uses Spower). Results go in `docs/validation-log.md`.
+
+## 2026-10-17 · Basic tests (E1–E6): pwr's exact formula by default
+
+**Decision (maintainer, 17 October 2026).** For E1–E6 the default
+calculation is the analytic formula in the pwr package, not Spower
+simulation. Spower simulation stays available for E1–E6 when the user says
+their data won't meet the test's assumptions (`options > method =
+"simulation"`; on the input screen, "How power is worked out"), and is used
+for a test the formula doesn't cover: Welch's t-test. E7–E14 are unchanged.
+
+**Reason.** Exact where an exact answer exists; no Monte Carlo noise for
+simple designs. A formula gives the same answer every time and needs no
+seed, interval or replication count.
+
+**This is a departure** from using Spower as the default for E1–E6
+(recorded as Departure 9 in `docs/conventions.md`, shown on the result
+screen, and covered by a test showing the size of the difference).
+
+**What changed.**
+- Engine: a new backend, `pwr` (`engine/R/backend-pwr.R`), with one pwr
+  call per template: `pwr.t.test()` (one-sample, paired with d_z, and
+  two equal groups), `pwr.t2n.test()` (unequal groups), `pwr.r.test()`,
+  `pwr.2p2n.test()` with Cohen's h, and `pwr.chisq.test()` with Cohen's w
+  and df = (rows - 1)(columns - 1). The required N is the smallest valid
+  total N whose power reaches the target. pwr moves from Suggests to
+  Imports; it was already in `renv.lock` (1.3-0) for the validation tests.
+- Two of these formulas are approximations rather than exact: the
+  correlation (Fisher's z) and two proportions (the arcsine
+  transformation, Cohen's h). The t-tests and the chi-square test use the
+  noncentral t and chi-square distributions. The decision's "exact where an
+  exact answer exists" applies to the t-tests and chi-square; for r and two
+  proportions pwr's formula is deterministic but approximate (pwr's help
+  pages for `pwr.r.test()` and `pwr.2p2n.test()`).
+- Exports: the R script calls pwr directly; the citations export credits
+  pwr from its own `citation()`.
+- Validation: the analytic path must match pwr directly, and the G*Power
+  published values once transcribed, to 3 decimal places (no Monte Carlo
+  tolerance; `expect_power_exact()`). The direct-call and Type I error
+  tests now ask for simulation, so they still check the Spower path.
+- Cards, card sources, `decision-tree.md` table 2.3 and the walkthroughs
+  name pwr as the default for E1–E6.
+
+**Open question for the maintainer.** Spower's simulation draws normal
+data, so as wired it checks the same assumptions as the formula; it gives
+the same answer up to Monte Carlo noise. Simulating data that don't meet
+the assumptions (for example skewed scores or unequal variances) would
+need the user to describe how, which the spec can't hold yet. Recorded in
+`judgement-calls.md` (B16).

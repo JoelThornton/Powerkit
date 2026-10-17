@@ -31,6 +31,10 @@ small_run_spec <- function(name, method = NULL, nrep = 100, ...) {
 sim_spec <- function(name, nrep = 100, ...) {
   spec <- example_spec(name)
   spec$options <- list(seed = 7, nrep = nrep)
+  # Basic tests default to pwr's exact formula; these specs simulate (Spower).
+  if (spec$design == "basic_test") {
+    spec$options$method <- "simulation"
+  }
   if (spec$design %in% c("mediation", "moderated_mediation")) {
     spec$options$ci_draws <- 100
   }

@@ -187,6 +187,49 @@ test_that("an exact required n is reproduced (2x2 mixed)", {
   expect_equal(run$reproduced$power, result$curve$power, tolerance = 1e-10)
 })
 
+# E1-E6 by pwr's formula (the default since 17 October 2026) ----------------------
+
+# An example basic-test spec on the formula path (Student's t-test for the
+# independent design), seed 7.
+formula_spec <- function(name, goal, options = list(seed = 7)) {
+  spec <- example_spec(name)
+  spec$options <- options
+  if (name == "independent_t") spec$target_test$method <- "student_t"
+  spec$goal <- goal
+  spec
+}
+
+test_that("E1-E6 by formula: the exported pwr script reproduces powerkit", {
+  skip_unless_scripts_can_run()
+  ns <- c(one_sample_t = 40, independent_t = 100, paired_t = 40, correlation = 100,
+          two_proportions = 200, chi_square_independence = 150)
+  for (name in names(ns)) {
+    spec <- formula_spec(name, list(type = "power", n = ns[[name]]))
+    result <- run_spec(spec)
+    expect_equal(result$provenance$backend, "pwr", info = name)
+    run <- expect_script_reproduces_power(spec, result)
+    expect_true(any(grepl("library(pwr)", run$script, fixed = TRUE)), info = name)
+  }
+})
+
+test_that("by formula: unequal groups, one-sided tests and a required n are reproduced", {
+  skip_unless_scripts_can_run()
+  unequal <- formula_spec("two_proportions", list(type = "power", n = 300),
+                          options = list(seed = 7, allocation_ratio = 2))
+  unequal$target_test$alternative <- "greater"
+  expect_script_reproduces_power(unequal, run_spec(unequal))
+  t2n <- formula_spec("independent_t", list(type = "power", n = 150),
+                      options = list(seed = 7, allocation_ratio = 2))
+  t2n$target_test$alternative <- "less"
+  expect_script_reproduces_power(t2n, run_spec(t2n))
+
+  spec <- formula_spec("paired_t", list(type = "sample_size", power = 0.9))
+  result <- run_spec(spec)
+  run <- run_exported_script(spec, result)
+  expect_equal(run$reproduced$n, result$n_required$n)
+  expect_equal(run$reproduced$power, result$curve$power, tolerance = 1e-10)
+})
+
 test_that("a smallest detectable effect is reproduced (2x2 between)", {
   skip_unless_scripts_can_run()
   spec <- small_run_spec("anova_2x2_between", goal = list(type = "sensitivity", n = 120, power = 0.8))

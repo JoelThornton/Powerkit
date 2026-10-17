@@ -181,6 +181,26 @@ expect_power_near <- function(estimate, reference, reference_nrep = NULL, level 
   invisible(estimate)
 }
 
+# Analytic results (basic tests by pwr's formula; docs/decisions.md,
+# 17 October 2026): no Monte Carlo tolerance. powerkit must agree with the
+# reference to 3 decimal places (within 0.0005), or to the reference's own
+# precision if it is printed with fewer decimals (half a unit in its last
+# digit, as for expect_power_near()).
+expect_power_exact <- function(estimate, reference) {
+  allowance <- max(0.0005, rounding_allowance(reference))
+  reference <- as.numeric(reference)
+  difference <- estimate$power - reference
+  expect(
+    estimate$mcse == 0 && abs(difference) <= allowance,
+    sprintf(
+      "Reference power %.6f; powerkit's %s %.6f differs by %.6f (allowed: %.4f, 3 decimal places).",
+      reference, if (estimate$mcse == 0) "exact power" else "simulated estimate (should be exact)",
+      estimate$power, difference, allowance
+    )
+  )
+  invisible(estimate)
+}
+
 # Half a unit in the last decimal place of `x` as written (0.8816 -> 0.00005;
 # "0.9120" -> 0.00005).
 rounding_allowance <- function(x) {

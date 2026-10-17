@@ -18,9 +18,12 @@ source(file.path("R", "ui.R"), local = TRUE)
 source(file.path("R", "forms.R"), local = TRUE)
 source(file.path("R", "forms_ui.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
+source(file.path("R", "results.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
+# Cards for end points that calculate don't say "No numbers are calculated".
+tree$calculates <- unlist(forms$calculates)
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -162,6 +165,7 @@ server <- function(input, output, session) {
     came_from = NULL,        # "known" or "node", for the card's back button
     form_values = list(),    # input screen: values typed so far (kept when it's redrawn)
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
+    calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
     answers = list(),        # guided route: variable answers
     ticked = character(), primary = character(), asks = list(), rule = "each"
   )
@@ -283,9 +287,38 @@ server <- function(input, output, session) {
     problems <- form_problems(fields, values)
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
-    output$form_result <- renderUI(form_result_ui(tree$endpoints[[state$endpoint]], problems, check, spec))
+    state$calc <- NULL
+    if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
+      # Show "Calculating" first; the engine runs once that has reached the
+      # browser (seconds for these end points).
+      output$form_result <- renderUI(calculating_ui())
+      ep_id <- state$endpoint
+      session$onFlushed(function() {
+        calc <- run_calculation(spec, seed = forms$default_seed)
+        isolate(state$calc <- calc)
+        output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
+        session$sendCustomMessage("focus_result", "form_result")
+      }, once = TRUE)
+    } else {
+      output$form_result <- renderUI(form_result_ui(tree$endpoints[[state$endpoint]], problems, check, spec))
+    }
     session$sendCustomMessage("focus_result", "form_result")
   })
+  # The engine's own exports, for the last result.
+  output$download_script <- downloadHandler(
+    filename = function() sprintf("powerkit-%s-script.R", state$endpoint),
+    content = function(file) {
+      export <- engine_function("export_script")
+      export(state$calc$spec, state$calc$result, file = file)
+    }
+  )
+  output$download_citations <- downloadHandler(
+    filename = function() sprintf("powerkit-%s-citations.txt", state$endpoint),
+    content = function(file) {
+      export <- engine_function("export_citations")
+      export(state$calc$result, format = "text", file = file)
+    }
+  )
   observeEvent(input$form_copy, {
     text <- answers_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint, current_form_fields(), current_form_values())
     output$form_copy_text <- renderUI(div(class = "form-field mt-2",

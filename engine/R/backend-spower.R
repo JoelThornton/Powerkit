@@ -1,6 +1,10 @@
 # Backend adapter: basic tests (one-sample, independent and paired t-tests,
 # correlation, two proportions, chi-square test of independence) via Spower.
 #
+# Used when simulation is requested (options > method = "simulation") and
+# for Welch's t-test; otherwise basic tests use pwr's exact formulas
+# (backend-pwr.R; docs/decisions.md, 17 October 2026).
+#
 # Power is simulated with Spower::Spower() and Spower's own experiment
 # functions (p_t.test(), p_r(), p_prop.test(), p_chisq.test()), exactly as a
 # user would call them. One-sided tests use their `alternative` argument

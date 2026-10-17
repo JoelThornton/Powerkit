@@ -60,11 +60,17 @@ spec_advice <- function(spec) {
   advice
 }
 
-# 2x2 ANOVA designs are computed exactly unless simulation is requested;
-# every other design is simulated.
+# 2x2 ANOVA designs and the basic tests pwr covers are computed exactly
+# unless simulation is requested; every other design is simulated.
 uses_simulation <- function(spec) {
-  default <- if (spec$design == "factorial_anova") "exact" else "simulation"
+  default <- if (exact_available(spec)) "exact" else "simulation"
   identical(spec$options$method %||% default, "simulation")
+}
+
+# Designs with an exact method: 2x2 ANOVA (Superpower's ANOVA_exact()) and
+# the basic tests pwr covers (every one but Welch's t-test).
+exact_available <- function(spec) {
+  spec$design == "factorial_anova" || pwr_covers(spec)
 }
 
 # Variables -----------------------------------------------------------------
@@ -111,12 +117,18 @@ check_allocation_allowed <- function(spec) {
 }
 
 check_method_allowed <- function(spec) {
-  if (!identical(spec$options$method, "exact") || spec$design == "factorial_anova") {
+  if (!identical(spec$options$method, "exact") || exact_available(spec)) {
     return(character())
   }
+  if (identical(spec$target_test$method, "welch_t")) {
+    return(paste0(
+      "'options > method' 'exact' isn't available for Welch's t-test (pwr's ",
+      "formula assumes equal variances); remove it or use 'simulation'."
+    ))
+  }
   paste0(
-    "'options > method' 'exact' is only available for 2x2 ANOVA designs; ",
-    "remove it or use 'simulation'."
+    "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
+    "basic tests; remove it or use 'simulation'."
   )
 }
 

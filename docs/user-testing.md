@@ -46,7 +46,7 @@ then run another round.
 
 | Time | What happens | What you say (roughly) |
 | --- | --- | --- |
-| 0–2 min | Welcome and consent | "This is a prototype that suggests which power analysis a study needs. We're testing the prototype, not you. It doesn't calculate anything yet." |
+| 0–2 min | Welcome and consent | "This is a prototype that suggests which power analysis a study needs. We're testing the prototype, not you. It calculates for some designs; for the others it shows guidance only." |
 | 2–4 min | Their study | "Describe the study you brought in a couple of sentences: what you compare or relate, who takes part, and how often you measure them." Write it down in their words. |
 | 4–5 min | Think-aloud practice | "As you go, please say what you're thinking: what you're looking for, what you expect, anything unclear. If you go quiet, I'll prompt you." |
 | 5–11 min | Route 1, their choice | "Start however you like and find the analysis for your study." Don't help. If they're stuck for over a minute, ask what they're looking for. |

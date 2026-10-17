@@ -45,13 +45,17 @@ the sample size that reaches the target power, or the smallest
 detectable effect.
 }
 \details{
-\strong{Backends.} Basic tests run on Spower, regression interactions on
+\strong{Backends.} Basic tests run on pwr's exact formulas by default (Spower
+simulation on request, and for Welch's t-test), regression interactions on
 InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
 7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},
-exact for the specified population); \code{"simulation"} uses Monte Carlo
+exact for the specified population), and for basic tests other than
+Welch's t-test it is \code{"exact"} too (pwr's analytic formulas: noncentral
+t and chi-square distributions; Fisher's z for a correlation and Cohen's
+h for two proportions, which are approximations); \code{"simulation"} uses Monte Carlo
 simulation with \code{options > nrep} replications (default 1,000) and
 \code{options > seed} (drawn and recorded if not given). Every other design
 is simulated. Set
