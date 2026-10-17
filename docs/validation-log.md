@@ -876,3 +876,58 @@ PASS    mediation_crosscheck_serial / cross-check, serial mediation (no_direct_p
           success: Estimates 0.8278 and 0.8187 differ by 0.0091; the tolerance is 0.0177 (99.9% Monte Carlo interval plus an allowance of 0.000).
 ===== end of summary =====
 ```
+
+## 2026-10-17 · basic (GitHub Actions; after the E5 switch to the z test)
+
+The run after PR #41 made G\*Power's z test (`stats::power.prop.test(strict
+= TRUE)`) the default for two proportions (E5, Departure 11), at the
+maintainer's request.
+
+- **Run:** [run 39071722512](https://github.com/JoelThornton/Powerkit/actions/runs/39071722512) of the `full-validation` workflow.
+  **Commit:** 43e8d0e (main, PR #41 merged). **Cores:** 4, one per test.
+  **Artifact:** validation-results-basic-run-14.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **basic:** 21 PASS, 0 FAIL, 0 ERROR, 4 SKIP (of 25). The 4 skips are the
+  G\*Power and published-value tests that still have
+  `TODO_PUBLISHED_VALUE`. The new E5 test against G\*Power's z test
+  (0.2344921 at 20 per group, p1 .10, p2 .25, two tails; a G\*Power
+  value, not a published one) passed to 7 decimal places, and the Cohen's
+  h option still matches `pwr`. Type I error rates were .048 to .052.
+- **Status:** the run covers equal groups. Unequal groups by pwrss (PR
+  #42) aren't on main yet; E5's card stays "Validation in progress" until
+  the maintainer says otherwise.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 21:39   Commit: 43e8d0e   Cores: 4
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 21 PASS, 0 FAIL, 0 ERROR, 4 SKIP, 0 NOT RUN (of 25)
+
+PASS    basic / independent t-test: power matches pwr (analytic)
+PASS    basic / independent t-test, one-sided: power matches pwr (analytic)
+PASS    basic / independent t-test, unequal groups: power matches pwr (analytic)
+PASS    basic / one-sample t-test: power matches pwr (analytic)
+PASS    basic / paired t-test: power matches pwr (analytic)
+PASS    basic / correlation at alpha = .01: power matches pwr (analytic)
+PASS    basic / two proportions: power matches G*Power's z test (G*Power value)
+          success: Reference power 0.234492; powerkit's exact power 0.234492 differs by -0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / two proportions, Cohen's h option: power matches pwr (analytic)
+          success: Reference power 0.802106; powerkit's exact power 0.802106 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / chi-square test of independence: power matches pwr (analytic)
+SKIP    basic / independent t-test: matches the Faul et al. (2007) G*Power example (published)
+SKIP    basic / paired t-test: matches G*Power 3.1 manual example (published)
+SKIP    basic / correlation: matches the Faul et al. (2007) exact bivariate-normal example (published)
+SKIP    basic / two proportions: matches a published example (published)
+PASS    basic / independent t-test: powerkit matches a direct Spower call (0.6948 vs 0.6912)
+PASS    basic / paired t-test: powerkit matches a direct Spower call (0.6976 vs 0.6957)
+PASS    basic / correlation: powerkit matches a direct Spower call (0.7160 vs 0.7160)
+PASS    basic / two proportions: powerkit matches a direct Spower call (0.7758 vs 0.7758)
+PASS    basic / chi-square test of independence: powerkit matches a direct Spower call (0.4947 vs 0.4947)
+PASS    basic / Type I error near alpha: independent t 0.0518, Welch 0.0498, one-sample 0.0479, paired 0.0519, correlation 0.0502, two proportions 0.0482, chi-square 0.0511
+===== end of summary =====
+```
+
+(Lines for the passing analytic, direct-call and Type I error tests are
+shortened here; the full text is in the run's artifact.)

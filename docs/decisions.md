@@ -1705,5 +1705,6 @@ reproduces G\*Power's 0.9498668 at 123 and 247. Group sizes keep the
 exact ratio, so powerkit's required N for 95% power at 1 : 2 is 372 (124 +
 248), where G\*Power gives 370 (123 + 247, power 0.9498668, just under
 the target): recorded in Departure 11. pwrss's values at 1 : 1, 1 : 2
-and 1 : 3 in both directions are tested; G\*Power's for those inputs are
-to confirm from the maintainer's screenshots before merging.
+and 1 : 3 in both directions are tested, and the maintainer's G\*Power
+screenshots for those inputs (and one tail, and a priori at 1 : 3) match
+them to 7 decimals (`docs/gpower-parity.md`, E5).

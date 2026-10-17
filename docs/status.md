@@ -25,8 +25,12 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   yes).** pwrss's `power.z.twoprops()` replaces Cohen's h for unequal
   groups (maintainer's decision): it matches G\*Power's power at 123 and
   247 (0.9498668). pwrss moves to Imports and is credited with the other
-  backends. G\*Power values at 1 : 2 and 1 : 3 in both directions are
-  awaited from the maintainer to confirm pwrss's.
+  backends. The maintainer's G\*Power screenshots at 1 : 2 and 1 : 3 in
+  both directions, one tail, and a priori at 1 : 3 all match pwrss to 7
+  decimals ([`gpower-parity.md`](gpower-parity.md), E5); they are tests.
+- **`basic` chunk rerun after the E5 switch** (run 39071722512, commit
+  43e8d0e): 21 pass, 4 published-value skips; recorded in
+  [`validation-log.md`](validation-log.md).
 - **G\*Power screenshots checked (17 October 2026; docs only).** The
   maintainer's G\*Power 3.1.9.7 screenshots are in
   [`figures/gpower/`](figures/gpower/) and recorded in

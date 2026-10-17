@@ -229,9 +229,11 @@ test_that("two proportions in unequal groups use pwrss's z test, as G*Power (Dep
 })
 
 test_that("two proportions: pwrss at 1:1, 1:2 and 1:3, both directions", {
-  # Two tails, alpha .05, n1 = 100. pwrss 1.3.3's values; G*Power's for
-  # these inputs are to confirm from the maintainer's screenshots. At 1:1
-  # pwrss equals power.prop.test(strict = TRUE), which matches G*Power.
+  # Two tails, alpha .05, n1 = 100. G*Power values (G*Power 3.1.9.7, z
+  # tests > difference between two independent proportions, post hoc;
+  # maintainer's screenshots, 17 October 2026) at 1:2 and 1:3; pwrss 1.3.3
+  # gives the same to 7 dp. At 1:1 pwrss equals power.prop.test(strict =
+  # TRUE), which matches G*Power.
   expected <- list(
     "1" = c(up = 0.8018306, down = 0.8018306),
     "2" = c(up = 0.8960412, down = 0.9087742),
@@ -270,10 +272,13 @@ test_that("departure: unequal groups keep the exact ratio, so N can differ from 
   expect_identical(as.integer(run_spec(spec)$n_required$n), 372L)
   spec$options$proportions_formula <- "arcsine"
   expect_identical(as.integer(run_spec(spec)$n_required$n), 360L)
-  # For 80% power at N2/N1 = 3: 70 + 210 = 280.
+  # For 80% power at N2/N1 = 3, G*Power gives 70 + 210 = 280, actual
+  # power 0.8003695 (maintainer's screenshot); powerkit agrees.
   spec$options <- list(seed = 7, allocation_ratio = 3)
   spec$goal$power <- 0.8
   expect_identical(as.integer(run_spec(spec)$n_required$n), 280L)
+  spec$goal <- list(type = "power", n = 280)
+  expect_equal(round(run_spec(spec)$curve$power, 7), 0.8003695)
 })
 
 test_that("two proportions in unequal groups: a one-sided test keeps the spec's direction", {
@@ -285,7 +290,8 @@ test_that("two proportions in unequal groups: a one-sided test keeps the spec's 
   spec$population$p2 <- 0.25
   spec$target_test$alternative <- "greater"
   toward <- run_spec(spec)$curve$power
-  # The pooled z test's upper tail at n1 = 100, n2 = 200, alpha .05.
+  # G*Power's one-tailed power at n1 = 100, n2 = 200, alpha .05
+  # (maintainer's screenshot); pwrss gives the same.
   expect_equal(round(toward, 7), 0.9473235)
   spec$target_test$alternative <- "less"
   against <- run_spec(spec)$curve$power
@@ -324,4 +330,17 @@ test_that("the proportions formula option is only for two proportions by formula
   spec$options$proportions_formula <- "z_test"
   spec$options$method <- "simulation"
   expect_spec_problem(spec, "only applies when power is calculated by formula")
+})
+
+test_that("two proportions, equal groups, one tail: power matches G*Power", {
+  # G*Power 3.1.9.7, post hoc, one tail, p1 .5, p2 .6, alpha .05, 50 per
+  # group: 0.2600887 (maintainer's screenshot, 17 October 2026).
+  spec <- pwr_spec(
+    "two_proportions", list(type = "power", n = 100),
+    options = list(seed = 7)
+  )
+  spec$population$p1 <- 0.5
+  spec$population$p2 <- 0.6
+  spec$target_test$alternative <- "greater"
+  expect_equal(round(run_spec(spec)$curve$power, 7), 0.2600887)
 })

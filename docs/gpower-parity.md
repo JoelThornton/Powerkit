@@ -192,6 +192,28 @@ to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
   (power 0.9509). G\*Power's 123 + 247 is slightly under the target
   power (0.9498668 < .95), so G\*Power rounds the groups differently.
 
+**Check of pwrss against G\*Power at unequal allocations (17 October
+2026).** G\*Power 3.1.9.7 screenshots from the maintainer
+([`figures/gpower/`](figures/gpower/), `E5_z_test_post_hoc_ratio*`,
+`E5_z_test_a_priori_ratio3`, `E5_z_test_post_hoc_one_tail_n50`). α = .05,
+n1 = 100 unless stated; "up" is p1 .10, p2 .25 and "down" is p1 .25, p2
+.10. pwrss is `power.z.twoprops(std.error = "pooled")`, pwrss 1.3.3. All
+are tests in `engine/tests/testthat/test-backend-pwr.R`.
+
+| Case | G\*Power (screenshot) | pwrss / powerkit |
+| --- | --- | --- |
+| Post hoc, two tails, n2 = 200, up | 0.8960412 | 0.8960412 |
+| Post hoc, two tails, n2 = 200, down | 0.9087742 | 0.9087742 |
+| Post hoc, two tails, n2 = 300, up | 0.9292662 | 0.9292662 |
+| Post hoc, two tails, n2 = 300, down | 0.9388485 | 0.9388485 |
+| Post hoc, one tail, n2 = 200, up | 0.9473235 | 0.9473235 |
+| A priori, two tails, power .80, N2/N1 = 3, up | 70 + 210 = 280, actual power 0.8003695 | 70 + 210 = 280; 0.8003695 at 280 |
+| Post hoc, one tail, equal groups (50 + 50), p1 .5, p2 .6 | 0.2600887 | 0.2600887 (`power.prop.test(strict = TRUE)`) |
+
+Every value agrees to the seven decimals G\*Power shows. The only
+difference found is the a-priori rounding at 1 : 2 above (372 against
+370; Departure 11).
+
 Outputs: G\*Power shows critical z and power (post hoc) or the two group
 sizes, total sample size and actual power (a priori) (screenshot).
 powerkit: critical value: **Not possible** with pwr or
