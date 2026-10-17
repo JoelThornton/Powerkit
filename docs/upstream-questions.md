@@ -53,3 +53,50 @@ left out below to keep the message to the two questions you asked for.
 >
 > Best wishes,
 > [maintainer's name]
+
+## Spower: Phil Chalmers (draft, 17 October 2026)
+
+**Status:** draft, not sent.
+
+**Where to send:** the maintainer's choice: a GitHub issue on Spower's
+repository, or email.
+
+**Note for the maintainer (not part of the message):** powerkit doesn't
+use a non-zero null correlation, so nothing in powerkit is affected
+today. Recorded in `docs/decisions.md` (17 October 2026, "Spower:
+one-sided tests against a non-zero null correlation") and
+`docs/coverage-roadmap.md` (flags). The line numbers are from Spower 0.7's
+CRAN source, `R/p_r.R`.
+
+---
+
+> **Subject:** p_r(): one-sided tests when rho isn't 0
+>
+> Hi Phil,
+>
+> Thank you for Spower. powerkit, an open-source power analysis tool for
+> psychology (https://github.com/JoelThornton/Powerkit), uses it for its
+> simulation options, and the one-sided fix in 0.7 was very welcome.
+>
+> One small thing I noticed while reading `p_r()` in 0.7. When
+> `rho != 0`, the p-value is replaced with the Fisher's z test against
+> `rho`:
+>
+> ```r
+> out$p.value <- pnorm(abs(t), lower.tail=FALSE)*2
+> ```
+>
+> (`R/p_r.R`, line 75). As far as I can tell this is two-sided whatever
+> `two.tailed` or `alternative` says, so `p_r(50, .5, rho = .3,
+> two.tailed = FALSE)` would give the two-sided p-value. When `rho = 0`
+> the p-value comes from `cor.test()` and follows `alternative`, as
+> expected.
+>
+> Is that intended? If not, something like
+> `pnorm(t, lower.tail = FALSE)` for "greater" and `pnorm(t)` for "less"
+> might be all it needs. I may well be missing something, so please
+> ignore this if so.
+>
+> Thanks again,
+> Joel
+

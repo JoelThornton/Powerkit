@@ -53,7 +53,7 @@ Compromise is **Not exposed** for Spower (`beta_alpha`) and Superpower
 | --- | --- | --- | --- | --- |
 | Power | Yes | Power at N | **Has** | |
 | Required N | Yes | Total N (and per group in the headline for two-group tests) | **Has** | |
-| Actual power at the rounded N | Yes (maintainer's list) | Computed: for exact results the curve holds the power at every N searched, including the one reported; not shown on the result screen | **Not exposed** | Judgement call G5 |
+| Actual power at the rounded N | Yes (maintainer's list) | Shown for exact results ("With 64 per group, power is 80.1%."); not for a simulated N | **Has** (exact results) | Judgement call G5, decided 17 October 2026 |
 | Noncentrality parameter | Yes (maintainer's list) | — | See each end point | Not returned by pwr's functions (their value is the arguments plus power, "method" and "note"); none for a simulation |
 | Critical value | Yes (maintainer's list) | — | See each end point | As above |
 | df | Yes (maintainer's list) | — | See each end point | pwr takes df as an input for the chi-square test only |
@@ -117,7 +117,7 @@ bivariate normal model".
 | Tails | Yes | Yes | **Has** | |
 | Effect size | ρ H1 | r | **Has** | |
 | Null value ρ H0 | Yes (Spower vignette, Example 3.3: ρ0 = .60) | 0 only | **Not exposed** with Spower (`p_r(rho = )`); **Not possible** with pwr (`pwr.r.test()` has no null value) | With Spower 0.7, a non-zero `rho` gives a two-sided p-value whatever `alternative` says (`R/p_r.R`) |
-| Method | Exact below N = 10,000 by default, Fisher's z above (maintainer) | Formula (pwr: Fisher's z) or simulation (Spower: Monte Carlo of the exact t test of ρ = 0) | **Has** (both) | Size of the difference: judgement call G6 |
+| Method | Exact below N = 10,000 by default, Fisher's z above (maintainer) | Formula (pwr: Fisher's z) or simulation (Spower: Monte Carlo of the exact t test of ρ = 0) | **Has** (both) | Size of the difference: judgement call G6. Fisher's z kept: Departure 10 (`conventions.md`) |
 
 Outputs: critical r, df: **Not possible** with pwr (it uses a critical
 value internally but doesn't return it).

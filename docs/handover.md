@@ -16,21 +16,26 @@ this page is the short version plus the working rules.*
 - **App prototype** (`app/routing/`): the question tree, cards and input
   screens for every end point. E1–E8 calculate on the input screen (merged
   in #34). E9 calculates in the background with a progress bar and Cancel
-  (PR #36, waiting for the maintainer's yes). E10–E14 are not wired: they
+  (PR #36, merged). E10–E14 are not wired: they
   wait for the maintainer's decision on
   [`phase5-simulations.md`](phase5-simulations.md), questions 1–4.
+- **Result screen:** an exact required N shows the power it actually
+  gives (G5).
 - **Seed:** a fixed default (1), shown and changeable on every screen and
   recorded in the result and its R script.
 
 ## Open PRs
 
-- **#36: E9 calculates, with a progress bar and Cancel.** Draft; changes
-  what users see, so it needs the maintainer's yes before merging.
-- **#35: coverage roadmap and routing design options** (docs only; from
-  another thread).
+- **E5's default (z test instead of the arcsine):** not built yet. It
+  waits for the maintainer's G\*Power screenshots, then a draft PR that
+  waits for the maintainer's yes (G6 in `judgement-calls.md`).
 - **#4: the early 2 x 2 Shiny demo** (`app/`, not `app/routing/`). An old
   draft built ahead of phase 5; superseded by the routing prototype's
   result screen. Close or keep is the maintainer's call.
+
+Merged on 17 October 2026: #35 (coverage roadmap, routing options), #36
+(E9 wired), #37 (G\*Power parity), and the PR for the G5/G6 decisions and
+the Rubin addendum.
 
 ## Rules
 
@@ -68,10 +73,13 @@ this page is the short version plus the working rules.*
   judgement call, with options and the default now. Open ones include B12
   (N rounding), B13 (power curve), B16 (what "simulation for data that
   won't meet the assumptions" should simulate) and B17 (E9's progress
-  bar); B11 waits for its source.
+  bar); B11 waits for its source. G4 (what the methods paragraph reports)
+  waits for the maintainer's judgement session; G7–G9 (corrections,
+  alpha and tails, sensitivity) and B6 are open. Open questions for the
+  maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
-  powerkit's departures (1–9).
+  powerkit's departures (1–10).
 - [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14.
 - [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
 - In the app, the "For the maintainer: undecided settings" tab lists the

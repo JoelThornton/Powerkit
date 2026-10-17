@@ -754,7 +754,8 @@ endpoints:
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
     template: "basic_test / correlation"
-    backend: "pwr: pwr.r.test() (Spower simulation if you choose it)"
+    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it)"
+    refs: "Departures 9 and 10 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the two variables", "The expected correlation r"]
     status: runs_validated

@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* When the app prototype reports a required N calculated exactly, the
+  result screen also shows the power that N actually gives, for example
+  "With 64 per group, power is 80.1%." Not shown for a simulated N.
+
+* Correlations (E4) keep pwr's Fisher's z formula. This is now recorded as
+  Departure 10 in `docs/conventions.md`: G*Power uses the exact
+  distribution of r, and the two differ by at most 0.004 in power and 1
+  participant in N (r = .3 to .5, N = 20 to 100). It is shown on E4's card
+  and on the result screen.
+
 * The app prototype (`app/routing/`) now calculates regression interactions
   (E9) on the input screen. The engine runs in a background R process, with
   an estimated progress bar and a Cancel button (about 5 seconds for power,

@@ -89,6 +89,7 @@ departures:
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
   "9": "Calculated with pwr's formula, not Spower's simulation (powerkit's earlier default): exact for the t-tests and the chi-square test, and approximate for a correlation (Fisher's z) and two proportions (Cohen's h), with no simulation noise. In the examples checked, the two differ by less than 0.01 in power, within the simulation's own noise."
+  "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
 
 forms:
@@ -156,7 +157,7 @@ forms:
           - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
 
   E4:
-    departures: ["9"]
+    departures: ["9", "10"]
     tool: pwr
     basic_method: true
     directional: true
