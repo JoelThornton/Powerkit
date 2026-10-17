@@ -1,5 +1,9 @@
 # powerkit 0.0.0.9000
 
+* The app prototype's card for two proportions (E5) says "Validated"
+  again, after the `basic` validation chunk was rerun with the z test
+  (pwrss for unequal groups).
+
 * `refs.bib` now holds four sources the maintainer checked in full text:
   Rubin (2021), Rubin (2024), Mikael Rubin (2025) and Frane (2019). An
   entry may now be verified "from full-text PDF held by the maintainer" as

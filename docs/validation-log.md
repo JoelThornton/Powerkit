@@ -931,3 +931,27 @@ PASS    basic / Type I error near alpha: independent t 0.0518, Welch 0.0498, one
 
 (Lines for the passing analytic, direct-call and Type I error tests are
 shortened here; the full text is in the run's artifact.)
+
+## 2026-10-17 · basic (GitHub Actions; after E5's unequal groups by pwrss)
+
+The run after PR #42 made pwrss's z test the default for two proportions
+in unequal groups, at the maintainer's request.
+
+- **Run:** [run 39073022227](https://github.com/JoelThornton/Powerkit/actions/runs/39073022227) of the `full-validation` workflow.
+  **Commit:** ed83169 (main, PR #42 merged). **Artifact:**
+  validation-results-basic-run-15.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock`.
+- **basic:** passed, with no failures or errors. The 4 skips are the
+  published-value tests that still have `TODO_PUBLISHED_VALUE`, as in run
+  39071722512. E5's test against G\*Power's z test (0.2344921) passed to
+  7 decimal places; the Cohen's h option still matches `pwr`; every
+  direct Spower comparison gave the same estimates as the previous run;
+  Type I error rates were .048 to .052.
+- **Unequal groups:** this chunk has no unequal-groups case for two
+  proportions. Those are checked in `test-backend-pwr.R` against the
+  maintainer's seven G\*Power screenshots (1 : 2 and 1 : 3, both
+  directions, one tail, and a priori at 1 : 3), all to 7 decimals; those
+  tests ran green in R CMD check on PR #42.
+- **Status:** E5's card is back to "Validated" (the maintainer's
+  instruction, 17 October 2026).

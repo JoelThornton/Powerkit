@@ -221,10 +221,18 @@ powerkit: critical value: **Not possible** with pwr or
 
 ## E6: chi-square test of independence
 
-Matching G\*Power test: none by that name in the maintainer's list; the
-nearest are "Generic: chi²" and "Multigroup: goodness-of-fit". Which one
-G\*Power uses for contingency tables is to confirm (not in the 2023
-manual; screenshot needed).
+Matching G\*Power test: χ² tests, "Goodness-of-fit tests: Contingency
+tables" (the maintainer's screenshot, G\*Power 3.1.9.7, 17 October 2026;
+not in the 2023 manual).
+
+**G\*Power reference (df 1):** post hoc, w = 0.3, α = .05, total N = 100,
+df = 1 gives noncentrality λ = 9, critical χ² = 3.8414588 and power
+0.8508388
+([`figures/gpower/E6_contingency_post_hoc_df1.png`](figures/gpower/E6_contingency_post_hoc_df1.png)).
+pwr's `pwr.chisq.test(w = 0.3, N = 100, df = 1, sig.level = 0.05)` gives
+0.8508388, and `qchisq(0.95, 1)` is 3.8414588: the same to 7 decimals.
+This is a G\*Power value, not a published one. **Still needed:** the same
+inputs at df = 2 (pwr gives 0.7706831).
 
 | Input | G\*Power | powerkit | Mark | Note |
 | --- | --- | --- | --- | --- |
@@ -348,7 +356,7 @@ critical value, df: **Not possible** (simulation of a CI-based test).
 | E3 | d_z from the mean and SD of the differences, or from two means, two SDs and their correlation (section 19.1, p. 48) | d_z only | None found for d_z | unknown |
 | E4 | ρ H1 from the coefficient of determination r² (section 3.1, p. 9) | r | — | n/a |
 | E5 | The z test takes p1 and p2 (or h, by option); Fisher's exact test's drawer computes p1 from a difference, ratio or odds ratio (screenshots) | From two proportions (h computed) | pwr `ES.h()` | **Has** |
-| E6 | To confirm (not in the 2023 manual; screenshot needed) | From cell probabilities (w computed) | pwr `ES.w2()`; `ES.w1()` for goodness-of-fit | **Has** |
+| E6 | w (the maintainer's screenshot: "Effect size w", with a "Determine" button) | From cell probabilities (w computed) | pwr `ES.w2()`; `ES.w1()` for goodness-of-fit | **Has** |
 | E7 | f from the effect and error variances, or from partial η² (section 11.1, p. 27) | From means and SDs (Superpower's input) | Superpower; f or partial η² as input: **Not exposed** | **Has** (means) |
 | E8 | "Determine" drawer present; its contents not in the screenshot | From means and SDs (Superpower's input) | Superpower; f or partial η² as input: **Not exposed** | **Has** (means) |
 | E9 | f² from the effect and residual variances, or from partial R² (section 14.1, p. 36). Only the omnibus R² test's drawer works from predictor correlations (section 13.1, p. 33) | From correlations | — | **Has** (correlations) |
