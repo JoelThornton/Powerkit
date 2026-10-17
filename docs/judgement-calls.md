@@ -46,7 +46,7 @@ The statistical decisions phase 3b needs before coding are in
 
 ## Contents
 
-- [A. What the cards say](#a-what-the-cards-say): A1–A8
+- [A. What the cards say](#a-what-the-cards-say): A1–A9
 - [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B9
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
@@ -296,6 +296,38 @@ The statistical decisions phase 3b needs before coding are in
 - **Knock-on effects:** ties to judgement call 3.2 (B2).
 - **Recorded in:** [`card-sources.md`](card-sources.md) (candidate, not
   verified). No setting.
+
+### A9. "Exact (analytic)" for Superpower's `ANOVA_exact()` (E7, E8)
+
+- **Question:** E7 and E8 give the default method as "Exact (analytic)",
+  and Q-test offers "Exact (analytic) or simulation". Superpower's
+  documentation doesn't call `ANOVA_exact()` analytic. Keep the label, or
+  reword it?
+- **Options:**
+  - keep "Exact (analytic)";
+  - use Superpower's own terms, for example "Exact data set" or "Exact
+    (one data set matching your inputs)";
+  - name the function only.
+- **What tools and sources do** (opened):
+  - Superpower 0.2.4.1, `ANOVA_exact`: "Simulates an exact dataset (mu,
+    sd, and r represent empirical, not population, mean and covariance
+    matrix)".
+  - The vignette: it "simulates one dataset that exactly matches the
+    desired properties" and runs a single ANOVA on it.
+  - Superpower uses "Analytic power calculation" for other functions, for
+    example `power_oneway_between()`.
+  - `conventions.md` describes the method in Superpower's terms.
+- **Who might disagree, and why:**
+  - "Analytic" signals to users that no random simulation error is
+    involved, which is true of the result.
+  - Others would keep to the package's own vocabulary, so that the card,
+    the methods paragraph and the package documentation agree.
+- **Knock-on effects:**
+  - The Q-test card note and the method line change together.
+  - The methods paragraph (phase 4) should use the same term.
+  - `card-sources.md` marks the claim "contradicted".
+- **Recorded in:** [`card-sources.md`](card-sources.md), "Contradictions".
+  No setting.
 
 ## B. What the cards and forms ask
 
