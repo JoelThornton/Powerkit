@@ -1756,6 +1756,15 @@ source for Fisher's exact test in C11.
     psychologists run, not the arcsine. Base R's `power.prop.test()` is to
     be checked against G\*Power's "Two independent groups: inequality,
     z-test" first; the switch waits for the maintainer's yes.
+  - **Checked against G\*Power screenshots (17 October 2026):** G\*Power
+    3.1.9.7's "Proportions: Difference between two independent
+    proportions" (z tests), with its default options (no continuity
+    correction, no arcsine transformation), equals
+    `power.prop.test(strict = TRUE)` to seven decimals: 0.2344921 at 20
+    per group (p1 = .10, p2 = .25); 164 per group for 95% power, actual
+    power 0.9502464. `strict = FALSE` gives 0.2339595, so G\*Power counts
+    both tails. With N2/N1 = 2 G\*Power gives 123 + 247; `power.prop.test()`
+    can't do unequal groups. Details: [`gpower-parity.md`](gpower-parity.md), E5.
 - **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md);
   [`coverage-roadmap.md`](coverage-roadmap.md), note 1. The comparison
   scripts are in the PR description.
