@@ -107,7 +107,20 @@ form_groups <- function(forms, ep_id, k = 2) {
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
+  if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = list(basic_method_field(forms, ep_id)))))
   c(groups, closing_groups(forms, ep_id))
+}
+
+# E1-E6: pwr's formula or Spower's simulation (forms.yaml,
+# basic_method_field). Welch's t-test has no pwr formula, so for E2 the
+# choice is shown only with Student's test; with Welch's the engine
+# simulates.
+basic_method_field <- function(forms, ep_id) {
+  field <- forms$basic_method_field
+  if (any(vapply(form_fields(forms$forms[[ep_id]]$groups), function(f) identical(f$id, "method"), logical(1)))) {
+    field$shown_if <- list(field = "method", is = "student_t")
+  }
+  field
 }
 
 # The closing questions every form asks (decision-tree.md, table 2.2).
@@ -148,6 +161,13 @@ closing_groups <- function(forms, ep_id) {
     list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose (optional; for example 0.1 for 10%)", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
+    )),
+    # A fixed default seed, so the same answers give the same result
+    # (judgement-calls.md B15); the user can change it.
+    list(input = NULL, title = "Random seed", fields = list(
+      list(id = "seed", label = sprintf("Random seed (a whole number; used when power is simulated, so the same seed gives the same result; empty = %s)", forms$default_seed),
+           type = "number", path = "options.seed", optional = TRUE, integer = TRUE, min = 1, max = 2147483647,
+           default = forms$default_seed, default_source = "powerkit's fixed default seed (judgement-calls.md B15)")
     ))
   )
 }

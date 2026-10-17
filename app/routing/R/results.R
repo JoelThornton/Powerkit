@@ -9,16 +9,18 @@
 
 form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 
-# Run the engine on a checked spec. A seed is drawn and written into the
-# spec if it has none, so the result (and its script) can be reproduced.
-# Returns list(status = "ok", spec, result, notes) or list(status = "error",
+# Run the engine on a checked spec. The input screen puts the seed in the
+# spec (a fixed default the user can change; forms.yaml, default_seed); a
+# spec without one gets `seed`, so the same answers always give the same
+# result and the result (and its script) can be reproduced. Returns
+# list(status = "ok", spec, result, notes) or list(status = "error",
 # message) with a plain-English message.
-run_calculation <- function(spec, run = engine_function("run_spec"), seed = NULL) {
+run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) {
   if (is.null(run)) {
     return(list(status = "error", message = "The calculation needs powerkit's engine, which isn't installed where this prototype is running."))
   }
   if (is.null(spec$options$seed)) {
-    spec$options$seed <- seed %||% sample.int(2147483646L, 1)
+    spec$options$seed <- as.integer(seed)
   }
   notes <- character()
   result <- tryCatch(
@@ -78,6 +80,23 @@ test_text <- function(spec) {
 
 simulated <- function(result) identical(result$provenance$method, "simulation")
 
+# How an exact result was computed, for the detail sentence.
+exact_source <- function(result) {
+  if (identical(result$provenance$backend, "pwr")) {
+    sprintf("pwr's formula, %s(), no simulation", result$provenance$backend_function)
+  } else {
+    "Superpower's exact dataset, no repeated simulation"
+  }
+}
+
+# Under a simulated result (judgement-calls.md B15).
+simulation_note <- function(result) {
+  sprintf(
+    "Calculated by simulation with %s replications; a different seed can shift the result slightly.",
+    whole(result$provenance$nrep)
+  )
+}
+
 # The headline and supporting sentences for a result (draft wording; setting
 # result_wording).
 result_sentences <- function(spec, result) {
@@ -97,7 +116,7 @@ result_sentences <- function(spec, result) {
             whole(result$provenance$nrep), whole(est$lower), whole(est$upper)
           )
         } else {
-          "This N is exact for the population you entered (Superpower's exact dataset, no repeated simulation)."
+          sprintf("This N is calculated for the population you entered (%s).", exact_source(result))
         }
       )
     },
@@ -114,7 +133,7 @@ result_sentences <- function(spec, result) {
             whole(result$provenance$nrep), 100 * row$mcse
           )
         } else {
-          "This power is exact for the population you entered (Superpower's exact dataset, no repeated simulation)."
+          sprintf("This power is calculated for the population you entered (%s).", exact_source(result))
         }
       )
     },
@@ -159,6 +178,9 @@ departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   # Departure 1 is about the interaction's required N only.
   if (!identical(spec$target_test$effect, "interaction")) keys <- setdiff(keys, "1")
+  # Departure 9 (pwr's formula for basic tests) applies only when the
+  # formula was used, not to simulation or Welch's t-test.
+  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "9")
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
@@ -202,11 +224,18 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
     p(class = "result-detail", words[["detail"]]),
+    if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
+    p(class = "result-seed small",
+      sprintf("Seed: %s. ", p_$seed),
+      if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
+        "Nothing was simulated, so the seed doesn't change this result in practice."),
     p(class = "result-observed small", not_observed_power),
     validation_ui(ep),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      "powerkit built the call from your answers and checked that it reproduces the population you entered. Cite the package: see Citations below."),
+      if (identical(p_$backend, "pwr")) "powerkit built the call from your answers and checked the effect size it passes. " else
+        "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
+      "Cite the package: see Citations below."),
     h4(class = "h6", "What this result used"),
     tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
     if (length(departures)) tagList(

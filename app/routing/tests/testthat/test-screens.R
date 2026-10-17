@@ -2,9 +2,18 @@
 # the app never calculates power itself: it builds specs and calls the
 # engine (validate_spec(), run_spec() and the exports).
 
-test_that("the banner says it's a prototype that calculates nothing", {
-  expect_identical(tree$banner, "Prototype: shows which analysis you need; it doesn't calculate anything yet.")
+test_that("the banner says which designs calculate (judgement call B14)", {
+  expect_identical(tree$banner, "Prototype: calculations are available for E1–E8; other designs show guidance only for now.")
   expect_match(as.character(prototype_banner(tree)), tree$banner, fixed = TRUE)
+})
+
+test_that("only cards that don't calculate say 'No numbers are calculated'", {
+  for (id in unlist(forms$calculates)) {
+    expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
+  }
+  for (id in c("E9", "E10", "E14", "E18", "E45")) {
+    expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
+  }
 })
 
 test_that("every end-point card renders, with its status and inputs", {

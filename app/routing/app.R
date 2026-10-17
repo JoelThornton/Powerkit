@@ -22,6 +22,8 @@ source(file.path("R", "results.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
+# Cards for end points that calculate don't say "No numbers are calculated".
+tree$calculates <- unlist(forms$calculates)
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -292,7 +294,7 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(calculating_ui())
       ep_id <- state$endpoint
       session$onFlushed(function() {
-        calc <- run_calculation(spec)
+        calc <- run_calculation(spec, seed = forms$default_seed)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")

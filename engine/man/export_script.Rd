@@ -20,7 +20,7 @@ The script as a single string; invisibly if \code{file} is given.
 }
 \description{
 Writes a standalone R script that reproduces a \code{\link[=run_spec]{run_spec()}} result by
-calling the package that computed it (Spower, Superpower,
+calling the package that computed it (pwr, Spower, Superpower,
 InteractionPoweR or power4mome) directly, with the design's values
 filled in and a comment on each argument. powerkit is not needed to run
 the script.
@@ -37,7 +37,9 @@ backend with its own seed;
 simulated and fits the same probit curve to find the required n and
 its 95\% interval (powerkit's quicker first pass, which only chose
 those sizes, is not repeated);
-\item exact 2x2 results use \code{ANOVA_exact()} under the run's seed.
+\item exact 2x2 results use \code{ANOVA_exact()} under the run's seed;
+\item exact basic-test results call pwr's formula (for a sample-size goal, at
+the sizes powerkit computed, around the required n).
 }
 
 The script ends by comparing its numbers with powerkit's and printing

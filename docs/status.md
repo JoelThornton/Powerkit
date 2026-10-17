@@ -8,18 +8,31 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
-- **Phase 5, part 1: calculations in the app for E1–E8 (draft PR, 17
-  October 2026; needs the maintainer's yes).** The input screens for the
-  basic tests and the 2 x 2 ANOVAs now run the engine's `run_spec()` on
-  the checked spec and show the result: the number in plain English, the
-  inputs, the backend credited by name, the validation status, the
-  departures that apply, and buttons for the R script and citations. Each
-  runs in 1 to 19 seconds. Tests check that each result equals a direct
+- **Phase 5, part 1: calculations in the app for E1–E8 (PR #34, 17
+  October 2026).** The input screens for the basic tests and the 2 x 2
+  ANOVAs run the engine's `run_spec()` on the checked spec and show the
+  result: the number in plain English, the inputs, the backend credited by
+  name, the validation status, the departures that apply, and buttons for
+  the R script and citations. Tests check that each result equals a direct
   engine call with the same spec and seed, and that the exported script
-  reproduces it. Result wording, N rounding and a power curve are
-  undecided, as are the seed and the banner wording (judgement calls
-  B11–B15). E9–E14 aren't wired:
-  [`phase5-simulations.md`](phase5-simulations.md) sets out the options.
+  reproduces it. With the maintainer's decisions of 17 October 2026:
+  - **E1–E6 use pwr's formula by default** (Departure 9; no Monte Carlo
+    noise). Spower simulation stays available when the user expects their
+    data won't meet the test's assumptions, and for Welch's t-test. The
+    analytic path must match pwr, and the G*Power published values once
+    transcribed, to 3 decimal places. The `basic` validation chunk needs
+    rerunning on this code.
+  - **A fixed default seed (1)**, shown and changeable on every screen,
+    recorded in the result and its script (B15).
+  - **Accurate banner and cards** (B14): calculations for E1–E8; other
+    designs show guidance only.
+  - **"Planned power, not observed power" line kept** (B11); its candidate
+    source (Hoenig and Heisey) couldn't be opened here, so it isn't in
+    refs.bib yet.
+  - Result wording, N rounding and a power curve are still undecided
+    (B11–B13); B16 asks what "simulation for data that won't meet the
+    assumptions" should simulate. E9–E14 aren't wired:
+    [`phase5-simulations.md`](phase5-simulations.md) sets out the options.
 - **Independent cross-checks for parallel and serial mediation (merged in
   PR #30; passed 17 October 2026).** Two validation chunks,
   `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
@@ -369,6 +382,9 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
+1. Rerun the `basic` validation chunk on the pwr default (17 October 2026),
+   and wire E9 into the app (next PR; E10–E14 wait for the maintainer's
+   decision on [`phase5-simulations.md`](phase5-simulations.md)).
 1. The remaining published values for every design (the maintainer
    transcribes them), and validation with three or more mediators for
    parallel and serial mediation (open question 10 in

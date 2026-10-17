@@ -3,12 +3,13 @@
 A clickable prototype of how a psychologist gets from their study to the
 right power analysis, built from [`decision-tree.md`](decision-tree.md).
 
-**It is routing only.** It shows which analysis a study needs, what the
-user would enter, which backend would run it and whether powerkit runs it
-yet. It calculates nothing: from the engine it uses only `validate_spec()`,
-to check the spec built on the input screens. The maths is wired in
-at build phase 5. Every screen carries the banner *"Prototype: shows which
-analysis you need; it doesn't calculate anything yet."* It is not deployed
+**It shows which analysis a study needs**, what the user would enter,
+which backend would run it and whether powerkit runs it yet. For E1–E8 the
+input screen also calculates: it passes the checked spec to the engine's
+`run_spec()` and shows the result (phase 5, part 1). The app never
+computes power itself. Every other end point is guidance only for now.
+Every screen carries the banner *"Prototype: calculations are available
+for E1–E8; other designs show guidance only for now."* It is not deployed
 anywhere.
 
 Everything it shows comes from one data file,
@@ -147,18 +148,24 @@ comes from, and expected attrition).
   instead is undecided: the setting `effect_size_inputs` (shown on the
   screen; `judgement-calls.md`, B10).
 - **Other settings start at the default of the tool powerkit wraps**, and
-  each says whose default it is (for example "Spower's default
-  (Spower(sig.level = 0.05), Spower 0.7)"). The defaults were read from
+  each says whose default it is (for example "pwr's default
+  (pwr.t.test(sig.level = 0.05), pwr 1.3-0)"). The defaults were read from
   the installed packages' function signatures. Where a tool has no
-  default (Spower, Superpower and InteractionPoweR have no target power),
+  default (pwr, Spower, Superpower and InteractionPoweR have no target power),
   the field starts empty and says so.
 - **Check my answers** first checks the fields on the screen (empty,
   not a number, out of range), naming each by its label. It then builds a
   design spec and checks it with the engine's `validate_spec()`, showing
   the engine's messages with the screen's field names in place of spec
   paths.
-- **E1–E8 calculate** (phase 5, part 1; draft, needs the maintainer's
-  yes): a valid spec goes to the engine's `run_spec()` and the screen
+- **E1–E6 ask how power is worked out**: pwr's formula (the default) or
+  Spower's simulation "if you expect your data won't meet the test's
+  assumptions". For E2 the choice appears only with Student's t-test;
+  Welch's is always simulated (no pwr formula).
+- **Every screen has a "Random seed" field**, starting at powerkit's fixed
+  default (1, `forms.yaml`, `default_seed`), so the same answers always
+  give the same result (`judgement-calls.md` B15).
+- **E1–E8 calculate** (phase 5, part 1): a valid spec goes to the engine's `run_spec()` and the screen
   shows the result. **E9–E14 don't calculate yet**: a valid spec shows a
   "Calculation not wired in yet" panel with the spec as JSON (plan:
   [`phase5-simulations.md`](phase5-simulations.md)).
@@ -186,13 +193,15 @@ comes from, and expected attrition).
 - **The methods paragraph** is a placeholder.
 - A reproducibility record (backend, method, seed, spec hash, R and
   package versions, check run, run time) and the spec that was run.
-- The app draws a seed for each calculation and writes it into the spec,
-  so the result and its script can be reproduced.
+- **The seed** is shown under the result. A simulated result adds
+  "Calculated by simulation with [k] replications; a different seed can
+  shift the result slightly." The seed is written into the spec, the
+  reproducibility record and the R script.
 - Undecided, shown as placeholders on the screen: how results are worded
   (`result_wording`), how N is rounded and reported (`n_rounding`), and
-  whether to show a power curve (`power_curve`), and which seed a
-  calculation uses (`calculation_seed`); `judgement-calls.md` B11–B13
-  and B15.
+  whether to show a power curve (`power_curve`); `judgement-calls.md`
+  B11–B13. The seed (`calculation_seed`, B15) is decided: a fixed
+  default.
 - The logic is in `R/results.R`.
 
 **The engine is used read-only.** The prototype uses the installed

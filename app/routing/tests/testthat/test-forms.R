@@ -199,10 +199,10 @@ test_that("E7 takes one SD or one per cell, as validate_spec() accepts", {
   expect_identical(check$status, "ok", label = paste(check$problems, collapse = "; "))
 })
 
-test_that("results say plainly that nothing is calculated", {
-  html <- as.character(form_result_ui(tree$endpoints$E1, character(), list(status = "ok", problems = character(), advice = character()), list(a = 1)))
+test_that("screens that don't calculate yet say so plainly", {
+  html <- as.character(form_result_ui(tree$endpoints$E10, character(), list(status = "ok", problems = character(), advice = character()), list(a = 1)))
   expect_match(html, "Calculation not wired in yet", fixed = TRUE)
-  expect_match(html, "doesn&#39;t calculate anything|doesn't calculate anything")
+  expect_match(html, "isn&#39;t wired into the prototype yet|isn't wired into the prototype yet")
   html <- as.character(form_result_ui(tree$endpoints$E1, "“Cohen's d” is empty.", NULL))
   expect_match(html, 'role="alert"', fixed = TRUE)
   html <- as.character(form_result_ui(tree$endpoints$E1, character(), list(status = "unavailable")))

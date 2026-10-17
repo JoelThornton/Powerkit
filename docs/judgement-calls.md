@@ -621,7 +621,20 @@ is kept below as the record of the options.
   this entry (unsourced). The "observed power" line states the build
   guide's intent; it cites no reference, and the claim that observed
   power "says nothing beyond the p-value" needs a source from `refs.bib`
-  before release (unsourced).
+  before release.
+  - **Maintainer's decision (17 October 2026):** keep the "planned power,
+    not observed power" line.
+  - **Candidate source, not verified:** Hoenig and Heisey's paper on the
+    abuse of power calculations, DOI 10.1198/000313001300339897. On
+    17 October 2026 the DOI resolved at doi.org, and its metadata (from
+    doi.org) gives "The Abuse of Power", John M. Hoenig and Dennis M.
+    Heisey, *The American Statistician*, 55(1), 19–24, 2001. The article
+    itself couldn't be opened: the publisher's page
+    (tandfonline.com) returned 403 Forbidden to this session, and the
+    metadata has no abstract. So the claim that observed power adds
+    nothing beyond the p-value has not been checked against it, and it
+    is **not** in `refs.bib`. Status: candidate, for the maintainer to
+    open and verify.
 - **Who might disagree, and why:**
   - A sentence is easier to read and to copy into a methods section.
   - A number first is quicker to scan.
@@ -664,42 +677,81 @@ is kept below as the record of the options.
 
 ### B14. The prototype banner, now that E1–E8 calculate
 
-- **Question:** the banner says "Prototype: shows which analysis you need;
-  it doesn't calculate anything yet.", and each card ends "No numbers are
-  calculated in this prototype." Both are now out of date for E1–E8,
-  which calculate on their input screen. The banner was left unchanged
-  (the maintainer's instruction that it stays).
-- **Options:** keep both as they are; change the banner to say that some
-  analyses calculate; change the card line only on E1–E8.
-- **Who might disagree, and why:** an accurate banner avoids confusing
-  testers; an unchanged banner keeps expectations low while results are
-  under review.
-- **Recorded in:** this entry only (no setting).
+- **Question:** the banner said "Prototype: shows which analysis you need;
+  it doesn't calculate anything yet.", and each card ended "No numbers are
+  calculated in this prototype." Both were out of date for E1–E8, which
+  calculate on their input screen.
+- **Maintainer's decision (17 October 2026):** make the text accurate.
+  - The banner now reads "Prototype: calculations are available for
+    E1–E8; other designs show guidance only for now."
+  - E1–E8's cards no longer say "No numbers are calculated"; every other
+    card keeps it.
+  - The input screens that don't calculate yet (E9–E14) say "The
+    calculation for this design isn't wired into the prototype yet".
+- **Knock-on effects:** when another end point is wired in, the banner's
+  list changes with it (`tree.yaml`, `banner`; the card line follows
+  `forms.yaml`, `calculates`).
+- **Recorded in:** this entry, `tree.yaml` (`banner`) and `forms.yaml`
+  (`calculates`).
 
 ### B15. The seed for a calculation
 
 - **Question:** which random-number seed does a calculation on the result
   screen use?
-- **Now:** a new random seed each time. It's recorded in the spec that was
-  run, in the reproducibility record and in the R script, so any one
-  result can be reproduced exactly. But the same answers entered twice
-  can give slightly different simulated results. In the screenshots for
-  this PR, E2's required N came out as 196, 198 and 200 on three runs.
-  That's Monte Carlo noise within the reported 95% interval.
+- **Before:** a new random seed each time, recorded with the result. The
+  same answers entered twice could give slightly different simulated
+  results: in the screenshots for PR #34, E2's required N came out as 196,
+  198 and 200 on three runs (Monte Carlo noise within the reported 95%
+  interval).
 - **Options:**
-  - a new random seed each time (as now);
   - a fixed default seed, so the same answers always give the same
     result;
-  - ask the user, with a default.
+  - a new random seed each time;
+  - more replications, so the result moves less from seed to seed (at
+    the cost of time).
+- **Maintainer's decision (17 October 2026): a fixed default seed is now
+  in place.** The seed is 1 (`forms.yaml`, `default_seed`). It is a field
+  on every input screen ("Random seed"), which the user can change; it is
+  shown on the result screen, recorded in the result (spec and
+  reproducibility record) and written into the exported R script. A
+  simulated result also says: "Calculated by simulation with [k]
+  replications; a different seed can shift the result slightly."
 - **What tools and sources do:** not checked for this entry (unsourced).
 - **Who might disagree, and why:**
   - A fixed seed avoids confusion when a user reruns and sees a different
     N.
   - A random seed avoids treating one simulated draw as exact.
-- **Knock-on effects:** exact results (E7, E8) don't depend on the seed in
-  practice (Departure 3).
-- **Recorded in:** setting `calculation_seed` (shown on the result
-  screen).
+  - More replications reduce the noise rather than hide it.
+- **Knock-on effects:** exact results (E1–E6 by formula, E7, E8) don't
+  depend on the seed in practice (Departure 3 for E7 and E8). The seed
+  field is shown on every screen, including those whose default doesn't
+  simulate.
+- **Recorded in:** setting `calculation_seed` (now `fixed`, shown on the
+  result screen).
+
+### B16. Simulation for "data that won't meet the assumptions" (E1–E6)
+
+- **Question:** E1–E6 offer Spower simulation "if you expect your data
+  won't meet the test's assumptions" (maintainer's decision, 17 October
+  2026). As wired, Spower simulates normal data with equal variances
+  (Welch's aside), the same assumptions as pwr's formula. So the
+  simulation gives the formula's answer up to Monte Carlo noise; it
+  doesn't yet model the data the user is worried about.
+- **Options:**
+  - keep the option as is, and say on the screen that it simulates
+    normal data;
+  - let the user describe the departure (for example skewness, unequal
+    variances, a different distribution), which needs new spec fields
+    and Spower's other data generators;
+  - remove the option until the spec can describe the departure.
+- **What tools and sources do:** Spower's experiment functions accept
+  custom data generators (its documentation; not checked in detail for
+  this entry).
+- **Who might disagree, and why:** offering the option now signals the
+  direction; offering it before it does anything different may mislead.
+- **Knock-on effects:** the spec format (new fields), validation for each
+  new generator.
+- **Recorded in:** this entry only (no setting).
 
 ## C. Which card users reach
 

@@ -59,7 +59,7 @@ different answer, the difference is listed in "Known differences".
 | InteractionPoweR | Not covered (interactions only): to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | One-sided tests: `alternative` (`"two.sided"`, `"greater"`, `"less"`; Spower 0.7), or `two.tailed = FALSE`, which means `"greater"` in Spower's orientation (group 1 minus group 2). Spower 0.6.4's `two.tailed = FALSE` halved the two-sided p-value regardless of direction (Departure 4, retired); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
-| **powerkit** | Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
+| **powerkit** | **By default, pwr's formula** (Departure 9): `pwr.t.test()` (one-sample; paired, with d_z; two equal groups) or `pwr.t2n.test()` (unequal groups), Student's only. **On request, and for Welch's:** Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
 
 ### Correlation, two proportions, chi-square test of independence
 
@@ -71,7 +71,7 @@ different answer, the difference is listed in "Known differences".
 | InteractionPoweR | Not covered: to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
-| **powerkit** | Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
+| **powerkit** | **By default, pwr's formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation), `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation, no continuity correction) and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
 ## Factorial ANOVA
 
@@ -293,7 +293,9 @@ kept so later departures keep theirs.
   (maintainer's decision 6; G*Power's documentation itself is still to check
   here).
 - **powerkit:** no correction, and no option for one (maintainer's decision
-  6), as in G*Power.
+  6), as in G*Power. This applies when Spower simulates (on request since
+  17 October 2026); pwr's formulas, the default (Departure 9), have no
+  continuity correction either.
 - **Size:** two proportions, p1 = .50, p2 = .65, 170 per group,
   alpha = .05, the same 5,000 seeded data sets: power 0.8178 without the
   correction and 0.7894 with it (.028 lower). For the chi-square test it
@@ -364,6 +366,39 @@ kept so later departures keep theirs.
   the maintainer's decision (decision 10), not only a workaround for the
   bug, so the explicit argument stays after the fix reaches CRAN.
 - **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+
+### 9. Basic tests (E1–E6): pwr's formula by default, not Spower's simulation
+
+- **Established convention:** powerkit's earlier default, and the
+  convention it followed, was simulation with Spower for every basic test
+  (`Spower()` with `p_t.test()`, `p_r()`, `p_prop.test()`,
+  `p_chisq.test()`) [Spower-src]. pwr gives the same tests by formula.
+- **powerkit:** pwr's formula by default (maintainer's decision,
+  17 October 2026; `docs/decisions.md`): exact where an exact answer
+  exists (the t-tests, by the noncentral t; the chi-square test, by the
+  noncentral chi-square), and no Monte Carlo noise. For a correlation
+  (Fisher's z) and two proportions (Cohen's h) pwr's formulas are
+  approximations. Spower simulation stays available on request, and is
+  used for Welch's t-test, which pwr doesn't cover.
+- **Size:** the example designs below, alpha = .05 two-sided, formula
+  against Spower simulation with 5,000 seeded replications (seed 9, one
+  core). Every difference is within 2 Monte Carlo standard errors, so it
+  is simulation noise; the formula removes it.
+
+  | Test | n | Formula (pwr) | Simulation (Spower) | Difference |
+  | --- | --- | --- | --- | --- |
+  | One-sample t, d = 0.3 | 90 | 0.8038 | 0.8060 | +0.0022 |
+  | Independent t (Student's), d = 0.4 | 200 | 0.8036 | 0.7954 | -0.0082 |
+  | Paired t, d_z = 0.35 | 60 | 0.7601 | 0.7580 | -0.0021 |
+  | Correlation, r = -0.2 | 120 | 0.5952 | 0.5926 | -0.0026 |
+  | Two proportions, .6 vs .7 | 340 | 0.4911 | 0.4858 | -0.0053 |
+  | Chi-square, 3 x 2 table (example spec) | 150 | 0.0855 | 0.0870 | +0.0015 |
+
+- **Test:** `test-backend-pwr.R`, "departure: pwr's formula vs Spower's
+  simulation (Departure 9)", which checks each size below.
+- **Shown to users / in the methods paragraph:** shown on the result
+  screen when the formula was used (`app/routing/forms.yaml`,
+  `departures`). The methods paragraph is still a placeholder.
 
 ## Known differences
 

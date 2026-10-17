@@ -56,8 +56,10 @@ changed. What the screenshots now show differently:
   design, the user picks "None of these fit / I'm not sure" for the main
   predictor.
 
-The prototype is routing only. No numbers are calculated, and a card that
-"runs in powerkit" would run in the engine, not here.
+The walkthroughs check routing only. Since phase 5, part 1, E1–E8's input
+screens also calculate (the engine runs them); the walkthroughs stop at the
+card. Cards for E1–E8 no longer say "No numbers are calculated", and E1–E6
+name pwr's formula as their default (17 October 2026).
 
 ## Flags
 

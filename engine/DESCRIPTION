@@ -6,17 +6,17 @@ Authors@R:
            role = c("aut", "cre"))
 Description: Reads a single design specification (JSON) for common
     psychology designs, checks that it describes a possible population, and
-    routes it to validated simulation backends ('Spower', 'power4mome',
+    routes it to validated backends ('pwr', 'Spower', 'power4mome',
     'Superpower', 'InteractionPoweR') to estimate power, required sample size
-    and sensitivity. This development version runs basic tests (via
-    Spower), 2x2 between and 2x2 mixed ANOVA designs (via Superpower),
+    and sensitivity. This development version runs basic tests (by exact
+    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2
+    mixed ANOVA designs (via Superpower),
     two-way regression interactions (via InteractionPoweR), and simple,
     parallel and serial mediation and first- and second-stage moderated
     mediation (PROCESS models 4, 6, 7 and 14, via power4mome).
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0)
 Imports:
@@ -26,14 +26,15 @@ Imports:
     jsonvalidate (>= 1.3.0),
     parallel,
     power4mome,
+    pwr,
     Spower (>= 0.7),
     stats,
     Superpower,
     utils
 Suggests:
     lavaan,
-    pwr,
     pwrss,
     simsem,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+RoxygenNote: 7.3.3
