@@ -10,6 +10,14 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **G\*Power parity and E4/E5 methods (PR #37, merged 17 October 2026; docs only).** [`gpower-parity.md`](gpower-parity.md)
+  compares E1–E14 with the matching G\*Power tests (inputs, outputs and
+  the effect-size calculator). pwr's Fisher's z method for E4 differs
+  from the exact method by at most 0.004 in power (1 participant at
+  r = .3); its arcsine method for E5 differs from a z test by up to 0.018
+  (3 per group). Three new judgement calls (G4–G6): what the methods
+  paragraph reports, showing actual power at the rounded N, and the E4/E5
+  method. G\*Power screenshots are needed to confirm the marked items.
 - **Phase 5, part 2: E9 (interaction) calculates in the app (PR #36,
   merged 17 October 2026 with the maintainer's yes).** E9's input screen runs
   the engine in a background R process, with an estimated progress bar

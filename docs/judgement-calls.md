@@ -52,7 +52,7 @@ The statistical decisions phase 3b needs before coding are in
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
 - [F. Validation](#f-validation): F1
-- [G. Coverage and scope](#g-coverage-and-scope): G1–G3
+- [G. Coverage and scope](#g-coverage-and-scope): G1–G6
 
 ## A. What the cards say
 
@@ -1479,3 +1479,116 @@ source for Fisher's exact test in C11.
   methods paragraph.
 - **Recorded in:** this entry; [`coverage-roadmap.md`](coverage-roadmap.md),
   Part C.
+
+### G4. Which outputs the methods paragraph must report
+
+- **Question:** which of a result's outputs does the methods paragraph
+  (phase 4, still a placeholder) have to state?
+- **Options (each separately):** the test and its tails; alpha; target
+  power; the effect size, its format and where it came from; required or
+  given N (total, per group, after attrition); the actual power at the
+  reported N; the backend, its function and version; the method (formula
+  or simulation, with replications, seed and the Monte Carlo interval);
+  any departures; the noncentrality parameter, critical value and df
+  where the backend returns them.
+- **What tools and sources do:** CLAUDE.md requires every result to
+  record the spec hash, seed, backend, and R and package versions, and
+  every departure to be stated in the methods paragraph (opened).
+  pwr's results carry the arguments, power, "method" and "note"; none of
+  powerkit's backends returns a noncentrality parameter or critical
+  value for E1–E6 or E9–E14 ([`gpower-parity.md`](gpower-parity.md)).
+  What G\*Power's output shows needs the maintainer's screenshots.
+- **Who might disagree, and why:**
+  - Reviewers used to G\*Power reports look for the noncentrality
+    parameter and critical value.
+  - A long paragraph is copied less faithfully; a short one can drop
+    the effect-size justification.
+- **Knock-on effects:** `export_script()` and the methods text; which
+  outputs need to be added to the result object.
+- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md).
+
+### G5. Showing the actual power at the rounded N
+
+- **Question:** when powerkit reports a required N, does it also show the
+  power that N actually gives (which is at or just above the target)?
+- **Options:**
+  - show it next to the required N;
+  - show it only in the details or the exported script;
+  - don't show it.
+- **What tools and sources do:** G\*Power reports an actual power with the
+  sample size (maintainer's list; screenshot to confirm). powerkit's
+  result already holds it for exact results: the `curve` has the power
+  at every N searched, including the one reported (`run_spec()` help).
+  For simulation it is an estimate with its own Monte Carlo error.
+- **Who might disagree, and why:**
+  - Showing it helps users see how much rounding to whole people (and
+    to equal groups) added.
+  - For simulated results, a second number with its own interval can
+    confuse more than it helps.
+- **Knock-on effects:** the result screen's headline (B12, N rounding);
+  the methods paragraph (G4).
+- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md).
+
+### G6. The method for correlations (E4), and for two proportions (E5)
+
+- **Question:** E4's default is now pwr's formula, which uses Fisher's z.
+  G\*Power uses the exact distribution below N = 10,000 by default
+  (maintainer). Match G\*Power, or keep pwr and record a departure? The
+  same question arises for E5, where pwr uses Cohen's h (the arcsine
+  transformation) rather than a z test.
+- **What pwr's help says:** `pwr.r.test()`: "These calculations use the
+  Z' transformation of correlation coefficient: Z'=arctanh(r) and a bias
+  correction is applied"; its source takes the critical value from the t
+  distribution and the power from the normal approximation to Fisher's z
+  (opened). `pwr.2p.test()` and `pwr.2p2n.test()` take Cohen's h
+  (`ES.h()`).
+- **Size of the difference, E4** (two-sided, alpha .05; pwr 1.3-0 against
+  pwrss 1.3.3's `power.exact.onecor()`, which its help describes as the
+  exact method of Barabesi and Greco (2002), "validated using G\*Power";
+  not checked against G\*Power itself here):
+
+  | N | r = .3: pwr | exact | r = .4: pwr | exact | r = .5: pwr | exact |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | 20 | 0.2559 | 0.2539 | 0.4302 | 0.4303 | 0.6379 | 0.6417 |
+  | 30 | 0.3712 | 0.3705 | 0.6075 | 0.6092 | 0.8250 | 0.8277 |
+  | 40 | 0.4773 | 0.4774 | 0.7405 | 0.7423 | 0.9218 | 0.9228 |
+  | 50 | 0.5716 | 0.5722 | 0.8339 | 0.8352 | 0.9670 | 0.9672 |
+  | 60 | 0.6531 | 0.6540 | 0.8965 | 0.8972 | 0.9867 | 0.9866 |
+  | 70 | 0.7222 | 0.7230 | 0.9369 | 0.9373 | 0.9948 | 0.9947 |
+  | 80 | 0.7797 | 0.7804 | 0.9623 | 0.9624 | 0.9981 | 0.9980 |
+  | 90 | 0.8267 | 0.8273 | 0.9778 | 0.9778 | 0.9993 | 0.9992 |
+  | 100 | 0.8648 | 0.8652 | 0.9872 | 0.9871 | 0.9997 | 0.9997 |
+
+  Largest difference 0.0038 (N = 20, r = .5). One-sided, the largest at
+  N = 20, 50 and 100 was 0.0047 (N = 20, r = .5). Required N for 80%
+  power: r = .3, pwr 85 (84.07 rounded up), exact 84; r = .4, 46 and 46;
+  r = .5, 29 and 29. So powerkit's E4 can report one more participant
+  than G\*Power at r = .3, and its power can differ in the third decimal,
+  which the 3-decimal validation against G\*Power's published values
+  would catch.
+- **Size of the difference, E5** (two-sided, alpha .05, equal groups;
+  pwr against pwrss's `power.z.twoprops()`, a normal-approximation z test,
+  "validated via G\*Power and PASS documentation"; whether G\*Power's z
+  test pools the variance is to confirm from a screenshot): with p1 = .10,
+  p2 = .25, power 0.248 vs 0.235 at 20 per group and 0.523 vs 0.506 at 50
+  (largest gap 0.018); required N for 80% power 97 vs 100 per group. With
+  p1 = .30, p2 = .50 the gap is at most 0.008 and the N is 93 for both.
+- **Options:**
+  - keep pwr and record the difference as a departure (convention rules:
+    `conventions.md`, results screen, methods paragraph, a test showing
+    its size);
+  - match G\*Power with an exact method from a backend that has one (for
+    E4, pwrss `power.exact.onecor()`, not a foundation tool; or Spower's
+    simulation, which estimates the exact test's power with Monte Carlo
+    error);
+  - keep pwr for E4 only below some size of difference, and switch for
+    E5 (or the reverse).
+- **Who might disagree, and why:**
+  - Users checking powerkit against G\*Power will see different third
+    decimals and, sometimes, one more participant.
+  - pwr's help gives Cohen (1988) as the source of its formulas.
+- **Knock-on effects:** Departure 9's wording; the G\*Power published-value
+  tests for E4 and E5; the card's method line.
+- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md);
+  [`coverage-roadmap.md`](coverage-roadmap.md), note 1. The comparison
+  scripts are in the PR description.
