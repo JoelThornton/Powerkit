@@ -260,6 +260,7 @@ They take a few seconds and check:
 - that `tree.yaml` matches `decision-tree.md`.
 
 They run on GitHub on every pull request and push
-(`.github/workflows/routing-prototype-tests.yaml`). That job installs only
-the prototype's packages; it doesn't install or run the engine. They
-aren't part of the engine's `devtools::test()`.
+(`.github/workflows/routing-prototype-tests.yaml`). That job installs the
+package versions in `renv.lock` (the engine's packages included); the
+prototype itself still makes no engine calls. They aren't part of the
+engine's `devtools::test()`.
