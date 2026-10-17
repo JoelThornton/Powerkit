@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* Validation (for maintainers): two new chunks,
+  `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
+  compare the joint-significance test for parallel and serial mediation
+  in power4mome (with powerkit's translation of the spec) and in simsem,
+  with data generated from residual variances worked out separately from
+  the engine. Run with `scripts/run-validation.R --only <chunk>` or the
+  `full-validation` workflow.
+
 * The citations export (text and BibTeX) doesn't print a refs.bib entry's verification
   note ("Verified ..."), which records where the entry was checked rather
   than being part of the reference.
