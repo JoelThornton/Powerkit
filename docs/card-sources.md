@@ -1,6 +1,6 @@
 # Card sources
 
-*Last updated: 16 October 2026.*
+*Last updated: 17 October 2026.*
 
 Every factual claim on the routing prototype's end-point cards, with where
 it comes from. A claim is anything the card states as fact: what a tool
@@ -303,6 +303,18 @@ Each was opened and read on 16 October 2026. R package documentation is from the
 - **Zhang et al. (2011):** F. Zhang, A. K. Wagner and D. Ross-Degnan, "Simulation-based power calculation for designing interrupted time series analyses of health policy interventions", *Journal of Clinical Epidemiology* 64 (2011), 1252-1261, doi:10.1016/j.jclinepi.2011.02.007. Read from the PDF supplied by the maintainer (17 October 2026).
 - **Albers and Lakens (2018):** C. Albers and D. Lakens, "When power analyses based on pilot data are biased: Inaccurate effect size estimators and follow-up bias", *Journal of Experimental Social Psychology* 74 (2018), 187-195, doi:10.1016/j.jesp.2017.09.004. Read from the PDF supplied by the maintainer (17 October 2026).
 
+## Verified by the maintainer from full text
+
+The maintainer checked these in full-text PDFs they hold (17 October 2026).
+They are in `engine/inst/citations/refs.bib` with the note "Verified
+2026-10-17 from full-text PDF held by the maintainer". The PDFs are not in
+the repository.
+
+- **Rubin (2021):** M. Rubin, "When to adjust alpha during multiple testing: A consideration of disjunction, conjunction, and individual testing", *Synthese* 199, 10969-11000, doi:10.1007/s11229-021-03276-4 (volume and pages as printed in Rubin, 2024). Verified: the individual, disjunction and conjunction framework and the .80 × .80 = .64 conjunction example (p. 7).
+- **Rubin (2024):** M. Rubin, "Inconsistent multiple testing corrections: The fallacy of using family-based error rates to make inferences about individual hypotheses", *Methods in Psychology* 10, 100140, doi:10.1016/j.metip.2024.100140. Verified: section 7 covers sensitivity analysis, justified alpha and one-sided tests.
+- **Mikael Rubin (2025):** "PoweR Analysis in Review: Leveraging R to Conduct Power Analyses for a Range of Research Designs", *International Journal of Psychology* 60, e70017, doi:10.1002/ijop.70017. Verified: Table 1 names MLMPower, Longpower, PowerLMM, MixedPower and SimR; it cites Dziak et al. (2020), doi:10.1007/s12144-018-0018-1. Also the source for powerkit's attrition caveat.
+- **Frane (2019):** A. V. Frane, "Misguided opposition to multiplicity adjustment remains a problem", *J. Mod. Appl. Stat. Methods* 18(2), eP2836, doi:10.22237/jmasm/1556669400, as printed in Rubin (2024)'s reference list. Frane's own text was not read.
+
 ## Candidates, not verified
 
 Found but not opened (a paywall or a site this environment can't reach). Details come from Crossref's metadata or from the opened source that cites them; the papers themselves were not read.
@@ -313,3 +325,6 @@ Found but not opened (a paywall or a site this environment can't reach). Details
 - **Schoemann, Boulton and Short (2017):** the mediation power paper listed on UCLA OARC's "How do you run a Monte Carlo power analysis for simple, serial and parallel mediation models?" page; *Social Psychological and Personality Science* 8(4), 379-386, doi:10.1177/1948550617715068. Not opened. Possible source for the mediators' residual correlation.
 - **Hayes and Preacher (2014):** "Statistical mediation analysis with a multicategorical independent variable", *British Journal of Mathematical and Statistical Psychology* 67(3), 451-470, doi:10.1111/bmsp.12028 (Crossref metadata). Full text not opened.
 - **Lakens, Scheel and Isager (2018):** equivalence testing tutorial in *Advances in Methods and Practices in Psychological Science* 1(2), 259-269, doi:10.1177/2515245918770963 (cited by the TOSTER vignette). Not opened.
+- **Dziak, Dierker and Abar (2020):** *Current Psychology* 39(3), 870-877, doi:10.1007/s12144-018-0018-1. Read in the author manuscript only (`judgement-calls.md`, B11); stays a candidate until the published version is checked.
+- **Hoenig and Heisey (2001):** *The American Statistician* 55(1), 19-24, doi:10.1198/000313001300339897 (doi.org metadata). Not opened.
+- **G\*Power 3.1 manual:** read from the copy the maintainer supplied (`gpower-parity.md`), but not added to `refs.bib`; stays a candidate.

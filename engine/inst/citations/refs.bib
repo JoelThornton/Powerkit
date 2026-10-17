@@ -6,11 +6,15 @@
 %   * copied from the installed package's citation()
 %     (toBibtex(citation("pkg"))), with a comment saying which package and
 %     version it came from; or
-%   * an entry whose DOI a session actually opened, with a note field saying
-%     where and when it was verified, starting "Verified", with an ISO date
-%     and the URL opened, e.g.
+%   * an entry with a DOI that was checked against the source itself, with a
+%     note field saying where and when, starting "Verified" and an ISO date,
+%     then either the URL a session opened, e.g.
 %       note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd},
-%     The citations export doesn't print this note.
+%     or, when the maintainer checked the full text (rule added 17 October
+%     2026, docs/decisions.md),
+%       note = {Verified 2026-10-17 from full-text PDF held by the maintainer},
+%     The PDFs themselves are not committed. The citations export doesn't
+%     print this note.
 % A test (test-export-citations.R) checks every entry against these rules.
 %
 % Keys the citations export (export_citations()) looks for. Until an entry
@@ -57,4 +61,54 @@
   volume = {6},
   number = {3},
   year = {2023},
+}
+
+% Sources checked by the maintainer in full text (17 October 2026). Fields
+% are copied from the PDFs: the title page of each paper, and Rubin (2024)'s
+% reference list for the volume and pages of Rubin (2021) (the maintainer's
+% copy is the author preprint) and for Frane (2019).
+@Article{Rubin2021_alpha,
+  author = {Mark Rubin},
+  title = {When to adjust alpha during multiple testing: A consideration of disjunction, conjunction, and individual testing},
+  journal = {Synthese},
+  year = {2021},
+  volume = {199},
+  pages = {10969--11000},
+  doi = {10.1007/s11229-021-03276-4},
+  note = {Verified 2026-10-17 from full-text PDF held by the maintainer},
+}
+
+@Article{Rubin2024_inconsistent,
+  author = {Mark Rubin},
+  title = {Inconsistent multiple testing corrections: The fallacy of using family-based error rates to make inferences about individual hypotheses},
+  journal = {Methods in Psychology},
+  year = {2024},
+  volume = {10},
+  pages = {100140},
+  doi = {10.1016/j.metip.2024.100140},
+  note = {Verified 2026-10-17 from full-text PDF held by the maintainer},
+}
+
+@Article{RubinMikael2025_power,
+  author = {Mikael Rubin},
+  title = {PoweR Analysis in Review: Leveraging R to Conduct Power Analyses for a Range of Research Designs},
+  journal = {International Journal of Psychology},
+  year = {2025},
+  volume = {60},
+  pages = {e70017},
+  doi = {10.1002/ijop.70017},
+  note = {Verified 2026-10-17 from full-text PDF held by the maintainer},
+}
+
+% As printed in Rubin (2024)'s reference list (the maintainer's check).
+@Article{Frane2019_misguided,
+  author = {A. V. Frane},
+  title = {Misguided opposition to multiplicity adjustment remains a problem},
+  journal = {J. Mod. Appl. Stat. Methods},
+  year = {2019},
+  volume = {18},
+  number = {2},
+  pages = {eP2836},
+  doi = {10.22237/jmasm/1556669400},
+  note = {Verified 2026-10-17 from full-text PDF held by the maintainer (Rubin, 2024, reference list)},
 }

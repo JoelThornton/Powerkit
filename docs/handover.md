@@ -57,7 +57,9 @@ groups by pwrss).
   `settings`).
 - **Sourcing:** citations come only from `engine/inst/citations/refs.bib`
   or a package's own `citation()`. Open a source (via its DOI) before
-  adding it to `refs.bib`, with a verification note; if it can't be opened,
+  adding it to `refs.bib`, with a verification note (or, for a source the
+  maintainer checked in full text, "Verified YYYY-MM-DD from full-text PDF
+  held by the maintainer"); if it can't be opened,
   mark it "candidate" and leave it out (as with Hoenig and Heisey for B11).
   Any departure from a tool's conventions goes in `conventions.md`, on the
   result screen, in the methods paragraph, and in a test showing its size.
