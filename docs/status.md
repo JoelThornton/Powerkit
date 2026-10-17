@@ -6,6 +6,8 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
 [`validation-log.md`](validation-log.md).
 
+For a short summary and the working rules, see [`handover.md`](handover.md).
+
 ## Where things are
 
 - **Phase 5, part 2: E9 (interaction) calculates in the app (draft PR,
