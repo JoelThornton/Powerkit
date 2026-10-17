@@ -122,7 +122,7 @@ test_that("an entry not from citation() needs a DOI and a note saying where and 
   )
 })
 
-test_that("a verification note is not shown in the formatted citation", {
+test_that("a verification note is shown in neither the text nor the BibTeX export", {
   path <- tempfile(fileext = ".bib")
   on.exit(unlink(path))
   writeLines(c(
@@ -138,6 +138,10 @@ test_that("a verification note is not shown in the formatted citation", {
   text <- export_citations(fake_result("Spower"), refs = path)
   expect_match(text, "A Fixture, Not a Real", fixed = TRUE)
   expect_no_match(text, "Verified 2026-10-01", fixed = TRUE)
+  bib <- export_citations(fake_result("Spower"), format = "bibtex", refs = path)
+  expect_match(bib, "@Article{Spower_method,", fixed = TRUE)
+  expect_match(bib, "doi = {10.0000/fixture},", fixed = TRUE)
+  expect_no_match(bib, "Verified", fixed = TRUE)
 })
 
 test_that("the software used underneath is listed, each from its own citation()", {

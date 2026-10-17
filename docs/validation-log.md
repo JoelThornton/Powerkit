@@ -158,8 +158,9 @@ plus an allowance (`expect_power_agrees_within()`):
   the rule the direct-call tests use (`expect_power_agrees()` in
   `helper-validation.R`): chance alone rarely fails it.
 - **allowance 0.02** (2 points of power) for comparisons 1 and 3, where
-  one side is a normal-theory approximation. **This value is proposed, not
-  decided; the maintainer to confirm** (`crosscheck_allowance()`). The
+  one side is a normal-theory approximation. **Decided by the maintainer on
+  17 October 2026: 0.02, for comparisons with pwrss only, at n >= 100**
+  (`crosscheck_allowance(n)`, which stops for n < 100). The original
   reasoning: the approximations' main effect is ignoring the sampling
   variability of the standard errors, which matters little at these sample
   sizes. 0.02 is small enough that a real error in power4mome's data
@@ -212,9 +213,14 @@ What the numbers show:
   differences were within it: for comparison 1, with 0.0033 and 0.0045 to
   spare.
 
-**Proposed final allowance (for the maintainer to decide; unchanged in
-the code): 0.02, for the comparisons with pwrss only, at these designs
-(n = 100 and 200).**
+**Final allowance (the maintainer's decision, 17 October 2026): 0.02,
+for comparisons with pwrss only, at n >= 100.** The reason: pwrss treats
+the standard errors as known, so its power is slightly higher than
+simulated power, and simsem shows the same gap against pwrss as
+power4mome does, so the gap comes from the formula side. In the code,
+`crosscheck_allowance(n)` returns 0.02 and stops for n < 100, where no
+allowance has been decided. Comparisons between two simulations
+(power4mome vs simsem) have no allowance. The analysis behind it:
 - A real, systematic gap of about 0.01 to 0.02 at n = 100 exists. So an
   allowance of 0 would make the comparison 3 tests fail often on reruns
   with new seeds: at n = 100 the gap (0.016) is already larger than the

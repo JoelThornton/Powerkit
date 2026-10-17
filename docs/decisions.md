@@ -1376,9 +1376,20 @@ reruns supersede the 16 October runs, so E13 and E14 are `runs_validated`
 again.
 
 **First run of the mediation cross-check.** All 4 tests ran and passed.
-The numbers, and a proposed final value for the 0.02 allowance, are in
-`docs/validation-log.md` ("Results of the first run"). The allowance is
-unchanged in the code until the maintainer decides.
+The numbers are in `docs/validation-log.md` ("Results of the first run").
+
+**Cross-check allowance (the maintainer's decision).** 0.02, for
+comparisons with pwrss only, at n >= 100. pwrss treats the standard errors
+as known, so its power comes out slightly higher than simulated power: all
+six simulation-vs-pwrss differences in the first run were negative (0.005
+to 0.017). simsem shows the same gap against pwrss as power4mome does, so
+the gap comes from the formula side, not from power4mome. With no
+allowance, the comparison would often fail by chance on reruns (at n = 100
+the gap already exceeds the Monte Carlo-only tolerance); with 0.02 there
+is about 4 standard errors of headroom. Comparisons between two
+simulations (power4mome vs simsem) have no allowance. Below n = 100 the gap
+is likely larger and nothing is decided: `crosscheck_allowance(n)` stops
+there.
 
 **refs.bib: a second route for entries (the maintainer's rule).** The
 rule is "refs.bib or the package's own `citation()`", but the test
@@ -1387,7 +1398,8 @@ accepts an entry whose DOI a session actually opened, if the entry has a
 `note` field saying where and when it was verified. The note starts with
 "Verified" and has an ISO date (not in the future) and the URL opened, for
 example `note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd}`.
+The maintainer approved this format on 17 October 2026.
 An entry with neither a matching `citation()` DOI nor such a note fails
-the test. The citations export doesn't print the verification note: it is
-provenance, not part of the reference (the BibTeX export copies the entry
-as written, note included). No entries were added.
+the test. Neither the text nor the BibTeX citations export prints the verification
+note: it is provenance, not part of the reference (maintainer's decision,
+17 October 2026). No entries were added.

@@ -68,8 +68,8 @@ fully validated. Validation runs are recorded in
     0.005 to 0.017 lower, as expected. The provisional 0.02 allowance was
     needed once, by 0.0015.
 
-  A final allowance is proposed in the [validation log](validation-log.md)
-  ("Results of the first run"), for the maintainer to decide. Moderated,
+  The allowance is decided: 0.02, for comparisons with pwrss only, at
+  n >= 100 ([validation log](validation-log.md)). Moderated,
   parallel and serial mediation have no independent cross-check yet. Why
   power4mome is used, and its established alternatives, are in
   [decisions](decisions.md), 16 October 2026.
@@ -257,9 +257,7 @@ fully validated. Validation runs are recorded in
    phase 4. The maintainer has decided its effect-size convention, group
    split and handling of correlated predictors. The decisions still open
    before coding are listed in [`phase-3b-questions.md`](phase-3b-questions.md).
-4. Decide the final allowance for the mediation cross-check (proposed:
-   keep 0.02; validation log, "Results of the first run"), and consider
-   independent cross-checks for parallel, serial and moderated mediation.
+4. Consider independent cross-checks for parallel, serial and moderated mediation.
    Send (or edit) the draft message to Shu Fai Cheung in [`upstream-questions.md`](upstream-questions.md).
 5. Confirm the proposed tiers in [`coverage.md`](coverage.md), and check
    its G*Power and MorePower rows against the G*Power manual and the

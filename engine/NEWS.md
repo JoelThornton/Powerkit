@@ -1,6 +1,6 @@
 # powerkit 0.0.0.9000
 
-* The citations export no longer prints a refs.bib entry's verification
+* The citations export (text and BibTeX) doesn't print a refs.bib entry's verification
   note ("Verified ..."), which records where the entry was checked rather
   than being part of the reference.
 * Moderated mediation (PROCESS models 7 and 14) has passed its full
