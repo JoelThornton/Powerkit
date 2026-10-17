@@ -398,6 +398,7 @@ test_that("waits are stated in seconds or minutes", {
   html <- as.character(calculating_background_ui(734, "Running the full analysis (1,000 simulations)\u2026"))
   expect_match(html, "Running the full analysis (1,000 simulations)", fixed = TRUE)
   expect_match(html, "This usually takes about 12 minutes on one core.", fixed = TRUE)
+})
 
 test_that("with attrition, the result shows the number analysed and the number to recruit", {
   skip_without_run()

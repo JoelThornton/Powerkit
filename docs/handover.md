@@ -37,8 +37,15 @@ superseded by E7 and E8 in the routing prototype.
 Merged on 17 October 2026: #35 (coverage roadmap, routing options), #36
 (E9 wired), #37 (G\*Power parity), #38 (the G5/G6 decisions and the
 Rubin addendum), #39 (sources checked), #40 (G\*Power screenshots for
-E4, E5 and E8), #41 (E5's z test, equal groups) and #42 (E5's unequal
-groups by pwrss).
+E4, E5 and E8), #41 (E5's z test, equal groups), #42 (E5's unequal
+groups by pwrss), #43 (sources the maintainer checked in full text), #44
+(the basic rerun; E5 validated again; E6 G\*Power df 1), #45 (attrition:
+the number to recruit) and #46 (walkthrough pictures re-rendered).
+
+Still needed from the maintainer: a yes on phase 5, part 2 (including
+"a required N has no preview"); the E6 G\*Power screenshot at df 2; G4
+(the methods paragraph); Dziak et al., Lakens et al. (2018), Hoenig and
+Heisey and the G\*Power manual stay candidates.
 
 ## Rules
 
