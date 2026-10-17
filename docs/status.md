@@ -10,6 +10,10 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Walkthrough pictures re-rendered (17 October 2026).** All 26 pictures
+  in `docs/figures/walkthroughs/` come from the current prototype (after
+  #44), so E4's card shows Fisher's z and E5's says "Validated".
+
 - **Attrition applied (17 October 2026; the maintainer said yes).** With
   an attrition rate, the result now gives the number analysed and the
   number to recruit: each group's analysed N divided by (1 − attrition),

@@ -1,5 +1,9 @@
 # powerkit 0.0.0.9000
 
+* Documentation: the walkthrough pictures in `docs/figures/walkthroughs/`
+  are re-rendered from the current app prototype (for example, E4's card
+  now names Fisher's z and Departure 10). No code change.
+
 * Attrition is now applied. With `options > attrition`, `run_spec()`
   returns the number to recruit (`recruitment`): each group's analysed n
   divided by (1 - attrition) and rounded up, for example 72 + 72 = 144 to
