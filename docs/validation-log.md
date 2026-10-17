@@ -160,24 +160,87 @@ plus an allowance (`expect_power_agrees_within()`):
   the rule the direct-call tests use (`expect_power_agrees()` in
   `helper-validation.R`): chance alone rarely fails it.
 - **allowance 0.02** (2 points of power) for comparisons 1 and 3, where
-  one side is a normal-theory approximation. **This value is proposed, not
-  decided; the maintainer to confirm** (`crosscheck_allowance()`). The
+  one side is a normal-theory approximation. **Decided by the maintainer on
+  17 October 2026: 0.02, for comparisons with pwrss only, at n >= 100**
+  (`crosscheck_allowance(n)`, which stops for n < 100). The original
   reasoning: the approximations' main effect is ignoring the sampling
   variability of the standard errors, which matters little at these sample
   sizes. 0.02 is small enough that a real error in power4mome's data
   generation or test of the size the validation is meant to catch (0.03,
   build guide section 6) is still likely to fail comparison 2. It can
   still pass comparisons 1 and 3, which are a sanity check, not the main
-  evidence. **Unsourced**: no measurement or reference yet shows how
-  large the approximation error is for these designs. The first full run
-  will show the observed differences, and the allowance can be revisited
-  then.
+  evidence. The first full run (17 October 2026, below) measured the
+  differences; a final value is proposed under "Results of the first
+  run".
 
-**Status.** Not run yet. Only a smoke test with 100 replications and 100
-draws has been run locally, to check that the code runs (16 October 2026).
-Its numbers are too imprecise to report as results. To run it: the
-`full-validation` workflow, chunk **mediation_crosscheck** (about
-1.5 hours, estimated).
+**Status.** First full run on 17 October 2026: 4 PASS, 0 SKIP (entry
+below, with the summary). pwrss 1.3.3 and simsem 0.5-17. It takes
+1 h 45 m of tests on GitHub (the earlier 1.5-hour figure was an
+estimate). To rerun: the `full-validation` workflow, chunk
+**mediation_crosscheck**.
+
+**Results of the first run** (10,000 replications each; 1,000 draws per
+interval). "MC only" is the combined 99.9% Monte Carlo half-width, the
+tolerance without the allowance (the tolerance printed in the summary,
+minus 0.02 where the allowance applied).
+
+| Design | Comparison | powerkit or power4mome | Other tool | Difference | MC only | Tolerance used | Allowance needed? |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| a = b = 0.3, c' = 0.1, n = 100 | 1. Monte Carlo CI: powerkit vs pwrss MC | 0.7282 | 0.7454 | −0.0172 | 0.0205 | 0.0405 | No (0.0033 to spare) |
+| same | 2. Joint: power4mome vs simsem | 0.7440 | 0.7503 | −0.0063 | 0.0202 | 0.0202 | (none allowed) |
+| same | 3. Joint: power4mome vs pwrss formula | 0.7440 | 0.7599 | −0.0159 | 0.0144 | 0.0344 | **Yes, by 0.0015** |
+| same | 3. Joint: simsem vs pwrss formula | 0.7503 | 0.7599 | −0.0096 | 0.0142 | 0.0342 | No |
+| a = 0.2, b = 0.4, c' = 0, n = 200 | 1. Monte Carlo CI: powerkit vs pwrss MC | 0.8126 | 0.8260 | −0.0134 | 0.0179 | 0.0379 | No (0.0045 to spare) |
+| same | 2. Joint: power4mome vs simsem | 0.8175 | 0.8177 | −0.0002 | 0.0180 | 0.0180 | (none allowed) |
+| same | 3. Joint: power4mome vs pwrss formula | 0.8175 | 0.8230 | −0.0055 | 0.0127 | 0.0327 | No |
+| same | 3. Joint: simsem vs pwrss formula | 0.8177 | 0.8230 | −0.0053 | 0.0127 | 0.0327 | No |
+
+What the numbers show:
+
+- **The sharpest check passes easily.** For comparison 2, power4mome and
+  simsem agree to within 0.0063 and 0.0002: about a third of, and almost
+  none of, their Monte Carlo tolerance. Both apply the same test to data
+  each tool generated independently.
+- **Every simulation-vs-pwrss difference is negative.** The simulated
+  power is below pwrss's normal-theory value in all six comparisons that
+  involve pwrss: by 0.010 to 0.017 at n = 100 and 0.005 to 0.013 at
+  n = 200. That is the direction expected: pwrss treats the standard
+  errors as known, and the simulations estimate them in each data set.
+  The gap is smaller at the larger n. Both power4mome and simsem show it
+  against pwrss's joint test, so it comes from the formula side, not from
+  power4mome.
+- **The 0.02 allowance was needed once.** In one of the six comparisons
+  (n = 100, power4mome's joint test vs pwrss's formula), the difference
+  was 0.0015 beyond the Monte Carlo-only tolerance. Elsewhere the
+  differences were within it: for comparison 1, with 0.0033 and 0.0045 to
+  spare.
+
+**Final allowance (the maintainer's decision, 17 October 2026): 0.02,
+for comparisons with pwrss only, at n >= 100.** The reason: pwrss treats
+the standard errors as known, so its power is slightly higher than
+simulated power, and simsem shows the same gap against pwrss as
+power4mome does, so the gap comes from the formula side. In the code,
+`crosscheck_allowance(n)` returns 0.02 and stops for n < 100, where no
+allowance has been decided. Comparisons between two simulations
+(power4mome vs simsem) have no allowance. The analysis behind it:
+- A real, systematic gap of about 0.01 to 0.02 at n = 100 exists. So an
+  allowance of 0 would make the comparison 3 tests fail often on reruns
+  with new seeds: at n = 100 the gap (0.016) is already larger than the
+  Monte Carlo-only tolerance (0.014).
+- With 0.02, the largest observed gap (0.0172) leaves about 0.023 for
+  Monte Carlo noise in comparison 1, nearly 4 standard errors of the
+  difference (about 0.0062). Comparison 3 has about 0.018 to spare,
+  about 4 standard errors (about 0.0044).
+- A smaller value, such as 0.01, would leave only about 2 standard errors
+  in comparison 3 at n = 100, so chance alone would fail it in a few
+  percent of reruns.
+- A larger value would only make comparisons 1 and 3 less sensitive.
+  They are a sanity check; comparison 2, with no allowance, is the main
+  evidence.
+- If designs with n below 100 are added, the gap is likely larger, and
+  the allowance should be revisited.
+
+This rests on one run of two designs.
 
 ### Parallel and serial mediation (joint test against simsem)
 
@@ -388,6 +451,9 @@ PASS    process_6 / serial mediation: Type I error is near alpha when the M1->M2
 
 ## 2026-10-16 · process_7 (GitHub Actions)
 
+*Superseded by the rerun of 17 October 2026 (below), the first after the
+power4mome seeding fix.*
+
 - **Run:** [run 38817441311](https://github.com/JoelThornton/Powerkit/actions/runs/38817441311) of the `full-validation` workflow.
   **Commit:** 3d30d38 (main). **Cores:** 4, all on one test at a time;
   power4mome simulations in batches (PR #10).
@@ -418,6 +484,9 @@ PASS    process_7 / PROCESS model 7: Type I error is near alpha when the XW->M p
 ```
 
 ## 2026-10-16 · process_14 (GitHub Actions)
+
+*Superseded by the rerun of 17 October 2026 (below), the first after the
+power4mome seeding fix.*
 
 - **Run:** [run 38817510781](https://github.com/JoelThornton/Powerkit/actions/runs/38817510781) of the `full-validation` workflow.
   **Commit:** 3d30d38 (main). **Cores:** 4, all on one test at a time;
@@ -558,3 +627,121 @@ so their results are identical. E10–E12 stay validated.
 `full-validation` workflow and record them here; then set E13 and E14 back
 to `runs_validated` (tree.yaml, decision-tree.md table 2.3, coverage.md,
 README).
+
+**Resolved 17 October 2026:** both chunks were rerun on the merged code
+(commit 4b63d5f) and passed; see the two entries below. E13 and E14 are
+`runs_validated` again.
+
+## 2026-10-17 · process_7 (GitHub Actions; rerun after the seeding fix)
+
+This rerun supersedes the 16 October process_7 entry: it is the first full
+run with the power4mome seeding fix (PR #20).
+
+- **Run:** [run 38972379717](https://github.com/JoelThornton/Powerkit/actions/runs/38972379717) of the `full-validation` workflow.
+  **Commit:** 4b63d5f (main, PR #20 merged). **Cores:** 4, all on one
+  test at a time; power4mome simulations in batches (PR #10), each call
+  seeded with `set.seed()` as well as `iseed` (PR #20).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_7:** 2 PASS, 0 FAIL, 0 ERROR, 3 SKIP (of 5). powerkit matches a
+  direct power4mome call (0.9089 vs 0.9097, tolerance 0.0134), and the
+  Type I error rate with the XW->M path at 0 is 0.0502. The three skips
+  are the published-value tests, each with the reason "published
+  benchmark not transcribed yet (TODO_PUBLISHED_VALUE)", as expected.
+- **Time:** 4 h 17 m of tests (4 h 18 m for the whole run). Run at the
+  same time as process_14, on a separate GitHub machine.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 02:11   Commit: 4b63d5f   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 3 SKIP, 0 NOT RUN (of 5)
+
+SKIP    process_7 / PROCESS model 7: matches the power4mome vignette example (published) (3s)
+SKIP    process_7 / PROCESS model 7: matches Donnelly, Jorgensen & Rudolph (2023) (published) (3s)
+SKIP    process_7 / PROCESS model 7: required n matches the power4mome vignette (published) (3s)
+PASS    process_7 / PROCESS model 7: powerkit matches a direct power4mome call (2h 50m)
+          success: powerkit's estimate 0.9089 vs the direct backend call 0.9097: difference -0.0008; the 99.9% Monte Carlo tolerance is 0.0134.
+PASS    process_7 / PROCESS model 7: Type I error is near alpha when the XW->M path is 0 (1h 26m)
+          success: Type I error rate 0.0502; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-17 · process_14 (GitHub Actions; rerun after the seeding fix)
+
+This rerun supersedes the 16 October process_14 entry: it is the first
+full run with the power4mome seeding fix (PR #20).
+
+- **Run:** [run 38972454550](https://github.com/JoelThornton/Powerkit/actions/runs/38972454550) of the `full-validation` workflow.
+  **Commit:** 4b63d5f (main, PR #20 merged). **Cores:** 4, all on one
+  test at a time; power4mome simulations in batches (PR #10), each call
+  seeded with `set.seed()` as well as `iseed` (PR #20).
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below).
+- **process_14:** 2 PASS, 0 FAIL, 0 ERROR, 2 SKIP (of 4). powerkit matches
+  a direct power4mome call (0.9112 vs 0.9097, tolerance 0.0133), and the
+  Type I error rate with the MW->Y path at 0 is 0.0494. The two skips are
+  the published-value tests, each with the reason "published benchmark not
+  transcribed yet (TODO_PUBLISHED_VALUE)", as expected.
+- **Time:** 4 h 16 m of tests (4 h 18 m for the whole run). Run at the
+  same time as process_7, on a separate GitHub machine.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 02:12   Commit: 4b63d5f   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 2 SKIP, 0 NOT RUN (of 4)
+
+SKIP    process_14 / PROCESS model 14: matches a power4mome vignette example (published) (3s)
+SKIP    process_14 / PROCESS model 14: matches Donnelly, Jorgensen & Rudolph (2023) (published) (3s)
+PASS    process_14 / PROCESS model 14: powerkit matches a direct power4mome call (2h 50m)
+          success: powerkit's estimate 0.9112 vs the direct backend call 0.9097: difference 0.0015; the 99.9% Monte Carlo tolerance is 0.0133.
+PASS    process_14 / PROCESS model 14: Type I error is near alpha when the MW->Y path is 0 (1h 25m)
+          success: Type I error rate 0.0494; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====
+```
+
+## 2026-10-17 · mediation_crosscheck (GitHub Actions; first run)
+
+The first run of the independent cross-check ("Independent cross-check
+for mediation", above).
+
+- **Run:** [run 38976948299](https://github.com/JoelThornton/Powerkit/actions/runs/38976948299) of the `full-validation` workflow.
+  **Commit:** 164fadc (main, PR #23 merged). **Cores:** 4, one per test,
+  4 tests at a time.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (versions in the summary below). The summary doesn't list
+  the two cross-check packages. The workflow log's renv restore installed
+  **pwrss 1.3.3** and **simsem 0.5-17**, the versions in `renv.lock`.
+- **mediation_crosscheck:** 4 PASS, 0 FAIL, 0 ERROR, 0 SKIP (of 4). Every
+  test ran; none skipped. Each saved result holds the compared estimates,
+  and the tests took 49 to 105 minutes each. The numbers, by pairing, are
+  in "Independent cross-check for mediation", "Results of the first run",
+  above.
+- **Time:** 1 h 45 m of tests (1 h 46 m for the whole run), against an
+  estimate of about 1.5 hours. The two Monte Carlo interval tests took
+  1 h 41 m and 1 h 45 m, the two joint-test tests 50 and 49 minutes.
+
+```
+===== powerkit validation summary (copy from here) =====
+Date: 2026-10-17 00:24   Commit: 164fadc   Cores: 4
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Packages: powerkit 0.0.0.9000, Superpower 0.2.4.1, Spower 0.6.4, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 4 PASS, 0 FAIL, 0 ERROR, 0 SKIP, 0 NOT RUN (of 4)
+
+PASS    mediation_crosscheck / cross-check (equal_paths): powerkit's Monte Carlo CI matches pwrss's Monte Carlo interval test (1h 41m)
+          success: Estimates 0.7282 and 0.7454 differ by -0.0172; the tolerance is 0.0405 (99.9% Monte Carlo interval plus an allowance of 0.020).
+PASS    mediation_crosscheck / cross-check (equal_paths): the joint test agrees in power4mome, simsem and pwrss (0h 50m)
+          success: Estimates 0.7440 and 0.7503 differ by -0.0063; the tolerance is 0.0202 (99.9% Monte Carlo interval plus an allowance of 0.000).
+          success: Estimates 0.7440 and 0.7599 differ by -0.0159; the tolerance is 0.0344 (99.9% Monte Carlo interval plus an allowance of 0.020).
+          success: Estimates 0.7503 and 0.7599 differ by -0.0096; the tolerance is 0.0342 (99.9% Monte Carlo interval plus an allowance of 0.020).
+PASS    mediation_crosscheck / cross-check (unequal_paths): powerkit's Monte Carlo CI matches pwrss's Monte Carlo interval test (1h 45m)
+          success: Estimates 0.8126 and 0.8260 differ by -0.0134; the tolerance is 0.0379 (99.9% Monte Carlo interval plus an allowance of 0.020).
+PASS    mediation_crosscheck / cross-check (unequal_paths): the joint test agrees in power4mome, simsem and pwrss (0h 49m)
+          success: Estimates 0.8175 and 0.8177 differ by -0.0002; the tolerance is 0.0180 (99.9% Monte Carlo interval plus an allowance of 0.000).
+          success: Estimates 0.8175 and 0.8230 differ by -0.0055; the tolerance is 0.0327 (99.9% Monte Carlo interval plus an allowance of 0.020).
+          success: Estimates 0.8177 and 0.8230 differ by -0.0053; the tolerance is 0.0327 (99.9% Monte Carlo interval plus an allowance of 0.020).
+===== end of summary =====
+```

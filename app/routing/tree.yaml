@@ -193,6 +193,12 @@ settings:
     options: {show: "Show the note on covered cards", hide: "Don't show it"}
     value: null
     shown_at: []
+  - key: effect_size_inputs
+    ref: "Input screens (17 October 2026); judgement call 3.2"
+    question: "On the input screens, effect sizes, SDs and correlations start empty and must be filled in, with a justification. Should they instead offer suggested values (for example conventional benchmarks) that the user can change?"
+    options: {empty_required: "Start empty and required, with a justification (as now)", suggested: "Offer suggested values the user can change, still with a justification"}
+    value: null
+    shown_at: [form]
   - key: covariates_per_analysis
     ref: "Open question 13"
     question: "Should the app ask, for each analysis, which covariates it includes? (The spec can't hold covariates for any design yet.)"
@@ -595,12 +601,15 @@ nodes:
 # same table; a test keeps them in step. `card_notes` gives a card-specific
 # note in place of `note`.
 closing_questions:
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E15]}
+  # Not E15 (a yes/no X or W): misclassification in a 0/1 variable is a
+  # different problem from unreliable scores (maintainer decision,
+  # 16 October 2026; docs/decisions.md).
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E7, E8]
-    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact (analytic) or simulation.", E8: "Exact (analytic) or simulation."}
+    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from the study's own result) is not offered."
@@ -666,6 +675,7 @@ justification_prompt:
 # no_ready_made_tool: true when no tool offers this analysis, or names the
 #   part of the end point that has none (e.g. "Cochran's Q"). The card then
 #   shows the text in `no_ready_made_tool_text` (above).
+# status_text: replaces no_ready_made_tool_text on that card only (E45).
 # five_tools: "not covered" when none of the five tools powerkit builds on
 #   covers the end point (the card says so).
 # generic: true for one card per category of design powerkit doesn't
@@ -755,7 +765,7 @@ endpoints:
     plain_name: "Two factors crossed, different people in each of the four groups"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -767,7 +777,7 @@ endpoints:
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact()"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -824,8 +834,8 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction XW -> M"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-modmed-process7.R, note: "The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be rerun. A check against a published example is still to come."}
+    status: runs_validated
+    validation: {file: test-validation-modmed-process7.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
     refs: "PR #20 (power4mome seeding fix); docs/validation-log.md"
     tier: MVP
     alternatives: ["conditional indirect effects at chosen values of W"]
@@ -836,8 +846,8 @@ endpoints:
     backend: "power4mome: power4test() with test_index_of_mome()"
     method: Simulation
     inputs: ["Standardised paths, including the interaction MW -> Y"]
-    status: runs_validation_in_progress
-    validation: {file: test-validation-modmed-process14.R, note: "The full run of 16 October 2026 passed, but a later fix to how power4mome calls are seeded changed this design's results slightly, so it will be rerun. A check against a published example is still to come."}
+    status: runs_validated
+    validation: {file: test-validation-modmed-process14.R, note: "Full validation run passed on 17 October 2026 (the rerun after the power4mome seeding fix). A check against a published example is still to come."}
     refs: "PR #20 (power4mome seeding fix); docs/validation-log.md"
     tier: MVP
     alternatives: ["conditional indirect effects at chosen values of W"]
@@ -1051,6 +1061,9 @@ endpoints:
     inputs: ["RMSEA or model parameters"]
     packages:
       - {name: semPower, url: "https://cran.r-project.org/package=semPower", what: "A priori, post hoc and compromise power for SEM, including CFA, measurement invariance and RMSEA-based fit."}
+    # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
+    # card through Q1's "a questionnaire structure" answer.
+    card_points: ["This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."]
     tier: later
   E38:
     doc_name: "PROCESS models 8, 58, 59"
@@ -1117,11 +1130,15 @@ endpoints:
     plain_name: "A trend over time that may change at a known point"
     status: not_in_powerkit
     no_ready_made_tool: true
+    # Shown instead of no_ready_made_tool_text (maintainer decision, 17 October
+    # 2026): a package for the known-breakpoint case was released in 2026.
+    # Naming it on the card waits for open question 18; see card-sources.md.
+    status_text: "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it."
     from_coverage: false
     card_points:
       - "With a known breakpoint (for example, the date an intervention started), the change in slope can be treated as an added predictor in a regression (a segmented regression)."
       - "With a breakpoint that is estimated from the data, a custom simulation is needed."
-      - "With time-series data, autocorrelation (each measurement depending on the previous ones) makes standard power calculations too optimistic."
+      - "Autocorrelation makes standard power calculations wrong: too optimistic when it's positive, too pessimistic when it's negative."
       - "A before/after comparison of means (a t-test) asks a different question: whether the average level differs, not whether the trend changes."
     inputs: ["Depends on the model you write: the number and spacing of measurements, the breakpoint, the expected change in level and slope, and the autocorrelation"]
     packages:
@@ -1328,9 +1345,9 @@ glossary:
   - {term: "SD units", pattern: "SD units", hint: "Differences expressed in standard deviations rather than in the outcome's own units (raw)."}
   - {term: "Student's or Welch's test", pattern: "Student's or Welch's", hint: "Two versions of the t-test: Student's assumes the two groups' scores are equally spread out; Welch's doesn't."}
   - {term: "correlation (r)", pattern: "(?<!intraclass )\\bcorrelations?\\b", hint: "A number from -1 to 1 for how closely two measures go up and down together; 0 means no straight-line relationship."}
-  - {term: "repeated measurements", pattern: "repeated measure(ment)?s|between conditions", hint: "The same people measured more than once (for example, before and after, or in each condition); their scores on different occasions usually go together."}
+  - {term: "repeated measurements", pattern: "repeated[- ]measure(ment)?s|between conditions", hint: "The same people measured more than once (for example, before and after, or in each condition); their scores on different occasions usually go together."}
   - {term: "cell means", pattern: "cell means|four expected means", hint: "The expected average in each combination of the factors, such as praise with a hard task (each combination is a 'cell')."}
-  - {term: "factor and levels", pattern: "\\bfactors?\\b", hint: "A factor is something you vary or compare (for example, feedback); its levels are its versions (for example, praise and none)."}
+  - {term: "factor and levels", pattern: "(?<!Bayes )\\bfactors?\\b", hint: "A factor is something you vary or compare (for example, feedback); its levels are its versions (for example, praise and none)."}
   - {term: "between factor and within factor", pattern: "between factor|within factor", hint: "A between factor has different people at each level; a within factor has the same people at every level."}
   - {term: "interaction", pattern: "\\binteractions?\\b", hint: "Whether the effect of one factor or variable depends on the level of another."}
   - {term: "reliability", pattern: "\\breliabilit(y|ies)\\b", hint: "How consistently a measure gives the same result; 1 means no measurement error."}
@@ -1363,6 +1380,42 @@ glossary:
   - {term: "confidence interval (CI)", pattern: "\\bCI\\b", hint: "A range of plausible values for an effect, estimated from the data."}
   - {term: "model parameters", pattern: "model parameters", hint: "The numbers that define a model, such as the strength of each path."}
   - {term: "prior", pattern: "\\bprior\\b", hint: "The range of effect sizes you consider plausible before seeing the data, written as a distribution."}
+  # Terms in the cards' standard names and backend lines (16 October 2026).
+  # Sources: docs/card-sources.md.
+  - {term: "omnibus test", pattern: "\\bomnibus\\b", hint: "A single overall test of whether there are any differences among all the groups or conditions at once; it doesn't say which ones differ."}
+  - {term: "ANOVA", pattern: "\\bANOVA\\b", hint: "Analysis of variance: a test of whether the average outcome differs across the levels of one or more factors."}
+  - {term: "main effect", pattern: "\\bmain effects?\\b", hint: "The effect of one factor averaged over the levels of the other factor or factors."}
+  - {term: "between-participants and within-participants", pattern: "\\b(?:between|within)-participants\\b", hint: "Between-participants means different people take part at each level of a factor; within-participants means the same people take part at every level."}
+  - {term: "mixed design", pattern: "\\bmixed(?= ANOVA)", hint: "A design with at least one factor that compares different people (between-participants) and at least one that measures the same people repeatedly (within-participants), such as group × time."}
+  - {term: "ANCOVA", pattern: "\\bANCOVA\\b", hint: "Analysis of covariance: an ANOVA that also takes into account one or more continuous measured variables (covariates), such as a baseline score."}
+  - {term: "planned contrast", pattern: "\\bplanned contrasts?\\b", hint: "One specific comparison of group averages (for example, the average of groups 1 and 2 against group 3), planned in advance rather than chosen after seeing the results."}
+  - {term: "z test (two proportions)", pattern: "\\bz test\\b", hint: "A test of whether the share of 'yes' differs between two groups, based on the normal (bell-curve) approximation to the counts."}
+  - {term: "continuity correction", pattern: "\\bcontinuity correction\\b", hint: "A slight adjustment to the normal approximation for counts that moves the observed difference toward zero before testing."}
+  - {term: "chi-square test of independence", pattern: "\\bchi-square test of independence\\b", hint: "A test of whether two categorical variables (for example, group and a yes/no answer) are related, using a table of counts."}
+  - {term: "McNemar's test", pattern: "\\bMcNemar'?s test\\b", hint: "A test of whether the share of 'yes' answers differs between two yes/no measurements on the same people (or on matched pairs)."}
+  - {term: "Cochran's Q", pattern: "\\bCochran'?s Q\\b", hint: "An extension of McNemar's test to three or more yes/no measurements on the same people."}
+  - {term: "logistic regression", pattern: "\\blogistic regression\\b", hint: "A regression for a yes/no outcome: it models the log of the odds of 'yes' from the predictors."}
+  - {term: "Poisson or negative binomial", pattern: "\\bPoisson\\b|\\bnegative binomial\\b", hint: "Regressions for count outcomes (how many times something happens); Poisson assumes the counts vary as much as their average, while negative binomial allows them to vary more than that."}
+  - {term: "ordinal outcome", pattern: "\\bordinal\\b", hint: "An outcome whose categories have a natural order (for example, never, sometimes, often) but where the steps between neighbouring categories need not be equal."}
+  - {term: "PROCESS model number", pattern: "\\bPROCESS models? [0-9]+(?:, [0-9]+)*", hint: "PROCESS is Andrew Hayes's tool for mediation and moderation analysis; each model number picks one set arrangement of predictor, mediators and moderators, as numbered in Appendix A of Hayes's book (model 4 is mediation)."}
+  - {term: "index of moderated mediation", pattern: "\\bindex of moderated mediation\\b", hint: "How much the indirect effect (X to mediator to outcome) changes when the moderator goes up by one unit."}
+  - {term: "Monte Carlo CI", pattern: "\\bMonte Carlo(?= CI\\b)", hint: "A confidence interval built by simulating many sets of the model's estimates from their estimated uncertainty, computing the effect for each set, and keeping the middle 95% of the results."}
+  - {term: "ANOVA_exact() (exact)", pattern: "\\bANOVA_exact\\(\\)", hint: "Superpower's quick method: it builds one data set whose means, standard deviations and correlations exactly match the ones you enter, analyses it once, and works out power from that result instead of simulating many data sets."}
+  - {term: "simulation (ANOVA_power())", pattern: "(?<!repeated )\\bsimulation\\b", hint: "Estimating power by generating many random data sets from the design and counting how often the test comes out significant."}
+  - {term: "brackets N (power_interaction_r2())", pattern: "\\bpower_interaction_r2\\(\\) only brackets N\\b", hint: "InteractionPoweR's power_interaction_r2() is a quick formula-based power calculation; powerkit uses it only to narrow down the range of sample sizes to search, and the reported power comes from the simulation in power_interaction()."}
+  - {term: "k.x1 / k.x2 = 2", pattern: "\\bk\\.x1 / k\\.x2 = 2\\b", hint: "Settings that tell InteractionPoweR's simulation to give x1 or x2 only two possible values, so it becomes a yes/no variable."}
+  - {term: "rbinary_rs() (x_fun)", pattern: "(?:\\bx_fun = )?\\brbinary_rs\\(\\)", hint: "Tells power4mome to generate X as a yes/no variable (0 or 1, with a chosen chance of 1) instead of from a normal distribution; the 0/1 values are then rescaled to a chosen mean and standard deviation."}
+  - {term: "multilevel or cluster design", pattern: "\\bmultilevel\\b|\\bcluster design\\b", hint: "A design in which people are grouped (for example, pupils within classes, or patients within doctors), so people in the same group tend to be more alike than people in different groups."}
+  - {term: "growth curves", pattern: "\\bgrowth curves?\\b", hint: "Models of how each person's scores change over repeated occasions (their trajectory, for example a straight line up or down), and of the average trajectory across people."}
+  - {term: "cross-lagged panel", pattern: "\\bcross-lagged panels?\\b", hint: "A model for two measures (X and Y) recorded at several time points that estimates how each one predicts the other at the next time point, alongside how stable each is over time."}
+  - {term: "experience sampling", pattern: "\\bexperience sampling\\b", hint: "An intensive longitudinal design in which participants answer a questionnaire each time they are prompted (a 'beep'), several times within a day."}
+  - {term: "CFA", pattern: "\\bCFA\\b", hint: "Confirmatory factor analysis: a model in which answers to many questionnaire items are explained by fewer underlying, unobserved traits (factors) that you specify."}
+  - {term: "SEM and model fit", pattern: "\\bSEM model fit\\b|\\bSEM\\b", hint: "Structural equation modelling: a family of models that combines regressions among variables with unobserved (latent) variables measured by several items; model fit is how closely the relationships the model implies match those in the data."}
+  - {term: "measurement invariance", pattern: "\\bmeasurement invariance\\b", hint: "Whether a questionnaire measures the same underlying trait in the same way in different groups (or on different occasions), checked by requiring parts of the measurement model, such as item loadings, to be equal across them."}
+  - {term: "equivalence test (TOST)", pattern: "\\bequivalence test(?: \\(TOST\\))?|\\bTOST\\b", hint: "A test that aims to show there is no meaningful effect: two one-sided tests (TOST) check that the effect lies above the lower equivalence bound and below the upper one."}
+  - {term: "minimum-effect test", pattern: "\\bminimum-effect test\\b|\\bminimal effects? test(?:ing)?\\b", hint: "The reverse of an equivalence test: it aims to show that an effect goes beyond a chosen minimal threshold."}
+  - {term: "precision planning", pattern: "\\bprecision planning\\b", hint: "Choosing the sample size so that the confidence interval around the estimate is expected to come out no wider than a target width."}
+  - {term: "Bayes factor", pattern: "\\bBayes factors?\\b", hint: "A ratio that says how strongly the data support one hypothesis compared with a competing one (often 'no effect'), used instead of a p-value."}
 
 # ---------------------------------------------------------------------------
 # Coverage map: every coverage.md row in the MVP tier, and where it appears

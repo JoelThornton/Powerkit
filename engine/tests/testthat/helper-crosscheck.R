@@ -231,6 +231,15 @@ expect_power_agrees_within <- function(estimate, reference, allowance, level = 0
 }
 
 # Allowance for comparing a full simulation with pwrss's normal-theory
-# calculations (docs/validation-log.md). PROPOSED, for the maintainer to
-# confirm: it is a judgement call.
-crosscheck_allowance <- function() 0.02
+# calculations: 0.02, for comparisons with pwrss only, at n >= 100 (the
+# maintainer's decision, 17 October 2026; docs/validation-log.md). pwrss
+# treats the standard errors as known, so its power is slightly higher than
+# simulated power; simsem shows the same gap. Comparisons between two
+# simulations (power4mome vs simsem) get no allowance. Below n = 100 the
+# gap is likely larger and no allowance has been decided, so it stops.
+crosscheck_allowance <- function(n) {
+  if (n < 100) {
+    stop("No cross-check allowance is decided for n < 100 (docs/validation-log.md).", call. = FALSE)
+  }
+  0.02
+}

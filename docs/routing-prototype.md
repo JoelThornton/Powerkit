@@ -5,7 +5,8 @@ right power analysis, built from [`decision-tree.md`](decision-tree.md).
 
 **It is routing only.** It shows which analysis a study needs, what the
 user would enter, which backend would run it and whether powerkit runs it
-yet. It makes no engine calls and calculates nothing. The maths is wired in
+yet. It calculates nothing: from the engine it uses only `validate_spec()`,
+to check the spec built on the input screens. The maths is wired in
 at build phase 5. Every screen carries the banner *"Prototype: shows which
 analysis you need; it doesn't calculate anything yet."* It is not deployed
 anywhere.
@@ -121,6 +122,47 @@ in the routing audit, with a screenshot of each end card, are in
 prototype: `node app/routing/walkthroughs/screenshots.js` (needs Node and
 Playwright; the script's header explains).
 
+## Input screens (E1–E14)
+
+Cards for the end points powerkit runs (E1–E14) have an **Enter your
+values** button. It opens a screen with one field for each line of the
+card's "What you would enter", with the plain-English hints beside them,
+followed by the closing questions (what you want to find out, alpha,
+power or sample size, direction where it applies, where the effect size
+comes from, and expected attrition).
+
+- **Effect sizes, SDs and correlations start empty** and must be filled
+  in, with a justification. Whether they should offer suggested values
+  instead is undecided: the setting `effect_size_inputs` (shown on the
+  screen; `judgement-calls.md`, B10).
+- **Other settings start at the default of the tool powerkit wraps**, and
+  each says whose default it is (for example "Spower's default
+  (Spower(sig.level = 0.05), Spower 0.6.4)"). The defaults were read from
+  the installed packages' function signatures. Where a tool has no
+  default (Spower, Superpower and InteractionPoweR have no target power),
+  the field starts empty and says so.
+- **Check my answers** first checks the fields on the screen (empty,
+  not a number, out of range), naming each by its label. It then builds a
+  design spec and checks it with the engine's `validate_spec()`, showing
+  the engine's messages with the screen's field names in place of spec
+  paths. **No power is calculated**: a valid spec shows a "Calculation not
+  wired in yet" panel with the spec as JSON.
+- **Copy my answers** copies the route taken, the end point and the values
+  entered as plain text, to share with a colleague. The text is also shown
+  in a box, in case the browser blocks copying.
+- The screens are described in `app/routing/forms.yaml`; the logic is in
+  `R/forms.R` and the screen in `R/forms_ui.R`.
+
+**The engine is used read-only.** The prototype uses the installed
+`powerkit` package if there is one, or loads `engine/` with
+`pkgload::load_all()` (about 5 seconds, once per session). It calls only
+`validate_spec()`. Where neither is available, the screen says the spec
+couldn't be checked, and the tests that need the engine are skipped
+locally. **On GitHub the app-tests job installs the engine** (from
+`engine/`, with the package versions in `renv.lock`), so those tests run
+there, and fail rather than skip if the engine can't be loaded
+(`POWERKIT_APP_TESTS_NEED_ENGINE`).
+
 ## Recording your decisions
 
 Judgement calls and open questions that `decision-tree.md` leaves undecided
@@ -178,7 +220,7 @@ nodes, and the S1–S4 and T1 rows of table 2.2.
 ## Accessibility
 
 Checked on 16 October 2026 with axe-core 4.10.2 (WCAG 2.1 A and AA, plus
-its best-practice rules) on ten screens at desktop width and at phone width
+its best-practice rules) on 13 screens (including the input screen empty, with problems and checked) at desktop width and at phone width
 (375 px):
 - start;
 - a screening question;
@@ -212,6 +254,12 @@ running.
 - **Keyboard:** after each answer, focus moves to the new screen's heading.
   Before, it fell back to the top of the page. Every choice, chip and
   button is a native button, so Tab, Enter and Space work.
+- **Touch targets:** the answer chips are at least 44 x 44 px (fixed
+  16 October 2026).
+- **Question IDs:** "Question Q1" and "Screening question S2" are hidden
+  from users and screen readers (`hidden`, `aria-hidden`), and kept in the
+  page source (`data-question-id`) for tests and reviewers. The E-number
+  on each card is still shown.
 - **Not by colour alone:** every status says what it is in words: "Runs in
   powerkit", "Runs, validation in progress" (also a labelled badge),
   "Coming soon", "Not in powerkit yet". The undecided placeholders are
@@ -223,8 +271,6 @@ running.
   confirming.
 - **Zoom:** 200% zoom and text-only zoom weren't tested separately from
   the phone-width check.
-- **Touch targets:** the answer chips are smaller than 44 x 44 px on a
-  phone.
 - **Placeholder style:** the dashed grey boxes rely on a dashed border
   and grey background to look different from user-facing text, as well as
   on their label.
@@ -239,7 +285,8 @@ In the RStudio Console, from the project folder:
 testthat::test_dir("app/routing/tests/testthat")
 ```
 
-They take a few seconds and check:
+They take a few seconds (plus about 5 seconds to load the engine for the
+input-screen checks, where it is available) and check:
 - that every route reaches an end point, with no dead ends, unreachable
   questions or loops, following the screening answers as a user would;
 - that every route starts with the screening, and that no test powerkit
@@ -252,15 +299,20 @@ They take a few seconds and check:
   reaches the end point recorded for it, in all three routes
   (`test-walkthroughs.R`);
 - that every guided-route answer combination leads somewhere;
+- that each input screen asks for every line of its card, starts effect
+  sizes empty, labels every field and default, catches missing and
+  out-of-range values, and builds a spec that passes `validate_spec()`
+  (`test-forms.R`; skipped where the engine isn't available);
 - that every "not in powerkit" end point has a package, a link and a
   description (generic cards: their own text instead);
 - that every MVP capability in `coverage.md` appears in the app;
 - that every screen renders with the prototype banner;
-- that the app never calls the engine;
+- that the app never calls a power function, and uses only
+  `validate_spec()` from the engine;
 - that `tree.yaml` matches `decision-tree.md`.
 
 They run on GitHub on every pull request and push
 (`.github/workflows/routing-prototype-tests.yaml`). That job installs the
-package versions in `renv.lock` (the engine's packages included); the
-prototype itself still makes no engine calls. They aren't part of the
-engine's `devtools::test()`.
+package versions in `renv.lock` and the engine itself, so the input
+screens' checks with `validate_spec()` run there too; the prototype never
+computes power. They aren't part of the engine's `devtools::test()`.

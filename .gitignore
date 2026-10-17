@@ -8,3 +8,7 @@ engine/tests/testthat/_snaps/**/*.new.md
 
 # Local validation results (scripts/run-validation.R)
 validation-results/
+
+# testthat leftovers from failed runs
+**/tests/testthat/_problems/
+**/tests/testthat/testthat-problems.rds
