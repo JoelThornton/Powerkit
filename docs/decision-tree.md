@@ -577,7 +577,10 @@ are different analyses, and the app keeps them apart:
 The full list of closing questions is in table 2.2 (the "Every design"
 rows). Each card asks only the ones that apply to its design, following
 that table's "Engine can use it?" column:
-- reliability (Q-rel) only for regression interactions;
+- reliability (Q-rel) only for regression interactions with scores (E9).
+  Not E15: misclassification in a yes/no X or W is a different problem
+  from unreliable scores (maintainer decision, 16 October 2026; see
+  `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square;
 - a test version (Q-test) only where there is a choice: Student's or
   Welch's t-test (E2), or exact or simulation (E7, E8).
@@ -604,7 +607,7 @@ the two in step.
 | E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
@@ -631,14 +634,14 @@ taken from coverage.md, where they are proposals.
 | E4 | Pearson correlation | `basic_test / correlation` | `Spower::p_r()` | Simulation | r | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E5 | Test of two proportions (z test) | `basic_test / two_proportions` | `Spower::p_prop.test()` (no continuity correction, Departure 5) | Simulation | p1, p2; allocation ratio | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E6 | Chi-square test of independence | `basic_test / chi_square_independence` | `Spower::p_chisq.test()` | Simulation | Cell probabilities (rows = X, columns = Y, summing to 1) | Yes: `test-validation-basic-tests.R` (full run passed; no published-value test yet) | MVP | Runs |
-| E7 | 2 x 2 between-participants ANOVA (main effect or interaction) | `factorial_anova / 2x2_between` | `Superpower::ANOVA_exact()`; `ANOVA_power()` if simulation is chosen | Exact (analytic) | Four cell means (raw or in SD units) and the SD (one, or one per cell) | Yes: `test-validation-anova-2x2-between.R` (full run passed) | MVP | Runs; sensitivity available |
-| E8 | 2 x 2 mixed ANOVA (incl. group × time) | `factorial_anova / 2x2_mixed` | As E7 (`ANOVA_exact()`, not `ANOVA_exact2()`, Departure 2) | Exact (analytic) | Four cell means, SD, correlation between the repeated measures | Yes: `test-validation-anova-2x2-mixed.R` (full run passed) | MVP | Runs; sensitivity available |
+| E7 | 2 x 2 between-participants ANOVA (main effect or interaction) | `factorial_anova / 2x2_between` | `Superpower::ANOVA_exact()`; `ANOVA_power()` if simulation is chosen | Exact dataset (no repeated simulation) | Four cell means (raw or in SD units) and the SD (one, or one per cell) | Yes: `test-validation-anova-2x2-between.R` (full run passed) | MVP | Runs; sensitivity available |
+| E8 | 2 x 2 mixed ANOVA (incl. group × time) | `factorial_anova / 2x2_mixed` | As E7 (`ANOVA_exact()`, not `ANOVA_exact2()`, Departure 2) | Exact dataset (no repeated simulation) | Four cell means, SD, correlation between the repeated measures | Yes: `test-validation-anova-2x2-mixed.R` (full run passed) | MVP | Runs; sensitivity available |
 | E9 | Moderated regression (continuous × continuous) | `regression_interaction / two_way` | `InteractionPoweR::power_interaction()`; `power_interaction_r2()` only brackets n | Simulation | Correlations r_X_Y, r_W_Y, r_XW_Y (the interaction), r_X_W; optional reliabilities | Yes: `test-validation-regression-interaction.R` (full run passed; published values TODO) | MVP | Runs |
 | E10 | Simple mediation (PROCESS model 4) | `mediation / process_4`, mediator `M` | `power4mome::power4test()` with `test_indirect_effect()`, Monte Carlo CI, batches of ≤ 200 | Simulation | Standardised paths X→M, M→Y, X→Y | Yes: `test-validation-mediation-simple.R` (full run passed; published value TODO) | MVP | Runs |
 | E11 | Parallel mediation (PROCESS model 4) | `mediation / process_4`, `M1`–`M9` | As E10 | Simulation | Standardised paths; residual correlations between mediators (free, Departure 7) | Yes: `test-validation-mediation-parallel.R` (full run passed with two mediators; three or more not yet tested; published value TODO) | MVP (two); v2 for three or more ([coverage](coverage.md)) | Runs |
 | E12 | Serial mediation (PROCESS model 6) | `mediation / process_6`, `M1`–`M4` | As E10 | Simulation | Standardised paths, every forward path | Yes: `test-validation-mediation-serial.R` (full run passed with two mediators; three or more not yet tested; published value TODO) | MVP | Runs |
-| E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | In progress: rerun needed after the seeding fix (PR #20); the 16 Oct 2026 run passed on earlier code: `test-validation-modmed-process7.R` (published values TODO) | MVP | Runs |
-| E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | In progress: rerun needed after the seeding fix (PR #20); the 16 Oct 2026 run passed on earlier code: `test-validation-modmed-process14.R` (published values TODO) | MVP | Runs |
+| E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | Yes: `test-validation-modmed-process7.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
+| E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | Yes: `test-validation-modmed-process14.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
 | E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)` (planned) | Simulation | Fully standardised correlations; groups 50/50 (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
@@ -669,7 +672,7 @@ taken from coverage.md, where they are proposals.
 | E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
 | E43 | Time-to-event (survival) outcome | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18) | — | — | No | later | Not in spec |
 | E44 | Paired or dyadic data (pairs of people whose scores are related) | — | Generic card, as E43. Matched pairs analysed with a paired t-test may belong at E3 instead (open question 19) | — | — | No | later | Not in spec |
-| E45 | Many measurements over time: segmented regression or interrupted time series | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; with time-series data, autocorrelation makes standard calculations too optimistic. Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
+| E45 | Many measurements over time: segmented regression or interrupted time series | — | Card text (17 October 2026): "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it." The package (PITS, on CRAN since 30 June 2026) isn't named on the card while open question 18 is undecided. For an estimated breakpoint: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; autocorrelation makes standard calculations wrong: too optimistic when it's positive, too pessimistic when it's negative (changed 17 October 2026; Zhang et al., 2011, Table 1). Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
 | E46 | Precision planning (a target confidence-interval width) | — | Generic card, as E43 | — | — | No | later | Not in spec |
 | E47 | Yes/no outcome with two or more crossed factors (factorial logistic regression) | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18). Reached from Q3 (yes/no difference, two or more factors) and from the guided route's moderation analysis (yes/no outcome, X and W of two groups each), so both routes give the same card | — | — | No | later | Not in spec |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
@@ -1342,7 +1345,7 @@ all three marked primary and "each stands alone":
 | Card | Standard name | Inputs still needed | Backend (candidate where not built) | Status today |
 | --- | --- | --- | --- | --- |
 | H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
-| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised); reliabilities | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
+| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
 | H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
 | Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
 
@@ -1416,6 +1419,10 @@ gives joint power, at the cost of a larger form and a departure from
 how the wrapped tools work.
 
 ## 5. Open questions for the maintainer
+
+All of these, the judgement calls in section 3 and the prototype's other
+open questions are collected, with their options and what established
+tools do, in [`judgement-calls.md`](judgement-calls.md).
 
 1. **Starting point.** Should the tree start from the hypothesis (as here
    and in `design-finder.md`), or offer G\*Power's design-based order

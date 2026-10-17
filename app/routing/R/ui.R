@@ -93,7 +93,10 @@ node_ui <- function(tree, node_id, history, ctx = list()) {
   screening <- node$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1")
   tagList(
     trail_ui(history),
-    div(class = "question-id", sprintf("%s %s", if (screening) "Screening question" else "Question", label)),
+    # The question ID stays in the page source (for tests and reviewers) but
+    # isn't shown to users or read out by screen readers.
+    div(class = "question-id", hidden = NA, `aria-hidden` = "true", `data-question-id` = label,
+      sprintf("%s %s", if (screening) "Screening question" else "Question", label)),
     h2(node$text),
     if (!is.null(node$help)) p(class = "lead", node$help),
     div(class = "choices", lapply(seq_along(opts), function(i) {
@@ -179,7 +182,7 @@ status_ui <- function(tree, ep) {
         class = "status status-not",
         tags$strong("Not in powerkit yet."),
         not_five,
-        p(tree$no_ready_made_tool_text),
+        p(ep$status_text %||% tree$no_ready_made_tool_text),
         package_list(),
         p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
       )
@@ -229,6 +232,13 @@ prepare_ui <- function(tree, history = list()) {
   )
 }
 
+# Plain-English hints for the glossary terms in a piece of text, leaving
+# out terms already explained higher up the same card.
+hints_ui <- function(tree, text, exclude = character()) {
+  found <- Filter(function(g) !(g$term %in% exclude), glossary_for(tree, text))
+  lapply(found, function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
+}
+
 card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   ep <- tree$endpoints[[ep_id]]
   # Headings follow the page outline: the full card's title is the screen's
@@ -243,12 +253,13 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       div(class = "card-eid", ep_id),
       (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
       p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
+      hints_ui(tree, ep$doc_name),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
         input,
-        lapply(glossary_for(tree, input), function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
+        hints_ui(tree, input)
       )))),
       if (!compact && !isTRUE(ep$generic)) tagList(
         section_heading("Where your effect size comes from"),
@@ -256,7 +267,10 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
         tags$ul(lapply(unname(jp$types), tags$li))
       ),
       other_analyses_ui(tree, ep),
-      if (runs) p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
+      if (runs) tagList(
+        p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
+        hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))
+      ),
       if (!compact && runs) tagList(
         section_heading("What you'd be asked next"),
         tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
@@ -335,7 +349,8 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   )
 }
 
-guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
+guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
+                           history = list(), route_label = "Plan my whole study", raw_answers = answers) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
   cards <- lapply(ticked, function(id) {
@@ -343,7 +358,11 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
     res <- resolve_analysis(tree, a, answers, asks[[id]])
     head <- div(class = "plan-head", tags$strong(a$label), if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Primary") else tags$span(class = "badge bg-secondary ms-2", "Secondary"))
     body <- if (!is.null(res$endpoint)) {
-      card_ui(tree, res$endpoint, compact = TRUE)
+      tagList(
+        card_ui(tree, res$endpoint, compact = TRUE),
+        mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
+          extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label))))
+      )
     } else if (!is.null(res$ask)) {
       div(class = "status status-soon", "Answer the follow-up question on the previous screen: ", res$ask$text)
     } else {

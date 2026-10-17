@@ -1366,6 +1366,98 @@ itself (direct calls) and Type I error. The cross-check covers simple
 mediation only; parallel, serial and moderated mediation have no
 independent check yet.
 
+## 2026-10-16 · Routing prototype: maintainer decisions from PRs #21 and #22
+
+Three items those PRs left for the maintainer, decided on 16 October 2026.
+App and docs only; the engine is unchanged.
+
+- **E15 (moderated regression with a yes/no X or W) doesn't ask the
+  reliability question (Q-rel).** This is an exception to "reliability for
+  regression interactions" in `decision-tree.md` ("Closing questions by
+  card"). **Reason:** misclassification in a 0/1 variable is a different
+  problem from unreliable scores, so a reliability coefficient isn't the
+  right input for it. Q-rel stays on E9 (both X and W scores). The engine's
+  spec still accepts `variables.*.reliability` for regression interactions
+  of any type; whether it should refuse it for a binary X or W is for the
+  engine, not this change. The worked example's H2 row (moderated
+  regression with a yes/no condition) no longer lists reliabilities.
+- **Flag F11 (test–retest reliability):** the routing audit now says that
+  a test–retest study entered as a relationship reaches E41 after S3's
+  "Twice", and E4 only after "Once". Routing unchanged.
+- **Flag F7 (IRT):** the routing audit now says IRT reaches E37 through
+  Q1's "a questionnaire structure" answer. E37 gains one line: "This card
+  is about confirmatory factor analysis (CFA) and structural equation
+  models (SEM). Item response theory (IRT) designs aren't covered."
+  Routing unchanged.
+
+## 2026-10-17 · Routing prototype: the two contradictions from PR #24
+
+Decided by the maintainer on 17 October 2026. App and docs only.
+
+- **E7 and E8: "Exact dataset (no repeated simulation)"** replaces
+  "Exact (analytic)" as the default method and in the Q-test note.
+  **Reason:** Superpower's help says `ANOVA_exact()` "Simulates an exact
+  dataset (mu, sd, and r represent empirical, not population, mean and
+  covariance matrix)", and Superpower keeps "analytic" for other
+  functions. The new wording follows the package.
+- **E45: "A recently released package addresses the known-breakpoint
+  case; powerkit hasn't checked it."** replaces "No ready-made tool".
+  **Reason:** PITS 0.1.0 (CRAN, 30 June 2026) estimates power for
+  interrupted time series with a known breakpoint. The card doesn't name
+  it until open question 18 (naming other tools) is decided; PITS is
+  recorded in `card-sources.md` and `judgement-calls.md`.
+- **Two papers supplied by the maintainer** were read: Zhang, Wagner and
+  Ross-Degnan (2011) and Albers and Lakens (2018). The second supports the
+  reason given for the pilot-study warning. The first qualifies E45's
+  autocorrelation point: power falls as positive autocorrelation rises,
+  but negative autocorrelation raises it. That point was first left
+  unchanged and marked "contradicted" in part, for the maintainer.
+- **E45's autocorrelation point (maintainer, 17 October 2026, later the
+  same day):** now reads "Autocorrelation makes standard power
+  calculations wrong: too optimistic when it's positive, too pessimistic
+  when it's negative." Sourced to Zhang, Wagner and Ross-Degnan (2011),
+  Table 1 (effect size 0.5, N = 24: power 0.25 with no autocorrelation,
+  0.18 at +0.5, 0.43 at -0.5). The contradiction is resolved; no
+  contradictions remain open in `card-sources.md`.
+
+## 2026-10-17 · Validation reruns, and refs.bib entries verified at their DOI
+
+**E13 and E14 validated again.** The process_7 and process_14 chunks were
+rerun on GitHub on the merged seeding fix (commit 4b63d5f). Both passed,
+and their only skips are published-value tests with
+`TODO_PUBLISHED_VALUE` (`docs/validation-log.md`, 17 October 2026). The
+reruns supersede the 16 October runs, so E13 and E14 are `runs_validated`
+again.
+
+**First run of the mediation cross-check.** All 4 tests ran and passed.
+The numbers are in `docs/validation-log.md` ("Results of the first run").
+
+**Cross-check allowance (the maintainer's decision).** 0.02, for
+comparisons with pwrss only, at n >= 100. pwrss treats the standard errors
+as known, so its power comes out slightly higher than simulated power: all
+six simulation-vs-pwrss differences in the first run were negative (0.005
+to 0.017). simsem shows the same gap against pwrss as power4mome does, so
+the gap comes from the formula side, not from power4mome. With no
+allowance, the comparison would often fail by chance on reruns (at n = 100
+the gap already exceeds the Monte Carlo-only tolerance); with 0.02 there
+is about 4 standard errors of headroom. Comparisons between two
+simulations (power4mome vs simsem) have no allowance. Below n = 100 the gap
+is likely larger and nothing is decided: `crosscheck_allowance(n)` stops
+there.
+
+**refs.bib: a second route for entries (the maintainer's rule).** The
+rule is "refs.bib or the package's own `citation()`", but the test
+accepted only entries copied from a package's `citation()`. It now also
+accepts an entry whose DOI a session actually opened, if the entry has a
+`note` field saying where and when it was verified. The note starts with
+"Verified" and has an ISO date (not in the future) and the URL opened, for
+example `note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd}`.
+The maintainer approved this format on 17 October 2026.
+An entry with neither a matching `citation()` DOI nor such a note fails
+the test. Neither the text nor the BibTeX citations export prints the verification
+note: it is provenance, not part of the reference (maintainer's decision,
+17 October 2026). No entries were added.
+
 ## 2026-10-17 · CI installs packages from renv.lock
 
 **What happened.** Spower 0.7 reached CRAN on 16 October 2026 with the

@@ -8,6 +8,12 @@
   scripts for one-sided tests now call Spower's `p_t.test()`, `p_r()` or
   `p_prop.test()` with `alternative`, and need Spower 0.7.
 
+* The citations export (text and BibTeX) doesn't print a refs.bib entry's verification
+  note ("Verified ..."), which records where the entry was checked rather
+  than being part of the reference.
+* Moderated mediation (PROCESS models 7 and 14) has passed its full
+  validation again, rerun after the seeding fix (17 October 2026). The
+  mediation cross-check against pwrss and simsem passed its first full run.
 * Validation (for maintainers): a new `mediation_crosscheck` chunk
   (`scripts/run-validation.R --only mediation_crosscheck`, and the
   `full-validation` workflow) compares simple mediation with two tools

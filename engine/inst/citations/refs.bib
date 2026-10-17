@@ -2,9 +2,16 @@
 %
 % The write-up and citation exports cite ONLY entries in this file or a
 % package's own citation() (see CLAUDE.md). Entries are added and checked by
-% the maintainer. Never write an entry from memory: copy it from the
-% installed package's citation() (toBibtex(citation("pkg"))), and say which
-% package and version it came from.
+% the maintainer. Never write an entry from memory. Each entry is either:
+%   * copied from the installed package's citation()
+%     (toBibtex(citation("pkg"))), with a comment saying which package and
+%     version it came from; or
+%   * an entry whose DOI a session actually opened, with a note field saying
+%     where and when it was verified, starting "Verified", with an ISO date
+%     and the URL opened, e.g.
+%       note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd},
+%     The citations export doesn't print this note.
+% A test (test-export-citations.R) checks every entry against these rules.
 %
 % Keys the citations export (export_citations()) looks for. Until an entry
 % with the key exists, the export shows a placeholder in its place:
