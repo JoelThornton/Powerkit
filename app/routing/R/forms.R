@@ -295,21 +295,28 @@ build_spec <- function(forms, ep_id, fields, values) {
 
 engine_cache <- new.env(parent = emptyenv())
 
-# validate_spec() from the installed powerkit package, or from engine/ (read
-# only, with pkgload). NULL when neither is available (e.g. on the app-tests
-# CI job, which installs only the app's packages).
-engine_validator <- function(engine_dir = file.path(routing_root(), "..", "..", "engine")) {
-  if (!is.null(engine_cache$validate)) return(engine_cache$validate)
-  validate <- tryCatch({
+# A function from powerkit's engine: the installed powerkit package, or
+# engine/ loaded read-only with pkgload. NULL when neither is available.
+engine_function <- function(name, engine_dir = file.path(routing_root(), "..", "..", "engine")) {
+  key <- paste0("fn_", name)
+  if (!is.null(engine_cache[[key]])) return(engine_cache[[key]])
+  fn <- tryCatch({
     if (requireNamespace("powerkit", quietly = TRUE)) {
-      getExportedValue("powerkit", "validate_spec")
+      getExportedValue("powerkit", name)
     } else if (requireNamespace("pkgload", quietly = TRUE) && dir.exists(engine_dir)) {
-      suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
-      get("validate_spec", envir = asNamespace("powerkit"))
+      if (!"powerkit" %in% loadedNamespaces()) {
+        suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
+      }
+      get(name, envir = asNamespace("powerkit"))
     }
   }, error = function(e) NULL)
-  engine_cache$validate <- validate
-  validate
+  engine_cache[[key]] <- fn
+  fn
+}
+
+# validate_spec(), or NULL where the engine isn't available.
+engine_validator <- function(engine_dir = file.path(routing_root(), "..", "..", "engine")) {
+  engine_function("validate_spec", engine_dir)
 }
 
 routing_root <- function() getOption("powerkit.routing_dir", getwd())
