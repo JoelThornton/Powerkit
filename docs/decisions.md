@@ -1709,6 +1709,29 @@ and 1 : 3 in both directions are tested, and the maintainer's G\*Power
 screenshots for those inputs (and one tail, and a priori at 1 : 3) match
 them to 7 decimals (`docs/gpower-parity.md`, E5).
 
+## 2026-10-17 · Attrition: the number to recruit
+
+**Decided (maintainer, 17 October 2026):** apply `options > attrition`.
+N to recruit = N analysed / (1 − attrition), rounded up per group (each
+group's, or each cell's, analysed size is divided and rounded up, then
+added up). The result screen shows both numbers, "Analysed" and "To
+recruit", with a one-line caveat that this is a common but crude heuristic
+that ignores how missing data are handled (Mikael Rubin, 2025,
+*International Journal of Psychology*, doi:10.1002/ijop.70017; in
+`refs.bib`). The exported R script works it out too, and checks it against
+powerkit's number.
+
+**Why dividing, not multiplying:** dividing by 1 − attrition leaves the
+analysed N once the expected share is lost (100 analysed at 20% attrition:
+125 recruited, 25 lost). Mikael Rubin (2025, p. 14 of 15) gives the
+multiplying version (100 × 1.2 = 120) as an example of the heuristic; it
+leaves 96 after 20% attrition.
+
+**Built:** `run_spec()` returns `recruitment` (attrition, n analysed and to
+recruit, and each group's), `NA` without attrition. For a sample-size goal
+it starts from the required N; for power and sensitivity, from the N
+entered (which is the number analysed: `goal > n`).
+
 ## 2026-10-17 · Sources the maintainer checked in full text
 
 **Decided (maintainer, 17 October 2026):** the verification-note rule for

@@ -4,6 +4,14 @@
   are re-rendered from the current app prototype (for example, E4's card
   now names Fisher's z and Departure 10). No code change.
 
+* Attrition is now applied. With `options > attrition`, `run_spec()`
+  returns the number to recruit (`recruitment`): each group's analysed n
+  divided by (1 - attrition) and rounded up, for example 72 + 72 = 144 to
+  recruit for 64 + 64 analysed at 10%. The app's result screen shows the
+  numbers analysed and to recruit, with a caveat that this common heuristic
+  ignores how missing data will be handled (Rubin, 2025), and the exported
+  R script works it out too.
+
 * The app prototype's card for two proportions (E5) says "Validated"
   again, after the `basic` validation chunk was rerun with the z test
   (pwrss for unequal groups).

@@ -43,8 +43,10 @@ those sizes, is not repeated);
 the sizes powerkit computed, around the required n).
 }
 
-The script ends by comparing its numbers with powerkit's and printing
-\code{sessionInfo()}. It doesn't repeat the check run.
+When the spec gives \code{options > attrition}, the script also works out the
+number to recruit, as \code{\link[=run_spec]{run_spec()}} does. It ends by comparing its numbers
+with powerkit's and printing \code{sessionInfo()}. It doesn't repeat the check
+run.
 }
 \examples{
 \donttest{

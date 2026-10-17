@@ -23,6 +23,12 @@ simulation; all equal for exact results), or \code{NA} unless the goal is
 with the \code{scale} applied to the specified pattern, the scaled cell
 \code{means}, the target \code{effect} in the user's units (with an
 \code{effect_description}), its \code{cohen_f}, and the \code{power} reached;
+\item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
+otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
+or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
+\code{groups_recruit}: each group's analysed n divided by
+(1 - attrition) and rounded up. This common heuristic ignores how
+missing data will be handled (Rubin, 2025, doi:10.1002/ijop.70017);
 \item \code{check_run}: data frame comparing specified and recovered population
 values;
 \item \code{provenance}: spec hash, method, seed, replications, cores, batch
