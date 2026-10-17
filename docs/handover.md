@@ -26,12 +26,10 @@ this page is the short version plus the working rules.*
 
 ## Open PRs
 
-- **E5's default (z test instead of the arcsine):** built in a draft PR
-  that waits for the maintainer's yes (G6 in `judgement-calls.md`;
-  Departure 11). The G\*Power screenshots (#40, merged) show
-  `power.prop.test(strict = TRUE)` matches G\*Power. Open: what unequal
-  groups use, and the validation test that still compares with Cohen's h
-  (the maintainer updates it).
+- **E5's default (z test instead of the arcsine):** approved by the
+  maintainer (G6 in `judgement-calls.md`; Departure 11), with the
+  validation test's reference now G\*Power's z-test output. Next: pwrss
+  for unequal groups, in a draft PR that waits for the maintainer's yes.
 - **#4: the early 2 x 2 Shiny demo** (`app/`, not `app/routing/`). An old
   draft built ahead of phase 5; superseded by the routing prototype's
   result screen. Close or keep is the maintainer's call.

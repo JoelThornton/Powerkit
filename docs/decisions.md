@@ -1678,3 +1678,10 @@ alpha minus the one-sided power, because `power.prop.test()` uses
 should use (Cohen's h as built; Spower's simulation of the same z test;
 or pwrss's `power.z.twoprops()`, which reproduces G\*Power's power at 123
 and 247 but isn't one of the foundation tools).
+
+**Decided (maintainer, 17 October 2026):** yes to merge. The validation
+test that compared E5 with Cohen's h now takes G\*Power's z-test output
+as its reference (0.2344921 at 20 per group, p1 = .10, p2 = .25, both
+tails), recorded as a G\*Power value with its inputs, not a published
+value; a separate test covers the Cohen's h option. Unequal groups: see
+the next entry.
