@@ -17,6 +17,17 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   result screen adds a caveat that this common heuristic ignores how
   missing data will be handled (Mikael Rubin, 2025), and the exported R
   script works it out and checks it.
+
+- **E5 validated again (17 October 2026).** The `basic` chunk was rerun
+  on main after #42 (unequal groups by pwrss;
+  [run 39073022227](https://github.com/JoelThornton/Powerkit/actions/runs/39073022227)):
+  no failures, the usual 4 published-value skips. Unequal groups are
+  checked against G\*Power in `test-backend-pwr.R`. As the maintainer
+  asked, E5's card says "Validated" again.
+- **E6 G\*Power reference (df 1).** The maintainer's screenshot (w .3,
+  α .05, N 100, df 1: power 0.8508388, λ 9, critical χ² 3.8414588)
+  matches pwr to 7 decimals; recorded in
+  [`gpower-parity.md`](gpower-parity.md). df 2 is still needed.
 - **Sources verified by the maintainer (17 October 2026).** Rubin (2021),
   Rubin (2024), Mikael Rubin (2025) and Frane (2019) are in `refs.bib`,
   marked "Verified 2026-10-17 from full-text PDF held by the maintainer"
