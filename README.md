@@ -35,10 +35,9 @@ export, and an optional AI assistant are planned.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Every design below except moderated mediation has passed its full
-> validation run against direct calls to its backend package and Type I
-> error (moderated mediation is being rerun), but most published-value
-> checks are still to come, and the interface may change.
+> yet.** Every design below has passed its full validation run against
+> direct calls to its backend package and Type I error, but most
+> published-value checks are still to come, and the interface may change.
 
 | Design | Status |
 | --- | --- |
@@ -46,8 +45,8 @@ export, and an optional AI assistant are planned.
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
 | Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
 | Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); checks against published examples to come |
-| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validation in progress: its full run passed on 16 October 2026, but a fix to how power4mome calls are seeded changed its results slightly, so it will be rerun; checks against published examples to come |
+| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem; checks against published examples to come |
+| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (rerun on 17 October 2026 after a fix to how power4mome calls are seeded); no independent cross-check yet; checks against published examples to come |
 | Shiny app and design finder | Planned |
 
 What "validated" means is defined at the top of the

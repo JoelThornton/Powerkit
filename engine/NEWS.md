@@ -1,5 +1,11 @@
 # powerkit 0.0.0.9000
 
+* The citations export no longer prints a refs.bib entry's verification
+  note ("Verified ..."), which records where the entry was checked rather
+  than being part of the reference.
+* Moderated mediation (PROCESS models 7 and 14) has passed its full
+  validation again, rerun after the seeding fix (17 October 2026). The
+  mediation cross-check against pwrss and simsem passed its first full run.
 * Validation (for maintainers): a new `mediation_crosscheck` chunk
   (`scripts/run-validation.R --only mediation_crosscheck`, and the
   `full-validation` workflow) compares simple mediation with two tools

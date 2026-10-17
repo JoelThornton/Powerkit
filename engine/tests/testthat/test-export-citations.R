@@ -57,15 +57,87 @@ test_that("powerkit's refs.bib: method papers only where citation() gives one", 
   }
 })
 
-test_that("every refs.bib entry is one the package's own citation() gives", {
-  # Entries are copied from citation(), never written from memory: each
-  # one's DOI must be among the DOIs of its package's citation().
-  entries <- read_bib(refs_path())
-  expect_setequal(names(entries), c("Superpower_method", "InteractionPoweR_method"))
-  for (key in names(entries)) {
-    package <- sub("_method$", "", key)
-    expect_true(same_doi(entries[[key]], utils::citation(package)), label = key)
+# Where a refs.bib entry comes from (CLAUDE.md: refs.bib or a package's own
+# citation(); never from memory). An entry is accepted if either:
+# * "citation": its key is <package>_method and its DOI is among the DOIs of
+#   that package's citation() (copied with toBibtex()); or
+# * "verified": it has a DOI that a session actually opened, and a `note`
+#   field saying where and when it was verified: "Verified", an ISO date
+#   (YYYY-MM-DD, not in the future) and the URL that was opened, e.g.
+#   note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd}.
+# Anything else is "unverified".
+refs_entry_source <- function(key, entry) {
+  package <- sub("_method$", "", key)
+  if (!identical(package, key) && requireNamespace(package, quietly = TRUE) &&
+    same_doi(entry, utils::citation(package))) {
+    return("citation")
   }
+  doi <- entry$fields$doi %||% ""
+  note <- entry$fields$note %||% ""
+  date <- regmatches(note, regexpr("[0-9]{4}-[0-9]{2}-[0-9]{2}", note))
+  dated <- length(date) == 1 && !is.na(as.Date(date, optional = TRUE)) &&
+    as.Date(date) <= Sys.Date()
+  if (nzchar(doi) && grepl("^Verified\\b", note) && dated && grepl("https?://", note)) {
+    return("verified")
+  }
+  "unverified"
+}
+
+test_that("every refs.bib entry is copied from citation() or a DOI verified with a dated note", {
+  entries <- read_bib(refs_path())
+  for (key in names(entries)) {
+    expect_true(refs_entry_source(key, entries[[key]]) %in% c("citation", "verified"), label = key)
+  }
+  # Today both entries are copied from their packages' citation().
+  expect_equal(
+    vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
+    c(Superpower_method = "citation", InteractionPoweR_method = "citation")
+  )
+})
+
+test_that("an entry not from citation() needs a DOI and a note saying where and when it was verified", {
+  # Fixtures only: not real references, never shipped in refs.bib.
+  entry <- function(...) list(type = "Article", key = "x", fields = list(...))
+  ok_note <- "Verified 2026-10-01 at https://doi.org/10.0000/fixture"
+  expect_equal(refs_entry_source("Some_paper", entry(doi = "10.0000/fixture", note = ok_note)), "verified")
+  # A method key whose DOI isn't in the package's citation() may still be verified.
+  expect_equal(refs_entry_source("Spower_method", entry(doi = "10.0000/fixture", note = ok_note)), "verified")
+  expect_equal(refs_entry_source("Some_paper", entry(note = ok_note)), "unverified")
+  expect_equal(refs_entry_source("Some_paper", entry(doi = "10.0000/fixture")), "unverified")
+  expect_equal(
+    refs_entry_source("Some_paper", entry(doi = "10.0000/fixture", note = "Verified at https://doi.org/10.0000/fixture")),
+    "unverified"
+  )
+  expect_equal(
+    refs_entry_source("Some_paper", entry(doi = "10.0000/fixture", note = "Verified 2026-10-01")),
+    "unverified"
+  )
+  expect_equal(
+    refs_entry_source("Some_paper", entry(doi = "10.0000/fixture", note = "Verified 2999-01-01 at https://doi.org/x")),
+    "unverified"
+  )
+  expect_equal(
+    refs_entry_source("Some_paper", entry(doi = "10.0000/fixture", note = "Seen 2026-10-01 at https://doi.org/x")),
+    "unverified"
+  )
+})
+
+test_that("a verification note is not shown in the formatted citation", {
+  path <- tempfile(fileext = ".bib")
+  on.exit(unlink(path))
+  writeLines(c(
+    "@Article{Spower_method,",
+    "  author = {Test, Author},",
+    "  title = {A Fixture, Not a Real Reference},",
+    "  journal = {Journal of Test Fixtures},",
+    "  year = {2000},",
+    "  doi = {10.0000/fixture},",
+    "  note = {Verified 2026-10-01 at https://doi.org/10.0000/fixture},",
+    "}"
+  ), path)
+  text <- export_citations(fake_result("Spower"), refs = path)
+  expect_match(text, "A Fixture, Not a Real", fixed = TRUE)
+  expect_no_match(text, "Verified 2026-10-01", fixed = TRUE)
 })
 
 test_that("the software used underneath is listed, each from its own citation()", {

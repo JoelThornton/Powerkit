@@ -1365,3 +1365,29 @@ Until that chunk has passed, power4mome is validated only against
 itself (direct calls) and Type I error. The cross-check covers simple
 mediation only; parallel, serial and moderated mediation have no
 independent check yet.
+
+## 2026-10-17 · Validation reruns, and refs.bib entries verified at their DOI
+
+**E13 and E14 validated again.** The process_7 and process_14 chunks were
+rerun on GitHub on the merged seeding fix (commit 4b63d5f). Both passed,
+and their only skips are published-value tests with
+`TODO_PUBLISHED_VALUE` (`docs/validation-log.md`, 17 October 2026). The
+reruns supersede the 16 October runs, so E13 and E14 are `runs_validated`
+again.
+
+**First run of the mediation cross-check.** All 4 tests ran and passed.
+The numbers, and a proposed final value for the 0.02 allowance, are in
+`docs/validation-log.md` ("Results of the first run"). The allowance is
+unchanged in the code until the maintainer decides.
+
+**refs.bib: a second route for entries (the maintainer's rule).** The
+rule is "refs.bib or the package's own `citation()`", but the test
+accepted only entries copied from a package's `citation()`. It now also
+accepts an entry whose DOI a session actually opened, if the entry has a
+`note` field saying where and when it was verified. The note starts with
+"Verified" and has an ISO date (not in the future) and the URL opened, for
+example `note = {Verified 2026-10-17 at https://doi.org/10.1234/abcd}`.
+An entry with neither a matching `citation()` DOI nor such a note fails
+the test. The citations export doesn't print the verification note: it is
+provenance, not part of the reference (the BibTeX export copies the entry
+as written, note included). No entries were added.

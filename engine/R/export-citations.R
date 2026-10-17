@@ -210,9 +210,14 @@ bibentry_bibtex <- function(cit, key) {
 }
 
 # Readable text for a refs.bib entry, or its BibTeX if R can't format it
-# (for example, a required field is missing).
+# (for example, a required field is missing). A `note` recording where and
+# when the entry was verified ("Verified ...", see refs.bib) is provenance,
+# not part of the reference, so it isn't shown.
 bib_entry_text <- function(entry) {
   fields <- lapply(entry$fields, function(x) gsub("[{}]", "", x))
+  if (grepl("^Verified\\b", fields$note %||% "")) {
+    fields$note <- NULL
+  }
   formatted <- tryCatch(
     format(do.call(utils::bibentry, c(list(bibtype = entry$type, key = entry$key), fields)), style = "text"),
     error = function(e) NULL
