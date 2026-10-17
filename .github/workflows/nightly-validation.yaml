@@ -11,6 +11,8 @@
 #
 # Validation tests for designs whose backend isn't built yet are skipped
 # with a clear message, so a red run means a real problem.
+#
+# Packages come from renv.lock, as in R-CMD-check.yaml.
 name: nightly-validation
 
 on:
@@ -30,33 +32,37 @@ jobs:
       POWERKIT_FULL_VALIDATION: "true"
       # Spread simulation replications over the runner's 4 cores.
       POWERKIT_CORES: "4"
-      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
     steps:
       - uses: actions/checkout@v4
 
+      # System libraries the packages in renv.lock need (see
+      # full-validation.yaml).
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk-dev
+
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: renv
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          working-directory: engine
-          extra-packages: any::devtools
-          needs: check
+      # Restores the package versions in renv.lock (cached between runs).
+      - uses: r-lib/actions/setup-renv@v2
 
+      # Runs from the repository root, so its .Rprofile activates renv.
       - name: Run unit tests and the fast validation subset
-        working-directory: engine
         shell: Rscript {0}
         run: |
           options(warn = 1)
           reporter <- testthat::MultiReporter$new(list(
             testthat::ProgressReporter$new(show_praise = FALSE),
-            testthat::JunitReporter$new(file = "validation-results.xml")
+            testthat::JunitReporter$new(file = "engine/validation-results.xml")
           ))
           # Every test file except the slow validation files (matched
           # against the file's path, so the pattern is not anchored).
-          devtools::test(
-            filter = "validation-(anova|mediation|modmed)", invert = TRUE,
+          testthat::test_local(
+            "engine", filter = "validation-(anova|mediation|modmed)", invert = TRUE,
             reporter = reporter, stop_on_failure = TRUE
           )
 
