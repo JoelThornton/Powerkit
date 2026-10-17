@@ -120,11 +120,20 @@ fully validated. Validation runs are recorded in
     or a status saying why not. Sources were opened and read: R package
     documentation (help pages, vignettes, CRAN manuals), UCLA OARC pages
     and David Kenny's dyadic-analysis pages. Of the 53 claims that were
-    unsourced or partly sourced: 31 sourced, 20 partly sourced, 1 candidate
-    (not verified), 1 contradicted;
-  - **contradiction:** E45 says "No ready-made tool", but the PITS package
-    (on CRAN since 30 June 2026) estimates power for interrupted time series
-    with a known breakpoint. The card is unchanged, for the maintainer;
+    unsourced or partly sourced: 33 sourced, 19 partly sourced, 1
+    contradicted in part (E45's autocorrelation point);
+  - **contradictions, now fixed (17 October 2026):** E45 said "No ready-made
+    tool", but the PITS package (on CRAN since 30 June 2026) estimates power
+    for interrupted time series with a known breakpoint. E45 now says "A
+    recently released package addresses the known-breakpoint case; powerkit
+    hasn't checked it", without naming the package (open question 18). E7
+    and E8 said "Exact (analytic)"; they now say "Exact dataset (no
+    repeated simulation)", following Superpower's own help;
+  - two papers supplied by the maintainer were read: Albers and Lakens
+    (2018) now sources the pilot-study warning's reason; Zhang, Wagner and
+    Ross-Degnan (2011) qualify E45's autocorrelation point (negative
+    autocorrelation raises power), which is marked "contradicted" in part
+    and left for the maintainer;
   - partly sourced claims are mostly glossary hints whose details differ
     from the source (for example, fixed effects with random slopes, the
     pooled SD's weighting, autocorrelation as dependence on the previous

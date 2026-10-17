@@ -87,6 +87,14 @@ The statistical decisions phase 3b needs before coding are in
 
 ### A2. E45 says "No ready-made tool", but PITS exists
 
+**Decided 17 October 2026** (`decisions.md`): E45 now says "A recently
+released package addresses the known-breakpoint case; powerkit hasn't
+checked it." PITS isn't named on the card while A1 (open question 18) is
+open; it is recorded in `card-sources.md` and `decision-tree.md`. Still
+open: whether to name it (A1), and E45's autocorrelation point (A6). The
+entry is kept below as the record of the options.
+
+
 - **Question:** E45 (segmented regression, interrupted time series) says
   there is no ready-made tool. The CRAN package PITS 0.1.0 estimates
   power for interrupted time series by simulation, with a known
@@ -226,8 +234,12 @@ The statistical decisions phase 3b needs before coding are in
   - EnvStats notes that serial correlation can be positive or negative.
   - PITS models only positive autocorrelation and calls a higher `rho`
     "conservative".
-  - The likely source for the direction, Zhang et al. (2011), couldn't be
-    opened (candidate).
+  - Zhang, Wagner and Ross-Degnan (2011) (opened, PDF supplied by the
+    maintainer): power falls as positive autocorrelation rises but rises
+    with negative autocorrelation (Table 1: effect size 0.5, N = 24, power
+    0.25 at 0, 0.18 at +0.5, 0.43 at −0.5). So the card's "too optimistic"
+    holds for positive autocorrelation only; `card-sources.md` marks it
+    "contradicted" in part.
 - **Who might disagree, and why:**
   - The direction may hold only for positive autocorrelation, which is
     the common case in time series; some would keep the simple warning
@@ -277,6 +289,12 @@ The statistical decisions phase 3b needs before coding are in
 
 ### A8. The reason given for the pilot-study warning
 
+**Now sourced (17 October 2026):** Albers and Lakens (2018), read from the
+PDF the maintainer supplied, support the reason (Section 6: "Especially
+with small pilot samples, it is likely that the effect size is either
+severely under- or overestimated"). What remains open is only whether to
+keep or reword it.
+
 - **Question:** the justification prompt says pilot estimates get a
   warning "because pilot estimates are very imprecise". The reason has no
   opened source. Keep, source, or reword?
@@ -298,6 +316,11 @@ The statistical decisions phase 3b needs before coding are in
   verified). No setting.
 
 ### A9. "Exact (analytic)" for Superpower's `ANOVA_exact()` (E7, E8)
+
+**Decided 17 October 2026** (`decisions.md`): the cards now say "Exact
+dataset (no repeated simulation)", following Superpower's help. The entry
+is kept below as the record of the options.
+
 
 - **Question:** E7 and E8 give the default method as "Exact (analytic)",
   and Q-test offers "Exact (analytic) or simulation". Superpower's

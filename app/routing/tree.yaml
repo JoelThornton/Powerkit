@@ -603,7 +603,7 @@ closing_questions:
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E7, E8]
-    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact (analytic) or simulation.", E8: "Exact (analytic) or simulation."}
+    card_notes: {E2: "Student's or Welch's t-test.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from the study's own result) is not offered."
@@ -669,6 +669,7 @@ justification_prompt:
 # no_ready_made_tool: true when no tool offers this analysis, or names the
 #   part of the end point that has none (e.g. "Cochran's Q"). The card then
 #   shows the text in `no_ready_made_tool_text` (above).
+# status_text: replaces no_ready_made_tool_text on that card only (E45).
 # five_tools: "not covered" when none of the five tools powerkit builds on
 #   covers the end point (the card says so).
 # generic: true for one card per category of design powerkit doesn't
@@ -758,7 +759,7 @@ endpoints:
     plain_name: "Two factors crossed, different people in each of the four groups"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -770,7 +771,7 @@ endpoints:
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact()"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
-    method: "Exact (analytic)"
+    method: "Exact dataset (no repeated simulation)"
     inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
@@ -1123,6 +1124,10 @@ endpoints:
     plain_name: "A trend over time that may change at a known point"
     status: not_in_powerkit
     no_ready_made_tool: true
+    # Shown instead of no_ready_made_tool_text (maintainer decision, 17 October
+    # 2026): a package for the known-breakpoint case was released in 2026.
+    # Naming it on the card waits for open question 18; see card-sources.md.
+    status_text: "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it."
     from_coverage: false
     card_points:
       - "With a known breakpoint (for example, the date an intervention started), the change in slope can be treated as an added predictor in a regression (a segmented regression)."
@@ -1390,7 +1395,7 @@ glossary:
   - {term: "index of moderated mediation", pattern: "\\bindex of moderated mediation\\b", hint: "How much the indirect effect (X to mediator to outcome) changes when the moderator goes up by one unit."}
   - {term: "Monte Carlo CI", pattern: "\\bMonte Carlo(?= CI\\b)", hint: "A confidence interval built by simulating many sets of the model's estimates from their estimated uncertainty, computing the effect for each set, and keeping the middle 95% of the results."}
   - {term: "ANOVA_exact() (exact)", pattern: "\\bANOVA_exact\\(\\)", hint: "Superpower's quick method: it builds one data set whose means, standard deviations and correlations exactly match the ones you enter, analyses it once, and works out power from that result instead of simulating many data sets."}
-  - {term: "simulation (ANOVA_power())", pattern: "\\bsimulation\\b", hint: "Estimating power by generating many random data sets from the design and counting how often the test comes out significant."}
+  - {term: "simulation (ANOVA_power())", pattern: "(?<!repeated )\\bsimulation\\b", hint: "Estimating power by generating many random data sets from the design and counting how often the test comes out significant."}
   - {term: "brackets N (power_interaction_r2())", pattern: "\\bpower_interaction_r2\\(\\) only brackets N\\b", hint: "InteractionPoweR's power_interaction_r2() is a quick formula-based power calculation; powerkit uses it only to narrow down the range of sample sizes to search, and the reported power comes from the simulation in power_interaction()."}
   - {term: "k.x1 / k.x2 = 2", pattern: "\\bk\\.x1 / k\\.x2 = 2\\b", hint: "Settings that tell InteractionPoweR's simulation to give x1 or x2 only two possible values, so it becomes a yes/no variable."}
   - {term: "rbinary_rs() (x_fun)", pattern: "(?:\\bx_fun = )?\\brbinary_rs\\(\\)", hint: "Tells power4mome to generate X as a yes/no variable (0 or 1, with a chosen chance of 1) instead of from a normal distribution; the 0/1 values are then rescaled to a chosen mean and standard deviation."}

@@ -100,7 +100,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 | [E4](figures/walkthroughs/E4.png): Test whether two scores are related | The title is clear, and "correlation" now has a hint. |
 | [E5](figures/walkthroughs/E5.png): Compare two groups on a yes/no outcome | The title is clear. The backend line's "no continuity correction" has no hint (hints cover "What you would enter" only). |
 | [E6](figures/walkthroughs/E6.png): Test whether two sets of categories are related | The title ("two sets of categories") and the inputs are understandable. Two maintainer placeholders (judgement calls 3.7 and 3.9) also show. |
-| [E7](figures/walkthroughs/E7.png): Two factors crossed, different people in each of the four groups | The title is clear, and cell means, SD units, factors and interaction now have hints. The backend line's "Exact (analytic)" has none. |
+| [E7](figures/walkthroughs/E7.png): Two factors crossed, different people in each of the four groups | The title is clear, and cell means, SD units, factors and interaction now have hints. The default method now reads "Exact dataset (no repeated simulation)" (17 October 2026), in Superpower's own terms. |
 | [E18](figures/walkthroughs/E18.png): Any difference among three or more groups or conditions | The title is clear, and the repeated-measures input now has a hint. The standard name still says "omnibus". |
 | [E23](figures/walkthroughs/E23.png): Compare groups adjusting for a covariate (e.g. the before score) | The title is clear, and the covariate, adjusted means and R-squared now have hints. |
 | [E24](figures/walkthroughs/E24.png): Several predictors at once, or one predictor controlling for others | The title is clear, and R-squared, R-squared change and predictors now have hints. |
@@ -1088,7 +1088,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 ![E7 card](figures/walkthroughs/E7.png)
 
-**Would the card make sense without statistics training?** **E7:** The title is clear, and cell means, SD units, factors and interaction now have hints. The backend line's "Exact (analytic)" has none.
+**Would the card make sense without statistics training?** **E7:** The title is clear, and cell means, SD units, factors and interaction now have hints. The default method now reads "Exact dataset (no repeated simulation)" (17 October 2026), in Superpower's own terms.
 
 **Before/after (card content):** E7 now has asks only its own closing questions (8 of 10); plain-English hints for factor and levels, SD (standard deviation), SD units, cell means, interaction.
 
