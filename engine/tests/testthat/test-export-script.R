@@ -159,12 +159,12 @@ test_that("E14 moderated mediation (PROCESS model 14): the exported power4mome s
 
 # Reproduction: other goals and settings ---------------------------------------------
 
-test_that("one-sided tests: the script reproduces powerkit's directional test (Departure 4)", {
+test_that("one-sided tests: the script reproduces powerkit with Spower's alternative", {
   skip_unless_scripts_can_run()
   spec <- basic_power_spec("independent_t")
   spec$target_test$alternative <- "greater"
   run <- expect_script_reproduces_power(spec, run_for_export(spec))
-  expect_true(any(grepl("one_sided_p <- function", run$script, fixed = TRUE)))
+  expect_true(any(grepl("alternative = \"less\" # your test expects group 2's mean to be higher", run$script, fixed = TRUE)))
   expect_false(any(grepl("two.tailed", sub("#.*$", "", run$script), fixed = TRUE)))
 })
 

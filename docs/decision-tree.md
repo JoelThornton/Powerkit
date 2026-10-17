@@ -625,7 +625,7 @@ taken from coverage.md, where they are proposals.
 
 | ID | End point (analysis name shown) | powerkit design / template | Backend function | Default method | Effect size the user enters | Validated? | Tier | Status today |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| E1 | One-sample t-test | `basic_test / one_sample_t` | `Spower::Spower(Spower::p_t.test())` (one-sided: Spower's generator with `stats::t.test(alternative)`, Departure 4) | Simulation | Cohen's d: (mean − test value) / SD | Yes: `test-validation-basic-tests.R` (full run passed; no published-value test yet) | MVP | Runs |
+| E1 | One-sample t-test | `basic_test / one_sample_t` | `Spower::Spower(Spower::p_t.test())` (one-sided: with `alternative`, Spower 0.7) | Simulation | Cohen's d: (mean − test value) / SD | Yes: `test-validation-basic-tests.R` (full run passed; no published-value test yet) | MVP | Runs |
 | E2 | Independent-samples t-test (Student's; Welch's as an option) | `basic_test / independent_t` | As E1 | Simulation | Cohen's d (group 2 − group 1) / pooled SD; allocation ratio | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E3 | Paired-samples t-test | `basic_test / paired_t` | As E1 | Simulation | d_z: mean difference / SD of differences (second minus first) | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E4 | Pearson correlation | `basic_test / correlation` | `Spower::p_r()` | Simulation | r | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
@@ -808,7 +808,8 @@ planned effect size (2.2), which is prospective. Some tools call both
   testing as the norm. A one-tailed test that isn't preregistered invites
   suspicion.
 - **Already decided in powerkit:** a one-sided test counts only effects in
-  the stated direction (Departure 4). It is allowed only for directional
+  the stated direction (Spower's own one-sided test since Spower 0.7;
+  before that, powerkit's Departure 4, now retired). It is allowed only for directional
   basic tests (`two_sided_only` elsewhere). G\*Power asks for the number
   of tails as an input (manual, p. 4; read directly). Open: whether the
   app should require a preregistration note before allowing one-sided,

@@ -1411,3 +1411,56 @@ Claude session that owns the routing prototype also owns `engine/`,
   tests used, defaults, departures) waits for the maintainer's explicit
   yes. Its evidence is posted on the PR first. At the time of writing this
   covers only the Spower 0.7 / Departure 4 PR.
+
+## 2026-10-17 · Spower 0.7: Departure 4 retired
+
+**Waits for the maintainer's yes** (it changes which test code runs, so it
+falls under the exception in "Who merges PRs" above).
+
+**What changed upstream.** Spower 0.7 reached CRAN on 16 October 2026.
+It ships no NEWS file (checked: none in the CRAN package, the CRAN page or
+r-universe), so the changes were read by comparing the 0.6.4 and 0.7 source
+packages from CRAN file by file. Changed R files: `p_t.test.R`, `p_r.R`,
+`p_2r.R`, `p_prop.test.R`, `p_ks.test.R`, `p_var.test.R`,
+`p_wilcox.test.R`, `p_scale.R`, `p_anova.test.R`, `p_mcnemar.test.R`,
+`p_mediation.R`. Nothing else in `R/` changed (`Spower()`, the generators
+and SimDesign calls are as in 0.6.4).
+
+- One-sided tests: each of the first eight gains `alternative`, passed to
+  the underlying test; `two.tailed = FALSE` now means
+  `alternative = "greater"` (`"less"` in `p_scale()`); the halving line
+  `p <- ifelse(two.tailed, p, p/2)` is removed.
+- `two.tailed` is removed from `p_anova.test()`, `p_mcnemar.test()` and
+  `p_mediation()` (it now falls into `...`). powerkit doesn't use these.
+- `p_var.test()` now stops for a one-sided Fligner test or more than two
+  groups. powerkit doesn't use it.
+- Spower's own test file changes some expected values in tests run with
+  `parallel = TRUE, ncores = 2`. powerkit always calls Spower with
+  `parallel = FALSE` (it batches replications itself), so these don't
+  apply.
+
+**Decision.** Following the rule that CRAN versions are pinned with
+powerkit's workarounds until the fix reaches CRAN: `renv.lock` moves to
+Spower 0.7, `engine/DESCRIPTION` requires `Spower (>= 0.7)`, and
+powerkit's own one-sided test (`spower_one_sided_p()`) is removed. One-sided
+basic tests call Spower's `p_t.test()`, `p_r()` or `p_prop.test()` with
+`alternative`, mapped to Spower's orientation by `spower_alternative()`.
+Spower compares group 1 with group 2, and powerkit passes the effect with
+its sign reversed, so powerkit's `"greater"` is Spower's `"less"` for
+two-sample, paired and two-proportion tests. Passing `two.tailed = FALSE`
+would therefore have tested the wrong direction for those three templates;
+the mapping test guards this.
+
+**Evidence.**
+- Same seeds, old code with Spower 0.6.4 vs new code with Spower 0.7: identical power in all 10 one-sided cases
+  (five templates x "greater"/"less", 2,000 replications) and all 6
+  two-sided cases, including the wrong-direction ones.
+- The new test "one-sided tests: powerkit and Spower's own one-sided test
+  agree":
+  - with no effect, powerkit 0.047 equals Spower's `alternative = "less"`
+    call (0.047; Spower 0.6.4's halved p-value gave about twice alpha);
+  - with d = 0.5 in the tested direction, 0.798 and 0.798;
+  - with the effect in the wrong direction, 0 for powerkit and 0 for
+    Spower's `two.tailed = FALSE`.
+- **Validation to rerun after merging:** the `basic` chunk (the only chunk
+  that uses Spower). Results go in `docs/validation-log.md`.

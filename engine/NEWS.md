@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* Basic tests now need Spower 0.7 or later. One-sided tests use Spower's
+  own one-sided test (its new `alternative` argument) instead of powerkit's
+  workaround for Spower 0.6.4, which halved the two-sided p-value whatever
+  the direction (Departure 4, now retired). Results are unchanged: with the
+  same seed, every basic test gives the same power as before. Exported
+  scripts for one-sided tests now call Spower's `p_t.test()`, `p_r()` or
+  `p_prop.test()` with `alternative`, and need Spower 0.7.
+
 * Validation (for maintainers): a new `mediation_crosscheck` chunk
   (`scripts/run-validation.R --only mediation_crosscheck`, and the
   `full-validation` workflow) compares simple mediation with two tools

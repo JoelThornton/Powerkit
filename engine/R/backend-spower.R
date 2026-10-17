@@ -1,13 +1,14 @@
 # Backend adapter: basic tests (one-sample, independent and paired t-tests,
 # correlation, two proportions, chi-square test of independence) via Spower.
 #
-# Power is simulated with Spower::Spower(). Two-sided tests use Spower's own
-# experiment functions (p_t.test(), p_r(), p_prop.test(), p_chisq.test())
-# exactly as a user would call them. One-sided tests use Spower's data
-# generators (gen_t.test(), ...) with the stats test and its `alternative`,
-# because Spower's `two.tailed = FALSE` halves the two-sided p-value without
-# checking the direction of the effect, which doubles the Type I error rate
-# (see docs/decisions.md).
+# Power is simulated with Spower::Spower() and Spower's own experiment
+# functions (p_t.test(), p_r(), p_prop.test(), p_chisq.test()), exactly as a
+# user would call them. One-sided tests use their `alternative` argument
+# (Spower 0.7 and later), translated to Spower's orientation by
+# spower_alternative(). Spower 0.6.4's `two.tailed = FALSE` halved the
+# two-sided p-value whatever the direction, so powerkit used its own
+# directional test until Spower 0.7 fixed this (Departure 4, retired; see
+# docs/decisions.md, 17 October 2026).
 
 spower_backend <- function(spec, seed = NULL) {
   inputs <- spower_inputs(spec)
@@ -93,8 +94,8 @@ spower_inputs <- function(spec) {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
   } else {
     sprintf(
-      "Spower::Spower() with Spower::%s() data and stats::%s(alternative = \"%s\")",
-      test$generator, spower_stats_test(template), stats_alternative(template, alternative)
+      "Spower::Spower(Spower::%s(alternative = \"%s\"))",
+      test$experiment, spower_alternative(template, alternative)
     )
   }
   test
@@ -105,33 +106,30 @@ probability_matrix <- function(spec) {
   matrix(as.numeric(unlist(rows)), nrow = length(rows), byrow = TRUE)
 }
 
-spower_stats_test <- function(template) {
-  switch(template, correlation = "cor.test", two_proportions = "prop.test", "t.test")
-}
-
 # The spec's "greater" means the spec's effect (d, dz, r, p2 - p1) is
-# positive. spower_one_sided_p() puts group 2 (or the second condition)
-# first in each test, so "greater" carries over unchanged.
-stats_alternative <- function(template, alternative) {
-  if (alternative == "two_sided") "two.sided" else alternative
+# positive. Spower's two-sample, paired and two-proportion tests compare the
+# first group (or time point) with the second, and powerkit passes the
+# effect to Spower with its sign reversed (-d, -sqrt(2) * dz; proportions
+# in the order p1, p2), so for those templates the spec's "greater" is
+# Spower's "less". One-sample t-tests and correlations keep the direction.
+spower_alternative <- function(template, alternative) {
+  if (alternative == "two_sided") {
+    return("two.sided")
+  }
+  reversed <- template %in% c("independent_t", "paired_t", "two_proportions")
+  if (!reversed) {
+    return(alternative)
+  }
+  if (alternative == "greater") "less" else "greater"
 }
 
 # Rejections in `nrep` Spower replications at total sample size n.
 spower_rejections <- function(inputs, n, nrep, seed) {
   args <- inputs$args(n)
-  if (inputs$alternative == "two_sided") {
-    head <- call("::", as.name("Spower"), as.name(inputs$experiment))
-  } else {
-    head <- as.name("spower_one_sided_p")
-    args <- c(
-      list(
-        template = inputs$template,
-        alternative = stats_alternative(inputs$template, inputs$alternative),
-        generator = inputs$generator
-      ),
-      args
-    )
+  if (inputs$alternative != "two_sided") {
+    args$alternative <- spower_alternative(inputs$template, inputs$alternative)
   }
+  head <- call("::", as.name("Spower"), as.name(inputs$experiment))
   result <- spower_eval(head, args, nrep, inputs$alpha, seed)
   round(result$power * nrep)
 }
@@ -157,29 +155,6 @@ spower_eval <- function(head, args, nrep, alpha, seed) {
     verbose = FALSE
   ))
   call_backend("Spower", with_seed(seed, quietly(eval(spower_call, env))))
-}
-
-# One replication of a one-sided test: data from Spower's generator for the
-# template, analysed with the stats test and `alternative`. Returns the
-# p-value. Group 2 (or the second condition) comes first in each test, so
-# "greater" means the spec's effect is positive.
-spower_one_sided_p <- function(template, alternative, generator, ...) {
-  data <- do.call(getExportedValue("Spower", generator), list(...))
-  test <- switch(
-    template,
-    one_sample_t = stats::t.test(data[[1]], alternative = alternative),
-    independent_t = stats::t.test(
-      data[[2]], data[[1]],
-      var.equal = list(...)$var.equal, alternative = alternative
-    ),
-    paired_t = stats::t.test(data[[2]], data[[1]], paired = TRUE, alternative = alternative),
-    correlation = stats::cor.test(data[, 1], data[, 2], alternative = alternative),
-    two_proportions = stats::prop.test(
-      data[1, 2:1], data[2, 2:1],
-      alternative = alternative, correct = FALSE
-    )
-  )
-  test$p.value
 }
 
 # Check run: one large data set from Spower's generator with the translated

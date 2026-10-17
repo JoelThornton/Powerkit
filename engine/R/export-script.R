@@ -398,7 +398,6 @@ spower_script <- function(spec, result) {
     # Spower reads its experiment unevaluated, so values computed from the
     # inputs are given to it by name.
     if (length(spower_derived_lines(spec)) > 0) c(spower_derived_lines(spec), ""),
-    if (one_sided) c(spower_one_sided_function(spec, inputs), ""),
     "# One batch of simulated data sets: rejections and analysable data sets.",
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
     spower_group_size_lines(spec),
@@ -513,9 +512,35 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "correct = FALSE # no continuity correction (Spower's default is TRUE; powerkit's Departure 5)"
     )
   )
+  if (one_sided) {
+    args <- c(args, spower_alternative_line(spec, inputs))
+  }
   args <- ensure_commas(args)
-  head <- if (one_sided) "one_sided_p(" else sprintf("%s(", inputs$experiment)
-  c(head, paste0("  ", args), "),")
+  c(sprintf("%s(", inputs$experiment), paste0("  ", args), "),")
+}
+
+# A one-sided test: Spower's `alternative` (Spower 0.7 and later), in
+# Spower's orientation (powerkit's spower_alternative()).
+spower_alternative_line <- function(spec, inputs) {
+  alternative <- spower_alternative(spec$template, inputs$alternative)
+  positive <- inputs$alternative == "greater"
+  why <- switch(
+    spec$template,
+    independent_t = sprintf(
+      "your test expects group 2's mean to be %s; Spower tests group 1 minus group 2",
+      if (positive) "higher" else "lower"
+    ),
+    paired_t = sprintf(
+      "your test expects the second condition to be %s; Spower tests first minus second",
+      if (positive) "higher" else "lower"
+    ),
+    two_proportions = sprintf(
+      "your test expects p2 to be %s than p1; Spower tests p1 minus p2",
+      if (positive) "higher" else "lower"
+    ),
+    sprintf("one-sided: the effect is expected to be %s", if (positive) "positive" else "negative")
+  )
+  sprintf("alternative = %s # %s", r_code(alternative), why)
 }
 
 # Put a comma after every argument but the last, before any comment.
@@ -526,54 +551,6 @@ ensure_commas <- function(args) {
   last <- length(code)
   code[-last] <- paste0(code[-last], ",")
   paste0(code, comment)
-}
-
-# A one-sided test: Spower's data generator, analysed with the stats test
-# and `alternative` (powerkit's spower_one_sided_p(); Departure 4).
-spower_one_sided_function <- function(spec, inputs) {
-  alternative <- stats_alternative(spec$template, inputs$alternative)
-  test <- switch(
-    spec$template,
-    one_sample_t = sprintf("t.test(data[[1]], alternative = %s)", r_code(alternative)),
-    independent_t = sprintf(
-      "t.test(data[[2]], data[[1]], var.equal = var.equal, alternative = %s)", r_code(alternative)
-    ),
-    paired_t = sprintf("t.test(data[[2]], data[[1]], paired = TRUE, alternative = %s)", r_code(alternative)),
-    correlation = sprintf("cor.test(data[, 1], data[, 2], alternative = %s)", r_code(alternative)),
-    two_proportions = sprintf(
-      "prop.test(data[1, 2:1], data[2, 2:1], alternative = %s, correct = FALSE)", r_code(alternative)
-    )
-  )
-  formals_text <- switch(
-    spec$template,
-    one_sample_t = "n, d, type",
-    independent_t = "n, d, type, n2_n1, var.equal",
-    paired_t = "n, d, type",
-    correlation = "n, r",
-    two_proportions = "n, prop, n.ratios, correct"
-  )
-  generator_args <- paste(
-    vapply(strsplit(formals_text, ", ")[[1]], function(a) paste0(a, " = ", a), character(1)),
-    collapse = ", "
-  )
-  c(
-    sprintf(
-      "# A one-sided test in the direction you specified (\"%s\": the effect is %s).",
-      inputs$alternative, if (inputs$alternative == "greater") "positive" else "negative"
-    ),
-    sprintf(
-      "# Data come from Spower's generator, %s(), and are tested with %s().", inputs$generator,
-      spower_stats_test(spec$template)
-    ),
-    "# Group 2 (or the second condition) comes first in the test, so \"greater\"",
-    "# means group 2's value is higher. powerkit doesn't use Spower's",
-    "# two.tailed = FALSE, which halves the two-sided p-value whatever the",
-    "# direction of the effect (powerkit's Departure 4).",
-    sprintf("one_sided_p <- function(%s) {", formals_text),
-    sprintf("  data <- %s(%s)", inputs$generator, generator_args),
-    sprintf("  %s$p.value", test),
-    "}"
-  )
 }
 
 # Spower's values computed from the user's (powerkit's spower_inputs()).
