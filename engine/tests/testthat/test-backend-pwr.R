@@ -24,11 +24,14 @@ pwr_templates <- c(
 test_that("every basic test except Welch's runs on pwr by default, exactly", {
   for (name in pwr_templates) {
     result <- run_spec(pwr_spec(name, list(type = "power", n = 100)))
-    expect_equal(result$provenance$backend, "pwr", info = name)
+    # Two proportions in equal groups use base R's power.prop.test()
+    # (Departure 11); every other basic test uses pwr.
+    backend <- if (name == "two_proportions") "stats" else "pwr"
+    expect_equal(result$provenance$backend, backend, info = name)
     expect_equal(result$provenance$method, "exact", info = name)
     expect_equal(result$curve$mcse, 0, info = name)
     expect_true(all(result$check_run$ok), info = name)
-    expect_true(all(c("pwr", "powerkit") %in% names(result$provenance$packages)), info = name)
+    expect_true(all(c(backend, "powerkit") %in% names(result$provenance$packages)), info = name)
   }
 })
 
@@ -44,7 +47,7 @@ test_that("pwr's results equal direct pwr calls", {
   pop <- example_spec("two_proportions")$population
   expect_equal(
     at("two_proportions", 300),
-    pwr::pwr.2p2n.test(h = pwr::ES.h(pop$p2, pop$p1), n1 = 150, n2 = 150)$power
+    stats::power.prop.test(n = 150, p1 = pop$p1, p2 = pop$p2, strict = TRUE)$power
   )
   p <- probability_matrix(example_spec("chi_square_independence"))
   expect_equal(
@@ -123,7 +126,7 @@ test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
     independent_t = list(n = 200, formula = 0.8036, simulation = 0.7954),
     paired_t = list(n = 60, formula = 0.7601, simulation = 0.7580),
     correlation = list(n = 120, formula = 0.5952, simulation = 0.5926),
-    two_proportions = list(n = 340, formula = 0.4911, simulation = 0.4858),
+    two_proportions = list(n = 340, formula = 0.4892, simulation = 0.4858),
     chi_square_independence = list(n = 150, formula = 0.0855, simulation = 0.0870)
   )
   for (name in names(designs)) {
@@ -161,4 +164,100 @@ test_that("departure: correlation by Fisher's z, not G*Power's exact method (Dep
   spec <- pwr_spec("correlation", list(type = "sample_size", power = 0.8))
   spec$population$r <- 0.3
   expect_identical(as.integer(run_quietly(spec)$n_required$n), 85L)
+})
+
+test_that("two proportions: the z test equals G*Power's (Departure 11)", {
+  # G*Power 3.1.9.7, z tests, "Proportions: Difference between two
+  # independent proportions", default options (no continuity correction,
+  # no arcsine transformation), two tails, alpha .05, p1 = .10, p2 = .25.
+  # Maintainer's screenshots, 17 October 2026 (docs/figures/gpower/):
+  # post hoc with 20 per group, power 0.2344921; a priori for power .95,
+  # 164 per group, actual power 0.9502464.
+  spec <- pwr_spec("two_proportions", list(type = "power", n = 40))
+  spec$population$p1 <- 0.10
+  spec$population$p2 <- 0.25
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "stats::power.prop.test")
+  expect_equal(round(result$curve$power, 7), 0.2344921)
+  expect_true(all(result$check_run$ok))
+
+  spec$goal <- list(type = "sample_size", power = 0.95)
+  result <- run_spec(spec)
+  expect_identical(as.integer(result$n_required$n), 328L)
+  expect_equal(round(result$curve$power[result$curve$n == 328], 7), 0.9502464)
+})
+
+test_that("departure: both tails counted (strict = TRUE), and the size of the change from the arcsine (Departure 11)", {
+  # power.prop.test()'s default, strict = FALSE, ignores rejections in the
+  # opposite tail: 0.2339595 instead of G*Power's 0.2344921 (p1 = .10,
+  # p2 = .25, 20 per group).
+  expect_equal(
+    round(stats::power.prop.test(n = 20, p1 = 0.10, p2 = 0.25)$power, 7), 0.2339595
+  )
+  # powerkit's earlier default, pwr's arcsine formula, still available as
+  # options > proportions_formula = "arcsine": 0.2478 at 20 per group,
+  # and 160 rather than 164 per group for 95% power.
+  spec <- pwr_spec("two_proportions", list(type = "power", n = 40))
+  spec$population$p1 <- 0.10
+  spec$population$p2 <- 0.25
+  spec$options$proportions_formula <- "arcsine"
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "pwr::pwr.2p2n.test")
+  expect_equal(round(result$curve$power, 4), 0.2478)
+  spec$goal <- list(type = "sample_size", power = 0.95)
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 320L)
+})
+
+test_that("two proportions in unequal groups use pwr's arcsine formula (Departure 11)", {
+  # power.prop.test() takes one n for both groups. G*Power, with N2/N1 = 2
+  # and power .95 (p1 = .10, p2 = .25), gives 123 + 247, actual power
+  # 0.9498668 (maintainer's screenshot); the arcsine formula is used here
+  # instead, and its size of difference is recorded in docs/conventions.md.
+  spec <- pwr_spec(
+    "two_proportions", list(type = "power", n = 369),
+    options = list(seed = 7, allocation_ratio = 2)
+  )
+  spec$population$p1 <- 0.10
+  spec$population$p2 <- 0.25
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend, "pwr")
+  expect_equal(
+    result$curve$power,
+    pwr::pwr.2p2n.test(h = pwr::ES.h(0.25, 0.10), n1 = 123, n2 = 246)$power
+  )
+  # Size of the difference: at 123 and 246 the arcsine gives 0.9550 and
+  # the z test 0.9496 (G*Power's 123 and 247: 0.9498668); for 95% power
+  # the arcsine needs 360 (120 + 240), G*Power 370 (123 + 247).
+  expect_equal(round(result$curve$power, 4), 0.9550)
+  spec$goal <- list(type = "sample_size", power = 0.95)
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 360L)
+})
+
+test_that("two proportions: a one-sided z test keeps the spec's direction", {
+  spec <- pwr_spec("two_proportions", list(type = "power", n = 100))
+  spec$population$p1 <- 0.10
+  spec$population$p2 <- 0.25
+  spec$target_test$alternative <- "greater"
+  toward <- run_spec(spec)$curve$power
+  expect_equal(toward, stats::power.prop.test(n = 50, p1 = 0.10, p2 = 0.25, alternative = "one.sided")$power)
+  # Against the difference, power.prop.test() alone would give the same
+  # 0.631 (it uses |p1 - p2|). The power of the lower-tail test is
+  # 0.0001115 (the pooled z test's lower tail, 50 per group, alpha .05).
+  spec$target_test$alternative <- "less"
+  against <- run_spec(spec)$curve$power
+  expect_equal(round(against, 7), 0.0001115)
+  expect_equal(
+    against + toward,
+    stats::power.prop.test(n = 50, p1 = 0.10, p2 = 0.25, sig.level = 0.10, strict = TRUE)$power
+  )
+})
+
+test_that("the proportions formula option is only for two proportions by formula", {
+  spec <- pwr_spec("correlation", list(type = "power", n = 80))
+  spec$options$proportions_formula <- "arcsine"
+  expect_spec_problem(spec, "only applies to the two-proportions test")
+  spec <- pwr_spec("two_proportions", list(type = "power", n = 80))
+  spec$options$proportions_formula <- "z_test"
+  spec$options$method <- "simulation"
+  expect_spec_problem(spec, "only applies when power is calculated by formula")
 })

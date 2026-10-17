@@ -116,10 +116,25 @@ test_that("correlation at alpha = .01: power matches pwr (analytic)", {
   expect_power_exact(engine_power(spec), reference)
 })
 
-test_that("two proportions: power matches pwr (analytic)", {
+test_that("two proportions: power matches G*Power's z test (G*Power value)", {
+  skip_unless_full_validation()
+  # Reference: a G*Power value, not a published one. G*Power 3.1.9.7,
+  #   z tests, "Proportions: Difference between two independent
+  #   proportions", post hoc, default options (no continuity correction,
+  #   no arcsine transformation). Inputs: two tails, p1 = .10, p2 = .25,
+  #   alpha = .05, sample size group 1 = 20, group 2 = 20. Output: power
+  #   0.2344921. Maintainer's screenshot, 17 October 2026
+  #   (docs/figures/gpower/E5_z_test_post_hoc_n20_options.png); the
+  #   maintainer chose it as this test's reference (Departure 11).
+  spec <- basic_spec("two_proportions", list(p1 = 0.10, p2 = 0.25), n = 40, seed = 107)
+  expect_power_exact(engine_power(spec), 0.2344921)
+})
+
+test_that("two proportions, Cohen's h option: power matches pwr (analytic)", {
   skip_unless_full_validation()
   skip_if_not_installed("pwr")
-  spec <- basic_spec("two_proportions", list(p1 = 0.5, p2 = 0.65), n = 340, seed = 107)
+  spec <- basic_spec("two_proportions", list(p1 = 0.5, p2 = 0.65), n = 340, seed = 107,
+    options = list(proportions_formula = "arcsine"))
   # pwr.2p.test uses the arcsine (Cohen's h) approximation.
   reference <- pwr::pwr.2p.test(h = pwr::ES.h(0.65, 0.5), n = 170, sig.level = 0.05)$power
   expect_power_exact(engine_power(spec), reference)

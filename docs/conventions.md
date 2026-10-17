@@ -71,7 +71,7 @@ different answer, the difference is listed in "Known differences".
 | InteractionPoweR | Not covered: to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
-| **powerkit** | **By default, pwr's formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation), `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation, no continuity correction) and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
+| **powerkit** | **By default, a formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation); for two proportions in equal groups, base R's `stats::power.prop.test(strict = TRUE)` (the z test with pooled variance under the null, as G*Power; Departure 11), and for unequal groups or on request `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation), neither with a continuity correction; and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
 ## Factorial ANOVA
 
@@ -377,13 +377,16 @@ kept so later departures keep theirs.
   17 October 2026; `docs/decisions.md`): exact where an exact answer
   exists (the t-tests, by the noncentral t; the chi-square test, by the
   noncentral chi-square), and no Monte Carlo noise. For a correlation
-  (Fisher's z) and two proportions (Cohen's h) pwr's formulas are
+  (Fisher's z) and two proportions (a normal approximation: the z test by
+  `power.prop.test()`, Departure 11, or Cohen's h) the formulas are
   approximations. Spower simulation stays available on request, and is
   used for Welch's t-test, which pwr doesn't cover.
 - **Size:** the example designs below, alpha = .05 two-sided, formula
   against Spower simulation with 5,000 seeded replications (seed 9, one
   core). Every difference is within 2 Monte Carlo standard errors, so it
-  is simulation noise; the formula removes it.
+  is simulation noise; the formula removes it. The two-proportions row is
+  `power.prop.test()`'s z test since Departure 11 (with pwr's Cohen's h it
+  was 0.4911).
 
   | Test | n | Formula (pwr) | Simulation (Spower) | Difference |
   | --- | --- | --- | --- | --- |
@@ -391,7 +394,7 @@ kept so later departures keep theirs.
   | Independent t (Student's), d = 0.4 | 200 | 0.8036 | 0.7954 | -0.0082 |
   | Paired t, d_z = 0.35 | 60 | 0.7601 | 0.7580 | -0.0021 |
   | Correlation, r = -0.2 | 120 | 0.5952 | 0.5926 | -0.0026 |
-  | Two proportions, .6 vs .7 | 340 | 0.4911 | 0.4858 | -0.0053 |
+  | Two proportions, .6 vs .7 | 340 | 0.4892 | 0.4858 | -0.0034 |
   | Chi-square, 3 x 2 table (example spec) | 150 | 0.0855 | 0.0870 | +0.0015 |
 
 - **Test:** `test-backend-pwr.R`, "departure: pwr's formula vs Spower's
@@ -428,6 +431,51 @@ kept so later departures keep theirs.
 - **Test:** `test-backend-pwr.R`, "departure: correlation by Fisher's z,
   not G\*Power's exact method (Departure 10)".
 - **Shown to users / in the methods paragraph:** on E4's card (backend
+  line) and on the result screen when the formula was used
+  (`app/routing/forms.yaml`, `departures`). The methods paragraph is
+  still a placeholder.
+
+### 11. Two proportions (E5): G\*Power's z test by `power.prop.test(strict = TRUE)`; Cohen's h for unequal groups
+
+- **Established convention:** G\*Power 3.1.9.7's z test for two
+  independent proportions ("Proportions: Difference between two
+  independent proportions"), with its default options: no continuity
+  correction, no arcsine transformation (maintainer's screenshots,
+  17 October 2026, `docs/figures/gpower/`). It counts rejections in both
+  tails. Base R's `power.prop.test()` (stats) computes the same z test
+  (pooled variance under the null, unpooled under the alternative, no
+  continuity correction; its help and source), but its default,
+  `strict = FALSE`, leaves out the opposite tail, and it takes one n for
+  both groups.
+- **powerkit:** `power.prop.test(strict = TRUE)` for equal groups
+  (maintainer's decision, 17 October 2026; `docs/decisions.md`). For
+  unequal groups, and when the user chooses it
+  (`options > proportions_formula = "arcsine"`), pwr's
+  `pwr.2p2n.test()` with Cohen's h, powerkit's earlier default.
+- **Size:**
+  - Against G\*Power, equal groups: none to seven decimals (p1 = .10,
+    p2 = .25, two-sided, alpha .05: power 0.2344921 at 20 per group; 164
+    per group for 95% power, actual power 0.9502464).
+  - `strict = TRUE` against `power.prop.test()`'s default: 0.2344921
+    against 0.2339595 at 20 per group.
+  - Against powerkit's earlier default (Cohen's h), same example: 0.2478
+    at 20 per group; 160 rather than 164 per group for 95% power. The
+    table in [`judgement-calls.md`](judgement-calls.md), G6, has more
+    cases (largest gap 0.018 in power, 3 per group for 80% power).
+  - Unequal groups, Cohen's h against G\*Power (N2/N1 = 2, power .95):
+    360 (120 + 240) rather than 370 (123 + 247); at 123 and 246 the power
+    is 0.9550 by Cohen's h and 0.9496 by the z test.
+  - One-sided tests: `power.prop.test()` uses |p1 − p2|, so for a
+    one-sided test against the specified difference powerkit takes the
+    two-sided power at 2 × alpha minus the one-sided power (the tail away
+    from the difference).
+- **Test:** `test-backend-pwr.R`, "two proportions: the z test equals
+  G\*Power's (Departure 11)", "departure: both tails counted (strict =
+  TRUE), and the size of the change from the arcsine (Departure 11)",
+  "two proportions in unequal groups use pwr's arcsine formula
+  (Departure 11)" and "two proportions: a one-sided z test keeps the
+  spec's direction".
+- **Shown to users / in the methods paragraph:** on E5's card (backend
   line) and on the result screen when the formula was used
   (`app/routing/forms.yaml`, `departures`). The methods paragraph is
   still a placeholder.

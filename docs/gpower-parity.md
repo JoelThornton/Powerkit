@@ -169,16 +169,16 @@ which powerkit doesn't run.
 | Effect size | "Proportion p1" and "Proportion p2"; the options dialog can switch the input to "Cohen's effect size index h" (screenshot) | p1, p2 | **Has** | h as input: **Not exposed** |
 | Allocation ratio | Yes: "Allocation ratio N2/N1" (screenshot) | Yes | **Has** | |
 | Continuity correction | Option "Use continuity correction", off in the maintainer's copy (screenshot) | No correction (Departure 5) | **Not exposed** (Spower `correct = TRUE`) | Departure 5 matches G\*Power |
-| Arcsine transformation | Option "Use arcsin transform", off in the maintainer's copy (screenshot) | pwr's arcsine (Cohen's h) formula | **Has** | So G\*Power's z test is not the arcsine formula powerkit uses now; see "Method" |
+| Arcsine transformation | Option "Use arcsin transform", off in the maintainer's copy (screenshot) | Off by default; pwr's Cohen's h on request (`options > proportions_formula = "arcsine"`) and for unequal groups | **Has** | Departure 11 |
 | Exact test | Separate test. Fisher's exact test: effect size by "directly specifying the two proportions π1 and π2", and "This test has no options" (sections 6.2 and 6.3, p. 17). Its "Determine" drawer computes p1 from a difference, ratio or odds ratio (screenshot) | — | **Not exposed** (Spower `exact = TRUE`) | Judgement call 3.9. Screenshot values, one tail, p1 = .5, p2 = .6, α .05, power .95: 557 + 557 = 1114, actual power 0.9500348, actual α 0.0448913 |
-| Method | z test with the default options (screenshot) | Formula (pwr: Cohen's h, the arcsine transformation) or simulation (Spower: `prop.test()`) | **Has** | See the check below. Judgement call G6 |
+| Method | z test with the default options (screenshot) | Formula (`stats::power.prop.test(strict = TRUE)` for equal groups, the same z test; pwr's Cohen's h for unequal groups) or simulation (Spower: `prop.test()`) | **Has** (equal groups); unequal groups by Cohen's h (Departure 11) | See the check below. Judgement call G6. Pending the maintainer's yes (draft PR) |
 
 **Check against base R (17 October 2026).** G\*Power's z test with its
 default options equals `stats::power.prop.test(strict = TRUE)` (R 4.3.3)
 to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
 .25:
 
-| Case | G\*Power (screenshot) | `power.prop.test(strict = TRUE)` | `strict = FALSE` (its default) | pwr arcsine (powerkit now) |
+| Case | G\*Power (screenshot) | `power.prop.test(strict = TRUE)` (powerkit's default with Departure 11) | `strict = FALSE` (its default) | pwr arcsine (powerkit's earlier default) |
 | --- | --- | --- | --- | --- |
 | Post hoc, 20 per group | 0.2344921 | 0.2344921 | 0.2339595 | 0.2477934 |
 | A priori, power .95, equal groups | 164 + 164, actual power 0.9502464 | 164 per group; 0.9502464 at 164 | | 160 per group |

@@ -107,7 +107,9 @@ form_groups <- function(forms, ep_id, k = 2) {
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
-  if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = list(basic_method_field(forms, ep_id)))))
+  # method_extra: further choices about the formula, shown with the method
+  # (E5's z test or Cohen's h).
+  if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
   c(groups, closing_groups(forms, ep_id))
 }
 

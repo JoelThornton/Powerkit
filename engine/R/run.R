@@ -6,7 +6,8 @@
 #' detectable effect.
 #'
 #' **Backends.** Basic tests run on pwr's exact formulas by default (Spower
-#' simulation on request, and for Welch's t-test), regression interactions on
+#' simulation on request, and for Welch's t-test; two proportions with equal
+#' groups on base R's `stats::power.prop.test()`), regression interactions on
 #' InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
 #' 7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
 #'
@@ -14,8 +15,12 @@
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
 #' exact for the specified population), and for basic tests other than
 #' Welch's t-test it is `"exact"` too (pwr's analytic formulas: noncentral
-#' t and chi-square distributions; Fisher's z for a correlation and Cohen's
-#' h for two proportions, which are approximations); `"simulation"` uses Monte Carlo
+#' t and chi-square distributions; Fisher's z for a correlation, an
+#' approximation). Two proportions use the z test with pooled variance under
+#' the null and no continuity correction, as G*Power does
+#' (`power.prop.test(strict = TRUE)`), for equal groups; unequal groups, or
+#' `options > proportions_formula = "arcsine"`, use pwr's Cohen's h (the
+#' arcsine approximation). `"simulation"` uses Monte Carlo
 #' simulation with `options > nrep` replications (default 1,000) and
 #' `options > seed` (drawn and recorded if not given). Every other design
 #' is simulated. Set

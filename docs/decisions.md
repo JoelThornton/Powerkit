@@ -1639,3 +1639,49 @@ the p-value comes from `cor.test()` and follows `alternative`. powerkit
 doesn't use a non-zero null correlation, so nothing is affected. A draft
 note to Phil Chalmers is in `upstream-questions.md` (not sent).
 
+
+## 2026-10-17 · E5: G\*Power's z test by `power.prop.test()` (waits for the maintainer's yes)
+
+**What the maintainer asked.** Make base R's `power.prop.test()` the E5
+default if it agrees with G\*Power's z test, keep pwr's arcsine (Cohen's
+h) as an option, record the reasoning here, and wait for a yes before
+merging (decision G6, above).
+
+**The check.** The maintainer's G\*Power 3.1.9.7 screenshots (z tests,
+"Proportions: Difference between two independent proportions", default
+options: no continuity correction, no arcsine transformation) agree with
+`power.prop.test(strict = TRUE)` to the seven decimals G\*Power shows:
+0.2344921 at 20 per group (p1 = .10, p2 = .25, two-sided, alpha .05);
+164 per group for 95% power, actual power 0.9502464. With
+`power.prop.test()`'s default, `strict = FALSE`, the first is 0.2339595,
+so G\*Power counts both tails and powerkit passes `strict = TRUE`.
+Details: `gpower-parity.md`, E5; `conventions.md`, Departure 11.
+
+**Reasoning.** Most psychologists analyse two proportions with the z test
+or the uncorrected chi-square, which are the same test two-sided; the
+arcsine formula answers a slightly different test (judgement call G6:
+up to 0.018 in power and 3 per group). `power.prop.test()` is base R,
+whose help and source say what it computes, and it reproduces G\*Power
+exactly for equal groups, so no new maths is written.
+
+**What the build does (draft PR).** Equal groups: `power.prop.test(strict
+= TRUE)`, the backend recorded as stats. Unequal groups:
+`power.prop.test()` takes one n for both groups, so pwr's Cohen's h is
+used, as before, and Departure 11 states the size (N2/N1 = 2, 95% power:
+360 rather than G\*Power's 370). The user can choose Cohen's h on the
+input screen (`options > proportions_formula = "arcsine"`). A one-sided
+test against the specified difference uses the two-sided power at 2 ×
+alpha minus the one-sided power, because `power.prop.test()` uses
+|p1 − p2|.
+
+**Open for the maintainer:** the yes to merge, and what unequal groups
+should use (Cohen's h as built; Spower's simulation of the same z test;
+or pwrss's `power.z.twoprops()`, which reproduces G\*Power's power at 123
+and 247 but isn't one of the foundation tools).
+
+**Decided (maintainer, 17 October 2026):** yes to merge. The validation
+test that compared E5 with Cohen's h now takes G\*Power's z-test output
+as its reference (0.2344921 at 20 per group, p1 = .10, p2 = .25, both
+tails), recorded as a G\*Power value with its inputs, not a published
+value; a separate test covers the Cohen's h option. Unequal groups: see
+the next entry.

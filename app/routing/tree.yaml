@@ -766,12 +766,12 @@ endpoints:
     doc_name: "Test of two proportions (z test)"
     plain_name: "Compare two groups on a yes/no outcome"
     template: "basic_test / two_proportions"
-    backend: "pwr: pwr.2p2n.test() with Cohen's h, no continuity correction (Spower simulation if you choose it)"
-    refs: "Departures 5 and 9 (docs/conventions.md)"
+    backend: "Base R: power.prop.test(), the z test as in G*Power, no continuity correction; pwr's Cohen's h for unequal groups or if you choose it (Spower simulation if you choose it)"
+    refs: "Departures 5, 9 and 11 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1"]
-    status: runs_validated
-    validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
+    status: runs_validation_in_progress
+    validation: {file: test-validation-basic-tests.R, note: "The z test matches G*Power to seven decimals in the examples checked. The full validation run is to be repeated for it, and a check against a published example is still to come."}
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:

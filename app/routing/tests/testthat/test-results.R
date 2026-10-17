@@ -163,12 +163,13 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, form_examples$E5, calc))
   expect_match(html, "the study has", fixed = TRUE)
   expect_match(html, "not \"observed power\"|not &quot;observed power&quot;")
-  expect_match(html, "Calculated by the R package\\s*<strong>pwr</strong>")
-  expect_match(html, "formula, pwr::pwr.2p2n.test(), no simulation", fixed = TRUE)
+  expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>")
+  expect_match(html, "base R's formula, stats::power.prop.test(), no simulation", fixed = TRUE)
   expect_match(html, "Seed: 5.", fixed = TRUE)
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
-  expect_match(html, "Calculated with pwr", fixed = TRUE)                # Departure 9
-  expect_match(html, "Validated.", fixed = TRUE)
+  expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
+  expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
+  expect_match(html, "Validation in progress.", fixed = TRUE)            # full run to repeat for the z test
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
@@ -177,7 +178,27 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, calc$result$provenance$spec_hash, fixed = TRUE)
   for (key in c("result_wording", "n_rounding", "power_curve")) expect_match(html, setting_by_key(tree, key)$question |> htmltools::htmlEscape(), fixed = TRUE, label = key)
   # Citations come from the engine's export.
-  expect_match(citations(calc$result, format = "text"), "citation(\"pwr\")", fixed = TRUE)
+  expect_match(citations(calc$result, format = "text"), "citation(\"stats\")", fixed = TRUE)
+})
+
+test_that("E5 can use Cohen's h instead of the z test, and unequal groups use it (Departure 11)", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E5"))
+  choice <- Filter(function(f) identical(f$id, "proportions_formula"), fields)[[1]]
+  exact <- modifyList(form_examples$E5, list(calc_method = "exact"))
+  expect_true(field_applies(choice, exact))
+  expect_false(field_applies(choice, modifyList(exact, list(calc_method = "simulation"))))
+  values <- modifyList(exact, list(proportions_formula = "arcsine"))
+  spec <- build_spec(forms, "E5", fields, values)
+  spec$goal <- list(type = "power", n = 48L)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$result$provenance$backend_function, "pwr::pwr.2p2n.test")
+  html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
+  expect_match(html, "pwr's formula, pwr::pwr.2p2n.test(), no simulation", fixed = TRUE)
+  unequal <- modifyList(exact, list(allocation_ratio = 2))
+  spec <- build_spec(forms, "E5", fields, unequal)
+  spec$goal <- list(type = "power", n = 48L)
+  expect_identical(run_calculation(spec, run, seed = forms$default_seed)$result$provenance$backend, "pwr")
 })
 
 test_that("E1-E6 simulate with Spower when chosen, and say so under the result (B15)", {
@@ -192,7 +213,8 @@ test_that("E1-E6 simulate with Spower when chosen, and say so under the result (
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
   expect_match(html, "Calculated by simulation with 100 replications; a different seed can shift the result slightly.", fixed = TRUE)
   expect_match(html, "Seed: 1.", fixed = TRUE)
-  expect_no_match(html, "Calculated with pwr", fixed = TRUE)               # Departure 9 doesn't apply
+  expect_no_match(html, "Calculated with a formula", fixed = TRUE)         # Departure 9 doesn't apply
+  expect_no_match(html, "the z test as G*Power runs it", fixed = TRUE)     # nor Departure 11
   # Welch's t-test has no formula: the choice isn't shown, and it simulates.
   e2 <- form_fields(form_groups(forms, "E2"))
   choice <- Filter(function(f) identical(f$id, "calc_method"), e2)[[1]]
