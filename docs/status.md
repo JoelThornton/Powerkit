@@ -10,6 +10,14 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Sources verified by the maintainer (17 October 2026).** Rubin (2021),
+  Rubin (2024), Mikael Rubin (2025) and Frane (2019) are in `refs.bib`,
+  marked "Verified 2026-10-17 from full-text PDF held by the maintainer"
+  (a rule the maintainer added), and marked verified in `card-sources.md`
+  and `judgement-calls.md`. Dziak et al., Lakens et al. (2018), Hoenig and
+  Heisey and the G\*Power manual stay candidates. `pwrss_method` and
+  `stats_method` stay placeholders: neither `citation()` gives a method
+  paper.
 - **E5 switch to G\*Power's z test (17 October 2026; the maintainer
   said yes).** Two proportions in equal groups now use base R's
   `power.prop.test(strict = TRUE)`, which matches G\*Power to seven
