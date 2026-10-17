@@ -1,5 +1,11 @@
 # powerkit 0.0.0.9000
 
+* The app prototype (`app/routing/`) now calculates regression interactions
+  (E9) on the input screen. The engine runs in a background R process, with
+  an estimated progress bar and a Cancel button (about 5 seconds for power,
+  about 80 seconds for a required N). The result screen, fixed seed, R
+  script and citations are the same as for E1–E8. No engine change.
+
 * Basic tests (one-sample, independent and paired t-tests, correlation, two
   proportions, chi-square test of independence) are now calculated by
   formula with the pwr package by default, not by simulation: the same

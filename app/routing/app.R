@@ -122,6 +122,13 @@ copy_js <- "
   Shiny.addCustomMessageHandler('focus_result', function(id) {
     setTimeout(function() { var el = document.querySelector('#' + id + ' [tabindex]'); if (el) el.focus(); }, 50);
   });
+  // A background calculation's estimated progress, updated in place.
+  Shiny.addCustomMessageHandler('calc_progress', function(m) {
+    var bar = document.getElementById('calc-progress-bar');
+    var text = document.getElementById('calc-progress-text');
+    if (bar) { if (m.value === null) { bar.removeAttribute('value'); } else { bar.value = m.value; } }
+    if (text) text.textContent = m.text;
+  });
 "
 focus_js <- "
   $(document).on('shiny:value', function(e) {
@@ -288,7 +295,19 @@ server <- function(input, output, session) {
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
     state$calc <- NULL
-    if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
+    cancel_job()
+    if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && runs_in_background(forms, state$endpoint)) {
+      # Long runs (E9): a separate R process, polled below, with an estimated
+      # progress bar and a Cancel button.
+      if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
+      usual <- usual_seconds(forms, state$endpoint, spec$goal$type)
+      output$form_result <- renderUI(calculating_background_ui(usual))
+      job$process <- start_background_calculation(spec, seed = forms$default_seed)
+      job$started <- Sys.time()
+      job$usual <- usual
+      job$shown <- list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice)
+      job_running(TRUE)
+    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (seconds for these end points).
       output$form_result <- renderUI(calculating_ui())
@@ -304,6 +323,42 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   })
+  # A background calculation: one at a time per session.
+  job <- new.env()
+  job_running <- reactiveVal(FALSE)
+  cancel_job <- function() {
+    if (!is.null(job$process) && job$process$is_alive()) job$process$kill()
+    job$process <- NULL
+    job_running(FALSE)
+  }
+  session$onSessionEnded(cancel_job)
+  observe({
+    req(job_running())
+    invalidateLater(500)
+    elapsed <- as.numeric(difftime(Sys.time(), job$started, units = "secs"))
+    if (job$process$is_alive()) {
+      value <- progress_estimate(elapsed, job$usual)
+      session$sendCustomMessage("calc_progress", list(
+        value = if (is.na(value)) NULL else round(100 * value),
+        text = progress_text(elapsed, job$usual)))
+      return()
+    }
+    calc <- collect_background_calculation(job$process)
+    job$process <- NULL
+    job_running(FALSE)
+    shown <- job$shown
+    state$calc <- calc
+    output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+    session$sendCustomMessage("focus_result", "form_result")
+  })
+  observeEvent(input$calc_cancel, {
+    cancel_job()
+    output$form_result <- renderUI(cancelled_ui())
+    session$sendCustomMessage("focus_result", "form_result")
+  })
+  # Leaving the input screen stops a run in progress.
+  observeEvent(state$screen, if (!identical(state$screen, "form")) cancel_job(), ignoreInit = TRUE)
+
   # The engine's own exports, for the last result.
   output$download_script <- downloadHandler(
     filename = function() sprintf("powerkit-%s-script.R", state$endpoint),

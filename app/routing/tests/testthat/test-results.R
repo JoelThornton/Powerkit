@@ -42,9 +42,57 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("only the fast end points calculate; the others keep the 'not wired' panel", {
-  expect_setequal(wired, paste0("E", 1:8))
-  for (ep in paste0("E", 9:14)) expect_false(form_calculates(forms, ep), label = ep)
+test_that("E1-E9 calculate; E10-E14 keep the 'not wired' panel", {
+  expect_setequal(wired, paste0("E", 1:9))
+  for (ep in paste0("E", 10:14)) expect_false(form_calculates(forms, ep), label = ep)
+  # Only E9 runs in the background, with its usual run times.
+  expect_identical(names(forms$background), "E9")
+  for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
+  expect_equal(usual_seconds(forms, "E9", "power"), 5)
+  expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
+  expect_true(is.na(usual_seconds(forms, "E9", "sensitivity")))
+})
+
+test_that("E9 in the background: the app's result equals the engine's, and the script reproduces it", {
+  skip_without_run()
+  skip_on_cran()
+  spec <- light_spec("E9")
+  spec$options$seed <- 1L
+  job <- start_background_calculation(spec, seed = 1L, engine_dir = file.path(repo_dir, "engine"))
+  job$wait(120000)
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend, "InteractionPoweR")
+  expect_identical(calc$spec$options$seed, 1L)
+  direct <- quiet_run(spec)
+  expect_equal(calc$result$curve, direct$curve)
+  expect_identical(calc$result$provenance$spec_hash, direct$provenance$spec_hash)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+})
+
+test_that("a background run can be cancelled, and a failed process gives a plain-English message", {
+  skip_on_cran()
+  job <- callr::r_bg(function() Sys.sleep(60))
+  expect_true(job$is_alive())
+  job$kill()
+  expect_false(job$is_alive())
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "error")
+  expect_match(calc$message, "stopped unexpectedly", fixed = TRUE)
+  expect_false(grepl("Error in|Traceback", calc$message))
+})
+
+test_that("the progress bar is an estimate from the usual run time, and says so", {
+  expect_equal(progress_estimate(40, 80), 0.5)
+  expect_equal(progress_estimate(200, 80), 0.95)   # never shows done before it is
+  expect_true(is.na(progress_estimate(10, NA_real_)))
+  expect_identical(progress_text(12.4, 80), "Running for 12 seconds. This usually takes about 80 seconds.")
+  expect_match(progress_text(90, 80), "taking longer than the usual 80 seconds", fixed = TRUE)
+  html <- as.character(calculating_background_ui(80))
+  expect_match(html, "Estimated progress", fixed = TRUE)
+  expect_match(html, "<progress", fixed = TRUE)
+  expect_match(html, "calc_cancel", fixed = TRUE)
+  expect_match(as.character(cancelled_ui()), "Calculation cancelled", fixed = TRUE)
 })
 
 test_that("each wired end point: the app's result equals the engine's, and the script reproduces it", {
