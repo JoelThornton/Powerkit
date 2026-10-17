@@ -157,4 +157,6 @@ Lower the default (for example to 500) for these designs only.
    service), and who pays for computing time?
 5. Should E9 be wired now with option A? It was measured at 5 seconds
    for power and 80 seconds for a required N. It was left unwired in
-   part 1, as instructed.
+   part 1, as instructed. **Decided 17 October 2026:** yes, option A
+   with a progress indicator and a Cancel button (wired in phase 5,
+   part 2). Questions 1–4 remain open for E10–E14.

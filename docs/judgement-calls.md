@@ -693,6 +693,9 @@ is kept below as the record of the options.
   `forms.yaml`, `calculates`).
 - **Recorded in:** this entry, `tree.yaml` (`banner`) and `forms.yaml`
   (`calculates`).
+- **Update (phase 5, part 2, 17 October 2026):** with E9 wired, the banner
+  reads "calculations are available for E1–E9", and E9's card no longer
+  says "No numbers are calculated".
 
 ### B15. The seed for a calculation
 
@@ -752,6 +755,28 @@ is kept below as the record of the options.
 - **Knock-on effects:** the spec format (new fields), validation for each
   new generator.
 - **Recorded in:** this entry only (no setting).
+
+### B17. E9's progress indicator: estimated from the usual run time
+
+- **Question:** InteractionPoweR doesn't report its progress, so what
+  should E9's progress indicator show while it runs (about 5 seconds for
+  power, about 80 seconds for a required N)?
+- **Options:**
+  - **(a) An estimated bar** from the usual run time, labelled as an
+    estimate, with the time so far; it stops at 95% until the run
+    finishes, and says when a run is taking longer than usual.
+    **In place now (phase 5, part 2).**
+  - **(b) A moving "busy" bar with the time so far**, and no estimate.
+    Never misleading, but says nothing about how long is left.
+  - **(c) Real progress** from the engine, counting finished replications
+    or sample sizes searched. The most accurate, but needs the engine to
+    report progress from inside the backend's loop (an engine change).
+- **Default now:** (a). The usual run times are in `forms.yaml`
+  (`background`), measured with the example values on one core; larger
+  samples and smaller effects take longer.
+- **Knock-on effects:** the same choice applies to E10–E14 if they are
+  wired with a progress indicator (`phase5-simulations.md`).
+- **Recorded in:** this entry and `forms.yaml` (`background`).
 
 ## C. Which card users reach
 

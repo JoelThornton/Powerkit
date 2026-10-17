@@ -24,5 +24,6 @@ library(testthat)
 # Routing prototype (app/routing/; no engine calls). All three are in
 # renv.lock.
 library(bslib)
+library(callr)   # E9's calculation runs in a background R process
 library(shiny)
 library(yaml)

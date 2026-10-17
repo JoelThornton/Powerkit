@@ -4,12 +4,13 @@ A clickable prototype of how a psychologist gets from their study to the
 right power analysis, built from [`decision-tree.md`](decision-tree.md).
 
 **It shows which analysis a study needs**, what the user would enter,
-which backend would run it and whether powerkit runs it yet. For E1–E8 the
+which backend would run it and whether powerkit runs it yet. For E1–E9 the
 input screen also calculates: it passes the checked spec to the engine's
-`run_spec()` and shows the result (phase 5, part 1). The app never
-computes power itself. Every other end point is guidance only for now.
-Every screen carries the banner *"Prototype: calculations are available
-for E1–E8; other designs show guidance only for now."* It is not deployed
+`run_spec()` and shows the result (phase 5). E9 runs in the background,
+with a progress bar and a Cancel button. The app never computes power
+itself. Every other end point is guidance only for now. Every screen
+carries the banner *"Prototype: calculations are available for E1–E9;
+other designs show guidance only for now."* It is not deployed
 anywhere.
 
 Everything it shows comes from one data file,
@@ -165,17 +166,28 @@ comes from, and expected attrition).
 - **Every screen has a "Random seed" field**, starting at powerkit's fixed
   default (1, `forms.yaml`, `default_seed`), so the same answers always
   give the same result (`judgement-calls.md` B15).
-- **E1–E8 calculate** (phase 5, part 1): a valid spec goes to the engine's `run_spec()` and the screen
-  shows the result. **E9–E14 don't calculate yet**: a valid spec shows a
-  "Calculation not wired in yet" panel with the spec as JSON (plan:
+- **E1–E9 calculate** (phase 5): a valid spec goes to the engine's `run_spec()` and the screen
+  shows the result. **E10–E14 don't calculate yet**: a valid spec shows a
+  "Calculation not wired in yet" panel with the spec as JSON (they wait
+  for the maintainer's decision on
   [`phase5-simulations.md`](phase5-simulations.md)).
+- **E9 (interaction) runs in the background** (`forms.yaml`,
+  `background`): a separate R process (callr) runs the same
+  `run_calculation()`, so the app stays responsive. The screen shows an
+  estimated progress bar, labelled as an estimate from the usual run time
+  (about 5 seconds for power, about 80 seconds for a required N; the
+  backend doesn't report its own progress), the time so far, and a
+  **Cancel** button that stops the process. Leaving the screen, starting
+  a new check or closing the browser also stops it. Screenshots:
+  `docs/figures/results/progress_E9_sample_size_1000.png` and
+  `result_E9_sample_size_1000.png`.
 - **Copy my answers** copies the route taken, the end point and the values
   entered as plain text, to share with a colleague. The text is also shown
   in a box, in case the browser blocks copying.
 - The screens are described in `app/routing/forms.yaml`; the logic is in
   `R/forms.R` and the screen in `R/forms_ui.R`.
 
-### The result screen (E1–E8)
+### The result screen (E1–E9)
 
 - **The number in plain English**, matching what the user asked for: the
   required N (with the size per group or per cell), the power at the given
@@ -207,7 +219,7 @@ comes from, and expected attrition).
 **The engine is used read-only.** The prototype uses the installed
 `powerkit` package if there is one, or loads `engine/` with
 `pkgload::load_all()` (about 5 seconds, once per session). It calls only
-`validate_spec()`, `run_spec()` (E1–E8), `export_script()` and
+`validate_spec()`, `run_spec()` (E1–E9), `export_script()` and
 `export_citations()`; it never computes power itself. Where neither is available, the screen says the spec
 couldn't be checked, and the tests that need the engine are skipped
 locally. **On GitHub the app-tests job installs the engine** (from

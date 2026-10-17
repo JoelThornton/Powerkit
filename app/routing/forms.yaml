@@ -67,12 +67,20 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
   choices: {exact: "Formula (pwr): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
   default: exact, default_source: "powerkit's default for basic tests (docs/decisions.md, 17 October 2026)"}
 
-# End points whose calculation runs on the input screen (phase 5, part 1).
-# Each runs in seconds on one core (measured 17 October 2026 with the
-# example values and 1,000 replications: 1 to 19 seconds, the longest a
-# correlation's sample size). The simulation-heavy end points (E9-E14) are
-# not wired yet: docs/phase5-simulations.md.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8]
+# End points whose calculation runs on the input screen (phase 5). E1-E8
+# run in seconds on one core (measured 17 October 2026 with the example
+# values and 1,000 replications: 1 to 19 seconds, the longest a
+# correlation's sample size). E9 runs in the background with a progress bar
+# and a Cancel button (below). E10-E14 are not wired: they wait for the
+# maintainer's decision on docs/phase5-simulations.md.
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9]
+
+# End points that run in a separate R process, with an estimated progress
+# bar and a Cancel button: the usual run time in seconds for each goal,
+# measured with the example values and 1,000 replications on one core
+# (docs/phase5-simulations.md, table 1). The bar is estimated from these.
+background:
+  E9: {power: 5, sample_size: 80}
 
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".

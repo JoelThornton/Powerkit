@@ -9,6 +9,12 @@
 
 form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 
+# End points whose calculation takes long enough to run in the background,
+# with a progress bar and a Cancel button (forms.yaml, `background`: the
+# usual run time in seconds for each goal).
+runs_in_background <- function(forms, ep_id) ep_id %in% names(forms$background)
+usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
+
 # Run the engine on a checked spec. The input screen puts the seed in the
 # spec (a fixed default the user can change; forms.yaml, default_seed); a
 # spec without one gets `seed`, so the same answers always give the same
@@ -35,6 +41,61 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
   )
   if (inherits(result, "calc_error")) return(list(status = "error", message = result$message))
   list(status = "ok", spec = spec, result = result, notes = unique(notes))
+}
+
+# --- Running in the background ----------------------------------------------------
+
+# The background R process's job: load the engine (the installed package, or
+# the source in engine_dir, as engine_function() does) and run
+# run_calculation(), passed in, so it's the same code as the in-session run.
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation) {
+  options(powerkit.cores = cores)
+  run <- if (requireNamespace("powerkit", quietly = TRUE)) {
+    getExportedValue("powerkit", "run_spec")
+  } else {
+    suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
+    get("run_spec", envir = asNamespace("powerkit"))
+  }
+  run_calculation(spec, run, seed)
+}
+
+# Start a calculation in a separate R process (callr), so the app stays
+# responsive and the run can be cancelled. Returns the process.
+start_background_calculation <- function(spec, seed = 1L,
+                                         engine_dir = file.path(routing_root(), "..", "..", "engine")) {
+  calc_fun <- run_calculation
+  environment(calc_fun) <- baseenv()
+  callr::r_bg(
+    background_worker,
+    args = list(spec = spec, seed = seed, engine_dir = normalizePath(engine_dir, mustWork = FALSE),
+                cores = getOption("powerkit.cores"), run_calculation = calc_fun),
+    supervise = TRUE
+  )
+}
+
+# The finished process's value: run_calculation()'s list, or a plain-English
+# error if the process itself failed (e.g. the engine couldn't be loaded).
+collect_background_calculation <- function(job) {
+  tryCatch(job$get_result(), error = function(e) {
+    list(status = "error", message = "powerkit's engine stopped unexpectedly. Please report this, with the answers you copied.")
+  })
+}
+
+# Estimated progress from the time so far and the usual run time: the
+# backends don't report their own progress, so the bar is an estimate and
+# says so. It stops at 95% until the run finishes.
+progress_estimate <- function(elapsed, usual) {
+  if (is.na(usual) || usual <= 0) return(NA_real_)
+  min(elapsed / usual, 0.95)
+}
+
+progress_text <- function(elapsed, usual) {
+  so_far <- sprintf("Running for %d seconds.", as.integer(round(elapsed)))
+  if (is.na(usual)) return(so_far)
+  if (elapsed > usual) {
+    return(sprintf("%s This is taking longer than the usual %s seconds; larger samples take longer.", so_far, whole(usual)))
+  }
+  sprintf("%s This usually takes about %s seconds.", so_far, whole(usual))
 }
 
 # --- Numbers in words --------------------------------------------------------------
@@ -159,6 +220,25 @@ not_observed_power <- "This is planned power for the effect you entered, before 
 calculating_ui <- function() {
   div(class = "result-panel calculating", role = "status", tabindex = "-1",
     p(tags$strong("Calculating with powerkit's engine…"), " This takes a few seconds."))
+}
+
+# For a background run: an estimated progress bar, the time so far and a
+# Cancel button. The bar and time are updated in place (calc_progress
+# message in app.R); only the first line is announced to screen readers.
+calculating_background_ui <- function(usual) {
+  div(class = "result-panel calculating calc-progress", tabindex = "-1",
+    p(role = "status", tags$strong("Calculating with powerkit's engine…"),
+      if (!is.na(usual)) sprintf(" This usually takes about %s seconds.", whole(usual))),
+    tags$label(`for` = "calc-progress-bar", class = "small", "Estimated progress (from the usual run time; the backend doesn't report its own)"),
+    tags$progress(id = "calc-progress-bar", max = "100", value = "0", style = "width: 100%; height: 1.25rem;"),
+    p(id = "calc-progress-text", class = "small", progress_text(0, usual)),
+    actionButton("calc_cancel", "Cancel", class = "btn btn-outline-danger"))
+}
+
+cancelled_ui <- function() {
+  div(class = "form-problems", role = "status", tabindex = "-1",
+    h3(class = "h5", "Calculation cancelled"),
+    p("Nothing was calculated. Change your answers if you like, and choose \u201cCheck my answers\u201d to run it again."))
 }
 
 # The values the user entered, as "label: value" lines (fields that apply
