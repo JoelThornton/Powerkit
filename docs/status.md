@@ -8,6 +8,19 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Coverage roadmap (17 October 2026; docs only).**
+  [`coverage-roadmap.md`](coverage-roadmap.md) is the master list of
+  everything powerkit might cover: G\*Power 3.1.9.7's 49 tests, 69
+  designs beyond G\*Power and 12 cross-cutting features, each with its
+  end point, status, the analysis types its backend supports, and a
+  candidate function found in the package's help. No end point is wired
+  yet (PR #34 wires E1–E8); 23 rows run and are validated; 37 a
+  foundation tool can do but aren't planned; 11 only G\*Power covers; 49
+  of the 118 tests and designs can't be reached as themselves by the
+  question tree. Three new judgement calls (G1–G3): scope for G\*Power's
+  other tests, frequentist or Bayesian in the screening, and which
+  cross-cutting features go into v1. ANCOVA and Fisher's exact test are
+  confirmed in G\*Power's menu.
 - **Independent cross-checks for parallel and serial mediation (merged in
   PR #30; passed 17 October 2026).** Two validation chunks,
   `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
