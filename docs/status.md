@@ -8,6 +8,15 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **G\*Power parity and E4/E5 methods (17 October 2026; docs only,
+  waiting for the maintainer).** [`gpower-parity.md`](gpower-parity.md)
+  compares E1–E14 with the matching G\*Power tests (inputs, outputs and
+  the effect-size calculator). pwr's Fisher's z method for E4 differs
+  from the exact method by at most 0.004 in power (1 participant at
+  r = .3); its arcsine method for E5 differs from a z test by up to 0.018
+  (3 per group). Three new judgement calls (G4–G6): what the methods
+  paragraph reports, showing actual power at the rounded N, and the E4/E5
+  method. G\*Power screenshots are needed to confirm the marked items.
 - **Routing design options (17 October 2026; docs only).**
   [`routing-design-options.md`](routing-design-options.md) compares the
   current question tree with a "design profile" (the same six questions

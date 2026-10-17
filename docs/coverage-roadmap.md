@@ -79,7 +79,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decide E4's default method (see note 1); ρ0 ≠ 0 is in Spower but not exposed | G6 (added in the Task 3 PR) |
+| A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decide E4's default method (see note 1); ρ0 ≠ 0 is in Spower but not exposed | [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5) |
 | A2 | Correlation: point biserial model | GP | E2 (the same test, with r converted to d; E2 takes d only) | Foundation tool can do it, not planned | Now: — (AP, PN through E2 with d). Could: AP, PN, S, Co, Cr | Spower `p_t.test(r = )` (its G\*Power examples vignette, Example 16.3) | Accept r on E2, or a card note | [G3][] |
 | A3 | Correlation: tetrachoric model | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_r.cat()` (tetrachoric, polychoric, polyserial; Example 31.3) | — | [G1][] |
 | A4 | Two dependent Pearson r's (common index) | GP | none: no answer fits; nearest E4 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_2r()` (default test `"steiger1980"` for overlapping correlations; Example 28.3.2). pwrss `power.z.twocors.steiger(common.index = TRUE)` (cross-check) | — | [G1][] |
@@ -102,8 +102,9 @@ Carlo estimate of the exact t test's power. The pwr default in PR #34 uses
 Fisher's z (pwr's help: "These calculations use the Z' transformation of
 correlation coefficient"). At N = 20–100 and r = .3–.5 the two differ by
 at most 0.004 in power, and by 1 in the required N at r = .3 (the
-comparison is judgement call G6, added to
-[`judgement-calls.md`](judgement-calls.md) in the Task 3 PR).
+comparison is judgement call
+[G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5);
+the full parity tables are in [`gpower-parity.md`](gpower-parity.md)).
 
 ### Means
 
@@ -139,7 +140,7 @@ comparison is judgement call G6, added to
 | A38 | Two independent groups: Fisher's exact | GP; UCLA | none: reaches E5 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_prop.test(exact = TRUE)` (`prop` as a matrix; `fisher.test()`). pwrss `power.exact.fisher()` (cross-check). Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Decide judgement call 3.9 | [C11][] |
 | A39 | Two independent groups: unconditional exact | GP | none: reaches E5 *(inferred)* | G\*Power covers it, powerkit doesn't | — | unknown (no unconditional exact test found in the foundation tools' help) | — | [G1][] |
 | A40 | Two independent groups: inequality with offset, unconditional exact | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown | — | [G1][] |
-| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Compare pwr's arcsine method with G\*Power's z test (Task 3 PR, parity tables) | — |
+| A41 | Two independent groups: z-test | GP; UCLA (chi-square, two groups) | E5 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop = c(p1, p2), correct = FALSE)`; pwr `pwr.2p.test()`, `pwr.2p2n.test()` (Cohen's h, the arcsine transformation) | Decide E5's method (see [`gpower-parity.md`](gpower-parity.md), E5) | [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5) |
 | A42 | Multigroup: goodness-of-fit | GP; UCLA | none: reaches E25 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_chisq.test(w, df)` or `P0`, `P`; pwr `pwr.chisq.test()`, `ES.w1()` | Decide judgement call 3.7 | [C9][] |
 
 ### Variances
@@ -387,7 +388,8 @@ So 49 of the 118 rows (18 + 31) can't be reached as themselves. Rows marked
   upstream fix.
 - pwr's two-proportion functions (`pwr.2p.test()`, `pwr.2p2n.test()`) use
   Cohen's h (the arcsine transformation), which isn't the z test G\*Power
-  lists (A41). The size of the difference is in the Task 3 PR.
+  lists (A41). The size of the difference is in
+  [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5).
 
 [A1]: judgement-calls.md#a1-naming-other-tools-on-not-covered-cards
 [A2]: judgement-calls.md#a2-e45-says-no-ready-made-tool-but-pits-exists
