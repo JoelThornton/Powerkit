@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* Two proportions (E5) in unequal groups now use pwrss's z test
+  (`pwrss::power.z.twoprops(std.error = "pooled")`), which matches
+  G*Power's power, instead of Cohen's h, which under-estimated the
+  required N (360 rather than about 370 for 95% power at a 1 : 2 split).
+  pwrss is now a required package and is cited from its own
+  `citation()`; the exported R script calls it for this case.
+
 * Two proportions (E5) now use the z test as G*Power runs it: base R's
   `stats::power.prop.test(strict = TRUE)` for equal groups, which matches
   G*Power to seven decimals. Results change slightly from pwr's Cohen's h

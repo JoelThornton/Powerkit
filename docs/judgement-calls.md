@@ -1729,7 +1729,7 @@ source for Fisher's exact test in C11.
     `conventions.md`, results screen, methods paragraph, a test showing
     its size);
   - match G\*Power with an exact method from a backend that has one (for
-    E4, pwrss `power.exact.onecor()`, not a foundation tool; or Spower's
+    E4, pwrss `power.exact.onecor()`, not a foundation tool when this was written (it became one on 17 October 2026, for E5's unequal groups); or Spower's
     simulation, which estimates the exact test's power with Monte Carlo
     error);
   - keep pwr for E4 only below some size of difference, and switch for

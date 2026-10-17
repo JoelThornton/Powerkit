@@ -169,9 +169,9 @@ which powerkit doesn't run.
 | Effect size | "Proportion p1" and "Proportion p2"; the options dialog can switch the input to "Cohen's effect size index h" (screenshot) | p1, p2 | **Has** | h as input: **Not exposed** |
 | Allocation ratio | Yes: "Allocation ratio N2/N1" (screenshot) | Yes | **Has** | |
 | Continuity correction | Option "Use continuity correction", off in the maintainer's copy (screenshot) | No correction (Departure 5) | **Not exposed** (Spower `correct = TRUE`) | Departure 5 matches G\*Power |
-| Arcsine transformation | Option "Use arcsin transform", off in the maintainer's copy (screenshot) | Off by default; pwr's Cohen's h on request (`options > proportions_formula = "arcsine"`) and for unequal groups | **Has** | Departure 11 |
+| Arcsine transformation | Option "Use arcsin transform", off in the maintainer's copy (screenshot) | Off by default; pwr's Cohen's h on request (`options > proportions_formula = "arcsine"`) | **Has** | Departure 11 |
 | Exact test | Separate test. Fisher's exact test: effect size by "directly specifying the two proportions π1 and π2", and "This test has no options" (sections 6.2 and 6.3, p. 17). Its "Determine" drawer computes p1 from a difference, ratio or odds ratio (screenshot) | — | **Not exposed** (Spower `exact = TRUE`) | Judgement call 3.9. Screenshot values, one tail, p1 = .5, p2 = .6, α .05, power .95: 557 + 557 = 1114, actual power 0.9500348, actual α 0.0448913 |
-| Method | z test with the default options (screenshot) | Formula (`stats::power.prop.test(strict = TRUE)` for equal groups, the same z test; pwr's Cohen's h for unequal groups) or simulation (Spower: `prop.test()`) | **Has** (equal groups); unequal groups by Cohen's h (Departure 11) | See the check below. Judgement call G6. Pending the maintainer's yes (draft PR) |
+| Method | z test with the default options (screenshot) | Formula, the same z test: `stats::power.prop.test(strict = TRUE)` for equal groups, `pwrss::power.z.twoprops(std.error = "pooled")` for unequal groups; or simulation (Spower: `prop.test()`) | **Has** | See the check below. Judgement call G6; Departure 11 |
 
 **Check against base R (17 October 2026).** G\*Power's z test with its
 default options equals `stats::power.prop.test(strict = TRUE)` (R 4.3.3)
@@ -182,7 +182,7 @@ to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
 | --- | --- | --- | --- | --- |
 | Post hoc, 20 per group | 0.2344921 | 0.2344921 | 0.2339595 | 0.2477934 |
 | A priori, power .95, equal groups | 164 + 164, actual power 0.9502464 | 164 per group; 0.9502464 at 164 | | 160 per group |
-| A priori, power .95, N2/N1 = 2 | 123 + 247 = 370, actual power 0.9498668 | Equal groups only | | |
+| A priori, power .95, N2/N1 = 2 | 123 + 247 = 370, actual power 0.9498668 | Equal groups only; pwrss (powerkit's choice for unequal groups) gives 0.9498668 at 123 and 247, and powerkit's required N is 372 (124 + 248) | | 120 + 240 = 360 |
 
 - G\*Power counts rejections in both tails, as `strict = TRUE` does.
 - With unequal groups, the same z test (pooled variance under the null,
@@ -191,6 +191,28 @@ to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
   reproduces that power, but its a-priori answer is 124 + 247 = 371
   (power 0.9509). G\*Power's 123 + 247 is slightly under the target
   power (0.9498668 < .95), so G\*Power rounds the groups differently.
+
+**Check of pwrss against G\*Power at unequal allocations (17 October
+2026).** G\*Power 3.1.9.7 screenshots from the maintainer
+([`figures/gpower/`](figures/gpower/), `E5_z_test_post_hoc_ratio*`,
+`E5_z_test_a_priori_ratio3`, `E5_z_test_post_hoc_one_tail_n50`). α = .05,
+n1 = 100 unless stated; "up" is p1 .10, p2 .25 and "down" is p1 .25, p2
+.10. pwrss is `power.z.twoprops(std.error = "pooled")`, pwrss 1.3.3. All
+are tests in `engine/tests/testthat/test-backend-pwr.R`.
+
+| Case | G\*Power (screenshot) | pwrss / powerkit |
+| --- | --- | --- |
+| Post hoc, two tails, n2 = 200, up | 0.8960412 | 0.8960412 |
+| Post hoc, two tails, n2 = 200, down | 0.9087742 | 0.9087742 |
+| Post hoc, two tails, n2 = 300, up | 0.9292662 | 0.9292662 |
+| Post hoc, two tails, n2 = 300, down | 0.9388485 | 0.9388485 |
+| Post hoc, one tail, n2 = 200, up | 0.9473235 | 0.9473235 |
+| A priori, two tails, power .80, N2/N1 = 3, up | 70 + 210 = 280, actual power 0.8003695 | 70 + 210 = 280; 0.8003695 at 280 |
+| Post hoc, one tail, equal groups (50 + 50), p1 .5, p2 .6 | 0.2600887 | 0.2600887 (`power.prop.test(strict = TRUE)`) |
+
+Every value agrees to the seven decimals G\*Power shows. The only
+difference found is the a-priori rounding at 1 : 2 above (372 against
+370; Departure 11).
 
 Outputs: G\*Power shows critical z and power (post hoc) or the two group
 sizes, total sample size and actual power (a priori) (screenshot).

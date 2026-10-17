@@ -66,7 +66,7 @@ default_seed: 1
 # A form's `method_extra` fields are shown with this choice (E5: the z test,
 # as in G*Power, or pwr's Cohen's h; Departure 11).
 basic_method_field: {id: calc_method, label: "How power is worked out", type: select, path: options.method, optional: true,
-  choices: {exact: "Formula (pwr, or base R for two proportions): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
+  choices: {exact: "Formula (pwr; base R or pwrss for two proportions): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
   default: exact, default_source: "powerkit's default for basic tests (docs/decisions.md, 17 October 2026)"}
 
 # End points whose calculation runs on the input screen (phase 5). E1-E8
@@ -92,7 +92,7 @@ departures:
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
   "9": "Calculated with a formula (pwr's, or base R's power.prop.test() for two proportions), not Spower's simulation (powerkit's earlier default): exact for the t-tests and the chi-square test, and approximate for a correlation (Fisher's z) and two proportions (a normal approximation), with no simulation noise. In the examples checked, the two differ by less than 0.01 in power, within the simulation's own noise."
   "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
-  "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. power.prop.test() needs equal groups, so unequal groups use pwr's Cohen's h formula instead: for 95% power with group 2 twice the size of group 1, 360 participants rather than G*Power's 370."
+  "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
 
 forms:
@@ -202,7 +202,7 @@ forms:
     method_extra:
       - {id: proportions_formula, label: "Which formula", type: select, path: options.proportions_formula, optional: true,
          shown_if: {field: calc_method, is: exact},
-         choices: {z_test: "z test, as in G*Power (base R's power.prop.test(); equal groups only, so unequal groups use Cohen's h)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
+         choices: {z_test: "z test, as in G*Power (base R's power.prop.test() for equal groups, pwrss for unequal groups)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
          default: z_test, default_source: "G*Power's z test for two independent proportions, default options (maintainer's decision, docs/decisions.md, 17 October 2026)"}
 
   E6:

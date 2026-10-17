@@ -1684,4 +1684,27 @@ test that compared E5 with Cohen's h now takes G\*Power's z-test output
 as its reference (0.2344921 at 20 per group, p1 = .10, p2 = .25, both
 tails), recorded as a G\*Power value with its inputs, not a published
 value; a separate test covers the Cohen's h option. Unequal groups: see
-the next entry.
+"E5: unequal groups by pwrss".
+
+## 2026-10-17 · E5: unequal groups by pwrss (waits for the maintainer's yes)
+
+**Decided (maintainer, 17 October 2026):** unequal groups use pwrss's
+`power.z.twoprops()` (option C). Reason, in the maintainer's words: Cohen's
+h under-estimates N at unequal splits (360 against G\*Power's 370 at
+1 : 2), which would leave studies underpowered, the wrong direction for a
+default; Spower would bring back simulation noise where an exact answer
+exists. pwrss is already pinned in `renv.lock` (1.3.3) for the mediation
+cross-check. It moves from Suggests to Imports and is credited as a
+foundation tool wherever the others are (README, citations export from
+its own `citation()`, card text, `card-sources.md`), and the exported R
+script calls it for this case.
+
+**Built (draft PR):** `power.z.twoprops(std.error = "pooled", verbose =
+FALSE)` with `n2` and `n.ratio = n1 / n2` from the spec's groups. It
+reproduces G\*Power's 0.9498668 at 123 and 247. Group sizes keep the
+exact ratio, so powerkit's required N for 95% power at 1 : 2 is 372 (124 +
+248), where G\*Power gives 370 (123 + 247, power 0.9498668, just under
+the target): recorded in Departure 11. pwrss's values at 1 : 1, 1 : 2
+and 1 : 3 in both directions are tested, and the maintainer's G\*Power
+screenshots for those inputs (and one tail, and a priori at 1 : 3) match
+them to 7 decimals (`docs/gpower-parity.md`, E5).

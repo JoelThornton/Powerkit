@@ -766,7 +766,7 @@ endpoints:
     doc_name: "Test of two proportions (z test)"
     plain_name: "Compare two groups on a yes/no outcome"
     template: "basic_test / two_proportions"
-    backend: "Base R: power.prop.test(), the z test as in G*Power, no continuity correction; pwr's Cohen's h for unequal groups or if you choose it (Spower simulation if you choose it)"
+    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them)"
     refs: "Departures 5, 9 and 11 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1"]
