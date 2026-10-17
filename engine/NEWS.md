@@ -18,6 +18,28 @@
   A required N goes straight to the R script: a preview of it would take
   15 minutes or more and often couldn't narrow the N down.
 
+* Documentation: the walkthrough pictures in `docs/figures/walkthroughs/`
+  are re-rendered from the current app prototype (for example, E4's card
+  now names Fisher's z and Departure 10). No code change.
+
+* Attrition is now applied. With `options > attrition`, `run_spec()`
+  returns the number to recruit (`recruitment`): each group's analysed n
+  divided by (1 - attrition) and rounded up, for example 72 + 72 = 144 to
+  recruit for 64 + 64 analysed at 10%. The app's result screen shows the
+  numbers analysed and to recruit, with a caveat that this common heuristic
+  ignores how missing data will be handled (Rubin, 2025), and the exported
+  R script works it out too.
+
+* The app prototype's card for two proportions (E5) says "Validated"
+  again, after the `basic` validation chunk was rerun with the z test
+  (pwrss for unequal groups).
+
+* `refs.bib` now holds four sources the maintainer checked in full text:
+  Rubin (2021), Rubin (2024), Mikael Rubin (2025) and Frane (2019). An
+  entry may now be verified "from full-text PDF held by the maintainer" as
+  well as from a URL a session opened. `pwrss_method` and `stats_method`
+  stay placeholders: neither package's `citation()` names a method paper.
+
 * Two proportions (E5) in unequal groups now use pwrss's z test
   (`pwrss::power.z.twoprops(std.error = "pooled")`), which matches
   G*Power's power, instead of Cohen's h, which under-estimated the

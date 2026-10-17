@@ -22,6 +22,37 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   and couldn't pin the N down), so it goes straight to the script. Background jobs are
   deferred until hosting and cost are decided. Details in
   [`phase5-simulations.md`](phase5-simulations.md).
+
+- **Walkthrough pictures re-rendered (17 October 2026).** All 26 pictures
+  in `docs/figures/walkthroughs/` come from the current prototype (after
+  #44), so E4's card shows Fisher's z and E5's says "Validated".
+
+- **Attrition applied (17 October 2026; the maintainer said yes).** With
+  an attrition rate, the result now gives the number analysed and the
+  number to recruit: each group's analysed N divided by (1 − attrition),
+  rounded up (64 + 64 analysed at 10% → 72 + 72 = 144 to recruit). The
+  result screen adds a caveat that this common heuristic ignores how
+  missing data will be handled (Mikael Rubin, 2025), and the exported R
+  script works it out and checks it.
+
+- **E5 validated again (17 October 2026).** The `basic` chunk was rerun
+  on main after #42 (unequal groups by pwrss;
+  [run 39073022227](https://github.com/JoelThornton/Powerkit/actions/runs/39073022227)):
+  no failures, the usual 4 published-value skips. Unequal groups are
+  checked against G\*Power in `test-backend-pwr.R`. As the maintainer
+  asked, E5's card says "Validated" again.
+- **E6 G\*Power reference (df 1).** The maintainer's screenshot (w .3,
+  α .05, N 100, df 1: power 0.8508388, λ 9, critical χ² 3.8414588)
+  matches pwr to 7 decimals; recorded in
+  [`gpower-parity.md`](gpower-parity.md). df 2 is still needed.
+- **Sources verified by the maintainer (17 October 2026).** Rubin (2021),
+  Rubin (2024), Mikael Rubin (2025) and Frane (2019) are in `refs.bib`,
+  marked "Verified 2026-10-17 from full-text PDF held by the maintainer"
+  (a rule the maintainer added), and marked verified in `card-sources.md`
+  and `judgement-calls.md`. Dziak et al., Lakens et al. (2018), Hoenig and
+  Heisey and the G\*Power manual stay candidates. `pwrss_method` and
+  `stats_method` stay placeholders: neither `citation()` gives a method
+  paper.
 - **E5 switch to G\*Power's z test (17 October 2026; the maintainer
   said yes).** Two proportions in equal groups now use base R's
   `power.prop.test(strict = TRUE)`, which matches G\*Power to seven

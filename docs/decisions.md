@@ -1746,3 +1746,58 @@ per sample size the search took over 15 minutes for simple mediation and
 couldn't pin the N down (`phase5-simulations.md`, "A required N has no
 preview").
 
+## 2026-10-17 · Attrition: the number to recruit
+
+**Decided (maintainer, 17 October 2026):** apply `options > attrition`.
+N to recruit = N analysed / (1 − attrition), rounded up per group (each
+group's, or each cell's, analysed size is divided and rounded up, then
+added up). The result screen shows both numbers, "Analysed" and "To
+recruit", with a one-line caveat that this is a common but crude heuristic
+that ignores how missing data are handled (Mikael Rubin, 2025,
+*International Journal of Psychology*, doi:10.1002/ijop.70017; in
+`refs.bib`). The exported R script works it out too, and checks it against
+powerkit's number.
+
+**Why dividing, not multiplying:** dividing by 1 − attrition leaves the
+analysed N once the expected share is lost (100 analysed at 20% attrition:
+125 recruited, 25 lost). Mikael Rubin (2025, p. 14 of 15) gives the
+multiplying version (100 × 1.2 = 120) as an example of the heuristic; it
+leaves 96 after 20% attrition.
+
+**Built:** `run_spec()` returns `recruitment` (attrition, n analysed and to
+recruit, and each group's), `NA` without attrition. For a sample-size goal
+it starts from the required N; for power and sensitivity, from the N
+entered (which is the number analysed: `goal > n`).
+
+## 2026-10-17 · Sources the maintainer checked in full text
+
+**Decided (maintainer, 17 October 2026):** the verification-note rule for
+`refs.bib` also accepts "Verified YYYY-MM-DD from full-text PDF held by
+the maintainer", for a source the maintainer has checked in full text
+(the PDFs aren't committed). The test in `test-export-citations.R`
+accepts it. Added on that basis, with fields copied from the PDFs:
+- Rubin (2021, *Synthese*): the individual, disjunction and conjunction
+  framework and the .80 × .80 = .64 conjunction example (p. 7). The
+  maintainer's copy is the author preprint, so volume and pages are as
+  printed in Rubin (2024)'s reference list;
+- Rubin (2024, *Methods in Psychology*): section 7 covers sensitivity
+  analysis, justified alpha and one-sided tests;
+- Mikael Rubin (2025, *International Journal of Psychology*): Table 1
+  names MLMPower, Longpower, PowerLMM, MixedPower and SimR, and it cites
+  Dziak et al. (2020);
+- Frane (2019): as printed in Rubin (2024)'s reference list. Frane's own
+  text was not read.
+
+Still candidates, not in `refs.bib`: Dziak et al. (until its published
+version is checked), Lakens et al. (2018), Hoenig and Heisey (2001) and
+the G\*Power manual.
+
+**`stats_method` and `pwrss_method`:** the maintainer asked for them to
+be filled from the packages' own `citation()`, under the rule that a
+method paper `citation()` doesn't give stays a placeholder. Checked on
+17 October 2026: `citation("pwrss")` (1.3.3) gives only the package
+manual (Bulus and Jentschke, 2026), and `citation("stats")` gives R
+itself (R Core Team). Neither names a method paper, so both stay
+placeholders; the citations export already lists each package's own
+`citation()`.
+

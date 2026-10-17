@@ -243,6 +243,31 @@ actual_power_sentence <- function(spec, result) {
   sprintf("%s, power is %.1f%%.", who, 100 * at_n)
 }
 
+# Analysed and to recruit, when the user gave an attrition rate (the
+# maintainer's decision of 17 October 2026). The engine works out the
+# number to recruit (run_spec()'s `recruitment`); this only words it.
+recruitment_lines <- function(result) {
+  r <- result$recruitment
+  if (!is.list(r)) return(NULL)
+  groups <- function(sizes) {
+    if (length(sizes) < 2 || is.na(r$unit)) return("")
+    if (length(unique(sizes)) == 1) return(sprintf(" (%s per %s)", whole(sizes[1]), r$unit))
+    sprintf(" (%s)", paste(sprintf("%s in %s %d", whole(sizes), r$unit, seq_along(sizes)), collapse = " and "))
+  }
+  c(
+    analysed = sprintf("Analysed: %s participants%s.", whole(r$n_analysed), groups(r$groups_analysed)),
+    recruit = sprintf(
+      "To recruit: %s participants%s, allowing for %s attrition (each group's analysed number divided by %s, rounded up).",
+      whole(r$n_recruit), groups(r$groups_recruit), percent_attrition(r$attrition), format(1 - r$attrition)
+    ),
+    caveat = attrition_caveat
+  )
+}
+
+percent_attrition <- function(a) paste0(format(100 * a), "%")
+
+attrition_caveat <- "Dividing by (1 \u2212 attrition) is a common but crude heuristic: it ignores how missing data will be handled in the analysis (Rubin, M., 2025, International Journal of Psychology, doi:10.1002/ijop.70017)."
+
 # Planned power, not "observed power" (setting result_wording).
 not_observed_power <- "This is planned power for the effect you entered, before the study is run. It is not \"observed power\" calculated from a finished study's results, which says nothing beyond the study's p-value."
 
@@ -337,6 +362,9 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
+    if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+      p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
+      p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-seed small",

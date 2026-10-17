@@ -191,7 +191,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
-  expect_match(html, "Validation in progress.", fixed = TRUE)            # full run to repeat for the z test
+  expect_match(html, "Validated. ", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
@@ -398,4 +398,30 @@ test_that("waits are stated in seconds or minutes", {
   html <- as.character(calculating_background_ui(734, "Running the full analysis (1,000 simulations)\u2026"))
   expect_match(html, "Running the full analysis (1,000 simulations)", fixed = TRUE)
   expect_match(html, "This usually takes about 12 minutes on one core.", fixed = TRUE)
+
+test_that("with attrition, the result shows the number analysed and the number to recruit", {
+  skip_without_run()
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$options$nrep <- NULL
+  spec$options$attrition <- 0.1
+  calc <- run_calculation(spec, run, seed = 3L)
+  r <- calc$result$recruitment
+  n <- calc$result$n_required$n
+  expect_equal(r$n_analysed, n)
+  expect_equal(r$n_recruit, 2 * ceiling(n / 2 / 0.9 - 1e-9))
+  lines <- recruitment_lines(calc$result)
+  expect_identical(lines[["analysed"]], sprintf("Analysed: %s participants (%s per group).", n, n / 2))
+  expect_match(lines[["recruit"]], sprintf("To recruit: %s participants (%s per group), allowing for 10%% attrition", r$n_recruit, r$n_recruit / 2), fixed = TRUE)
+  expect_match(lines[["caveat"]], "common but crude heuristic", fixed = TRUE)
+  expect_match(lines[["caveat"]], "doi:10.1002/ijop.70017", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
+  expect_match(html, "To recruit:", fixed = TRUE)
+  expect_match(script(calc$spec, calc$result), "n_recruit <- sum(groups_recruit)", fixed = TRUE)
+
+  # No attrition: nothing about recruiting.
+  spec$options$attrition <- NULL
+  calc <- run_calculation(spec, run, seed = 3L)
+  expect_null(recruitment_lines(calc$result))
+  html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
+  expect_no_match(html, "To recruit:", fixed = TRUE)
 })

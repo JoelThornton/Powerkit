@@ -28,19 +28,17 @@ this page is the short version plus the working rules.*
 
 ## Open PRs
 
-- **E5's default (z test instead of the arcsine):** approved by the
-  maintainer (G6 in `judgement-calls.md`; Departure 11), with the
-  validation test's reference now G\*Power's z-test output. pwrss for
-  unequal groups is in a draft PR that waits for the maintainer's yes and
-  for G\*Power screenshots at 1 : 2 and 1 : 3.
-- **#4: the early 2 x 2 Shiny demo** (`app/`, not `app/routing/`). An old
-  draft built ahead of phase 5; superseded by the routing prototype's
-  result screen. Close or keep is the maintainer's call.
+See [`status.md`](status.md) for the PRs open at the end of the latest
+stretch. E5 is settled: the z test by default (base R for equal groups,
+pwrss for unequal groups; Departure 11), validated again after the
+`basic` rerun. #4 (the early 2 x 2 demo) was closed on 17 October 2026,
+superseded by E7 and E8 in the routing prototype.
 
 Merged on 17 October 2026: #35 (coverage roadmap, routing options), #36
 (E9 wired), #37 (G\*Power parity), #38 (the G5/G6 decisions and the
-Rubin addendum), #39 (sources checked) and #40 (G\*Power screenshots for
-E4, E5 and E8).
+Rubin addendum), #39 (sources checked), #40 (G\*Power screenshots for
+E4, E5 and E8), #41 (E5's z test, equal groups) and #42 (E5's unequal
+groups by pwrss).
 
 ## Rules
 
@@ -61,7 +59,9 @@ E4, E5 and E8).
   `settings`).
 - **Sourcing:** citations come only from `engine/inst/citations/refs.bib`
   or a package's own `citation()`. Open a source (via its DOI) before
-  adding it to `refs.bib`, with a verification note; if it can't be opened,
+  adding it to `refs.bib`, with a verification note (or, for a source the
+  maintainer checked in full text, "Verified YYYY-MM-DD from full-text PDF
+  held by the maintainer"); if it can't be opened,
   mark it "candidate" and leave it out (as with Hoenig and Heisey for B11).
   Any departure from a tool's conventions goes in `conventions.md`, on the
   result screen, in the methods paragraph, and in a test showing its size.
