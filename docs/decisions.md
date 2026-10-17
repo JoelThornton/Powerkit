@@ -1410,5 +1410,12 @@ Decided by the maintainer on 17 October 2026. App and docs only.
   Ross-Degnan (2011) and Albers and Lakens (2018). The second supports the
   reason given for the pilot-study warning. The first qualifies E45's
   autocorrelation point: power falls as positive autocorrelation rises,
-  but negative autocorrelation raises it. That point is unchanged and
-  marked "contradicted" in part, for the maintainer.
+  but negative autocorrelation raises it. That point was first left
+  unchanged and marked "contradicted" in part, for the maintainer.
+- **E45's autocorrelation point (maintainer, 17 October 2026, later the
+  same day):** now reads "Autocorrelation makes standard power
+  calculations wrong: too optimistic when it's positive, too pessimistic
+  when it's negative." Sourced to Zhang, Wagner and Ross-Degnan (2011),
+  Table 1 (effect size 0.5, N = 24: power 0.25 with no autocorrelation,
+  0.18 at +0.5, 0.43 at -0.5). The contradiction is resolved; no
+  contradictions remain open in `card-sources.md`.
