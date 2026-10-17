@@ -168,11 +168,11 @@ comes from, and expected attrition).
 `powerkit` package if there is one, or loads `engine/` with
 `pkgload::load_all()` (about 5 seconds, once per session). It calls only
 `validate_spec()`. Where neither is available, the screen says the spec
-couldn't be checked, and the tests that need the engine are skipped. **The
-app-tests CI job installs only the app's packages, so those tests are
-skipped on GitHub**; they run locally, where the engine and its packages
-are installed. Running them on GitHub needs the workflow to install the
-engine, which this change doesn't touch.
+couldn't be checked, and the tests that need the engine are skipped
+locally. **On GitHub the app-tests job installs the engine** (from
+`engine/`, with the package versions in `renv.lock`), so those tests run
+there, and fail rather than skip if the engine can't be loaded
+(`POWERKIT_APP_TESTS_NEED_ENGINE`).
 
 ## Recording your decisions
 
@@ -325,6 +325,7 @@ input-screen checks, where it is available) and check:
 - that `tree.yaml` matches `decision-tree.md`.
 
 They run on GitHub on every pull request and push
-(`.github/workflows/routing-prototype-tests.yaml`). That job installs only
-the prototype's packages; it doesn't install or run the engine. They
-aren't part of the engine's `devtools::test()`.
+(`.github/workflows/routing-prototype-tests.yaml`). That job installs the
+package versions in `renv.lock` and the engine itself, so the input
+screens' checks with `validate_spec()` run there too; the prototype never
+computes power. They aren't part of the engine's `devtools::test()`.

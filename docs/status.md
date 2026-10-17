@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 16 October 2026. Update this page with every PR.*
+*Last updated: 17 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -8,6 +8,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **CI installs packages from `renv.lock` (17 October 2026).** Spower 0.7
+  reached CRAN on 16 October and CI picked it up, which broke the
+  one-sided departure test on every PR. All workflows now restore the
+  versions in `renv.lock` (Spower stays at 0.6.4 until a separate PR,
+  which waits for the maintainer, moves to 0.7). Who may merge PRs, and
+  when: [decisions](decisions.md), 17 October 2026.
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.
@@ -110,9 +116,12 @@ fully validated. Validation runs are recorded in
     English. Nothing is calculated: a valid spec shows "Calculation not
     wired in yet" and the spec.
   - "Copy my answers" copies the route, end point and values as text.
+  - E7 (2 x 2 between) takes one SD for all cells or one per cell (17
+    October 2026), as the design spec and `validate_spec()` accept; the
+    fields that don't apply are hidden. E8 still takes one SD.
   - Tests for every screen; axe-core finds no violations on the screen at
-    desktop and phone width. The engine checks are skipped on GitHub,
-    where the app-tests job doesn't install the engine
+    desktop and phone width. The app-tests job on GitHub now installs the
+    engine, so the engine checks run there too
     ([`routing-prototype.md`](routing-prototype.md)).
 - **Judgement-calls pack and small fixes (draft PR, 16 October 2026; builds
   on the routing-decisions PR):**
@@ -148,8 +157,8 @@ fully validated. Validation runs are recorded in
     or a status saying why not. Sources were opened and read: R package
     documentation (help pages, vignettes, CRAN manuals), UCLA OARC pages
     and David Kenny's dyadic-analysis pages. Of the 53 claims that were
-    unsourced or partly sourced: 33 sourced, 19 partly sourced, 1
-    contradicted in part (E45's autocorrelation point);
+    unsourced or partly sourced: 34 sourced (E45's autocorrelation point
+    after its rewording, below) and 19 partly sourced;
   - **contradictions, now fixed (17 October 2026):** E45 said "No ready-made
     tool", but the PITS package (on CRAN since 30 June 2026) estimates power
     for interrupted time series with a known breakpoint. E45 now says "A
@@ -159,9 +168,11 @@ fully validated. Validation runs are recorded in
     repeated simulation)", following Superpower's own help;
   - two papers supplied by the maintainer were read: Albers and Lakens
     (2018) now sources the pilot-study warning's reason; Zhang, Wagner and
-    Ross-Degnan (2011) qualify E45's autocorrelation point (negative
-    autocorrelation raises power), which is marked "contradicted" in part
-    and left for the maintainer;
+    Ross-Degnan (2011) qualified E45's autocorrelation point (negative
+    autocorrelation raises power). The maintainer reworded it on
+    17 October 2026: "Autocorrelation makes standard power calculations
+    wrong: too optimistic when it's positive, too pessimistic when it's
+    negative.", sourced to their Table 1. No contradictions remain open;
   - partly sourced claims are mostly glossary hints whose details differ
     from the source (for example, fixed effects with random slopes, the
     pooled SD's weighting, autocorrelation as dependence on the previous

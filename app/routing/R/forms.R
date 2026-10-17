@@ -178,8 +178,16 @@ parse_table <- function(x) {
   lapply(lines, function(l) vapply(trimws(strsplit(l, ",", fixed = TRUE)[[1]]), parse_number, numeric(1), USE.NAMES = FALSE))
 }
 
-# Whether a field applies, given the goal and the justification chosen.
+# Whether a field applies, given the goal, the justification and any other
+# choice it depends on (`shown_if`: shown only when another field `is`, or
+# `is_not`, a given value; an empty choice counts as no value).
 field_applies <- function(field, values) {
+  if (!is.null(field$shown_if)) {
+    current <- values[[field$shown_if$field]]
+    current <- if (blank(current)) "" else as.character(current)
+    if (!is.null(field$shown_if[["is"]]) && !identical(current, field$shown_if[["is"]])) return(FALSE)
+    if (!is.null(field$shown_if[["is_not"]]) && identical(current, field$shown_if[["is_not"]])) return(FALSE)
+  }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$needed_if_just)) return(identical(values$just_type, field$needed_if_just))
   TRUE

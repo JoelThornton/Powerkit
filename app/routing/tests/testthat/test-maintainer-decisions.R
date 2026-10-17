@@ -37,3 +37,14 @@ test_that("E45 says a recent package covers the known-breakpoint case, without n
   expect_no_match(html, "No ready-made tool", fixed = TRUE)
   expect_no_match(html, "PITS", fixed = TRUE)
 })
+
+test_that("E45's autocorrelation point gives both directions (Zhang et al., 2011, Table 1)", {
+  html <- as.character(card_ui(tree, "E45"))
+  expect_match(html, "Autocorrelation makes standard power calculations wrong: too optimistic when it's positive, too pessimistic when it's negative.", fixed = TRUE)
+  expect_no_match(html, "With time-series data, autocorrelation", fixed = TRUE)
+  sources <- readLines(file.path(routing_dir, "..", "..", "docs", "card-sources.md"), encoding = "UTF-8")
+  row <- grep("^\\| E45 \\| Card point \\| Autocorrelation makes", sources, value = TRUE)
+  expect_length(row, 1)
+  expect_match(row, "Zhang et al. (2011)", fixed = TRUE)
+  expect_match(row, "| sourced |", fixed = TRUE)
+})

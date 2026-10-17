@@ -26,13 +26,23 @@ field_ui <- function(f, value, described_by = character()) {
   tag_name <- switch(f$type, select = "select", table = "textarea", "input")
   query <- htmltools::tagQuery(input)$find(tag_name)
   input <- do.call(query$addAttrs, attrs)$allTags()
-  div(
+  field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source",
       if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], f$default_source) else paste0(f$default_source, ".")
     )
   )
+  if (is.null(f$shown_if)) return(field)
+  # Shown or hidden in the browser as the other choice changes; the server
+  # ignores a hidden field's value (field_applies()).
+  other <- sprintf("input.%s", field_input_id(list(id = f$shown_if$field)))
+  condition <- if (!is.null(f$shown_if[["is"]])) {
+    sprintf("%s == '%s'", other, f$shown_if[["is"]])
+  } else {
+    sprintf("%s != '%s'", other, f$shown_if[["is_not"]])
+  }
+  conditionalPanel(condition, field)
 }
 
 # A group of fields: a fieldset whose legend is the card's "What you would
