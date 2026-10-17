@@ -17,6 +17,7 @@ source(file.path("R", "tree.R"), local = TRUE)
 source(file.path("R", "ui.R"), local = TRUE)
 source(file.path("R", "forms.R"), local = TRUE)
 source(file.path("R", "forms_ui.R"), local = TRUE)
+source(file.path("R", "feedback.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -76,14 +77,18 @@ app_css <- "
   .not-wired { margin-top: 1rem; }
   .spec-json { white-space: pre-wrap; font-size: 0.8rem; background: #f4f6f9; padding: 0.5rem; border-radius: 0.4rem; }
   #copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
+  .mismatch { margin-top: 1.25rem; border-top: 1px solid #dde2ea; padding-top: 0.75rem; }
+  .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .mismatch-text { font-size: 0.85rem; font-family: monospace; }
+  .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 "
 
 # After each screen change, move keyboard and screen-reader focus to the new
 # screen's main heading, so users don't have to tab back down from the top.
 copy_js <- "
-  Shiny.addCustomMessageHandler('copy_answers', function(text) {
-    var status = document.getElementById('copy-status');
+  // Copy text in the browser (nothing is sent to the server or anywhere else).
+  window.pkCopyText = function(text, status) {
     var done = function(msg) { if (status) { status.textContent = msg; status.classList.remove('visually-hidden'); } };
     var ok = 'Copied. Paste it anywhere: an email, a document or a message to a colleague.';
     var fail = 'Couldn\\'t copy automatically. Select the text in the box below and copy it.';
@@ -102,6 +107,13 @@ copy_js <- "
     } else {
       fallback();
     }
+  };
+  window.pkCopy = function(id) {
+    var el = document.getElementById(id);
+    if (el) pkCopyText(el.value, document.getElementById(id + '-status'));
+  };
+  Shiny.addCustomMessageHandler('copy_answers', function(text) {
+    pkCopyText(text, document.getElementById('copy-status'));
   });
   // Move focus to the check's result, so keyboard and screen-reader users hear it.
   Shiny.addCustomMessageHandler('focus_result', function(id) {
@@ -289,12 +301,14 @@ server <- function(input, output, session) {
       card = tagList(
         trail_ui(state$history),
         card_ui(tree, state$endpoint, history = state$history),
-        card_nav_ui(forms, state$endpoint)
+        card_nav_ui(forms, state$endpoint),
+        mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
       ),
       form = form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k), isolate(state$form_values), state$history),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
-      g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule)
+      g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
+        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers)
     )
   })
 }

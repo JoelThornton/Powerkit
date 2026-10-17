@@ -345,7 +345,7 @@ spec_json <- function(spec) as.character(jsonlite::toJSON(spec, auto_unbox = TRU
 answers_text <- function(tree, route_label, history, ep_id, fields, values) {
   ep <- tree$endpoints[[ep_id]]
   lines <- c("powerkit routing prototype: my answers", "", paste0("Route: ", route_label))
-  for (h in history) lines <- c(lines, sprintf("- %s %s", tree$nodes[[h$node]]$text, h$answer))
+  lines <- c(lines, path_lines(tree, history))
   lines <- c(lines, "", sprintf("End point: %s, %s (%s)", ep_id, ep$plain_name, ep$doc_name), "", "Values entered:")
   for (f in fields) {
     v <- values[[f$id]]

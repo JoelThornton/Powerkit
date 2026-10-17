@@ -122,6 +122,17 @@ in the routing audit, with a screenshot of each end card, are in
 prototype: `node app/routing/walkthroughs/screenshots.js` (needs Node and
 Playwright; the script's header explains).
 
+## "Something doesn't fit?" (for user testing)
+
+Every card, including the cards on the guided route's plan, ends with a
+**Something doesn't fit?** link. It opens the exact path taken (the route,
+each question and answer, the guided route's variables, and the end
+point) as text with a **Copy the path** button, and asks what the user
+expected instead. Copying happens in the browser; nothing is sent
+anywhere. How the copied paths are used in testing sessions:
+[`user-testing.md`](user-testing.md); the test cases they become:
+[`test-cases.md`](test-cases.md).
+
 ## Input screens (E1–E14)
 
 Cards for the end points powerkit runs (E1–E14) have an **Enter your
@@ -220,7 +231,7 @@ nodes, and the S1–S4 and T1 rows of table 2.2.
 ## Accessibility
 
 Checked on 16 October 2026 with axe-core 4.10.2 (WCAG 2.1 A and AA, plus
-its best-practice rules) on 13 screens (including the input screen empty, with problems and checked) at desktop width and at phone width
+its best-practice rules) on 14 screens (including the input screen empty, with problems and checked, and an open "Something doesn't fit?") at desktop width and at phone width
 (375 px):
 - start;
 - a screening question;
@@ -299,6 +310,8 @@ input-screen checks, where it is available) and check:
   reaches the end point recorded for it, in all three routes
   (`test-walkthroughs.R`);
 - that every guided-route answer combination leads somewhere;
+- that every card offers "Something doesn't fit?" with the full path,
+  and that the app makes no network calls (`test-feedback.R`);
 - that each input screen asks for every line of its card, starts effect
   sizes empty, labels every field and default, catches missing and
   out-of-range values, and builds a spec that passes `validate_spec()`

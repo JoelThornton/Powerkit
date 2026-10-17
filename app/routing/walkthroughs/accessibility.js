@@ -41,6 +41,7 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await btn('Back to the card');
     await btn('Start again'); await btn('Help me choose'); await label('A score or scale'); await label('Independent people'); await label('Many times');
     await label('Measurements over time, to see whether a trend changes at a known point'); await audit('card E45 (not in powerkit)');
+    await p.locator('details.mismatch summary').first().click(); await settle(); await audit('card E45, "Something doesn\'t fit?" open');
     await btn('Back'); await label("None of these fit / I'm not sure"); await audit('card E-unsure');
     await btn('Start again'); await btn('I know my analysis'); await label('A score or scale'); await label('Independent people'); await label('Once'); await label('Detect an effect');
     await audit('end-point list');
