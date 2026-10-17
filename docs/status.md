@@ -21,11 +21,14 @@ fully validated. Validation runs are recorded in
   versions in `renv.lock` (Spower stayed at 0.6.4 until a separate PR,
   which waits for the maintainer, moves to 0.7). Who may merge PRs, and
   when: [decisions](decisions.md), 17 October 2026.
-- **Spower 0.7 (draft PR, waiting for the maintainer's yes).** `renv.lock`
-  moves to Spower 0.7, and one-sided basic tests use Spower's own
-  one-sided test; Departure 4 is retired. Results are identical with the
-  same seeds. After merging, the `basic` validation chunk is rerun on
-  GitHub.
+- **Spower 0.7 (merged in PR #31, 17 October 2026).** `renv.lock` is on
+  Spower 0.7, and one-sided basic tests use Spower's own one-sided test;
+  Departure 4 is retired. Results are identical with the same seeds. The
+  `basic` validation chunk passed on GitHub on Spower 0.7 (20 PASS, 4
+  TODO skips; [validation log](validation-log.md)). power4mome stays at
+  0.2.1 (Departure 8 stays until its fix reaches CRAN). Known gap: nothing
+  independently checks the Monte Carlo interval for two or more mediators
+  ([judgement calls](judgement-calls.md), F1).
 - **Build phases 0–3 are done** ([build guide](build-guide.md), section 8):
   the design spec format and its checks, and an engine that runs every MVP
   design through its backend package.

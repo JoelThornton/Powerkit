@@ -51,6 +51,7 @@ The statistical decisions phase 3b needs before coding are in
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
+- [F. Validation](#f-validation): F1
 
 ## A. What the cards say
 
@@ -1187,3 +1188,19 @@ is kept below as the record of the options.
     opened). Whether E15 could reuse it is for phase 3b.
 - **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
   setting.
+
+## F. Validation
+
+### F1. Known gap: the Monte Carlo interval for two or more mediators
+
+Known gap: nothing independently checks powerkit's default Monte Carlo
+interval for two or more mediators (the simsem cross-checks cover the
+joint test only).
+
+- **Context:** the parallel and serial cross-checks
+  (`mediation_crosscheck_parallel`, `mediation_crosscheck_serial`) passed
+  on 17 October 2026 (`validation-log.md`). They compare the joint test in
+  power4mome and simsem. For simple mediation, pwrss also checks the Monte
+  Carlo interval; pwrss has no parallel or serial mediation.
+- **Recorded in:** this entry; `validation-log.md`, "Parallel and serial
+  mediation (joint test against simsem)".
