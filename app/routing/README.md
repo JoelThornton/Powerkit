@@ -1,7 +1,8 @@
 # app/routing — routing prototype
 
 A clickable prototype of the routes in `docs/decision-tree.md`. Routing
-only: no engine calls, no calculations. How to run it, record decisions and
+only: no calculations. The input screens check a design spec with the
+engine's `validate_spec()`, read-only. How to run it, record decisions and
 run the tests: [`docs/routing-prototype.md`](../../docs/routing-prototype.md).
 
 - `tree.yaml`: the single source of truth for routes, questions, end points,

@@ -47,7 +47,7 @@ The statistical decisions phase 3b needs before coding are in
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
-- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B9
+- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B10
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E5
@@ -568,6 +568,36 @@ is kept below as the record of the options.
 - **Knock-on effects:** a validation run with three or more mediators is
   in `status.md`, "What's next".
 - **Recorded in:** open question 10; setting `parallel_mediators_max`.
+
+### B10. Effect sizes on the input screens
+
+- **Question:** the input screens (E1–E14) leave effect sizes, SDs and
+  correlations empty and require them, with a justification. Should they
+  offer suggested values (for example conventional benchmarks) that the
+  user can change?
+- **Options:**
+  - start empty and required, with a justification (as built);
+  - offer suggested values the user can change, still with a
+    justification.
+- **What tools and sources do:**
+  - G\*Power shows Cohen's conventions as tooltips (opened,
+    `decision-tree.md` section 1).
+  - power4mome's quick functions accept "s"/"m"/"l" labels for paths
+    (opened, `decision-tree.md` section 1).
+  - The engine's spec requires `effect_justification`: "it feeds the
+    write-up and prevents unexamined 'medium effect' defaults"
+    (`design.schema.json`, opened).
+  - The build guide rules out "medium effect" defaults (section 4).
+- **Who might disagree, and why:**
+  - Empty fields make users think about their effect.
+  - Suggested values help users who have no idea where to start, but may
+    anchor them (the same argument as B2).
+- **Knock-on effects:**
+  - Ties to B2 (benchmarks as context).
+  - Other settings on the screens start at the wrapped tool's default,
+    each labelled with its source (not effect sizes).
+- **Recorded in:** setting `effect_size_inputs` (shown on the input
+  screens).
 
 ## C. Which card users reach
 

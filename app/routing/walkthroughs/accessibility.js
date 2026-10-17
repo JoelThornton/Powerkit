@@ -1,4 +1,5 @@
-// Accessibility check for the running routing prototype (port 8765): runs
+// Accessibility check for the running routing prototype (port 8765, or
+// PROTOTYPE_URL): runs
 // axe-core (WCAG 2.1 A and AA, plus best practice) on the main screens at
 // desktop and phone width (375px), checks for sideways scrolling, and checks
 // that keyboard focus moves to the new screen's heading. Needs Node,
@@ -7,6 +8,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
 (async () => {
   const b = await chromium.launch({ ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}) });
   const results = {};
@@ -23,12 +25,20 @@ const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
       results[`${width} ${name}`] = { overflow, v };
       console.log(`\n[${width}px] ${name}: overflow ${overflow}px`); v.forEach(x => console.log('  ' + x));
     };
-    await p.goto('http://127.0.0.1:8765/'); await settle();
+    await p.goto(URL); await settle();
     await audit('start');
     await btn('Help me choose'); await audit('screening question S1');
     await label('A score or scale'); await label('Independent people'); await label('Once'); await label('Detect an effect');
     await label('A difference between groups or conditions'); await label('One'); await label('Two, with different people in each');
     await audit('card E2 (runs)');
+    // The input screen: empty, after a check with problems, and when valid.
+    await btn('Enter your values'); await audit('input screen E2');
+    await btn('Check my answers'); await p.waitForSelector('#form_result .form-problems', { timeout: 10000 }); await audit('input screen E2, problems');
+    const fill = async (id, v) => { await p.fill('#f_' + id, v); };
+    for (const [id, v] of [['X_label', 'Condition'], ['X_level1', 'Control'], ['X_level2', 'Training'], ['Y_label', 'Recall'], ['d', '0.4'], ['power', '0.8'], ['just_source', 'Example']]) await fill(id, v);
+    await p.selectOption('#f_goal', 'sample_size'); await p.selectOption('#f_just_type', 'smallest_effect_of_interest');
+    await btn('Check my answers'); await p.waitForSelector('#form_result .not-wired, #form_result .form-problems', { timeout: 30000 }); await audit('input screen E2, checked');
+    await btn('Back to the card');
     await btn('Start again'); await btn('Help me choose'); await label('A score or scale'); await label('Independent people'); await label('Many times');
     await label('Measurements over time, to see whether a trend changes at a known point'); await audit('card E45 (not in powerkit)');
     await btn('Back'); await label("None of these fit / I'm not sure"); await audit('card E-unsure');
@@ -43,7 +53,7 @@ const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
   }
   // Keyboard: Tab to the first route button, press Enter, and see where focus lands.
   const k = await b.newPage({ viewport: { width: 1000, height: 800 } });
-  await k.goto('http://127.0.0.1:8765/'); await k.waitForTimeout(600);
+  await k.goto(URL); await k.waitForTimeout(600);
   let found = false;
   for (let i = 0; i < 25; i++) { await k.keyboard.press('Tab'); const t = await k.evaluate(() => document.activeElement && document.activeElement.textContent.trim().slice(0, 40)); if (t && t.startsWith('Help me choose')) { found = true; break; } }
   console.log('\nkeyboard: reached "Help me choose" by Tab:', found);
