@@ -183,7 +183,7 @@ citations_bibtex <- function(items, software, result) {
       if (!is.null(item$same_as)) {
         return(c(sprintf("%% %s: the same as %s above.", item$label, item$same_as), ""))
       }
-      c(sprintf("%% %s (from powerkit's refs.bib)", item$label), item$ref$raw, "")
+      c(sprintf("%% %s (from powerkit's refs.bib)", item$label), bib_entry_bibtex(item$ref), "")
     }), use.names = FALSE)
   }
   c(
@@ -209,10 +209,28 @@ bibentry_bibtex <- function(cit, key) {
   }), use.names = FALSE)
 }
 
+# A refs.bib entry's BibTeX as written, without a verification note
+# ("Verified ...", see refs.bib): the note is provenance, not part of the
+# reference. The note line is removed whole (a note = {...} or note = "..."
+# field on its own line, as refs.bib writes it).
+bib_entry_bibtex <- function(entry) {
+  if (!grepl("^Verified\\b", entry$fields$note %||% "")) {
+    return(entry$raw)
+  }
+  lines <- strsplit(entry$raw, "\n", fixed = TRUE)[[1]]
+  verified_note <- grepl("^\\s*note\\s*=\\s*[{\"]Verified\\b", lines, ignore.case = TRUE)
+  paste(lines[!verified_note], collapse = "\n")
+}
+
 # Readable text for a refs.bib entry, or its BibTeX if R can't format it
-# (for example, a required field is missing).
+# (for example, a required field is missing). A `note` recording where and
+# when the entry was verified ("Verified ...", see refs.bib) is provenance,
+# not part of the reference, so it isn't shown.
 bib_entry_text <- function(entry) {
   fields <- lapply(entry$fields, function(x) gsub("[{}]", "", x))
+  if (grepl("^Verified\\b", fields$note %||% "")) {
+    fields$note <- NULL
+  }
   formatted <- tryCatch(
     format(do.call(utils::bibentry, c(list(bibtype = entry$type, key = entry$key), fields)), style = "text"),
     error = function(e) NULL
