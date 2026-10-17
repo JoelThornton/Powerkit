@@ -46,8 +46,9 @@ detectable effect.
 }
 \details{
 \strong{Backends.} Basic tests run on pwr's exact formulas by default (Spower
-simulation on request, and for Welch's t-test; two proportions with equal
-groups on base R's \code{stats::power.prop.test()}), regression interactions on
+simulation on request, and for Welch's t-test; two proportions on base
+R's \code{stats::power.prop.test()} for equal groups and pwrss for unequal
+groups), regression interactions on
 InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
 7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
 
@@ -58,8 +59,9 @@ Welch's t-test it is \code{"exact"} too (pwr's analytic formulas: noncentral
 t and chi-square distributions; Fisher's z for a correlation, an
 approximation). Two proportions use the z test with pooled variance under
 the null and no continuity correction, as G*Power does
-(\code{power.prop.test(strict = TRUE)}), for equal groups; unequal groups, or
-\code{options > proportions_formula = "arcsine"}, use pwr's Cohen's h (the
+(\code{power.prop.test(strict = TRUE)} for equal groups,
+\code{pwrss::power.z.twoprops()} for unequal groups); with
+\code{options > proportions_formula = "arcsine"} they use pwr's Cohen's h (the
 arcsine approximation). \code{"simulation"} uses Monte Carlo
 simulation with \code{options > nrep} replications (default 1,000) and
 \code{options > seed} (drawn and recorded if not given). Every other design

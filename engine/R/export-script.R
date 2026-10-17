@@ -1,7 +1,7 @@
 #' Write an R script that reproduces a result
 #'
 #' Writes a standalone R script that reproduces a [run_spec()] result by
-#' calling the package that computed it (pwr, stats, Spower, Superpower,
+#' calling the package that computed it (pwr, stats, pwrss, Spower, Superpower,
 #' InteractionPoweR or power4mome) directly, with the design's values
 #' filled in and a comment on each argument. powerkit is not needed to run
 #' the script.
@@ -17,8 +17,8 @@
 #'   its 95% interval (powerkit's quicker first pass, which only chose
 #'   those sizes, is not repeated);
 #' * exact 2x2 results use `ANOVA_exact()` under the run's seed;
-#' * exact basic-test results call pwr's formula, or `power.prop.test()`
-#'   for two proportions in equal groups (for a sample-size goal, at
+#' * exact basic-test results call pwr's formula, or for two proportions
+#'   `power.prop.test()` (equal groups) or pwrss (unequal groups) (for a sample-size goal, at
 #'   the sizes powerkit computed, around the required n).
 #'
 #' The script ends by comparing its numbers with powerkit's and printing
@@ -44,7 +44,8 @@ export_script <- function(spec, result, file = NULL) {
   lines <- switch(
     result$provenance$backend,
     pwr = ,
-    stats = pwr_script(spec, result),
+    stats = ,
+    pwrss = pwr_script(spec, result),
     Spower = spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -256,7 +257,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats")) {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss")) {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend
@@ -398,7 +399,11 @@ pwr_script <- function(spec, result) {
   inputs <- pwr_inputs(spec)
   c(
     script_header(spec, result, inputs$package, inputs$description),
-    if (inputs$package == "pwr") c("library(pwr)", "") else c("# power.prop.test() is in base R's stats package.", ""),
+    switch(
+      inputs$package,
+      stats = c("# power.prop.test() is in base R's stats package.", ""),
+      c(sprintf("library(%s)", inputs$package), "")
+    ),
     "# Inputs ----",
     spower_script_inputs(spec),
     goal_inputs(spec, result),
@@ -428,7 +433,7 @@ pwr_script_call_lines <- function(spec, inputs) {
     "  n_group2 <- n_total - n_group1"
   )
   ratio <- spec$options$allocation_ratio %||% 1
-  if (identical(inputs$fun, "power.prop.test")) {
+  if (inputs$fun %in% c("power.prop.test", "power.z.twoprops")) {
     return(prop_test_script_lines(spec, inputs))
   }
   call <- switch(
@@ -476,14 +481,33 @@ pwr_script_call_lines <- function(spec, inputs) {
   c(call$pre, paste0("  ", call$head), paste0("    ", ensure_commas(call$args)), "  )$power")
 }
 
-# The body of power_at() for two proportions by stats::power.prop.test():
-# equal groups, the z test with pooled variance under the null, both tails
-# counted (strict = TRUE), as G*Power does. A one-sided test against the
+# The body of power_at() for two proportions by the z test with pooled
+# variance under the null, as G*Power does: stats::power.prop.test() for
+# equal groups (both tails counted, strict = TRUE), pwrss's
+# power.z.twoprops() for unequal groups. A one-sided test against the
 # specified direction is the two-sided power at 2 x alpha minus the
 # one-sided power (pwr_power()).
 prop_test_script_lines <- function(spec, inputs) {
   args <- inputs$args(2)
+  pwrss <- identical(inputs$package, "pwrss")
   call <- function(alternative, sig) {
+    if (pwrss) {
+      return(c(
+        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group2 <- n_total - n_group1",
+        "  power.z.twoprops(",
+        paste0("    ", ensure_commas(c(
+          "prob1 = proportions[1]", "prob2 = proportions[2]",
+          "n2 = n_group2",
+          "n.ratio = n_group1 / n_group2 # pwrss's n.ratio is n1 / n2",
+          sprintf("alpha = %s", sig),
+          sprintf("alternative = %s", r_code(alternative)),
+          "std.error = \"pooled\" # pooled variance under the null, as G*Power",
+          "verbose = FALSE"
+        ))),
+        "  )$power"
+      ))
+    }
     c(
       "  power.prop.test(",
       paste0("    ", ensure_commas(c(
@@ -507,7 +531,7 @@ prop_test_script_lines <- function(spec, inputs) {
     return(c(note, call(args$alternative, "alpha")))
   }
   c(
-    "  # One-sided, against the specified difference: power.prop.test() uses",
+    sprintf("  # One-sided, against the specified difference: %s() uses", inputs$fun),
     "  # |p1 - p2|, so the power is the two-sided power at 2 x alpha minus the",
     "  # one-sided power at alpha (the tail away from the difference).",
     sub("^  power", "  both_tails <- power", call("two.sided", "2 * alpha")),

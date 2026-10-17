@@ -370,7 +370,7 @@
           "exclusiveMinimum": 0
         },
         "proportions_formula": {
-          "description": "Two proportions only, with method exact: z_test (the default) is the z test of two proportions with pooled variance under the null and no continuity correction, as in G*Power, via stats::power.prop.test() for equal groups; arcsine is pwr's formula with Cohen's h (pwr.2p2n.test()). Unequal groups always use the arcsine formula, because power.prop.test() needs equal groups.",
+          "description": "Two proportions only, with method exact: z_test (the default) is the z test of two proportions with pooled variance under the null and no continuity correction, as in G*Power, via stats::power.prop.test() for equal groups and pwrss::power.z.twoprops() for unequal groups; arcsine is pwr's formula with Cohen's h (pwr.2p2n.test()).",
           "enum": [
             "z_test",
             "arcsine"

@@ -145,8 +145,8 @@ simulated <- function(result) identical(result$provenance$method, "simulation")
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (identical(result$provenance$backend, "pwr")) {
-    sprintf("pwr's formula, %s(), no simulation", result$provenance$backend_function)
+  } else if (result$provenance$backend %in% c("pwr", "pwrss")) {
+    sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   } else {
     "Superpower's exact dataset, no repeated simulation"
   }
@@ -340,7 +340,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     validation_ui(ep),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      if (p_$backend %in% c("pwr", "stats")) "powerkit built the call from your answers and checked the effect size it passes. " else
+      if (p_$backend %in% c("pwr", "stats", "pwrss")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations below."),
     h4(class = "h6", "What this result used"),

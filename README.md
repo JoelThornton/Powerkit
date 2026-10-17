@@ -12,6 +12,8 @@ the sample size you need, or the smallest effect you could detect.
 
 powerkit does not reimplement the statistics. It builds on established,
 peer-reviewed R packages:
+[pwr](https://cran.r-project.org/package=pwr),
+[pwrss](https://cran.r-project.org/package=pwrss),
 [Superpower](https://cran.r-project.org/package=Superpower),
 [Spower](https://cran.r-project.org/package=Spower),
 [power4mome](https://cran.r-project.org/package=power4mome) and
@@ -43,7 +45,7 @@ export, and an optional AI assistant are planned.
 | --- | --- |
 | 2 x 2 between-participants ANOVA | **Working** (via Superpower) |
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
-| Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (via Spower); validated against analytic results, direct Spower calls and Type I error; checks against G*Power's published examples to come |
+| Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (by formula via pwr; two proportions via base R's `power.prop.test()` and pwrss, matching G*Power's z test; Spower simulation on request); validated against analytic results, direct Spower calls and Type I error; the two-proportions z test is to be revalidated; checks against G*Power's published examples to come |
 | Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
 | Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem; checks against published examples to come |
 | Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (rerun on 17 October 2026 after a fix to how power4mome calls are seeded); no independent cross-check yet; checks against published examples to come |
@@ -74,7 +76,7 @@ remotes::install_github("JoelThornton/Powerkit", subdir = "engine")
 ```
 
 This also installs its dependencies, including the backend packages
-Superpower, Spower, InteractionPoweR and power4mome.
+pwr, pwrss, Superpower, Spower, InteractionPoweR and power4mome.
 
 ## Try it
 

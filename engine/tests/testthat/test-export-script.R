@@ -230,6 +230,10 @@ test_that("by formula: unequal groups, one-sided tests and a required n are repr
   unequal <- formula_spec("two_proportions", list(type = "power", n = 300),
                           options = list(seed = 7, allocation_ratio = 2))
   unequal$target_test$alternative <- "greater"
+  run <- expect_script_reproduces_power(unequal, run_spec(unequal))
+  # Unequal groups use pwrss's z test (Departure 11).
+  expect_true(any(grepl("library(pwrss)", run$script, fixed = TRUE)))
+  unequal$target_test$alternative <- "less"
   expect_script_reproduces_power(unequal, run_spec(unequal))
   t2n <- formula_spec("independent_t", list(type = "power", n = 150),
                       options = list(seed = 7, allocation_ratio = 2))

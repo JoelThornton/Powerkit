@@ -20,8 +20,13 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   reference (0.2344921 at 20 per group, p1 = .10, p2 = .25), recorded as
   a G\*Power value, and a separate test covers the Cohen's h option.
   E5's card says validation is in progress until the `basic` chunk is
-  rerun. Next: pwrss for unequal groups (maintainer's decision; a
-  separate draft PR).
+  rerun.
+- **E5 unequal groups by pwrss (draft PR; waits for the maintainer's
+  yes).** pwrss's `power.z.twoprops()` replaces Cohen's h for unequal
+  groups (maintainer's decision): it matches G\*Power's power at 123 and
+  247 (0.9498668). pwrss moves to Imports and is credited with the other
+  backends. G\*Power values at 1 : 2 and 1 : 3 in both directions are
+  awaited from the maintainer to confirm pwrss's.
 - **G\*Power screenshots checked (17 October 2026; docs only).** The
   maintainer's G\*Power 3.1.9.7 screenshots are in
   [`figures/gpower/`](figures/gpower/) and recorded in

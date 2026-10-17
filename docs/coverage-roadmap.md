@@ -32,10 +32,11 @@ merged 17 October 2026); E9–E14 run in the engine but the app shows
 guidance only.
 
 **Foundation tools** are the packages powerkit is built on and credits:
-Spower, Superpower, power4mome, InteractionPoweR, and pwr (being added as
-the analytic default for E1–E6 in PR #34). pwrss is a cross-check package
-in `renv.lock`, used only by validation; it is named below where it is
-the only candidate, but it isn't a foundation tool.
+Spower, Superpower, power4mome, InteractionPoweR, pwr (the analytic
+default for E1–E6, PR #34) and pwrss (E5's z test for unequal groups,
+maintainer's decision of 17 October 2026; before that it was used only
+by validation, as a cross-check). Rows written before that date call
+pwrss "not a foundation tool".
 
 ### Sources
 
@@ -158,7 +159,7 @@ Departure 10 in [`conventions.md`](conventions.md).
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A45 | Generic: binomial | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.binom.test()` (not a foundation tool) | coverage.md: not planned (the R script export is the route) | [G1][] |
+| A45 | Generic: binomial | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.binom.test()` (pwrss became a foundation tool on 17 October 2026, for E5's unequal groups) | coverage.md: not planned (the R script export is the route) | [G1][] |
 | A46 | Generic: F | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.f.test(ncp, df1, df2)`; Superpower `power.ftest()` (candidate: check its arguments) | As A45 | [G1][] |
 | A47 | Generic: t | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.t.test(ncp, df)` | As A45 | [G1][] |
 | A48 | Generic: chi² | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.chisq.test()` | As A45 | [G1][] |

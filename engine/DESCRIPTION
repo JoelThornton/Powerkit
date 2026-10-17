@@ -27,13 +27,13 @@ Imports:
     parallel,
     power4mome,
     pwr,
+    pwrss,
     Spower (>= 0.7),
     stats,
     Superpower,
     utils
 Suggests:
     lavaan,
-    pwrss,
     simsem,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

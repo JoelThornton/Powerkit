@@ -181,7 +181,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(citations(calc$result, format = "text"), "citation(\"stats\")", fixed = TRUE)
 })
 
-test_that("E5 can use Cohen's h instead of the z test, and unequal groups use it (Departure 11)", {
+test_that("E5 can use Cohen's h instead of the z test; unequal groups use pwrss (Departure 11)", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E5"))
   choice <- Filter(function(f) identical(f$id, "proportions_formula"), fields)[[1]]
@@ -198,7 +198,7 @@ test_that("E5 can use Cohen's h instead of the z test, and unequal groups use it
   unequal <- modifyList(exact, list(allocation_ratio = 2))
   spec <- build_spec(forms, "E5", fields, unequal)
   spec$goal <- list(type = "power", n = 48L)
-  expect_identical(run_calculation(spec, run, seed = forms$default_seed)$result$provenance$backend, "pwr")
+  expect_identical(run_calculation(spec, run, seed = forms$default_seed)$result$provenance$backend, "pwrss")
 })
 
 test_that("E1-E6 simulate with Spower when chosen, and say so under the result (B15)", {
