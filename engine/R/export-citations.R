@@ -91,7 +91,7 @@ powerkit_paper_key <- function() "powerkit"
 # Superpower fits its ANOVAs with afex::aov_car() and generates data with
 # MASS::mvrnorm(); power4mome fits with lavaan and computes indirect effects
 # and their confidence intervals with manymome; InteractionPoweR uses base
-# R only), then R itself. `citation` is the package whose citation() is
+# R only), then R itself (except for stats, which is R). `citation` is the package whose citation() is
 # used ("base" for R).
 supporting_software <- function(backend) {
   s <- function(name, role, citation = name) list(name = name, role = role, citation = citation)
@@ -108,6 +108,11 @@ supporting_software <- function(backend) {
     ),
     list()
   )
+  # stats is part of R and citation("stats") is R's own citation, so R
+  # isn't listed a second time.
+  if (identical(backend, "stats")) {
+    return(packages)
+  }
   c(packages, list(s("R", "in which the analysis ran", "base")))
 }
 
@@ -162,9 +167,9 @@ citations_text <- function(items, software, result) {
     sprintf("(powerkit %s; %s %s; spec hash %s)", p$packages[["powerkit"]], p$backend, p$packages[[p$backend]], p$spec_hash),
     "",
     section(items),
-    "Software used (doing work underneath; each from its own citation()):",
-    "",
-    section(software),
+    if (length(software)) {
+      c("Software used (doing work underneath; each from its own citation()):", "", section(software))
+    },
     "Methods paragraph:",
     paste0("  ", methods_placeholder())
   )
@@ -193,9 +198,9 @@ citations_bibtex <- function(items, software, result) {
     ),
     "",
     section(items),
-    "% Software used (doing work underneath; each from its own citation())",
-    "",
-    section(software)
+    if (length(software)) {
+      c("% Software used (doing work underneath; each from its own citation())", "", section(software))
+    }
   )
 }
 

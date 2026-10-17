@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* Two proportions (E5) now use the z test as G*Power runs it: base R's
+  `stats::power.prop.test(strict = TRUE)` for equal groups, which matches
+  G*Power to seven decimals. Results change slightly from pwr's Cohen's h
+  formula (for example 164 rather than 160 per group for 95% power with
+  proportions .10 and .25). Cohen's h stays available with
+  `options > proportions_formula = "arcsine"`, and unequal groups still use
+  it (Departure 11 in `docs/conventions.md`). The result's backend is
+  recorded as stats, and the exported R script calls `power.prop.test()`.
+
 * When the app prototype reports a required N calculated exactly, the
   result screen also shows the power that N actually gives, for example
   "With 64 per group, power is 80.1%." Not shown for a simulated N.

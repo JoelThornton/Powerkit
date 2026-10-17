@@ -18,6 +18,7 @@ population_problems <- function(spec) {
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
     check_method_allowed(spec),
+    check_proportions_formula_allowed(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -130,6 +131,24 @@ check_method_allowed <- function(spec) {
     "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
     "basic tests; remove it or use 'simulation'."
   )
+}
+
+# The formula choice for two proportions (z test or arcsine) applies only
+# to that test, and only when power is calculated by formula.
+check_proportions_formula_allowed <- function(spec) {
+  if (is.null(spec$options$proportions_formula)) {
+    return(character())
+  }
+  if (spec$template != "two_proportions") {
+    return("'options > proportions_formula' only applies to the two-proportions test; remove it.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    return(paste0(
+      "'options > proportions_formula' only applies when power is calculated by formula; ",
+      "remove it or remove 'options > method' 'simulation'."
+    ))
+  }
+  character()
 }
 
 # Basic tests ----------------------------------------------------------------

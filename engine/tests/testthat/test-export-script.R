@@ -206,9 +206,22 @@ test_that("E1-E6 by formula: the exported pwr script reproduces powerkit", {
   for (name in names(ns)) {
     spec <- formula_spec(name, list(type = "power", n = ns[[name]]))
     result <- run_spec(spec)
-    expect_equal(result$provenance$backend, "pwr", info = name)
+    # Two proportions in equal groups use base R's power.prop.test()
+    # (Departure 11): the script needs no package.
+    backend <- if (name == "two_proportions") "stats" else "pwr"
+    expect_equal(result$provenance$backend, backend, info = name)
     run <- expect_script_reproduces_power(spec, result)
-    expect_true(any(grepl("library(pwr)", run$script, fixed = TRUE)), info = name)
+    expect_equal(any(grepl("library(pwr)", run$script, fixed = TRUE)), backend == "pwr", info = name)
+  }
+})
+
+test_that("two proportions by the z test: one-sided scripts reproduce powerkit, either direction", {
+  skip_unless_scripts_can_run()
+  for (alternative in c("greater", "less")) {
+    spec <- formula_spec("two_proportions", list(type = "power", n = 200))
+    spec$target_test$alternative <- alternative
+    run <- expect_script_reproduces_power(spec, run_spec(spec))
+    expect_true(any(grepl("power.prop.test(", run$script, fixed = TRUE)), info = alternative)
   }
 })
 

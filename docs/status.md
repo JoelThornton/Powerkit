@@ -10,6 +10,16 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **E5 switch to G\*Power's z test (draft PR; waits for the maintainer's
+  yes).** Two proportions in equal groups now use base R's
+  `power.prop.test(strict = TRUE)`, which matches G\*Power to seven
+  decimals; pwr's Cohen's h stays as a choice and is used for unequal
+  groups (Departure 11 in [`conventions.md`](conventions.md); reasoning in
+  [`decisions.md`](decisions.md)). E5's card now says validation is in
+  progress: the full validation run is to be repeated, and the
+  validation test "two proportions: power matches pwr (analytic)" still
+  compares with Cohen's h, so it will fail until the maintainer updates
+  it. Open: what unequal groups should use.
 - **G\*Power screenshots checked (17 October 2026; docs only).** The
   maintainer's G\*Power 3.1.9.7 screenshots are in
   [`figures/gpower/`](figures/gpower/) and recorded in
