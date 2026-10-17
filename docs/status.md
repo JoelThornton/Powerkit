@@ -8,6 +8,13 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Independent cross-checks for parallel and serial mediation (merged in
+  PR #30; passed 17 October 2026).** Two validation chunks,
+  `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
+  compare the joint test in power4mome and simsem. All four designs agree
+  within the Monte Carlo interval with no allowance (differences 0.003 to
+  0.009; [validation log](validation-log.md)). powerkit's Monte Carlo CI
+  itself has no independent check for two mediators.
 - **CI installs packages from `renv.lock` (17 October 2026).** Spower 0.7
   reached CRAN on 16 October and CI picked it up, which broke the
   one-sided departure test on every PR. All workflows now restore the

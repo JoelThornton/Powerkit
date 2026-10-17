@@ -7,6 +7,13 @@
   same seed, every basic test gives the same power as before. Exported
   scripts for one-sided tests now call Spower's `p_t.test()`, `p_r()` or
   `p_prop.test()` with `alternative`, and need Spower 0.7.
+* Validation (for maintainers): two new chunks,
+  `mediation_crosscheck_parallel` and `mediation_crosscheck_serial`,
+  compare the joint-significance test for parallel and serial mediation
+  in power4mome (with powerkit's translation of the spec) and in simsem,
+  with data generated from residual variances worked out separately from
+  the engine. Run with `scripts/run-validation.R --only <chunk>` or the
+  `full-validation` workflow.
 
 * The citations export (text and BibTeX) doesn't print a refs.bib entry's verification
   note ("Verified ..."), which records where the entry was checked rather

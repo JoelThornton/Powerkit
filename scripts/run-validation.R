@@ -67,7 +67,8 @@
 # mediation), process_6 (serial mediation), process_7, process_14,
 # mediation_crosscheck (simple mediation against pwrss and simsem, two
 # tools written independently of power4mome; both are in Suggests and
-# renv.lock).
+# renv.lock), mediation_crosscheck_parallel and mediation_crosscheck_serial
+# (parallel and serial mediation, joint test, against simsem).
 #
 # On demand only (not part of "everything", and never run by
 # devtools::test()): interaction_grid, which compares InteractionPoweR's
@@ -90,7 +91,9 @@ validation_chunks <- function() {
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
     process_14 = "test-validation-modmed-process14.R",
-    mediation_crosscheck = "test-validation-mediation-crosscheck.R"
+    mediation_crosscheck = "test-validation-mediation-crosscheck.R",
+    mediation_crosscheck_parallel = "test-validation-mediation-crosscheck-parallel.R",
+    mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R"
   )
 }
 
@@ -100,7 +103,8 @@ validation_chunks <- function() {
 validation_minutes <- function() {
   c(basic = 0.3, anova = 15, interactions = 1.5, process_4 = 60,
     process_6 = 60, process_7 = 120, process_14 = 120,
-    mediation_crosscheck = 40)
+    mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
+    mediation_crosscheck_serial = 40)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

@@ -29,6 +29,9 @@
 #                         each; the longest is a powerkit simulation of
 #                         10,000 replications at about 0.4 s each; an
 #                         estimate, not yet measured)
+#   mediation_crosscheck_parallel, mediation_crosscheck_serial
+#                         30 to 60 minutes each (2 tests, 2 cores each;
+#                         an estimate from a local smoke test)
 #   process_7, process_14 about 3 hours each (3 simulations at about
 #                         1.4 s each). The closest to the limit: if the
 #                         runner is twice as slow as the laptop, they
@@ -53,6 +56,8 @@ on:
           - process_7
           - process_14
           - mediation_crosscheck
+          - mediation_crosscheck_parallel
+          - mediation_crosscheck_serial
 
 permissions:
   contents: read
@@ -66,8 +71,10 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       CHUNK: ${{ inputs.chunk }}
       # Cores per test, set here for the whole job so every step has it:
-      # 4 for the mediation chunks (process_*), 1 for the others.
-      PER_TEST: ${{ startsWith(inputs.chunk, 'process_') && '4' || '1' }}
+      # 4 for the mediation chunks (process_*); 2 for the parallel and
+      # serial cross-checks (2 tests each, so both run at once); 1 for the
+      # others.
+      PER_TEST: ${{ startsWith(inputs.chunk, 'process_') && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
     steps:
       - uses: actions/checkout@v4
 
