@@ -10,6 +10,18 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Phase 5, part 2: E10–E14 (draft PR; waits for the maintainer's
+  yes).** As the maintainer decided: a rough preview (100 simulations, in
+  a separate process, shown as a range with "Don't report this; run the
+  full analysis"), then the full run in the app for mediation power at a
+  fixed N (about 12 to 15 minutes, with a progress bar and Cancel), or an
+  R script to run the full analysis on the user's computer for a
+  mediation required N and for moderated mediation. One change from the
+  plan, for the maintainer's yes: a required N has no preview (at 100
+  replications per sample size the search took over 15 minutes for E10
+  and couldn't pin the N down), so it goes straight to the script. Background jobs are
+  deferred until hosting and cost are decided. Details in
+  [`phase5-simulations.md`](phase5-simulations.md).
 - **E5 switch to G\*Power's z test (17 October 2026; the maintainer
   said yes).** Two proportions in equal groups now use base R's
   `power.prop.test(strict = TRUE)`, which matches G\*Power to seven

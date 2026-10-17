@@ -16,9 +16,11 @@ this page is the short version plus the working rules.*
 - **App prototype** (`app/routing/`): the question tree, cards and input
   screens for every end point. E1–E8 calculate on the input screen (merged
   in #34). E9 calculates in the background with a progress bar and Cancel
-  (PR #36, merged). E10–E14 are not wired: they
-  wait for the maintainer's decision on
-  [`phase5-simulations.md`](phase5-simulations.md), questions 1–4.
+  (PR #36, merged). E10–E14 (phase 5, part 2; draft PR waiting for the
+  maintainer's yes) give a rough preview of power, then the full run in
+  the app (mediation power) or an R script to run at home; a required N
+  goes straight to the R script
+  ([`phase5-simulations.md`](phase5-simulations.md), "Decided").
 - **Result screen:** an exact required N shows the power it actually
   gives (G5).
 - **Seed:** a fixed default (1), shown and changeable on every screen and
@@ -83,7 +85,7 @@ E4, E5 and E8).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
   powerkit's departures (1–10).
-- [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14.
+- [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14 and the maintainer's decision.
 - [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
 - In the app, the "For the maintainer: undecided settings" tab lists the
   placeholders from `tree.yaml`.

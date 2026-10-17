@@ -3,15 +3,15 @@
 # engine (validate_spec(), run_spec() and the exports).
 
 test_that("the banner says which designs calculate (judgement call B14)", {
-  expect_identical(tree$banner, "Prototype: calculations are available for E1–E9; other designs show guidance only for now.")
+  expect_identical(tree$banner, "Prototype: calculations are available for E1–E9; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now.")
   expect_match(as.character(prototype_banner(tree)), tree$banner, fixed = TRUE)
 })
 
 test_that("only cards that don't calculate say 'No numbers are calculated'", {
-  for (id in unlist(forms$calculates)) {
+  for (id in c(unlist(forms$calculates), paste0("E", 10:14))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E10", "E14", "E18", "E45")) {
+  for (id in c("E18", "E45")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -120,10 +120,10 @@ test_that("the app never computes power itself: it only calls the engine's run_s
     expect_false(grepl(pattern, code, fixed = TRUE), label = pattern)
   }
   # Engine functions are taken by name through engine_function(), and only
-  # these four (CLAUDE.md: the app builds specs and calls the engine).
+  # these (CLAUDE.md: the app builds specs and calls the engine).
   used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
-  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations"))
+  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "power_interval"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), paste0("E", 1:9))
 })

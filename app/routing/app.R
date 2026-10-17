@@ -19,11 +19,13 @@ source(file.path("R", "forms.R"), local = TRUE)
 source(file.path("R", "forms_ui.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
+source(file.path("R", "simulations.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
-# Cards for end points that calculate don't say "No numbers are calculated".
-tree$calculates <- unlist(forms$calculates)
+# Cards for end points that calculate (or preview, E10-E14) don't say "No
+# numbers are calculated".
+tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -173,6 +175,7 @@ server <- function(input, output, session) {
     form_values = list(),    # input screen: values typed so far (kept when it's redrawn)
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
     calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
+    long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
     ticked = character(), primary = character(), asks = list(), rule = "each"
   )
@@ -295,18 +298,32 @@ server <- function(input, output, session) {
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
     state$calc <- NULL
+    state$long_spec <- NULL
     cancel_job()
-    if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && runs_in_background(forms, state$endpoint)) {
+    if (identical(check$status, "ok") && runs_long(forms, state$endpoint) &&
+        !has_preview(forms, state$endpoint, spec$goal$type)) {
+      # E10-E14, required N: no preview; the R script straight away.
+      if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
+      state$long_spec <- spec
+      output$form_result <- renderUI(no_preview_ui(forms, state$endpoint, spec))
+      session$sendCustomMessage("focus_result", "form_result")
+    } else if (identical(check$status, "ok") && runs_long(forms, state$endpoint)) {
+      # E10-E14, power: a rough preview first, in a separate R process. The
+      # full run or the R script is offered once the preview is shown.
+      if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
+      state$long_spec <- spec
+      usual <- preview_seconds(forms, state$endpoint, spec$goal$type)
+      output$form_result <- renderUI(calculating_background_ui(usual,
+        sprintf("Running a rough preview (%s simulations)\u2026", whole(preview_nrep(forms)))))
+      start_job("preview", preview_spec(spec, preview_nrep(forms)), usual,
+        list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice))
+    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && runs_in_background(forms, state$endpoint)) {
       # Long runs (E9): a separate R process, polled below, with an estimated
       # progress bar and a Cancel button.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       usual <- usual_seconds(forms, state$endpoint, spec$goal$type)
       output$form_result <- renderUI(calculating_background_ui(usual))
-      job$process <- start_background_calculation(spec, seed = forms$default_seed)
-      job$started <- Sys.time()
-      job$usual <- usual
-      job$shown <- list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice)
-      job_running(TRUE)
+      start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice))
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (seconds for these end points).
@@ -331,6 +348,16 @@ server <- function(input, output, session) {
     job$process <- NULL
     job_running(FALSE)
   }
+  # kind: "calc" (E9, or E10-E12's full run) shows the result; "preview"
+  # shows the preview panel.
+  start_job <- function(kind, spec, usual, shown) {
+    job$kind <- kind
+    job$process <- start_background_calculation(spec, seed = forms$default_seed)
+    job$started <- Sys.time()
+    job$usual <- usual
+    job$shown <- shown
+    job_running(TRUE)
+  }
   session$onSessionEnded(cancel_job)
   observe({
     req(job_running())
@@ -347,8 +374,24 @@ server <- function(input, output, session) {
     job$process <- NULL
     job_running(FALSE)
     shown <- job$shown
-    state$calc <- calc
-    output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+    if (identical(job$kind, "preview")) {
+      # Not a result: nothing to download from it.
+      range <- if (identical(calc$status, "ok")) preview_range(calc$result)
+      output$form_result <- renderUI(preview_panel_ui(forms, shown$ep_id, calc, state$long_spec, range))
+    } else {
+      state$calc <- calc
+      output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+    }
+    session$sendCustomMessage("focus_result", "form_result")
+  })
+  # E10-E12, power: the full run at the app's defaults, after the preview.
+  observeEvent(input$full_run, {
+    req(state$long_spec)
+    spec <- state$long_spec
+    usual <- full_seconds(forms, state$endpoint, spec$goal$type)
+    output$form_result <- renderUI(calculating_background_ui(usual,
+      sprintf("Running the full analysis (%s simulations)\u2026", whole(spec$options$nrep %||% 1000L))))
+    start_job("calc", spec, usual, job$shown)
     session$sendCustomMessage("focus_result", "form_result")
   })
   observeEvent(input$calc_cancel, {
@@ -372,6 +415,14 @@ server <- function(input, output, session) {
     content = function(file) {
       export <- engine_function("export_citations")
       export(state$calc$result, format = "text", file = file)
+    }
+  )
+  # E10-E14: the R script that runs the full analysis on the user's computer.
+  output$download_run_script <- downloadHandler(
+    filename = function() sprintf("powerkit-%s-run-full-analysis.R", state$endpoint),
+    content = function(file) {
+      export <- engine_function("export_run_script")
+      export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type))
     }
   )
   observeEvent(input$form_copy, {

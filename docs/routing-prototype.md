@@ -167,10 +167,24 @@ comes from, and expected attrition).
   default (1, `forms.yaml`, `default_seed`), so the same answers always
   give the same result (`judgement-calls.md` B15).
 - **E1–E9 calculate** (phase 5): a valid spec goes to the engine's `run_spec()` and the screen
-  shows the result. **E10–E14 don't calculate yet**: a valid spec shows a
-  "Calculation not wired in yet" panel with the spec as JSON (they wait
-  for the maintainer's decision on
-  [`phase5-simulations.md`](phase5-simulations.md)).
+  shows the result.
+- **E10–E14 (mediation, moderated mediation), power at a fixed N** start
+  with a rough preview:
+  the same spec and seed with 100 simulations, in a separate R process
+  with a progress bar and Cancel, shown as a range ("Rough preview from
+  100 simulations: power is likely between X% and Y%. Don't report this;
+  run the full analysis."). It has no script or citations. Then, for
+  mediation power at a fixed N (E10–E12), **Run the full analysis** (the
+  expected wait is on the button) runs the app's defaults in the
+  background, as for E9, and shows the usual result screen. For moderated
+  mediation, **Download R script to run the full analysis on your
+  computer** gives a script (the engine's `export_run_script()`) with the
+  expected run time and what to install. A required N (E10–E14) has no
+  preview and goes straight to the R script. Decided in
+  [`phase5-simulations.md`](phase5-simulations.md). Screenshots in
+  `docs/figures/results/`: `preview_E10_power.png`,
+  `full_run_progress_E10_power.png`, `full_run_E10_power.png`,
+  `preview_script_E13_power.png` and `script_E10_sample_size.png`.
 - **E9 (interaction) runs in the background** (`forms.yaml`,
   `background`): a separate R process (callr) runs the same
   `run_calculation()`, so the app stays responsive. The screen shows an

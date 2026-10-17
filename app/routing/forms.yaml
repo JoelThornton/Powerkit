@@ -73,8 +73,7 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # run in seconds on one core (measured 17 October 2026 with the example
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
-# and a Cancel button (below). E10-E14 are not wired: they wait for the
-# maintainer's decision on docs/phase5-simulations.md.
+# and a Cancel button (below). E10-E14 run as set under `simulations`.
 calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9]
 
 # End points that run in a separate R process, with an estimated progress
@@ -83,6 +82,46 @@ calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9]
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
   E9: {power: 5, sample_size: 80}
+
+# Mediation and moderated mediation (E10-E14; the maintainer's decision of
+# 17 October 2026, docs/phase5-simulations.md and docs/decisions.md):
+# for power, first a rough preview with `preview_nrep` replications, in a
+# separate R process, shown as a range (a required N has no preview: with
+# 100 replications per sample size the search is too slow and too noisy;
+# only goals listed under `preview` get one); then, for the goals under
+# `full_run`, the full
+# analysis at the app's defaults in a separate process with a progress bar
+# and Cancel; for every other goal, an R script to run the full analysis
+# on the user's own computer. `preview` and `full` are the usual run times
+# in seconds on one core (the bar is estimated from them); `script` is the
+# expected run time in words. Measured or estimated as noted in
+# docs/phase5-simulations.md.
+simulations:
+  preview_nrep: 100
+  endpoints:
+    E10:
+      full_run: [power]
+      preview: {power: 50}
+      full: {power: 734}
+      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E11:
+      full_run: [power]
+      preview: {power: 50}
+      full: {power: 780}
+      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E12:
+      full_run: [power]
+      preview: {power: 60}
+      full: {power: 890}
+      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E13:
+      full_run: []
+      preview: {power: 165}
+      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E14:
+      full_run: []
+      preview: {power: 170}
+      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
 
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".

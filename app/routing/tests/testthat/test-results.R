@@ -42,15 +42,37 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9 calculate; E10-E14 keep the 'not wired' panel", {
+test_that("E1-E9 calculate; E10-E14 preview first, then a full run or an R script", {
   expect_setequal(wired, paste0("E", 1:9))
-  for (ep in paste0("E", 10:14)) expect_false(form_calculates(forms, ep), label = ep)
-  # Only E9 runs in the background, with its usual run times.
+  for (ep in paste0("E", 10:14)) {
+    expect_false(form_calculates(forms, ep), label = ep)
+    expect_true(runs_long(forms, ep), label = ep)
+  }
+  # Only E9 runs in the background with no preview, with its usual run times.
   expect_identical(names(forms$background), "E9")
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
   expect_true(is.na(usual_seconds(forms, "E9", "sensitivity")))
+  # The maintainer's choices (17 October 2026): a preview of about 100
+  # replications; the full run in the app for mediation power at a fixed N
+  # only; the R script for everything else.
+  expect_identical(preview_nrep(forms), 100L)
+  for (ep in paste0("E", 10:12)) {
+    expect_true(full_run_in_app(forms, ep, "power"), label = ep)
+    expect_false(full_run_in_app(forms, ep, "sample_size"), label = ep)
+    expect_true(full_seconds(forms, ep, "power") > 0, label = ep)
+  }
+  # A preview for power only: a required N goes straight to the R script.
+  for (ep in paste0("E", 10:14)) {
+    expect_true(has_preview(forms, ep, "power"), label = ep)
+    expect_true(preview_seconds(forms, ep, "power") > 0, label = ep)
+    expect_false(has_preview(forms, ep, "sample_size"), label = ep)
+    for (goal in c("power", "sample_size")) {
+      if (!full_run_in_app(forms, ep, goal)) expect_match(script_run_time(forms, ep, goal), "one core", label = paste(ep, goal))
+    }
+  }
+  for (ep in c("E13", "E14")) expect_false(full_run_in_app(forms, ep, "power"), label = ep)
 })
 
 test_that("E9 in the background: the app's result equals the engine's, and the script reproduces it", {
@@ -257,4 +279,123 @@ test_that("an engine error is shown in plain English, without a stack trace", {
   calc <- run_calculation(list(), run = function(spec) stop("internal detail"), seed = 1L)
   expect_no_match(calc$message, "internal detail", fixed = TRUE)
   expect_identical(run_calculation(list(), run = NULL)$status, "error")
+})
+
+# E10-E14 ------------------------------------------------------------------------
+
+# A mediation spec small enough for a test: few replications and Monte Carlo
+# draws.
+tiny_long_spec <- function(ep, goal = list(type = "power", n = 60L)) {
+  spec <- light_spec(ep, goal)
+  spec$options$ci_draws <- 100L
+  spec$options$seed <- 7L
+  spec
+}
+
+test_that("the preview uses the recorded seed and few replications, and equals run_spec()", {
+  skip_without_run()
+  skip_on_cran()
+  spec <- tiny_long_spec("E10")
+  spec$options$nrep <- 1000L
+  pspec <- preview_spec(spec, preview_nrep(forms))
+  expect_identical(pspec$options$nrep, 100L)
+  expect_identical(pspec$options$seed, 7L)
+  expect_identical(pspec$options$ci_draws, 100L)
+  job <- start_background_calculation(pspec, seed = 1L, engine_dir = file.path(repo_dir, "engine"))
+  job$wait(240000)
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "ok")
+  direct <- quiet_run(pspec)
+  expect_equal(calc$result$curve, direct$curve)
+  expect_identical(calc$result$provenance$seed, 7L)
+  # Shown as a range from the engine, never as a single number.
+  interval <- engine_function("power_interval", file.path(repo_dir, "engine"))
+  range <- preview_range(calc$result, interval)
+  expect_equal(range, interval(direct))
+  sentence <- preview_sentence(range, 100L)
+  expect_match(sentence, sprintf("Rough preview from 100 simulations: power is likely between %s and %s. Don't report this; run the full analysis.", percent(range[["lower"]]), percent(range[["upper"]])), fixed = TRUE)
+  # E10 power: the full run is offered, with the wait stated, and the preview
+  # itself has no downloads.
+  html <- as.character(preview_panel_ui(forms, "E10", calc, spec, range))
+  expect_match(html, "Rough preview (not a result)", fixed = TRUE)
+  expect_match(html, sprintf("Run the full analysis (%s)", duration_text(full_seconds(forms, "E10", "power"))), fixed = TRUE)
+  expect_match(html, "runs 1,000 simulations", fixed = TRUE)
+  expect_no_match(html, "download_script|download_citations|download_run_script")
+})
+
+test_that("a required N goes straight to the R script; moderated mediation's preview offers it too", {
+  for (ep in c("E10", "E13")) {
+    spec <- list(goal = list(type = "sample_size", power = 0.8), options = list(seed = 3L))
+    html <- as.character(no_preview_ui(forms, ep, spec))
+    expect_match(html, "There is no rough preview for a required sample size", fixed = TRUE, label = ep)
+    expect_match(html, "Download R script to run the full analysis on your computer", fixed = TRUE, label = ep)
+    expect_match(html, htmltools::htmlEscape(script_run_time(forms, ep, "sample_size")), fixed = TRUE, label = ep)
+    expect_match(html, "same spec and seed (3)", fixed = TRUE, label = ep)
+    expect_match(html, "remotes::install_github", fixed = TRUE, label = ep)
+    expect_no_match(html, "Rough preview|full_run", label = ep)
+  }
+  calc <- list(status = "ok", notes = character(), result = list(
+    goal_type = "power", curve = data.frame(n = 120, power = 0.5, mcse = 0.05),
+    provenance = list(nrep = 100L, seed = 1L)))
+  html <- as.character(preview_panel_ui(forms, "E13", calc, list(options = list(seed = 1L)), c(lower = 0.4, upper = 0.6)))
+  expect_match(html, "Rough preview from 100 simulations: power is likely between 40% and 60%", fixed = TRUE)
+  expect_match(html, "Download R script to run the full analysis on your computer", fixed = TRUE)
+  expect_match(html, htmltools::htmlEscape(script_run_time(forms, "E13", "power")), fixed = TRUE)
+  expect_no_match(html, "full_run", fixed = TRUE)
+  # A failed preview gives a plain-English message.
+  html <- as.character(preview_panel_ui(forms, "E10", list(status = "error", message = "Something plain."), list(), NULL))
+  expect_match(html, "The preview didn&#39;t finish|The preview didn't finish")
+})
+
+test_that("E10's full run in the background equals run_spec() with the same spec and seed", {
+  skip_without_run()
+  skip_on_cran()
+  spec <- tiny_long_spec("E10")
+  job <- start_background_calculation(spec, seed = 1L, engine_dir = file.path(repo_dir, "engine"))
+  job$wait(240000)
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "ok")
+  direct <- quiet_run(spec)
+  expect_equal(calc$result$curve, direct$curve)
+  expect_identical(calc$result$provenance$spec_hash, direct$provenance$spec_hash)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+})
+
+test_that("the downloaded R script runs the full analysis and reproduces run_spec()", {
+  skip_without_run()
+  skip_on_cran()
+  run_script <- engine_function("export_run_script", file.path(repo_dir, "engine"))
+  spec <- tiny_long_spec("E13")
+  text <- run_script(spec, run_time = script_run_time(forms, "E13", "power"))
+  expect_match(text, script_run_time(forms, "E13", "power"), fixed = TRUE)
+  # Run it in a fresh R session, on the engine's source where powerkit isn't
+  # installed.
+  if (length(find.package("powerkit", lib.loc = .libPaths(), quiet = TRUE)) == 0) {
+    text <- sub("library(powerkit)", sprintf("pkgload::load_all(%s, quiet = TRUE, export_all = FALSE, helpers = FALSE)",
+      encodeString(file.path(repo_dir, "engine"), quote = "\"")), text, fixed = TRUE)
+  }
+  dir <- tempfile("run-script-")
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE))
+  writeLines(text, file.path(dir, "run.R"))
+  out <- withr::with_dir(dir, withr::with_envvar(
+    c(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), RENV_CONFIG_AUTOLOADER_ENABLED = "false"),
+    suppressWarnings(system2(file.path(R.home("bin"), "Rscript"), c("--vanilla", "run.R"), stdout = TRUE, stderr = TRUE))
+  ))
+  expect_true(file.exists(file.path(dir, "powerkit-result.rds")), info = paste(tail(out, 15), collapse = "\n"))
+  saved <- readRDS(file.path(dir, "powerkit-result.rds"))
+  direct <- quiet_run(spec)
+  expect_equal(saved$curve, direct$curve)
+  expect_identical(saved$provenance$spec_hash, direct$provenance$spec_hash)
+  expect_true(file.exists(file.path(dir, "powerkit-reproduce.R")))
+})
+
+test_that("waits are stated in seconds or minutes", {
+  expect_identical(duration_text(75), "about 75 seconds")
+  expect_identical(duration_text(734), "about 12 minutes")
+  expect_identical(progress_text(130, 734), "Running for 2 minutes. This usually takes about 12 minutes.")
+  expect_identical(progress_text(1, 734), "Running for 1 second. This usually takes about 12 minutes.")
+  html <- as.character(calculating_background_ui(734, "Running the full analysis (1,000 simulations)\u2026"))
+  expect_match(html, "Running the full analysis (1,000 simulations)", fixed = TRUE)
+  expect_match(html, "This usually takes about 12 minutes on one core.", fixed = TRUE)
 })
