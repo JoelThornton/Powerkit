@@ -349,7 +349,8 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   )
 }
 
-guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
+guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
+                           history = list(), route_label = "Plan my whole study", raw_answers = answers) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
   cards <- lapply(ticked, function(id) {
@@ -357,7 +358,11 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule) {
     res <- resolve_analysis(tree, a, answers, asks[[id]])
     head <- div(class = "plan-head", tags$strong(a$label), if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Primary") else tags$span(class = "badge bg-secondary ms-2", "Secondary"))
     body <- if (!is.null(res$endpoint)) {
-      card_ui(tree, res$endpoint, compact = TRUE)
+      tagList(
+        card_ui(tree, res$endpoint, compact = TRUE),
+        mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
+          extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label))))
+      )
     } else if (!is.null(res$ask)) {
       div(class = "status status-soon", "Answer the follow-up question on the previous screen: ", res$ask$text)
     } else {

@@ -100,6 +100,17 @@ fully validated. Validation runs are recorded in
   `app/routing/tree.yaml`. A test keeps that file in step with
   `decision-tree.md`, and the prototype's tests run on GitHub on every
   pull request. How to run it: [`routing-prototype.md`](routing-prototype.md).
+- **User-testing kit (draft PR, 17 October 2026; builds on the input
+  screens PR):**
+  - [`user-testing.md`](user-testing.md): who to recruit (a mix of
+    subfields and confidence with statistics), a 20-minute session script
+    (bring your own study, think aloud, try all three routes), what to
+    record, and how each problem becomes a test case;
+  - [`test-cases.md`](test-cases.md): a template, with the
+    segmented-regression misroute as the first entry (TC-001);
+  - every card has a **Something doesn't fit?** link that shows the exact
+    path taken as copyable text and asks what the user expected instead.
+    Nothing is sent anywhere.
 - **Input screens for the end points that run (draft PR, 17 October 2026;
   phase 5 groundwork, no maths):** each of E1–E14 has an input screen,
   reached from its card, with one field per value the card lists and the
@@ -358,7 +369,9 @@ fully validated. Validation runs are recorded in
    [`walkthroughs.md`](walkthroughs.md)), and the routing audit's open items: the screening wording and
    open questions 16–19 in [`decision-tree.md`](decision-tree.md), and the
    remaining misroutes listed in [`routing-audit.md`](routing-audit.md).
-8. Phase 5: the Shiny app, starting from the routing prototype's
+8. Run the first round of user testing ([`user-testing.md`](user-testing.md))
+   and log what it finds in [`test-cases.md`](test-cases.md).
+9. Phase 5: the Shiny app, starting from the routing prototype's
    `app/routing/tree.yaml` and guided by [`decision-tree.md`](decision-tree.md)
    and [`design-finder.md`](design-finder.md), once the maintainer has
    answered their open questions.
