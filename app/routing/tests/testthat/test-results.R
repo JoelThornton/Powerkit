@@ -196,7 +196,8 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
-  expect_match(html, "Methods paragraph", fixed = TRUE)
+  expect_match(html, "Short version (for the paper)", fixed = TRUE)
+  expect_match(html, "Departures from the established tools&#39; defaults:|Departures from the established tools' defaults:")
   expect_match(html, calc$result$provenance$spec_hash, fixed = TRUE)
   for (key in c("result_wording", "n_rounding", "power_curve")) expect_match(html, setting_by_key(tree, key)$question |> htmltools::htmlEscape(), fixed = TRUE, label = key)
   # Citations come from the engine's export.
@@ -470,7 +471,7 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "The smallest effect you could detect at each sample size", fixed = TRUE)
   # No reasoning written: no saving or exporting yet.
-  expect_match(html, "To save this plan or download its R script", fixed = TRUE)
+  expect_match(html, "To save this plan, download its R script or get its write-up", fixed = TRUE)
   expect_no_match(html, "download_project", fixed = TRUE)
   values$just_source <- "No earlier study measures this; the pool is fixed at 160."
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
@@ -512,12 +513,18 @@ test_that("no output template uses a verdict word", {
     unlist(lapply(c("each", "any", "all"), function(cl) claim_groups(cl)[[1]]$note)),
     unlist(forms$departures), unlist(forms$known_differences),
     vapply(c("smallest_effect_of_interest", "meta_analysis", "prior_study", "pilot_study", "none"),
-      function(t) reasoning_line(list(just_type = t)), "")
+      function(t) reasoning_line(list(just_type = t)), ""),
+    unlist(forms$known_differences_methods)
   )
   for (ep in c("E1", "E4")) {
     for (goal in list(list(type = "sample_size", power = 0.8), list(type = "power", n = 60L), list(type = "sensitivity", n = 60L, power = 0.8))) {
       calc <- run_calculation(light_spec(ep, goal = goal), seed = forms$default_seed)
       templates <- c(templates, result_sentences(calc$spec, calc$result))
+      for (jt in c("smallest_effect_of_interest", "none")) {
+        v <- modifyList(form_examples[[ep]], list(just_type = jt, just_source = "x", claim = "any", n_tests = "2"))
+        templates <- c(templates, writeup_text(forms$forms[[ep]], calc$spec, calc$result,
+          form_fields(form_groups(forms, ep)), v, departures_for(forms, ep, calc$spec)))
+      }
     }
   }
   hits <- templates[grepl(verdict, templates, ignore.case = TRUE, perl = TRUE)]
@@ -537,6 +544,68 @@ test_that("the explore panel shows power by N for another effect size, without t
   expect_null(explore_ui(light_spec("E7")))
   sim <- spec; sim$options$method <- "simulation"
   expect_null(explore_ui(sim))
+})
+
+# The write-up (methods paragraph; decided 18 October 2026) ----------------
+
+test_that("the write-up states the test, alpha, power and its reason, the effect with the reasoning, N and the software", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on.",
+    power_reason = "the usual convention in our field."))
+  fields <- form_fields(form_groups(forms, "E2"))
+  w <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values, departures_for(forms, "E2", calc$spec))
+  n <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.8)$n)
+  expect_match(w[["short"]], "An a priori power analysis was conducted for an independent-samples t-test (two-sided, \u03b1 = .05).", fixed = TRUE)
+  expect_match(w[["short"]], "Cohen's d = 0.4", fixed = TRUE)
+  expect_match(w[["short"]], "\u201cSmallest difference our clinic would act on.\u201d For a target", fixed = TRUE)
+  expect_match(w[["short"]], "target power of 80%, chosen because the usual convention in our field,", fixed = TRUE)
+  expect_match(w[["short"]], sprintf("%s participants are needed in total (%s per group)", n, n / 2), fixed = TRUE)
+  expect_match(w[["short"]], sprintf("pwr (version %s", calc$result$provenance$packages[["pwr"]]), fixed = TRUE)
+  expect_match(w[["short"]], "described in the supplement", fixed = TRUE)
+  expect_match(w[["full"]], "Departures from the established tools' defaults: Calculated with a formula", fixed = TRUE)
+  expect_match(w[["full"]], calc$result$provenance$spec_hash, fixed = TRUE)
+  expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
+})
+
+test_that("the write-up needs the reasoning, and words the fixed-N route and the claim", {
+  spec <- light_spec("E4", goal = list(type = "sensitivity", n = 80L, power = 0.8))
+  spec$target_test$alpha <- 0.025 # build_spec() divides alpha for "any of 2"
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- modifyList(form_examples[["E4"]], list(just_type = "none", situation = "fixed", claim = "any", n_tests = "2"))
+  values$just_source <- ""
+  expect_null(writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values))
+  values$just_source <- "Our participant pool has 80 students a year."
+  w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "A sensitivity power analysis", fixed = TRUE)
+  expect_match(w[["short"]], "fixed by resource constraints at 80 participants", fixed = TRUE)
+  expect_match(w[["short"]], sprintf("r = %s", format(round(calc$result$sensitivity$effect, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(w[["short"]], "No effect size was chosen in advance", fixed = TRUE)
+  expect_match(w[["short"]], "divided by 2 (Bonferroni), giving \u03b1 = .025", fixed = TRUE)
+})
+
+test_that("the regression interaction's write-up carries the known difference's sentence", {
+  expect_match(forms$known_differences_methods[["1"]], "predictors drawn afresh", fixed = TRUE)
+  expect_equal(names(forms$known_differences_methods), names(forms$known_differences))
+  for (ep in names(forms$forms)) expect_true(nzchar(forms$forms[[ep]]$methods_name %||% ""), label = ep)
+})
+
+test_that("the designs added later get a write-up with short effect names and their known difference", {
+  skip_without_run()
+  for (ep in c("E18", "E24", "E25", "E26")) {
+    spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
+    calc <- run_calculation(spec, run, seed = 1L)
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], list(just_source = "A pilot study."))
+    known <- vapply(unlist(forms$forms[[ep]]$known_differences), function(k) forms$known_differences_methods[[k]], character(1))
+    w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, values, known_methods = known)
+    expect_match(w[["short"]], forms$forms[[ep]]$methods_name, fixed = TRUE, label = ep)
+    expect_no_match(w[["short"]], "(0 to 1", fixed = TRUE, label = ep)
+    if (ep %in% c("E25", "E26")) expect_match(w[["short"]], "exact test of counts", fixed = TRUE, label = ep)
+    if (ep %in% c("E18", "E24")) expect_no_match(w[["short"]], "sided", fixed = TRUE, label = ep) # F tests have no sides
+  }
 })
 
 test_that("one-way ANOVA, regression, one proportion and McNemar run on the engine, with their notes", {

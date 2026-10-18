@@ -120,6 +120,35 @@ is built. The entry is kept below as the record of the options.
 - **Recorded in:** `decision-tree.md` 3.6; open question 5; setting
   `alpha_power_defaults`.
 
+### G4. Which outputs the methods paragraph must report
+
+*Decided by the maintainer, 18 October 2026: the methods paragraph states the test and its sides; alpha; the target power and the user's reason for it; the effect size with the user's reasoning, word for word; N in total and per group, with the power reached at that N; the backend, its version and function; the seed and the number of simulations where power is simulated; and the departures. It leaves out the noncentrality parameter and critical value: a reader can repeat the calculation from the inputs, most backends don't return them, and computing them would be new maths. A short version for the paper; a full one for a supplement or preregistration ([`decisions.md`](../decisions.md), 18 October 2026).*
+
+- **Question:** which of a result's outputs does the methods paragraph
+  (phase 4, still a placeholder) have to state?
+- **Options (each separately):** the test and its tails; alpha; target
+  power; the effect size, its format and where it came from; required or
+  given N (total, per group, after attrition); the actual power at the
+  reported N; the backend, its function and version; the method (formula
+  or simulation, with replications, seed and the Monte Carlo interval);
+  any departures; the noncentrality parameter, critical value and df
+  where the backend returns them.
+- **What tools and sources do:** CLAUDE.md requires every result to
+  record the spec hash, seed, backend, and R and package versions, and
+  every departure to be stated in the methods paragraph (opened).
+  pwr's results carry the arguments, power, "method" and "note"; none of
+  powerkit's backends returns a noncentrality parameter or critical
+  value for E1–E6 or E9–E14 ([`gpower-parity.md`](gpower-parity.md)).
+  What G\*Power's output shows needs the maintainer's screenshots.
+- **Who might disagree, and why:**
+  - Reviewers used to G\*Power reports look for the noncentrality
+    parameter and critical value.
+  - A long paragraph is copied less faithfully; a short one can drop
+    the effect-size justification.
+- **Knock-on effects:** `export_script()` and the methods text; which
+  outputs need to be added to the result object.
+- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md).
+
 ### G5. Showing the actual power at the rounded N
 
 - **Question:** when powerkit reports a required N, does it also show the
