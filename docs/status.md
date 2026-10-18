@@ -24,10 +24,10 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   proportion, McNemar's test, and Welch's t-test by formula on request
   run in the engine, with example specs, exported scripts, and tests
   against the backend called directly. Not wired into the app or the
-  question tree. G\*Power comparisons wait for the screenshots listed in
-  [`coverage-roadmap.md`](coverage-roadmap.md), "Wave 2". Open points:
-  Departure 12 (smallest N for exact tests of counts), one-way
-  sensitivity, and the R² noncentrality convention.
+  question tree. All five match the maintainer's G\*Power screenshots.
+  The smallest N for exact tests of counts is now Known difference 2 in
+  `conventions.md` (it was Departure 12; maintainer's decision, 18
+  October 2026). Open: one-way sensitivity.
 
 - **Handover refreshed (18 October 2026).** [`handover.md`](handover.md)
   lists the open PRs (#49, #51, #52, all waiting for the maintainer's

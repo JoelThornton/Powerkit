@@ -491,35 +491,6 @@ kept so later departures keep theirs.
   (`app/routing/forms.yaml`, `departures`). The methods paragraph is
   still a placeholder.
 
-### 12. Exact tests of counts (wave 2, engine only): the smallest N that reaches the target
-
-*Engine groundwork, not wired into the app; to decide before it is
-(`docs/coverage-roadmap.md`, wave 2).*
-
-- **What the established tool does:** pwrss's own sample-size answer
-  (`power.exact.oneprop(power = )`, `power.exact.mcnemar(power = )`) for
-  the example inputs is 92 (one proportion, 0.65 against 0.50) and 130
-  (McNemar, 0.25 and 0.10). G\*Power (maintainer's screenshot, 18
-  October 2026, `docs/figures/gpower/A35_one_proportion_a_priori.png`)
-  reports 90 for the one-proportion example, the same as powerkit, so
-  here powerkit follows G\*Power and differs only from pwrss. McNemar
-  is the same: G\*Power's exact option reports 129, as powerkit does
-  (`A37_mcnemar_a_priori_exact.png`; its default approximation gives
-  121). So this entry may belong under "Known differences" rather than
-  departures (maintainer to decide).
-- **What powerkit does:** for these tests power goes up and down with N,
-  so the engine checks every N below its first answer and reports the
-  smallest that reaches the target: 90 and 129 for the same inputs. At
-  N = 90 the one-proportion power is 0.812, but it falls below 0.80 again
-  at 91, 96 and others.
-- **Size of the difference:** 2 fewer (one proportion) and 1 fewer
-  (McNemar) in the examples.
-- **Test:** `test-backend-wave2.R`, "exact tests of counts report the
-  smallest n that reaches the target" and "departure: pwrss's own
-  sample-size answer for exact tests of counts (Departure 12)".
-- **Shown to users / in the methods paragraph:** not yet (not wired).
-  Required before wiring.
-
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -558,6 +529,33 @@ methods paragraph.
 - **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.
+
+### 2. Exact tests of counts (one proportion, McNemar): the smallest N that reaches the target
+
+*Moved from the departures (it was Departure 12) by the maintainer's
+decision, 18 October 2026: G\*Power reports the same N as powerkit.
+Engine only (wave 2), not yet wired into the app.*
+
+- **What differs:** for exact tests of counts, power goes up and down
+  with N. powerkit and G\*Power report the smallest N that reaches the
+  target; pwrss's own sample-size answer (`power.exact.oneprop(power = )`,
+  `power.exact.mcnemar(power = )`) is a little larger.
+- **Size:** for the example inputs, 90 (powerkit and G\*Power) against 92
+  (pwrss) for one proportion (0.65 against 0.50, two tails), and 129
+  against 130 for McNemar (0.25 and 0.10, two tails, G\*Power's exact
+  option). At N = 90 the one-proportion power is 0.812, but it falls
+  below 0.80 again at 91, 96 and others.
+- **G\*Power:** maintainer's screenshots, 18 October 2026
+  (`docs/figures/gpower/A35_one_proportion_a_priori.png`,
+  `A37_mcnemar_a_priori_exact.png`). G\*Power's default McNemar option,
+  the faster approximation, gives 121; powerkit matches its exact option.
+- **Test:** `test-backend-wave2.R`, "exact tests of counts report the
+  smallest n that reaches the target", "known difference: pwrss's own
+  sample-size answer for exact tests of counts (Known difference 2)", and
+  the G\*Power checks for one proportion and McNemar.
+- **Shown to users / methods paragraph:** to do when these tests are
+  wired into the app: a note that power for these tests goes up and down
+  with N, so a slightly larger N can have lower power.
 
 ## Not departures, but worth stating
 

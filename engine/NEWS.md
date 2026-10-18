@@ -12,8 +12,8 @@
   example spec, an exported script that reproduces it with the backend
   alone, and tests against the backend called directly. For exact tests
   of counts the required N is the smallest that reaches the target, which
-  can be lower than pwrss's own answer (Departure 12, to decide before the
-  app uses it). One-way ANOVA, R² against 0, R² increase and one
+  can be lower than pwrss's own answer; G\*Power reports the same N as
+  powerkit (Known difference 2). One-way ANOVA, R² against 0, R² increase and one
   proportion match the maintainer's G\*Power screenshots to seven
   decimals, a priori N included (G\*Power also reports 90 for the
   one-proportion example). McNemar matches G\*Power's exact

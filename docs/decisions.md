@@ -1802,3 +1802,13 @@ itself (R Core Team). Neither names a method paper, so both stay
 placeholders; the citations export already lists each package's own
 `citation()`.
 
+## 2026-10-18 · Wave 2: smallest N for exact tests of counts
+
+**Known difference, not a departure.** For one proportion and McNemar,
+powerkit reports the smallest N that reaches the target power (90 and
+129 in the examples). The maintainer's G\*Power screenshots report the
+same N; only pwrss's own sample-size answer differs (92 and 130). The
+maintainer decided (18 October 2026) to record it as Known difference 2
+in `conventions.md`, not as a departure, and approved PR #51 (wave 2
+engine groundwork).
+

@@ -156,7 +156,7 @@ test_that("exact tests of counts report the smallest n that reaches the target",
   expect_equal(one$n_required$n, 90)
 })
 
-test_that("departure: pwrss's own sample-size answer for exact tests of counts (Departure 12)", {
+test_that("known difference: pwrss's own sample-size answer for exact tests of counts (Known difference 2)", {
   own_oneprop <- pwrss::power.exact.oneprop(
     prob = 0.65, null.prob = 0.5, power = 0.8, alpha = 0.05, alternative = "two.sided", verbose = 0
   )$n
@@ -283,7 +283,7 @@ test_that("one proportion matches G*Power, including the smallest N (G*Power val
   spec <- wave2_spec("one_proportion", list(type = "sample_size", power = 0.8))
   # A priori, two tails: total N 90, actual power 0.8122881. G*Power
   # reports the smallest N that reaches the target, as powerkit does
-  # (pwrss's own answer is 92; Departure 12).
+  # (pwrss's own answer is 92; Known difference 2).
   expect_identical(as.integer(run_spec(spec)$n_required$n), 90L)
   spec$goal <- list(type = "power", n = 90)
   expect_equal(round(power_at(spec), 7), 0.8122881)
@@ -309,7 +309,7 @@ test_that("McNemar a priori N matches G*Power's exact option, the smallest N (G*
   # 1000000): total N 129, actual power 0.8030988
   # (docs/figures/gpower/A37_mcnemar_a_priori_exact.png). G*Power reports
   # the smallest N that reaches the target, as powerkit does (pwrss's own
-  # answer is 130; Departure 12). With the threshold at N < 100 G*Power
+  # answer is 130; Known difference 2). With the threshold at N < 100 G*Power
   # falls back to its approximation and reports 121.
   spec <- wave2_spec("mcnemar", list(type = "sample_size", power = 0.8))
   expect_identical(as.integer(run_spec(spec)$n_required$n), 129L)
