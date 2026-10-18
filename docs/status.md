@@ -35,22 +35,24 @@ fully validated. Validation runs are recorded in
   while. What matters now is that it is useful, logical and helpful for
   psychologists and solves the problems they have with power analysis.
   Validation and checks come afterwards, before release.
-- **This week:** preparing the maintainer's talk to PhD students and staff
-  in the department (Friday 23 October 2026), on how well psychologists
-  understand and carry out power analysis, and where powerkit helps.
+- **The new design** (four screens: start questions, design finder, inputs
+  centred on the effect size, result with a plain reading and write-up) is
+  being built now. The maintainer is checking the design document; its
+  decisions go in [`decisions.md`](decisions.md) once agreed.
 
 ## What's next
 
-1. The talk: material and examples for Friday.
-2. The judgement session ([`judgement-session.md`](judgement-session.md)):
-   it unblocks G4 (the methods paragraph) and the other calls that change
-   what users see.
-3. A first round of user testing with psychologists
-   ([`user-testing.md`](user-testing.md)).
-4. Show Departures 6, 7 and 8 and Known difference 1 on the result screen
-   for the designs they apply to (they are in the app now but not shown;
-   `conventions.md`).
-5. Later, before release: a short list of published values to transcribe
-   first (one or two per design), independent checks for moderated
-   mediation and for the Monte Carlo interval with two or more mediators,
-   phase 3b (binary X and W), and wiring wave 2 into the app.
+1. Engine: smallest detectable effect for the basic tests (E1–E6). In
+   review.
+2. Docs: record the design decisions and close the judgement calls they
+   settle (G9, most of B10, G8, part of B6/G7).
+3. App: the start questions and the fixed-N route for E1–E8.
+4. App: effect-size source and rationale, with a minimal write-up (needs a
+   minimal G4 decision).
+5. App: the plain reading, the .80/.95 cost line and the verdict-word test;
+   then the explore panel.
+6. Show Departures 6, 7 and 8 and Known difference 1 on the result screen
+   (`conventions.md`).
+7. Then user testing ([`user-testing.md`](user-testing.md)); later, before
+   release, published values, independent checks, phase 3b and wave 2 in
+   the app.

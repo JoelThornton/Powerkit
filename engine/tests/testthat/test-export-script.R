@@ -284,3 +284,27 @@ test_that("power4mome batches are reproduced (several batches)", {
   run <- expect_script_reproduces_power(spec, result)
   expect_true(any(grepl("batch_size <- 30", run$script, fixed = TRUE)))
 })
+
+test_that("a smallest detectable effect is reproduced (basic tests on pwr)", {
+  skip_unless_scripts_can_run()
+  templates <- c(
+    "one_sample_t", "independent_t", "paired_t", "correlation",
+    "two_proportions", "chi_square_independence"
+  )
+  for (name in templates) {
+    spec <- formula_spec(name, list(type = "sensitivity", n = 120, power = 0.8))
+    result <- run_spec(spec)
+    run <- run_exported_script(spec, result)
+    s <- result$sensitivity
+    expect_equal(run$reproduced, list(effect = s$effect, power = s$power), tolerance = 1e-8, info = name)
+  }
+  unequal <- formula_spec("independent_t", list(type = "sensitivity", n = 150, power = 0.9))
+  unequal$options$allocation_ratio <- 2
+  unequal$target_test$alternative <- "less"
+  unequal$population$d <- -0.4
+  result <- run_spec(unequal)
+  run <- run_exported_script(unequal, result)
+  expect_equal(run$reproduced, list(effect = result$sensitivity$effect, power = result$sensitivity$power),
+    tolerance = 1e-8
+  )
+})

@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* Smallest detectable effect for the basic tests (engine only; not in the
+  app yet): goal type `sensitivity` now works for the one-sample, paired
+  and independent t-tests, the correlation, two proportions and the
+  chi-square test on the formula path. pwr solves for the effect when it is
+  left empty (for two proportions, group 2's proportion is searched with the
+  same power call), in the direction of the effect you specified. The
+  exported R script reproduces it. This is the first step of the fixed-N
+  route in the new design.
+
 * New `write_project()`, `read_project()` and `reproduce_project()`: save a
   power analysis (spec with its seed, how it was reached in the app, the
   result, and the powerkit, R and package versions) as one JSON file, open
