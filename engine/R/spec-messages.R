@@ -196,8 +196,8 @@ missing_hint <- function(field) {
   hints <- c(
     effect_justification = paste0(
       " Every power analysis needs a reason for its effect size: give its type ",
-      "(smallest_effect_of_interest, meta_analysis, prior_study or pilot_study) ",
-      "and its source."
+      "(smallest_effect_of_interest, meta_analysis, prior_study, pilot_study, ",
+      "or none if no effect size can be justified) and, where you can, its source."
     ),
     adjustment = paste0(
       " Effects from single prior studies are usually overestimates; say how ",

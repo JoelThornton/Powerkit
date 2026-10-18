@@ -438,3 +438,29 @@ test_that("the smallest detectable effect for a basic test, with no effect size 
   expect_match(html, "the smallest effect you could detect with 80% power", fixed = TRUE)
   expect_match(html, "is d = 0.499. The effect: Cohen's d", fixed = TRUE)
 })
+
+test_that("the range of sample sizes shows the smallest effect at 80% and 95% power", {
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- form_examples[["E4"]]
+  values$just_type <- "none"; values$just_source <- ""; values$r <- ""; values$goal <- "sensitivity_curve"; values$n_max <- "160"
+  calc <- run_sensitivity_curve(build_spec(forms, "E4", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  tab <- calc$curve_table
+  expect_equal(tab$n, c(20, 40, 60, 80, 100, 120, 140, 160))
+  expect_equal(tab$power_80[8], pwr::pwr.r.test(n = 160, r = NULL, power = 0.8)$r)
+  expect_true(all(tab$power_95 > tab$power_80))
+  expect_true(all(diff(tab$power_80) < 0))
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "The smallest effect you could detect at each sample size", fixed = TRUE)
+  # No reasoning written: no saving or exporting yet.
+  expect_match(html, "To save this plan or download its R script", fixed = TRUE)
+  expect_no_match(html, "download_project", fixed = TRUE)
+  values$just_source <- "No earlier study measures this; the pool is fixed at 160."
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "download_project", fixed = TRUE)
+})
+
+test_that("an effect size from one earlier study gets a short warning", {
+  expect_match(source_note(list(just_type = "prior_study")), "BUCSS", fixed = TRUE)
+  expect_null(source_note(list(just_type = "meta_analysis")))
+})
