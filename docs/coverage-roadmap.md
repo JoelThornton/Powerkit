@@ -306,8 +306,8 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 Five tests now run in the engine only: no route, card or form uses them
 yet. Each is one backend call, checked against that backend called
-directly (`engine/tests/testthat/test-backend-wave2.R`); the G\*Power
-comparisons are placeholders until the screenshots arrive.
+directly (`engine/tests/testthat/test-backend-wave2.R`) and against the
+maintainer's G\*Power screenshots (`gpower-parity.md`, "Wave 2"), which all match.
 
 | Row | Spec (design / template) | Backend and function | Analytic? |
 | --- | --- | --- | --- |
@@ -329,7 +329,7 @@ comparisons are placeholders until the screenshots arrive.
   (screenshot, 18 October 2026). For McNemar, G\*Power's screenshots
   used its default "faster approximation" (121; 0.7187 at N = 100), which
   neither pwrss method reproduces; its "exact (unconditional) power"
-  option is still to be screenshotted.
+  option reports 129, as the engine does.
 - **One-sided tests against the expected direction** can't be computed
   with these pwrss functions (they test in the direction of the
   effect), so the engine refuses them for A35, A37 and B24 by formula.
@@ -344,10 +344,9 @@ comparisons are placeholders until the screenshots arrive.
 **G\*Power screenshots received (18 October 2026).** One-way ANOVA (at
 f = 0.279), R² against 0, R² increase and one proportion match the
 engine to seven decimals, a priori N included (`test-backend-wave2.R`;
-`gpower-parity.md`, "Wave 2"). McNemar post hoc at N = 100 with G\*Power's
-exact option matches too (0.6742876). Still needed: **McNemar a priori
-with the exact option for every N** (the threshold left at 1000000, not
-100). The one-way ANOVA at f = 0.2079 and the R² increase post hoc
+`gpower-parity.md`, "Wave 2"). McNemar with G\*Power's exact option matches
+too (post hoc 0.6742876; a priori N = 129). All wave 2 G\*Power checks
+are done. The one-way ANOVA at f = 0.2079 and the R² increase post hoc
 are not needed (the cases sent already check the same calculations).
 
 **G\*Power screens and inputs the maintainer was asked to send** (one

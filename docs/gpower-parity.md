@@ -363,6 +363,7 @@ Maintainer's G\*Power 3.1 screenshots, 18 October 2026
 | A35 | as above | post hoc, N = 80, two tails / one tail | 0.7235283 / 0.8540286 | 0.7235283 / 0.8540286 |
 | A37 | Exact, "Proportions: Inequality, two dependent groups (McNemar)" | OR 2.5, discordant 0.35, two tails, **faster approximation** (G\*Power's default) | a priori N = 121 (0.8052775); post hoc N = 100: 0.7186706 | exact method: 129; 0.6742876 (pwrss "approximate": 0.7240580) |
 | A37 | as above | **exact (unconditional) power**, post hoc, N = 100 | 0.6742876 | 0.6742876 |
+| A37 | as above | exact option, a priori | N = 129, power 0.8030988 | 129, 0.8030988 (pwrss's own answer: 130) |
 
 Notes:
 - The one-way screenshots used f = 0.279 rather than the example's
@@ -371,11 +372,10 @@ Notes:
 - G\*Power's effect sizes were typed rounded (f² = 0.1111, 0.0588); the
   tests enter the same values, which is why they match to seven decimals.
 - McNemar: G\*Power's Options offer "exact (unconditional) power if N <
-  1000000" or the faster approximation. With the exact option, post hoc
-  power at N = 100 matches powerkit. The a priori screenshot with the
-  exact option set the threshold to N < 100, so its 121 is still the
-  approximation; the exact a priori N (powerkit: 129) is still to be
-  screenshotted.
+  1000000" or the faster approximation. With the exact option (threshold
+  left at 1000000), post hoc power and the a priori N match powerkit.
+  With the threshold at N < 100, the a priori answer falls back to the
+  approximation (121).
 
 ## Effect-size calculators ("Determine")
 

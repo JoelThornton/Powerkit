@@ -2,7 +2,7 @@
 # R-squared in multiple regression, one proportion, McNemar's test and
 # Welch's t-test by formula. Each is checked against its backend called
 # directly, from inputs written out by hand here. The checks against
-# G*Power use the maintainer's screenshots (McNemar's a priori N is still a placeholder).
+# G*Power use the maintainer's screenshots.
 
 wave2_spec <- function(name, goal, ...) {
   spec <- example_spec(name)
@@ -304,10 +304,15 @@ test_that("McNemar matches G*Power's exact option (G*Power value)", {
   expect_equal(round(power_at(spec), 7), 0.6742876)
 })
 
-test_that("McNemar a priori N against G*Power's exact option (placeholder)", {
-  # TODO_PUBLISHED_VALUE: the a priori screenshot sent with the exact
-  # option set it to apply only "if N < 100", so its answer (121) came
-  # from the approximation. powerkit's exact answer is 129. Waits for an a
-  # priori screenshot with the exact option for every N.
-  skip("G*Power's exact a priori McNemar N not yet sent (TODO_PUBLISHED_VALUE)")
+test_that("McNemar a priori N matches G*Power's exact option, the smallest N (G*Power value)", {
+  # As above, a priori, power .80, exact option for every N (threshold
+  # 1000000): total N 129, actual power 0.8030988
+  # (docs/figures/gpower/A37_mcnemar_a_priori_exact.png). G*Power reports
+  # the smallest N that reaches the target, as powerkit does (pwrss's own
+  # answer is 130; Departure 12). With the threshold at N < 100 G*Power
+  # falls back to its approximation and reports 121.
+  spec <- wave2_spec("mcnemar", list(type = "sample_size", power = 0.8))
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 129L)
+  spec$goal <- list(type = "power", n = 129)
+  expect_equal(round(power_at(spec), 7), 0.8030988)
 })

@@ -16,8 +16,8 @@
   app uses it). One-way ANOVA, R² against 0, R² increase and one
   proportion match the maintainer's G\*Power screenshots to seven
   decimals, a priori N included (G\*Power also reports 90 for the
-  one-proportion example). McNemar's post hoc power matches
-  G\*Power's exact option; its a priori N check waits for a screenshot.
+  one-proportion example). McNemar matches G\*Power's exact
+  option too (power, and N = 129).
 
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in
