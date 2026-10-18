@@ -40,19 +40,31 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up is still to come. The maintainer gives the department talk
+  the write-up is in review. The maintainer gives the department talk
   (Friday 23 October 2026).
 
 ## What's next
 
-1. The minimal write-up and methods paragraph: needs a minimal G4
-   decision.
-2. The "does this still apply?" flag on the effect-size source when the
-   effect size is changed; the smallest detectable effect for E5–E9 in the
-   app.
-3. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
-   first item, routing from screen A onwards) and user testing
-   ([`user-testing.md`](user-testing.md)). Later, before release:
-   published values, independent checks for moderated mediation and the
-   Monte Carlo interval with two or more mediators, phase 3b and wave 2 in
-   the app.
+In priority order (Claude's recommendation, 18 October 2026; the
+maintainer can reorder):
+
+1. The write-up (short and full methods paragraph): in review.
+2. A "guess first" teaching mode, optional: the user guesses N or the
+   smallest effect before the result shows it. It is also the instrument
+   for user testing.
+3. Finish the fixed-N route: the "does this still apply?" flag on the
+   effect-size source when the effect size is changed, and the smallest
+   detectable effect for two proportions, chi-square and regression
+   interactions in the app.
+4. Update [`user-testing.md`](user-testing.md) for the four screens, and
+   recruit testers at the maintainer's talk (23 October 2026).
+5. The maintainer's judgement session
+   ([`judgement-session.md`](judgement-session.md); routing from screen A
+   onwards first).
+6. An ethics-board version of the write-up, and a plan checker for
+   supervisors and reviewers. A separate "Labs" area for experimental
+   tools comes later.
+7. Before release: wave 2 in the app, published values, independent
+   checks for moderated mediation and the Monte Carlo interval with two or
+   more mediators, phase 3b (binary X and W), hosting, and the
+   methodologist collaboration.
