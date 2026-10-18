@@ -92,10 +92,23 @@ names_group <- function(form, k) {
 
 # The groups of fields a form shows, with generated groups expanded.
 # `k` is the number of mediators (parallel and serial mediation only).
-form_groups <- function(forms, ep_id, k = 2) {
+# `start`: the answers to screen A (situation, aim, claim), which set the
+# goal's starting choice and add the claim's questions.
+form_groups <- function(forms, ep_id, k = 2, start = list()) {
   form <- forms$forms[[ep_id]]
   groups <- lapply(form$groups, function(g) {
     if (!is.null(g$generated)) g$fields <- generated_fields(form$mediators, g$generated, k)
+    # The t-tests and the correlation need no effect size for the smallest
+    # detectable effect: the engine solves for it (an empty value counts
+    # as zero, and the result is positive).
+    if (isTRUE(form$sensitivity_without_effect)) {
+      has_effect <- any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))
+      g$fields <- lapply(g$fields, function(f) {
+        if (isTRUE(f$effect)) f$optional_for <- c("sensitivity", "sensitivity_curve")
+        f
+      })
+      if (has_effect) g$note <- "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+    }
     g
   })
   if (!is.null(form$mediators)) {
@@ -110,7 +123,7 @@ form_groups <- function(forms, ep_id, k = 2) {
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
-  c(groups, closing_groups(forms, ep_id))
+  c(groups, closing_groups(forms, ep_id, start))
 }
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
@@ -126,18 +139,26 @@ basic_method_field <- function(forms, ep_id) {
 }
 
 # The closing questions every form asks (decision-tree.md, table 2.2).
-closing_groups <- function(forms, ep_id) {
+closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
   tool <- forms$tool_defaults[[form$tool]]
   goals <- list(sample_size = "The sample size I need", power = "The power I'd have at a given sample size")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
+  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
+  goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
+  if (identical(start$situation, "fixed")) {
+    goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
+    goal$default_source <- "you said your sample size is fixed"
+  }
   test <- list(
-    list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals),
+    goal,
     list(id = "power", label = "Target power, as a proportion (for example 0.9); needed for the sample size and the smallest effect",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "n", label = "Number of participants analysed; needed for power and the smallest effect",
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
+    list(id = "n_max", label = "The largest number of participants you could analyse; needed for the range of sample sizes",
+         type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]])
   )
@@ -148,15 +169,18 @@ closing_groups <- function(forms, ep_id) {
       default = "two_sided", default_source = tool[["alternative_source"]]
     )))
   }
-  list(
-    list(input = NULL, title = "What you want to find out", fields = test),
+  c(list(
+    list(input = NULL, title = "What you want to find out", fields = test)),
+    claim_groups(start$claim),
+    list(
     list(input = NULL, title = "Where your effect size comes from", fields = list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
-           choices = list(
+           choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
-             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study")),
-      list(id = "just_source", label = "Where the number comes from, in your words (for example a reference or a decision rule)",
-           type = "text", path = "effect_justification.source", required = TRUE),
+             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study"),
+             if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
+      list(id = "just_source", label = "Your reasoning, in your own words: where the number comes from, or why there isn't one (any length, any language; needed to save or export the plan, not to calculate)",
+           type = "text", path = "effect_justification.source", optional = TRUE),
       list(id = "just_adjustment", label = "How you adjusted it (needed for a previous study; for example halved for publication bias)",
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study")
     )),
@@ -171,7 +195,49 @@ closing_groups <- function(forms, ep_id) {
            type = "number", path = "options.seed", optional = TRUE, integer = TRUE, min = 1, max = 2147483647,
            default = forms$default_seed, default_source = "powerkit's fixed default seed (judgement-calls.md B15)")
     ))
+  ))
+}
+
+# The claim from screen A, on the input screen: a note for every claim but
+# "one test", and for "any of several" the number of tests, which divides
+# alpha between them (Bonferroni; docs/decisions.md, 18 October 2026).
+claim_groups <- function(claim) {
+  claim <- claim %||% "one"
+  if (identical(claim, "one")) return(list())
+  note <- switch(
+    claim,
+    each = "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others. No correction for several tests is needed, because no single conclusion rests on more than one test.",
+    any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
+    all = "You said your claim needs every test to be significant. The chance that all succeed is lower than any one test's power: for two independent tests powered at 0.9, about 0.9 x 0.9 = 0.81. Tests on the same people are usually positively correlated, so that product is roughly a floor, not exact. Consider a higher target power for each test."
   )
+  fields <- if (identical(claim, "any")) {
+    list(list(id = "n_tests", label = "Number of tests in the set", type = "number", required = TRUE, min = 2, integer = TRUE))
+  } else {
+    list()
+  }
+  list(list(input = NULL, title = "Your claim", note = note, fields = fields))
+}
+
+# One line for the result screen on how the claim was handled, or NULL.
+claim_result_note <- function(values, alpha_used) {
+  switch(
+    values$claim %||% "one",
+    one = NULL,
+    each = "Your claim: several claims, each standing on its own. This result is for one test, with no correction; work out each of the others the same way.",
+    any = sprintf(
+      "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s.",
+      values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
+    ),
+    all = "Your claim: all of several tests. The chance that every test succeeds is lower than this power: for two independent tests at 0.9, about 0.81, and roughly that or a little higher for correlated tests on the same people."
+  )
+}
+
+# Alpha for this test: the significance level entered, divided by the
+# number of tests when the claim is "any of several".
+claim_alpha <- function(alpha, values) {
+  k <- parse_number(values$n_tests)
+  if (is.na(k) || is.nan(k) || k < 2) return(alpha)
+  alpha / k
 }
 
 form_fields <- function(groups) unlist(lapply(groups, `[[`, "fields"), recursive = FALSE)
@@ -227,6 +293,7 @@ form_problems <- function(fields, values) {
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
+      if (effect_optional(f, values)) next
       if (isTRUE(f$effect)) {
         problems <- c(problems, sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
@@ -263,7 +330,7 @@ form_problems <- function(fields, values) {
       }
     }
   }
-  problems
+  c(problems, combination_problems(values))
 }
 
 # --- Building the spec ---------------------------------------------------------
@@ -307,10 +374,32 @@ build_spec <- function(forms, ep_id, fields, values) {
   for (f in fields) {
     if (is.null(f$path) || !field_applies(f, values)) next
     v <- values[[f$id]]
+    if (blank(v) && effect_optional(f, values)) v <- "0"
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
   }
+  if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
+  # The range of sample sizes is several engine runs (sensitivity_curve());
+  # the spec kept for the exports is the largest N at 80% power.
+  if (identical(values$goal, "sensitivity_curve")) {
+    spec$goal <- list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8)
+  }
   spec
+}
+
+# An effect size may stay empty for the smallest detectable effect, or
+# when the user can't justify one (t-tests and the correlation only).
+effect_optional <- function(f, values) {
+  isTRUE(f$effect) && length(f$optional_for) > 0 &&
+    (isTRUE(values$goal %in% f$optional_for) || identical(values$just_type, "none"))
+}
+
+# Problems with the combination of answers, beyond single fields.
+combination_problems <- function(values) {
+  if (identical(values$just_type, "none") && !isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))) {
+    return("With no effect size to plan for, there is no sample size or power to work out. Under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect, at a given sample size or across a range of sample sizes.")
+  }
+  character()
 }
 
 # --- The engine's check ----------------------------------------------------------

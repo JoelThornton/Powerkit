@@ -172,6 +172,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   state <- reactiveValues(
     screen = "start",        # start | known | node | card | form | g_vars | g_analyses | g_plan
+    start = list(),          # screen A: situation, aim and claim
     route = "choose",        # the route chosen on the start screen
     node = NULL,             # current question id (screening or "Help me choose")
     ctx = list(),            # screening answers later questions depend on
@@ -232,7 +233,7 @@ server <- function(input, output, session) {
   }
 
   # The input screen's fields and the values typed into them.
-  current_form_fields <- function() form_fields(form_groups(forms, state$endpoint, state$form_k))
+  current_form_fields <- function() form_fields(form_groups(forms, state$endpoint, state$form_k, state$start))
   current_form_values <- function() {
     fields <- current_form_fields()
     values <- lapply(fields, function(f) input[[field_input_id(f)]])
@@ -246,9 +247,16 @@ server <- function(input, output, session) {
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
     } else if (kind == "route") {
-      # Every route starts with the screening questions.
+      # Screen A first: estimation and equivalence go to their cards.
+      state$start <- start_answers(tree, input)
       state$route <- value; state$history <- list(); state$ctx <- list()
-      go_to(resolve_target(tree, start_node(tree), state$ctx, value))
+      exit <- start_exit(tree, state$start)
+      if (!is.null(exit)) {
+        state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
+      } else {
+        # Every route starts with the screening questions.
+        go_to(resolve_target(tree, start_node(tree), state$ctx, value))
+      }
     } else if (kind == "opt") {
       option <- visible_options(tree, tree$nodes[[state$node]], state$ctx)[[as.integer(value)]]
       state$history <- c(state$history, list(list(node = state$node, answer = option$label, ctx = state$ctx)))
@@ -300,6 +308,7 @@ server <- function(input, output, session) {
   observeEvent(input$form_check, {
     fields <- current_form_fields()
     values <- current_form_values()
+    values$claim <- state$start$claim %||% "one" # screen A's claim, for the result's note
     problems <- form_problems(fields, values)
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
@@ -336,7 +345,8 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(calculating_ui())
       ep_id <- state$endpoint
       session$onFlushed(function() {
-        calc <- run_calculation(spec, seed = forms$default_seed)
+        calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
+        if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -346,6 +356,18 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   })
+  # The explore panel: power by N for the effect on the slider. It reads the
+  # last calculation and never changes the plan.
+  output$explore_plot <- renderPlot({
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
+    df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
+    par(mar = c(4.5, 4.5, 1, 1))
+    plot(df$n, df$power, type = "b", pch = 19, ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
+    abline(h = c(0.8, 0.95), lty = 2, col = "grey50")
+    text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
+  })
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)
@@ -471,7 +493,7 @@ server <- function(input, output, session) {
   output$screen <- renderUI({
     switch(
       state$screen,
-      start = tagList(start_ui(tree), open_project_ui()),
+      start = tagList(start_ui(tree, isolate(state$start)), open_project_ui()),
       known = known_ui(tree, state$history, state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
@@ -480,7 +502,7 @@ server <- function(input, output, session) {
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
       ),
-      form = form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k), isolate(state$form_values), state$history),
+      form = form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, state$start), isolate(state$form_values), state$history),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,

@@ -35,21 +35,20 @@ fully validated. Validation runs are recorded in
   while. What matters now is that it is useful, logical and helpful for
   psychologists and solves the problems they have with power analysis.
   Validation and checks come afterwards, before release.
-- **This week:** preparing the maintainer's talk to PhD students and staff
-  in the department (Friday 23 October 2026), on how well psychologists
-  understand and carry out power analysis, and where powerkit helps.
+- **The new design** (four screens: start questions, design finder, inputs
+  centred on the effect size, result with a plain reading and write-up) is
+  in the app: screens A, C and D and the departures on the result screen
+  were merged on 18 October 2026. The write-up is still to come.
 
 ## What's next
 
-1. The talk: material and examples for Friday.
-2. The judgement session ([`judgement-session.md`](judgement-session.md)):
-   it unblocks G4 (the methods paragraph) and the other calls that change
-   what users see.
-3. A first round of user testing with psychologists
-   ([`user-testing.md`](user-testing.md)).
-4. Departures 6, 7 and 8 and Known difference 1 on the result screen: in
-   review.
-5. Later, before release: a short list of published values to transcribe
-   first (one or two per design), independent checks for moderated
-   mediation and for the Monte Carlo interval with two or more mediators,
-   phase 3b (binary X and W), and wiring wave 2 into the app.
+1. Docs: record the design decisions and close the judgement calls they
+   settle (G9, most of B10, G8, part of B6/G7). In review.
+2. The minimal write-up and methods paragraph: needs a minimal G4
+   decision.
+3. The "does this still apply?" flag on the effect-size source when the
+   effect size is changed; the smallest detectable effect for E5–E9 in the
+   app.
+4. Then user testing ([`user-testing.md`](user-testing.md)); later, before
+   release, published values, independent checks, phase 3b and wave 2 in
+   the app.

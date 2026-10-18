@@ -54,10 +54,43 @@ placeholders_at <- function(tree, where) {
 
 # Start screen ---------------------------------------------------------------
 
-start_ui <- function(tree) {
+# Screen A's three questions (tree.yaml, start_questions), each a set of
+# radio buttons with its first option preselected and a line of help under
+# each option.
+start_questions_ui <- function(tree, start = list()) {
+  lapply(tree$start_questions, function(q) {
+    keys <- names(q$options)
+    choice_names <- lapply(keys, function(k) {
+      o <- q$options[[k]]
+      tags$span(tags$strong(o$label), tags$br(), tags$span(class = "small text-muted", o$help))
+    })
+    div(class = "start-question",
+      radioButtons(paste0("start_", q$id), tags$span(class = "h5", q$question),
+        choiceNames = choice_names, choiceValues = keys,
+        selected = start[[q$id]] %||% keys[[1]], width = "100%"))
+  })
+}
+
+# The answers to screen A, from the inputs (first options where unanswered).
+start_answers <- function(tree, input) {
+  out <- lapply(tree$start_questions, function(q) input[[paste0("start_", q$id)]] %||% names(q$options)[[1]])
+  stats::setNames(out, vapply(tree$start_questions, `[[`, "", "id"))
+}
+
+# Where screen A's aim sends the user before the design finder: a card for
+# aims powerkit doesn't support yet, or NULL.
+start_exit <- function(tree, start) {
+  aim <- Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
+  aim$options[[start$aim %||% "predict"]]$`next`
+}
+
+start_ui <- function(tree, start = list()) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
   tagList(
+    h2("Before you start"),
+    p("Three questions about your study. They decide what powerkit works out for you and how several tests are handled."),
+    start_questions_ui(tree, start),
     h2(tree$routes$question),
     div(class = "choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
     p(class = "text-muted", tree$routes$screening_note),

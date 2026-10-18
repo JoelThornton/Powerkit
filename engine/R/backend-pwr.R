@@ -54,7 +54,7 @@ pwr_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) pwr_sensitivity(spec, n, power),
     check_run = function() pwr_check_run(spec, inputs)
   )
 }
@@ -248,5 +248,126 @@ pwr_check_run <- function(spec, inputs) {
       expected <- outer(rowSums(p), colSums(p))
       row("Cohen's w passed to pwr", sqrt(sum((p - expected)^2 / expected)), args$w)
     }
+  )
+}
+
+# Sensitivity: the smallest effect with the target power at total sample
+# size n, in the direction of the specified effect.
+#
+# For the t-tests, the correlation and the chi-square test, pwr solves for
+# the effect itself when it is left NULL (each function's help: "Exactly
+# one of the parameters ... must be passed as NULL, and that parameter is
+# determined from the others"), so powerkit makes that call. For a
+# two-sided test pwr returns a positive effect; powerkit gives it the sign
+# of the specified effect. For two proportions, powerkit keeps p1 and
+# searches p2 with the same power calls it uses for power (pwr_power()),
+# as search_n() does for n.
+pwr_sensitivity <- function(spec, n, target) {
+  pop <- spec$population
+  alpha <- spec$target_test$alpha
+  alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
+  ratio <- spec$options$allocation_ratio %||% 1
+  equal <- isTRUE(all.equal(ratio, 1))
+  signed <- function(value, specified) {
+    # A zero specified effect (none given) gives a positive result.
+    if (alternative == "two.sided" && isTRUE(specified < 0)) -abs(value) else value
+  }
+  solve <- function(fun, args, field) {
+    args$sig.level <- alpha
+    args$power <- target
+    found <- tryCatch(
+      call_backend("pwr", quietly(do.call(getExportedValue("pwr", fun), args))),
+      error = function(e) NULL
+    )
+    if (is.null(found) || !is.finite(found[[field]])) {
+      abort_run(paste0(
+        "No effect in the direction you specified reaches the target power at this n. ",
+        "Check the direction of the test and the population values."
+      ))
+    }
+    found[[field]]
+  }
+  found <- switch(
+    spec$template,
+    one_sample_t = {
+      d <- signed(solve("pwr.t.test", list(n = n, d = NULL, type = "one.sample", alternative = alternative), "d"), pop$d)
+      list(effect = d, effect_name = "d", effect_description = "Cohen's d (mean minus the comparison value, in SDs)")
+    },
+    independent_t = {
+      d <- if (equal) {
+        solve("pwr.t.test", list(n = n / 2, d = NULL, type = "two.sample", alternative = alternative), "d")
+      } else {
+        n1 <- round(n / (1 + ratio))
+        solve("pwr.t2n.test", list(n1 = n1, n2 = n - n1, d = NULL, alternative = alternative), "d")
+      }
+      list(effect = signed(d, pop$d), effect_name = "d", effect_description = "Cohen's d (group 2 minus group 1, in SDs)")
+    },
+    paired_t = {
+      dz <- signed(solve("pwr.t.test", list(n = n, d = NULL, type = "paired", alternative = alternative), "d"), pop$dz)
+      list(effect = dz, effect_name = "d_z", effect_description = "Cohen's d_z (mean of the differences, in SDs of the differences)")
+    },
+    correlation = {
+      r <- signed(solve("pwr.r.test", list(n = n, r = NULL, alternative = alternative), "r"), pop$r)
+      list(effect = r, effect_name = "r", effect_description = "correlation r")
+    },
+    chi_square_independence = {
+      p <- probability_matrix(spec)
+      w <- solve("pwr.chisq.test", list(N = n, w = NULL, df = (nrow(p) - 1) * (ncol(p) - 1)), "w")
+      list(effect = w, effect_name = "w", effect_description = "Cohen's w (departure from independence)")
+    },
+    two_proportions = pwr_sensitivity_p2(spec, n, target)
+  )
+  found$power <- pwr_power(pwr_inputs(pwr_spec_with_effect(spec, found)), n)
+  found
+}
+
+# The spec with the population effect replaced by a sensitivity result, so
+# the power at that effect can be checked with the usual power call.
+pwr_spec_with_effect <- function(spec, found) {
+  field <- switch(
+    found$effect_name,
+    d = "d", d_z = "dz", r = "r", p2 = "p2",
+    w = NULL
+  )
+  if (is.null(field)) {
+    # Chi-square: scale the table's departure from independence until its
+    # Cohen's w equals the w found (w is proportional to the scale).
+    p <- probability_matrix(spec)
+    expected <- outer(rowSums(p), colSums(p))
+    scale <- found$effect / pwr_w(p)
+    scaled <- expected + scale * (p - expected)
+    # Back to the spec's form: a list of rows (probability_matrix()).
+    spec$population$probabilities <- lapply(seq_len(nrow(scaled)), function(i) as.list(scaled[i, ]))
+    return(spec)
+  }
+  spec$population[[field]] <- found$effect
+  spec
+}
+
+# Two proportions: keep p1 and move p2 away from it, in the direction of
+# the specified difference, until power reaches the target.
+pwr_sensitivity_p2 <- function(spec, n, target) {
+  p1 <- spec$population$p1
+  direction <- sign(spec$population$p2 - p1)
+  limit <- if (direction > 0) 1 - 1e-9 else 1e-9
+  power_at <- function(p2) {
+    trial <- spec
+    trial$population$p2 <- p2
+    pwr_power(pwr_inputs(trial), n)
+  }
+  if (power_at(limit) < target) {
+    abort_run(paste0(
+      "No proportion in group 2 reaches the target power at this n with group 1's ",
+      "proportion as given. Check the direction of the test and the population values."
+    ))
+  }
+  p2 <- stats::uniroot(
+    function(p) power_at(p) - target,
+    lower = min(p1, limit), upper = max(p1, limit), tol = 1e-10
+  )$root
+  list(
+    effect = p2, effect_name = "p2",
+    effect_description = sprintf("proportion in group 2 (group 1's proportion kept at %s)", format(p1)),
+    p1 = p1
   )
 }

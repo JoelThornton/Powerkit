@@ -8,6 +8,45 @@
   tools such as G\*Power give slightly higher power than powerkit's
   simulation (Known difference 1, under a separate heading).
 
+* App, screen D of the new design: every result now has a plain reading
+  that keeps the condition ("if the true effect is the one you entered,
+  about 8 in 10 studies like this would get a significant result"), the
+  effect-size source and the user's reasoning beside the number, and a line
+  on what power can't tell you. A required N is shown at 80% and 95% power
+  side by side. The t-tests and the correlation have an explore panel: a
+  slider for the effect size and a plot of power by sample size, which
+  never changes the plan. A test checks that no output template uses a
+  verdict word such as "justified" or "adequate".
+
+* App, screen C of the new design: the effect-size source now includes
+  "I can't justify an effect size" (spec type `none`, new in the schema)
+  for the t-tests and the correlation. It leads to the smallest effect you
+  could detect, at one sample size or across a range of sample sizes (a
+  table at 80% and 95% power). The reasoning ("source") is optional to
+  calculate and required only to save a project or download the R script;
+  the spec schema no longer requires it. An effect size from one earlier
+  study gets a short warning pointing to bias correction (BUCSS).
+
+* App, screen A of the new design: the start screen now asks three
+  questions before the design finder. "Your sample size" (choose or fixed)
+  starts the input screen at the smallest effect you could detect when N
+  is fixed. "Your aim" sends estimation and equivalence to their cards.
+  "Your claim" (one test; several claims, each on its own; any of several;
+  all of several) adds a note, and for "any of several" divides alpha
+  between the tests (Bonferroni). The basic tests (E1–E6) now offer the
+  smallest detectable effect, and the t-tests and correlation need no
+  effect size for it.
+
+* Smallest detectable effect for the basic tests (engine only; not in the
+  app yet): goal type `sensitivity` now works for the one-sample, paired
+  and independent t-tests, the correlation, two proportions and the
+  chi-square test on the formula path. pwr solves for the effect when it is
+  left empty (for two proportions, group 2's proportion is searched with the
+  same power call), in the direction of the effect you specified. For the t-tests and the
+  correlation no effect size is needed (a zero effect gives a positive
+  result). The exported R script reproduces it. This is the first step of the fixed-N
+  route in the new design.
+
 * New `write_project()`, `read_project()` and `reproduce_project()`: save a
   power analysis (spec with its seed, how it was reached in the app, the
   result, and the powerkit, R and package versions) as one JSON file, open
