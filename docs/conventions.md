@@ -317,7 +317,7 @@ kept so later departures keep theirs.
   and 3.0% smaller for b and c' (k = 3); at N = 200, 0.5% and 0.75%.
 - **Test:** `test-backend-power4mome.R`, "departure: lavaan ML standard
   errors vs PROCESS's OLS, at N = 50" (checks the ratio to 1e-6).
-- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 7. Parallel mediators: residuals free to correlate (lavaan fixes them at 0)
 
@@ -334,7 +334,7 @@ kept so later departures keep theirs.
   seeded data), so it would overstate power.
 - **Test:** `test-backend-power4mome.R`, "departure: parallel mediators'
   residuals free to correlate, as in PROCESS".
-- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+- **Shown to users / in the methods paragraph:** shown on the result screen for E11 (parallel mediators) (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 8. Boos and Zhang's (2000) method: off (power4mome switches it on for some R)
 
@@ -365,7 +365,7 @@ kept so later departures keep theirs.
 - **powerkit keeps `test_method = "ci"` regardless.** Boos and Zhang off is
   the maintainer's decision (decision 10), not only a workaround for the
   bug, so the explicit argument stays after the fix reaches CRAN.
-- **Shown to users / in the methods paragraph:** to do (build phases 4-5).
+- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
 
 ### 9. Basic tests (E1–E6): pwr's formula by default, not Spower's simulation
 
@@ -525,7 +525,7 @@ methods paragraph.
   G*Power's manual.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
-- **Shown to users:** to do (build phases 4-5).
+- **Shown to users:** on E9's result screen, under "Where other established tools give a different answer" (18 October 2026; `app/routing/forms.yaml`, `known_differences`).
 - **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.

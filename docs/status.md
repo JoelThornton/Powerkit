@@ -35,7 +35,6 @@ fully validated. Validation runs are recorded in
   while. What matters now is that it is useful, logical and helpful for
   psychologists and solves the problems they have with power analysis.
   Validation and checks come afterwards, before release.
-<<<<<<< HEAD
 - **The new design** (approved 18 October 2026): four screens (start
   questions, design finder, inputs centred on the effect size, result
   with a plain reading and write-up). The decisions are in

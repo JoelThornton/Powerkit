@@ -29,10 +29,14 @@ this page is the short version plus the working rules.*
 
 ## Open PRs (end of 18 October 2026)
 
-Open: **#56** (the smallest detectable effect for E1–E6, engine; build
-step 1 of the new design) and the docs PR recording the design
-decisions (step 2). Merged on 18 October 2026, all with the
-maintainer's yes where needed:
+None open. Merged on 18 October 2026, all with the maintainer's yes
+where needed:
+- The new design: **#56** smallest detectable effect for E1–E6 (engine);
+  **#57** the design decisions (docs); **#58** Departures 6–8 and Known
+  difference 1 on the result screen; **#59** screen A (start questions,
+  fixed-N route); **#60** screen C (effect-size source, "I can't justify
+  an effect size", reasoning needed to save or export); **#61** screen D
+  (plain reading, 80%/95% side by side, explore panel, verdict-word test).
 - **#47** phase 5, part 2; **#48** E5 unequal groups in the basic chunk;
   **#50** `judgement-session.md`, `saving-projects.md`, judgement call E6;
   **#53** this handover.

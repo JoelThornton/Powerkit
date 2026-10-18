@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* The result screen now states every departure and known difference that
+  applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
+  than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off
+  (Departure 8); for parallel mediators (E11), residuals free to correlate
+  (Departure 7); and for regression interactions (E9), that fixed-model
+  tools such as G\*Power give slightly higher power than powerkit's
+  simulation (Known difference 1, under a separate heading).
+
 * App, screen D of the new design: every result now has a plain reading
   that keeps the condition ("if the true effect is the one you entered,
   about 8 in 10 studies like this would get a significant result"), the

@@ -133,6 +133,16 @@ departures:
   "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
+  "6": "Mediation is fitted with lavaan (maximum likelihood), as power4mome does, not by PROCESS's ordinary least squares. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
+  "7": "Parallel mediators: powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
+  "8": "Boos and Zhang's (2000) method is switched off: every simulated sample is tested with its confidence interval. power4mome switches the method on for some numbers of Monte Carlo draws (39, 79, ..., 359). In powerkit's runs this makes no difference to power."
+
+# Known differences between established tools, shown on the result screen
+# (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Known
+# differences". They are not departures: powerkit follows one established
+# tool, and another gives a different answer.
+known_differences:
+  "1": "Regression interactions: powerkit simulates power, drawing the predictors afresh in each sample (InteractionPoweR's power_interaction()). Fixed-model calculations, such as G*Power's and InteractionPoweR's power_interaction_r2(), give slightly higher power: up to about 1.4 points, so the N here may be about 3% larger than G*Power's."
 
 forms:
   E1:
@@ -368,6 +378,7 @@ forms:
 
   E9:
     tool: InteractionPoweR
+    known_differences: ["1"]
     directional: false
     base: {spec_version: "0.1", design: regression_interaction, template: two_way,
            variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
@@ -388,6 +399,7 @@ forms:
 
   E10:
     tool: power4mome
+    departures: ["6", "8"]
     directional: false
     base: {spec_version: "0.1", design: mediation, template: process_4,
            variables: {X: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -405,6 +417,7 @@ forms:
 
   E11:
     tool: power4mome
+    departures: ["6", "7", "8"]
     directional: false
     mediators: parallel
     base: {spec_version: "0.1", design: mediation, template: process_4,
@@ -423,6 +436,7 @@ forms:
 
   E12:
     tool: power4mome
+    departures: ["6", "8"]
     directional: false
     mediators: serial
     base: {spec_version: "0.1", design: mediation, template: process_6,
@@ -437,6 +451,7 @@ forms:
 
   E13:
     tool: power4mome
+    departures: ["6", "8"]
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -454,6 +469,7 @@ forms:
 
   E14:
     tool: power4mome
+    departures: ["6", "8"]
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_14,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},

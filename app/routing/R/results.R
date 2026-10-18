@@ -479,6 +479,11 @@ departures_for <- function(forms, ep_id, spec) {
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
+known_differences_for <- function(forms, ep_id) {
+  keys <- unlist(forms$forms[[ep_id]]$known_differences)
+  vapply(keys, function(k) forms$known_differences[[k]], character(1))
+}
+
 validation_ui <- function(ep) {
   if (identical(ep$status, "runs_validated")) {
     div(class = "status status-runs", tags$strong("Validated. "), ep$validation$note)
@@ -513,6 +518,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   words <- result_sentences(spec, result)
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
+  known <- known_differences_for(forms, ep_id)
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source)
@@ -548,6 +554,10 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (length(departures)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
+    ),
+    if (length(known)) tagList(
+      h4(class = "h6", "Where other established tools give a different answer"),
+      tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
     ),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
     if (!can_export) p(class = "export-needs-reasoning",
