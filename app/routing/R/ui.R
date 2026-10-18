@@ -357,26 +357,44 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   )
 }
 
+# Each analysis gets one choice: not planned, main (the sample size is set
+# by it) or extra (reported, but it doesn't set the sample size).
+analysis_role_choices <- c(
+  "Not planned" = "none",
+  "Main analysis: the sample size must be big enough for this" = "main",
+  "Extra analysis: I'll report it, but it doesn't set the sample size" = "extra"
+)
+
+analysis_role <- function(id, ticked, primary) {
+  if (!id %in% ticked) "none" else if (id %in% primary) "main" else "extra"
+}
+
 guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   apps <- applicable_analyses(tree, answers)
   g <- tree$guided
+  # Show the question about how the main analyses combine only when there
+  # are two or more of them.
+  role_inputs <- vapply(apps, function(a) sprintf("input['role_%s']", a$id), character(1))
+  several_main <- sprintf("[%s].filter(function(v) { return v === 'main'; }).length >= 2", paste(role_inputs, collapse = ", "))
   tagList(
     h2("Plan my whole study: your analyses"),
-    p(class = "lead", "Tick the analyses you plan on these variables, and mark the ones the study must be powered for (primary)."),
+    p(class = "lead", "For each analysis, say whether you plan it, and whether it is a main analysis. The sample size is worked out for the main analyses."),
     lapply(apps, function(a) {
       res <- resolve_analysis(tree, a, answers, asks[[a$id]])
       ask <- res$ask %||% res$asked
       div(
         class = "analysis-row",
-        checkboxInput(paste0("tick_", a$id), tags$strong(a$label), value = a$id %in% ticked, width = "100%"),
-        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), ask$text, choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%"),
-        checkboxInput(paste0("primary_", a$id), "Primary: the study must be powered for this", value = a$id %in% primary, width = "100%")
+        radioButtons(paste0("role_", a$id), tags$strong(a$label), choices = analysis_role_choices,
+          selected = analysis_role(a$id, ticked, primary), width = "100%"),
+        if (!is.null(ask)) radioButtons(paste0("ask_", a$id), ask$text, choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%")
       )
     }),
-    radioButtons("g_rule", "How do the primary analyses support the study's claim?",
-      choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
-      choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
-      selected = rule %||% "each", width = "100%"
+    conditionalPanel(several_main,
+      radioButtons("g_rule", "You have more than one main analysis. What does your study's claim need?",
+        choiceNames = lapply(g$combination_rules, function(r) tagList(tags$strong(r$label), tags$br(), tags$span(class = "text-muted", r$note))),
+        choiceValues = vapply(g$combination_rules, function(r) r$id, character(1)),
+        selected = rule %||% "each", width = "100%"
+      )
     ),
     div(class = "nav-buttons",
       pick_button("Back to the variables", "guided:variables", class = "btn btn-secondary"),
@@ -391,7 +409,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
   cards <- lapply(ticked, function(id) {
     a <- analysis_by_id(tree, id)
     res <- resolve_analysis(tree, a, answers, asks[[id]])
-    head <- div(class = "plan-head", tags$strong(a$label), if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Primary") else tags$span(class = "badge bg-secondary ms-2", "Secondary"))
+    head <- div(class = "plan-head", tags$strong(a$label), if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Main analysis") else tags$span(class = "badge bg-secondary ms-2", "Extra analysis"))
     body <- if (!is.null(res$endpoint)) {
       tagList(
         card_ui(tree, res$endpoint, compact = TRUE),
@@ -413,7 +431,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     h2("Your plan"),
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
     h3(class = "h4 mt-4", "Combined sample size"),
-    p(tags$strong("Rule:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
+    if (length(intersect(ticked, primary)) >= 2) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
     div(class = "engine-placeholder", g$placeholders$combined_n),
     h3(class = "h4 mt-4", "Consistency between analyses"),
     if (length(shared) == 0) p("No shared relationships among the ticked analyses.") else tags$ul(lapply(shared, function(s) {
