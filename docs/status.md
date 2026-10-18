@@ -45,26 +45,29 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-In priority order (Claude's recommendation, 18 October 2026; the
-maintainer can reorder):
+In priority order (agreed direction, 18 October 2026: a working web app
+first, optional features after testing):
 
 1. The write-up (short and full methods paragraph): in review.
-2. A "guess first" teaching mode, optional: the user guesses N or the
-   smallest effect before the result shows it. It is also the instrument
-   for user testing.
-3. Finish the fixed-N route: the "does this still apply?" flag on the
+2. A working web app: host the app on an R server so testers can open a
+   link (the browser-only route, webR, can't run Spower;
+   [`hosting-options.md`](hosting-options.md)). Needs the maintainer's
+   choice of host.
+3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression
    interactions in the app.
-4. Update [`user-testing.md`](user-testing.md) for the four screens, and
-   recruit testers at the maintainer's talk (23 October 2026).
+4. User testing with a link ([`user-testing.md`](user-testing.md),
+   updated for the four screens), recruiting at the maintainer's talk
+   (23 October 2026).
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
-6. An ethics-board version of the write-up, and a plan checker for
-   supervisors and reviewers. A separate "Labs" area for experimental
-   tools comes later.
+6. Optional features, guided by testing: a "guess first" teaching mode,
+   an ethics-board version of the write-up, a plan checker for
+   supervisors and reviewers, and a separate "Labs" area for experimental
+   tools.
 7. Before release: wave 2 in the app, published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
-   more mediators, phase 3b (binary X and W), hosting, and the
-   methodologist collaboration.
+   more mediators, phase 3b (binary X and W), and the methodologist
+   collaboration.
