@@ -10,6 +10,17 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Run it yourself, and the About tab (draft PR; waits for the
+  maintainer's yes, 18 October 2026).** [`run-it-yourself.md`](run-it-yourself.md)
+  takes a psychologist with no R or Git experience from nothing to the
+  running app on Windows or macOS; `run_powerkit.R` is the one line. The
+  `run-it-yourself` workflow follows the page on clean Windows and macOS
+  runners and checks the app answers. The app's new "About this
+  prototype" tab lists what calculates (from `forms.yaml`), how to report
+  problems, and credits from each package's `citation()`.
+  [`hosting-options.md`](hosting-options.md) compares hosting, including
+  a webR feasibility spike (options and measurements only).
+
 - **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
   October 2026).** As the maintainer decided: a rough preview (100 simulations, in
   a separate process, shown as a range with "Don't report this; run the

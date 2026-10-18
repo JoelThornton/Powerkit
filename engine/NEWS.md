@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* Trying the prototype: `docs/run-it-yourself.md` gives plain-English
+  steps for Windows and macOS (install R 4.5.3, download the ZIP, run one
+  line), with troubleshooting. `run_powerkit.R` restores the recorded
+  packages and the engine if needed and opens the app. A new CI workflow
+  (`run-it-yourself.yaml`) follows those steps on clean Windows and macOS
+  machines and checks the app answers. The app has an "About this
+  prototype" tab: what it does, that it's a prototype, which end points
+  calculate, how to report problems, and credits for every foundation tool
+  from its own `citation()`. `docs/hosting-options.md` compares ways to
+  host it (options only).
+
 * New `export_run_script()`: an R script that runs a spec, with its seed,
   through `run_spec()` on the user's own computer, then saves the result
   and writes the backend-only reproduction script and the citations. The

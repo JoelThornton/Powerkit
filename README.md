@@ -65,6 +65,13 @@ powerkit can:
 Power is computed exactly by default for the 2 x 2 designs (or by
 simulation on request), and by simulation for every other design.
 
+## Try the app (no R experience needed)
+
+Follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
+download this repository as a ZIP, and run one line,
+`source("run_powerkit.R")`, which installs what powerkit needs and opens
+the prototype in your browser.
+
 ## Install the engine
 
 The engine is an R package in the `engine/` folder of this repository.
