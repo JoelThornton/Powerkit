@@ -95,20 +95,23 @@ Button names are from Connect Cloud's documentation (found by search,
    `online-app-manifest` workflow adds it after the PR that set this up
    is merged; it shows in the repository's file list on GitHub).
 2. Go to https://connect.posit.cloud and sign in.
-3. Remove the old copy first, so the new one can use the same name: open
-   the content list, open the powerkit app, and delete it (its settings
-   or "..." menu). The web address may still change; the new one is shown
-   at the end.
-4. Click **Publish**, then choose **Shiny** and **GitHub** as the source.
-5. If asked, install the Posit Connect Cloud GitHub App and give it access
+3. Click **Publish**, then choose **Shiny** and **GitHub** as the source.
+4. If asked, install the Posit Connect Cloud GitHub App and give it access
    to the JoelThornton/Powerkit repository.
-6. Choose the repository **JoelThornton/Powerkit**, the branch **main**,
+5. Choose the repository **JoelThornton/Powerkit**, the branch **main**,
    and the primary file **app/routing/app.R**.
-7. Leave **Automatically publish on push** switched on (the default).
-8. Click **Publish** and wait while it installs the packages (several
-   minutes the first time).
-9. Open the app from the link it shows and check it loads. From now on,
-   each merge to main updates it on its own.
+6. Leave **Automatically publish on push** switched on (the default).
+7. Click **Publish** and wait while it installs the packages (several
+   minutes the first time). Keep the old copy for now: it stays online
+   while the new one is set up.
+8. Open the new copy from the link it shows and check it loads.
+9. Only then delete the old copy (the one published from RStudio): open
+   it in the content list and delete it from its settings or "..." menu.
+   This can't be undone, so do it last.
+10. If the new copy's web address differs from the old one, the links in
+    the README, `status.md` and `user-testing.md` need updating to it.
+
+From now on, each merge to main updates the app on its own.
 
 ### A university server (Shiny Server, open source)
 
