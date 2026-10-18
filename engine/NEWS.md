@@ -6,6 +6,24 @@
   "Validated" label is backed by the validation chunk as well as the unit
   tests. No change to results.
 
+* New `export_run_script()`: an R script that runs a spec, with its seed,
+  through `run_spec()` on the user's own computer, then saves the result
+  and writes the backend-only reproduction script and the citations. The
+  app offers it for calculations too long to run there (a mediation
+  required N, and moderated mediation).
+
+* New `power_interval()`: an exact binomial (Clopper-Pearson) range for a
+  simulated power, from the recorded rejections (base R's `binom.test()`).
+  The app shows its quick previews as this range.
+
+* The app prototype now runs mediation and moderated mediation (E10-E14).
+  For power at a fixed N: a rough preview from 100 simulations, shown as a
+  range and labelled not to be reported, then either the full analysis in
+  a separate process with a progress bar and Cancel (mediation) or the R
+  script to run the full analysis on your computer (moderated mediation).
+  A required N goes straight to the R script: a preview of it would take
+  15 minutes or more and often couldn't narrow the N down.
+
 * Documentation: the walkthrough pictures in `docs/figures/walkthroughs/`
   are re-rendered from the current app prototype (for example, E4's card
   now names Fisher's z and Departure 10). No code change.

@@ -95,3 +95,38 @@ fake_result <- function(backend) {
     class = "powerkit_result"
   )
 }
+
+# Write the run script for `spec` (export_run_script()), run it in a fresh R
+# session in an empty folder, and return the result it saved and which of
+# its files it wrote. Under devtools::load_all() powerkit isn't installed,
+# so the script loads the same source instead.
+run_exported_run_script <- function(spec) {
+  dir <- tempfile("powerkit-run-")
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+  text <- export_run_script(spec)
+  path <- getNamespaceInfo(asNamespace("powerkit"), "path")
+  if (dir.exists(file.path(path, "tests"))) {
+    text <- sub(
+      "library(powerkit)",
+      sprintf("pkgload::load_all(%s, quiet = TRUE, export_all = FALSE, helpers = FALSE)", encodeString(path, quote = "\"")),
+      text,
+      fixed = TRUE
+    )
+  }
+  script <- file.path(dir, "run.R")
+  writeLines(text, script)
+  local_env(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), R_TESTS = NA)
+  old <- setwd(dir)
+  on.exit(setwd(old), add = TRUE, after = FALSE)
+  log <- suppressWarnings(system2(
+    rscript_path(), c("--vanilla", shQuote(script)),
+    stdout = TRUE, stderr = TRUE
+  ))
+  saved <- file.path(dir, "powerkit-result.rds")
+  if (!file.exists(saved)) {
+    stop("The run script failed:\n", paste(utils::tail(log, 20), collapse = "\n"), call. = FALSE)
+  }
+  files <- c("powerkit-reproduce.R", "powerkit-citations.txt")
+  list(result = readRDS(saved), files = stats::setNames(file.exists(file.path(dir, files)), files))
+}

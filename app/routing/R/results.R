@@ -90,12 +90,18 @@ progress_estimate <- function(elapsed, usual) {
 }
 
 progress_text <- function(elapsed, usual) {
-  so_far <- sprintf("Running for %d seconds.", as.integer(round(elapsed)))
-  if (is.na(usual)) return(so_far)
-  if (elapsed > usual) {
-    return(sprintf("%s This is taking longer than the usual %s seconds; larger samples take longer.", so_far, whole(usual)))
+  so_far <- if (elapsed < 120) {
+    secs <- as.integer(round(elapsed))
+    sprintf("Running for %d second%s.", secs, if (secs == 1L) "" else "s")
+  } else {
+    sprintf("Running for %d minutes.", as.integer(floor(elapsed / 60)))
   }
-  sprintf("%s This usually takes about %s seconds.", so_far, whole(usual))
+  if (is.na(usual)) return(so_far)
+  usual_words <- if (usual < 120) sprintf("%s seconds", whole(usual)) else sprintf("%s minutes", whole(round(usual / 60)))
+  if (elapsed > usual) {
+    return(sprintf("%s This is taking longer than the usual %s; larger samples take longer.", so_far, usual_words))
+  }
+  sprintf("%s This usually takes about %s.", so_far, usual_words)
 }
 
 # --- Numbers in words --------------------------------------------------------------
@@ -275,10 +281,11 @@ calculating_ui <- function() {
 # For a background run: an estimated progress bar, the time so far and a
 # Cancel button. The bar and time are updated in place (calc_progress
 # message in app.R); only the first line is announced to screen readers.
-calculating_background_ui <- function(usual) {
+calculating_background_ui <- function(usual, title = "Calculating with powerkit's engine\u2026") {
+  usual_words <- if (is.na(usual)) NULL else if (usual < 120) sprintf("%s seconds", whole(usual)) else sprintf("%s minutes", whole(round(usual / 60)))
   div(class = "result-panel calculating calc-progress", tabindex = "-1",
-    p(role = "status", tags$strong("Calculating with powerkit's engine…"),
-      if (!is.na(usual)) sprintf(" This usually takes about %s seconds.", whole(usual))),
+    p(role = "status", tags$strong(title),
+      if (!is.null(usual_words)) sprintf(" This usually takes about %s on one core.", usual_words)),
     tags$label(`for` = "calc-progress-bar", class = "small", "Estimated progress (from the usual run time; the backend doesn't report its own)"),
     tags$progress(id = "calc-progress-bar", max = "100", value = "0", style = "width: 100%; height: 1.25rem;"),
     p(id = "calc-progress-text", class = "small", progress_text(0, usual)),

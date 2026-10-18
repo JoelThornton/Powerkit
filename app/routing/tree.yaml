@@ -23,7 +23,7 @@ links:
   decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
   tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
 
-banner: "Prototype: calculations are available for E1–E9; other designs show guidance only for now."
+banner: "Prototype: calculations are available for E1–E9; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
