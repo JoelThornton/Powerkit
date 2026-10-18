@@ -3,6 +3,9 @@
 # Routing only: it shows which analysis a study needs and calculates
 # nothing. See docs/routing-prototype.md for step-by-step instructions.
 #
+# New to R? Use run_powerkit.R instead (docs/run-it-yourself.md): it
+# installs what the app needs and then starts it.
+#
 # In RStudio: open Powerkit.Rproj, then run source("run_routing_prototype.R")
 # in the console. Nothing is installed here.
 

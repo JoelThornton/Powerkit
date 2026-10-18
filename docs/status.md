@@ -10,6 +10,19 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Run it yourself, and the About tab (draft PR; waits for the
+  maintainer's yes, 18 October 2026).** [`run-it-yourself.md`](run-it-yourself.md)
+  takes a psychologist with no R or Git experience from nothing to the
+  running app on Windows or macOS; `run_powerkit.R` is the one line. The
+  `run-it-yourself` workflow follows the page on clean Windows and macOS
+  runners and checks the app answers. The app's new "About this
+  prototype" tab lists what calculates (from `forms.yaml`), how to report
+  problems, and credits from each package's `citation()`.
+  [`hosting-options.md`](hosting-options.md) compares hosting, including
+  a webR feasibility spike (options and measurements only): every package
+  installs in webR except Spower and SimDesign; E2 ran instantly in the
+  browser with the same result; E10 took 3.5 times as long as native R.
+
 - **Wave 2 G\*Power checks (18 October 2026).** The maintainer's
   screenshots (`docs/figures/gpower/A10_*`, `A11_*`, `A23_*`, `A35_*`,
   `A37_*`) match the engine to seven decimals for one-way ANOVA, R²

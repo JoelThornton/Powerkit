@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* Trying the prototype: `docs/run-it-yourself.md` gives plain-English
+  steps for Windows and macOS (install R 4.5.3, download the ZIP, run one
+  line), with troubleshooting. `run_powerkit.R` restores the recorded
+  packages and the engine if needed and opens the app. A new CI workflow
+  (`run-it-yourself.yaml`) follows those steps on clean Windows and macOS
+  machines and checks the app answers. The app has an "About this
+  prototype" tab: what it does, that it's a prototype, which end points
+  calculate, how to report problems, and credits for every foundation tool
+  from its own `citation()`. `docs/hosting-options.md` compares ways to
+  host it (options only).
+
 * Wave 2 groundwork (engine only; not in the app yet): `run_spec()` now
   runs a one-way between-participants ANOVA (template `oneway_between`,
   Superpower's `ANOVA_exact()`), multiple regression R² against 0 and R²
