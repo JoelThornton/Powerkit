@@ -53,6 +53,13 @@ These come from the app and engine as they are now, not from a provider.
 - **Maintenance.** Low: redeploy from R when the app changes. Package
   versions come from the deploying machine (renv works with it).
 
+- **How to deploy.** `scripts/deploy-shinyapps.R` does it from R on the
+  maintainer's computer (the steps are at the top of that file). It
+  installs powerkit's engine from GitHub first, because the server can
+  only install packages from CRAN or GitHub; checked on 18 October 2026
+  that `rsconnect::appDependencies()` then finds every package the app
+  needs (205, with powerkit from GitHub).
+
 ### Posit Connect (self-hosted) or Posit Connect Cloud
 
 - **What it is.** Connect is Posit's server product, installed on your
