@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* App, screen D of the new design: every result now has a plain reading
+  that keeps the condition ("if the true effect is the one you entered,
+  about 8 in 10 studies like this would get a significant result"), the
+  effect-size source and the user's reasoning beside the number, and a line
+  on what power can't tell you. A required N is shown at 80% and 95% power
+  side by side. The t-tests and the correlation have an explore panel: a
+  slider for the effect size and a plot of power by sample size, which
+  never changes the plan. A test checks that no output template uses a
+  verdict word such as "justified" or "adequate".
+
 * App, screen C of the new design: the effect-size source now includes
   "I can't justify an effect size" (spec type `none`, new in the schema)
   for the t-tests and the correlation. It leads to the smallest effect you

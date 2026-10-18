@@ -186,14 +186,15 @@ result_sentences <- function(spec, result) {
           )
         } else {
           sprintf("This N is calculated for the population you entered (%s).", exact_source(result))
-        }
+        },
+        reading = plain_reading(spec$goal$power)
       )
     },
     power = {
       row <- result$curve[1, ]
       c(
         headline = sprintf(
-          "With %s participants in total%s, the study has %s power: if the true effect is the one you entered, about %d in 100 studies like this would give a significant result with %s.",
+          "With %s participants in total%s, the study has %s power: if the true effect is the one you entered, about %d in 100 studies like this would get a significant result with %s.",
           whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), test
         ),
         detail = if (simulated(result)) {
@@ -233,6 +234,96 @@ result_sentences <- function(spec, result) {
         )
       }
     }
+  )
+}
+
+# The plain reading of a target power (the new design, 18 October 2026):
+# it keeps the condition, and says what power is a chance of.
+plain_reading <- function(power) {
+  sprintf(
+    "In plain words: if the true effect is the one you entered, about %d in 10 studies like this would get a significant result. If the true effect is smaller, fewer would.",
+    round(10 * power)
+  )
+}
+
+# What power can't tell you, under every result.
+power_limits <- "Power is only about how often a study like this would get a significant result. It can't tell you whether your measures are valid and reliable, whether the design tests your theory, or whether the effect is worth caring about."
+
+# Where the effect size comes from, in the user's own words, beside the
+# number.
+reasoning_line <- function(values) {
+  if (blank(values$just_type)) return(NULL)
+  types <- list(smallest_effect_of_interest = "the smallest effect that would matter", meta_analysis = "a meta-analysis",
+                prior_study = "a previous study", pilot_study = "a pilot study", none = "none (you said you can't justify an effect size)")
+  label <- types[[values$just_type]] %||% values$just_type
+  if (blank(values$just_source)) return(sprintf("Effect size source: %s.", label))
+  sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
+}
+
+# The sample size at 80% and at 95% power side by side (the new design:
+# no silent default for target power). Exact results only: two more engine
+# calls, instant for the formula designs.
+cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L) {
+  if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
+  n_at <- function(power) {
+    if (isTRUE(all.equal(power, spec$goal$power))) return(result$n_required$n)
+    s <- spec
+    s$goal$power <- power
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$n_required$n else NA
+  }
+  n80 <- n_at(0.8); n95 <- n_at(0.95)
+  if (is.na(n80) || is.na(n95)) return(NULL)
+  sprintf(
+    "For comparison: 80%% power needs %s participants%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
+    whole(n80), group_text(spec, n80), whole(n95), group_text(spec, n95)
+  )
+}
+
+# The explore panel (the new design): power by sample size for any effect
+# size the user tries, kept apart from the plan. The t-tests and the
+# correlation by formula only for now. The app only calls the engine.
+explore_effect <- function(spec) {
+  if (!identical(spec$design, "basic_test") || identical(spec$options$method, "simulation") ||
+      identical(spec$target_test$method, "welch_t")) return(NULL)
+  switch(spec$template,
+    one_sample_t = list(field = "d", label = "Cohen's d", max = 1.5),
+    independent_t = list(field = "d", label = "Cohen's d", max = 1.5),
+    paired_t = list(field = "dz", label = "d_z", max = 1.5),
+    correlation = list(field = "r", label = "Correlation r", max = 0.9),
+    NULL)
+}
+
+explore_sizes <- function(spec, result) {
+  n <- if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
+  step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
+  ns <- step * round(seq(max(8, n / 4), 2 * n, length.out = 12) / step)
+  unique(pmax(ns, 8))
+}
+
+explore_curve <- function(spec, result, effect, run = engine_function("run_spec"), seed = 1L) {
+  e <- explore_effect(spec)
+  ns <- explore_sizes(spec, result)
+  power <- vapply(ns, function(n) {
+    s <- spec
+    s$population[[e$field]] <- effect
+    s$goal <- list(type = "power", n = as.integer(n))
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
+  }, numeric(1))
+  data.frame(n = ns, power = power)
+}
+
+explore_ui <- function(spec) {
+  e <- explore_effect(spec)
+  if (is.null(e)) return(NULL)
+  planned <- spec$population[[e$field]]
+  start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
+  div(class = "explore-panel",
+    h4(class = "h6", "Explore: what if the effect were different?"),
+    p(class = "small", "Move the slider to see how power changes with the sample size for other effect sizes. Exploring doesn't change your plan: it keeps the effect size and reasoning you entered."),
+    sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
+    plotOutput("explore_plot", height = "280px")
   )
 }
 
@@ -429,18 +520,23 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
+    if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
+    if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
+    if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
     if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
+    explore_ui(spec),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-seed small",
       sprintf("Seed: %s. ", p_$seed),
       if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
         "Nothing was simulated, so the seed doesn't change this result in practice."),
     p(class = "result-observed small", not_observed_power),
+    p(class = "result-limits small", power_limits),
     validation_ui(ep),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
