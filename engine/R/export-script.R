@@ -660,8 +660,8 @@ pwr_sensitivity_section <- function(spec, result) {
       if (two_sided) {
         c(
           "# For a two-sided test pwr returns a positive effect; keep the sign",
-          "# of the effect you specified.",
-          sprintf("%s <- sign(%s) * abs(found)", variable, variable)
+          "# of the effect you specified (positive if you gave none).",
+          sprintf("%s <- if (%s < 0) -abs(found) else found", variable, variable)
         )
       } else {
         sprintf("%s <- found", variable)

@@ -5,8 +5,9 @@
   and independent t-tests, the correlation, two proportions and the
   chi-square test on the formula path. pwr solves for the effect when it is
   left empty (for two proportions, group 2's proportion is searched with the
-  same power call), in the direction of the effect you specified. The
-  exported R script reproduces it. This is the first step of the fixed-N
+  same power call), in the direction of the effect you specified. For the t-tests and the
+  correlation no effect size is needed (a zero effect gives a positive
+  result). The exported R script reproduces it. This is the first step of the fixed-N
   route in the new design.
 
 * New `write_project()`, `read_project()` and `reproduce_project()`: save a

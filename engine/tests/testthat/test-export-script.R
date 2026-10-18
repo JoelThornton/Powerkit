@@ -298,6 +298,11 @@ test_that("a smallest detectable effect is reproduced (basic tests on pwr)", {
     s <- result$sensitivity
     expect_equal(run$reproduced, list(effect = s$effect, power = s$power), tolerance = 1e-8, info = name)
   }
+  none <- formula_spec("correlation", list(type = "sensitivity", n = 80, power = 0.8))
+  none$population$r <- 0
+  result <- run_spec(none)
+  expect_gt(result$sensitivity$effect, 0)
+  expect_equal(run_exported_script(none, result)$reproduced$effect, result$sensitivity$effect, tolerance = 1e-8)
   unequal <- formula_spec("independent_t", list(type = "sensitivity", n = 150, power = 0.9))
   unequal$options$allocation_ratio <- 2
   unequal$target_test$alternative <- "less"

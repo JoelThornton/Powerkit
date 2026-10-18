@@ -269,7 +269,8 @@ pwr_sensitivity <- function(spec, n, target) {
   ratio <- spec$options$allocation_ratio %||% 1
   equal <- isTRUE(all.equal(ratio, 1))
   signed <- function(value, specified) {
-    if (alternative == "two.sided") sign(specified) * abs(value) else value
+    # A zero specified effect (none given) gives a positive result.
+    if (alternative == "two.sided" && isTRUE(specified < 0)) -abs(value) else value
   }
   solve <- function(fun, args, field) {
     args$sig.level <- alpha
