@@ -1,0 +1,46 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "oneway_between",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Feedback",
+      "levels": [
+        "None",
+        "Neutral",
+        "Praise"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Persistence (minutes)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      10,
+      11,
+      13
+    ],
+    "sd": 6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 3-minute benefit of praise over no feedback is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "main_effect_A",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}

@@ -21,6 +21,7 @@ source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
+source(file.path("R", "about.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -87,6 +88,9 @@ app_css <- "
   .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
+  .about { max-width: 46rem; }
+  .about-endpoints li, .about-credit { margin-bottom: 0.4rem; }
+  .about-citation { color: #3d4852; margin-top: 0.15rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 "
 
@@ -159,6 +163,7 @@ ui <- fluidPage(
     tabsetPanel(
       id = "tabs",
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("screen"))),
+      tabPanel("About this prototype", div(class = "pt-3", about_ui(tree, forms))),
       tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
     )
   )

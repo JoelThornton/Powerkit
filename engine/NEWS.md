@@ -8,6 +8,42 @@
   result screen and "Or open a saved project" on the start screen, which
   puts the input screen back with the same values.
 
+* Trying the prototype: `docs/run-it-yourself.md` gives plain-English
+  steps for Windows and macOS (install R 4.5.3, download the ZIP, run one
+  line), with troubleshooting. `run_powerkit.R` restores the recorded
+  packages and the engine if needed and opens the app. A new CI workflow
+  (`run-it-yourself.yaml`) follows those steps on clean Windows and macOS
+  machines and checks the app answers. The app has an "About this
+  prototype" tab: what it does, that it's a prototype, which end points
+  calculate, how to report problems, and credits for every foundation tool
+  from its own `citation()`. `docs/hosting-options.md` compares ways to
+  host it (options only).
+
+* Wave 2 groundwork (engine only; not in the app yet): `run_spec()` now
+  runs a one-way between-participants ANOVA (template `oneway_between`,
+  Superpower's `ANOVA_exact()`), multiple regression R² against 0 and R²
+  increase (new design `multiple_regression`, pwrss's
+  `power.f.regression()`), one proportion against a fixed value (exact
+  binomial, pwrss's `power.exact.oneprop()`) and McNemar's exact test
+  (pwrss's `power.exact.mcnemar()`). Welch's t-test can be calculated by
+  formula on request (`options > method = "exact"`, pwrss's
+  `power.t.welch()`); its default stays Spower simulation. Each has an
+  example spec, an exported script that reproduces it with the backend
+  alone, and tests against the backend called directly. For exact tests
+  of counts the required N is the smallest that reaches the target, which
+  can be lower than pwrss's own answer; G\*Power reports the same N as
+  powerkit (Known difference 2). One-way ANOVA, R² against 0, R² increase and one
+  proportion match the maintainer's G\*Power screenshots to seven
+  decimals, a priori N included (G\*Power also reports 90 for the
+  one-proportion example). McNemar matches G\*Power's exact
+  option too (power, and N = 129).
+
+* Documentation: `docs/judgement-session.md` sets out the nine open calls
+  that change what users see, ordered by impact, for the maintainer's
+  judgement session, and `docs/saving-projects.md` compares five ways to
+  save projects (judgement call E6). Options and sources only; no code
+  change.
+
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in
   both directions, one tail at 1 : 2, and a priori at 1 : 3), so E5's

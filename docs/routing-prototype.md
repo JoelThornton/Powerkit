@@ -19,6 +19,12 @@ file and `decision-tree.md` agree, so they can't drift apart.
 
 ## Run it (step by step)
 
+**Trying it for the first time, with no R experience?** Follow
+[`run-it-yourself.md`](run-it-yourself.md): it installs R, downloads
+powerkit and starts it with one line, `source("run_powerkit.R")`, which
+installs the recorded packages and the engine if needed. The steps below
+are for people who already have R and the project set up.
+
 You need R and RStudio. You don't need to know Shiny.
 
 1. **Open the project.** In RStudio: *File → Open Project…* and choose

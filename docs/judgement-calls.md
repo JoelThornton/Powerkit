@@ -66,13 +66,17 @@ The statistical decisions phase 3b needs before coding are in
 [`phase-3b-questions.md`](phase-3b-questions.md) and are only linked here
 (E4).
 
+For the session itself, [`judgement-session.md`](judgement-session.md)
+condenses the calls that change what users see into one page each,
+ordered by impact.
+
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
 - [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B17
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
-- [E. Behind the scenes](#e-behind-the-scenes): E1–E5
+- [E. Behind the scenes](#e-behind-the-scenes): E1–E6
 - [F. Validation](#f-validation): F1
 - [G. Coverage and scope](#g-coverage-and-scope): G1–G9
 
@@ -1533,6 +1537,41 @@ is kept below as the record of the options.
     opened). Whether E15 could reuse it is for phase 3b.
 - **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
   setting.
+
+### E6. Saving projects
+
+*Added 18 October 2026; for the maintainer's judgement session.*
+
+- **Question:** how, if at all, can users keep their work: the route,
+  inputs, seed, results and versions of an analysis?
+- **Options** (details in [`saving-projects.md`](saving-projects.md)):
+  - (a) a project file the user saves and loads;
+  - (b) autosave in the browser's storage;
+  - (c) share links that carry the inputs in the address;
+  - (d) private result links for background jobs;
+  - (e) user accounts with stored projects (for example Supabase);
+  - none (as now: only the R script and citations can be downloaded).
+- **What tools and sources do:**
+  - G\*Power: whether and how it saves analyses is unknown (not checked;
+    the maintainer's screenshots could show it).
+  - Shiny's `enableBookmarking()` (shiny's help page, opened 18 October
+    2026): "two types of bookmarking: saving an application's state to
+    disk on the server, and encoding the application's state in a URL";
+    URL encoding suits apps with few inputs, since "Some browsers have a
+    length limit for URLs of about 2000 characters".
+  - powerkit's spec is already a JSON file with a schema, and every result
+    records its seed, versions and spec hash (opened: the schema and
+    `run_spec()`'s provenance).
+- **Who might disagree, and why:**
+  - Users who move between computers want stored projects; data
+    protection officers prefer that nothing is stored.
+  - A file is easy to lose; accounts are a barrier to a quick check.
+- **Knock-on effects:** hosting (options (c) to (e) need a server, (d)
+  and (e) need storage and GDPR duties); the About panel's "Nothing is
+  sent from this app" line would change for (d) and (e); a file format
+  that future versions must read.
+- **Recorded in:** this entry; [`saving-projects.md`](saving-projects.md);
+  a draft PR implements (a) for review.
 
 ## F. Validation
 

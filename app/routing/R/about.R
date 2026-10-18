@@ -1,0 +1,109 @@
+# "About this prototype": what powerkit does, that it's a prototype, which
+# end points calculate, how to report problems, and credits for the tools
+# it is built on. The lists come from tree.yaml and forms.yaml, so they stay
+# in step with the app; credits come from each package's own citation()
+# (CLAUDE.md: citations only from refs.bib or citation()).
+
+# The packages powerkit is built on (docs/coverage-roadmap.md, "Foundation
+# tools"), then the software doing real work underneath them (as in the
+# engine's citations export, supporting_software()), then R and Shiny.
+about_foundation_tools <- list(
+  list(package = "pwr", role = "formulas for the t-tests, the correlation and the chi-square test (E1 to E4, E6), and Cohen's h for two proportions if you choose it"),
+  list(package = "pwrss", role = "the z test for two proportions in unequal groups (E5)"),
+  list(package = "Spower", role = "simulation for the basic tests when you choose it, and for Welch's t-test (E2)"),
+  list(package = "Superpower", role = "the 2 x 2 designs (E7, E8)"),
+  list(package = "InteractionPoweR", role = "interactions in regression (E9)"),
+  list(package = "power4mome", role = "mediation and moderated mediation (E10 to E14)")
+)
+about_supporting_tools <- list(
+  list(package = "SimDesign", role = "which runs Spower's simulations"),
+  list(package = "afex", role = "which fits Superpower's ANOVAs"),
+  list(package = "MASS", role = "which Superpower uses to generate data"),
+  list(package = "lavaan", role = "which power4mome uses to fit each simulated data set"),
+  list(package = "manymome", role = "which power4mome uses for indirect effects and their confidence intervals"),
+  list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups (E5)"),
+  list(package = "shiny", role = "which draws this app")
+)
+
+# A package's own citation() as plain text, or a note if it isn't installed.
+about_citation_text <- function(package) {
+  if (!identical(package, "base") && !requireNamespace(package, quietly = TRUE)) {
+    return(sprintf("Not installed on this computer; see citation(\"%s\") in R.", package))
+  }
+  text <- tryCatch(format(utils::citation(package), style = "text"), error = function(e) character())
+  if (!length(text)) return(sprintf("See citation(\"%s\") in R.", package))
+  # Plain text: drop the markdown-style emphasis format() adds.
+  gsub("[*_]{1,2}([^*_]+)[*_]{1,2}", "\\1", text)
+}
+
+about_credit_ui <- function(tool) {
+  label <- tool$label %||% tool$package
+  tags$li(
+    class = "about-credit",
+    HTML(sprintf("<strong>%s</strong>, %s.", htmltools::htmlEscape(label), htmltools::htmlEscape(tool$role))),
+    tags$ul(class = "about-citation small", lapply(about_citation_text(tool$package), tags$li))
+  )
+}
+
+# One line per end point that calculates, with how it calculates.
+about_endpoint_lines <- function(tree, forms) {
+  instant <- unlist(forms$calculates)
+  sims <- forms$simulations$endpoints %||% list()
+  background <- names(forms$background %||% list())
+  line <- function(id, how) {
+    ep <- tree$endpoints[[id]]
+    # One string, so no stray spaces appear around the punctuation.
+    tags$li(HTML(sprintf("<strong>%s</strong>: %s (%s). %s", id,
+      htmltools::htmlEscape(ep$plain_name), htmltools::htmlEscape(ep$doc_name), htmltools::htmlEscape(how))))
+  }
+  c(
+    lapply(instant, function(id) {
+      line(id, if (id %in% background) "Calculates here, in the background, with a progress bar." else "Calculates here, straight away.")
+    }),
+    lapply(names(sims), function(id) {
+      full <- "power" %in% unlist(sims[[id]]$full_run)
+      line(id, paste(
+        "Power: a rough preview here, then",
+        if (full) "the full analysis here (it takes several minutes)." else "an R script to run the full analysis on your computer.",
+        "Sample size: an R script to run on your computer."
+      ))
+    })
+  )
+}
+
+about_ui <- function(tree, forms) {
+  n_endpoints <- length(tree$endpoints)
+  div(
+    class = "about",
+    h2("About this prototype"),
+    div(class = "alert alert-warning",
+      tags$strong("This is a prototype. "),
+      "Its results are not yet fully validated, and screens, wording and defaults will change. ",
+      "Please don't use it to plan a real study yet."),
+    h3(class = "h5", "What it does"),
+    p("powerkit helps you plan the sample size for a psychology study. You describe your study, ",
+      "it finds the power analysis that fits, asks for the numbers that analysis needs, ",
+      "and runs it with an established R package. powerkit never does the statistics itself: ",
+      "every number comes from one of the packages credited below, and every full result comes with ",
+      "an R script that reproduces it with that package alone, and the citations to use."),
+    p(sprintf(
+      "Each of the %d cards says which analysis fits a study and which tool covers it. ",
+      n_endpoints
+    ), "These calculate in the app:"),
+    tags$ul(class = "about-endpoints", about_endpoint_lines(tree, forms)),
+    p("The other cards give guidance only for now."),
+    h3(class = "h5", "Reporting a problem"),
+    p(HTML(paste0(
+      "Every card has a <strong>Something doesn&#39;t fit?</strong> link at the bottom. Open it, click ",
+      "<strong>Copy the path</strong>, paste it into an email, add a sentence on what you expected, ",
+      "and send it to whoever asked you to try the prototype. Nothing is sent from this app: ",
+      "everything you enter stays on your computer."
+    ))),
+    h3(class = "h5", "Credits"),
+    p("powerkit is built on these R packages. Their own citations are below; ",
+      "please cite the package that calculated your result (the result screen's Citations button lists it)."),
+    tags$ul(class = "about-credits", lapply(about_foundation_tools, about_credit_ui)),
+    p("And the software they run on:"),
+    tags$ul(class = "about-credits", lapply(about_supporting_tools, about_credit_ui))
+  )
+}

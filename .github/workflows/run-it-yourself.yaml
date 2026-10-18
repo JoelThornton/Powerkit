@@ -1,0 +1,145 @@
+# Follows docs/run-it-yourself.md on clean Windows and macOS machines, so
+# the instructions can't silently break: installs R 4.5.3 from the
+# installer the page links to, makes the folder a "Download ZIP" would
+# give, runs run_powerkit.R exactly as the page says (source() of the
+# file), and checks the app answers in a browser's place (curl).
+#
+# "Clean": GitHub's runners come with R preinstalled, so this installs R
+# 4.5.3 to its own folder and calls that R by its full path, with an empty
+# user library and an empty renv cache, so nothing preinstalled helps.
+# RStudio isn't installed: the page's RStudio and plain-R routes run the
+# same file.
+#
+# Runs when the page, the launcher, the app, the lockfile or this file
+# change, weekly (packages can disappear from the package server), and on
+# demand.
+name: run-it-yourself
+
+on:
+  pull_request:
+    paths:
+      - docs/run-it-yourself.md
+      - run_powerkit.R
+      - renv.lock
+      - renv/**
+      - app/routing/**
+      - engine/DESCRIPTION
+      - engine/NAMESPACE
+      - .github/workflows/run-it-yourself.yaml
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  follow-the-steps:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            installer: https://cran.r-project.org/bin/windows/base/old/4.5.3/R-4.5.3-win.exe
+          - os: macos-latest
+            installer: https://cran.r-project.org/bin/macosx/big-sur-arm64/base/R-4.5.3-arm64.pkg
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Step 1: install R 4.5.3 from the installer the page links to"
+        run: |
+          set -euo pipefail
+          # The page's link must be the one tested here.
+          grep -qF "${{ matrix.installer }}" docs/run-it-yourself.md
+          curl -fsSL -o "$RUNNER_TEMP/r-installer" "${{ matrix.installer }}"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv "$RUNNER_TEMP/r-installer" "$RUNNER_TEMP/r-installer.exe"
+            "$RUNNER_TEMP/r-installer.exe" //VERYSILENT //SUPPRESSMSGBOXES //NORESTART "//DIR=C:\\R-4.5.3"
+            # The installer returns before it finishes; wait for Rscript.
+            for i in $(seq 1 60); do [ -f "/c/R-4.5.3/bin/Rscript.exe" ] && break; sleep 5; done
+            echo "RSCRIPT=/c/R-4.5.3/bin/Rscript.exe" >> "$GITHUB_ENV"
+          else
+            mv "$RUNNER_TEMP/r-installer" "$RUNNER_TEMP/r-installer.pkg"
+            sudo installer -pkg "$RUNNER_TEMP/r-installer.pkg" -target /
+            echo "RSCRIPT=/Library/Frameworks/R.framework/Resources/bin/Rscript" >> "$GITHUB_ENV"
+          fi
+
+      - name: Check it is R 4.5.3, with nothing preinstalled
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/empty-user-library" "$RUNNER_TEMP/renv-root"
+          echo "R_LIBS_USER=$RUNNER_TEMP/empty-user-library" >> "$GITHUB_ENV"
+          echo "RENV_PATHS_ROOT=$RUNNER_TEMP/renv-root" >> "$GITHUB_ENV"
+          R_LIBS_USER="$RUNNER_TEMP/empty-user-library" "$RSCRIPT" -e 'cat(R.version.string, "\n"); stopifnot(getRversion() == "4.5.3"); stopifnot(!requireNamespace("shiny", quietly = TRUE))'
+
+      - name: "Step 3: make the folder 'Download ZIP' gives, and unzip it"
+        run: |
+          set -euo pipefail
+          git archive --format=zip --prefix=Powerkit-main/ -o "$RUNNER_TEMP/Powerkit-main.zip" HEAD
+          mkdir -p "$RUNNER_TEMP/user"
+          cd "$RUNNER_TEMP/user" && unzip -q "$RUNNER_TEMP/Powerkit-main.zip"
+          ls "$RUNNER_TEMP/user/Powerkit-main/run_powerkit.R"
+
+      - name: "Step 4: run the one line, and check the app answers"
+        env:
+          POWERKIT_PORT: "8765"
+          POWERKIT_NO_BROWSER: "true"
+        run: |
+          set -uo pipefail
+          # From the user's home folder, as with source(file.choose()).
+          cd "$RUNNER_TEMP"
+          folder="$RUNNER_TEMP/user/Powerkit-main"
+          # R needs forward slashes on Windows.
+          if command -v cygpath >/dev/null; then folder=$(cygpath -m "$folder"); fi
+          "$RSCRIPT" -e "source('$folder/run_powerkit.R')" > "$RUNNER_TEMP/powerkit.log" 2>&1 &
+          pid=$!
+          ok=false
+          # Up to 140 minutes: the first install downloads every package.
+          for i in $(seq 1 1680); do
+            if curl -sf "http://127.0.0.1:8765/" -o "$RUNNER_TEMP/page.html"; then ok=true; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 5
+          done
+          if [ "$ok" = true ] && grep -q "powerkit" "$RUNNER_TEMP/page.html" && grep -q "About this prototype" "$RUNNER_TEMP/page.html"; then
+            echo "The app answered after about $((i * 5 / 60)) minutes, with its About tab."
+            grep "^powerkit:" "$RUNNER_TEMP/powerkit.log" || true
+            kill "$pid" 2>/dev/null || true
+            exit 0
+          fi
+          echo "::error::The app did not answer. Last 80 lines of the R console:"
+          tail -n 80 "$RUNNER_TEMP/powerkit.log"
+          kill "$pid" 2>/dev/null || true
+          exit 1
+
+      - name: "Next time: a second start is quick and installs nothing"
+        env:
+          POWERKIT_PORT: "8766"
+          POWERKIT_NO_BROWSER: "true"
+        run: |
+          set -uo pipefail
+          folder="$RUNNER_TEMP/user/Powerkit-main"
+          # R needs forward slashes on Windows.
+          if command -v cygpath >/dev/null; then folder=$(cygpath -m "$folder"); fi
+          start=$(date +%s)
+          "$RSCRIPT" -e "source('$folder/run_powerkit.R')" > "$RUNNER_TEMP/second.log" 2>&1 &
+          pid=$!
+          ok=false
+          for i in $(seq 1 120); do
+            if curl -sf "http://127.0.0.1:8766/" -o /dev/null; then ok=true; break; fi
+            kill -0 "$pid" 2>/dev/null || break
+            sleep 2
+          done
+          kill "$pid" 2>/dev/null || true
+          if [ "$ok" = true ]; then
+            echo "Second start took $(( $(date +%s) - start )) seconds."
+          else
+            echo "::error::The second start failed."; tail -n 40 "$RUNNER_TEMP/second.log"; exit 1
+          fi
+          if grep -q "installing powerkit's engine" "$RUNNER_TEMP/second.log"; then
+            echo "::error::The second start reinstalled the engine."; exit 1
+          fi

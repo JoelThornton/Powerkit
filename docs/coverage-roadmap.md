@@ -1,6 +1,6 @@
 # Coverage roadmap
 
-*Last updated: 17 October 2026.*
+*Last updated: 18 October 2026.*
 
 The master list of everything powerkit might cover: every test in
 G\*Power 3.1.9.7's Tests menu (Part A), designs beyond G\*Power (Part B),
@@ -92,8 +92,8 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A7 | Linear bivariate regression: one group, size of slope | GP; UCLA | E4 (the test of a slope of 0 is the test of r = 0; audit) | Done (validated and wired) | Now: AP, PN (as r). Could: AP, PN, S, Co, Cr | Spower `p_slr(beta, sd_x, sd_y, beta0)` (Example 12.3); pwr `pwr.r.test()` for a slope of 0 | Accept slope and SDs on E4, or a card note; a non-zero null slope needs `p_slr()` | [G3][] |
 | A8 | Linear bivariate regression: two groups, difference between intercepts | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` with a user-written data generator (Examples 17.3 and 18.3 in Spower's vignette write one) | — | [G1][] |
 | A9 | Linear bivariate regression: two groups, difference between slopes | GP | E15 (a yes/no W × continuous X interaction is a difference in slopes) | Planned (phase 3b) | Now: —. Could: AP, PN (InteractionPoweR, by a grid over N) | InteractionPoweR `power_interaction(k.x2 = 2)`: groups split 50/50 only. Spower `p_glm()` as A8 for unequal groups | Phase 3b; G\*Power allows unequal groups, InteractionPoweR doesn't | [E4][] |
-| A10 | Linear multiple regression: fixed model, R² deviation from zero | GP; UCLA | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_lm.R2(R2, k)` (Example 13.1); pwr `pwr.f2.test()` | coverage.md proposes v2 | [G1][] |
-| A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` | As A10 | [G1][] |
+| A10 | Linear multiple regression: fixed model, R² deviation from zero | GP; UCLA | E24 | Planned (wave 2: engine groundwork, draft PR; not wired) | Engine: AP, PN (pwrss). Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: pwrss `power.f.regression(r.squared.change, k.total, k.tested)`** (noncentrality f² × n, from its source). Spower `p_lm.R2(R2, k)` (Example 13.1); pwr `pwr.f2.test()` | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
+| A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Planned (wave 2: engine groundwork, draft PR; not wired) | As A10 | **Engine: pwrss `power.f.regression()`, passed the partial R² (R²full − R²reduced) / (1 − R²reduced), so f² = ΔR² / (1 − R²full)**. Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` (its noncentrality f² × (u + v + 1) differs) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
 | A13 | Linear multiple regression: random model | GP | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_lm.R2(fixed = FALSE)` (Example 7.3) | — | [G1][] |
 | A14 | Logistic regression | GP; UCLA | E27 | Planned (phase 6: GLMs) | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` | Phase 6 | — |
@@ -122,7 +122,7 @@ Departure 10 in [`conventions.md`](conventions.md).
 | A20 | Two independent groups | GP; UCLA | E2 | Done (validated and wired) | As A16 | Spower `p_t.test(n2_n1)`; pwr `pwr.t.test()`, `pwr.t2n.test()` (unequal groups) | — | — |
 | A21 | Two independent groups: Wilcoxon | GP; UCLA | none: reaches E2 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "two.sample", n2_n1, parent1, parent2)` | As A17 | [C10][] |
 | A22 | ANCOVA: main effects and interactions | GP; UCLA; BG | E23 | Planned (v2 in the build guide, section 2; no phase named) | Could: PN, AP (by a search over n) | Superpower `ANCOVA_analytic()`, `power_oneway_ancova()`, `ANCOVA_contrast()`. Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Name a phase | [C15][], [D7][] |
-| A23 | ANOVA: one-way | GP; UCLA | E18 | Foundation tool can do it, not planned | Could: PN, AP (Superpower); AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Superpower `power_oneway_between()`, `ANOVA_design("kb")`; Spower `p_anova.test(n.ratios, var.equal)` (Example 10.3); pwr `pwr.anova.test()` (balanced only) | coverage.md proposes v2 | [G1][] |
+| A23 | ANOVA: one-way | GP; UCLA | E18 | Planned (wave 2: engine groundwork, draft PR; not wired) | Engine: AP, PN (Superpower, exact). Could: S (not yet: which pattern to scale is open); AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: Superpower `ANOVA_design("kb")` + `ANOVA_exact()`** (equal groups, equal SDs; agrees with pwr `pwr.anova.test()` in a test). Also `power_oneway_between()`; Spower `p_anova.test(n.ratios, var.equal)` (Example 10.3) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A24 | ANOVA: main effects and interactions (two or more IVs) | GP; UCLA | E7 (2 x 2); E21 (larger) | Done (validated and wired) | Now: AP, PN, S (2 x 2). Could: Co (Superpower `ANOVA_compromise()`) | Superpower `ANOVA_exact()`, `ANOVA_power()`; `power_twoway_between()`, `power_threeway_between()` for larger designs | 2 x 2 only; 2 x 2 x 2 is in the build guide's MVP family with no phase | [G1][] |
 | A25 | Repeated measures: between factors, ANOVA-approach | GP | E8 (the group effect in a 2 x 2 mixed design) | Done (validated and wired) | Now: AP, PN, S (2 x 2 mixed) | Superpower `ANOVA_exact()` (`"2b*2w"` and larger designs) | Larger designs: E21 | [G1][] |
 | A26 | Repeated measures: between factors, MANOVA-approach | GP | none: not reachable | Unknown (check whether Superpower's `manova_results` includes the between-factor effect; its help says only that MANOVA results are given "if a within-subjects factor is included") | — | Superpower `ANOVA_exact()` / `ANOVA_power()`, element `manova_results` (candidate) | Check | [G1][] |
@@ -139,9 +139,9 @@ Departure 10 in [`conventions.md`](conventions.md).
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A35 | One group: difference from constant | GP; UCLA (binomial test) | E25 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_prop.test(prop, pi)` (Example 4.3); pwr `pwr.p.test()` (arcsine effect size h, normal approximation). pwrss `power.exact.oneprop()` (exact; cross-check) | coverage.md proposes v2 | [G1][] |
+| A35 | One group: difference from constant | GP; UCLA (binomial test) | E25 | Planned (wave 2: engine groundwork, draft PR; not wired) | Engine: AP, PN (pwrss, exact). Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: pwrss `power.exact.oneprop(prob, null.prob)`** (exact binomial). Spower `p_prop.test(prop, pi)` (Example 4.3); pwr `pwr.p.test()` (arcsine h, normal approximation) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A36 | One group: sign test | GP | none: reaches E1 or E3 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | candidate: Spower `p_prop.test(prop, pi = 0.5)` with the effect entered as the proportion of positive differences (inferred, not in Spower's help). powertools `signtest()` | Confirm the inference | [C10][] |
-| A37 | Two dependent groups: McNemar | GP; UCLA | E26 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_mcnemar.test(prop, OR, prop.disc)` (Example 5.3). pwrss `power.exact.mcnemar()` (cross-check) | coverage.md proposes v2 | [G1][] |
+| A37 | Two dependent groups: McNemar | GP; UCLA | E26 | Planned (wave 2: engine groundwork, draft PR; not wired) | Engine: AP, PN (pwrss, exact). Could: AP, PN, S, Co, Cr (Spower) | **Engine: pwrss `power.exact.mcnemar(prob10, prob01, method = "exact")`** (prob10 = yes in the second condition only). Spower `p_mcnemar.test(prop, OR, prop.disc)` (Example 5.3) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A38 | Two independent groups: Fisher's exact | GP; UCLA | none: reaches E5 or E6 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_prop.test(exact = TRUE)` (`prop` as a matrix; `fisher.test()`). pwrss `power.exact.fisher()` (cross-check). Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Decide judgement call 3.9 | [C11][] |
 | A39 | Two independent groups: unconditional exact | GP | none: reaches E5 *(inferred)* | G\*Power covers it, powerkit doesn't | — | unknown (no unconditional exact test found in the foundation tools' help) | — | [G1][] |
 | A40 | Two independent groups: inequality with offset, unconditional exact | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown | — | [G1][] |
@@ -220,7 +220,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B24 | Welch's t | ML | E2 (an option) | Done (validated and wired) | Now: AP, PN (Spower). Could: AP, PN, S, Co, Cr | Spower `p_t.test(var.equal = FALSE)`. pwr has no Welch test, so Welch stays on simulation under PR #34 | — | — |
+| B24 | Welch's t | ML | E2 (an option) | Done (validated and wired) | Now: AP, PN (Spower). Engine on request: AP, PN by formula (pwrss). Could: S, Co, Cr | Spower `p_t.test(var.equal = FALSE)` (default). **Engine, with `options > method = "exact"` only: pwrss `power.t.welch(d, var.ratio = 1, n.ratio)`** (wave 2, draft PR; the app still uses Spower) | G\*Power check of the formula (wave 2 list below) | — |
 | B25 | Kruskal–Wallis | ML; UCLA | none: reaches E18 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_kruskal.test(n, k, means, n.ratios)` | Decide judgement call 3.8 | [C10][] |
 | B26 | Friedman | ML; UCLA | none: reaches E18 | Unknown (no Friedman power function in the foundation tools or the 47 other packages opened; check further) | — | unknown | Search | [C10][] |
 | B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found | — | [C6][] |
@@ -302,6 +302,81 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B68 | Meta-analysis | ML; Audit | none: not reachable | Unknown (decide scope: coverage.md calls it outside powerkit's single-study focus) | — | metapower `mpower()`; POMADE `power_MADE()` | Decide | — |
 | B69 | Replication-study power (e.g. small telescopes, safeguard power) | ML | none: not reachable | Unknown (decide whether this is an effect-size input option or its own card) | — | RSmallTelescopes `SmallTelescopes()`; BUCSS `ss_buc_*()` functions; mixpower `mp_safeguard_effect()` | Decide | [B2][] |
 
+## Wave 2 (engine groundwork, 18 October 2026)
+
+Five tests now run in the engine only: no route, card or form uses them
+yet. Each is one backend call, checked against that backend called
+directly (`engine/tests/testthat/test-backend-wave2.R`) and against the
+maintainer's G\*Power screenshots (`gpower-parity.md`, "Wave 2"), which all match.
+
+| Row | Spec (design / template) | Backend and function | Analytic? |
+| --- | --- | --- | --- |
+| A23 | `factorial_anova` / `oneway_between` | Superpower `ANOVA_exact()` | exact |
+| A10 | `multiple_regression` / `r2_zero` | pwrss `power.f.regression()` | analytic (noncentral F) |
+| A11 | `multiple_regression` / `r2_increase` | pwrss `power.f.regression()` (partial R²) | analytic (noncentral F) |
+| A35 | `basic_test` / `one_proportion` | pwrss `power.exact.oneprop()` | exact binomial |
+| A37 | `basic_test` / `mcnemar` | pwrss `power.exact.mcnemar(method = "exact")` | exact |
+| B24 | `basic_test` / `independent_t`, `welch_t`, `options > method = "exact"` | pwrss `power.t.welch()` | analytic (Welch df) |
+
+**Open points found while building it (none decided):**
+
+- **Required N for exact tests of counts (A35, A37).** Their power goes
+  up and down with N. The engine reports the smallest N that reaches the
+  target (for the one-proportion example, 90). pwrss's own sample-size
+  answer for the same inputs is 92, and power at 96 falls back to 0.799.
+  For McNemar, the engine gives 129 and pwrss's sample-size call 130.
+  G\*Power reports 90 for the one-proportion example, as the engine does
+  (screenshot, 18 October 2026). For McNemar, G\*Power's screenshots
+  used its default "faster approximation" (121; 0.7187 at N = 100), which
+  neither pwrss method reproduces; its "exact (unconditional) power"
+  option reports 129, as the engine does.
+- **One-sided tests against the expected direction** can't be computed
+  with these pwrss functions (they test in the direction of the
+  effect), so the engine refuses them for A35, A37 and B24 by formula.
+- **One-way sensitivity** (A23) isn't offered: which pattern of means to
+  scale is open, as for E7 and E8's choice.
+- **R² noncentrality (A10, A11).** pwrss uses f² × N; pwr's
+  `pwr.f2.test()` uses f² × (u + v + 1), which is the same for R² against
+  0 but differs for an increase. Settled: G\*Power's noncentrality is
+  f² × N (9.8196 = 0.0588 × 167 on its screenshot), pwrss's convention,
+  and the engine matches G\*Power to seven decimals.
+
+**G\*Power screenshots received (18 October 2026).** One-way ANOVA (at
+f = 0.279), R² against 0, R² increase and one proportion match the
+engine to seven decimals, a priori N included (`test-backend-wave2.R`;
+`gpower-parity.md`, "Wave 2"). McNemar with G\*Power's exact option matches
+too (post hoc 0.6742876; a priori N = 129). All wave 2 G\*Power checks
+are done. The one-way ANOVA at f = 0.2079 and the R² increase post hoc
+are not needed (the cases sent already check the same calculations).
+
+**G\*Power screens and inputs the maintainer was asked to send** (one
+screenshot of each, showing the input and output panes, α = 0.05,
+power 0.80 unless said; menu names as in the maintainer's list, Part A):
+
+1. **A23, one-way ANOVA** (Means: "ANOVA: one-way"). A priori: effect size f = 0.2079 (from means 10, 11, 13, SD
+   6; or use "Determine" with those means and n per group equal), 3
+   groups. Then Post hoc: N = 120.
+2. **A10, R² against 0** (Correlation and regression: "Linear multiple
+   regression: fixed model, R² deviation from zero"). A priori: f² = 0.1111 (R² = 0.10), 5
+   predictors. Then Post hoc: N = 100.
+3. **A11, R² increase** (Correlation and regression: "Linear multiple
+   regression: fixed model, R² increase"). A priori: f² = 0.0588 (R² 0.15
+   full, 0.10 reduced, so (0.15 − 0.10) / (1 − 0.15)), 2 tested
+   predictors, 5 total. Then Post hoc: N = 150.
+4. **A35, one proportion** (Proportions: "One group: difference from
+   constant", the exact binomial version). A priori: two tails,
+   constant proportion 0.50, proportion 0.65. Please include the power
+   plot or the note on non-monotone power if G\*Power shows one. Then Post
+   hoc: N = 80, and one tail at N = 80.
+5. **A37, McNemar** (Proportions: "Two dependent groups: McNemar").
+   A priori: two tails, odds ratio 2.5 (0.25 / 0.10), proportion of
+   discordant pairs 0.35 (the inputs G\*Power asks for are to be
+   confirmed from the screenshot). Then Post hoc: N = 100.
+6. **B24, Welch.** Whether G\*Power has a Welch test is unknown (not
+   in the maintainer's Part A list as its own entry). If it has one: d =
+   0.4, two tails, allocation N2/N1 = 2, Post hoc at N = 120 (40 + 80).
+   If not, no screenshot is needed.
+
 ## Part C: features that cut across tests
 
 | # | Feature | Current support | Status | Candidate approach | Blocking decision |
@@ -338,8 +413,8 @@ Counts are of the rows above. Parts A, B and C have 49, 69 and 12 rows.
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 2 | 3 | 15 |
 | Validated, not wired | 0 | 6 | 2 | 8 |
-| Planned | 4 | 25 | 3 | 32 |
-| Foundation tool can do it, not planned | 23 | 12 | 2 | 37 |
+| Planned | 9 | 25 | 3 | 37 |
+| Foundation tool can do it, not planned | 18 | 12 | 2 | 32 |
 | G\*Power covers it, powerkit doesn't | 11 | 0 | 0 | 11 |
 | Unknown | 1 | 19 | 2 | 22 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
@@ -363,9 +438,12 @@ needs only a routing change, a new field or an output it already has):
   parametric cards (judgement call 3.8).
 - **A42: chi-square goodness-of-fit.** Spower's `p_chisq.test()` with
   `P0` and `P`, which E6 already calls (judgement call 3.7).
-- **A35, A37: one proportion and McNemar.** Spower's `p_prop.test()` and
-  `p_mcnemar.test()`; E25 and E26 already exist as honest cards.
-- **A10–A13: multiple regression.** Spower's `p_lm.R2()`; E24 exists.
+- **A35, A37: one proportion and McNemar.** Now wave 2 (engine
+  groundwork with pwrss's exact tests); E25 and E26 already exist as
+  honest cards.
+- **A10–A13: multiple regression.** A10 and A11 are now wave 2 (pwrss's
+  `power.f.regression()`); A12 and A13 could follow with Spower's
+  `p_lm.R2()`; E24 exists.
 - **B60: expected power over a prior.** Spower's documented "expected
   power", given a prior for the effect instead of a single value.
 

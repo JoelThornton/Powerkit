@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "multiple_regression",
+  "template": "r2_zero",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing score"
+    }
+  },
+  "population": {
+    "metric": "r_squared",
+    "r2": 0.1,
+    "predictors": 5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: five predictors explaining 10% of the variance together is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "r_squared",
+    "method": "f_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}
