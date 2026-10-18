@@ -530,7 +530,7 @@ methods paragraph.
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.
 
-### 2. Exact tests of counts (one proportion, McNemar): the smallest N that reaches the target
+### 2. Exact tests of counts (one proportion, McNemar, Fisher's exact test): the smallest N that reaches the target
 
 *Moved from the departures (it was Departure 12) by the maintainer's
 decision, 18 October 2026: G\*Power reports the same N as powerkit.
@@ -553,8 +553,12 @@ Wired into the app on 18 October 2026 (E25, E26).*
   smallest n that reaches the target", "known difference: pwrss's own
   sample-size answer for exact tests of counts (Known difference 2)", and
   the G\*Power checks for one proportion and McNemar.
-- **Shown to users:** on the result screen for one proportion (E25) and
-  McNemar's test (E26), under "Where other established tools give a
+- **Fisher's exact test** (E5's option, 18 October 2026) is an exact test
+  of counts too, and powerkit reports its smallest N in the same way. It
+  hasn't been compared with G\*Power yet, and the size of the difference
+  from pwrss's own sample-size answer hasn't been measured for it.
+- **Shown to users:** on the result screen for one proportion (E25),
+  McNemar's test (E26) and Fisher's exact test (E5), under "Where other established tools give a
   different answer" (18 October 2026; `app/routing/forms.yaml`,
   `known_differences`).
 - **Methods paragraph:** to do with the write-up: a note that power for
