@@ -182,7 +182,7 @@ methods paragraph, and covered by a test showing the size of the difference
   that Sommet et al.'s formula reproduces their published N from the spec's
   effect, and that powerkit's exact N is 260 / 1,028 and at least the
   published N.
-- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 2. Mixed designs: `ANOVA_exact()`, not `ANOVA_exact2()`
 
@@ -222,7 +222,7 @@ methods paragraph, and covered by a test showing the size of the difference
   Table 5.4). **There is no test yet that shows the `ANOVA_exact2()` values
   above**, which CLAUDE.md now requires; it belongs in `engine/tests/` (to
   do).
-- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 3. `ANOVA_exact()` is run under the run's seed
 
@@ -239,7 +239,7 @@ methods paragraph, and covered by a test showing the size of the difference
 - **Size:** about 1e-15 in power, so this has no practical effect.
 - **Test:** `engine/tests/testthat/test-run-spec.R`, "exact results are
   reproducible bit for bit and leave the RNG alone".
-- **Shown to users / in the methods paragraph:** shown on the result screen for E7 and E8 (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen for E7 and E8 (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 4. One-sided basic tests (retired 17 October 2026: Spower 0.7 has the fix)
 
@@ -303,7 +303,7 @@ kept so later departures keep theirs.
 - **Test:** `test-backend-spower.R`, "departure: no continuity correction,
   unlike Spower's default (correct = TRUE)", which also checks that
   powerkit's run equals the uncorrected value.
-- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 6. Mediation fits: lavaan maximum likelihood, not PROCESS's OLS
 
@@ -317,7 +317,7 @@ kept so later departures keep theirs.
   and 3.0% smaller for b and c' (k = 3); at N = 200, 0.5% and 0.75%.
 - **Test:** `test-backend-power4mome.R`, "departure: lavaan ML standard
   errors vs PROCESS's OLS, at N = 50" (checks the ratio to 1e-6).
-- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 7. Parallel mediators: residuals free to correlate (lavaan fixes them at 0)
 
@@ -334,7 +334,7 @@ kept so later departures keep theirs.
   seeded data), so it would overstate power.
 - **Test:** `test-backend-power4mome.R`, "departure: parallel mediators'
   residuals free to correlate, as in PROCESS".
-- **Shown to users / in the methods paragraph:** shown on the result screen for E11 (parallel mediators) (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen for E11 (parallel mediators) (18 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 8. Boos and Zhang's (2000) method: off (power4mome switches it on for some R)
 
@@ -365,7 +365,7 @@ kept so later departures keep theirs.
 - **powerkit keeps `test_method = "ci"` regardless.** Boos and Zhang off is
   the maintainer's decision (decision 10), not only a workaround for the
   bug, so the explicit argument stays after the fix reaches CRAN.
-- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). The methods paragraph is still a placeholder.
+- **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 9. Basic tests (E1–E6): pwr's formula by default, not Spower's simulation
 
@@ -401,7 +401,7 @@ kept so later departures keep theirs.
   simulation (Departure 9)", which checks each size below.
 - **Shown to users / in the methods paragraph:** shown on the result
   screen when the formula was used (`app/routing/forms.yaml`,
-  `departures`). The methods paragraph is still a placeholder.
+  `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 10. Correlation (E4): Fisher's z, not G\*Power's exact method
 
@@ -432,8 +432,8 @@ kept so later departures keep theirs.
   not G\*Power's exact method (Departure 10)".
 - **Shown to users / in the methods paragraph:** on E4's card (backend
   line) and on the result screen when the formula was used
-  (`app/routing/forms.yaml`, `departures`). The methods paragraph is
-  still a placeholder.
+  (`app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up
+  (18 October 2026).
 
 ### 11. Two proportions (E5): G\*Power's z test by `power.prop.test(strict = TRUE)` and pwrss
 
@@ -488,8 +488,8 @@ kept so later departures keep theirs.
   direction tests.
 - **Shown to users / in the methods paragraph:** on E5's card (backend
   line) and on the result screen when the formula was used
-  (`app/routing/forms.yaml`, `departures`). The methods paragraph is
-  still a placeholder.
+  (`app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up
+  (18 October 2026).
 
 ## Known differences
 
@@ -534,7 +534,7 @@ methods paragraph.
 
 *Moved from the departures (it was Departure 12) by the maintainer's
 decision, 18 October 2026: G\*Power reports the same N as powerkit.
-Engine only (wave 2), not yet wired into the app.*
+Wired into the app on 18 October 2026 (E25, E26).*
 
 - **What differs:** for exact tests of counts, power goes up and down
   with N. powerkit and G\*Power report the smallest N that reaches the
@@ -553,9 +553,13 @@ Engine only (wave 2), not yet wired into the app.*
   smallest n that reaches the target", "known difference: pwrss's own
   sample-size answer for exact tests of counts (Known difference 2)", and
   the G\*Power checks for one proportion and McNemar.
-- **Shown to users / methods paragraph:** to do when these tests are
-  wired into the app: a note that power for these tests goes up and down
-  with N, so a slightly larger N can have lower power.
+- **Shown to users:** on the result screen for one proportion (E25) and
+  McNemar's test (E26), under "Where other established tools give a
+  different answer" (18 October 2026; `app/routing/forms.yaml`,
+  `known_differences`).
+- **Methods paragraph:** to do with the write-up: a note that power for
+  these tests goes up and down with N, so a slightly larger N can have
+  lower power.
 
 ## Not departures, but worth stating
 
@@ -568,6 +572,11 @@ Engine only (wave 2), not yet wired into the app.*
 - **ANCOVA:** Superpower has `ANCOVA_analytic()` and `power_oneway_ancova()`
   [SP-src]. These may serve the ANCOVA route for pre–post designs (decision
   D2 in `docs/design-finder.md`); whether they match G*Power is to check.
+  The engine's one-way ANCOVA (18 October 2026, not yet in the app) uses
+  pwrss's `power.f.ancova.shieh()`, Shieh's (2020) method, which
+  Superpower's `power_oneway_ancova(type = "exact")` also uses (its help
+  names Keppel's approach as the approximate one); a test shows the two
+  agree. Whether it matches G*Power's ANCOVA is still to check.
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

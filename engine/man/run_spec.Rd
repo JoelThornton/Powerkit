@@ -68,6 +68,13 @@ by formula on request (\code{options > method = "exact"},
 \code{pwrss::power.t.welch()}). These have no simulation option. For the two
 exact tests of counts, whose power goes up and down with n, the required
 n is the smallest that reaches the target power.
+More tests by formula (engine only, not yet in the app), each on one
+pwrss function: Fisher's exact test of two proportions
+(\code{target_test > method = "fisher_exact"}, \code{power.exact.fisher()}), the
+chi-square goodness-of-fit test (\code{power.chisq.gof()}, with Cohen's w from
+\code{probs.to.w()}), two independent correlations (\code{power.z.twocors()}) and
+one-way ANCOVA (\code{power.f.ancova.shieh()}). None has a simulation option;
+Fisher's exact test is an exact test of counts too.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

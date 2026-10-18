@@ -38,7 +38,7 @@ of what named people said.
 | 1 | Routing: screen A as the start of the profile; tree or profile for screen B | every user, every route | `routing-design-options.md`; D1, D2 |
 | 2 | Effect-size benchmarks as context | every result | B2 |
 | 3 | Several hypotheses: what the claim options leave open | every study with more than one test | B6, D4, D6 |
-| 4 | What the methods paragraph must report | every write-up | G4 |
+| 4 | What the methods paragraph must report (decided 18 October 2026) | every write-up | G4 |
 | 5 | Hosting (and saving projects) | whether, and how, others can use the app | `hosting-options.md`; `saving-projects.md` |
 | 6 | Scope for the G\*Power tests powerkit doesn't run | users coming from G\*Power | G1; `coverage-roadmap.md` |
 | 7 | Naming other tools on cards | users whose design isn't covered | A1, A2, A4 |
@@ -177,39 +177,7 @@ meeting with Mark Rubin.
 
 ## 4. What the methods paragraph must report
 
-**The question.** The methods paragraph (still a placeholder) is what
-users paste into papers and preregistrations. Which of a result's outputs
-must it state?
-
-**Options (each separately):** the test and its tails; alpha; target
-power; the effect size, its format and its source; the N (total, per
-group, after attrition); the actual power at the reported N; the backend,
-its function and version; the method (formula or simulation, with
-replications, seed and Monte Carlo interval); any departures; the
-noncentrality parameter, critical value and degrees of freedom where the
-backend returns them.
-
-**What established tools and sources do.** CLAUDE.md requires the spec
-hash, seed, backend and versions to be recorded, and every departure to
-be stated in the methods paragraph (opened). None of powerkit's backends
-returns a noncentrality parameter or critical value for E1–E6 or E9–E14
-([`gpower-parity.md`](gpower-parity.md)). What G\*Power's output shows
-needs the maintainer's screenshots (*candidate* until then). Reporting
-guidance for power analyses in psychology journals: *candidate* (not
-checked).
-
-**Who might disagree.** Reviewers used to G\*Power reports look for the
-noncentrality parameter and critical value. A long paragraph is copied
-less faithfully; a short one can drop the effect-size justification.
-
-**Knock-on effects.** The result object may need new outputs; the methods
-text and `export_script()`. The 18 October decisions already fix part
-of the write-up: the type of justification, the effect-size source
-verbatim, the claim, alpha and tails, the target power with its reason,
-and the backend, versions and seed. Build step 5 needs at least a
-minimal decision here.
-
----
+Decided 18 October 2026 ([`decisions.md`](decisions.md)); the write-up is on the result screen. Kept here so the numbering stays the same.
 
 ## 5. Hosting, and saving projects
 

@@ -1,5 +1,37 @@
 # powerkit 0.0.0.9000
 
+* App: the result screen now has a write-up, replacing the methods-paragraph
+  placeholder. A short version for the paper and a full version for a
+  supplement or preregistration state the test and its sides, alpha, the
+  target power and why (a new optional field), the effect size with your
+  reasoning word for word, N in total and per group with the power reached,
+  the number to recruit, how a claim over several tests was handled, the
+  package, version and seed, and the departures. Both are editable, and like
+  saving they need your reasoning. The noncentrality parameter and critical
+  value are left out (the maintainer's decision, 18 October 2026).
+  `export_citations()` now points to the write-up instead of a placeholder.
+
+* Engine: four more tests by formula, each one pwrss call (not yet in the
+  app): Fisher's exact test of two proportions (`target_test > method =
+  "fisher_exact"`), the chi-square goodness-of-fit test (template
+  `chi_square_gof`; equal fixed proportions unless given), two independent
+  correlations (template `two_correlations`, Fisher's z test) and one-way
+  ANCOVA (template `oneway_ancova`, Shieh's method). Each has an example
+  spec, an R script that reproduces it, and tests against pwrss called
+  directly; goodness of fit also agrees with pwr's formula, and ANCOVA
+  with Superpower's. Not yet checked against G\*Power.
+
+* App: four more designs calculate on their input screens. One-way ANOVA
+  for three or more separate groups (E18, Superpower), multiple regression
+  for R-squared against 0 or an R-squared increase, which also covers one
+  predictor's coefficient (E24, pwrss), one proportion against a fixed
+  value (E25, pwrss's exact binomial test) and McNemar's test (E26,
+  pwrss's exact test). Welch's t-test (E2) can now be worked out by
+  pwrss's formula as well as by simulation. One proportion and McNemar
+  show Known difference 2 (power goes up and down with N for exact tests
+  of counts). These designs match G\*Power in the engine's tests but are
+  not yet in the full validation run; their cards say so.
+
 * App, "Plan my whole study" analyses screen: each analysis now has one
   choice (not planned, main analysis, or extra analysis) instead of two
   separate ticks, so an analysis can no longer be marked "primary" without

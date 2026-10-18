@@ -46,8 +46,8 @@ four-screen design (decided 18 October 2026, `docs/decisions.md`):
 4. **Result:** a plain reading that keeps the condition ("if the true
    effect is the one you entered, about 8 in 10 studies like this would
    get a significant result"), 80% and 95% power side by side, what power
-   can't tell you, an explore panel, and a write-up (methods paragraph)
-   that is being added.
+   can't tell you, an explore panel, and a write-up (a short methods paragraph
+   and a full version).
 
 An optional AI assistant may come last.
 

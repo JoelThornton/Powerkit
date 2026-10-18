@@ -584,9 +584,10 @@ that table's "Engine can use it?" column:
   Not E15: misclassification in a yes/no X or W is a different problem
   from unreliable scores (maintainer decision, 16 October 2026; see
   `decisions.md`);
-- a direction (Q-dir) only for the basic tests except chi-square;
+- a direction (Q-dir) only for the basic tests except chi-square, and for
+  one proportion and McNemar's test (E25, E26);
 - a test version (Q-test) only where there is a choice: Student's or
-  Welch's t-test (E2), or exact or simulation (E7, E8).
+  Welch's t-test (E2), or exact or simulation (E7, E8, E18).
 
 Q-goal's note differs by card, because the smallest detectable effect is
 available only for the 2 x 2 designs. Cards for designs powerkit doesn't
@@ -613,6 +614,10 @@ the two in step.
 | E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E18 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E24 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E25 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E26 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -632,7 +637,7 @@ taken from coverage.md, where they are proposals.
 | ID | End point (analysis name shown) | powerkit design / template | Backend function | Default method | Effect size the user enters | Validated? | Tier | Status today |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | E1 | One-sample t-test | `basic_test / one_sample_t` | `pwr::pwr.t.test()` (formula, the default since 17 October 2026); `Spower::Spower(Spower::p_t.test())` if simulation is chosen | Formula (no simulation) | Cohen's d: (mean − test value) / SD | Yes: `test-validation-basic-tests.R` (full run passed; no published-value test yet) | MVP | Runs |
-| E2 | Independent-samples t-test (Student's; Welch's as an option) | `basic_test / independent_t` | `pwr::pwr.t.test()`, or `pwr::pwr.t2n.test()` for unequal groups; Welch's test, or simulation if chosen: `Spower::p_t.test()` | Formula (no simulation); Welch's: simulation | Cohen's d (group 2 − group 1) / pooled SD; allocation ratio | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
+| E2 | Independent-samples t-test (Student's; Welch's as an option) | `basic_test / independent_t` | `pwr::pwr.t.test()`, or `pwr::pwr.t2n.test()` for unequal groups; Welch's test, or simulation if chosen: `Spower::p_t.test()`; Welch's by formula if chosen: `pwrss::power.t.welch()` | Formula (no simulation); Welch's: simulation | Cohen's d (group 2 − group 1) / pooled SD; allocation ratio | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E3 | Paired-samples t-test | `basic_test / paired_t` | `pwr::pwr.t.test(type = "paired")`; Spower if simulation is chosen | Formula (no simulation) | d_z: mean difference / SD of differences (second minus first) | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E4 | Pearson correlation | `basic_test / correlation` | `pwr::pwr.r.test()`; `Spower::p_r()` if simulation is chosen | Formula (no simulation) | r | Yes: `test-validation-basic-tests.R` (full run passed; published value TODO) | MVP | Runs |
 | E5 | Test of two proportions (z test) | `basic_test / two_proportions` | `stats::power.prop.test(strict = TRUE)`, the z test as in G\*Power (Departure 11); `pwrss::power.z.twoprops()` for unequal groups; `pwr::pwr.2p2n.test()` with Cohen's h if chosen; `Spower::p_prop.test()` if simulation is chosen (no continuity correction, Departure 5; formula by default, Departure 9) | Formula (no simulation) | p1, p2; allocation ratio | Yes: `test-validation-basic-tests.R` (full run passed; unequal groups checked against G\*Power in `test-backend-pwr.R`; published value TODO) | MVP | Runs |
@@ -648,15 +653,15 @@ taken from coverage.md, where they are proposals.
 | E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)` (planned) | Simulation | Fully standardised correlations; groups 50/50 (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
-| E18 | One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus | — | Candidates: Superpower `"kb"` / `"kw"`; Spower `p_anova.test()` | — | (Superpower: means, SD, r) | No | v2 | Not in spec |
+| E18 | One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus | `factorial_anova / oneway_between` (different people only) | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Repeated measures: candidates Superpower `"kw"`; Spower `p_anova.test()` | Exact dataset (no repeated simulation) | Group means (raw or in SD units) and one SD | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs (different people only) |
 | E19 | Planned contrast | — | Candidates: Superpower emmeans contrasts; pwranova `pwrcontrast()` | — | Contrast weights and means | No | v2 | Not in spec |
 | E20 | 2 x 2 within-participants ANOVA | — | Candidate: Superpower `"2w*2w"` | — | Means, SD, correlation matrix | No | v2 | Not in spec |
 | E21 | Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...) | — | Candidates: Superpower (up to three factors); pwranova (more, from partial η²) | — | Means, SDs, correlations | No | v2 for 2x3, 3x3, 2x2x2; later for the rest | Not in spec |
 | E22 | 2 x 2 ANOVA with unequal group sizes | — | Superpower documents unequal n for `ANOVA_power()` only: `ANOVA_design()` help, argument `n` ("If unequal n is entered then the design can only be passed onto ANOVA_power"), and NEWS for 0.0.3 [SP]. `ANOVA_power()` stops for designs with a within factor, so this covers 2 x 2 between, not mixed. None validated by powerkit (decision N3: needs an independent reference) | — | — | No | v2 | Not in spec |
 | E23 | ANCOVA (incl. pre–post with a baseline covariate) | — | Candidates: Superpower `ANCOVA_analytic()`; pwrss `power.f.ancova()` | — | Means, SD, covariate R² | No | v2 | Not in spec |
-| E24 | Multiple regression (R² or one coefficient) | — | Candidates: Spower `p_lm.R2()`, `p_glm()`; pwrss | — | R², or R² change | No | v2 | Not in spec |
-| E25 | One proportion against a fixed value | — | Candidate: Spower `p_prop.test()` (binomial) | — | Proportion and test value | No | v2 | Not in spec |
-| E26 | McNemar's test (same people, yes/no); Cochran's Q | — | Candidate: Spower `p_mcnemar.test()`. Cochran's Q: no ready-made tool (custom simulation in R, e.g. with Spower, or advice from a statistician) | — | Discordant proportions | No | v2 | Not in spec |
+| E24 | Multiple regression (R² or one coefficient) | `multiple_regression / r2_zero`, `r2_increase` | `pwrss::power.f.regression()` (one coefficient: an R² increase with 1 predictor tested) | Formula (no simulation) | R², or R² with and without the tested predictors; numbers of predictors | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
+| E25 | One proportion against a fixed value | `basic_test / one_proportion` | `pwrss::power.exact.oneprop()` (exact binomial test) | Formula (no simulation) | Expected proportion and the fixed value | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
+| E26 | McNemar's test (same people, yes/no); Cochran's Q | `basic_test / mcnemar` | `pwrss::power.exact.mcnemar(method = "exact")`. Cochran's Q: no ready-made tool (custom simulation in R, e.g. with Spower, or advice from a statistician) | Formula (no simulation) | Discordant proportions (yes in the first condition only; yes in the second only) | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs (McNemar only) |
 | E27 | Logistic regression (yes/no outcome) | — | Candidates: Spower `p_glm(family = binomial())`; pwrss; PAMLj | — | Odds ratio or coefficients | No | v2 | Not in spec |
 | E28 | Count outcome (Poisson or negative binomial) | — | Candidates: Spower `p_glm(family = poisson())`; pwrss; WebPower | — | Rate ratio | No | v2 | Not in spec |
 | E29 | Ordinal outcome (ordered categories) | — | Candidates: Hmisc `popower()`; powertools `propodds()`; PAMLj | — | Category proportions and odds ratio | No | v2 | Not in spec |

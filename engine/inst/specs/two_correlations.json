@@ -1,0 +1,45 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "two_correlations",
+  "variables": {
+    "G": {
+      "type": "binary",
+      "label": "Sample",
+      "levels": [
+        "Students",
+        "Community"
+      ]
+    },
+    "X": {
+      "type": "continuous",
+      "label": "Self-control"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r1": 0.2,
+    "r2": 0.45
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a correlation of .45 in the community sample against .20 in students is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "correlation_difference",
+    "method": "fisher_z",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}
