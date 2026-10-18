@@ -252,7 +252,12 @@ zero_effect_cases <- list(
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
   process_7 = function(s) within(s, population$paths[["XW->M"]] <- 0),
-  process_14 = function(s) within(s, population$paths[["MW->Y"]] <- 0)
+  process_14 = function(s) within(s, population$paths[["MW->Y"]] <- 0),
+  anova_oneway_between = function(s) within(s, population$means <- list(12, 12, 12)),
+  regression_r2_zero = function(s) within(s, population$r2 <- 0),
+  regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),
+  one_proportion = function(s) within(s, population$p <- population$p0),
+  mcnemar = function(s) within(s, population$p_second_only <- population$p_first_only)
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 17 October 2026. Update this page with every PR.*
+*Last updated: 18 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -9,6 +9,16 @@ fully validated. Validation runs are recorded in
 For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Wave 2 engine groundwork (draft PR; waits for the maintainer's yes,
+  18 October 2026).** One-way ANOVA, R² against 0 and R² increase, one
+  proportion, McNemar's test, and Welch's t-test by formula on request
+  run in the engine, with example specs, exported scripts, and tests
+  against the backend called directly. Not wired into the app or the
+  question tree. G\*Power comparisons wait for the screenshots listed in
+  [`coverage-roadmap.md`](coverage-roadmap.md), "Wave 2". Open points:
+  Departure 12 (smallest N for exact tests of counts), one-way
+  sensitivity, and the R² noncentrality convention.
 
 - **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
   October 2026).** As the maintainer decided: a rough preview (100 simulations, in

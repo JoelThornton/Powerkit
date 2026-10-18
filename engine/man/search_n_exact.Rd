@@ -20,6 +20,9 @@ required n and three valid sizes either side, and \code{simulations} is
 }
 \description{
 The smallest valid total sample size whose exact power reaches \code{power}.
+For exact tests of counts, whose power goes up and down with n (the
+backend's \code{sawtooth} is \code{TRUE}), every n below the bisection's answer is
+checked, so the result is still the smallest.
 There is no Monte Carlo uncertainty, so the interval is the single value.
 }
 \keyword{internal}

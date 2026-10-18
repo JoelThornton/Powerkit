@@ -1,5 +1,20 @@
 # powerkit 0.0.0.9000
 
+* Wave 2 groundwork (engine only; not in the app yet): `run_spec()` now
+  runs a one-way between-participants ANOVA (template `oneway_between`,
+  Superpower's `ANOVA_exact()`), multiple regression R² against 0 and R²
+  increase (new design `multiple_regression`, pwrss's
+  `power.f.regression()`), one proportion against a fixed value (exact
+  binomial, pwrss's `power.exact.oneprop()`) and McNemar's exact test
+  (pwrss's `power.exact.mcnemar()`). Welch's t-test can be calculated by
+  formula on request (`options > method = "exact"`, pwrss's
+  `power.t.welch()`); its default stays Spower simulation. Each has an
+  example spec, an exported script that reproduces it with the backend
+  alone, and tests against the backend called directly. For exact tests
+  of counts the required N is the smallest that reaches the target, which
+  can be lower than pwrss's own answer (Departure 12, to decide before the
+  app uses it). G\*Power comparisons are placeholders.
+
 * New `export_run_script()`: an R script that runs a spec, with its seed,
   through `run_spec()` on the user's own computer, then saves the result
   and writes the backend-only reproduction script and the citations. The

@@ -491,6 +491,29 @@ kept so later departures keep theirs.
   (`app/routing/forms.yaml`, `departures`). The methods paragraph is
   still a placeholder.
 
+### 12. Exact tests of counts (wave 2, engine only): the smallest N that reaches the target
+
+*Engine groundwork, not wired into the app; to decide before it is
+(`docs/coverage-roadmap.md`, wave 2).*
+
+- **What the established tool does:** pwrss's own sample-size answer
+  (`power.exact.oneprop(power = )`, `power.exact.mcnemar(power = )`) for
+  the example inputs is 92 (one proportion, 0.65 against 0.50) and 130
+  (McNemar, 0.25 and 0.10). What G\*Power reports is to be read from the
+  maintainer's screenshots.
+- **What powerkit does:** for these tests power goes up and down with N,
+  so the engine checks every N below its first answer and reports the
+  smallest that reaches the target: 90 and 129 for the same inputs. At
+  N = 90 the one-proportion power is 0.812, but it falls below 0.80 again
+  at 91, 96 and others.
+- **Size of the difference:** 2 fewer (one proportion) and 1 fewer
+  (McNemar) in the examples.
+- **Test:** `test-backend-wave2.R`, "exact tests of counts report the
+  smallest n that reaches the target" and "departure: pwrss's own
+  sample-size answer for exact tests of counts (Departure 12)".
+- **Shown to users / in the methods paragraph:** not yet (not wired).
+  Required before wiring.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

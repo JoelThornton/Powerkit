@@ -105,10 +105,12 @@ test_that("Welch's t-test and requested simulation run on Spower", {
   expect_equal(result$provenance$method, "simulation")
 })
 
-test_that("the exact method can't be asked for Welch's t-test", {
+test_that("Welch's t-test by formula, on request, uses pwrss (wave 2), not pwr", {
+  # pwr's formula assumes equal variances; pwrss's power.t.welch() doesn't
+  # (test-backend-wave2.R checks its values).
   welch <- example_spec("independent_t")
   welch$options$method <- "exact"
-  expect_spec_problem(welch, "isn't available for Welch's t-test")
+  expect_equal(route_spec(validate_spec(welch))$name, "pwrss")
 })
 
 test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
