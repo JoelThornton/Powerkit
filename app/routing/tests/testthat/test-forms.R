@@ -232,3 +232,86 @@ test_that("whether effect sizes start empty is an undecided setting, shown on th
   html <- as.character(form_ui(tree, forms, "E1", form_groups(forms, "E1")))
   expect_match(html, htmltools::htmlEscape(s$question), fixed = TRUE)
 })
+
+# Screen A (the new design, docs/decisions.md, 18 October 2026) -------------
+
+test_that("screen A asks the situation, aim and claim, with the first option preselected", {
+  html <- as.character(start_ui(tree))
+  for (q in tree$start_questions) {
+    expect_match(html, q$question, fixed = TRUE, info = q$id)
+    for (o in q$options) expect_match(html, htmltools::htmlEscape(o$label), fixed = TRUE, info = o$label)
+  }
+  expect_match(html, "Several claims, each standing on its own", fixed = TRUE)
+  expect_match(html, "Your claim is about the set, not each test", fixed = TRUE)
+  expect_equal(start_answers(tree, list()), list(situation = "choose", aim = "predict", claim = "one"))
+})
+
+test_that("estimation and equivalence go to their cards; testing a prediction goes on to the design finder", {
+  expect_equal(start_exit(tree, list(aim = "estimate")), "E46")
+  expect_equal(start_exit(tree, list(aim = "equivalence")), "E36")
+  expect_null(start_exit(tree, list(aim = "predict")))
+})
+
+test_that("a fixed sample size starts the goal at the smallest detectable effect, or at power", {
+  goal <- function(ep, start) Filter(function(f) f$id == "goal", form_fields(form_groups(forms, ep, start = start)))[[1]]
+  expect_null(goal("E2", list(situation = "choose"))$default)
+  expect_equal(goal("E2", list(situation = "fixed"))$default, "sensitivity")
+  expect_equal(goal("E9", list(situation = "fixed"))$default, "power")
+  for (ep in paste0("E", 1:6)) expect_true("sensitivity" %in% names(goal(ep, list())$choices), info = ep)
+})
+
+test_that("the claim adds a note, and 'any of several' divides alpha between the tests", {
+  groups <- function(claim) form_groups(forms, "E2", start = list(claim = claim))
+  titles <- function(claim) vapply(groups(claim), function(g) g$input %||% g$title, "")
+  expect_false("Your claim" %in% titles("one"))
+  for (claim in c("each", "any", "all")) expect_true("Your claim" %in% titles(claim), info = claim)
+  expect_true("n_tests" %in% vapply(form_fields(groups("any")), `[[`, "", "id"))
+  expect_match(as.character(form_ui(tree, forms, "E2", groups("all"))), "roughly a floor, not exact", fixed = TRUE)
+
+  fields <- form_fields(groups("any"))
+  values <- c(form_examples[["E2"]], list(n_tests = "4"))
+  expect_length(form_problems(fields, values), 0)
+  expect_equal(build_spec(forms, "E2", fields, values)$target_test$alpha, 0.05 / 4)
+  expect_match(form_problems(fields, form_examples[["E2"]]), "Number of tests in the set", fixed = TRUE, all = FALSE)
+  values$claim <- "any"
+  expect_match(claim_result_note(values, 0.0125), "0.05 divided by 4 (Bonferroni): 0.0125", fixed = TRUE)
+})
+
+test_that("the t-tests and the correlation need no effect size for the smallest detectable effect", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
+  expect_length(form_problems(fields, values), 0)
+  expect_equal(build_spec(forms, "E2", fields, values)$population$d, 0)
+  values$goal <- "sample_size"
+  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
+  # Two proportions still need theirs.
+  e5 <- form_fields(form_groups(forms, "E5"))
+  expect_false(any(vapply(e5, function(f) "sensitivity" %in% f$optional_for, logical(1))))
+})
+
+# Screen C: the effect-size source -------------------------------------------
+
+test_that("'I can't justify an effect size' is offered for the t-tests and the correlation, and leads to the smallest detectable effect", {
+  just <- function(ep) Filter(function(f) f$id == "just_type", form_fields(form_groups(forms, ep)))[[1]]
+  for (ep in paste0("E", 1:4)) expect_true("none" %in% names(just(ep)$choices), info = ep)
+  for (ep in c("E5", "E6", "E7")) expect_false("none" %in% names(just(ep)$choices), info = ep)
+
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- form_examples[["E4"]]
+  values$just_type <- "none"; values$just_source <- ""; values$r <- ""
+  expect_match(form_problems(fields, values), "With no effect size to plan for", fixed = TRUE, all = FALSE)
+  values$goal <- "sensitivity_curve"; values$n_max <- "200"
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E4", fields, values)
+  expect_equal(spec$effect_justification, list(type = "none"))
+  expect_equal(spec$goal, list(type = "sensitivity", n = 200L, power = 0.8))
+  expect_equal(spec$population$r, 0)
+})
+
+test_that("the reasoning is optional to calculate", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  values$just_source <- ""
+  expect_length(form_problems(fields, values), 0)
+})

@@ -12,6 +12,7 @@ project_route <- function(state, form_values) {
   list(
     app = "routing-prototype",
     route = state$route,
+    start = state$start,
     endpoint = state$endpoint,
     came_from = state$came_from,
     ctx = state$ctx,
@@ -34,6 +35,7 @@ restore_from_project <- function(route, tree, forms) {
   list(
     screen = "form",
     route = route$route %||% "choose",
+    start = route$start %||% list(),
     endpoint = endpoint,
     came_from = route$came_from %||% "node",
     ctx = route$ctx %||% list(),

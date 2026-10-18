@@ -165,11 +165,10 @@
       ]
     },
     "effect_justification": {
-      "description": "Why the effect size is what it is. Required: it feeds the write-up and prevents unexamined 'medium effect' defaults.",
+      "description": "Why the effect size is what it is: it feeds the write-up and prevents unexamined 'medium effect' defaults. 'none' records honestly that no effect size can be justified (for example with a fixed sample size). The source, the user's reasoning, is optional in the spec; the app asks for it before a plan is saved or exported.",
       "type": "object",
       "required": [
-        "type",
-        "source"
+        "type"
       ],
       "additionalProperties": false,
       "properties": {
@@ -178,7 +177,8 @@
             "smallest_effect_of_interest",
             "meta_analysis",
             "prior_study",
-            "pilot_study"
+            "pilot_study",
+            "none"
           ]
         },
         "source": {

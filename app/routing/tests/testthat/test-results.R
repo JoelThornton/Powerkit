@@ -426,3 +426,98 @@ test_that("with attrition, the result shows the number analysed and the number t
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
   expect_no_match(html, "To recruit:", fixed = TRUE)
 })
+
+test_that("the smallest detectable effect for a basic test, with no effect size given", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  expect_equal(calc$result$sensitivity$effect, pwr::pwr.t.test(n = 64, d = NULL, power = 0.8)$d)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "the smallest effect you could detect with 80% power", fixed = TRUE)
+  expect_match(html, "is d = 0.499. The effect: Cohen's d", fixed = TRUE)
+})
+
+test_that("the range of sample sizes shows the smallest effect at 80% and 95% power", {
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- form_examples[["E4"]]
+  values$just_type <- "none"; values$just_source <- ""; values$r <- ""; values$goal <- "sensitivity_curve"; values$n_max <- "160"
+  calc <- run_sensitivity_curve(build_spec(forms, "E4", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  tab <- calc$curve_table
+  expect_equal(tab$n, c(20, 40, 60, 80, 100, 120, 140, 160))
+  expect_equal(tab$power_80[8], pwr::pwr.r.test(n = 160, r = NULL, power = 0.8)$r)
+  expect_true(all(tab$power_95 > tab$power_80))
+  expect_true(all(diff(tab$power_80) < 0))
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "The smallest effect you could detect at each sample size", fixed = TRUE)
+  # No reasoning written: no saving or exporting yet.
+  expect_match(html, "To save this plan or download its R script", fixed = TRUE)
+  expect_no_match(html, "download_project", fixed = TRUE)
+  values$just_source <- "No earlier study measures this; the pool is fixed at 160."
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "download_project", fixed = TRUE)
+})
+
+test_that("an effect size from one earlier study gets a short warning", {
+  expect_match(source_note(list(just_type = "prior_study")), "BUCSS", fixed = TRUE)
+  expect_null(source_note(list(just_type = "meta_analysis")))
+})
+
+# Screen D: plain reading, the .80/.95 line, and no verdict words ------------
+
+test_that("the result reads in plain words, shows 80% and 95% side by side, the reasoning and what power can't tell you", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.9))
+  spec$target_test$method <- "student_t"
+  values <- form_examples[["E2"]]
+  values$just_source <- "Smallest difference our clinic would act on."
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed)
+  n80 <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.8)$n)
+  n95 <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.95)$n)
+  expect_match(calc$cost_line, sprintf("80%% power needs %s participants", n80), fixed = TRUE)
+  expect_match(calc$cost_line, sprintf("95%% power needs %s", n95), fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), values, calc))
+  expect_match(html, "about 9 in 10 studies like this would get a significant result", fixed = TRUE)
+  expect_match(html, "Your reasoning: “Smallest difference our clinic would act on.”", fixed = TRUE)
+  expect_match(html, "tell you whether your measures are valid", fixed = TRUE)
+})
+
+test_that("no output template uses a verdict word", {
+  # The new design (docs/decisions.md, 18 October 2026, decision 8): the
+  # app describes a plan, it never grades it. User text is left out.
+  verdict <- "\\b(justified|approved|adequate|adequately|sufficiently powered|sufficient power|well[- ]powered)\\b"
+  templates <- c(
+    plain_reading(0.8), power_limits, not_observed_power,
+    source_note(list(just_type = "prior_study")),
+    unlist(lapply(c("each", "any", "all"), function(cl) claim_result_note(list(claim = cl, n_tests = "3"), 0.05 / 3))),
+    unlist(lapply(c("each", "any", "all"), function(cl) claim_groups(cl)[[1]]$note)),
+    unlist(forms$departures), unlist(forms$known_differences),
+    vapply(c("smallest_effect_of_interest", "meta_analysis", "prior_study", "pilot_study", "none"),
+      function(t) reasoning_line(list(just_type = t)), "")
+  )
+  for (ep in c("E1", "E4")) {
+    for (goal in list(list(type = "sample_size", power = 0.8), list(type = "power", n = 60L), list(type = "sensitivity", n = 60L, power = 0.8))) {
+      calc <- run_calculation(light_spec(ep, goal = goal), seed = forms$default_seed)
+      templates <- c(templates, result_sentences(calc$spec, calc$result))
+    }
+  }
+  hits <- templates[grepl(verdict, templates, ignore.case = TRUE, perl = TRUE)]
+  expect_length(hits, 0)
+})
+
+test_that("the explore panel shows power by N for another effect size, without touching the plan", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  df <- explore_curve(calc$spec, calc$result, 0.6, seed = forms$default_seed)
+  expect_equal(df$power[1], pwr::pwr.t.test(n = df$n[1] / 2, d = 0.6)$power)
+  expect_true(all(diff(df$power) > 0))
+  expect_equal(calc$spec$population$d, 0.4) # the plan is unchanged
+  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn&#39;t change your plan|Exploring doesn't change your plan")
+  # Not offered for simulation or for designs other than the t-tests and the correlation.
+  expect_null(explore_ui(light_spec("E7")))
+  sim <- spec; sim$options$method <- "simulation"
+  expect_null(explore_ui(sim))
+})

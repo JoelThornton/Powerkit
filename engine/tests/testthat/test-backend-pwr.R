@@ -346,3 +346,89 @@ test_that("two proportions, equal groups, one tail: power matches G*Power", {
   spec$target_test$alternative <- "greater"
   expect_equal(round(run_spec(spec)$curve$power, 7), 0.2600887)
 })
+
+# Smallest detectable effect (sensitivity) ----------------------------------------
+
+sens <- function(name, n, power = 0.8, ...) {
+  run_spec(pwr_spec(name, list(type = "sensitivity", n = n, power = power), ...))$sensitivity
+}
+
+test_that("the smallest detectable effect equals pwr's own solution for the effect", {
+  s <- sens("independent_t", 128)
+  expect_equal(s$effect_name, "d")
+  expect_equal(s$effect, pwr::pwr.t.test(n = 64, d = NULL, power = 0.8, type = "two.sample")$d)
+  expect_equal(s$power, 0.8, tolerance = 1e-4)
+
+  s <- sens("one_sample_t", 60, power = 0.95)
+  expect_equal(abs(s$effect), pwr::pwr.t.test(n = 60, d = NULL, power = 0.95, type = "one.sample")$d)
+  expect_equal(sign(s$effect), sign(example_spec("one_sample_t")$population$d))
+
+  s <- sens("paired_t", 40)
+  expect_equal(s$effect_name, "d_z")
+  expect_equal(abs(s$effect), pwr::pwr.t.test(n = 40, d = NULL, power = 0.8, type = "paired")$d)
+
+  s <- sens("correlation", 90)
+  expect_equal(abs(s$effect), pwr::pwr.r.test(n = 90, r = NULL, power = 0.8)$r)
+  expect_equal(sign(s$effect), sign(example_spec("correlation")$population$r))
+
+  p <- probability_matrix(example_spec("chi_square_independence"))
+  s <- sens("chi_square_independence", 200)
+  expect_equal(s$effect_name, "w")
+  expect_equal(s$effect, pwr::pwr.chisq.test(N = 200, w = NULL, df = (nrow(p) - 1) * (ncol(p) - 1), power = 0.8)$w)
+  expect_equal(s$power, 0.8, tolerance = 1e-4)
+})
+
+test_that("sensitivity keeps the specified direction and handles unequal groups", {
+  # A negative d on a two-sided test gives a negative smallest effect.
+  spec <- pwr_spec("independent_t", list(type = "sensitivity", n = 128, power = 0.8))
+  spec$population$d <- -0.4
+  expect_equal(run_spec(spec)$sensitivity$effect, -pwr::pwr.t.test(n = 64, d = NULL, power = 0.8)$d)
+
+  s <- sens("independent_t", 150, options = list(seed = 7, allocation_ratio = 2))
+  expect_equal(s$effect, pwr::pwr.t2n.test(n1 = 50, n2 = 100, d = NULL, power = 0.8)$d)
+
+  greater <- pwr_spec("independent_t", list(type = "sensitivity", n = 128, power = 0.8))
+  greater$target_test$alternative <- "greater"
+  expect_equal(
+    run_spec(greater)$sensitivity$effect,
+    pwr::pwr.t.test(n = 64, d = NULL, power = 0.8, alternative = "greater")$d
+  )
+})
+
+test_that("two proportions: p2 is found with the same power call powerkit uses", {
+  pop <- example_spec("two_proportions")$population
+  s <- sens("two_proportions", 300)
+  expect_equal(s$effect_name, "p2")
+  expect_equal(s$p1, pop$p1)
+  expect_equal(sign(s$effect - pop$p1), sign(pop$p2 - pop$p1))
+  # base R's power.prop.test() solves for p2 when it is left NULL.
+  expect_equal(
+    s$effect,
+    stats::power.prop.test(n = 150, p1 = pop$p1, p2 = NULL, power = 0.8, strict = TRUE)$p2,
+    tolerance = 1e-4 # power.prop.test()'s own search stops at a looser tolerance
+  )
+  expect_equal(s$power, 0.8, tolerance = 1e-4)
+})
+
+test_that("sensitivity says plainly when no effect can reach the target", {
+  # Two proportions with p1 = .98: no p2 above it reaches .99 power with 20 people.
+  spec <- pwr_spec("two_proportions", list(type = "sensitivity", n = 20, power = 0.99))
+  spec$population$p1 <- 0.98
+  spec$population$p2 <- 0.99
+  expect_error(run_spec(spec), "No proportion in group 2 reaches the target power", class = "powerkit_run_error")
+})
+
+test_that("t-tests and the correlation need no effect size for the smallest detectable effect", {
+  # "I can't justify an effect size": the spec gives a zero effect, and the
+  # result is the positive effect pwr solves for.
+  spec <- pwr_spec("independent_t", list(type = "sensitivity", n = 128, power = 0.8))
+  spec$population$d <- 0
+  expect_equal(run_spec(spec)$sensitivity$effect, pwr::pwr.t.test(n = 64, d = NULL, power = 0.8)$d)
+  spec <- pwr_spec("correlation", list(type = "sensitivity", n = 90, power = 0.95))
+  spec$population$r <- 0
+  expect_equal(run_spec(spec)$sensitivity$effect, pwr::pwr.r.test(n = 90, r = NULL, power = 0.95)$r)
+  # Two proportions still need a direction.
+  spec <- pwr_spec("two_proportions", list(type = "sensitivity", n = 300, power = 0.8))
+  spec$population$p2 <- spec$population$p1
+  expect_spec_problem(spec, "no effect pattern to scale")
+})

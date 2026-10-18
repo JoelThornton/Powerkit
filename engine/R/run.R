@@ -58,9 +58,11 @@
 #'     simulation; all equal for exact results), or `NA` unless the goal is
 #'     `sample_size`;
 #'   * `sensitivity`: `NA` unless the goal is `sensitivity`; otherwise a list
-#'     with the `scale` applied to the specified pattern, the scaled cell
-#'     `means`, the target `effect` in the user's units (with an
-#'     `effect_description`), its `cohen_f`, and the `power` reached;
+#'     with the smallest detectable `effect` (with an `effect_description`)
+#'     and the `power` reached there. For 2x2 ANOVAs it also has the `scale`
+#'     applied to the specified pattern, the scaled cell `means` and the
+#'     `cohen_f`; for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
+#'     `r`, `w` or `p2`);
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -214,9 +216,10 @@ print.powerkit_result <- function(x, ...) {
   }
   if (identical(x$goal_type, "sensitivity")) {
     s <- x$sensitivity
+    extra <- if (!is.null(s$cohen_f)) sprintf(" (Cohen's f = %.3f)", s$cohen_f) else ""
     cat(sprintf(
-      "Smallest detectable effect: %s = %s (Cohen's f = %.3f)\n",
-      s$effect_description, format(signif(s$effect, 4)), s$cohen_f
+      "Smallest detectable effect: %s = %s%s, power %.3f\n",
+      s$effect_description, format(signif(s$effect, 4)), extra, s$power
     ))
   }
   r <- x$recruitment

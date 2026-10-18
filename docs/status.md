@@ -35,27 +35,23 @@ fully validated. Validation runs are recorded in
   while. What matters now is that it is useful, logical and helpful for
   psychologists and solves the problems they have with power analysis.
   Validation and checks come afterwards, before release.
+<<<<<<< HEAD
 - **The new design** (approved 18 October 2026): four screens (start
   questions, design finder, inputs centred on the effect size, result
-  with a plain reading and write-up), built in the order below. The
-  decisions are in [`decisions.md`](decisions.md), "The new design". The
-  maintainer gives the department talk (Friday 23 October 2026).
+  with a plain reading and write-up). The decisions are in
+  [`decisions.md`](decisions.md), "The new design". Screens A, C and D
+  and the departures on the result screen were merged on 18 October 2026;
+  the write-up is still to come. The maintainer gives the department talk
+  (Friday 23 October 2026).
 
 ## What's next
 
-1. Engine: the smallest detectable effect for E1–E6. In review (PR #56).
-2. Docs: record the design decisions and close the judgement calls they
-   settle (B4, G7, G8, G9; parts of B6, B10 and others). This PR.
-3. Honesty fixes on the result screen: Departures 6, 7 and 8 and Known
-   difference 1, for the designs they apply to (`conventions.md`).
-4. App: screen A and the fixed-N route for E1–E8, with the sensitivity
-   curve.
-5. App: effect-size source and rationale, and a minimal verbatim
-   write-up (needs a minimal G4 decision).
-6. App: the plain reading, the .80/.95 cost line and the verdict-word
-   test.
-7. App: the explore panel.
-8. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
+1. The minimal write-up and methods paragraph: needs a minimal G4
+   decision.
+2. The "does this still apply?" flag on the effect-size source when the
+   effect size is changed; the smallest detectable effect for E5–E9 in the
+   app.
+3. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
    first item, routing from screen A onwards) and user testing
    ([`user-testing.md`](user-testing.md)). Later, before release:
    published values, independent checks for moderated mediation and the
