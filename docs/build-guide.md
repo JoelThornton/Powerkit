@@ -245,7 +245,15 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
-**Next phase (not started, no code yet): binary X and W**
+*Where the phases stand (18 October 2026):* phases 0–2 are done; phase 3
+runs but its published-value tests wait for the maintainer; phase 4 is
+partly done (scripts and citations; the methods paragraph waits for G4);
+phase 5's prototype app runs every MVP design but hasn't been user tested.
+The maintainer has put usefulness for psychologists ahead of validation
+until release ([`status.md`](status.md), "Priorities"), so phase 3b below
+is deferred.
+
+**Phase 3b (not started, no code yet; deferred): binary X and W**
 
 *Timing (maintainer's decision, `docs/decisions.md`, 15 October 2026):* this phase comes next, after phase 3 closes and before phase 4, because phase 4's methods paragraphs and scripts need to cover binary variables.
 
