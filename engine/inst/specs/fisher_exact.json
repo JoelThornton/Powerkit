@@ -1,0 +1,45 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "two_proportions",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Reminder",
+      "levels": [
+        "No reminder",
+        "Text reminder"
+      ]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Attended",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.3,
+    "p2": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: attendance doubling from 30% to 60% is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "proportion_difference",
+    "method": "fisher_exact",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}
