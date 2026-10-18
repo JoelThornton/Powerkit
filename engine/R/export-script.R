@@ -639,7 +639,98 @@ pwr_goal_section <- function(spec, result) {
         r_code(result$n_required$n), r_code(result$curve$power)
       ),
       ""
+    ),
+    sensitivity = pwr_sensitivity_section(spec, result)
+  )
+}
+
+# The smallest detectable effect for a basic test, found the way powerkit
+# finds it (pwr_sensitivity()): pwr solves for the effect when it is left
+# NULL; for two proportions, p2 is searched with power_at().
+pwr_sensitivity_section <- function(spec, result) {
+  s <- result$sensitivity
+  alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
+  two_sided <- alternative == "two.sided"
+  ratio <- spec$options$allocation_ratio %||% 1
+  solve <- function(variable, call, field) {
+    c(
+      "# pwr finds the effect itself when it is left NULL (see the help for",
+      "# the function below: exactly one parameter is passed as NULL).",
+      sprintf("found <- %s$%s", call, field),
+      if (two_sided) {
+        c(
+          "# For a two-sided test pwr returns a positive effect; keep the sign",
+          "# of the effect you specified (positive if you gave none).",
+          sprintf("%s <- if (%s < 0) -abs(found) else found", variable, variable)
+        )
+      } else {
+        sprintf("%s <- found", variable)
+      }
     )
+  }
+  alt <- sprintf("alternative = %s", r_code(alternative))
+  find <- switch(
+    spec$template,
+    one_sample_t = solve("d", sprintf(
+      "pwr.t.test(n = n_total, d = NULL, sig.level = alpha, power = target_power, type = \"one.sample\", %s)", alt
+    ), "d"),
+    independent_t = if (isTRUE(all.equal(ratio, 1))) {
+      solve("d", sprintf(
+        "pwr.t.test(n = n_total / 2, d = NULL, sig.level = alpha, power = target_power, type = \"two.sample\", %s)", alt
+      ), "d")
+    } else {
+      c(
+        "n_group1 <- round(n_total / (1 + allocation_ratio))",
+        solve("d", sprintf(
+          "pwr.t2n.test(n1 = n_group1, n2 = n_total - n_group1, d = NULL, sig.level = alpha, power = target_power, %s)", alt
+        ), "d")
+      )
+    },
+    paired_t = solve("dz", sprintf(
+      "pwr.t.test(n = n_total, d = NULL, sig.level = alpha, power = target_power, type = \"paired\", %s)", alt
+    ), "d"),
+    correlation = solve("r", sprintf(
+      "pwr.r.test(n = n_total, r = NULL, sig.level = alpha, power = target_power, %s)", alt
+    ), "r"),
+    chi_square_independence = c(
+      "w <- pwr.chisq.test(N = n_total, w = NULL, df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1),",
+      "  sig.level = alpha, power = target_power)$w",
+      "# Scale the table's departure from independence until its Cohen's w",
+      "# equals w (w grows in proportion to the scale).",
+      "expected <- outer(rowSums(probabilities), colSums(probabilities))",
+      "probabilities <- expected + (w / ES.w2(probabilities)) * (probabilities - expected)"
+    ),
+    two_proportions = c(
+      "# Keep group 1's proportion and move group 2's away from it, in the",
+      "# direction you specified, until power reaches the target.",
+      "p1 <- proportions[1]",
+      "limit <- if (proportions[2] > p1) 1 - 1e-9 else 1e-9",
+      "power_with_p2 <- function(p2) {",
+      "  proportions[2] <<- p2",
+      "  power_at(n_total)",
+      "}",
+      "p2 <- uniroot(function(p) power_with_p2(p) - target_power,",
+      "  lower = min(p1, limit), upper = max(p1, limit), tol = 1e-10)$root",
+      "proportions[2] <- p2"
+    )
+  )
+  effect <- switch(
+    spec$template,
+    independent_t = "d", one_sample_t = "d", paired_t = "dz",
+    correlation = "r", chi_square_independence = "w", two_proportions = "p2"
+  )
+  c(
+    "# Smallest detectable effect ----",
+    find,
+    "power <- power_at(n_total)",
+    sprintf(
+      "cat(sprintf(\"Smallest detectable effect: %s = %%.4g (power %%.4f)\\n\", %s, power))",
+      gsub("%", "%%", gsub("\"", "'", comment_text(s$effect_description)), fixed = TRUE), effect
+    ),
+    "",
+    sprintf("reproduced <- list(effect = %s, power = power)", effect),
+    sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
+    ""
   )
 }
 

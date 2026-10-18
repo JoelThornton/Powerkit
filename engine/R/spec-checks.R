@@ -687,8 +687,15 @@ check_goal <- function(spec, check_effect = TRUE) {
   if (!is.null(goal$n)) {
     problems <- c(problems, check_n(spec, goal$n))
   }
+  # For the t-tests and the correlation, the smallest detectable effect
+  # needs no effect size: pwr solves for it directly, so a zero effect (no
+  # effect size given) is allowed and the result is positive.
+  needs_effect <- goal$type == "sample_size" || !(
+    identical(spec$design, "basic_test") &&
+      spec$template %in% c("one_sample_t", "independent_t", "paired_t", "correlation")
+  )
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
-    target_effect_is_zero(spec)) {
+    needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {
       "no sample size can reach the target power"
     } else {

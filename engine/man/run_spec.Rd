@@ -20,9 +20,11 @@ sensitivity goal;
 simulation; all equal for exact results), or \code{NA} unless the goal is
 \code{sample_size};
 \item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity}; otherwise a list
-with the \code{scale} applied to the specified pattern, the scaled cell
-\code{means}, the target \code{effect} in the user's units (with an
-\code{effect_description}), its \code{cohen_f}, and the \code{power} reached;
+with the smallest detectable \code{effect} (with an \code{effect_description})
+and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
+applied to the specified pattern, the scaled cell \code{means} and the
+\code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
+\code{r}, \code{w} or \code{p2});
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
