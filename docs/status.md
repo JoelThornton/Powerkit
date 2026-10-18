@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 17 October 2026. Update this page with every PR.*
+*Last updated: 18 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -9,6 +9,14 @@ fully validated. Validation runs are recorded in
 For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Project files (draft PR; waits for the maintainer's yes, 18 October
+  2026).** Option (a) of `saving-projects.md` (PR #50): "Save project"
+  writes one file (route, inputs, seed, result, versions) through the
+  engine's `write_project()`; "Or open a saved project" on the start
+  screen reopens the input screen with the same values, and checking
+  them reproduces the same result (tested for E2 and E7 in the app, and
+  in the engine for exact, sensitivity and simulated results).
 
 - **E5 unequal groups in the `basic` validation chunk (18 October
   2026).** Two new tests check pwrss's z test against the maintainer's

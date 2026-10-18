@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* New `write_project()`, `read_project()` and `reproduce_project()`: save a
+  power analysis (spec with its seed, how it was reached in the app, the
+  result, and the powerkit, R and package versions) as one JSON file, open
+  it again with any differences reported in plain English, and rerun it to
+  check it reproduces the saved numbers. The app has "Save project" on the
+  result screen and "Or open a saved project" on the start screen, which
+  puts the input screen back with the same values.
+
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in
   both directions, one tail at 1 : 2, and a priori at 1 : 3), so E5's
