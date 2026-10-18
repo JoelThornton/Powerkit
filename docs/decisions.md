@@ -1812,3 +1812,98 @@ maintainer decided (18 October 2026) to record it as Known difference 2
 in `conventions.md`, not as a departure, and approved PR #51 (wave 2
 engine groundwork).
 
+
+## 2026-10-18 · The new design
+
+**Decided (maintainer, 18 October 2026):** powerkit's flow becomes four
+screens. The design document (18 October 2026) is held by the
+maintainer; this entry records what was agreed. It settles judgement
+calls B4, G7, G8 and G9 and parts of A1, B2, B5, B6, B10, B11, B13 and
+D2 (`judgement-calls.md`; the settled ones are in
+[`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md)).
+
+**The four screens.**
+- **A. Start:** three short questions on one screen: the situation (I
+  can choose N, or N is fixed), the aim and the claim.
+- **B. Find your design:** the design finder. How screen A becomes the
+  start of a design profile is the first item of
+  [`judgement-session.md`](judgement-session.md)
+  ([`routing-design-options.md`](routing-design-options.md), "Screen A as
+  the start of the profile").
+- **C. Inputs, with the effect size at the centre:** the design's inputs,
+  target power, and the effect-size source with a short rationale.
+- **D. Result, explore, write-up:** N, or on the fixed-N route the
+  smallest detectable effect; a plain reading; an explore panel; a short
+  and a full write-up.
+
+**Decisions 1 to 9 (yes as recommended, with the maintainer's changes):**
+1. **The four-screen design is the direction.** Screen A's claim
+   question has four options, each with a one-line psychology example:
+   - one test;
+   - several claims, each standing on its own (Rubin's individual
+     testing; the most common case): each test is powered separately,
+     with no correction;
+   - any of several (disjunction): the screen says plainly that this
+     claim is about the set, not about each test;
+   - all of several (conjunction).
+2. **A rationale is required only to save or export,** not to explore.
+   No minimum length, any language, one per design, optional notes per
+   parameter.
+3. **Target power has no silent default.** Screen C shows .80 and .95
+   side by side with the N each needs and asks which and why. Alpha stays
+   .05 two-sided by default, with a reason asked only if it is changed.
+4. **"Any of several": Bonferroni in v1** (alpha divided by the number of
+   tests, with the reason shown). Holm later if wanted.
+5. **"All of several": guidance only,** no computed joint power. The
+   chance that all succeed is lower than any one test's power (for
+   example, .90 × .90 = .81 for two independent tests). Tests on the same
+   people are usually positively correlated, so the product is roughly a
+   floor, not exact.
+6. **The explore panel is kept apart from the plan.** If the plan's
+   effect size is changed, its source is flagged "does this still
+   apply?", not wiped. Formula designs only in v1.
+7. **The aim question is asked directly.** "Estimating how big something
+   is" is an equal option; in v1 it points to MBESS and Spower's precision
+   criterion (`coverage.md`). A third option, "showing there's no
+   meaningful effect" (equivalence, TOST), points to established tools
+   (`coverage.md`) until powerkit supports it.
+8. **A test bans verdict words** ("justified", "approved", "adequate",
+   "sufficiently powered") in the output templates, not in every card.
+9. **An opt-in, local calculation history,** off by default.
+
+Further changes from the maintainer:
+- **Plain reading:** "would get a significant result", not "would find
+  it": "If the true effect is d = 0.5, about 8 in 10 studies like this
+  would get a significant result."
+- **"I can't justify an effect size"** when N isn't fixed doesn't force
+  the fixed-N route. It shows the smallest detectable effect across a
+  range of N (a sensitivity curve), at .80 and .95 power.
+- **Direction:** the two-sided default stays for now. Asking "Do you
+  predict a direction?" instead is recorded for the maintainer's meeting
+  with Mark Rubin (`judgement-calls.md`, B18).
+- **Sources for the talk and the app:** no statistic from Vankelecom et
+  al. (2025), Schäfer and Schwarz (2019), Bakker et al. (2016) or Devezer
+  et al. (2021) appears in the app or the talk until it is checked in the
+  full text with page numbers. Until then each stays a candidate. (A
+  full-text check of 18 October 2026 corrected several figures. Schäfer
+  and Schwarz and Devezer et al. now have page numbers from the
+  maintainer's PDFs; Vankelecom et al. and Bakker et al. still need them.)
+
+**Decision 10** (interactions' fixed-N route by the fast fixed-model
+approximation, labelled): decided after the basic tests are done.
+**Decision 11** (a clickable mock for the talk): dropped; the maintainer
+gives the talk.
+
+**Build order (one PR each; each user-visible PR needs the maintainer's
+yes):**
+1. Engine: the smallest detectable effect for E1–E6 (PR #56).
+2. Docs: this entry and the judgement calls it settles.
+3. Honesty fixes on the result screen: Departures 6, 7 and 8 and Known
+   difference 1 (`conventions.md`).
+4. App: screen A and the fixed-N route for E1–E8, with the sensitivity
+   curve.
+5. App: effect-size source and rationale, and a minimal verbatim
+   write-up (needs a minimal G4 decision).
+6. App: the plain reading, the .80/.95 cost line and the verdict-word
+   test.
+7. App: the explore panel.

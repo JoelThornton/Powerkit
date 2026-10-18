@@ -35,20 +35,24 @@ fully validated. Validation runs are recorded in
   while. What matters now is that it is useful, logical and helpful for
   psychologists and solves the problems they have with power analysis.
   Validation and checks come afterwards, before release.
-- **The new design** (four screens: start questions, design finder, inputs
-  centred on the effect size, result with a plain reading and write-up) is
-  in the app: screens A, C and D and the departures on the result screen
-  were merged on 18 October 2026. The write-up is still to come.
+- **The new design** (approved 18 October 2026): four screens (start
+  questions, design finder, inputs centred on the effect size, result
+  with a plain reading and write-up). The decisions are in
+  [`decisions.md`](decisions.md), "The new design". Screens A, C and D
+  and the departures on the result screen were merged on 18 October 2026;
+  the write-up is still to come. The maintainer gives the department talk
+  (Friday 23 October 2026).
 
 ## What's next
 
-1. Docs: record the design decisions and close the judgement calls they
-   settle (G9, most of B10, G8, part of B6/G7). In review.
-2. The minimal write-up and methods paragraph: needs a minimal G4
+1. The minimal write-up and methods paragraph: needs a minimal G4
    decision.
-3. The "does this still apply?" flag on the effect-size source when the
+2. The "does this still apply?" flag on the effect-size source when the
    effect size is changed; the smallest detectable effect for E5–E9 in the
    app.
-4. Then user testing ([`user-testing.md`](user-testing.md)); later, before
-   release, published values, independent checks, phase 3b and wave 2 in
+3. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
+   first item, routing from screen A onwards) and user testing
+   ([`user-testing.md`](user-testing.md)). Later, before release:
+   published values, independent checks for moderated mediation and the
+   Monte Carlo interval with two or more mediators, phase 3b and wave 2 in
    the app.
