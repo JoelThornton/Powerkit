@@ -61,9 +61,9 @@ first, optional features after testing):
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression
    interactions in the app.
-4. User testing with a link ([`user-testing.md`](user-testing.md),
-   updated for the four screens), recruiting at the maintainer's talk
-   (23 October 2026).
+4. User testing with the online link: the plan
+   ([`user-testing.md`](user-testing.md)) is ready for the four screens;
+   recruiting at the maintainer's talk (23 October 2026).
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).

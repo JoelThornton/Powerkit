@@ -1,7 +1,6 @@
 # User testing the routing prototype
 
-*Last updated: 18 October 2026 (online link; the session script below
-still describes the earlier screens and is to be updated for the four
+*Last updated: 18 October 2026 (online link; session script for the four
 screens).*
 
 A short, practical plan for testing the prototype with psychologists. The
@@ -51,13 +50,15 @@ then run another round.
 
 | Time | What happens | What you say (roughly) |
 | --- | --- | --- |
-| 0–2 min | Welcome and consent | "This is a prototype that suggests which power analysis a study needs. We're testing the prototype, not you. It calculates for some designs; for the others it shows guidance only." |
+| 0–2 min | Welcome and consent | "This is a prototype that helps plan the sample size for a study. We're testing the prototype, not you. Its numbers aren't checked yet, so don't use them for a real study." |
 | 2–4 min | Their study | "Describe the study you brought in a couple of sentences: what you compare or relate, who takes part, and how often you measure them." Write it down in their words. |
 | 4–5 min | Think-aloud practice | "As you go, please say what you're thinking: what you're looking for, what you expect, anything unclear. If you go quiet, I'll prompt you." |
-| 5–11 min | Route 1, their choice | "Start however you like and find the analysis for your study." Don't help. If they're stuck for over a minute, ask what they're looking for. |
-| 11–16 min | Routes 2 and 3 | "Now try it the other ways": the routes they didn't choose (I know my analysis; Help me choose; Plan my whole study). Faster; note where routes disagree. |
-| 16–18 min | The end card | "Is this the analysis you'd run? Is anything on the card unclear?" If it's one of E1–E14, ask them to try **Enter your values**. If anything doesn't fit, ask them to open **Something doesn't fit?**, copy the path and add what they expected. |
-| 18–20 min | Debrief | "What was the most confusing moment? Was there a question you weren't sure how to answer? Would you trust where it sent you?" Thank them. |
+| 5–7 min | Start screen | "Answer the three questions for your study." Note any question they hesitate over (sample size fixed or not; testing or estimating; one test or several). |
+| 7–11 min | Finding the design, their choice of route | "Now find the analysis for your study, however you like." Don't help. If they're stuck for over a minute, ask what they're looking for. |
+| 11–13 min | Another route | "Try one of the other ways in" (I know my analysis; Help me choose; Plan my whole study). Faster; note where routes disagree. |
+| 13–17 min | Inputs | On the card: "Is this the analysis you'd run?" Then **Enter your values**. Watch the effect size: where they say it comes from, and whether they pick "can't justify one". |
+| 17–19 min | Result | "In your own words, what does this result tell you?" Then: "What would you put in your ethics form or preregistration?" (the write-up, if shown). Note whether they keep the "if the true effect is…" condition. |
+| 19–20 min | Debrief | "What was the most confusing moment? Would you trust this result? Would you use it instead of what you use now?" Thank them. If anything didn't fit, ask them to open **Something doesn't fit?** and copy the path. |
 
 **During the session:**
 - Don't explain the questions or the cards: their confusion is the data.
@@ -81,6 +82,10 @@ One sheet per session:
   - roughly how long they paused.
 - **Words they didn't understand, or misread.**
 - **Where the routes disagreed** for the same study.
+- **The effect size:** where they said it came from, and whether they
+  could justify one.
+- **Their reading of the result,** in their own words (did they keep the
+  "if the true effect is…" condition, or read it as a promise?).
 - **Quotes** worth keeping (short, without names).
 - **For each problem:**
   - one line saying what happened;
