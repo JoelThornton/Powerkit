@@ -138,6 +138,8 @@ forms:
   E1:
     departures: ["9"]
     tool: pwr
+    sensitivity: true
+    sensitivity_without_effect: true
     basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: one_sample_t,
@@ -154,6 +156,8 @@ forms:
   E2:
     departures: ["9"]
     tool: pwr
+    sensitivity: true
+    sensitivity_without_effect: true
     basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: independent_t,
@@ -182,6 +186,8 @@ forms:
   E3:
     departures: ["9"]
     tool: pwr
+    sensitivity: true
+    sensitivity_without_effect: true
     basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: paired_t,
@@ -201,6 +207,8 @@ forms:
   E4:
     departures: ["9", "10"]
     tool: pwr
+    sensitivity: true
+    sensitivity_without_effect: true
     basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: correlation,
@@ -218,6 +226,7 @@ forms:
   E5:
     departures: ["9", "11", "5"]
     tool: pwr
+    sensitivity: true
     basic_method: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: two_proportions,
@@ -247,6 +256,7 @@ forms:
   E6:
     departures: ["9", "5"]
     tool: pwr
+    sensitivity: true
     basic_method: true
     directional: false
     base: {spec_version: "0.1", design: basic_test, template: chi_square_independence,

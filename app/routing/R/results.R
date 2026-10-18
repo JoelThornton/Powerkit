@@ -208,14 +208,30 @@ result_sentences <- function(spec, result) {
     },
     sensitivity = {
       s <- result$sensitivity
-      c(
-        headline = sprintf(
-          "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s (Cohen's f = %.3f). The effect: %s.",
-          whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
-          format(signif(s$effect, 3)), s$cohen_f, s$effect_description
-        ),
-        detail = "The pattern of means you entered keeps its shape and is scaled until the effect reaches the target power (exact, Superpower)."
-      )
+      if (is.null(s$cohen_f)) {
+        # Basic tests (pwr): the effect is solved for directly.
+        name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", "the effect")
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            name, format(round(s$effect, 3), nsmall = 2), s$effect_description
+          ),
+          detail = sprintf(
+            "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), which finds the effect directly.",
+            percent(spec$goal$power), exact_source(result)
+          )
+        )
+      } else {
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s (Cohen's f = %.3f). The effect: %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            format(signif(s$effect, 3)), s$cohen_f, s$effect_description
+          ),
+          detail = "The pattern of means you entered keeps its shape and is scaled until the effect reaches the target power (exact, Superpower)."
+        )
+      }
     }
   )
 }
@@ -356,7 +372,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   words <- result_sentences(spec, result)
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
-  notes <- unique(c(check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha), check_advice, calc$notes))
   div(
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
