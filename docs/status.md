@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 17 October 2026. Update this page with every PR.*
+*Last updated: 18 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -22,6 +22,14 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   a webR feasibility spike (options and measurements only): every package
   installs in webR except Spower and SimDesign; E2 ran instantly in the
   browser with the same result; E10 took 3.5 times as long as native R.
+
+- **E5 unequal groups in the `basic` validation chunk (18 October
+  2026).** Two new tests check pwrss's z test against the maintainer's
+  G\*Power screenshots at 1 : 2 and 1 : 3 (both directions), one tail at
+  1 : 2, and a priori at 1 : 3 (70 + 210 = 280). The chunk passed on
+  GitHub ([run 39081335537](https://github.com/JoelThornton/Powerkit/actions/runs/39081335537):
+  23 pass, 4 published-value skips); recorded in
+  [`validation-log.md`](validation-log.md).
 
 - **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
   October 2026).** As the maintainer decided: a rough preview (100 simulations, in
