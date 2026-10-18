@@ -66,6 +66,10 @@ The statistical decisions phase 3b needs before coding are in
 [`phase-3b-questions.md`](phase-3b-questions.md) and are only linked here
 (E4).
 
+For the session itself, [`judgement-session.md`](judgement-session.md)
+condenses the calls that change what users see into one page each,
+ordered by impact.
+
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9

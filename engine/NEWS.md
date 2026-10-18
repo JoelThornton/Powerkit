@@ -1,5 +1,9 @@
 # powerkit 0.0.0.9000
 
+* Documentation: `docs/judgement-session.md` sets out the nine open calls
+  that change what users see, ordered by impact, for the maintainer's
+  judgement session. Options and sources only; no code change.
+
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in
   both directions, one tail at 1 : 2, and a priori at 1 : 3), so E5's

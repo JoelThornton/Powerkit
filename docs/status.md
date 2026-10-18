@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 17 October 2026. Update this page with every PR.*
+*Last updated: 18 October 2026. Update this page with every PR.*
 
 powerkit is in development and **not ready for use**: results are not yet
 fully validated. Validation runs are recorded in
@@ -9,6 +9,13 @@ fully validated. Validation runs are recorded in
 For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Judgement session agenda (18 October 2026).**
+  [`judgement-session.md`](judgement-session.md) gives the nine open
+  calls that change what users see, one page each, ordered by impact:
+  routing, effect sizes and sensitivity, alpha and tails, several
+  hypotheses, the methods paragraph, hosting, G\*Power scope, naming
+  other tools, and Bayesian planning. Nothing recommended.
 
 - **E5 unequal groups in the `basic` validation chunk (18 October
   2026).** Two new tests check pwrss's z test against the maintainer's
