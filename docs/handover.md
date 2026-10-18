@@ -16,8 +16,8 @@ this page is the short version plus the working rules.*
 - **App prototype** (`app/routing/`): the question tree, cards and input
   screens for every end point. E1–E8 calculate on the input screen (merged
   in #34). E9 calculates in the background with a progress bar and Cancel
-  (PR #36, merged). E10–E14 (phase 5, part 2; draft PR waiting for the
-  maintainer's yes) give a rough preview of power, then the full run in
+  (PR #36, merged). E10–E14 (phase 5, part 2; PR #47, approved
+  18 October 2026) give a rough preview of power, then the full run in
   the app (mediation power) or an R script to run at home; a required N
   goes straight to the R script
   ([`phase5-simulations.md`](phase5-simulations.md), "Decided").

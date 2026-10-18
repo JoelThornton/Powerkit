@@ -232,7 +232,11 @@ and a required N for 80% power). These are the waits the app states.
 The E10 required-N run shared the container's 4 cores with 3 other R
 processes, so alone it would be faster, but still well over 5 minutes.
 
-### A required N has no preview (17 October 2026; for the maintainer's yes)
+### A required N has no preview (approved by the maintainer, 18 October 2026)
+
+**Decided (maintainer, 18 October 2026):** no preview for a required N;
+it goes straight to the R script, because the 100-simulation search
+couldn't settle on an N. The reasoning below is kept as written.
 
 The plan was a preview for every goal. For a required N it doesn't work:
 the engine's search simulates a bracketing pass and then 7 or more sample

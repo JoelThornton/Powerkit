@@ -1709,7 +1709,7 @@ and 1 : 3 in both directions are tested, and the maintainer's G\*Power
 screenshots for those inputs (and one tail, and a priori at 1 : 3) match
 them to 7 decimals (`docs/gpower-parity.md`, E5).
 
-## 2026-10-17 · Phase 5, part 2: E10–E14 (waits for the maintainer's yes)
+## 2026-10-17 · Phase 5, part 2: E10–E14
 
 **Decided (maintainer, 17 October 2026):** for mediation power at a fixed
 N (E10–E12), a quick preview of about 100 replications shown as a range,
@@ -1740,11 +1740,12 @@ functions were added: `export_run_script()` (the script for a spec, with
 its seed, that calls `run_spec()`) and `power_interval()` (the exact
 binomial range for simulated power, from base R's `binom.test()`).
 
-**One change from the plan (waits for the maintainer's yes):** a required
-N has no preview and goes straight to the R script. With 100 replications
-per sample size the search took over 15 minutes for simple mediation and
-couldn't pin the N down (`phase5-simulations.md`, "A required N has no
-preview").
+**One change from the plan (approved by the maintainer, 18 October
+2026):** a required N has no preview and goes straight to the R script.
+**Reason:** the 100-simulation search couldn't settle on an N. With 100
+replications per sample size the search took over 15 minutes for simple
+mediation and stopped with "could not pin down the required n"
+(`phase5-simulations.md`, "A required N has no preview").
 
 ## 2026-10-17 · Attrition: the number to recruit
 
