@@ -9,6 +9,7 @@ e2$goal <- list(type = "power", n = 200)
 e2$options$attrition <- NULL
 
 e10 <- read_spec(system.file("specs", "mediation_simple.json", package = "powerkit"))
+e10$variables$X <- list(type = "continuous", label = "Self-affirmation score")   # the engine runs a continuous X
 e10$goal <- list(type = "power", n = 200)
 e10$options$attrition <- NULL
 e10$options$nrep <- 100                        # the app's preview size
