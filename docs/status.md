@@ -10,6 +10,12 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **All of 18 October's PRs merged.** #49 (run it yourself, About tab,
+  hosting options), #51 (wave 2 engine groundwork, all five tests
+  matching G\*Power) and #52 (project files) merged after the
+  maintainer's yes; no PRs are open. Next: wire the wave 2 tests into the
+  app, the judgement session, and the E6 df 2 screenshot.
+
 - **Project files (draft PR; waits for the maintainer's yes, 18 October
   2026).** Option (a) of `saving-projects.md` (PR #50): "Save project"
   writes one file (route, inputs, seed, result, versions) through the
