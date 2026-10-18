@@ -31,8 +31,10 @@ computed it. On top of those packages, powerkit adds:
 - an R script for each result that reproduces it with the backend package
   alone, and the citations for that package and its method paper.
 
-A point-and-click app, a design finder, a methods paragraph (write-up)
-export, and an optional AI assistant are planned.
+A prototype point-and-click app with a design finder is in `app/routing/`
+(how to run it: [`docs/run-it-yourself.md`](docs/run-it-yourself.md)). A
+methods paragraph (write-up) export and an optional AI assistant are
+planned.
 
 ## Status
 
@@ -47,9 +49,9 @@ export, and an optional AI assistant are planned.
 | 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
 | Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (by formula via pwr; two proportions via base R's `power.prop.test()` and pwrss, matching G*Power's z test; Spower simulation on request); validated against analytic results, direct Spower calls and Type I error; the two-proportions z test is to be revalidated; checks against G*Power's published examples to come |
 | Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem; checks against published examples to come |
+| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem, and parallel and serial mediation against simsem (joint test only); checks against published examples to come |
 | Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (rerun on 17 October 2026 after a fix to how power4mome calls are seeded); no independent cross-check yet; checks against published examples to come |
-| Shiny app and design finder | Planned |
+| Shiny app and design finder | **Prototype** (`app/routing/`): every design above calculates in the app; mediation designs give a quick preview, then a full run or an R script |
 
 What "validated" means is defined at the top of the
 [validation log](docs/validation-log.md). Not available yet for these

@@ -106,7 +106,7 @@ which uses Fisher's z (pwr's help: "These calculations use the Z' transformation
 correlation coefficient"). At N = 20–100 and r = .3–.5 the two differ by
 at most 0.004 in power, and by 1 in the required N at r = .3 (the
 comparison is judgement call
-[G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5);
+[G6](archive/judgement-calls-decided.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5);
 the full parity tables are in [`gpower-parity.md`](gpower-parity.md)).
 The maintainer decided on 17 October 2026 to keep Fisher's z, recorded as
 Departure 10 in [`conventions.md`](conventions.md).
@@ -500,12 +500,12 @@ their missing-data options are under C3.
 - pwr's two-proportion functions (`pwr.2p.test()`, `pwr.2p2n.test()`) use
   Cohen's h (the arcsine transformation), which isn't the z test G\*Power
   lists (A41). The size of the difference is in
-  [G6](judgement-calls.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5).
+  [G6](archive/judgement-calls-decided.md#g6-the-method-for-correlations-e4-and-for-two-proportions-e5).
   The maintainer wants a z test as E5's default; base R's
   `power.prop.test()` is being checked against G\*Power first.
 
 [A1]: judgement-calls.md#a1-naming-other-tools-on-not-covered-cards
-[A2]: judgement-calls.md#a2-e45-says-no-ready-made-tool-but-pits-exists
+[A2]: archive/judgement-calls-decided.md#a2-e45-says-no-ready-made-tool-but-pits-exists
 [A5]: judgement-calls.md#a5-the-dyadic-cards-wording-e44
 [A6]: judgement-calls.md#a6-the-segmented-regression-cards-points-and-e45-vs-e35
 [A8]: judgement-calls.md#a8-the-reason-given-for-the-pilot-study-warning

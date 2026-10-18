@@ -34,6 +34,23 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
   demand, before merges and releases, on the maintainer's machine, with
   scripts/run-validation.R.
 
+## Working process (maintainer, 18 October 2026)
+The maintainer is the only reviewer and decider, so keep what they have
+to read small.
+- Judgement calls: give a recommendation and a one-line reason, not only
+  neutral options. The maintainer accepts or overrules it. When a call is decided, move
+  its entry to docs/archive/judgement-calls-decided.md and record it in
+  docs/decisions.md.
+- docs/status.md is current state only: replace old entries, don't append
+  history (git, NEWS.md and docs/archive/ hold that).
+- Prefer updating an existing doc to adding a new one.
+- One design or one feature per PR; keep code changes to a few hundred
+  lines where possible, and keep docs-only changes in their own PR.
+- One thread per area at a time (engine, app, docs). Before editing a
+  shared page (handover.md, status.md), check open PRs for edits to it.
+- Local R in a cloud session: scripts/setup-cloud-session.sh (also usable
+  as the environment's setup script).
+
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
   (validation tests with TODO placeholders may be skipped, not deleted).

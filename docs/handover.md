@@ -71,6 +71,12 @@ Heisey and the G\*Power manual stay candidates.
 
 ## Rules
 
+- **Priorities and process (18 October 2026):** usefulness for
+  psychologists comes before validation until release, and this week is
+  for the maintainer's Friday talk ([`status.md`](status.md),
+  "Priorities"). How to keep reviews small (recommendations on judgement
+  calls, PR size, one thread per area, status as current state) is in
+  `CLAUDE.md`, "Working process".
 - **Merging:** anything that changes what users see (cards, wording,
   results, defaults, routing) needs the maintainer's explicit yes before
   merging. Docs-only and test-only PRs can merge on green when the

@@ -427,7 +427,7 @@ kept so later departures keep theirs.
   (N = 20, r = .5; one-sided, at most 0.0047). The required N for 80%
   power differs by at most 1: 85 rather than 84 at r = .3; the same at
   r = .4 (46) and r = .5 (29). The full table is in
-  [`judgement-calls.md`](judgement-calls.md), G6.
+  [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md), G6.
 - **Test:** `test-backend-pwr.R`, "departure: correlation by Fisher's z,
   not G\*Power's exact method (Departure 10)".
 - **Shown to users / in the methods paragraph:** on E4's card (backend
@@ -463,7 +463,7 @@ kept so later departures keep theirs.
     against 0.2339595 at 20 per group.
   - Against powerkit's earlier default (Cohen's h), same example: 0.2478
     at 20 per group; 160 rather than 164 per group for 95% power. The
-    table in [`judgement-calls.md`](judgement-calls.md), G6, has more
+    table in [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md), G6, has more
     cases (largest gap 0.018 in power, 3 per group for 80% power).
   - Unequal groups, pwrss against G\*Power: the same power at the same
     group sizes (0.9498668 at 123 and 247, p1 = .10, p2 = .25). The
