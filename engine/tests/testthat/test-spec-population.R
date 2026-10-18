@@ -257,7 +257,11 @@ zero_effect_cases <- list(
   regression_r2_zero = function(s) within(s, population$r2 <- 0),
   regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),
   one_proportion = function(s) within(s, population$p <- population$p0),
-  mcnemar = function(s) within(s, population$p_second_only <- population$p_first_only)
+  mcnemar = function(s) within(s, population$p_second_only <- population$p_first_only),
+  fisher_exact = function(s) within(s, population$p2 <- population$p1),
+  chi_square_gof = function(s) within(s, population$probabilities <- list(1 / 3, 1 / 3, 1 / 3)),
+  two_correlations = function(s) within(s, population$r2 <- population$r1),
+  anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18))
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

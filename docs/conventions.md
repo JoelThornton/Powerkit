@@ -534,7 +534,7 @@ methods paragraph.
 
 *Moved from the departures (it was Departure 12) by the maintainer's
 decision, 18 October 2026: G\*Power reports the same N as powerkit.
-Engine only (wave 2), not yet wired into the app.*
+Wired into the app on 18 October 2026 (E25, E26).*
 
 - **What differs:** for exact tests of counts, power goes up and down
   with N. powerkit and G\*Power report the smallest N that reaches the
@@ -553,9 +553,13 @@ Engine only (wave 2), not yet wired into the app.*
   smallest n that reaches the target", "known difference: pwrss's own
   sample-size answer for exact tests of counts (Known difference 2)", and
   the G\*Power checks for one proportion and McNemar.
-- **Shown to users / methods paragraph:** to do when these tests are
-  wired into the app: a note that power for these tests goes up and down
-  with N, so a slightly larger N can have lower power.
+- **Shown to users:** on the result screen for one proportion (E25) and
+  McNemar's test (E26), under "Where other established tools give a
+  different answer" (18 October 2026; `app/routing/forms.yaml`,
+  `known_differences`).
+- **Methods paragraph:** to do with the write-up: a note that power for
+  these tests goes up and down with N, so a slightly larger N can have
+  lower power.
 
 ## Not departures, but worth stating
 
@@ -568,6 +572,11 @@ Engine only (wave 2), not yet wired into the app.*
 - **ANCOVA:** Superpower has `ANCOVA_analytic()` and `power_oneway_ancova()`
   [SP-src]. These may serve the ANCOVA route for pre–post designs (decision
   D2 in `docs/design-finder.md`); whether they match G*Power is to check.
+  The engine's one-way ANCOVA (18 October 2026, not yet in the app) uses
+  pwrss's `power.f.ancova.shieh()`, Shieh's (2020) method, which
+  Superpower's `power_oneway_ancova(type = "exact")` also uses (its help
+  names Keppel's approach as the approximate one); a test shows the two
+  agree. Whether it matches G*Power's ANCOVA is still to check.
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

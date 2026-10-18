@@ -180,7 +180,22 @@ design_description <- function(spec) {
     ),
     "basic_test/correlation" = sprintf("Pearson correlation of %s with %s", label("X"), label("Y")),
     "basic_test/two_proportions" = sprintf(
-      "z test of two proportions: %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
+      "%s of two proportions: %s between the groups of %s (%s)",
+      if (identical(spec$target_test$method, "fisher_exact")) "Fisher's exact test" else "z test",
+      label("Y"), label("X"), levels("X")
+    ),
+    "basic_test/two_correlations" = sprintf(
+      "comparison of two correlations (Fisher's z test): %s with %s, between the groups of %s (%s)",
+      label("X"), label("Y"), label("G"), levels("G")
+    ),
+    "basic_test/chi_square_gof" = sprintf(
+      "chi-square goodness-of-fit test of %s (%s) against %s proportions",
+      label("Y"), levels("Y"), if (is.null(spec$population$null_probabilities)) "equal" else "fixed"
+    ),
+    "factorial_anova/oneway_ancova" = sprintf(
+      "one-way ANCOVA of %s across the %d groups of %s (%s), adjusting for %s covariate%s; omnibus F test",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      spec$population$covariates, if (spec$population$covariates == 1) "" else "s"
     ),
     "basic_test/one_proportion" = sprintf(
       "exact binomial test of one proportion: %s = %s, compared with a fixed value",
@@ -432,13 +447,15 @@ add_recruitment_section <- function(lines, spec, result) {
   split <- switch(
     spec$template,
     independent_t = ,
-    two_proportions = c(
+    two_proportions = ,
+    two_correlations = c(
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    oneway_between = sprintf(
+    oneway_between = ,
+    oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
     "groups_analysed <- n_analysed # one group"

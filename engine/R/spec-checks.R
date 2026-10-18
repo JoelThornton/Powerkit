@@ -73,20 +73,26 @@ uses_simulation <- function(spec) {
 }
 
 # Designs with an exact method: factorial ANOVA (Superpower's
-# ANOVA_exact()), the basic tests pwr covers, and the wave 2 tests pwrss
-# covers (one proportion, McNemar, R-squared, and Welch's t-test on request).
+# ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
+# (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
+# fit, two correlations, ANCOVA, and Welch's t-test on request).
 exact_available <- function(spec) {
   spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
     pwr_covers(spec) ||
-    spec$template %in% c("one_proportion", "mcnemar") ||
+    pwrss_only(spec) ||
     identical(spec$target_test$method, "welch_t")
 }
 
-# Wave 2 tests with no simulation in powerkit yet: they are computed by
-# formula only (pwrss).
+# Tests with no simulation in powerkit yet: they are computed by formula
+# only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design %in% c("multiple_regression", "generic_test") ||
-    spec$template %in% c("one_proportion", "mcnemar"))
+  !(spec$design %in% c("multiple_regression", "generic_test") || pwrss_only(spec))
+}
+
+# Tests powerkit computes with pwrss's formulas only.
+pwrss_only <- function(spec) {
+  spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations", "oneway_ancova") ||
+    identical(spec$target_test$method, "fisher_exact")
 }
 
 # Variables -----------------------------------------------------------------
@@ -123,12 +129,12 @@ check_reliability_allowed <- function(spec) {
 
 check_allocation_allowed <- function(spec) {
   if (is.null(spec$options$allocation_ratio) ||
-    spec$template %in% c("independent_t", "two_proportions")) {
+    spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
     return(character())
   }
   paste0(
     "'options > allocation_ratio' only applies to two-group designs ",
-    "(independent t-test, two proportions); remove it."
+    "(independent t-test, two proportions, two correlations); remove it."
   )
 }
 
@@ -166,12 +172,12 @@ check_proportions_formula_allowed <- function(spec) {
   character()
 }
 
-# pwrss's one-sided tests (one proportion, McNemar, Welch's t-test by
-# formula) run in the direction of the specified effect, so a one-sided
+# pwrss's one-sided tests (one proportion, McNemar, Fisher's exact test,
+# two correlations, Welch's t-test by formula) run in the direction of the specified effect, so a one-sided
 # test pointing the other way can't be computed with them.
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
-  if (alternative == "two_sided" || !spec$template %in% c("one_proportion", "mcnemar", "independent_t", "t", "z")) {
+  if (alternative == "two_sided" || !spec$template %in% c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations", "t", "z")) {
     return(character())
   }
   pop <- spec$population
@@ -186,6 +192,8 @@ check_direction_allowed <- function(spec) {
     z = pop$ncp,
     one_proportion = pop$p - pop$p0,
     mcnemar = pop$p_second_only - pop$p_first_only,
+    two_correlations = pop$r2 - pop$r1,
+    two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
   )
@@ -208,6 +216,7 @@ check_basic_test <- function(spec) {
   switch(
     spec$template,
     chi_square_independence = check_probability_table(spec),
+    chi_square_gof = check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
     character()
   )
@@ -225,6 +234,30 @@ check_discordant_proportions <- function(spec) {
     ))
   }
   character()
+}
+
+# Goodness of fit: one proportion per level of Y, adding up to 1, and the
+# same for the fixed proportions if given.
+check_gof_probabilities <- function(spec) {
+  pop <- spec$population
+  k <- length(spec$variables$Y$levels)
+  problems <- character()
+  for (name in c("probabilities", "null_probabilities")) {
+    p <- as.numeric(unlist(pop[[name]]))
+    if (length(p) == 0) next
+    if (length(p) != k) {
+      problems <- c(problems, sprintf(
+        "'population > %s' has %d values, but %s has %d levels. Give one proportion for each level, in the same order.",
+        name, length(p), var_label(spec, "Y"), k
+      ))
+    } else if (abs(sum(p) - 1) > 1e-6) {
+      problems <- c(problems, sprintf(
+        "'population > %s' must add up to 1, but they add up to %s.",
+        name, format_number(round(sum(p), 6))
+      ))
+    }
+  }
+  problems
 }
 
 check_probability_table <- function(spec) {
@@ -273,7 +306,7 @@ check_factorial_anova <- function(spec) {
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
     ))
   }
-  if (spec$template == "oneway_between") {
+  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     k <- length(spec$variables$A$levels)
     if (length(pop$means) != k) {
       return(sprintf(
@@ -286,7 +319,7 @@ check_factorial_anova <- function(spec) {
 }
 
 anova_contrast <- function(spec) {
-  if (spec$template == "oneway_between") {
+  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
@@ -758,6 +791,10 @@ minimum_n <- function(spec) {
       one_sample_t = 3,
       paired_t = 3,
       chi_square_independence = length(unlist(spec$population$probabilities)),
+      chi_square_gof = length(unlist(spec$population$probabilities)),
+      # Fisher's z needs more than 3 people in each group (its SE is
+      # 1 / sqrt(n - 3)).
+      two_correlations = 10,
       4
     ),
     factorial_anova = switch(
@@ -766,7 +803,9 @@ minimum_n <- function(spec) {
       "2x2_mixed" = 4,
       # Two participants per group, so the error df is at least the number
       # of groups.
-      oneway_between = 2 * length(spec$variables$A$levels)
+      oneway_between = 2 * length(spec$variables$A$levels),
+      # Two per group, plus one error df for each covariate.
+      oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates
     ),
     # The intercept, every predictor, and at least one residual df.
     multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
@@ -784,11 +823,11 @@ group_split <- function(spec) {
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
   }
-  if (spec$template == "oneway_between") {
+  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
-  if (spec$template %in% c("independent_t", "two_proportions")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
@@ -812,6 +851,12 @@ target_effect_is_zero <- function(spec) {
       mcnemar = pop$p_second_only - pop$p_first_only,
       correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
+      two_correlations = pop$r1 - pop$r2,
+      chi_square_gof = {
+        p <- as.numeric(unlist(pop$probabilities))
+        p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))
+        max(abs(p - p0))
+      },
       chi_square_independence = {
         p <- matrix(as.numeric(unlist(pop$probabilities)), nrow = length(pop$probabilities), byrow = TRUE)
         max(abs(p - outer(rowSums(p), colSums(p))))

@@ -1,6 +1,6 @@
 # Card sources
 
-*Last updated: 17 October 2026.*
+*Last updated: 18 October 2026.*
 
 Every factual claim on the routing prototype's end-point cards, with where
 it comes from. A claim is anything the card states as fact: what a tool
@@ -31,7 +31,7 @@ cites `coverage.md`, that page's own source tags ([Sp], [SP], [p4m], [IP],
 first-hand. Sources outside the repository are cited only if they were
 opened and read on 16 October 2026; nothing is cited from memory.
 
-**Counts:** partly sourced: 23, sourced: 155, no claim: 1
+**Counts:** partly sourced: 24, sourced: 160, no claim: 1
 
 ## Contradictions
 
@@ -48,7 +48,7 @@ None open. Resolved:
 | E1 | Status line | Full validation run passed. No published example has been checked for this design yet. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
 | E1 | Backend | pwr: pwr.t.test() (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E2 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
-| E2 | Backend | pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
+| E2 | Backend | pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E3 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
 | E3 | Backend | pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it) | engine/R/backend-pwr.R, engine/R/route.R; docs/decisions.md, 17 October 2026 | — | — | sourced |
 | E4 | Status line | Full validation run passed. A check against a published example is still to come. | docs/validation-log.md; engine/tests/testthat/test-validation-basic-tests.R | — | — | sourced |
@@ -81,7 +81,10 @@ None open. Resolved:
 | E17 | Backend | power4mome: power4test() with rbinary_rs() (planned) | docs/build-guide.md (planned backend); docs/decisions.md | — | — | sourced |
 | E17 | Coming soon | Planned next: a yes/no X or W. | docs/build-guide.md, section 8 (phase 3b) | — | — | sourced |
 | E17 | What you would enter | A yes/no X or W must be uncorrelated with the other predictors (fits a randomised condition) | docs/build-guide.md (correlated predictors); docs/decisions.md | — | — | sourced |
-| E18 | Tool: Superpower | Factorial ANOVA power from means, SDs and correlations (between, within and mixed designs, up to three factors). | coverage.md (the row or section naming Superpower; its source tags give the original) | — | — | sourced |
+| E18 | Status line | Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example. | engine/tests/testthat/test-backend-wave2.R (the G*Power checks); docs/conventions.md, Known difference 2; PR #51 | — | — | sourced |
+| E18 | Backend | Superpower: ANOVA_design("kb") and ANOVA_exact() (ANOVA_power() if simulation is chosen) | engine/R/backend-superpower.R, engine/R/route.R | — | — | sourced |
+| E18 | Card point | powerkit calculates this for different people in each group, with equal group sizes and the same SD in every group. | engine/R/backend-superpower.R (superpower_inputs(), one SD, n split equally); engine/R/spec-checks.R | — | — | sourced |
+| E18 | Card point | For the same people in every condition (repeated measures), powerkit doesn't calculate it yet: Superpower covers within-participants designs. | engine/R/route.R (no within template); coverage.md (the row or section naming Superpower) | — | — | sourced |
 | E19 | Tool: Superpower | Power for emmeans contrasts (pairwise, custom, simple effects) in factorial designs. | coverage.md (the row or section naming Superpower; its source tags give the original) | — | — | sourced |
 | E19 | Tool: pwranova | Analytic power for planned contrasts in between- or within-factor ANOVA (pwrcontrast()). | coverage.md (the row or section naming pwranova; its source tags give the original) | — | — | sourced |
 | E20 | Tool: Superpower | Factorial ANOVA power from means, SDs and correlations, including within-participants designs ("2w*2w"). | coverage.md (the row or section naming Superpower; its source tags give the original) | — | — | sourced |
@@ -90,10 +93,13 @@ None open. Resolved:
 | E22 | Tool: Superpower | Documents unequal group sizes for ANOVA_power() only: ANOVA_design() help, argument n ("If unequal n is entered then the design can only be passed … | Superpower ANOVA_design() help (argument n) and NEWS 0.0.3; docs/conventions.md, 'Superpower and unequal group sizes' | — | — | sourced |
 | E23 | Tool: Superpower | Analytic ANCOVA power from cell means, SD and the covariates' R-squared (ANCOVA_analytic(), power_oneway_ancova()). | coverage.md (the row or section naming Superpower; its source tags give the original) | — | — | sourced |
 | E23 | Tool: pwrss | Analytic power for ANCOVA (Keppel and Shieh methods) and many other common tests. | coverage.md (the row or section naming pwrss; its source tags give the original) | — | — | sourced |
-| E24 | Tool: Spower | Simulation power for R-squared and R-squared change (p_lm.R2()) and any linear hypothesis in a regression (p_glm()). | coverage.md (the row or section naming Spower; its source tags give the original) | — | — | sourced |
-| E24 | Tool: pwrss | Analytic power for regression coefficients and R-squared. | coverage.md (the row or section naming pwrss; its source tags give the original) | — | — | sourced |
-| E25 | Tool: Spower | Simulation power for one proportion against a constant (p_prop.test(), binomial test). | coverage.md (the row or section naming Spower; its source tags give the original) | — | — | sourced |
-| E26 | Tool: Spower | Simulation power for McNemar's test (p_mcnemar.test()). | coverage.md (the row or section naming Spower; its source tags give the original) | — | — | sourced |
+| E24 | Status line | Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example. | engine/tests/testthat/test-backend-wave2.R (the G*Power checks); docs/conventions.md, Known difference 2; PR #51 | — | — | sourced |
+| E24 | Backend | pwrss: power.f.regression() (the F test, by formula) | engine/R/backend-pwrss.R, engine/R/route.R | — | — | sourced |
+| E24 | Card point | One predictor's coefficient, controlling for the others, is an R-squared increase with 1 predictor tested: the same F test. | docs/coverage-roadmap.md, row A12 (pwr `pwr.f2.test(u = 1)`); engine/R/backend-pwrss.R (partial R-squared, k.tested) | — | Inferred from the F test's form: the test of one coefficient has numerator df 1 and Cohen's f² = ΔR² / (1 − R²full); not separately checked against G*Power's single-coefficient option | partly sourced |
+| E25 | Status line | Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example. | engine/tests/testthat/test-backend-wave2.R (the G*Power checks); docs/conventions.md, Known difference 2; PR #51 | — | — | sourced |
+| E25 | Backend | pwrss: power.exact.oneprop() (the exact binomial test) | engine/R/backend-pwrss.R, engine/R/route.R | — | — | sourced |
+| E26 | Status line | Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example. | engine/tests/testthat/test-backend-wave2.R (the G*Power checks); docs/conventions.md, Known difference 2; PR #51 | — | — | sourced |
+| E26 | Backend | pwrss: power.exact.mcnemar(method = "exact") (McNemar's exact test, as G*Power's exact option) | engine/R/backend-pwrss.R; test-backend-wave2.R ("McNemar matches G*Power's exact option") | — | — | sourced |
 | E26 | Status | No ready-made tool (Cochran's Q) | coverage.md (row for this design: no tool found) | — | — | sourced |
 | E27 | Tool: Spower | Simulation power for generalised linear models with fixed predictors, including logistic (p_glm(family = binomial())). | coverage.md (the row or section naming Spower; its source tags give the original) | — | — | sourced |
 | E27 | Tool: pwrss | Analytic power for logistic regression. | coverage.md (the row or section naming pwrss; its source tags give the original) | — | — | sourced |

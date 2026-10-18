@@ -71,7 +71,9 @@ test_that("end points that run have a backend, a method and a validation file", 
     if (ep$status %in% c("runs_validated", "runs_validation_in_progress")) {
       expect_true(nzchar(ep$backend %||% ""), label = id)
       expect_true(nzchar(ep$method %||% ""), label = id)
-      expect_match(ep$validation$file, "^test-validation-.*\\.R$", label = id)
+      # A validation file, or (validation in progress) the engine test file
+      # holding its G*Power checks.
+      expect_match(ep$validation$file, "^test-(validation|backend)-.*\\.R$", label = id)
     }
   }
 })

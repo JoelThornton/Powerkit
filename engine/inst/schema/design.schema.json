@@ -412,7 +412,7 @@
           "maximum": 100000
         },
         "allocation_ratio": {
-          "description": "Two-group designs only: size of the second group divided by the size of the first (1 = equal groups).",
+          "description": "Two-group designs only (independent t-test, two proportions, two correlations): size of the second group divided by the size of the first (1 = equal groups).",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -424,7 +424,7 @@
           ]
         },
         "method": {
-          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; and for multiple regression, via pwrss's F test). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request).",
+          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; for multiple regression, via pwrss's F test; and for Fisher's exact test, the goodness-of-fit test, two correlations and ANCOVA, via pwrss's formulas). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request).",
           "enum": [
             "exact",
             "simulation"
@@ -570,7 +570,9 @@
               "two_proportions",
               "chi_square_independence",
               "one_proportion",
-              "mcnemar"
+              "mcnemar",
+              "chi_square_gof",
+              "two_correlations"
             ]
           },
           "target_test": {
@@ -698,6 +700,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_mcnemar"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "chi_square_gof"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_chi_square_gof"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_correlations"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_two_correlations"
             }
           }
         ]
@@ -930,7 +962,11 @@
               "const": "proportion_difference"
             },
             "method": {
-              "const": "z_test"
+              "description": "z_test: the z test of two proportions (by formula, or simulated on request). fisher_exact: Fisher's exact test, by pwrss's exact power calculation (power.exact.fisher()).",
+              "enum": [
+                "z_test",
+                "fisher_exact"
+              ]
             }
           }
         }
@@ -1016,7 +1052,8 @@
             "enum": [
               "2x2_between",
               "2x2_mixed",
-              "oneway_between"
+              "oneway_between",
+              "oneway_ancova"
             ]
           },
           "target_test": {
@@ -1035,7 +1072,10 @@
                     ]
                   },
                   "method": {
-                    "const": "anova_f"
+                    "enum": [
+                      "anova_f",
+                      "ancova_f"
+                    ]
                   }
                 }
               }
@@ -1087,6 +1127,21 @@
             "then": {
               "$ref": "#/definitions/template_oneway_between"
             }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "oneway_ancova"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_oneway_ancova"
+            }
           }
         ]
       }
@@ -1132,6 +1187,13 @@
             },
             "sd": {
               "$ref": "#/definitions/cell_sd"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "const": "anova_f"
             }
           }
         }
@@ -1183,6 +1245,13 @@
             "r": {
               "description": "Correlation between the two repeated measurements (levels of B) within a participant.",
               "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "const": "anova_f"
             }
           }
         }
@@ -1702,6 +1771,9 @@
           "properties": {
             "effect": {
               "const": "main_effect_A"
+            },
+            "method": {
+              "const": "anova_f"
             }
           }
         }
@@ -2166,6 +2238,205 @@
             }
           }
         ]
+      }
+    },
+    "template_chi_square_gof": {
+      "description": "Chi-square goodness-of-fit test: one categorical variable's proportions compared with fixed proportions (equal, unless given).",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_categorical"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "probabilities"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "probabilities": {
+              "description": "Expected proportion of the population in each category of Y, in the order of its levels. Must add up to 1.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "null_probabilities": {
+              "description": "The fixed proportions they are compared with (the null hypothesis), in the same order. Must add up to 1. Optional: equal proportions if left out, as pwrss's probs.to.w() assumes.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "goodness_of_fit"
+                },
+                "method": {
+                  "const": "pearson_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_two_correlations": {
+      "description": "Two independent groups compared on the correlation between X and Y (Fisher's z test).",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r1",
+            "r2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r1": {
+              "description": "Correlation of X with Y in the first group.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r2": {
+              "description": "Correlation of X with Y in the second group.",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation_difference"
+            },
+            "method": {
+              "const": "fisher_z"
+            }
+          }
+        }
+      }
+    },
+    "template_oneway_ancova": {
+      "description": "One between-participants factor with two or more levels, adjusting for one or more covariates (one-way ANCOVA, omnibus F test; Shieh's method, covariates treated as random). Group sizes are equal.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r2_covariates",
+            "covariates"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected adjusted mean of each group (adjusted for the covariates), in the order of the factor's levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd": {
+              "description": "Standard deviation of the outcome within each group, before adjusting for the covariates (the same in every group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r2_covariates": {
+              "description": "Proportion of the outcome's variance the covariates explain (R-squared).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "covariates": {
+              "description": "Number of covariates.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "main_effect_A"
+            },
+            "method": {
+              "const": "ancova_f"
+            }
+          }
+        }
       }
     }
   }
