@@ -52,7 +52,8 @@ first, optional features after testing):
 2. A working web app: host the app on an R server so testers can open a
    link (the browser-only route, webR, can't run Spower;
    [`hosting-options.md`](hosting-options.md)). The maintainer chose
-   shinyapps.io (18 October 2026); `scripts/deploy-shinyapps.R` deploys it.
+   Posit Connect Cloud (18 October 2026); `scripts/deploy-online.R`
+   deploys it.
 3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression

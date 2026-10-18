@@ -1907,3 +1907,16 @@ yes):**
 6. App: the plain reading, the .80/.95 cost line and the verdict-word
    test.
 7. App: the explore panel.
+
+## 2026-10-18 · Hosting for testing: Posit Connect Cloud
+
+**Decision (maintainer, 18 October 2026, on Claude's recommendation).**
+The app goes online for the first round of user testing, so testers open
+a link instead of installing R. It needs an R server because Spower
+doesn't install in webR (`hosting-options.md`). The maintainer first chose
+shinyapps.io, then moved to Posit Connect Cloud because shinyapps.io is
+closing to new apps at the end of 2026 and moving its users there (the
+maintainer's note; the date is from a search result, unchecked). Same
+deploy route from R (rsconnect 1.6.0 or later). The maintainer deploys
+with `scripts/deploy-online.R`. Prices and limits are to check on the
+account page; mediation runs may be slow on a small instance.
