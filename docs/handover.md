@@ -1,77 +1,38 @@
 # Handover
 
-*Written 18 October 2026, at the end of a working stretch, for whoever
-picks the project up next. [`status.md`](status.md) is the running record;
-this page is the short version plus the working rules.*
+*Updated 18 October 2026, for whoever picks the project up next.
+[`status.md`](status.md) is the current state and the priorities; this
+page is the working rules and where things live. [`README.md`](README.md)
+maps every document.*
 
 ## Current state
 
 - **Engine** (`engine/`): every design E1–E14 runs through `run_spec()`
-  and has passed its full validation run. Published values are still being
-  transcribed by the maintainer (`TODO_PUBLISHED_VALUE` placeholders).
-- **Basic tests (E1–E6)** use pwr's exact formula by default (merged in
-  PR #34; Departure 9 in [`conventions.md`](conventions.md)). Spower
-  simulation stays available as an option, and for Welch's t-test. The
-  `basic` chunk passed on 18 October 2026 with E5's unequal-group G\*Power
-  cases added (#48; `validation-log.md`).
-- **App prototype** (`app/routing/`): the question tree, cards and input
-  screens for every end point. E1–E8 calculate on the input screen (merged
-  in #34). E9 calculates in the background with a progress bar and Cancel
-  (PR #36, merged). E10–E14 (phase 5, part 2; PR #47, approved
-  18 October 2026) give a rough preview of power, then the full run in
-  the app (mediation power) or an R script to run at home; a required N
-  goes straight to the R script
-  ([`phase5-simulations.md`](phase5-simulations.md), "Decided").
-- **Result screen:** an exact required N shows the power it actually
-  gives (G5).
-- **Seed:** a fixed default (1), shown and changeable on every screen and
-  recorded in the result and its R script.
+  and has passed its full validation run. Published values are still to
+  be transcribed by the maintainer (`TODO_PUBLISHED_VALUE` placeholders).
+  The basic tests (E1–E6) use pwr's or base R's formula by default
+  (Departure 9) and can find the smallest detectable effect at a fixed N.
+  Wave 2 (one-way ANOVA, R², one proportion, McNemar, Welch by formula)
+  runs in the engine but isn't in the app yet.
+- **App** (`app/routing/`): the new four-screen design
+  ([`decisions.md`](decisions.md), "2026-10-18 · The new design"):
+  - screen A, start questions (situation, aim, claim);
+  - screen B, the question tree and end-point cards;
+  - screen C, inputs with the effect-size source and the user's
+    reasoning, and "I can't justify an effect size" (E1–E4);
+  - screen D, the result with a plain reading, 80% and 95% side by side,
+    the reasoning, what power can't tell you, an explore panel (E1–E4),
+    and the departures and known differences.
 
-## Open PRs (end of 18 October 2026)
-
-None open. Merged on 18 October 2026, all with the maintainer's yes
-where needed:
-- The new design: **#56** smallest detectable effect for E1–E6 (engine);
-  **#57** the design decisions (docs); **#58** Departures 6–8 and Known
-  difference 1 on the result screen; **#59** screen A (start questions,
-  fixed-N route); **#60** screen C (effect-size source, "I can't justify
-  an effect size", reasoning needed to save or export); **#61** screen D
-  (plain reading, 80%/95% side by side, explore panel, verdict-word test).
-- **#47** phase 5, part 2; **#48** E5 unequal groups in the basic chunk;
-  **#50** `judgement-session.md`, `saving-projects.md`, judgement call E6;
-  **#53** this handover.
-- **#49** run-it-yourself guide, one-line launcher (`run_powerkit.R`),
-  clean-machine CI workflow, the app's About tab, and
-  `hosting-options.md` with the webR spike's results (Spower and
-  SimDesign don't install in webR; the spike stays on its own branch,
-  never merged).
-- **#51** wave 2 engine groundwork (one-way ANOVA, R² against 0 and
-  increase, one proportion, McNemar, Welch by formula); engine only, not
-  yet wired into the app. All five match the maintainer's G\*Power
-  screenshots; the smallest-N rule for exact tests of counts is Known
-  difference 2.
-- **#52** project files: "Save project" and "Open a saved project" in
-  the app, and `write_project()`, `read_project()`, `reproduce_project()`
-  in the engine (option (a) of `saving-projects.md`).
-
-See [`status.md`](status.md) for the PRs open at the end of the latest
-stretch. E5 is settled: the z test by default (base R for equal groups,
-pwrss for unequal groups; Departure 11), validated again after the
-`basic` rerun. #4 (the early 2 x 2 demo) was closed on 17 October 2026,
-superseded by E7 and E8 in the routing prototype.
-
-Merged on 17 October 2026: #35 (coverage roadmap, routing options), #36
-(E9 wired), #37 (G\*Power parity), #38 (the G5/G6 decisions and the
-Rubin addendum), #39 (sources checked), #40 (G\*Power screenshots for
-E4, E5 and E8), #41 (E5's z test, equal groups), #42 (E5's unequal
-groups by pwrss), #43 (sources the maintainer checked in full text), #44
-(the basic rerun; E5 validated again; E6 G\*Power df 1), #45 (attrition:
-the number to recruit) and #46 (walkthrough pictures re-rendered).
-
-Still needed from the maintainer: the judgement session
-(`judgement-session.md`); the E6 G\*Power screenshot at df 2; G4
-(the methods paragraph); Dziak et al., Lakens et al. (2018), Hoenig and
-Heisey and the G\*Power manual stay candidates.
+  E1–E9 calculate on the input screen (E9 in the background); E10–E14
+  give a preview, then a full run or an R script. Plans save as project
+  files. Saving, the R script and the write-up need the reasoning.
+- **Open PRs, next steps and what the maintainer still owes:** in
+  [`status.md`](status.md). Pull requests and git history hold everything
+  merged before that.
+- **Branches:** sessions can't delete remote branches (403), so merged
+  branches pile up until the maintainer deletes them; the one to keep is
+  `claude/project-thread-uqcark-webr-spike` (never merged).
 
 ## Rules
 
@@ -113,17 +74,16 @@ Heisey and the G\*Power manual stay candidates.
 
 ## Where the judgement calls and decisions live
 
-- [`judgement-session.md`](judgement-session.md): the eight open calls
+- [`judgement-session.md`](judgement-session.md): the open calls
   that change what users see, one page each, for the session (routing
   from screen A onwards first).
 - [`judgement-calls.md`](judgement-calls.md): every open or decided
   judgement call, with options and the default now. Open ones include B12
   (N rounding), B13 (power curve), B16 (what "simulation for data that
   won't meet the assumptions" should simulate) and B17 (E9's progress
-  bar); B11 waits for its source. G4 (what the methods paragraph reports)
-  waits for the maintainer's judgement session; B4 and G7–G9 were
-  decided with the new design (18 October 2026), and B6 is partly
-  decided. Open questions for the
+  bar); B11 waits for its source. B4 and G7–G9 were decided with the new
+  design and G4 (what the methods paragraph reports) on 18 October 2026;
+  B6 is partly decided. Open questions for the
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
