@@ -159,11 +159,11 @@ Departure 10 in [`conventions.md`](conventions.md).
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A45 | Generic: binomial | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.binom.test()` (pwrss became a foundation tool on 17 October 2026, for E5's unequal groups) | coverage.md: not planned (the R script export is the route) | [G1][] |
-| A46 | Generic: F | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.f.test(ncp, df1, df2)`; Superpower `power.ftest()` (candidate: check its arguments) | As A45 | [G1][] |
-| A47 | Generic: t | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.t.test(ncp, df)` | As A45 | [G1][] |
-| A48 | Generic: chi² | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.chisq.test()` | As A45 | [G1][] |
-| A49 | Generic: z | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | pwrss `power.z.test()` | As A45 | [G1][] |
+| A45 | Generic: binomial | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | The same test as one proportion against a fixed value (A35): pwrss `power.binom.test()` gives the same power as `power.exact.oneprop()` (checked 18 October 2026). pwrss `power.binom.test()` (pwrss became a foundation tool on 17 October 2026, for E5's unequal groups) | coverage.md: not planned (the R script export is the route) | [G1][] |
+| A46 | Generic: F | GP | none: not reachable | Planned (generic tests: engine, draft PR; not wired) | — | **Engine: pwrss `power.f.test(ncp, df1, df2)`** (template `generic_test / f`). pwrss `power.f.test(ncp, df1, df2)`; Superpower `power.ftest()` (candidate: check its arguments) | As A45 | [G1][] |
+| A47 | Generic: t | GP | none: not reachable | Planned (generic tests: engine, draft PR; not wired) | — | **Engine: pwrss `power.t.test(ncp, df)`** (template `generic_test / t`). pwrss `power.t.test(ncp, df)` | As A45 | [G1][] |
+| A48 | Generic: chi² | GP | none: not reachable | Planned (generic tests: engine, draft PR; not wired) | — | **Engine: pwrss `power.chisq.test(ncp, df)`** (template `generic_test / chi_square`). pwrss `power.chisq.test()` | As A45 | [G1][] |
+| A49 | Generic: z | GP | none: not reachable | Planned (generic tests: engine, draft PR; not wired) | — | **Engine: pwrss `power.z.test(mean = ncp)`** (template `generic_test / z`). pwrss `power.z.test()` | As A45 | [G1][] |
 
 ## Part B: beyond G\*Power
 

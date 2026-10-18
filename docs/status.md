@@ -25,6 +25,8 @@ fully validated. Validation runs are recorded in
   test, chi-square goodness of fit, two independent correlations and
   one-way ANCOVA, on pwrss. Not yet in the app or checked against
   G\*Power.
+- **Generic tests** (engine only, in review): t, F, chi-square and z from
+  a noncentrality parameter, as in G\*Power. Not yet in the app.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), multiple regression (E24),
   one proportion (E25) and McNemar (E26) calculate in the app; E10–E14 give a rough

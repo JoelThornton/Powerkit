@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Engine: generic t, F, chi-square and z tests (design `generic_test`, not
+  yet in the app), as G\*Power's "Generic" tests: power from a
+  noncentrality parameter and degrees of freedom, or the noncentrality
+  needed for a target power (goal `sensitivity`). There is no sample size,
+  because the noncentrality already reflects it. Each is one pwrss call
+  (`power.t.test()`, `power.f.test()`, `power.chisq.test()`,
+  `power.z.test()`), checked against pwrss called directly and against
+  base R's noncentral distributions. A generic binomial test is the exact
+  test of one proportion, which powerkit already has.
+
 * App: the result screen now has a write-up, replacing the methods-paragraph
   placeholder. A short version for the paper and a full version for a
   supplement or preregistration state the test and its sides, alpha, the

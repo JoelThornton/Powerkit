@@ -1,0 +1,25 @@
+{
+  "spec_version": "0.1",
+  "design": "generic_test",
+  "template": "z",
+  "variables": {},
+  "population": {
+    "metric": "noncentrality",
+    "ncp": 2.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a z statistic with mean 2.5 under the alternative, from a design worked out by hand."
+  },
+  "target_test": {
+    "effect": "noncentrality",
+    "method": "z_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power"
+  },
+  "options": {
+    "seed": 20261018
+  }
+}

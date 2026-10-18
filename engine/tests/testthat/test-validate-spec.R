@@ -24,7 +24,9 @@ test_that("there is an example for every template", {
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
     # More tests by formula (engine only).
-    "chi_square_gof", "two_correlations", "oneway_ancova"
+    "chi_square_gof", "two_correlations", "oneway_ancova",
+    # Generic tests (engine only).
+    "t", "f", "chi_square", "z"
   ))
 })
 
