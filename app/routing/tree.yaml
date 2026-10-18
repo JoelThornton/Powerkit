@@ -1366,7 +1366,7 @@ guided:
       note: "No adjustment is needed, because the claim only stands if every test succeeds. Each test gets its target power, but the chance that all of them succeed together is lower."
     - id: any
       label: "Any one significant result supports the claim"
-      note: "Several chances to find an effect raise the risk of a false positive, so each test uses a stricter alpha: alpha divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
+      note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
   placeholders:
     combined_n: "Combined N for the main analyses: calculated here once the engine is connected. It will be the largest required N among the main analyses that run, with the analysis that drives it named."
     consistency: "Consistency check: values will be compared here once the engine is connected."
