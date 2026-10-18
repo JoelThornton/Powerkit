@@ -1705,32 +1705,7 @@ source for Fisher's exact test in C11.
 
 ### G4. Which outputs the methods paragraph must report
 
-*Open: for the maintainer's judgement session.*
-
-- **Question:** which of a result's outputs does the methods paragraph
-  (phase 4, still a placeholder) have to state?
-- **Options (each separately):** the test and its tails; alpha; target
-  power; the effect size, its format and where it came from; required or
-  given N (total, per group, after attrition); the actual power at the
-  reported N; the backend, its function and version; the method (formula
-  or simulation, with replications, seed and the Monte Carlo interval);
-  any departures; the noncentrality parameter, critical value and df
-  where the backend returns them.
-- **What tools and sources do:** CLAUDE.md requires every result to
-  record the spec hash, seed, backend, and R and package versions, and
-  every departure to be stated in the methods paragraph (opened).
-  pwr's results carry the arguments, power, "method" and "note"; none of
-  powerkit's backends returns a noncentrality parameter or critical
-  value for E1–E6 or E9–E14 ([`gpower-parity.md`](gpower-parity.md)).
-  What G\*Power's output shows needs the maintainer's screenshots.
-- **Who might disagree, and why:**
-  - Reviewers used to G\*Power reports look for the noncentrality
-    parameter and critical value.
-  - A long paragraph is copied less faithfully; a short one can drop
-    the effect-size justification.
-- **Knock-on effects:** `export_script()` and the methods text; which
-  outputs need to be added to the result object.
-- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md).
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#g4-which-outputs-the-methods-paragraph-must-report).
 
 ### G5. Showing the actual power at the rounded N
 

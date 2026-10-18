@@ -144,8 +144,14 @@ departures:
 known_differences:
   "1": "Regression interactions: powerkit simulates power, drawing the predictors afresh in each sample (InteractionPoweR's power_interaction()). Fixed-model calculations, such as G*Power's and InteractionPoweR's power_interaction_r2(), give slightly higher power: up to about 1.4 points, so the N here may be about 3% larger than G*Power's."
 
+# The same known differences as one sentence for the methods paragraph
+# (docs/conventions.md, "Known difference 1").
+known_differences_methods:
+  "1": "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
+
 forms:
   E1:
+    methods_name: "a one-sample t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -164,6 +170,7 @@ forms:
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
 
   E2:
+    methods_name: "an independent-samples t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -194,6 +201,7 @@ forms:
              default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
 
   E3:
+    methods_name: "a paired-samples t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -215,6 +223,7 @@ forms:
           - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
 
   E4:
+    methods_name: "a Pearson correlation"
     departures: ["9", "10"]
     tool: pwr
     sensitivity: true
@@ -234,6 +243,7 @@ forms:
           - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
 
   E5:
+    methods_name: "a test of two proportions (z test)"
     departures: ["9", "11", "5"]
     tool: pwr
     sensitivity: true
@@ -264,6 +274,7 @@ forms:
          default: z_test, default_source: "G*Power's z test for two independent proportions, default options (maintainer's decision, docs/decisions.md, 17 October 2026)"}
 
   E6:
+    methods_name: "a chi-square test of independence"
     departures: ["9", "5"]
     tool: pwr
     sensitivity: true
@@ -284,6 +295,7 @@ forms:
           - {id: probabilities, label: "Proportions: one line per category of the first variable, one number per category of the second, separated by commas", type: table, path: population.probabilities, effect: true}
 
   E7:
+    methods_name: "a 2 × 2 between-participants ANOVA"
     departures: ["1", "3"]
     tool: Superpower
     directional: false
@@ -336,6 +348,7 @@ forms:
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
   E8:
+    methods_name: "a 2 × 2 mixed ANOVA"
     departures: ["2", "3"]
     tool: Superpower
     directional: false
@@ -377,6 +390,7 @@ forms:
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
   E9:
+    methods_name: "a moderated regression (continuous × continuous interaction)"
     tool: InteractionPoweR
     known_differences: ["1"]
     directional: false
@@ -398,6 +412,7 @@ forms:
           - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E10:
+    methods_name: "a simple mediation model (PROCESS model 4)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -416,6 +431,7 @@ forms:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, min: 100, max: 100000, integer: true}
 
   E11:
+    methods_name: "a parallel mediation model (PROCESS model 4)"
     tool: power4mome
     departures: ["6", "7", "8"]
     directional: false
@@ -435,6 +451,7 @@ forms:
         generated: target_path
 
   E12:
+    methods_name: "a serial mediation model (PROCESS model 6)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -450,6 +467,7 @@ forms:
         generated: target_path
 
   E13:
+    methods_name: "a first-stage moderated mediation model (PROCESS model 7; index of moderated mediation)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -468,6 +486,7 @@ forms:
           - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
   E14:
+    methods_name: "a second-stage moderated mediation model (PROCESS model 14)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false

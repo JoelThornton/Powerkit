@@ -309,6 +309,7 @@ server <- function(input, output, session) {
     fields <- current_form_fields()
     values <- current_form_values()
     values$claim <- state$start$claim %||% "one" # screen A's claim, for the result's note
+    values$situation <- state$start$situation %||% "choose" # for the write-up
     problems <- form_problems(fields, values)
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)

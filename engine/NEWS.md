@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* App: the result screen now has a write-up, replacing the methods-paragraph
+  placeholder. A short version for the paper and a full version for a
+  supplement or preregistration state the test and its sides, alpha, the
+  target power and why (a new optional field), the effect size with your
+  reasoning word for word, N in total and per group with the power reached,
+  the number to recruit, how a claim over several tests was handled, the
+  package, version and seed, and the departures. Both are editable, and like
+  saving they need your reasoning. The noncentrality parameter and critical
+  value are left out (the maintainer's decision, 18 October 2026).
+  `export_citations()` now points to the write-up instead of a placeholder.
+
 * The result screen now states every departure and known difference that
   applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
   than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off

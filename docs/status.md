@@ -40,19 +40,21 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up is still to come. The maintainer gives the department talk
+  the write-up is in review. The maintainer gives the department talk
   (Friday 23 October 2026).
 
 ## What's next
 
-1. The minimal write-up and methods paragraph: needs a minimal G4
-   decision.
-2. The "does this still apply?" flag on the effect-size source when the
-   effect size is changed; the smallest detectable effect for E5–E9 in the
-   app.
+1. The write-up (short and full methods paragraph): in review.
+2. A "guess first" teaching mode, optional: the user guesses N or the
+   smallest effect before the result shows it (the maintainer's ideas of
+   18 October 2026; recommendation in the thread). Then the
+   "does this still apply?" flag on the effect-size source, and the
+   smallest detectable effect for E5–E9 in the app.
 3. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
    first item, routing from screen A onwards) and user testing
-   ([`user-testing.md`](user-testing.md)). Later, before release:
-   published values, independent checks for moderated mediation and the
-   Monte Carlo interval with two or more mediators, phase 3b and wave 2 in
-   the app.
+   ([`user-testing.md`](user-testing.md)). Later: an ethics-board version
+   of the write-up, a plan checker for supervisors and reviewers, a
+   "Labs" area for experimental tools; before release, published values,
+   independent checks for moderated mediation and the Monte Carlo interval
+   with two or more mediators, phase 3b and wave 2 in the app.

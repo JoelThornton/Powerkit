@@ -69,8 +69,7 @@ groups by pwrss), #43 (sources the maintainer checked in full text), #44
 the number to recruit) and #46 (walkthrough pictures re-rendered).
 
 Still needed from the maintainer: the judgement session
-(`judgement-session.md`); the E6 G\*Power screenshot at df 2; G4
-(the methods paragraph); Dziak et al., Lakens et al. (2018), Hoenig and
+(`judgement-session.md`); the E6 G\*Power screenshot at df 2; Dziak et al., Lakens et al. (2018), Hoenig and
 Heisey and the G\*Power manual stay candidates.
 
 ## Rules
@@ -120,9 +119,8 @@ Heisey and the G\*Power manual stay candidates.
   judgement call, with options and the default now. Open ones include B12
   (N rounding), B13 (power curve), B16 (what "simulation for data that
   won't meet the assumptions" should simulate) and B17 (E9's progress
-  bar); B11 waits for its source. G4 (what the methods paragraph reports)
-  waits for the maintainer's judgement session; B4 and G7–G9 were
-  decided with the new design (18 October 2026), and B6 is partly
+  bar); B11 waits for its source. B4 and G7–G9 were decided with the new
+  design, and G4 (what the methods paragraph reports) on 18 October 2026, and B6 is partly
   decided. Open questions for the
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
