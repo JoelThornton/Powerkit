@@ -21,6 +21,10 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
+- **More tests by formula** (engine only, in review): Fisher's exact
+  test, chi-square goodness of fit, two independent correlations and
+  one-way ANCOVA, on pwrss. Not yet in the app or checked against
+  G\*Power.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), multiple regression (E24),
   one proportion (E25) and McNemar (E26) calculate in the app; E10–E14 give a rough

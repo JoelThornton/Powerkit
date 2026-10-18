@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "chi_square_gof",
+  "variables": {
+    "Y": {
+      "type": "categorical",
+      "label": "Preferred study method",
+      "levels": [
+        "Rereading",
+        "Highlighting",
+        "Practice testing"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "probabilities": [
+      0.25,
+      0.3,
+      0.45
+    ]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a preference of 45% for practice testing, against a third each by chance, is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "goodness_of_fit",
+    "method": "pearson_chi_square",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}
