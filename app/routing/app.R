@@ -346,6 +346,7 @@ server <- function(input, output, session) {
       ep_id <- state$endpoint
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
+        if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -355,6 +356,18 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   })
+  # The explore panel: power by N for the effect on the slider. It reads the
+  # last calculation and never changes the plan.
+  output$explore_plot <- renderPlot({
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
+    df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
+    par(mar = c(4.5, 4.5, 1, 1))
+    plot(df$n, df$power, type = "b", pch = 19, ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
+    abline(h = c(0.8, 0.95), lty = 2, col = "grey50")
+    text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
+  })
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)

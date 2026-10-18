@@ -50,8 +50,8 @@ fully validated. Validation runs are recorded in
    (screen A).
 4. App: effect-size source and rationale (screen C): in review. The
    minimal write-up still needs a minimal G4 decision.
-5. App: the plain reading, the .80/.95 cost line and the verdict-word test;
-   then the explore panel.
+5. App: the plain reading, the .80/.95 cost line, the verdict-word test
+   and the explore panel (screen D): in review.
 6. Show Departures 6, 7 and 8 and Known difference 1 on the result screen
    (`conventions.md`).
 7. Then user testing ([`user-testing.md`](user-testing.md)); later, before
