@@ -130,6 +130,61 @@ test_that("two proportions: power matches G*Power's z test (G*Power value)", {
   expect_power_exact(engine_power(spec), 0.2344921)
 })
 
+test_that("two proportions, unequal groups: power matches G*Power's z test (G*Power values)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("pwrss")
+  # Reference: G*Power values, not published ones. G*Power 3.1.9.7, z
+  #   tests, "Proportions: Difference between two independent
+  #   proportions", post hoc, default options. Inputs: alpha = .05,
+  #   sample size group 1 = 100, group 2 = 200 (N2/N1 = 2) or 300
+  #   (N2/N1 = 3); "up" is p1 = .10, p2 = .25 and "down" is p1 = .25,
+  #   p2 = .10. Maintainer's screenshots, 17 October 2026
+  #   (docs/figures/gpower/E5_z_test_post_hoc_ratio*.png; recorded in
+  #   docs/gpower-parity.md, E5).
+  cases <- list(
+    list(ratio = 2, p1 = 0.10, p2 = 0.25, tails = "two_sided", gpower = 0.8960412),
+    list(ratio = 2, p1 = 0.25, p2 = 0.10, tails = "two_sided", gpower = 0.9087742),
+    list(ratio = 3, p1 = 0.10, p2 = 0.25, tails = "two_sided", gpower = 0.9292662),
+    list(ratio = 3, p1 = 0.25, p2 = 0.10, tails = "two_sided", gpower = 0.9388485),
+    # One tail, N2/N1 = 2, up (docs/figures/gpower/E5_z_test_post_hoc_ratio2_one_tail.png).
+    list(ratio = 2, p1 = 0.10, p2 = 0.25, tails = "greater", gpower = 0.9473235)
+  )
+  for (case in cases) {
+    spec <- basic_spec(
+      "two_proportions", list(p1 = case$p1, p2 = case$p2),
+      n = 100 * (1 + case$ratio), seed = 108, alternative = case$tails,
+      options = list(allocation_ratio = case$ratio)
+    )
+    estimate <- engine_power(spec)
+    expect_power_exact(estimate, case$gpower)
+    # G*Power shows seven decimals; pwrss agrees to all of them.
+    expect_equal(round(estimate$power, 7), case$gpower,
+      label = sprintf("1:%d, p1 = %.2f, p2 = %.2f, %s", case$ratio, case$p1, case$p2, case$tails))
+  }
+})
+
+test_that("two proportions, unequal groups: a priori N matches G*Power at N2/N1 = 3 (G*Power value)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("pwrss")
+  # Reference: a G*Power value. G*Power 3.1.9.7, z tests, difference
+  #   between two independent proportions, a priori. Inputs: two tails,
+  #   p1 = .10, p2 = .25, alpha = .05, power .80, allocation ratio
+  #   N2/N1 = 3. Output: 70 + 210 = 280, actual power 0.8003695.
+  #   Maintainer's screenshot, 17 October 2026
+  #   (docs/figures/gpower/E5_z_test_a_priori_ratio3.png).
+  spec <- validation_spec(
+    design = "basic_test", template = "two_proportions",
+    variables = basic_variables("two_proportions"),
+    population = list(metric = "proportion", p1 = 0.10, p2 = 0.25),
+    target_test = list(effect = "proportion_difference", method = "z_test",
+      alpha = 0.05, alternative = "two_sided"),
+    seed = 109, target_power = 0.80, options = list(allocation_ratio = 3)
+  )
+  expect_identical(as.integer(engine_n_required(spec)$n), 280L)
+  spec$goal <- list(type = "power", n = 280)
+  expect_equal(round(engine_power(spec)$power, 7), 0.8003695)
+})
+
 test_that("two proportions, Cohen's h option: power matches pwr (analytic)", {
   skip_unless_full_validation()
   skip_if_not_installed("pwr")

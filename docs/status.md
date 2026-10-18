@@ -10,6 +10,12 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **E5 unequal groups in the `basic` validation chunk (18 October
+  2026).** Two new tests check pwrss's z test against the maintainer's
+  G\*Power screenshots at 1 : 2 and 1 : 3 (both directions), one tail at
+  1 : 2, and a priori at 1 : 3 (70 + 210 = 280). The chunk run is recorded
+  in [`validation-log.md`](validation-log.md).
+
 - **Walkthrough pictures re-rendered (17 October 2026).** All 26 pictures
   in `docs/figures/walkthroughs/` come from the current prototype (after
   #44), so E4's card shows Fisher's z and E5's says "Validated".

@@ -1,5 +1,11 @@
 # powerkit 0.0.0.9000
 
+* Validation: the `basic` chunk now checks two proportions in unequal
+  groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in
+  both directions, one tail at 1 : 2, and a priori at 1 : 3), so E5's
+  "Validated" label is backed by the validation chunk as well as the unit
+  tests. No change to results.
+
 * Documentation: the walkthrough pictures in `docs/figures/walkthroughs/`
   are re-rendered from the current app prototype (for example, E4's card
   now names Fisher's z and Departure 10). No code change.
