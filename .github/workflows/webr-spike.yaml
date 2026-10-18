@@ -1,0 +1,59 @@
+# Throwaway feasibility spike for docs/hosting-options.md: runs only on
+# pushes to its own branch, which is never merged.
+name: webr-spike
+
+on:
+  push:
+    branches: [claude/project-thread-uqcark-webr-spike]
+
+permissions:
+  contents: read
+
+jobs:
+  spike:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system libraries
+        run: sudo apt-get update && sudo apt-get install -y libglpk-dev
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: renv
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-renv@v2
+      - name: Install the engine
+        run: Rscript -e 'utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1])'
+      - name: Native timings and exported scripts
+        run: Rscript spike/webr/native.R
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install webR and Playwright
+        working-directory: spike/webr
+        run: npm install && npx playwright install --with-deps chromium
+      - name: Package availability in webR
+        working-directory: spike/webr
+        continue-on-error: true
+        run: node availability.mjs
+      - name: E2 and E10 in webR (Node)
+        working-directory: spike/webr
+        continue-on-error: true
+        run: node node-run.mjs
+      - name: E2 and E10 in webR (headless Chromium)
+        working-directory: spike/webr
+        continue-on-error: true
+        run: node browser-run.mjs
+      - name: Summary
+        if: always()
+        working-directory: spike/webr
+        run: for f in out/*.json; do echo "== $f"; cat "$f"; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webr-spike-results
+          path: spike/webr/out/

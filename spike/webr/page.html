@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>powerkit webR spike</title>
+<pre id="log">loading</pre>
+<script type="module">
+  // Loads webR from its CDN, installs the packages, runs E2 and E10's
+  // exported scripts, and reports times to the page (read by browser-run.mjs).
+  const log = (s) => { document.getElementById("log").textContent += "\n" + s; };
+  const t0 = performance.now();
+  const { WebR } = await import("https://webr.r-wasm.org/v0.6.0/webr.mjs");
+  const webR = new WebR();
+  await webR.init();
+  const out = { init_seconds: (performance.now() - t0) / 1000, runs: {} };
+  log("init " + out.init_seconds);
+  for (const [name, pkgs] of [["e2", ["pwr"]], ["e10", ["power4mome", "lavaan", "manymome"]]]) {
+    const ti = performance.now();
+    await webR.installPackages(pkgs, { quiet: true });
+    const install = (performance.now() - ti) / 1000;
+    const code = await (await fetch(`out/${name}.R`)).text();
+    await webR.FS.writeFile(`/home/web_user/${name}.R`, new TextEncoder().encode(code));
+    const tr = performance.now();
+    let err = null;
+    try { await webR.evalRVoid(`source("/home/web_user/${name}.R", local = new.env())`); }
+    catch (e) { err = String(e).slice(0, 500); }
+    out.runs[name] = { install_seconds: install, run_seconds: (performance.now() - tr) / 1000, error: err };
+    log(name + " " + JSON.stringify(out.runs[name]));
+  }
+  window.spikeResult = out;
+</script>

@@ -1,0 +1,2 @@
+{ "name": "powerkit-webr-spike", "private": true, "type": "module",
+  "dependencies": { "webr": "0.6.0", "playwright": "1.56.1" } }
