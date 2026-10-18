@@ -42,8 +42,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, paste0("E", 1:9))
+test_that("E1-E9, E18 and E24-E26 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E24", "E25", "E26"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -590,4 +590,45 @@ test_that("the regression interaction's write-up carries the known difference's 
   expect_match(forms$known_differences_methods[["1"]], "predictors drawn afresh", fixed = TRUE)
   expect_equal(names(forms$known_differences_methods), names(forms$known_differences))
   for (ep in names(forms$forms)) expect_true(nzchar(forms$forms[[ep]]$methods_name %||% ""), label = ep)
+})
+
+test_that("the designs added later get a write-up with short effect names and their known difference", {
+  skip_without_run()
+  for (ep in c("E18", "E24", "E25", "E26")) {
+    spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
+    calc <- run_calculation(spec, run, seed = 1L)
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], list(just_source = "A pilot study."))
+    known <- vapply(unlist(forms$forms[[ep]]$known_differences), function(k) forms$known_differences_methods[[k]], character(1))
+    w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, values, known_methods = known)
+    expect_match(w[["short"]], forms$forms[[ep]]$methods_name, fixed = TRUE, label = ep)
+    expect_no_match(w[["short"]], "(0 to 1", fixed = TRUE, label = ep)
+    if (ep %in% c("E25", "E26")) expect_match(w[["short"]], "exact test of counts", fixed = TRUE, label = ep)
+    if (ep %in% c("E18", "E24")) expect_no_match(w[["short"]], "sided", fixed = TRUE, label = ep) # F tests have no sides
+  }
+})
+
+test_that("one-way ANOVA, regression, one proportion and McNemar run on the engine, with their notes", {
+  skip_without_run()
+  calc <- run_calculation(light_spec("E18"), run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Superpower")
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], "(16 per group)", fixed = TRUE)
+  spec <- build_spec(forms, "E26", form_fields(form_groups(forms, "E26")), form_examples$E26)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.exact.mcnemar")
+  # G*Power's exact option gives 129 for these values (test-backend-wave2.R).
+  expect_equal(calc$result$n_required$n, 129)
+  html <- as.character(result_panel_ui(tree, forms, "E26", form_fields(form_groups(forms, "E26")), form_examples$E26, calc))
+  expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
+  for (ep in c("E24", "E25")) {
+    calc <- run_calculation(light_spec(ep), run, seed = 1L)
+    expect_identical(calc$result$provenance$backend, "pwrss", label = ep)
+  }
+  # Welch's t-test by formula, if chosen.
+  values <- c(form_examples$E2, list(welch_method = "exact"))
+  spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), values)
+  spec$goal <- list(type = "power", n = 48L)
+  expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.t.welch")
 })

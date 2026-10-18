@@ -112,7 +112,7 @@ whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
 # Group sizes for a total n, for designs with separate groups; NULL for
 # designs where everyone is in one group (one sample, paired, correlation,
-# chi-square). Follows the engine's split (powerkit's spower_inputs()).
+# chi-square, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
 group_sizes <- function(spec, n) {
   switch(
     spec$template,
@@ -124,6 +124,10 @@ group_sizes <- function(spec, n) {
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
+    oneway_between = {
+      k <- length(spec$variables$A$levels)
+      rep(n / k, k)
+    },
     NULL
   )
 }
@@ -474,7 +478,7 @@ departures_for <- function(forms, ep_id, spec) {
   if (!identical(spec$target_test$effect, "interaction")) keys <- setdiff(keys, "1")
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
-  # or Welch's t-test.
+  # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, c("9", "10", "11"))
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
@@ -598,7 +602,7 @@ writeup_effect <- function(fields, values) {
   out <- character()
   for (f in fields) {
     if (!isTRUE(f$effect) || blank(values[[f$id]]) || !field_applies(f, values)) next
-    out <- c(out, sprintf("%s = %s", f$label, trimws(as.character(values[[f$id]]))))
+    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, trimws(as.character(values[[f$id]]))))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
 }
@@ -645,7 +649,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
-  test <- sprintf("%s (%s, α = %s)", name, writeup_sides(spec), writeup_alpha(spec$target_test$alpha))
+  # F and chi-square tests have no sides (forms.yaml, sides: false).
+  sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
+  test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
   effect <- writeup_effect(fields, values)
   reasoning <- writeup_quote(values$just_source)
   none <- identical(values$just_type, "none")
