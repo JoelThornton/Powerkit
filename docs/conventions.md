@@ -572,6 +572,11 @@ Wired into the app on 18 October 2026 (E25, E26).*
 - **ANCOVA:** Superpower has `ANCOVA_analytic()` and `power_oneway_ancova()`
   [SP-src]. These may serve the ANCOVA route for pre–post designs (decision
   D2 in `docs/design-finder.md`); whether they match G*Power is to check.
+  The engine's one-way ANCOVA (18 October 2026, not yet in the app) uses
+  pwrss's `power.f.ancova.shieh()`, Shieh's (2020) method, which
+  Superpower's `power_oneway_ancova(type = "exact")` also uses (its help
+  names Keppel's approach as the approximate one); a test shows the two
+  agree. Whether it matches G*Power's ANCOVA is still to check.
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

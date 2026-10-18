@@ -11,6 +11,16 @@
   value are left out (the maintainer's decision, 18 October 2026).
   `export_citations()` now points to the write-up instead of a placeholder.
 
+* Engine: four more tests by formula, each one pwrss call (not yet in the
+  app): Fisher's exact test of two proportions (`target_test > method =
+  "fisher_exact"`), the chi-square goodness-of-fit test (template
+  `chi_square_gof`; equal fixed proportions unless given), two independent
+  correlations (template `two_correlations`, Fisher's z test) and one-way
+  ANCOVA (template `oneway_ancova`, Shieh's method). Each has an example
+  spec, an R script that reproduces it, and tests against pwrss called
+  directly; goodness of fit also agrees with pwr's formula, and ANCOVA
+  with Superpower's. Not yet checked against G\*Power.
+
 * App: four more designs calculate on their input screens. One-way ANOVA
   for three or more separate groups (E18, Superpower), multiple regression
   for R-squared against 0 or an R-squared increase, which also covers one
