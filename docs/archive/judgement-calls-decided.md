@@ -83,6 +83,43 @@ is kept below as the record of the options.
 - **Recorded in:** [`card-sources.md`](../card-sources.md), "Contradictions".
   No setting.
 
+### B4. Defaults for alpha and target power (judgement call 3.6)
+
+**Decided 18 October 2026** (`decisions.md`, "The new design"):
+alpha is pre-filled at .05 (two-sided), with a reason asked only if it
+is changed. Target power has no silent default: the inputs screen shows
+.80 and .95 side by side with the N each needs and asks which and why.
+None of the setting's four options matches this exactly, so
+`alpha_power_defaults` in `tree.yaml` is updated when the inputs screen
+is built. The entry is kept below as the record of the options.
+
+
+- **Question:** should alpha and target power have defaults, and which?
+- **Options:**
+  - blank (the user enters both);
+  - pre-filled .05 and .80;
+  - pre-filled .05 and .80, with a required reason;
+  - pre-filled .05 and .90.
+- **What tools and sources do:**
+  - Cohen's .80 convention: Perugini et al. report it (opened); Cohen
+    (1988) itself is second-hand.
+  - "Redefine statistical significance" and "Justify your alpha"
+    (second-hand).
+  - Superpower `optimal_alpha()` and Spower's compromise analysis justify
+    alpha (`coverage.md`).
+- **Who might disagree, and why:**
+  - Defaults are convenient and conventional.
+  - The "justify, don't default" view sees them as a nudge to stop
+    thinking.
+  - Registered Report formats often ask for higher power (exact
+    requirements unchecked).
+- **Knock-on effects:**
+  - The build guide's no-defaults stance on effect sizes may be read as
+    applying here too.
+  - Changes the forms in phase 5.
+- **Recorded in:** `decision-tree.md` 3.6; open question 5; setting
+  `alpha_power_defaults`.
+
 ### G5. Showing the actual power at the rounded N
 
 - **Question:** when powerkit reports a required N, does it also show the
@@ -197,3 +234,291 @@ is kept below as the record of the options.
 - **Recorded in:** this entry; [`gpower-parity.md`](../gpower-parity.md);
   [`coverage-roadmap.md`](../coverage-roadmap.md), note 1. The comparison
   scripts are in the PR description.
+
+### G7. A multiple-testing correction by default
+
+**Decided 18 October 2026** (`decisions.md`, "The new design"): no
+correction by default. The start screen asks what the claim rests on;
+only "any of several" (disjunction) corrects alpha, by Bonferroni in v1
+(alpha divided by the number of tests, with the reason shown), with Holm
+later if wanted. "Several claims, each standing on its own" and "all of
+several" get no correction, as Rubin (2021) argues. Because the user
+chooses the claim, this follows the tools checked (none corrects by
+default) rather than departing from them. Still open under B6: power for
+"all of several" beyond guidance, and the guided route's study-level
+result. The entry is kept below as the record of the options.
+
+
+- **Question:** when a user plans more than one test, should powerkit
+  apply an alpha correction (for example Bonferroni) by default, or
+  only when the user says the claim rests on "at least one" result?
+- **Options:**
+  - no correction by default; offer one only for "at least one"
+    (disjunction) claims (B6);
+  - no correction by default, but always show what a correction would do
+    to N;
+  - a correction by default whenever there is more than one primary test,
+    which the user can turn off with a reason;
+  - leave it to the user, with no prompt (as now: the user can lower
+    alpha by hand).
+- **What tools and sources do:**
+  - Rubin (2021) (opened, author preprint): "researchers only need to
+    adjust their alpha level when they undertake disjunction testing of a
+    joint null hypothesis" (p. 17). His conclusion: "researchers should be
+    cautious about applying default corrections for multiple testing in
+    relation to studywise and multiway ANOVAwise families of hypotheses"
+    (p. 22).
+  - Rubin (2024) (opened) calls a default correction "the alpha adjustment
+    ritual": "the automatic adjustment of alpha levels whenever multiple
+    testing occurs, regardless of whether statistical inferences are made
+    about individual null hypotheses or intersection null hypotheses"
+    (p. 4). If a researcher corrects but makes only individual inferences,
+    "they will have lowered the power of their individual tests for no
+    good reason" (p. 4). He reports, from García-Pérez (2023)'s review of
+    109 articles (second-hand), that such corrections "are very common"
+    (p. 4).
+  - Frane (2019) (verified, maintainer: the reference only; Frane's text
+    not read). As printed in Rubin (2024)'s reference
+    list: "Frane, A.V., 2019. Misguided opposition to multiplicity
+    adjustment remains a problem. J. Mod. Appl. Stat. Methods 18 (2),
+    eP2836. https://doi.org/10.22237/jmasm/1556669400." The title
+    indicates the opposite position. Rubin (2024, p. 1) cites it only for
+    the phrase "anti-adjustment article"; he doesn't summarise it.
+  - Rubin's blog post on redundant corrections
+    (markrubin.substack.com/p/redundant-multiple-testing-corrections)
+    could not be fetched: the proxy refused the host (403). Not used.
+  - Tools: Superpower 0.2.4.1 `ANOVA_power()` has `p_adjust = "none"` and
+    `emm_p_adjust = "none"` as defaults (`man/ANOVA_power.Rd`, opened);
+    power4mome 0.2.1 `rejection_rates()` defaults to `collapse = "none"`
+    ("tests will be summarized individually") (opened); powertools 1.0.0
+    `altprimary()` applies no correction itself: "To use a Bonferroni
+    correction for multiple comparisons, specify alpha as the desired
+    familywise error rate (FWER) divided by K" (opened). pwr 1.3-0 has no
+    correction argument (opened). So no default correction was found in
+    the tools checked.
+- **Who might disagree, and why:**
+  - Reviewers and methodologists who correct by default would want it on.
+  - Those following Rubin would see a default correction as wrong for
+    individual and conjunction testing, and as a needless cost in N
+    ("an unjustifiable loss of statistical power", Rubin, 2024, p. 4).
+  - A default is a nudge either way; asking the inference question (B6)
+    avoids a default but adds a step.
+- **Knock-on effects:** B6 (the inference question); D4 and D6; the
+  methods paragraph must say whether a correction was applied and why.
+  A correction by default would be a departure from the tools checked
+  (none corrects by default), so under CLAUDE.md it would need an entry
+  in `conventions.md`, a note on the results screen and a test showing the
+  size of the difference.
+- **Recorded in:** this entry; B6; roadmap row C1;
+  [`inference-question-design.md`](../inference-question-design.md).
+- **E7 and E8 now** (recorded 17 October 2026): E7 (2 x 2 between) and E8
+  (2 x 2 mixed ANOVA, via Superpower) report power for **one** effect the
+  user chooses (factor A, factor B or the interaction), at the alpha the
+  user enters, with **no ANOVA-wise correction**. This is consistent with
+  individual testing in Rubin (2021) (opened, author preprint). On
+  multiway ANOVAs he writes: "it is unlikely that researchers would ever
+  have reasonable grounds for adjusting their alpha to compensate for
+  multiple testing in a multiway ANOVA" (p. 21). Endnote 9 gives the
+  exception: corrections "may be necessary in multiway ANOVAs when a
+  factor contains more than two levels and multiple comparisons are
+  conducted between those levels" (p. 31). E7 and E8 have two levels per
+  factor. Where seen:
+  - `engine/inst/schema/design.schema.json:215`: `target_test` is "The
+    one effect the power analysis is about"; lines 944–948: `effect` is
+    one of `main_effect_A`, `main_effect_B`, `interaction`;
+  - `app/routing/forms.yaml:262–265` (E7) and `:303–306` (E8): one
+    "Which effect" choice;
+  - `engine/R/backend-superpower.R:73–74`: alpha is
+    `spec$target_test$alpha`, unchanged, and one effect is selected;
+  - `engine/R/backend-superpower.R:82–88`: `ANOVA_power()` is called
+    without `p_adjust` or `emm_p_adjust`, so Superpower's defaults
+    (`"none"`, `man/ANOVA_power.Rd` lines 11 and 18) apply; line 89 reads
+    one effect's power;
+  - `engine/R/backend-superpower.R:106–108`: `ANOVA_exact(design,
+    alpha_level = inputs$alpha, verbose = FALSE)`, then one effect's row.
+    `ANOVA_exact()` has no `p_adjust` argument (`man/ANOVA_exact.Rd`
+    usage), and its source uses `adjust = "none"` for emmeans comparisons
+    (`R/ANOVA_exact.R` lines 286–288; powerkit sets no `emm` option).
+  - No call to `p.adjust()`, and no Bonferroni code, was found in
+    `engine/R/` or `app/` (search for "p.adjust", "p_adjust",
+    "bonferroni"). The only mention is a card note in
+    `app/routing/tree.yaml:1342` for the guided route's "any one" choice.
+
+### G8. Alpha and the number of tails as required inputs, with a reason
+
+**Decided 18 October 2026** (`decisions.md`, "The new design"):
+alpha .05 and a two-sided test stay pre-filled, labelled with their
+source, and a reason is asked only if either is changed (it goes into
+the write-up). Target power has no silent default (B4). Still open:
+whether to ask "Do you predict a direction?" instead of the silent
+two-sided default (B18, for the maintainer's meeting with Mark Rubin),
+and B3 (one-sided tests). The entry is kept below as the record of the
+options.
+
+
+- **Question:** should alpha and one- or two-sided be inputs the user
+  must set, each with a short justification (as the effect size already
+  has, `effect_justification`)?
+- **Options:**
+  - keep them pre-filled from the wrapped tool's default (.05, two-sided),
+    labelled with its source (as now, `app/routing/forms.yaml`
+    `tool_defaults`);
+  - pre-filled, with a required reason if kept or changed (B4's third
+    option);
+  - blank and required, with a required reason;
+  - required, with a reason field that is optional but goes into the
+    methods paragraph when filled in.
+- **What tools and sources do:**
+  - Lakens et al. (2018), "Justify your alpha"
+    (doi:10.1038/s41562-018-0311-x) (still not opened). The repo's
+    `decision-tree.md` 3.6 summarises it second-hand: every design choice,
+    alpha included, should be justified rather than set by convention.
+    Two supplied papers describe it the same way (second-hand):
+    - Uttley (2019, *LEUKOS*, doi:10.1080/15502724.2018.1533851; opened):
+      "Other researchers suggest that this is unwise and that instead we
+      should justify all experimental design and analytical choices made,
+      including the P-value threshold used to identify a real effect
+      (Lakens et al. 2018)" (p. 144), and "the choice of alpha to use
+      should not be inflexible (Lakens et al. 2018)" (p. 158);
+    - Rubin (2024, *Methods in Psychology*; opened) lists, among ritual
+      habits, to "use a conventional alpha level when an alternative
+      unconventional alpha level is more appropriate (Lakens et al.,
+      2018)" (p. 7).
+    The summary still hasn't been checked against the paper itself.
+  - Rubin (2021, author preprint; opened) separates choosing alpha from
+    correcting it: "In every significance testing situation, researchers
+    need to specify their alpha level in the context of a range of
+    external background factors" (p. 13), including "the theoretical
+    and/or practical costs of Type I and Type II errors, the smallest
+    effect size of interest, the sample size, and the variability in the
+    data" (p. 13). He calls this "alpha specification", "quite different
+    from" alpha adjustment for disjunction testing (p. 13).
+  - On tails: Rubin (2024, p. 7) also lists, as a ritual habit, to "use a
+    two-sided test when a one-sided test is more consistent with one's
+    statistical inference (Georgiev, 2018; Rubin, 2022)". Uttley (2019,
+    p. 157) found that "Justification for use of a one-tailed test was
+    also absent in nearly all reviewed papers", and gives the size of the
+    difference in one case: power "is 0.15 for a one-tailed dependent
+    t-test. This reduces to 0.09 when a two-tailed t-test is used", for
+    "a group sample size of 20 and an effect size of 0.2".
+  - G\*Power asks for the number of tails (B3, opened); its alpha is
+    pre-filled (to confirm from screenshots).
+  - pwr 1.3-0, Spower 0.7, Superpower 0.2.4.1 and InteractionPoweR 0.2.4
+    all default alpha to .05 (`forms.yaml` `tool_defaults`, read from the
+    installed packages' signatures). Superpower's `optimal_alpha()` and
+    Spower's compromise analysis justify alpha by error-rate trade-offs
+    (`coverage.md`).
+  - The schema has no field for a reason for alpha or for tails:
+    `target_test.alpha` and `target_test.alternative`
+    (`engine/inst/schema/design.schema.json:234–247`) are bare values.
+- **Who might disagree, and why:**
+  - Requiring a reason for .05 slows down most users, whose reason is
+    "convention".
+  - The "justify, don't default" view sees a pre-filled .05 as a nudge to
+    stop thinking.
+  - Some would accept a reason only for departures from .05 and two-sided
+    (which B3 already does for one-sided tests, if a preregistration note
+    is chosen).
+- **Knock-on effects:** a schema change (a reason field, perhaps
+  `target_test.alpha_justification` and `target_test.alternative_justification`);
+  B3 and B4 (they become parts of this choice); the methods paragraph; the
+  inference question (B6), since a disjunction claim changes alpha.
+- **Recorded in:** this entry; B3; B4; settings `alpha_power_defaults`
+  and `one_sided_tests`.
+
+### G9. Sensitivity analysis: first-class, or the default when no effect size can be justified
+
+**Decided 18 October 2026** (`decisions.md`, "The new design"): both.
+Sensitivity ("the smallest effect you could detect" on screen; the
+technical term only in the write-up) is a first-class route: the start
+screen's "My sample size is fixed" leads to it, showing the smallest
+detectable effect at .80 and .95 power and asking whether an effect that
+size is plausible, or worth caring about, in the user's field. "I can't
+justify an effect size", when N isn't fixed, shows the smallest
+detectable effect across a range of N (a sensitivity curve) at .80 and
+.95, rather than forcing the fixed-N route. Built first for E1–E6 (PR
+#56), then E7–E8 in the app; interactions are decided after the basic
+tests, and mediation goes to the R script. The entry is kept below as
+the record of the options.
+
+
+- **Question:** should "the smallest effect you could detect at a given
+  N" (sensitivity) be a goal on an equal footing with "the sample size
+  you need", and should it become the route when the user can't justify
+  an effect size?
+- **Options:**
+  - as now: three goals, with sensitivity only where the engine can run it
+    (E7, E8), and an effect size always required;
+  - first-class: sensitivity offered for every end point, shown alongside
+    the a priori result;
+  - the default when no effect size can be justified: if the user can't
+    give a source for an effect size, offer a sensitivity analysis (at the
+    N they can get) instead of asking for a number;
+  - both of the above.
+- **What tools and sources do:**
+  - Lakens (2022), "Sample Size Justification"
+    (doi:10.1525/collabra.33267) (published abstract opened via Crossref;
+    body read in the author's revised manuscript, not the published
+    version):
+    - published abstract: researchers could consider "which ranges of
+      effects a study has sufficient power to detect based on a
+      sensitivity power analysis";
+    - revised manuscript, line 736: "A sensitivity power analysis fixes
+      the sample size, desired power, and alpha level, and answers the
+      question which effect size a study could detect with a desired
+      power.";
+    - line 750: "For a sensitivity analysis to be meaningful, the
+      sensitivity curve should be compared against a smallest effect size
+      of interest, or a range of effect sizes that are expected.";
+    - line 932: "Alternatively, if no smallest effect size of interest was
+      specified when designing the study, researchers can report a
+      sensitivity power analysis.";
+    - line 414, on studies with no justification: "It is still possible to
+      discuss the smallest effect size of interest, the minimal
+      statistically detectable effect, the width of the confidence
+      interval around the effect size, and to plot a sensitivity power
+      analysis, in relation to the sample size that was collected."
+  - Rubin (2024, *Methods in Psychology*; opened) lists, among ritual
+    habits, to "conduct an a priori power analysis when there is no clear
+    basis for an effect size estimate and a sensitivity power analysis is
+    more appropriate (Lakens, 2022; Perugini et al., 2018)" (p. 7). This
+    is one published view in favour of the "default when no effect size
+    can be justified" option. It is Rubin's reading of Lakens (2022), so
+    second-hand for Lakens.
+  - Mikael Rubin (2025, *International Journal of Psychology*,
+    doi:10.1002/ijop.70017; opened): "the researcher needs to evaluate the
+    impact of the effect size on power, either by exploring a range of
+    effect sizes or by determining the sample size needed to achieve power
+    for the smallest effect size of interest (Anvari and Lakens 2021)"
+    (p. 2). In his conclusions: "power analyses should be reported as
+    ranges of effect sizes, power and sample sizes. This is not the
+    standard in the field" (p. 14 of 15).
+  - Uttley (2019, *LEUKOS*, doi:10.1080/15502724.2018.1533851; opened),
+    as an alternative to an effect size from the literature: "state the
+    minimum effect size that you are willing to accept as detectable with
+    your study or to assess what the minimum effect size would be for it
+    to be meaningful and not trivial (the smallest effect size of
+    interest; Albers and Lakens 2018)" (p. 158).
+  - G\*Power offers sensitivity as one of five analysis types (B5, opened,
+    manual p. 2).
+  - Spower sets the type by which argument is `NA` (B5, opened);
+    Superpower and power4mome have sensitivity or effect-size search
+    functions (`coverage.md`); powerkit runs sensitivity for E7 and E8
+    only (B5; roadmap C11).
+  - The schema's `effect_justification.type` has four values
+    (`smallest_effect_of_interest`, `meta_analysis`, `prior_study`,
+    `pilot_study`) and no "can't justify one"
+    (`engine/inst/schema/design.schema.json:163–178`).
+- **Who might disagree, and why:**
+  - Making sensitivity the default could let users skip the work of
+    finding a smallest effect of interest. Lakens (revised manuscript,
+    line 750) says the curve should still be compared with one.
+  - Users asked for "the N I need" by an ethics board or funder want that
+    number first.
+  - Offering sensitivity everywhere needs engine work and validation for
+    every end point (B5).
+- **Knock-on effects:** B5 (analysis types) and setting `analysis_types`;
+  B13 (a power curve); a new `effect_justification` option (schema change)
+  if "can't justify" leads to sensitivity; validation of sensitivity for
+  E1–E6 and E9–E14; the result wording (B11).
+- **Recorded in:** this entry; B5; B13; roadmap C11.

@@ -1,10 +1,12 @@
 # Routing design options: question tree or design profile
 
-*Last updated: 17 October 2026.*
+*Last updated: 18 October 2026.*
 
-Options and evidence only. **Nothing here is decided or recommended**; the
-maintainer decides. Counts of prevented misroutes are judgements made for
-this page from the recorded paths, marked "likely", not tests.
+Options and evidence; the maintainer decides. The section "Screen A as
+the start of the profile" (added 18 October 2026) ends with Claude's
+recommendation; the rest of the page gives options only. Counts of
+prevented misroutes are judgements made for this page from the recorded
+paths, marked "likely", not tests.
 
 Sources: [`routing-audit.md`](routing-audit.md) (29 designs and the 32
 UCLA OARC rows), [`walkthroughs.md`](walkthroughs.md) (flags F1–F15),
@@ -238,10 +240,76 @@ What the draft shows:
   conditions, same people" in question 2 rather than inferring it from
   question 4: a pre–post study with two groups (R8b) answers "twice" too.
 
+## Screen A as the start of the profile
+
+*Added 18 October 2026, after the maintainer approved the four-screen
+design ([`decisions.md`](decisions.md), "The new design").*
+
+Screen A (Start) asks three questions before the design finder (screen
+B). Each of them is already asked somewhere in the routing today, so
+without a plan the two screens would ask the same thing twice, or get
+different answers to it.
+
+| Screen A asks | Options | Asked today by | Profile question above |
+| --- | --- | --- | --- |
+| Situation | I can choose my sample size; my sample size is fixed | Q-goal, a closing question (sample size, power at a given N, smallest detectable effect) | none |
+| Aim | testing a prediction; estimating how big something is; showing there's no meaningful effect | S4 (detect, no meaningful effect, estimate); Q1's "That an effect is absent, or too small to matter" | 5. Goal |
+| Claim | one test; several claims, each standing on its own; any of several; all of several | Q-multi, a closing question (setting `several_hypotheses`) | none |
+
+**How they fit together.**
+- **Screen A's answers are the first part of the profile.** They are
+  stored once, and every later screen reads them. The profile then has
+  three parts: screen A (situation, aim, claim), screen B (outcome, what
+  is compared, grouping, measurements, framework: profile questions 1–4
+  and 6) and the card's follow-ups.
+- **Screen B never asks them again.** S4 goes, and profile question 5
+  becomes screen A's aim. Q1's "absent, or too small to matter" option
+  goes, since the aim has answered it. Q-goal and Q-multi leave the
+  closing questions: Q-goal's choice comes from the situation (choose N:
+  the sample size; N fixed: the smallest detectable effect), and Q-multi's
+  from the claim. Whether "power at a given N" stays a separate goal is
+  B5 (`judgement-calls.md`).
+- **Aims powerkit doesn't run exit on screen A.** Exits X5 and X6 move
+  there: "showing there's no meaningful effect" goes to E36 (which names
+  TOSTER) and "estimating how big something is" goes to E46 (which, under
+  decision 7, will point to MBESS and Spower's precision criterion;
+  `coverage.md`). In v1 these cards don't depend on the design, so there
+  is nothing for screen B to ask. When powerkit supports either aim,
+  screen B runs for it too.
+- **The claim changes the inputs, not the card.** Screen B finds one
+  design at a time. With several tests the user plans each test's design
+  in turn, and the claim and the number of tests go with each, so "any
+  of several" divides alpha the same way every time. Planning several
+  tests as one study is the guided route (D4, D6), still open.
+- **Direction stays a closing question** (Q-dir, on E1–E5), pre-filled
+  two-sided (judgement call B18).
+- **Combinations that don't fit say why.** A fixed N on a card with no
+  smallest-detectable-effect route yet (E9–E14 today) says so on the
+  card and offers what that card can do (power at the fixed N, or the R
+  script), rather than sending the user back.
+
+**Until screen B is rebuilt** (build step 4 puts screen A on top of the
+current tree): S4, Q-goal and Q-multi are hidden and filled in from
+screen A, and Q1's "absent" option leads to the same E36 card as screen
+A. The tree is otherwise unchanged, and its tests and walkthrough paths
+start from screen A's answers.
+
+**The remaining choice: tree or profile for screen B.** With screen A in
+place, the profile (B, C or D above) has five questions, not six; the
+tree (A) keeps S1–S3 and Q1's branches.
+
+**Recommendation:** D (profile plus follow-ups), with exact matching and
+screen B's questions shown one at a time with the list of cards that
+still fit (C's style), built after build step 7 and before the first
+round of user testing. Reason: screen A already makes the start a
+profile, one table stops the routes disagreeing, and the recorded
+misroutes favour it (likely 19 prevented against 15).
+
 ## Open points for the maintainer
 
-- Which approach, A to D, and whether to keep the guided route's rule
-  format as the shared table.
+- Screen A as the start of the profile, and tree or profile for screen
+  B (the section above; `judgement-session.md`, item 1).
+- Whether to keep the guided route's rule format as the shared table.
 - Whether unmatched combinations go to the safety net (exact matching)
   or the nearest row (first-match, as the guided route does now).
 - Whether question 6 (frequentist or Bayesian) is asked of everyone

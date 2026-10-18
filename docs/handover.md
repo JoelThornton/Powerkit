@@ -29,8 +29,10 @@ this page is the short version plus the working rules.*
 
 ## Open PRs (end of 18 October 2026)
 
-None. Merged on 18 October 2026, all with the maintainer's yes where
-needed:
+Open: **#56** (the smallest detectable effect for E1–E6, engine; build
+step 1 of the new design) and the docs PR recording the design
+decisions (step 2). Merged on 18 October 2026, all with the
+maintainer's yes where needed:
 - **#47** phase 5, part 2; **#48** E5 unequal groups in the basic chunk;
   **#50** `judgement-session.md`, `saving-projects.md`, judgement call E6;
   **#53** this handover.
@@ -70,9 +72,9 @@ Heisey and the G\*Power manual stay candidates.
 ## Rules
 
 - **Priorities and process (18 October 2026):** usefulness for
-  psychologists comes before validation until release, and this week is
-  for the maintainer's Friday talk ([`status.md`](status.md),
-  "Priorities"). How to keep reviews small (recommendations on judgement
+  psychologists comes before validation until release, and the new
+  design is built in the order in [`status.md`](status.md), "What's
+  next". How to keep reviews small (recommendations on judgement
   calls, PR size, one thread per area, status as current state) is in
   `CLAUDE.md`, "Working process".
 - **Merging:** anything that changes what users see (cards, wording,
@@ -107,15 +109,17 @@ Heisey and the G\*Power manual stay candidates.
 
 ## Where the judgement calls and decisions live
 
-- [`judgement-session.md`](judgement-session.md): the nine open calls
-  that change what users see, one page each, for the session.
+- [`judgement-session.md`](judgement-session.md): the eight open calls
+  that change what users see, one page each, for the session (routing
+  from screen A onwards first).
 - [`judgement-calls.md`](judgement-calls.md): every open or decided
   judgement call, with options and the default now. Open ones include B12
   (N rounding), B13 (power curve), B16 (what "simulation for data that
   won't meet the assumptions" should simulate) and B17 (E9's progress
   bar); B11 waits for its source. G4 (what the methods paragraph reports)
-  waits for the maintainer's judgement session; G7–G9 (corrections,
-  alpha and tails, sensitivity) and B6 are open. Open questions for the
+  waits for the maintainer's judgement session; B4 and G7–G9 were
+  decided with the new design (18 October 2026), and B6 is partly
+  decided. Open questions for the
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
