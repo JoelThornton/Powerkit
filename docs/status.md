@@ -26,7 +26,9 @@ fully validated. Validation runs are recorded in
   preview, then a full run in the app or an R script. Results can be saved
   as a project file and reopened. The "About this prototype" tab and the
   run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) let
-  colleagues run it on their own computers.
+  colleagues run it on their own computers. In "Plan my whole study",
+  each analysis is marked as not planned, main or extra; the sample size
+  will be set by the main ones (the combined N is still a placeholder).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
