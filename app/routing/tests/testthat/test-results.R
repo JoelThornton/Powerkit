@@ -272,6 +272,23 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
   expect_true(any(grepl("ANOVA_exact2", departures_for(forms, "E8", light_spec("E8")))))
 })
 
+test_that("mediation shows departures 6 and 8, parallel mediators 7, and the interaction Known difference 1", {
+  for (ep in c("E10", "E11", "E12", "E13", "E14")) {
+    shown <- departures_for(forms, ep, light_spec(ep))
+    expect_true(any(grepl("lavaan (maximum likelihood)", shown, fixed = TRUE)), info = ep) # Departure 6
+    expect_true(any(grepl("Boos and Zhang", shown, fixed = TRUE)), info = ep)              # Departure 8
+    expect_equal(any(grepl("residuals correlate", shown, fixed = TRUE)), ep == "E11", info = ep) # Departure 7
+    expect_length(known_differences_for(forms, ep), 0)
+  }
+  expect_match(known_differences_for(forms, "E9"), "Fixed-model calculations", fixed = TRUE)
+  expect_length(known_differences_for(forms, "E1"), 0)
+  # Every departure and known difference a form names has its text.
+  for (ep in names(forms$forms)) {
+    expect_true(all(unlist(forms$forms[[ep]]$departures) %in% names(forms$departures)), info = ep)
+    expect_true(all(unlist(forms$forms[[ep]]$known_differences) %in% names(forms$known_differences)), info = ep)
+  }
+})
+
 test_that("an engine error is shown in plain English, without a stack trace", {
   calc <- run_calculation(list(), run = function(spec) stop(structure(class = c("powerkit_error", "error", "condition"), list(message = "Plain message.", call = NULL))), seed = 1L)
   html <- as.character(result_panel_ui(tree, forms, "E1", list(), list(), calc))

@@ -47,9 +47,8 @@ fully validated. Validation runs are recorded in
    what users see.
 3. A first round of user testing with psychologists
    ([`user-testing.md`](user-testing.md)).
-4. Show Departures 6, 7 and 8 and Known difference 1 on the result screen
-   for the designs they apply to (they are in the app now but not shown;
-   `conventions.md`).
+4. Departures 6, 7 and 8 and Known difference 1 on the result screen: in
+   review.
 5. Later, before release: a short list of published values to transcribe
    first (one or two per design), independent checks for moderated
    mediation and for the Monte Carlo interval with two or more mediators,
