@@ -39,7 +39,7 @@ fully validated. Validation runs are recorded in
   questions, design finder, inputs centred on the effect size, result
   with a plain reading and write-up), built in the order below. The
   decisions are in [`decisions.md`](decisions.md), "The new design". The
-  maintainer gives the department talk himself (Friday 23 October 2026).
+  maintainer gives the department talk (Friday 23 October 2026).
 
 ## What's next
 
