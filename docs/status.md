@@ -37,23 +37,18 @@ fully validated. Validation runs are recorded in
   Validation and checks come afterwards, before release.
 - **The new design** (four screens: start questions, design finder, inputs
   centred on the effect size, result with a plain reading and write-up) is
-  being built now. The maintainer is checking the design document; its
-  decisions go in [`decisions.md`](decisions.md) once agreed.
+  in the app: screens A, C and D and the departures on the result screen
+  were merged on 18 October 2026. The write-up is still to come.
 
 ## What's next
 
-1. Engine: smallest detectable effect for the basic tests (E1–E6). In
-   review.
-2. Docs: record the design decisions and close the judgement calls they
-   settle (G9, most of B10, G8, part of B6/G7).
-3. App: the start questions and the fixed-N route for E1–E8. In review
-   (screen A).
-4. App: effect-size source and rationale (screen C): in review. The
-   minimal write-up still needs a minimal G4 decision.
-5. App: the plain reading, the .80/.95 cost line, the verdict-word test
-   and the explore panel (screen D): in review.
-6. Show Departures 6, 7 and 8 and Known difference 1 on the result screen
-   (`conventions.md`).
-7. Then user testing ([`user-testing.md`](user-testing.md)); later, before
+1. Docs: record the design decisions and close the judgement calls they
+   settle (G9, most of B10, G8, part of B6/G7). In review.
+2. The minimal write-up and methods paragraph: needs a minimal G4
+   decision.
+3. The "does this still apply?" flag on the effect-size source when the
+   effect size is changed; the smallest detectable effect for E5–E9 in the
+   app.
+4. Then user testing ([`user-testing.md`](user-testing.md)); later, before
    release, published values, independent checks, phase 3b and wave 2 in
    the app.
