@@ -20,6 +20,14 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   Departure 12 (smallest N for exact tests of counts), one-way
   sensitivity, and the R² noncentrality convention.
 
+- **E5 unequal groups in the `basic` validation chunk (18 October
+  2026).** Two new tests check pwrss's z test against the maintainer's
+  G\*Power screenshots at 1 : 2 and 1 : 3 (both directions), one tail at
+  1 : 2, and a priori at 1 : 3 (70 + 210 = 280). The chunk passed on
+  GitHub ([run 39081335537](https://github.com/JoelThornton/Powerkit/actions/runs/39081335537):
+  23 pass, 4 published-value skips); recorded in
+  [`validation-log.md`](validation-log.md).
+
 - **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
   October 2026).** As the maintainer decided: a rough preview (100 simulations, in
   a separate process, shown as a range with "Don't report this; run the

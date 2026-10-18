@@ -955,3 +955,27 @@ in unequal groups, at the maintainer's request.
   tests ran green in R CMD check on PR #42.
 - **Status:** E5's card is back to "Validated" (the maintainer's
   instruction, 17 October 2026).
+
+## 2026-10-18 · basic (GitHub Actions; E5 unequal groups added to the chunk)
+
+At the maintainer's request, the chunk now checks two proportions in
+unequal groups against the maintainer's G\*Power 3.1.9.7 screenshots, so
+E5's "Validated" label rests on the validation chunk as well as the unit
+tests.
+
+- **Run:** [run 39081335537](https://github.com/JoelThornton/Powerkit/actions/runs/39081335537) of the `full-validation` workflow.
+  **Commit:** 9fabe7f (branch `claude/project-thread-uqcark`, PR #48).
+  **Artifact:** validation-results-basic-run-16.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (Spower 0.7, Superpower 0.2.4.1, InteractionPoweR 0.2.4,
+  power4mome 0.2.1).
+- **basic:** 23 pass, 0 fail, 0 errors, 4 skips (the published-value
+  tests with `TODO_PUBLISHED_VALUE`, as before).
+- **New: unequal groups against G\*Power.** Post hoc, n1 = 100, two
+  tails: 1 : 2 up 0.896041 and down 0.908774; 1 : 3 up 0.929266 and down
+  0.938849 (G\*Power 0.9388485); one tail at 1 : 2 up 0.947324 (G\*Power
+  0.9473235). Each also matches G\*Power's seven decimals when rounded. A
+  priori at 1 : 3, power .80: 280 (70 + 210), with power 0.8003695 at
+  280, as G\*Power.
+- Every other result is unchanged from run 39073022227 (exact results
+  identical; Type I error rates .048 to .052).
