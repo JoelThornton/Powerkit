@@ -10,6 +10,10 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Handover refreshed (18 October 2026).** [`handover.md`](handover.md)
+  lists the open PRs (#49, #51, #52, all waiting for the maintainer's
+  yes), what merged today (#47, #48, #50) and what is still needed.
+
 - **Judgement session agenda (18 October 2026).**
   [`judgement-session.md`](judgement-session.md) gives the nine open
   calls that change what users see, one page each, ordered by impact:
