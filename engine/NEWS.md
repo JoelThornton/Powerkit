@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Engine: generic t, F, chi-square and z tests (design `generic_test`, not
+  yet in the app), as G\*Power's "Generic" tests: power from a
+  noncentrality parameter and degrees of freedom, or the noncentrality
+  needed for a target power (goal `sensitivity`). There is no sample size,
+  because the noncentrality already reflects it. Each is one pwrss call
+  (`power.t.test()`, `power.f.test()`, `power.chisq.test()`,
+  `power.z.test()`), checked against pwrss called directly and against
+  base R's noncentral distributions. A generic binomial test is the exact
+  test of one proportion, which powerkit already has.
+
 * The result screen now states every departure and known difference that
   applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
   than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off

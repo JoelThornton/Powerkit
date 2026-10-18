@@ -11,7 +11,8 @@ population_problems <- function(spec) {
     multiple_regression = check_multiple_regression,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
-    moderated_mediation = check_path_model
+    moderated_mediation = check_path_model,
+    generic_test = function(spec) character()
   )
   design_problems <- design_check(spec)
   c(
@@ -75,7 +76,7 @@ uses_simulation <- function(spec) {
 # ANOVA_exact()), the basic tests pwr covers, and the wave 2 tests pwrss
 # covers (one proportion, McNemar, R-squared, and Welch's t-test on request).
 exact_available <- function(spec) {
-  spec$design %in% c("factorial_anova", "multiple_regression") ||
+  spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
     pwr_covers(spec) ||
     spec$template %in% c("one_proportion", "mcnemar") ||
     identical(spec$target_test$method, "welch_t")
@@ -84,7 +85,7 @@ exact_available <- function(spec) {
 # Wave 2 tests with no simulation in powerkit yet: they are computed by
 # formula only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design == "multiple_regression" ||
+  !(spec$design %in% c("multiple_regression", "generic_test") ||
     spec$template %in% c("one_proportion", "mcnemar"))
 }
 
@@ -170,12 +171,19 @@ check_proportions_formula_allowed <- function(spec) {
 # test pointing the other way can't be computed with them.
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
-  if (alternative == "two_sided" || !spec$template %in% c("one_proportion", "mcnemar", "independent_t")) {
+  if (alternative == "two_sided" || !spec$template %in% c("one_proportion", "mcnemar", "independent_t", "t", "z")) {
     return(character())
   }
   pop <- spec$population
+  # Generic tests: only the power for a given noncentrality has a direction
+  # to check; the noncentrality needed is solved in the direction asked.
+  if (identical(spec$design, "generic_test") && spec$goal$type != "power") {
+    return(character())
+  }
   diff <- switch(
     spec$template,
+    t = ,
+    z = pop$ncp,
     one_proportion = pop$p - pop$p0,
     mcnemar = pop$p_second_only - pop$p_first_only,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
@@ -693,7 +701,7 @@ check_goal <- function(spec, check_effect = TRUE) {
   needs_effect <- goal$type == "sample_size" || !(
     identical(spec$design, "basic_test") &&
       spec$template %in% c("one_sample_t", "independent_t", "paired_t", "correlation")
-  )
+  ) && !identical(spec$design, "generic_test")
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {

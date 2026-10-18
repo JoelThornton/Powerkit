@@ -68,6 +68,10 @@ by formula on request (\code{options > method = "exact"},
 \code{pwrss::power.t.welch()}). These have no simulation option. For the two
 exact tests of counts, whose power goes up and down with n, the required
 n is the smallest that reaches the target power.
+Generic tests (design \code{generic_test}, engine only): power for a t, F,
+chi-square or z statistic's noncentrality parameter, or the
+noncentrality needed for a target power, with pwrss's generic functions.
+They have no sample size; the result's curve has one row with \code{n} \code{NA}.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

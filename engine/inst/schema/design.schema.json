@@ -29,7 +29,8 @@
         "regression_interaction",
         "mediation",
         "moderated_mediation",
-        "multiple_regression"
+        "multiple_regression",
+        "generic_test"
       ]
     },
     "template": {
@@ -78,6 +79,51 @@
     },
     {
       "$ref": "#/definitions/design_multiple_regression"
+    },
+    {
+      "$ref": "#/definitions/design_generic_test"
+    },
+    {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "not": {
+              "const": "generic_test"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "goal": {
+            "allOf": [
+              {
+                "if": {
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "power",
+                        "sensitivity"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "n"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
     }
   ],
   "definitions": {
@@ -252,7 +298,7 @@
       }
     },
     "goal": {
-      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition).",
+      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'.",
       "type": "object",
       "required": [
         "type"
@@ -311,9 +357,7 @@
             }
           },
           "then": {
-            "required": [
-              "n"
-            ],
+            "required": [],
             "properties": {
               "power": false
             }
@@ -332,7 +376,6 @@
           },
           "then": {
             "required": [
-              "n",
               "power"
             ]
           }
@@ -1825,6 +1868,304 @@
             }
           }
         }
+      }
+    },
+    "template_generic_t": {
+      "description": "Generic t test: power from a noncentrality parameter and degrees of freedom (pwrss::power.t.test()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Generic tests have no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "ncp",
+            "df"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "noncentrality"
+            },
+            "ncp": {
+              "description": "Noncentrality parameter under the alternative hypothesis.",
+              "type": "number"
+            },
+            "df": {
+              "description": "Degrees of freedom.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "noncentrality"
+            },
+            "method": {
+              "const": "t_test"
+            }
+          }
+        }
+      }
+    },
+    "template_generic_f": {
+      "description": "Generic F test: power from a noncentrality parameter and numerator and denominator degrees of freedom (pwrss::power.f.test()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Generic tests have no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "ncp",
+            "df1",
+            "df2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "noncentrality"
+            },
+            "ncp": {
+              "description": "Noncentrality parameter under the alternative hypothesis.",
+              "type": "number",
+              "minimum": 0
+            },
+            "df1": {
+              "description": "Numerator degrees of freedom.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "df2": {
+              "description": "Denominator degrees of freedom.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "noncentrality"
+                },
+                "method": {
+                  "const": "f_test"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_generic_chi_square": {
+      "description": "Generic chi-square test: power from a noncentrality parameter and degrees of freedom (pwrss::power.chisq.test()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Generic tests have no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "ncp",
+            "df"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "noncentrality"
+            },
+            "ncp": {
+              "description": "Noncentrality parameter under the alternative hypothesis.",
+              "type": "number",
+              "minimum": 0
+            },
+            "df": {
+              "description": "Degrees of freedom.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "noncentrality"
+                },
+                "method": {
+                  "const": "chi_square_test"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_generic_z": {
+      "description": "Generic z test: power from the mean of the z statistic under the alternative (its noncentrality), with SD 1 (pwrss::power.z.test()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Generic tests have no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "ncp"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "noncentrality"
+            },
+            "ncp": {
+              "description": "Noncentrality parameter under the alternative hypothesis.",
+              "type": "number"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "noncentrality"
+            },
+            "method": {
+              "const": "z_test"
+            }
+          }
+        }
+      }
+    },
+    "design_generic_test": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "generic_test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "t",
+              "f",
+              "chi_square",
+              "z"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "power",
+                  "sensitivity"
+                ]
+              },
+              "n": false
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "attrition": false,
+              "allocation_ratio": false,
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "t"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_generic_t"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "f"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_generic_f"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "chi_square"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_generic_chi_square"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "z"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_generic_z"
+            }
+          }
+        ]
       }
     }
   }

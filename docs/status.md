@@ -21,6 +21,8 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) runs in the engine
   and matches G\*Power, but isn't in the app yet.
+- **Generic tests** (engine only, in review): t, F, chi-square and z from
+  a noncentrality parameter, as in G\*Power. Not yet in the app.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9 calculate in the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved

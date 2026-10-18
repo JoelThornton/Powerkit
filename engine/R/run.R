@@ -20,6 +20,10 @@
 #' `pwrss::power.t.welch()`). These have no simulation option. For the two
 #' exact tests of counts, whose power goes up and down with n, the required
 #' n is the smallest that reaches the target power.
+#' Generic tests (design `generic_test`, engine only): power for a t, F,
+#' chi-square or z statistic's noncentrality parameter, or the
+#' noncentrality needed for a target power, with pwrss's generic functions.
+#' They have no sample size; the result's curve has one row with `n` `NA`.
 #'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
@@ -91,6 +95,9 @@
 run_spec <- function(spec) {
   spec <- validate_spec(spec)
   seed <- spec$options$seed %||% sample.int(2147483646L, 1)
+  if (spec$design == "generic_test") {
+    return(run_generic(spec, seed))
+  }
   backend <- route_spec(spec, seed)
   method <- spec$options$method %||% backend$default_method
   if (!method %in% backend$methods) {
@@ -212,7 +219,12 @@ print.powerkit_result <- function(x, ...) {
   curve <- x$curve
   cat("Power by n:\n")
   for (i in seq_len(nrow(curve))) {
-    cat(sprintf("  n = %-6s power = %.3f (MC SE %.3f)\n", curve$n[i], curve$power[i], curve$mcse[i]))
+    if (is.na(curve$n[i])) {
+      # Generic tests have no n.
+      cat(sprintf("  power = %.3f\n", curve$power[i]))
+    } else {
+      cat(sprintf("  n = %-6s power = %.3f (MC SE %.3f)\n", curve$n[i], curve$power[i], curve$mcse[i]))
+    }
   }
   if (identical(x$goal_type, "sensitivity")) {
     s <- x$sensitivity

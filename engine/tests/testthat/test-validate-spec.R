@@ -22,7 +22,9 @@ test_that("there is an example for every template", {
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed",
     "two_way", "process_4", "process_6", "process_7", "process_14",
     # Wave 2 (engine only).
-    "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase"
+    "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
+    # Generic tests (engine only).
+    "t", "f", "chi_square", "z"
   ))
 })
 
