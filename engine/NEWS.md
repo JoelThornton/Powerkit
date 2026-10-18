@@ -10,6 +10,11 @@
   base R's noncentral distributions. A generic binomial test is the exact
   test of one proportion, which powerkit already has.
 
+* The online app can now update itself after each merge: Posit Connect
+  Cloud publishes it from GitHub using `app/routing/manifest.json`, which a
+  new workflow keeps current. One-time setup on the Connect Cloud website:
+  `docs/hosting-options.md`, "Publishing from GitHub".
+
 * App: the result screen now has a write-up, replacing the methods-paragraph
   placeholder. A short version for the paper and a full version for a
   supplement or preregistration state the test and its sides, alpha, the

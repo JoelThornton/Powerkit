@@ -61,9 +61,14 @@ first, optional features after testing):
 1. The write-up (short and full methods paragraph): merged on 18 October
    2026; it reaches the website with the next deploy.
 2. A working web app: **online since 18 October 2026** at
-   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main at the last deploy). The maintainer redeploys with
-   `scripts/deploy-online.R` after updating his copy; if the deploy
-   stops on a package version, `renv::restore()` first.
+   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main).
+   Automatic updates on merge: Connect Cloud publishes from GitHub, using
+   `app/routing/manifest.json` (kept current by a workflow); the
+   maintainer's one-time website setup is in
+   [`hosting-options.md`](hosting-options.md#publishing-from-github-once-on-the-connect-cloud-website).
+   Until that is done, or as a fallback, the maintainer redeploys with
+   `scripts/deploy-online.R` (if it stops on a package version,
+   `renv::restore()` first).
 3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression

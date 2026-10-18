@@ -1,0 +1,121 @@
+# Keeps app/routing/manifest.json up to date, so the online app (Posit
+# Connect Cloud, published from this repository's main branch) updates
+# itself after a merge.
+#
+# Connect Cloud republishes the app whenever main changes, installing the
+# packages listed in manifest.json (it reads that file, next to app.R).
+# The manifest pins powerkit's engine to one commit of this repository, so
+# it has to be rewritten whenever the engine, the app or renv.lock
+# changes; this workflow does that and commits the new manifest to main.
+# That commit is what makes Connect Cloud pick up an engine change.
+# (Its push uses GITHUB_TOKEN, so it doesn't start other workflows or
+# this one again.)
+#
+# On a pull request it only writes the manifest and prints the changes, as
+# a check that the manifest can still be made; nothing is committed.
+#
+# Packages come from renv.lock, as in R-CMD-check.yaml. Setup steps on the
+# Connect Cloud website: docs/hosting-options.md, "Publishing from GitHub".
+name: online-app-manifest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/routing/**"
+      - "engine/**"
+      - "renv.lock"
+      - ".github/workflows/online-app-manifest.yaml"
+      - "!app/routing/manifest.json"
+  pull_request:
+    paths:
+      - "app/routing/**"
+      - "engine/DESCRIPTION"
+      - "renv.lock"
+      - ".github/workflows/online-app-manifest.yaml"
+      - "!app/routing/manifest.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: online-app-manifest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+
+      # System libraries the packages in renv.lock need (see
+      # full-validation.yaml).
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk-dev
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: renv
+          use-public-rspm: true
+
+      # Restores the package versions in renv.lock (cached between runs).
+      - uses: r-lib/actions/setup-renv@v2
+
+      # rsconnect writes the manifest; remotes installs the engine from
+      # GitHub. Neither is in renv.lock (they don't affect results).
+      # The engine must be installed from GitHub, at this commit, so the
+      # manifest tells Connect Cloud where to get it (a locally installed
+      # copy can't be found by the server).
+      - name: Install rsconnect and the engine from GitHub
+        env:
+          ENGINE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          Rscript -e 'for (p in c("rsconnect", "remotes")) if (!requireNamespace(p, quietly = TRUE)) renv::install(p, prompt = FALSE)' \
+                  -e 'remotes::install_github("${{ github.repository }}", subdir = "engine", ref = Sys.getenv("ENGINE_REF"), upgrade = "never", dependencies = FALSE)' \
+                  -e 'cat("powerkit", format(packageVersion("powerkit")), "from", Sys.getenv("ENGINE_REF"), "\n")'
+
+      # Packages are recorded against the public Posit Package Manager
+      # (the repository in renv.lock), not this runner's Linux binaries.
+      - name: Write app/routing/manifest.json
+        shell: Rscript {0}
+        run: |
+          ppm <- "https://packagemanager.posit.co/cran/latest"
+          options(repos = c(CRAN = ppm, RSPM = ppm))
+          rsconnect::writeManifest(
+            appDir = "app/routing",
+            appPrimaryDoc = "app.R",
+            quiet = TRUE
+          )
+          m <- jsonlite::read_json("app/routing/manifest.json")
+          pk <- m$packages$powerkit$description
+          cat(length(m$packages), "packages in the manifest; powerkit from",
+              pk$RemoteType, pk$RemoteUsername, pk$RemoteRepo, pk$RemoteSubdir,
+              pk$RemoteSha, "\n")
+          if (!identical(pk$RemoteType, "github")) {
+            stop("powerkit isn't recorded as coming from GitHub, so Connect Cloud couldn't install it.")
+          }
+
+      - name: Show what changed
+        run: git diff --stat -- app/routing/manifest.json || true
+
+      - name: Commit the manifest to main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git add app/routing/manifest.json
+          if git diff --cached --quiet; then
+            echo "manifest.json is already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Online app: update manifest.json for Connect Cloud"
+          git pull --rebase origin main
+          git push origin HEAD:main
