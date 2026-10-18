@@ -10,6 +10,14 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Project files (draft PR; waits for the maintainer's yes, 18 October
+  2026).** Option (a) of `saving-projects.md` (PR #50): "Save project"
+  writes one file (route, inputs, seed, result, versions) through the
+  engine's `write_project()`; "Or open a saved project" on the start
+  screen reopens the input screen with the same values, and checking
+  them reproduces the same result (tested for E2 and E7 in the app, and
+  in the engine for exact, sensitivity and simulated results).
+
 - **Run it yourself, and the About tab (draft PR; waits for the
   maintainer's yes, 18 October 2026).** [`run-it-yourself.md`](run-it-yourself.md)
   takes a psychologist with no R or Git experience from nothing to the

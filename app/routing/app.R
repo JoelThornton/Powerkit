@@ -20,6 +20,7 @@ source(file.path("R", "forms_ui.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
+source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
@@ -430,6 +431,37 @@ server <- function(input, output, session) {
       export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type))
     }
   )
+  # Project files: the engine writes and reads them (write_project(),
+  # read_project()); the app passes the route and puts the screen back.
+  output$download_project <- downloadHandler(
+    filename = function() project_file_name(state$endpoint),
+    content = function(file) {
+      write <- engine_function("write_project")
+      write(state$calc$spec, state$calc$result,
+        route = project_route(reactiveValuesToList(state), current_form_values()), file = file)
+    }
+  )
+  observeEvent(input$open_project, {
+    path <- input$open_project$datapath
+    read <- engine_function("read_project")
+    project <- if (is.null(read)) {
+      "Opening a project needs powerkit's engine, which isn't installed where this prototype is running."
+    } else {
+      tryCatch(read(path), error = function(e) {
+        if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a powerkit project."
+      })
+    }
+    restored <- if (is.character(project)) project else restore_from_project(project$route, tree, forms)
+    if (is.character(restored)) {
+      output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", restored))
+      return()
+    }
+    cancel_job()
+    state$calc <- NULL
+    state$long_spec <- NULL
+    for (name in names(restored)) state[[name]] <- restored[[name]]
+    output$form_result <- renderUI(project_opened_ui(project))
+  })
   observeEvent(input$form_copy, {
     text <- answers_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint, current_form_fields(), current_form_values())
     output$form_copy_text <- renderUI(div(class = "form-field mt-2",
@@ -439,7 +471,7 @@ server <- function(input, output, session) {
   output$screen <- renderUI({
     switch(
       state$screen,
-      start = start_ui(tree),
+      start = tagList(start_ui(tree), open_project_ui()),
       known = known_ui(tree, state$history, state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
