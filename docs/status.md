@@ -10,6 +10,19 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
 
 ## Where things are
 
+- **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
+  October 2026).** As the maintainer decided: a rough preview (100 simulations, in
+  a separate process, shown as a range with "Don't report this; run the
+  full analysis"), then the full run in the app for mediation power at a
+  fixed N (about 12 to 15 minutes, with a progress bar and Cancel), or an
+  R script to run the full analysis on the user's computer for a
+  mediation required N and for moderated mediation. One change from the
+  plan, approved: a required N has no preview (at 100
+  replications per sample size the search took over 15 minutes for E10
+  and couldn't pin the N down), so it goes straight to the script. Background jobs are
+  deferred until hosting and cost are decided. Details in
+  [`phase5-simulations.md`](phase5-simulations.md).
+
 - **Walkthrough pictures re-rendered (17 October 2026).** All 26 pictures
   in `docs/figures/walkthroughs/` come from the current prototype (after
   #44), so E4's card shows Fisher's z and E5's says "Validated".

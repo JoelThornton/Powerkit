@@ -1709,6 +1709,44 @@ and 1 : 3 in both directions are tested, and the maintainer's G\*Power
 screenshots for those inputs (and one tail, and a priori at 1 : 3) match
 them to 7 decimals (`docs/gpower-parity.md`, E5).
 
+## 2026-10-17 · Phase 5, part 2: E10–E14
+
+**Decided (maintainer, 17 October 2026):** for mediation power at a fixed
+N (E10–E12), a quick preview of about 100 replications shown as a range,
+then the full run at the app's defaults in a separate process with a
+progress indicator and Cancel, as for E9, with the expected wait stated
+before it starts (options B then A). For a mediation required N and for
+moderated mediation (E13, E14, any goal), the same preview, then "Download
+R script to run the full analysis on your computer" with the expected run
+time and what to install (B, then D); no full in-browser run for these
+yet. Background jobs (C) are not built: deferred until hosting and cost
+are decided. Fewer replications (E) is not a default. The preview and the
+full run use recorded seeds; tests check that the full run equals
+`run_spec()` with the same spec and seed and that the downloaded script
+reproduces it.
+
+**Reasons:** a preview lets users see within a minute or two whether
+their effect is in a sensible range before a long run, but at 100
+replications it is too imprecise to report, so it is shown as a range
+with a warning and can't be exported. A wait of about 10 minutes in the
+browser is acceptable for mediation power; hours (a mediation required N)
+or about 25 minutes (moderated mediation) are not, so those run on the
+user's computer. Background jobs need hosting and someone to pay for
+computing time, which aren't decided.
+
+**Built:** details, times and tests in
+[`phase5-simulations.md`](phase5-simulations.md), "Decided". Two engine
+functions were added: `export_run_script()` (the script for a spec, with
+its seed, that calls `run_spec()`) and `power_interval()` (the exact
+binomial range for simulated power, from base R's `binom.test()`).
+
+**One change from the plan (approved by the maintainer, 18 October
+2026):** a required N has no preview and goes straight to the R script.
+**Reason:** the 100-simulation search couldn't settle on an N. With 100
+replications per sample size the search took over 15 minutes for simple
+mediation and stopped with "could not pin down the required n"
+(`phase5-simulations.md`, "A required N has no preview").
+
 ## 2026-10-17 · Attrition: the number to recruit
 
 **Decided (maintainer, 17 October 2026):** apply `options > attrition`.

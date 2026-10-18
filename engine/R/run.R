@@ -237,3 +237,28 @@ abort_run <- function(message, class = NULL) {
     list(message = message, call = NULL)
   ))
 }
+
+#' A range for simulated power
+#'
+#' For a simulated power result, an exact (Clopper-Pearson) confidence
+#' interval for power from the rejections and replications the run
+#' recorded, by base R's [stats::binom.test()]. The app uses it to show a
+#' quick preview as a range rather than a single number. For an exact
+#' result both ends are the power itself.
+#'
+#' @param result A `powerkit_result` for a `power` goal.
+#' @param level Confidence level.
+#'
+#' @return A named numeric vector: `lower` and `upper`.
+#' @export
+power_interval <- function(result, level = 0.95) {
+  if (!inherits(result, "powerkit_result") || !identical(result$goal_type, "power")) {
+    abort_run("power_interval() needs the result of run_spec() for a 'power' goal.")
+  }
+  sims <- result$provenance$simulations
+  if (!is.data.frame(sims)) {
+    return(c(lower = result$curve$power[1], upper = result$curve$power[1]))
+  }
+  ci <- stats::binom.test(sims$rejections[1], sims$nrep[1], conf.level = level)$conf.int
+  c(lower = ci[1], upper = ci[2])
+}
