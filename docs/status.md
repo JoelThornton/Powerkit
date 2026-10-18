@@ -24,9 +24,10 @@ fully validated. Validation runs are recorded in
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9 calculate in the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved
-  as a project file and reopened. The "About this prototype" tab and the
-  run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) let
-  colleagues run it on their own computers. In "Plan my whole study",
+  as a project file and reopened. It is online at
+  <https://joelthornton-powerkit.share.connect.posit.cloud>; the
+  run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
+  for running it on one's own computer. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
 - **Open PRs:** see [`handover.md`](handover.md).
@@ -51,14 +52,15 @@ In priority order (agreed direction, 18 October 2026: a working web app
 first, optional features after testing):
 
 1. The write-up (short and full methods paragraph): in review.
-2. A working web app: host the app on an R server so testers can open a
-   link (the browser-only route, webR, can't run Spower;
-   [`hosting-options.md`](hosting-options.md)). The maintainer chose
-   Posit Connect Cloud (18 October 2026). Automatic updates on merge:
-   Connect Cloud publishes from GitHub, using `app/routing/manifest.json`
-   (kept current by a workflow); the maintainer's one-time website setup
-   is in [`hosting-options.md`](hosting-options.md#publishing-from-github-once-on-the-connect-cloud-website).
-   `scripts/deploy-online.R` stays as the fallback.
+2. A working web app: **online since 18 October 2026** at
+   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main).
+   Automatic updates on merge: Connect Cloud publishes from GitHub, using
+   `app/routing/manifest.json` (kept current by a workflow); the
+   maintainer's one-time website setup is in
+   [`hosting-options.md`](hosting-options.md#publishing-from-github-once-on-the-connect-cloud-website).
+   Until that is done, or as a fallback, the maintainer redeploys with
+   `scripts/deploy-online.R` (if it stops on a package version,
+   `renv::restore()` first).
 3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression

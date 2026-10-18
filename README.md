@@ -87,7 +87,11 @@ regression interactions and mediation.
 
 ## Try the app (no R experience needed)
 
-Follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
+Open <https://joelthornton-powerkit.share.connect.posit.cloud> in a
+browser: nothing to install. It is a prototype; results are not yet
+validated, so don't use them for real studies.
+
+To run it on your own computer instead, follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
 download this repository as a ZIP, and run one line,
 `source("run_powerkit.R")`, which installs what powerkit needs and opens
 the prototype in your browser.
