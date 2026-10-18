@@ -23,6 +23,39 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   installs in webR except Spower and SimDesign; E2 ran instantly in the
   browser with the same result; E10 took 3.5 times as long as native R.
 
+- **Wave 2 G\*Power checks (18 October 2026).** The maintainer's
+  screenshots (`docs/figures/gpower/A10_*`, `A11_*`, `A23_*`, `A35_*`,
+  `A37_*`) match the engine to seven decimals for one-way ANOVA, R²
+  against 0, R² increase and one proportion. G\*Power's R² noncentrality
+  is f² × N (pwrss's convention), and it reports N = 90 for the
+  one-proportion example, as powerkit does. McNemar's post hoc power
+  with G\*Power's exact option matches too (0.6742876); so does its a
+  priori N (129, as powerkit). All wave 2 G\*Power checks match.
+
+- **Wave 2 engine groundwork (draft PR; waits for the maintainer's yes,
+  18 October 2026).** One-way ANOVA, R² against 0 and R² increase, one
+  proportion, McNemar's test, and Welch's t-test by formula on request
+  run in the engine, with example specs, exported scripts, and tests
+  against the backend called directly. Not wired into the app or the
+  question tree. All five match the maintainer's G\*Power screenshots.
+  The smallest N for exact tests of counts is now Known difference 2 in
+  `conventions.md` (it was Departure 12; maintainer's decision, 18
+  October 2026). Open: one-way sensitivity.
+
+- **Handover refreshed (18 October 2026).** [`handover.md`](handover.md)
+  lists the open PRs (#49, #51, #52, all waiting for the maintainer's
+  yes), what merged today (#47, #48, #50) and what is still needed.
+
+- **Judgement session agenda (18 October 2026).**
+  [`judgement-session.md`](judgement-session.md) gives the nine open
+  calls that change what users see, one page each, ordered by impact:
+  routing, effect sizes and sensitivity, alpha and tails, several
+  hypotheses, the methods paragraph, hosting, G\*Power scope, naming
+  other tools, and Bayesian planning. Nothing recommended.
+  [`saving-projects.md`](saving-projects.md) and judgement call E6
+  compare saving projects: a project file, browser autosave, share links,
+  private result links, and accounts.
+
 - **E5 unequal groups in the `basic` validation chunk (18 October
   2026).** Two new tests check pwrss's z test against the maintainer's
   G\*Power screenshots at 1 : 2 and 1 : 3 (both directions), one tail at

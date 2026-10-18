@@ -1,6 +1,6 @@
 # Handover
 
-*Written 17 October 2026, at the end of a working stretch, for whoever
+*Written 18 October 2026, at the end of a working stretch, for whoever
 picks the project up next. [`status.md`](status.md) is the running record;
 this page is the short version plus the working rules.*
 
@@ -12,7 +12,8 @@ this page is the short version plus the working rules.*
 - **Basic tests (E1–E6)** use pwr's exact formula by default (merged in
   PR #34; Departure 9 in [`conventions.md`](conventions.md)). Spower
   simulation stays available as an option, and for Welch's t-test. The
-  `basic` validation chunk should be rerun on this code.
+  `basic` chunk passed on 18 October 2026 with E5's unequal-group G\*Power
+  cases added (#48; `validation-log.md`).
 - **App prototype** (`app/routing/`): the question tree, cards and input
   screens for every end point. E1–E8 calculate on the input screen (merged
   in #34). E9 calculates in the background with a progress bar and Cancel
@@ -26,7 +27,27 @@ this page is the short version plus the working rules.*
 - **Seed:** a fixed default (1), shown and changeable on every screen and
   recorded in the result and its R script.
 
-## Open PRs
+## Open PRs (end of 18 October 2026)
+
+All wait for the maintainer's yes:
+- **#49** run-it-yourself guide, one-line launcher (`run_powerkit.R`),
+  clean-machine CI workflow, the app's About tab, and
+  `hosting-options.md` with the webR spike's results (Spower and
+  SimDesign don't install in webR; the spike stays on its own branch,
+  never merged).
+- **#51** wave 2 engine groundwork (one-way ANOVA, R² against 0 and
+  increase, one proportion, McNemar, Welch by formula); engine only.
+  All five match the maintainer's G\*Power screenshots; the smallest-N
+  rule for exact tests of counts is Known difference 2 (maintainer's
+  decision, 18 October 2026).
+- **#52** project files (save and reopen; option (a) of
+  `saving-projects.md`). Touches `app.R`, as #49 does: merge main into
+  whichever lands second.
+
+Merged on 18 October 2026: #47 (phase 5, part 2), #48 (E5 unequal groups
+in the basic chunk) and #50 (`judgement-session.md`,
+`saving-projects.md`, judgement call E6).
+
 
 See [`status.md`](status.md) for the PRs open at the end of the latest
 stretch. E5 is settled: the z test by default (base R for equal groups,
@@ -42,8 +63,9 @@ groups by pwrss), #43 (sources the maintainer checked in full text), #44
 (the basic rerun; E5 validated again; E6 G\*Power df 1), #45 (attrition:
 the number to recruit) and #46 (walkthrough pictures re-rendered).
 
-Still needed from the maintainer: a yes on phase 5, part 2 (including
-"a required N has no preview"); the E6 G\*Power screenshot at df 2; G4
+Still needed from the maintainer: yeses on #49, #51 and #52; the
+judgement session (`judgement-session.md`); the E6 G\*Power screenshot
+at df 2 and the wave 2 screenshots; G4
 (the methods paragraph); Dziak et al., Lakens et al. (2018), Hoenig and
 Heisey and the G\*Power manual stay candidates.
 
@@ -81,6 +103,8 @@ Heisey and the G\*Power manual stay candidates.
 
 ## Where the judgement calls and decisions live
 
+- [`judgement-session.md`](judgement-session.md): the nine open calls
+  that change what users see, one page each, for the session.
 - [`judgement-calls.md`](judgement-calls.md): every open or decided
   judgement call, with options and the default now. Open ones include B12
   (N rounding), B13 (power curve), B16 (what "simulation for data that
@@ -91,7 +115,7 @@ Heisey and the G\*Power manual stay candidates.
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
-  powerkit's departures (1–10).
+  powerkit's departures (1–11) and known differences (1–2).
 - [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14 and the maintainer's decision.
 - [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
 - In the app, the "For the maintainer: undecided settings" tab lists the

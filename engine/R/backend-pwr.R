@@ -33,6 +33,7 @@
 # Basic-test templates pwr covers (Welch's t-test isn't covered).
 pwr_covers <- function(spec) {
   spec$design == "basic_test" &&
+    !spec$template %in% c("one_proportion", "mcnemar") &&
     !identical(spec$target_test$method, "welch_t")
 }
 

@@ -530,6 +530,33 @@ methods paragraph.
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.
 
+### 2. Exact tests of counts (one proportion, McNemar): the smallest N that reaches the target
+
+*Moved from the departures (it was Departure 12) by the maintainer's
+decision, 18 October 2026: G\*Power reports the same N as powerkit.
+Engine only (wave 2), not yet wired into the app.*
+
+- **What differs:** for exact tests of counts, power goes up and down
+  with N. powerkit and G\*Power report the smallest N that reaches the
+  target; pwrss's own sample-size answer (`power.exact.oneprop(power = )`,
+  `power.exact.mcnemar(power = )`) is a little larger.
+- **Size:** for the example inputs, 90 (powerkit and G\*Power) against 92
+  (pwrss) for one proportion (0.65 against 0.50, two tails), and 129
+  against 130 for McNemar (0.25 and 0.10, two tails, G\*Power's exact
+  option). At N = 90 the one-proportion power is 0.812, but it falls
+  below 0.80 again at 91, 96 and others.
+- **G\*Power:** maintainer's screenshots, 18 October 2026
+  (`docs/figures/gpower/A35_one_proportion_a_priori.png`,
+  `A37_mcnemar_a_priori_exact.png`). G\*Power's default McNemar option,
+  the faster approximation, gives 121; powerkit matches its exact option.
+- **Test:** `test-backend-wave2.R`, "exact tests of counts report the
+  smallest n that reaches the target", "known difference: pwrss's own
+  sample-size answer for exact tests of counts (Known difference 2)", and
+  the G\*Power checks for one proportion and McNemar.
+- **Shown to users / methods paragraph:** to do when these tests are
+  wired into the app: a note that power for these tests goes up and down
+  with N, so a slightly larger N can have lower power.
+
 ## Not departures, but worth stating
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with

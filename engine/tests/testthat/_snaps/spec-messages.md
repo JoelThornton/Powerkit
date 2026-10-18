@@ -6,7 +6,7 @@
       Error:
       ! This design spec has 3 problems:
       * The spec is missing 'effect_justification'. Every power analysis needs a reason for its effect size: give its type (smallest_effect_of_interest, meta_analysis, prior_study or pilot_study) and its source.
-      * 'design' must be one of 'basic_test', 'factorial_anova', 'regression_interaction', 'mediation' or 'moderated_mediation'; you wrote 'moderated mediation'. Did you mean 'moderated_mediation'?
+      * 'design' must be one of 'basic_test', 'factorial_anova', 'regression_interaction', 'mediation', 'moderated_mediation' or 'multiple_regression'; you wrote 'moderated mediation'. Did you mean 'moderated_mediation'?
       * 'goal > power' must be less than 1; you wrote 80. Write power as a proportion: 80% is 0.8.
 
 ---
