@@ -1,0 +1,26 @@
+{
+  "spec_version": "0.1",
+  "design": "generic_test",
+  "template": "chi_square",
+  "variables": {},
+  "population": {
+    "metric": "noncentrality",
+    "ncp": 10,
+    "df": 2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a noncentrality of 10 with 2 degrees of freedom, from a design worked out by hand."
+  },
+  "target_test": {
+    "effect": "noncentrality",
+    "method": "chi_square_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power"
+  },
+  "options": {
+    "seed": 20261018
+  }
+}

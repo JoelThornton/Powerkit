@@ -1,0 +1,27 @@
+{
+  "spec_version": "0.1",
+  "design": "generic_test",
+  "template": "f",
+  "variables": {},
+  "population": {
+    "metric": "noncentrality",
+    "ncp": 10,
+    "df1": 2,
+    "df2": 60
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a noncentrality of 10 with 2 and 60 degrees of freedom, from a design worked out by hand."
+  },
+  "target_test": {
+    "effect": "noncentrality",
+    "method": "f_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power"
+  },
+  "options": {
+    "seed": 20261018
+  }
+}

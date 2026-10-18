@@ -25,6 +25,8 @@ fully validated. Validation runs are recorded in
   test, chi-square goodness of fit, two independent correlations and
   one-way ANCOVA, on pwrss. Not yet in the app or checked against
   G\*Power.
+- **Generic tests** (engine only, in review): t, F, chi-square and z from
+  a noncentrality parameter, as in G\*Power. Not yet in the app.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), multiple regression (E24),
   one proportion (E25) and McNemar (E26) calculate in the app; E10–E14 give a rough
@@ -71,9 +73,9 @@ first, optional features after testing):
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression
    interactions in the app.
-4. User testing with a link ([`user-testing.md`](user-testing.md),
-   updated for the four screens), recruiting at the maintainer's talk
-   (23 October 2026).
+4. User testing with the online link: the plan
+   ([`user-testing.md`](user-testing.md)) is ready for the four screens;
+   recruiting at the maintainer's talk (23 October 2026).
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).

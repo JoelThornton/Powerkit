@@ -47,7 +47,13 @@ export_script <- function(spec, result, file = NULL) {
     result$provenance$backend,
     pwr = ,
     stats = pwr_script(spec, result),
-    pwrss = if (pwrss_covers(spec)) pwrss_script(spec, result) else pwr_script(spec, result),
+    pwrss = if (spec$design == "generic_test") {
+      generic_script(spec, result)
+    } else if (pwrss_covers(spec)) {
+      pwrss_script(spec, result)
+    } else {
+      pwr_script(spec, result)
+    },
     Spower = spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -212,6 +218,10 @@ design_description <- function(spec) {
       label("Y"), spec$population$predictors_tested,
       spec$population$predictors_total - spec$population$predictors_tested
     ),
+    "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
+    "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
+    "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
+    "generic_test/z" = "generic z test (SD 1 under both hypotheses)",
     "basic_test/chi_square_independence" = sprintf(
       "chi-square test of independence of %s (%s) and %s (%s)", label("X"), levels("X"), label("Y"), levels("Y")
     ),
@@ -257,6 +267,13 @@ anova_effect_name <- function(spec) {
 
 goal_description <- function(spec) {
   goal <- spec$goal
+  if (spec$design == "generic_test") {
+    return(switch(
+      goal$type,
+      power = sprintf("power for a noncentrality of %s, alpha = %s", spec$population$ncp, spec$target_test$alpha),
+      sensitivity = sprintf("the noncentrality needed for power %s, alpha = %s", goal$power, spec$target_test$alpha)
+    ))
+  }
   switch(
     goal$type,
     power = sprintf("power at a total sample size of %s, alpha = %s", goal$n, spec$target_test$alpha),
