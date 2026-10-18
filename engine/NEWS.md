@@ -2,7 +2,9 @@
 
 * Documentation: `docs/judgement-session.md` sets out the nine open calls
   that change what users see, ordered by impact, for the maintainer's
-  judgement session. Options and sources only; no code change.
+  judgement session, and `docs/saving-projects.md` compares five ways to
+  save projects (judgement call E6). Options and sources only; no code
+  change.
 
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in

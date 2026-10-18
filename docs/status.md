@@ -16,6 +16,9 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   routing, effect sizes and sensitivity, alpha and tails, several
   hypotheses, the methods paragraph, hosting, G\*Power scope, naming
   other tools, and Bayesian planning. Nothing recommended.
+  [`saving-projects.md`](saving-projects.md) and judgement call E6
+  compare saving projects: a project file, browser autosave, share links,
+  private result links, and accounts.
 
 - **E5 unequal groups in the `basic` validation chunk (18 October
   2026).** Two new tests check pwrss's z test against the maintainer's
