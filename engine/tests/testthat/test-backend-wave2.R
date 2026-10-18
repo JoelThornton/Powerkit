@@ -2,7 +2,7 @@
 # R-squared in multiple regression, one proportion, McNemar's test and
 # Welch's t-test by formula. Each is checked against its backend called
 # directly, from inputs written out by hand here. The checks against
-# G*Power are placeholders until the maintainer sends the screenshots.
+# G*Power use the maintainer's screenshots (McNemar's is still a placeholder).
 
 wave2_spec <- function(name, goal, ...) {
   spec <- example_spec(name)
@@ -223,9 +223,84 @@ test_that("exported scripts for the wave 2 tests reproduce powerkit's results", 
   }
 })
 
-test_that("G*Power comparisons for the wave 2 tests (placeholders)", {
-  # TODO_PUBLISHED_VALUE: the maintainer transcribes these from G*Power
-  # screenshots (docs/coverage-roadmap.md, wave 2, lists the screens and
-  # inputs). Until then this test is skipped.
-  skip("G*Power values for the wave 2 tests not yet transcribed (TODO_PUBLISHED_VALUE)")
+# Reference for the G*Power tests below: G*Power values, not published
+#   ones. G*Power 3.1, maintainer's screenshots, 18 October 2026
+#   (docs/figures/gpower/A10_*, A11_*, A23_*, A35_*, A37_*; recorded in
+#   docs/gpower-parity.md, "Wave 2"). alpha = .05 throughout. Effect sizes
+#   are entered here exactly as typed into G*Power (f, f2), so the spec's
+#   inputs are set to give those values.
+
+test_that("one-way ANOVA matches G*Power (G*Power values)", {
+  skip_if_not_installed("Superpower")
+  # F tests, "ANOVA: Fixed effects, omnibus, one-way", 3 groups, f = 0.279
+  # (the screenshots used 0.279, not the example's 0.2079). Means -a, 0, a
+  # with SD 1 give f = a * sqrt(2 / 3).
+  a <- 0.279 / sqrt(2 / 3)
+  population <- list(metric = "raw", means = c(-a, 0, a), sd = 1)
+  spec <- wave2_spec("anova_oneway_between", list(type = "sample_size", power = 0.8), population = population)
+  # A priori: total N 129, actual power 0.8072995.
+  expect_identical(as.integer(sum(run_spec(spec)$n_required$n)), 129L)
+  spec$goal <- list(type = "power", n = 129)
+  expect_equal(round(power_at(spec), 7), 0.8072995)
+  # Post hoc: N = 120, power 0.7757040.
+  spec$goal <- list(type = "power", n = 120)
+  expect_equal(round(power_at(spec), 7), 0.7757040)
+})
+
+test_that("R-squared against zero matches G*Power (G*Power values)", {
+  # F tests, "Linear multiple regression: Fixed model, R2 deviation from
+  # zero", 5 predictors, f2 = 0.1111 (R2 = f2 / (1 + f2)).
+  population <- list(metric = "r_squared", r2 = 0.1111 / 1.1111, predictors = 5)
+  spec <- wave2_spec("regression_r2_zero", list(type = "sample_size", power = 0.8), population = population)
+  # A priori: total N 122, actual power 0.8034946.
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 122L)
+  spec$goal <- list(type = "power", n = 122)
+  expect_equal(round(power_at(spec), 7), 0.8034946)
+  # Post hoc: N = 100, power 0.7013300 (noncentrality 11.11 = f2 * N).
+  spec$goal <- list(type = "power", n = 100)
+  expect_equal(round(power_at(spec), 7), 0.7013300)
+})
+
+test_that("R-squared increase matches G*Power, whose noncentrality is f2 * N (G*Power value)", {
+  # F tests, "Linear multiple regression: Fixed model, R2 increase", 2
+  # tested of 5 predictors, f2 = 0.0588. With R2 reduced = .10,
+  # f2 = (full - .10) / (1 - full) gives full = (.0588 + .10) / 1.0588.
+  population <- list(
+    metric = "r_squared", r2_full = (0.0588 + 0.10) / 1.0588, r2_reduced = 0.10,
+    predictors_total = 5, predictors_tested = 2
+  )
+  spec <- wave2_spec("regression_r2_increase", list(type = "sample_size", power = 0.8), population = population)
+  # A priori: total N 167, actual power 0.8001440, noncentrality 9.8196
+  # (= 0.0588 * 167, pwrss's convention, not pwr's f2 * (u + v + 1)).
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 167L)
+  spec$goal <- list(type = "power", n = 167)
+  expect_equal(round(power_at(spec), 7), 0.8001440)
+})
+
+test_that("one proportion matches G*Power, including the smallest N (G*Power values)", {
+  # Exact, "Proportion: Difference from constant (binomial test, one
+  # sample case)", constant proportion .50, effect size g = .15 (.65).
+  spec <- wave2_spec("one_proportion", list(type = "sample_size", power = 0.8))
+  # A priori, two tails: total N 90, actual power 0.8122881. G*Power
+  # reports the smallest N that reaches the target, as powerkit does
+  # (pwrss's own answer is 92; Departure 12).
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 90L)
+  spec$goal <- list(type = "power", n = 90)
+  expect_equal(round(power_at(spec), 7), 0.8122881)
+  # Post hoc, N = 80: two tails 0.7235283; one tail 0.8540286.
+  spec$goal <- list(type = "power", n = 80)
+  expect_equal(round(power_at(spec), 7), 0.7235283)
+  spec$target_test$alternative <- "greater"
+  expect_equal(round(power_at(spec), 7), 0.8540286)
+})
+
+test_that("McNemar against G*Power's exact option (placeholder)", {
+  # TODO_PUBLISHED_VALUE: the screenshots sent on 18 October 2026 used
+  # G*Power's default "faster approximation (assume number of discordant
+  # pairs as constant)": N = 100 gives 0.7186706 and the a priori N is
+  # 121. powerkit uses pwrss's exact method (0.6742876 at N = 100; 129).
+  # Neither pwrss method equals the approximation (pwrss's "approximate"
+  # gives 0.7240580). The comparison waits for G*Power's "exact
+  # (unconditional) power" screenshots.
+  skip("G*Power's exact McNemar values not yet sent (TODO_PUBLISHED_VALUE)")
 })

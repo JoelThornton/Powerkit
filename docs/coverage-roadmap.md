@@ -325,7 +325,11 @@ comparisons are placeholders until the screenshots arrive.
   target (for the one-proportion example, 90). pwrss's own sample-size
   answer for the same inputs is 92, and power at 96 falls back to 0.799.
   For McNemar, the engine gives 129 and pwrss's sample-size call 130.
-  Which convention G\*Power follows is to be read from its screenshot.
+  G\*Power reports 90 for the one-proportion example, as the engine does
+  (screenshot, 18 October 2026). For McNemar, G\*Power's screenshots
+  used its default "faster approximation" (121; 0.7187 at N = 100), which
+  neither pwrss method reproduces; its "exact (unconditional) power"
+  option is still to be screenshotted.
 - **One-sided tests against the expected direction** can't be computed
   with these pwrss functions (they test in the direction of the
   effect), so the engine refuses them for A35, A37 and B24 by formula.
@@ -333,10 +337,19 @@ comparisons are placeholders until the screenshots arrive.
   scale is open, as for E7 and E8's choice.
 - **R² noncentrality (A10, A11).** pwrss uses f² × N; pwr's
   `pwr.f2.test()` uses f² × (u + v + 1), which is the same for R² against
-  0 but differs for an increase. G\*Power's convention is to be confirmed
-  from its screenshot.
+  0 but differs for an increase. Settled: G\*Power's noncentrality is
+  f² × N (9.8196 = 0.0588 × 167 on its screenshot), pwrss's convention,
+  and the engine matches G\*Power to seven decimals.
 
-**G\*Power screens and inputs the maintainer needs to send** (one
+**G\*Power screenshots received (18 October 2026).** One-way ANOVA (at
+f = 0.279), R² against 0, R² increase and one proportion match the
+engine to seven decimals, a priori N included (`test-backend-wave2.R`;
+`gpower-parity.md`, "Wave 2"). Still needed: **McNemar with G\*Power's
+Options set to "exact (unconditional) power"** (a priori, and post hoc at
+N = 100). The one-way ANOVA at f = 0.2079 and the R² increase post hoc
+are not needed (the cases sent already check the same calculations).
+
+**G\*Power screens and inputs the maintainer was asked to send** (one
 screenshot of each, showing the input and output panes, α = 0.05,
 power 0.80 unless said; menu names as in the maintainer's list, Part A):
 

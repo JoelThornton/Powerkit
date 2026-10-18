@@ -499,8 +499,14 @@ kept so later departures keep theirs.
 - **What the established tool does:** pwrss's own sample-size answer
   (`power.exact.oneprop(power = )`, `power.exact.mcnemar(power = )`) for
   the example inputs is 92 (one proportion, 0.65 against 0.50) and 130
-  (McNemar, 0.25 and 0.10). What G\*Power reports is to be read from the
-  maintainer's screenshots.
+  (McNemar, 0.25 and 0.10). G\*Power (maintainer's screenshot, 18
+  October 2026, `docs/figures/gpower/A35_one_proportion_a_priori.png`)
+  reports 90 for the one-proportion example, the same as powerkit, so
+  here powerkit follows G\*Power and differs only from pwrss. If that
+  holds for McNemar too (G\*Power's exact option is still to be
+  screenshotted; its default approximation gives 121), this entry may
+  belong under "Known differences" rather than departures (maintainer to
+  decide).
 - **What powerkit does:** for these tests power goes up and down with N,
   so the engine checks every N below its first answer and reports the
   smallest that reaches the target: 90 and 129 for the same inputs. At

@@ -13,7 +13,11 @@
   alone, and tests against the backend called directly. For exact tests
   of counts the required N is the smallest that reaches the target, which
   can be lower than pwrss's own answer (Departure 12, to decide before the
-  app uses it). G\*Power comparisons are placeholders.
+  app uses it). One-way ANOVA, R² against 0, R² increase and one
+  proportion match the maintainer's G\*Power screenshots to seven
+  decimals, a priori N included (G\*Power also reports 90 for the
+  one-proportion example). McNemar's G\*Power check waits for a
+  screenshot with G\*Power's exact option.
 
 * Validation: the `basic` chunk now checks two proportions in unequal
   groups against the maintainer's G\*Power screenshots (1 : 2 and 1 : 3 in

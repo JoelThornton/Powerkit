@@ -347,6 +347,32 @@ Matching G\*Power test: none.
 Outputs: power with its Monte Carlo interval (**Has**); noncentrality,
 critical value, df: **Not possible** (simulation of a CI-based test).
 
+## Wave 2 (engine only, 18 October 2026)
+
+Maintainer's G\*Power 3.1 screenshots, 18 October 2026
+(`docs/figures/gpower/`). α = .05. Checked in `test-backend-wave2.R`.
+
+| Row | G\*Power test | Case | G\*Power | powerkit |
+| --- | --- | --- | --- | --- |
+| A23 | F tests, "ANOVA: Fixed effects, omnibus, one-way" | f = 0.279, 3 groups, a priori | N = 129, power 0.8072995 | 129, 0.8072995 |
+| A23 | as above | post hoc, N = 120 | 0.7757040 | 0.7757040 |
+| A10 | F tests, "Linear multiple regression: Fixed model, R² deviation from zero" | f² = 0.1111, 5 predictors, a priori | N = 122, power 0.8034946 | 122, 0.8034946 |
+| A10 | as above | post hoc, N = 100 | 0.7013300 (λ = 11.11) | 0.7013300 |
+| A11 | F tests, "Linear multiple regression: Fixed model, R² increase" | f² = 0.0588, 2 of 5 predictors, a priori | N = 167, power 0.8001440 (λ = 9.8196 = f² × N) | 167, 0.8001440 |
+| A35 | Exact, "Proportion: Difference from constant (binomial test, one sample case)" | g = 0.15, constant 0.5, two tails, a priori | N = 90, power 0.8122881 | 90, 0.8122881 (pwrss's own answer: 92) |
+| A35 | as above | post hoc, N = 80, two tails / one tail | 0.7235283 / 0.8540286 | 0.7235283 / 0.8540286 |
+| A37 | Exact, "Proportions: Inequality, two dependent groups (McNemar)" | OR 2.5, discordant 0.35, two tails, **faster approximation** (G\*Power's default) | a priori N = 121 (0.8052775); post hoc N = 100: 0.7186706 | exact method: 129; 0.6742876 (pwrss "approximate": 0.7240580) |
+
+Notes:
+- The one-way screenshots used f = 0.279 rather than the example's
+  0.2079 (the "Determine" screenshot confirms means 10, 11, 13 with SD 6
+  give 0.2078699). The test sets means that give f = 0.279.
+- G\*Power's effect sizes were typed rounded (f² = 0.1111, 0.0588); the
+  tests enter the same values, which is why they match to seven decimals.
+- McNemar: G\*Power's Options offer "exact (unconditional) power if N <
+  1000000" or the faster approximation. The comparison with powerkit's
+  exact method waits for the exact option's screenshots.
+
 ## Effect-size calculators ("Determine")
 
 | End point | G\*Power drawer | powerkit | Backend support | Mark |
