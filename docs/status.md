@@ -29,6 +29,20 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   Departure 12 (smallest N for exact tests of counts), one-way
   sensitivity, and the R² noncentrality convention.
 
+- **Handover refreshed (18 October 2026).** [`handover.md`](handover.md)
+  lists the open PRs (#49, #51, #52, all waiting for the maintainer's
+  yes), what merged today (#47, #48, #50) and what is still needed.
+
+- **Judgement session agenda (18 October 2026).**
+  [`judgement-session.md`](judgement-session.md) gives the nine open
+  calls that change what users see, one page each, ordered by impact:
+  routing, effect sizes and sensitivity, alpha and tails, several
+  hypotheses, the methods paragraph, hosting, G\*Power scope, naming
+  other tools, and Bayesian planning. Nothing recommended.
+  [`saving-projects.md`](saving-projects.md) and judgement call E6
+  compare saving projects: a project file, browser autosave, share links,
+  private result links, and accounts.
+
 - **E5 unequal groups in the `basic` validation chunk (18 October
   2026).** Two new tests check pwrss's z test against the maintainer's
   G\*Power screenshots at 1 : 2 and 1 : 3 (both directions), one tail at
