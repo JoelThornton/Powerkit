@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Engine: four more tests by formula, each one pwrss call (not yet in the
+  app): Fisher's exact test of two proportions (`target_test > method =
+  "fisher_exact"`), the chi-square goodness-of-fit test (template
+  `chi_square_gof`; equal fixed proportions unless given), two independent
+  correlations (template `two_correlations`, Fisher's z test) and one-way
+  ANCOVA (template `oneway_ancova`, Shieh's method). Each has an example
+  spec, an R script that reproduces it, and tests against pwrss called
+  directly; goodness of fit also agrees with pwr's formula, and ANCOVA
+  with Superpower's. Not yet checked against G\*Power.
+
 * The result screen now states every departure and known difference that
   applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
   than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off

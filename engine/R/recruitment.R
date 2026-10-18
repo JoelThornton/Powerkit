@@ -14,14 +14,16 @@ analysed_groups <- function(spec, n) {
   switch(
     spec$template,
     independent_t = ,
-    two_proportions = {
+    two_proportions = ,
+    two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
       n1 <- round(n / (1 + ratio))
       c(n1, n - n1)
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
-    oneway_between = {
+    oneway_between = ,
+    oneway_ancova = {
       k <- length(spec$variables$A$levels)
       rep(n / k, k)
     },
@@ -34,10 +36,12 @@ group_unit <- function(spec) {
   switch(
     spec$template,
     independent_t = ,
-    two_proportions = "group",
+    two_proportions = ,
+    two_correlations = "group",
     "2x2_between" = "cell",
     "2x2_mixed" = ,
-    oneway_between = "group",
+    oneway_between = ,
+    oneway_ancova = "group",
     NA_character_
   )
 }

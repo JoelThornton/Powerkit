@@ -21,6 +21,10 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) runs in the engine
   and matches G\*Power, but isn't in the app yet.
+- **More tests by formula** (engine only, in review): Fisher's exact
+  test, chi-square goodness of fit, two independent correlations and
+  one-way ANCOVA, on pwrss. Not yet in the app or checked against
+  G\*Power.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9 calculate in the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved

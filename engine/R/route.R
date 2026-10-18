@@ -27,8 +27,11 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/2x2_between" = ,
     "factorial_anova/2x2_mixed" = ,
     "factorial_anova/oneway_between" = superpower_backend(spec, seed),
+    "factorial_anova/oneway_ancova" = ,
     "basic_test/one_proportion" = ,
     "basic_test/mcnemar" = ,
+    "basic_test/chi_square_gof" = ,
+    "basic_test/two_correlations" = ,
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = pwrss_backend(spec, seed),
     "basic_test/independent_t" = if (pwrss_covers(spec)) {
@@ -41,7 +44,13 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/one_sample_t" = ,
     "basic_test/paired_t" = ,
     "basic_test/correlation" = ,
-    "basic_test/two_proportions" = ,
+    "basic_test/two_proportions" = if (pwrss_covers(spec)) {
+      pwrss_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
+      pwr_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {

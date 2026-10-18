@@ -11,6 +11,14 @@
 #                      default for Welch's t-test stays Spower simulation.
 #   R-squared          multiple_regression/r2_zero and r2_increase: the F
 #                      test, pwrss::power.f.regression()
+#   Fisher's exact     basic_test/two_proportions with method fisher_exact:
+#                      pwrss::power.exact.fisher(method = "exact")
+#   goodness of fit    basic_test/chi_square_gof: Cohen's w from
+#                      pwrss::probs.to.w(), then pwrss::power.chisq.gof()
+#   two correlations   basic_test/two_correlations: Fisher's z test,
+#                      pwrss::power.z.twocors()
+#   ANCOVA             factorial_anova/oneway_ancova: Shieh's method,
+#                      pwrss::power.f.ancova.shieh()
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -19,7 +27,11 @@
 pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
+             "basic_test/chi_square_gof", "basic_test/two_correlations",
+             "factorial_anova/oneway_ancova",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase") ||
+    (identical(key, "basic_test/two_proportions") &&
+      identical(spec$target_test$method, "fisher_exact")) ||
     (identical(key, "basic_test/independent_t") &&
       identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact"))
@@ -29,9 +41,9 @@ pwrss_backend <- function(spec, seed = NULL) {
   inputs <- pwrss_inputs(spec)
   step <- valid_n_step(spec)
   n_min <- step * ceiling(minimum_n(spec) / step)
-  if (spec$template == "independent_t") {
-    # pwrss's Welch formula needs at least 3 degrees of freedom; four people
-    # in each group always gives that.
+  if (spec$template %in% c("independent_t", "two_correlations")) {
+    # pwrss's Welch formula needs at least 3 degrees of freedom, and Fisher's
+    # z more than 3 people per group; four in each group gives both.
     while (min(analysed_groups(spec, n_min)) < 4) n_min <- n_min + step
   }
   power_at <- function(n) pwrss_power(inputs, n)
@@ -48,7 +60,8 @@ pwrss_backend <- function(spec, seed = NULL) {
     simulate = NULL,
     sensitivity = NULL,
     # Exact tests of counts: power goes up and down with n.
-    sawtooth = spec$template %in% c("one_proportion", "mcnemar"),
+    sawtooth = spec$template %in% c("one_proportion", "mcnemar") ||
+      identical(spec$target_test$method, "fisher_exact"),
     check_run = function() pwrss_check_run(spec, inputs)
   )
 }
@@ -115,6 +128,57 @@ pwrss_inputs <- function(spec) {
         }
       )
     },
+    two_proportions = {
+      ratio <- spec$options$allocation_ratio %||% 1
+      list(
+        fun = "power.exact.fisher",
+        args = function(n) {
+          n1 <- round(n / (1 + ratio))
+          n2 <- n - n1
+          # pwrss's n.ratio is n1 / n2.
+          list(
+            prob1 = pop$p1, prob2 = pop$p2, n.ratio = n1 / n2, n2 = n2,
+            alpha = alpha, alternative = alternative, method = "exact",
+            ceil.n = FALSE, verbose = 0
+          )
+        }
+      )
+    },
+    two_correlations = {
+      ratio <- spec$options$allocation_ratio %||% 1
+      list(
+        fun = "power.z.twocors",
+        args = function(n) {
+          n1 <- round(n / (1 + ratio))
+          n2 <- n - n1
+          list(
+            rho1 = pop$r1, rho2 = pop$r2, n.ratio = n1 / n2, n2 = n2,
+            alpha = alpha, alternative = alternative, ceil.n = FALSE, verbose = 0
+          )
+        }
+      )
+    },
+    chi_square_gof = {
+      # Cohen's w and its df from pwrss's own conversion; equal fixed
+      # proportions unless given (probs.to.w()'s default).
+      w <- gof_w(spec)
+      list(
+        fun = "power.chisq.gof",
+        w = w,
+        args = function(n) list(w = w$w, df = w$df, n = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
+      )
+    },
+    oneway_ancova = {
+      k <- length(spec$variables$A$levels)
+      list(
+        fun = "power.f.ancova.shieh",
+        args = function(n) list(
+          mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k),
+          n.vector = rep(n / k, k), r.squared = pop$r2_covariates,
+          k.covariates = pop$covariates, alpha = alpha, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
     r2_zero = ,
     r2_increase = {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
@@ -131,6 +195,14 @@ pwrss_inputs <- function(spec) {
   )
   call$description <- sprintf("pwrss::%s", call$fun)
   call
+}
+
+# Cohen's w for a goodness-of-fit spec, by pwrss::probs.to.w().
+gof_w <- function(spec) {
+  pop <- spec$population
+  args <- list(prob.matrix = as.numeric(unlist(pop$probabilities)), verbose = 0)
+  if (!is.null(pop$null_probabilities)) args$null.prob.matrix <- as.numeric(unlist(pop$null_probabilities))
+  call_backend("pwrss", quietly(do.call(pwrss::probs.to.w, args)))
 }
 
 pwrss_power <- function(inputs, n) {
@@ -161,6 +233,26 @@ pwrss_check_run <- function(spec, inputs) {
       row("yes in the first condition only, passed to pwrss (prob01)", pop$p_first_only, args$prob01)
     ),
     independent_t = row("d passed to pwrss", pop$d, args$d),
+    two_proportions = rbind(
+      row("p1 passed to pwrss (prob1)", pop$p1, args$prob1),
+      row("p2 passed to pwrss (prob2)", pop$p2, args$prob2)
+    ),
+    two_correlations = rbind(
+      row("r1 passed to pwrss (rho1)", pop$r1, args$rho1),
+      row("r2 passed to pwrss (rho2)", pop$r2, args$rho2)
+    ),
+    chi_square_gof = {
+      p <- as.numeric(unlist(pop$probabilities))
+      p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))
+      rbind(
+        row("fixed proportions pwrss used (null.prob.matrix)", p0, as.numeric(inputs$w$null.prob.matrix)),
+        row("degrees of freedom (categories - 1)", length(p) - 1, args$df)
+      )
+    },
+    oneway_ancova = rbind(
+      row("adjusted means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
+      row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared)
+    ),
     r2_zero = ,
     r2_increase = {
       r <- args$r.squared.change
