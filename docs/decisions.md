@@ -1885,13 +1885,14 @@ Further changes from the maintainer:
   al. (2025), Schäfer and Schwarz (2019), Bakker et al. (2016) or Devezer
   et al. (2021) appears in the app or the talk until it is checked in the
   full text with page numbers. Until then each stays a candidate. (A
-  full-text check of 18 October 2026 found the passages but not the page
-  numbers.)
+  full-text check of 18 October 2026 corrected several figures. Schäfer
+  and Schwarz and Devezer et al. now have page numbers from the
+  maintainer's PDFs; Vankelecom et al. and Bakker et al. still need them.)
 
 **Decision 10** (interactions' fixed-N route by the fast fixed-model
 approximation, labelled): decided after the basic tests are done.
 **Decision 11** (a clickable mock for the talk): dropped; the maintainer
-gives the talk himself.
+gives the talk.
 
 **Build order (one PR each; each user-visible PR needs the maintainer's
 yes):**
