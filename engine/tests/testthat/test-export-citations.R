@@ -35,7 +35,7 @@ test_that("with an empty reference list, method and powerkit papers are placehol
     text <- export_citations(fake_result(backend), refs = refs)
     expect_match(text, sprintf("refs.bib) has no entry '%s_method' yet", backend), fixed = TRUE)
     expect_match(text, "has no entry 'powerkit' yet", fixed = TRUE)
-    expect_match(text, "[Placeholder: the methods paragraph is not written yet.]", fixed = TRUE)
+    expect_match(text, "The write-up (a short methods paragraph and a full version) is on powerkit's result screen.", fixed = TRUE)
   }
 })
 

@@ -48,7 +48,7 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up is in review. The maintainer gives the department talk
+  the write-up was merged the same day. The maintainer gives the department talk
   (Friday 23 October 2026).
 
 ## What's next
@@ -56,10 +56,10 @@ fully validated. Validation runs are recorded in
 In priority order (agreed direction, 18 October 2026: a working web app
 first, optional features after testing):
 
-1. The write-up (short and full methods paragraph): in review.
+1. The write-up (short and full methods paragraph): merged on 18 October
+   2026; it reaches the website with the next deploy.
 2. A working web app: **online since 18 October 2026** at
-   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main, so the write-up
-   appears there once it is merged). The maintainer redeploys with
+   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main at the last deploy). The maintainer redeploys with
    `scripts/deploy-online.R` after updating his copy; if the deploy
    stops on a package version, `renv::restore()` first.
 3. Fill the core gaps: the "does this still apply?" flag on the

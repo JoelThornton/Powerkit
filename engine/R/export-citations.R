@@ -8,8 +8,9 @@
 #' or a package's own `citation()`. A method paper or powerkit paper not in
 #' refs.bib yet is shown as a placeholder, never filled in from elsewhere.
 #'
-#' The methods paragraph is not written yet; the text export shows a
-#' placeholder for it.
+#' The methods paragraph (the write-up) is written on powerkit's result
+#' screen, where the user's reasoning and the departures are known; the
+#' text export points there.
 #'
 #' @param result The `powerkit_result` returned by [run_spec()].
 #' @param format `"text"` (readable, for the results screen) or `"bibtex"`
@@ -142,7 +143,7 @@ placeholder_text <- function(key) {
 }
 
 methods_placeholder <- function() {
-  "[Placeholder: the methods paragraph is not written yet.]"
+  "The write-up (a short methods paragraph and a full version) is on powerkit's result screen."
 }
 
 citations_text <- function(items, software, result) {

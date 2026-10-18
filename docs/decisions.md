@@ -1908,6 +1908,28 @@ yes):**
    test.
 7. App: the explore panel.
 
+## 2026-10-18 · What the methods paragraph reports (judgement call G4)
+
+**Decision (maintainer, 18 October 2026, agreeing with Claude's
+recommendation).** The write-up states the test and its sides; alpha; the
+target power and the user's reason for it (a new optional field); the
+effect size with the user's reasoning, word for word (and any adjustment);
+N in total and per group, with the power reached at that N; the number to
+recruit when attrition is given; how a claim over several tests was
+handled; the backend, its version and function, powerkit's version and R;
+the seed and the number of simulations where power is simulated; and the
+departures. It leaves out the noncentrality parameter and critical value:
+the inputs are enough to repeat the calculation, most backends don't return
+them, computing them would be new maths, and the R script reproduces the
+result exactly.
+
+**Two versions.** A short one for the paper and a full one for a supplement
+or preregistration. The short version says that departures are described
+in the supplement; the full version states each one, plus the spec hash,
+the seed and the check run. Regression interactions carry the methods
+sentence for Known difference 1 (`conventions.md`) in both. Both are
+editable text on the result screen and, like saving, need the reasoning.
+
 ## 2026-10-18 · Hosting for testing: Posit Connect Cloud
 
 **Decision (maintainer, 18 October 2026, on Claude's recommendation).**

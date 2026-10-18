@@ -565,17 +565,161 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     ),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
     if (!can_export) p(class = "export-needs-reasoning",
-      tags$strong("To save this plan or download its R script, "),
+      tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
     div(class = "nav-buttons",
       if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
-    div(class = "engine-placeholder methods-placeholder",
-      tags$strong("Methods paragraph: "), "not written yet (a placeholder until build phase 4 is finished)."),
+    writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
+      vapply(unlist(forms$forms[[ep_id]]$known_differences), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     placeholders_at(tree, "result"),
     tags$details(tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
     tags$details(tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
   )
+}
+
+# --- The write-up (methods paragraph) -----------------------------------------
+# What it states was decided on 18 October 2026 (docs/decisions.md, "What
+# the methods paragraph reports"): the test and its sides; alpha; the
+# target power and the user's reason; the effect size with the user's
+# reasoning, word for word; N in total and per group, with the power
+# reached; the package, its version and function; the seed and the number
+# of simulations; and the departures. No noncentrality parameter or
+# critical value. A short version for the paper and a full one for the
+# supplement or preregistration. It only words the engine's result.
+
+writeup_source <- c(
+  smallest_effect_of_interest = "the smallest effect that would matter",
+  meta_analysis = "an estimate from a meta-analysis",
+  prior_study = "an estimate from a previous study",
+  pilot_study = "an estimate from a pilot study"
+)
+
+# "Cohen's d = 0.4", from the fields marked as the effect.
+writeup_effect <- function(fields, values) {
+  out <- character()
+  for (f in fields) {
+    if (!isTRUE(f$effect) || blank(values[[f$id]]) || !field_applies(f, values)) next
+    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, trimws(as.character(values[[f$id]]))))
+  }
+  if (length(out)) paste(out, collapse = "; ") else NULL
+}
+
+writeup_sides <- function(spec) {
+  switch(spec$target_test$alternative %||% "two_sided",
+    two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
+}
+
+writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
+
+writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
+
+writeup_software <- function(result, full = FALSE) {
+  p <- result$provenance
+  how <- if (simulated(result)) {
+    sprintf("by simulation with %s replications%s (seed %s)", whole(p$nrep),
+      if (identical(result$goal_type, "sample_size")) " per sample size" else "", p$seed)
+  } else {
+    "by formula (no simulation)"
+  }
+  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
+    how, p$backend, p$packages[[p$backend]], p$backend_function, p$packages[["powerkit"]], p$r_version)
+  if (full) {
+    s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
+      p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
+  }
+  s
+}
+
+writeup_claim <- function(values, spec) {
+  switch(values$claim %||% "one",
+    one = NULL,
+    each = "Each hypothesis supports its own claim, so no correction for multiple tests was applied; each test is powered on its own.",
+    any = sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+      values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
+    all = "The claim requires every one of several tests to be significant; the chance that all succeed is lower than the power of each test.")
+}
+
+# Returns c(short = ..., full = ...), or NULL when there is no reasoning
+# (the write-up, like saving, needs it).
+writeup_text <- function(form, spec, result, fields, values, departures = character(), known_methods = character(), known = character()) {
+  if (blank(values$just_source)) return(NULL)
+  name <- form$methods_name
+  if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
+  if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  # F and chi-square tests have no sides (forms.yaml, sides: false).
+  sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
+  test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
+  effect <- writeup_effect(fields, values)
+  reasoning <- writeup_quote(values$just_source)
+  none <- identical(values$just_type, "none")
+  basis <- if (none) {
+    sprintf("No effect size was chosen in advance (no formal justification of an effect size); the reasoning: %s.", reasoning)
+  } else if (!is.null(effect)) {
+    adj <- if (!blank(values$just_adjustment)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else ""
+    sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
+  } else {
+    sprintf("The reasoning about the effect size: %s.", reasoning)
+  }
+  reason <- if (!blank(values$power_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$power_reason))) else ""
+  fixed <- identical(values$situation, "fixed")
+  main <- switch(result$goal_type,
+    sample_size = {
+      n <- result$n_required$n
+      at_n <- result$curve$power[result$curve$n == n]
+      reached <- if (length(at_n) == 1 && !simulated(result)) sprintf("; power at this sample size is %.1f%%", 100 * at_n) else ""
+      c(sprintf("An a priori power analysis was conducted for %s.", test), basis,
+        sprintf("For a target power of %s%s, %s participants are needed in total%s%s.",
+          percent(spec$goal$power), reason, whole(n), group_text(spec, n), reached))
+    },
+    power = {
+      row <- result$curve[1, ]
+      c(sprintf("A power analysis was conducted for %s at a %ssample size of %s participants in total%s.",
+          test, if (fixed) "fixed " else "", whole(row$n), group_text(spec, row$n)),
+        basis, sprintf("Power to detect this effect is %.1f%%.", 100 * row$power))
+    },
+    sensitivity = {
+      s <- result$sensitivity
+      size <- if (is.null(s$cohen_f)) {
+        sprintf("%s = %s (%s)", s$effect_name %||% "effect", format(round(s$effect, 3), nsmall = 2), s$effect_description)
+      } else {
+        sprintf("Cohen's f = %.3f (%s)", s$cohen_f, s$effect_description)
+      }
+      c(sprintf("A sensitivity power analysis was conducted for %s.", test),
+        sprintf("%s %s participants in total%s.", if (fixed) "The sample size was fixed by resource constraints at" else "For a sample size of",
+          whole(spec$goal$n), group_text(spec, spec$goal$n)),
+        sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size),
+        basis)
+    }
+  )
+  recruit <- result$recruitment
+  recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
+    percent_attrition(recruit$attrition), whole(recruit$n_recruit))
+  claim <- writeup_claim(values, spec)
+  short_departures <- if (length(departures)) "Where this analysis departs from the established tools' defaults is described in the supplement."
+  short <- paste(c(main, recruit_line, claim, writeup_software(result), unname(known_methods), short_departures), collapse = " ")
+  interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
+    sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
+  }
+  full <- paste(c(
+    paste(c(main, interval, recruit_line, claim), collapse = " "),
+    writeup_software(result, full = TRUE),
+    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
+  ), collapse = "\n\n")
+  tidy <- function(x) gsub("([.!?])\u201d\\.", "\\1\u201d", x)
+  c(short = tidy(short), full = tidy(full))
+}
+
+writeup_ui <- function(text) {
+  if (is.null(text)) return(NULL)
+  div(class = "result-writeup",
+    h4(class = "h6", "Write-up"),
+    p(class = "small", "Edit as you like before you copy it. The short version is for your paper; the full version is for a supplement or preregistration."),
+    tags$label(`for` = "writeup_short", "Short version (for the paper)"),
+    tags$textarea(id = "writeup_short", class = "form-control writeup", rows = 6, text[["short"]]),
+    tags$label(`for` = "writeup_full", "Full version (for a supplement or preregistration)"),
+    tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]]))
 }

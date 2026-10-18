@@ -155,8 +155,15 @@ known_differences:
   "1": "Regression interactions: powerkit simulates power, drawing the predictors afresh in each sample (InteractionPoweR's power_interaction()). Fixed-model calculations, such as G*Power's and InteractionPoweR's power_interaction_r2(), give slightly higher power: up to about 1.4 points, so the N here may be about 3% larger than G*Power's."
   "2": "One proportion and McNemar's test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option)."
 
+# The same known differences as one sentence for the methods paragraph
+# (docs/conventions.md, "Known differences").
+known_differences_methods:
+  "1": "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
+  "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power, as in G*Power; pwrss's own sample-size answer can be slightly larger."
+
 forms:
   E1:
+    methods_name: "a one-sample t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -175,6 +182,7 @@ forms:
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
 
   E2:
+    methods_name: "an independent-samples t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -212,6 +220,7 @@ forms:
          default: simulation, default_source: "powerkit's default for Welch's t-test (Spower's simulation; pwr has no Welch formula)"}
 
   E3:
+    methods_name: "a paired-samples t-test"
     departures: ["9"]
     tool: pwr
     sensitivity: true
@@ -233,6 +242,7 @@ forms:
           - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
 
   E4:
+    methods_name: "a Pearson correlation"
     departures: ["9", "10"]
     tool: pwr
     sensitivity: true
@@ -252,6 +262,7 @@ forms:
           - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
 
   E5:
+    methods_name: "a test of two proportions (z test)"
     departures: ["9", "11", "5"]
     tool: pwr
     sensitivity: true
@@ -282,6 +293,8 @@ forms:
          default: z_test, default_source: "G*Power's z test for two independent proportions, default options (maintainer's decision, docs/decisions.md, 17 October 2026)"}
 
   E6:
+    sides: false
+    methods_name: "a chi-square test of independence"
     departures: ["9", "5"]
     tool: pwr
     sensitivity: true
@@ -302,6 +315,8 @@ forms:
           - {id: probabilities, label: "Proportions: one line per category of the first variable, one number per category of the second, separated by commas", type: table, path: population.probabilities, effect: true}
 
   E7:
+    sides: false
+    methods_name: "a 2 × 2 between-participants ANOVA"
     departures: ["1", "3"]
     tool: Superpower
     directional: false
@@ -354,6 +369,8 @@ forms:
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
   E8:
+    sides: false
+    methods_name: "a 2 × 2 mixed ANOVA"
     departures: ["2", "3"]
     tool: Superpower
     directional: false
@@ -395,6 +412,7 @@ forms:
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
   E9:
+    methods_name: "a moderated regression (continuous × continuous interaction)"
     tool: InteractionPoweR
     known_differences: ["1"]
     directional: false
@@ -416,6 +434,7 @@ forms:
           - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E10:
+    methods_name: "a simple mediation model (PROCESS model 4)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -434,6 +453,7 @@ forms:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, min: 100, max: 100000, integer: true}
 
   E11:
+    methods_name: "a parallel mediation model (PROCESS model 4)"
     tool: power4mome
     departures: ["6", "7", "8"]
     directional: false
@@ -453,6 +473,7 @@ forms:
         generated: target_path
 
   E12:
+    methods_name: "a serial mediation model (PROCESS model 6)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -468,6 +489,7 @@ forms:
         generated: target_path
 
   E13:
+    methods_name: "a first-stage moderated mediation model (PROCESS model 7; index of moderated mediation)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -486,6 +508,7 @@ forms:
           - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
   E14:
+    methods_name: "a second-stage moderated mediation model (PROCESS model 14)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -507,6 +530,8 @@ forms:
   # proportion and McNemar. No smallest detectable effect yet: the engine
   # doesn't offer it for these.
   E18:
+    sides: false
+    methods_name: "a one-way between-subjects ANOVA"
     tool: Superpower
     departures: ["3"]
     directional: false
@@ -523,16 +548,18 @@ forms:
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
+          - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
 
   E24:
+    sides: false
+    methods_name: "a multiple regression F test"
     tool: pwrss
     directional: false
     base: {spec_version: "0.1", design: multiple_regression,
@@ -549,11 +576,11 @@ forms:
                     r2_increase: [{path: target_test.effect, value: r_squared_change}]}}
       - input: "R-squared, or the R-squared change for the predictor(s) of interest"
         fields:
-          - {id: r2, label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
+          - {id: r2, writeup_label: "R²", label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_zero}}
-          - {id: r2_full, label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, min: 0, max_exclusive: 1,
+          - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}
-          - {id: r2_reduced, label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
+          - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}
       - input: "Number of predictors"
         fields:
@@ -565,6 +592,7 @@ forms:
              shown_if: {field: question, is: r2_increase}}
 
   E25:
+    methods_name: "an exact binomial test of one proportion"
     tool: pwrss
     known_differences: ["2"]
     directional: true
@@ -577,12 +605,13 @@ forms:
           - {id: Y_label, label: "Yes/no outcome (for example, guessed correctly)", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion"
         fields:
-          - {id: p, label: "Expected proportion of 'yes' (0 to 1)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: p, writeup_label: "expected proportion of 'yes'", label: "Expected proportion of 'yes' (0 to 1)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
       - input: "The fixed value"
         fields:
           - {id: p0, label: "The fixed proportion you compare it with (0 to 1; for example 0.5 for chance with two options)", type: number, path: population.p0, required: true, min_exclusive: 0, max_exclusive: 1}
 
   E26:
+    methods_name: "an exact McNemar's test"
     tool: pwrss
     known_differences: ["2"]
     directional: true
@@ -598,5 +627,5 @@ forms:
           - {id: Y_label, label: "Yes/no outcome (for example, passed)", type: text, path: variables.Y.label, required: true}
       - input: "The expected discordant proportions"
         fields:
-          - {id: p_first_only, label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
-          - {id: p_second_only, label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
+          - {id: p_first_only, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
+          - {id: p_second_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
