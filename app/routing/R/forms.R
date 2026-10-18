@@ -104,7 +104,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     if (isTRUE(form$sensitivity_without_effect)) {
       has_effect <- any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))
       g$fields <- lapply(g$fields, function(f) {
-        if (isTRUE(f$effect)) f$optional_for <- "sensitivity"
+        if (isTRUE(f$effect)) f$optional_for <- c("sensitivity", "sensitivity_curve")
         f
       })
       if (has_effect) g$note <- "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
@@ -144,6 +144,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   tool <- forms$tool_defaults[[form$tool]]
   goals <- list(sample_size = "The sample size I need", power = "The power I'd have at a given sample size")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
+  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
@@ -156,6 +157,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "n", label = "Number of participants analysed; needed for power and the smallest effect",
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
+    list(id = "n_max", label = "The largest number of participants you could analyse; needed for the range of sample sizes",
+         type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]])
   )
@@ -172,11 +175,12 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
-           choices = list(
+           choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
-             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study")),
-      list(id = "just_source", label = "Where the number comes from, in your words (for example a reference or a decision rule)",
-           type = "text", path = "effect_justification.source", required = TRUE),
+             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study"),
+             if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
+      list(id = "just_source", label = "Your reasoning, in your own words: where the number comes from, or why there isn't one (any length, any language; needed to save or export the plan, not to calculate)",
+           type = "text", path = "effect_justification.source", optional = TRUE),
       list(id = "just_adjustment", label = "How you adjusted it (needed for a previous study; for example halved for publication bias)",
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study")
     )),
@@ -289,7 +293,7 @@ form_problems <- function(fields, values) {
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
-      if (isTRUE(f$effect) && isTRUE(values$goal %in% f$optional_for)) next
+      if (effect_optional(f, values)) next
       if (isTRUE(f$effect)) {
         problems <- c(problems, sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
@@ -326,7 +330,7 @@ form_problems <- function(fields, values) {
       }
     }
   }
-  problems
+  c(problems, combination_problems(values))
 }
 
 # --- Building the spec ---------------------------------------------------------
@@ -370,12 +374,32 @@ build_spec <- function(forms, ep_id, fields, values) {
   for (f in fields) {
     if (is.null(f$path) || !field_applies(f, values)) next
     v <- values[[f$id]]
-    if (blank(v) && isTRUE(f$effect) && isTRUE(values$goal %in% f$optional_for)) v <- "0"
+    if (blank(v) && effect_optional(f, values)) v <- "0"
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
+  # The range of sample sizes is several engine runs (sensitivity_curve());
+  # the spec kept for the exports is the largest N at 80% power.
+  if (identical(values$goal, "sensitivity_curve")) {
+    spec$goal <- list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8)
+  }
   spec
+}
+
+# An effect size may stay empty for the smallest detectable effect, or
+# when the user can't justify one (t-tests and the correlation only).
+effect_optional <- function(f, values) {
+  isTRUE(f$effect) && length(f$optional_for) > 0 &&
+    (isTRUE(values$goal %in% f$optional_for) || identical(values$just_type, "none"))
+}
+
+# Problems with the combination of answers, beyond single fields.
+combination_problems <- function(values) {
+  if (identical(values$just_type, "none") && !isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))) {
+    return("With no effect size to plan for, there is no sample size or power to work out. Under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect, at a given sample size or across a range of sample sizes.")
+  }
+  character()
 }
 
 # --- The engine's check ----------------------------------------------------------

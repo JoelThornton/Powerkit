@@ -236,6 +236,56 @@ result_sentences <- function(spec, result) {
   )
 }
 
+# "The smallest effect I could detect across a range of sample sizes": the
+# engine's smallest detectable effect at eight sample sizes up to the
+# largest one, at 80% and 95% power. The app only calls the engine.
+curve_sizes <- function(spec) {
+  n_max <- spec$goal$n
+  step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
+  ns <- step * round(seq(n_max / 8, n_max, length.out = 8) / step)
+  unique(pmax(ns, 8))
+}
+
+run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed = 1L) {
+  main <- run_calculation(spec, run, seed)
+  if (!identical(main$status, "ok")) return(main)
+  ns <- curve_sizes(spec)
+  at <- function(n, power) {
+    s <- spec
+    s$goal <- list(type = "sensitivity", n = as.integer(n), power = power)
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$sensitivity$effect else NA_real_
+  }
+  main$curve_table <- data.frame(
+    n = ns,
+    power_80 = vapply(ns, at, numeric(1), power = 0.8),
+    power_95 = vapply(ns, at, numeric(1), power = 0.95)
+  )
+  main
+}
+
+curve_table_ui <- function(spec, result, table) {
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", "effect")
+  tagList(
+    h4(class = "h6", "The smallest effect you could detect at each sample size"),
+    p(class = "small", sprintf("%s. Larger samples can detect smaller effects; read across to see what each sample size buys.", result$sensitivity$effect_description)),
+    tags$table(class = "table table-sm result-curve-table",
+      tags$thead(tags$tr(tags$th("Participants analysed"), tags$th(sprintf("Smallest %s, 80%% power", name)), tags$th(sprintf("Smallest %s, 95%% power", name)))),
+      tags$tbody(lapply(seq_len(nrow(table)), function(i) tags$tr(
+        tags$td(whole(table$n[i])),
+        tags$td(format(round(table$power_80[i], 3), nsmall = 3)),
+        tags$td(format(round(table$power_95[i], 3), nsmall = 3))
+      )))
+    )
+  )
+}
+
+# A short warning for effect sizes taken from one earlier study.
+source_note <- function(values) {
+  if (!identical(values$just_type, "prior_study")) return(NULL)
+  "Your effect size comes from one earlier study. Published effects from single studies tend to be larger than the true effect, so a sample size based on one can be too small. Adjusting it (and saying how) helps; the BUCSS R package offers a bias-corrected approach."
+}
+
 # The power the reported N actually gives (judgement-calls.md G5; the
 # maintainer's decision of 17 October 2026). Rounding up to whole people,
 # and to equal groups, puts it at or a little above the target. Exact
@@ -372,7 +422,9 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   words <- result_sentences(spec, result)
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha), source_note(values), check_advice, calc$notes))
+  # The reasoning is needed to save or export, not to calculate.
+  can_export <- !blank(values$just_source)
   div(
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
@@ -382,6 +434,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
+    if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-seed small",
       sprintf("Seed: %s. ", p_$seed),
@@ -401,10 +454,13 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
     ),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
+    if (!can_export) p(class = "export-needs-reasoning",
+      tags$strong("To save this plan or download its R script, "),
+      "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
     div(class = "nav-buttons",
-      downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
+      if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-      downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     div(class = "engine-placeholder methods-placeholder",
       tags$strong("Methods paragraph: "), "not written yet (a placeholder until build phase 4 is finished)."),

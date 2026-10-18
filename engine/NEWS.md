@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* App, screen C of the new design: the effect-size source now includes
+  "I can't justify an effect size" (spec type `none`, new in the schema)
+  for the t-tests and the correlation. It leads to the smallest effect you
+  could detect, at one sample size or across a range of sample sizes (a
+  table at 80% and 95% power). The reasoning ("source") is optional to
+  calculate and required only to save a project or download the R script;
+  the spec schema no longer requires it. An effect size from one earlier
+  study gets a short warning pointing to bias correction (BUCSS).
+
 * App, screen A of the new design: the start screen now asks three
   questions before the design finder. "Your sample size" (choose or fixed)
   starts the input screen at the smallest effect you could detect when N

@@ -52,6 +52,14 @@ test_that("prior-study justifications need an adjustment", {
   expect_spec_problem(spec, "'effect_justification' is missing 'adjustment'")
 })
 
+test_that("'none' records that no effect size can be justified, and the source is optional", {
+  spec <- example_spec("independent_t")
+  spec$effect_justification <- list(type = "none")
+  expect_valid_spec(spec)
+  spec$effect_justification <- list(type = "meta_analysis")
+  expect_valid_spec(spec)
+})
+
 test_that("an empty justification source is rejected", {
   spec <- example_spec("independent_t")
   spec$effect_justification$source <- ""
