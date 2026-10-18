@@ -8,6 +8,7 @@ population_problems <- function(spec) {
     spec$design,
     basic_test = check_basic_test,
     factorial_anova = check_factorial_anova,
+    multiple_regression = check_multiple_regression,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model
@@ -19,6 +20,7 @@ population_problems <- function(spec) {
     check_allocation_allowed(spec),
     check_method_allowed(spec),
     check_proportions_formula_allowed(spec),
+    check_direction_allowed(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -64,14 +66,26 @@ spec_advice <- function(spec) {
 # 2x2 ANOVA designs and the basic tests pwr covers are computed exactly
 # unless simulation is requested; every other design is simulated.
 uses_simulation <- function(spec) {
-  default <- if (exact_available(spec)) "exact" else "simulation"
+  # Welch's t-test is simulated unless the formula is requested.
+  default <- if (exact_available(spec) && !identical(spec$target_test$method, "welch_t")) "exact" else "simulation"
   identical(spec$options$method %||% default, "simulation")
 }
 
-# Designs with an exact method: 2x2 ANOVA (Superpower's ANOVA_exact()) and
-# the basic tests pwr covers (every one but Welch's t-test).
+# Designs with an exact method: factorial ANOVA (Superpower's
+# ANOVA_exact()), the basic tests pwr covers, and the wave 2 tests pwrss
+# covers (one proportion, McNemar, R-squared, and Welch's t-test on request).
 exact_available <- function(spec) {
-  spec$design == "factorial_anova" || pwr_covers(spec)
+  spec$design %in% c("factorial_anova", "multiple_regression") ||
+    pwr_covers(spec) ||
+    spec$template %in% c("one_proportion", "mcnemar") ||
+    identical(spec$target_test$method, "welch_t")
+}
+
+# Wave 2 tests with no simulation in powerkit yet: they are computed by
+# formula only (pwrss).
+simulation_available <- function(spec) {
+  !(spec$design == "multiple_regression" ||
+    spec$template %in% c("one_proportion", "mcnemar"))
 }
 
 # Variables -----------------------------------------------------------------
@@ -118,14 +132,14 @@ check_allocation_allowed <- function(spec) {
 }
 
 check_method_allowed <- function(spec) {
+  if (identical(spec$options$method, "simulation") && !simulation_available(spec)) {
+    return(paste0(
+      "'options > method' 'simulation' isn't available for this test yet; ",
+      "its power is calculated by formula. Remove 'options > method'."
+    ))
+  }
   if (!identical(spec$options$method, "exact") || exact_available(spec)) {
     return(character())
-  }
-  if (identical(spec$target_test$method, "welch_t")) {
-    return(paste0(
-      "'options > method' 'exact' isn't available for Welch's t-test (pwr's ",
-      "formula assumes equal variances); remove it or use 'simulation'."
-    ))
   }
   paste0(
     "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
@@ -151,13 +165,58 @@ check_proportions_formula_allowed <- function(spec) {
   character()
 }
 
+# pwrss's one-sided tests (one proportion, McNemar, Welch's t-test by
+# formula) run in the direction of the specified effect, so a one-sided
+# test pointing the other way can't be computed with them.
+check_direction_allowed <- function(spec) {
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  if (alternative == "two_sided" || !spec$template %in% c("one_proportion", "mcnemar", "independent_t")) {
+    return(character())
+  }
+  pop <- spec$population
+  diff <- switch(
+    spec$template,
+    one_proportion = pop$p - pop$p0,
+    mcnemar = pop$p_second_only - pop$p_first_only,
+    independent_t = if (identical(spec$target_test$method, "welch_t") &&
+      identical(spec$options$method, "exact")) pop$d
+  )
+  if (is.null(diff) || diff == 0 || (alternative == "greater") == (diff > 0)) {
+    return(character())
+  }
+  sprintf(
+    paste0(
+      "'target_test > alternative' is '%s', but the effect you specified goes ",
+      "the other way. A one-sided test against the expected direction can't be ",
+      "calculated for this test; use 'two_sided', or check the population values."
+    ),
+    alternative
+  )
+}
+
 # Basic tests ----------------------------------------------------------------
 
 check_basic_test <- function(spec) {
-  if (spec$template != "chi_square_independence") {
-    return(character())
+  switch(
+    spec$template,
+    chi_square_independence = check_probability_table(spec),
+    mcnemar = check_discordant_proportions(spec),
+    character()
+  )
+}
+
+# The two discordant proportions are parts of one population, so together
+# they can't exceed 1.
+check_discordant_proportions <- function(spec) {
+  pop <- spec$population
+  total <- pop$p_first_only + pop$p_second_only
+  if (total > 1) {
+    return(sprintf(
+      "'population > p_first_only' and 'p_second_only' add up to %s, but together they can't be more than 1 (they are proportions of the same people).",
+      format_number(total)
+    ))
   }
-  check_probability_table(spec)
+  character()
 }
 
 check_probability_table <- function(spec) {
@@ -206,10 +265,24 @@ check_factorial_anova <- function(spec) {
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
     ))
   }
+  if (spec$template == "oneway_between") {
+    k <- length(spec$variables$A$levels)
+    if (length(pop$means) != k) {
+      return(sprintf(
+        "'population > means' has %d values, but %s has %d levels. Give one mean for each level, in the same order.",
+        length(pop$means), var_label(spec, "A"), k
+      ))
+    }
+  }
   character()
 }
 
 anova_contrast <- function(spec) {
+  if (spec$template == "oneway_between") {
+    # Largest difference between group means: zero only if all are equal.
+    means <- as.numeric(unlist(spec$population$means))
+    return(max(means) - min(means))
+  }
   m <- matrix(as.numeric(unlist(spec$population$means)), nrow = 2, byrow = TRUE)
   switch(
     spec$target_test$effect,
@@ -217,6 +290,36 @@ anova_contrast <- function(spec) {
     main_effect_B = sum(m[, 1]) - sum(m[, 2]),
     interaction = m[1, 1] - m[1, 2] - m[2, 1] + m[2, 2]
   )
+}
+
+# Multiple regression ---------------------------------------------------------
+
+check_multiple_regression <- function(spec) {
+  pop <- spec$population
+  if (spec$template != "r2_increase") {
+    return(character())
+  }
+  problems <- character()
+  if (pop$predictors_tested > pop$predictors_total) {
+    problems <- c(problems, sprintf(
+      "'population > predictors_tested' (%s) can't be more than 'predictors_total' (%s): the tested set is part of the full model.",
+      format_number(pop$predictors_tested), format_number(pop$predictors_total)
+    ))
+  }
+  if (pop$r2_reduced > pop$r2_full) {
+    problems <- c(problems, sprintf(
+      "'population > r2_reduced' (%s) can't be more than 'r2_full' (%s): adding predictors can't lower R-squared.",
+      format_number(pop$r2_reduced), format_number(pop$r2_full)
+    ))
+  }
+  if (pop$predictors_tested == pop$predictors_total && pop$r2_reduced > 0) {
+    problems <- c(problems, paste0(
+      "The tested set is every predictor, so the reduced model has none and ",
+      "'population > r2_reduced' must be 0. To test R-squared against 0, you ",
+      "can also use template 'r2_zero'."
+    ))
+  }
+  problems
 }
 
 # Regression interaction -----------------------------------------------------
@@ -642,7 +745,16 @@ minimum_n <- function(spec) {
       chi_square_independence = length(unlist(spec$population$probabilities)),
       4
     ),
-    factorial_anova = if (spec$template == "2x2_between") 8 else 4,
+    factorial_anova = switch(
+      spec$template,
+      "2x2_between" = 8,
+      "2x2_mixed" = 4,
+      # Two participants per group, so the error df is at least the number
+      # of groups.
+      oneway_between = 2 * length(spec$variables$A$levels)
+    ),
+    # The intercept, every predictor, and at least one residual df.
+    multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
     regression_interaction = 6,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -656,6 +768,10 @@ group_split <- function(spec) {
   }
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
+  }
+  if (spec$template == "oneway_between") {
+    k <- length(spec$variables$A$levels)
+    return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
   if (spec$template %in% c("independent_t", "two_proportions")) {
     ratio <- spec$options$allocation_ratio %||% 1
@@ -677,6 +793,8 @@ target_effect_is_zero <- function(spec) {
       one_sample_t = pop$d,
       independent_t = pop$d,
       paired_t = pop$dz,
+      one_proportion = pop$p - pop$p0,
+      mcnemar = pop$p_second_only - pop$p_first_only,
       correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
       chi_square_independence = {
@@ -685,6 +803,7 @@ target_effect_is_zero <- function(spec) {
       }
     ),
     factorial_anova = anova_contrast(spec),
+    multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

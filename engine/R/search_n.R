@@ -172,6 +172,9 @@ n_from_curve <- function(points, target, step, level) {
 #' Find the sample size for a target power exactly
 #'
 #' The smallest valid total sample size whose exact power reaches `power`.
+#' For exact tests of counts, whose power goes up and down with n (the
+#' backend's `sawtooth` is `TRUE`), every n below the bisection's answer is
+#' checked, so the result is still the smallest.
 #' There is no Monte Carlo uncertainty, so the interval is the single value.
 #'
 #' @inheritParams search_n
@@ -189,6 +192,16 @@ search_n_exact <- function(spec, backend, power) {
       "This effect reaches the target power with %d or fewer participants, and exact calculation can't go lower here. Set 'options > method' to 'simulation' to find the smallest n.",
       n_start
     ))
+  }
+  if (isTRUE(backend$sawtooth)) {
+    # Exact tests of counts (one proportion, McNemar): power goes up and
+    # down with n, so bisection can stop above the smallest n that reaches
+    # the target. Check every smaller valid n and take the smallest. (Not
+    # settled: some tools report a larger n beyond which power stays above
+    # the target; see docs/coverage-roadmap.md, wave 2.)
+    below <- seq(n_start, n, by = step)
+    reaches <- vapply(below, backend$exact_power, numeric(1)) >= power
+    n <- below[which(reaches)[1]]
   }
   ns <- n + step * (-3:3)
   ns <- ns[ns >= n_start]

@@ -37,8 +37,9 @@ All wait for the maintainer's yes:
   never merged).
 - **#51** wave 2 engine groundwork (one-way ANOVA, R² against 0 and
   increase, one proportion, McNemar, Welch by formula); engine only.
-  G\*Power screens needed: `coverage-roadmap.md`, "Wave 2". Departure 12
-  is open there.
+  All five match the maintainer's G\*Power screenshots; the smallest-N
+  rule for exact tests of counts is Known difference 2 (maintainer's
+  decision, 18 October 2026).
 - **#52** project files (save and reopen; option (a) of
   `saving-projects.md`). Touches `app.R`, as #49 does: merge main into
   whichever lands second.
@@ -114,7 +115,7 @@ Heisey and the G\*Power manual stay candidates.
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
-  powerkit's departures (1–12; 12 is engine-only, wave 2).
+  powerkit's departures (1–11) and known differences (1–2).
 - [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14 and the maintainer's decision.
 - [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
 - In the app, the "For the maintainer: undecided settings" tab lists the

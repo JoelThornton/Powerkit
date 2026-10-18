@@ -28,7 +28,8 @@
         "factorial_anova",
         "regression_interaction",
         "mediation",
-        "moderated_mediation"
+        "moderated_mediation",
+        "multiple_regression"
       ]
     },
     "template": {
@@ -74,6 +75,9 @@
     },
     {
       "$ref": "#/definitions/design_moderated_mediation"
+    },
+    {
+      "$ref": "#/definitions/design_multiple_regression"
     }
   ],
   "definitions": {
@@ -377,7 +381,7 @@
           ]
         },
         "method": {
-          "description": "How power is computed. exact: exact calculation for the specified population (the default for 2x2 ANOVA designs, via Superpower, and for basic tests other than Welch's t-test, via pwr's analytic formulas). simulation: Monte Carlo simulation with nrep replications (the default for every other design; available for basic tests and 2x2 ANOVA designs on request).",
+          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; and for multiple regression, via pwrss's F test). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request).",
           "enum": [
             "exact",
             "simulation"
@@ -521,7 +525,9 @@
               "paired_t",
               "correlation",
               "two_proportions",
-              "chi_square_independence"
+              "chi_square_independence",
+              "one_proportion",
+              "mcnemar"
             ]
           },
           "target_test": {
@@ -619,6 +625,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_chi_square_independence"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "one_proportion"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_one_proportion"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "mcnemar"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mcnemar"
             }
           }
         ]
@@ -936,7 +972,8 @@
           "template": {
             "enum": [
               "2x2_between",
-              "2x2_mixed"
+              "2x2_mixed",
+              "oneway_between"
             ]
           },
           "target_test": {
@@ -991,6 +1028,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_2x2_mixed"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "oneway_between"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_oneway_between"
             }
           }
         ]
@@ -1447,6 +1499,330 @@
                 }
               }
             ]
+          }
+        }
+      }
+    },
+    "template_one_proportion": {
+      "description": "One group's proportion of 'yes' compared with a fixed value, by the exact binomial test.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p",
+            "p0"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p": {
+              "description": "Expected proportion of 'yes' in the population.",
+              "$ref": "#/definitions/proportion"
+            },
+            "p0": {
+              "description": "The fixed value the proportion is compared with (the null hypothesis).",
+              "$ref": "#/definitions/proportion"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "proportion_vs_constant"
+            },
+            "method": {
+              "const": "exact_binomial"
+            }
+          }
+        }
+      }
+    },
+    "template_mcnemar": {
+      "description": "The same people (or matched pairs) measured twice on a yes/no outcome, compared by McNemar's exact test.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p_first_only",
+            "p_second_only"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p_first_only": {
+              "description": "Proportion of people who answer 'yes' in the first condition only (yes, then no): one of the two discordant proportions.",
+              "$ref": "#/definitions/proportion"
+            },
+            "p_second_only": {
+              "description": "Proportion of people who answer 'yes' in the second condition only (no, then yes): the other discordant proportion.",
+              "$ref": "#/definitions/proportion"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "paired_proportion_difference"
+            },
+            "method": {
+              "const": "mcnemar_exact"
+            }
+          }
+        }
+      }
+    },
+    "template_oneway_between": {
+      "description": "One between-participants factor with three or more levels (one-way ANOVA, omnibus F test). Group sizes are equal.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected mean of each group, in the order of the factor's levels.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd": {
+              "description": "Standard deviation within each group (the same in every group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "main_effect_A"
+            }
+          }
+        }
+      }
+    },
+    "design_multiple_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "multiple_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "r2_zero",
+              "r2_increase"
+            ]
+          },
+          "variables": {
+            "required": [
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "Y": {
+                "$ref": "#/definitions/variable_continuous"
+              }
+            }
+          },
+          "target_test": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/two_sided_only"
+              },
+              {
+                "properties": {
+                  "path": false,
+                  "method": {
+                    "const": "f_test"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "r2_zero"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_r2_zero"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "r2_increase"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_r2_increase"
+            }
+          }
+        ]
+      }
+    },
+    "template_r2_zero": {
+      "description": "Linear multiple regression (fixed predictors): is R-squared greater than 0? The F test of all predictors together.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "r2",
+            "predictors"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "r_squared"
+            },
+            "r2": {
+              "description": "Expected R-squared of the model with all the predictors. 0 is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "predictors": {
+              "description": "Number of predictors in the model.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "r_squared"
+            }
+          }
+        }
+      }
+    },
+    "template_r2_increase": {
+      "description": "Linear multiple regression (fixed predictors): does adding a set of predictors increase R-squared? The F test of the added set.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "r2_full",
+            "r2_reduced",
+            "predictors_total",
+            "predictors_tested"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "r_squared"
+            },
+            "r2_full": {
+              "description": "Expected R-squared of the full model (all the predictors).",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_reduced": {
+              "description": "Expected R-squared of the model without the tested set (0 if the tested set is the only predictors).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "predictors_total": {
+              "description": "Number of predictors in the full model.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "predictors_tested": {
+              "description": "Number of predictors in the tested set (added to the reduced model).",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "r_squared_change"
+            }
           }
         }
       }

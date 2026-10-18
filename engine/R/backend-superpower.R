@@ -1,4 +1,5 @@
-# Backend adapter: 2x2 between and 2x2 mixed ANOVA via Superpower.
+# Backend adapter: 2x2 between, 2x2 mixed and one-way between ANOVA via
+# Superpower.
 #
 # By default power is computed exactly with Superpower::ANOVA_exact(), which
 # is exact for the specified population and matches G*Power and the
@@ -28,7 +29,7 @@ superpower_backend <- function(spec, seed = NULL) {
     if (n < exact_min_n) {
       abort_run(sprintf(
         "Exact power for this design needs at least %d participants (5 per %s); for n = %s, set 'options > method' to 'simulation'.",
-        exact_min_n, if (inputs$groups == 4) "cell" else "group", n
+        exact_min_n, if (spec$template == "2x2_between") "cell" else "group", n
       ))
     }
     superpower_exact(design_at(n, mu), inputs, seed)
@@ -46,7 +47,9 @@ superpower_backend <- function(spec, seed = NULL) {
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
-    sensitivity = function(n, power) {
+    # Sensitivity for the one-way design (which effect pattern to scale)
+    # is not settled yet; it is available for the 2x2 designs.
+    sensitivity = if (spec$template == "oneway_between") NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
@@ -60,6 +63,20 @@ superpower_backend <- function(spec, seed = NULL) {
 # of A and columns = levels of B, so the arrays are read row by row.
 superpower_inputs <- function(spec) {
   pop <- spec$population
+  if (spec$template == "oneway_between") {
+    # One between-participants factor with k levels: Superpower's design
+    # "kb" (for example "3b"), one mean per group, equal SDs.
+    k <- length(spec$variables$A$levels)
+    return(list(
+      design = paste0(k, "b"),
+      groups = k,
+      mu = as.numeric(unlist(pop$means)),
+      sd = pop$sd,
+      r = 0,
+      alpha = spec$target_test$alpha,
+      effect = "a"
+    ))
+  }
   by_row <- function(x) as.numeric(unlist(x))
   between <- spec$template == "2x2_between"
   list(
@@ -183,6 +200,9 @@ superpower_check_run <- function(spec, design, seed = NULL) {
     "Superpower",
     with_seed(seed, Superpower::ANOVA_exact(design, verbose = FALSE))
   )$dataframe
+  if (spec$template == "oneway_between") {
+    return(superpower_check_oneway(spec, data))
+  }
   level <- function(x) as.integer(sub(".*(\\d)$", "\\1", as.character(x)))
   data$i <- level(data$a)
   data$j <- level(data$b)
@@ -210,6 +230,24 @@ superpower_check_run <- function(spec, design, seed = NULL) {
       )
     }))
   }
+  check <- do.call(rbind, rows)
+  check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))
+  check
+}
+
+# Check run for the one-way design: each group's mean and SD in the data
+# set Superpower builds, matched by its level labels (a1, a2, ...).
+superpower_check_oneway <- function(spec, data) {
+  means <- as.numeric(unlist(spec$population$means))
+  group <- as.integer(sub("^.*a", "", as.character(data$a)))
+  rows <- lapply(seq_along(means), function(i) {
+    y <- data$y[group == i]
+    data.frame(
+      parameter = c(sprintf("mean, group %d", i), sprintf("SD, group %d", i)),
+      specified = c(means[i], spec$population$sd),
+      recovered = c(mean(y), stats::sd(y))
+    )
+  })
   check <- do.call(rbind, rows)
   check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))
   check

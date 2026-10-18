@@ -46,8 +46,8 @@ export_script <- function(spec, result, file = NULL) {
   lines <- switch(
     result$provenance$backend,
     pwr = ,
-    stats = ,
-    pwrss = pwr_script(spec, result),
+    stats = pwr_script(spec, result),
+    pwrss = if (pwrss_covers(spec)) pwrss_script(spec, result) else pwr_script(spec, result),
     Spower = spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -175,6 +175,27 @@ design_description <- function(spec) {
     "basic_test/correlation" = sprintf("Pearson correlation of %s with %s", label("X"), label("Y")),
     "basic_test/two_proportions" = sprintf(
       "z test of two proportions: %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
+    ),
+    "basic_test/one_proportion" = sprintf(
+      "exact binomial test of one proportion: %s = %s, compared with a fixed value",
+      label("Y"), comment_text(unlist(v$Y$levels)[2])
+    ),
+    "basic_test/mcnemar" = sprintf(
+      "McNemar's exact test: %s = %s, compared between the conditions of %s (%s), same people",
+      label("Y"), comment_text(unlist(v$Y$levels)[2]), label("X"), levels("X")
+    ),
+    "factorial_anova/oneway_between" = sprintf(
+      "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
+    "multiple_regression/r2_zero" = sprintf(
+      "multiple regression of %s on %s predictors: is R-squared greater than 0? (F test)",
+      label("Y"), spec$population$predictors
+    ),
+    "multiple_regression/r2_increase" = sprintf(
+      "multiple regression of %s: does adding %s predictors to %s others increase R-squared? (F test)",
+      label("Y"), spec$population$predictors_tested,
+      spec$population$predictors_total - spec$population$predictors_tested
     ),
     "basic_test/chi_square_independence" = sprintf(
       "chi-square test of independence of %s (%s) and %s (%s)", label("X"), levels("X"), label("Y"), levels("Y")
@@ -400,6 +421,9 @@ add_recruitment_section <- function(lines, spec, result) {
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    oneway_between = sprintf(
+      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
+    ),
     "groups_analysed <- n_analysed # one group"
   )
   section <- c(
@@ -872,6 +896,19 @@ superpower_script_inputs <- function(spec, inputs) {
     sprintf(
       "#   %s = %s: %s1 = %s, %s2 = %s", letter, comment_text(v[[role]]$label), letter, lv[1], letter, lv[2]
     )
+  }
+  if (spec$template == "oneway_between") {
+    lv <- comment_text(unlist(v$A$levels))
+    return(c(
+      sprintf("# Superpower names the factor a and its levels a1 to a%d:", length(lv)),
+      sprintf("#   a = %s: %s", comment_text(v$A$label), paste(sprintf("a%d = %s", seq_along(lv), lv), collapse = ", ")),
+      sprintf("design_string <- %s # one between-participants factor with %d levels", r_code(inputs$design), length(lv)),
+      sprintf("mu <- %s # mean of %s in each group, a1 to a%d", r_code(inputs$mu), comment_text(v$Y$label), length(lv)),
+      sprintf("cell_sd <- %s # SD in every group", r_code(inputs$sd)),
+      "r <- 0 # correlation between repeated measures (none in a between design)",
+      sprintf("groups <- %s # groups: the total n is split equally across them", inputs$groups),
+      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+    ))
   }
   between <- spec$template == "2x2_between"
   c(

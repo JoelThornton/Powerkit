@@ -15,16 +15,30 @@
 #                       the backend runs one call per core;
 #   sensitivity(n, power)           -> smallest detectable effect, or NULL
 #                       if sensitivity isn't available for the design;
-#   check_run()         -> data frame: parameter, specified, recovered, ok.
+#   check_run()         -> data frame: parameter, specified, recovered, ok;
+#   sawtooth            optional; TRUE when exact power goes up and down
+#                       with n (exact tests of counts), so search_n_exact()
+#                       checks every smaller n.
 
 route_spec <- function(spec, seed = NULL) {
   key <- paste(spec$design, spec$template, sep = "/")
   switch(
     key,
     "factorial_anova/2x2_between" = ,
-    "factorial_anova/2x2_mixed" = superpower_backend(spec, seed),
+    "factorial_anova/2x2_mixed" = ,
+    "factorial_anova/oneway_between" = superpower_backend(spec, seed),
+    "basic_test/one_proportion" = ,
+    "basic_test/mcnemar" = ,
+    "multiple_regression/r2_zero" = ,
+    "multiple_regression/r2_increase" = pwrss_backend(spec, seed),
+    "basic_test/independent_t" = if (pwrss_covers(spec)) {
+      pwrss_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
+      pwr_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/one_sample_t" = ,
-    "basic_test/independent_t" = ,
     "basic_test/paired_t" = ,
     "basic_test/correlation" = ,
     "basic_test/two_proportions" = ,
@@ -47,6 +61,7 @@ route_spec <- function(spec, seed = NULL) {
 
 # Basic tests use pwr's exact formula unless simulation is requested or
 # the test isn't one pwr covers (Welch's t-test), when Spower simulates.
+# Welch's t-test by formula (pwrss) only when options > method = "exact".
 basic_test_method <- function(spec) {
   spec$options$method %||% if (pwr_covers(spec)) "exact" else "simulation"
 }

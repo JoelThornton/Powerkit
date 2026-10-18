@@ -57,6 +57,15 @@ R's \code{stats::power.prop.test()} for equal groups and pwrss for unequal
 groups), regression interactions on
 InteractionPoweR, mediation and moderated mediation (PROCESS models 4, 6,
 7 and 14) on power4mome, and 2x2 ANOVA designs on Superpower.
+Wave 2 (engine only, not yet in the app): one-way between-participants
+ANOVA on Superpower's \code{ANOVA_exact()}; multiple regression R-squared
+(against 0, or an increase) on \code{pwrss::power.f.regression()}; one
+proportion and McNemar's test on pwrss's exact tests
+(\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}); and Welch's t-test
+by formula on request (\code{options > method = "exact"},
+\code{pwrss::power.t.welch()}). These have no simulation option. For the two
+exact tests of counts, whose power goes up and down with n, the required
+n is the smallest that reaches the target power.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},
@@ -82,7 +91,7 @@ doesn't grow with \code{options > nrep}.
 \strong{Sensitivity.} For 2x2 designs, the shape of the specified pattern is
 kept and its size scaled (each cell mean's deviation from the grand mean)
 until the target effect reaches the target power at n. Sensitivity is not
-yet available for other designs.
+yet available for other designs (the one-way ANOVA included).
 }
 \examples{
 \donttest{
