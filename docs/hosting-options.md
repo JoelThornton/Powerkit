@@ -53,12 +53,9 @@ These come from the app and engine as they are now, not from a provider.
 - **Maintenance.** Low: redeploy from R when the app changes. Package
   versions come from the deploying machine (renv works with it).
 
-- **How to deploy.** `scripts/deploy-shinyapps.R` does it from R on the
-  maintainer's computer (the steps are at the top of that file). It
-  installs powerkit's engine from GitHub first, because the server can
-  only install packages from CRAN or GitHub; checked on 18 October 2026
-  that `rsconnect::appDependencies()` then finds every package the app
-  needs (205, with powerkit from GitHub).
+- **Closing to new apps.** shinyapps.io closes to new apps at the end of
+  2026 and its users move to Posit Connect Cloud (18 October 2026), so
+  powerkit deploys to Connect Cloud instead (`decisions.md`).
 
 ### Posit Connect (self-hosted) or Posit Connect Cloud
 
@@ -77,6 +74,12 @@ These come from the app and engine as they are now, not from a provider.
   university. Connect Cloud: Posit processes it (as shinyapps.io).
 - **Maintenance.** Self-hosted: someone runs the server (updates, R
   versions, packages). Connect Cloud: low.
+- **How to deploy (Connect Cloud).** `scripts/deploy-online.R` does it
+  from R on the maintainer's computer (the steps are at the top of that
+  file; rsconnect 1.6.0 or later). It installs powerkit's engine from
+  GitHub first, because the server can only install packages from CRAN or
+  GitHub; checked on 18 October 2026 that `rsconnect::appDependencies()`
+  then finds every package the app needs (205, with powerkit from GitHub).
 
 ### A university server (Shiny Server, open source)
 
