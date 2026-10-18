@@ -19,10 +19,10 @@ for (name in c("e2", "e10")) {
   spec <- validate_spec(get(name))
   t <- system.time(res <- run_spec(spec))[["elapsed"]]
   path <- sprintf("spike/webr/out/%s.R", name)
-  export_script(res, file = path)
+  export_script(spec, res, file = path)
   t_script <- system.time(source(path, local = new.env()))[["elapsed"]]
   times[[name]] <- list(engine_seconds = t, script_seconds = t_script,
-                        power = res$curve$power, nrep = spec$options$nrep %||% NA)
+                        power = res$curve$power, nrep = if (is.null(spec$options$nrep)) NA else spec$options$nrep)
   cat(sprintf("NATIVE %s: run_spec %.2f s, script %.2f s, power %.4f\n", name, t, t_script, res$curve$power))
 }
 times$r_version <- R.version.string
