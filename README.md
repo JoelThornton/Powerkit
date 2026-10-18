@@ -31,10 +31,25 @@ computed it. On top of those packages, powerkit adds:
 - an R script for each result that reproduces it with the backend package
   alone, and the citations for that package and its method paper.
 
-A prototype point-and-click app with a design finder is in `app/routing/`
-(how to run it: [`docs/run-it-yourself.md`](docs/run-it-yourself.md)). A
-methods paragraph (write-up) export and an optional AI assistant are
-planned.
+A prototype point-and-click app is in `app/routing/` (how to run it:
+[`docs/run-it-yourself.md`](docs/run-it-yourself.md)). It follows a
+four-screen design (decided 18 October 2026, `docs/decisions.md`):
+
+1. **Start:** can you choose your sample size or is it fixed; are you
+   testing a prediction or estimating something; does your claim rest on
+   one test or several.
+2. **Find your design:** a few plain questions route you to the right
+   analysis.
+3. **Inputs:** the effect size is at the centre. You say where it comes
+   from in your own words, or that you can't justify one, which leads to
+   the smallest effect you could detect.
+4. **Result:** a plain reading that keeps the condition ("if the true
+   effect is the one you entered, about 8 in 10 studies like this would
+   get a significant result"), 80% and 95% power side by side, what power
+   can't tell you, an explore panel, and a write-up (a short methods paragraph
+   and a full version).
+
+An optional AI assistant may come last.
 
 ## Status
 
@@ -51,25 +66,32 @@ planned.
 | Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; checks against the InteractionPoweR tutorial's published examples to come |
 | Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem, and parallel and serial mediation against simsem (joint test only); checks against published examples to come |
 | Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (rerun on 17 October 2026 after a fix to how power4mome calls are seeded); no independent cross-check yet; checks against published examples to come |
-| Shiny app and design finder | **Prototype** (`app/routing/`): every design above calculates in the app; mediation designs give a quick preview, then a full run or an R script |
+| Shiny app and design finder | **Prototype** (`app/routing/`): the four screens above; every design above calculates in the app; mediation designs give a quick preview, then a full run or an R script; a plan can be saved as a project file and reopened |
 
 What "validated" means is defined at the top of the
 [validation log](docs/validation-log.md). Not available yet for these
 designs: binary X or W, measurement error in
-mediation designs, and the smallest detectable effect.
+mediation designs, and (except for the basic tests and the 2 x 2 designs)
+the smallest detectable effect.
 
 powerkit can:
 
 - compute power at a given sample size;
 - find the sample size that reaches a target power;
-- for the 2 x 2 designs, find the smallest detectable effect.
+- for the basic tests and the 2 x 2 designs, find the smallest detectable
+  effect at a fixed sample size.
 
-Power is computed exactly by default for the 2 x 2 designs (or by
-simulation on request), and by simulation for every other design.
+Power is computed exactly by default for the basic tests (by formula) and
+the 2 x 2 designs (or by simulation on request), and by simulation for
+regression interactions and mediation.
 
 ## Try the app (no R experience needed)
 
-Follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
+Open <https://joelthornton-powerkit.share.connect.posit.cloud> in a
+browser: nothing to install. It is a prototype; results are not yet
+validated, so don't use them for real studies.
+
+To run it on your own computer instead, follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
 download this repository as a ZIP, and run one line,
 `source("run_powerkit.R")`, which installs what powerkit needs and opens
 the prototype in your browser.
@@ -113,7 +135,11 @@ plain English. Example specs for every design are in
 
 ## Documentation
 
+- [Map of the docs](docs/README.md): which document to read for what,
+  and which are history.
 - [Status](docs/status.md): where the project is and what's next.
+- [Handover](docs/handover.md): the working rules, for whoever picks the
+  project up next.
 - [Validation log](docs/validation-log.md): every full validation run.
 - [Build guide](docs/build-guide.md): the plan, architecture, spec format,
   engine design and validation targets.

@@ -1,7 +1,10 @@
 # Decision tree: from a study to a power analysis
 
 *Draft, 15 October 2026. **Everything in this document is a proposal for the
-maintainer to confirm.***
+maintainer to confirm.** It is the basis of the question tree in
+`app/routing/tree.yaml`; since 18 October 2026 the start screen (screen A
+of the new design, `decisions.md`) comes before it, and how the two fit
+together is item 1 of [`judgement-session.md`](judgement-session.md).*
 
 This is a draft specification of how a psychologist using the powerkit app
 gets from their study to the right power analysis. It will guide the phase 5

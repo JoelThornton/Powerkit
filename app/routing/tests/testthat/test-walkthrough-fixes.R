@@ -98,3 +98,16 @@ test_that("F14: user-facing text has no internal references", {
   }, character(1)), collapse = "\n")
   expect_false(grepl("docs/coverage.md", html, fixed = TRUE))
 })
+
+test_that("the analyses screen has one choice per analysis and asks how main analyses combine only when there are two or more", {
+  answers <- list()
+  html <- as.character(guided_analyses_ui(tree, answers, character(), character(), list(), "each"))
+  expect_no_match(html, "primary_", fixed = TRUE)
+  expect_match(html, "value=\"main\"", fixed = TRUE)
+  expect_match(html, "value=\"extra\"", fixed = TRUE)
+  expect_match(html, "data-display-if=", fixed = TRUE)
+  expect_match(html, ".length &gt;= 2", fixed = TRUE)
+  expect_identical(analysis_role("a", character(), character()), "none")
+  expect_identical(analysis_role("a", "a", character()), "extra")
+  expect_identical(analysis_role("a", "a", "a"), "main")
+})

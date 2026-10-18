@@ -1,10 +1,10 @@
 # Saving projects: options
 
-*18 October 2026.* Options only: nothing here is decided or recommended
-(judgement call E6 in [`judgement-calls.md`](judgement-calls.md)). The
-prototype keeps nothing between sessions now: closing the browser tab
-loses the answers and results, except the files the user has downloaded
-(the R script and citations).
+*18 October 2026.* **Decided and built:** option (a), a project file the
+user saves and reopens (PR #52, merged 18 October 2026; `decisions.md`).
+The rest of this page is the options as they were written before that
+decision, kept for the reasoning (judgement call E6 in
+[`judgement-calls.md`](judgement-calls.md)).
 
 **About the facts below.** Hosting prices are from
 [`hosting-options.md`](hosting-options.md), which marks every figure as a

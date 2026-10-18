@@ -199,8 +199,9 @@ server <- function(input, output, session) {
   save_guided_analyses <- function() {
     apps <- applicable_analyses(tree, routed_answers())
     ids <- vapply(apps, function(a) a$id, character(1))
-    state$ticked <- ids[vapply(ids, function(id) isTRUE(input[[paste0("tick_", id)]]), logical(1))]
-    state$primary <- ids[vapply(ids, function(id) isTRUE(input[[paste0("primary_", id)]]), logical(1))]
+    roles <- vapply(ids, function(id) input[[paste0("role_", id)]] %||% "none", character(1))
+    state$ticked <- ids[roles %in% c("main", "extra")]
+    state$primary <- ids[roles == "main"]
     for (id in ids) {
       a <- input[[paste0("ask_", id)]]
       if (!is.null(a)) state$asks[[id]] <- a

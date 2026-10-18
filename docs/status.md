@@ -24,9 +24,12 @@ fully validated. Validation runs are recorded in
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9 calculate in the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved
-  as a project file and reopened. The "About this prototype" tab and the
-  run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) let
-  colleagues run it on their own computers.
+  as a project file and reopened. It is online at
+  <https://joelthornton-powerkit.share.connect.posit.cloud>; the
+  run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
+  for running it on one's own computer. In "Plan my whole study",
+  each analysis is marked as not planned, main or extra; the sample size
+  will be set by the main ones (the combined N is still a placeholder).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
@@ -40,21 +43,35 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up is in review. The maintainer gives the department talk
+  the write-up was merged the same day. The maintainer gives the department talk
   (Friday 23 October 2026).
 
 ## What's next
 
-1. The write-up (short and full methods paragraph): in review.
-2. A "guess first" teaching mode, optional: the user guesses N or the
-   smallest effect before the result shows it (the maintainer's ideas of
-   18 October 2026; recommendation in the thread). Then the
-   "does this still apply?" flag on the effect-size source, and the
-   smallest detectable effect for E5–E9 in the app.
-3. Then: the judgement session ([`judgement-session.md`](judgement-session.md);
-   first item, routing from screen A onwards) and user testing
-   ([`user-testing.md`](user-testing.md)). Later: an ethics-board version
-   of the write-up, a plan checker for supervisors and reviewers, a
-   "Labs" area for experimental tools; before release, published values,
-   independent checks for moderated mediation and the Monte Carlo interval
-   with two or more mediators, phase 3b and wave 2 in the app.
+In priority order (agreed direction, 18 October 2026: a working web app
+first, optional features after testing):
+
+1. The write-up (short and full methods paragraph): merged on 18 October
+   2026; it reaches the website with the next deploy.
+2. A working web app: **online since 18 October 2026** at
+   <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main at the last deploy). The maintainer redeploys with
+   `scripts/deploy-online.R` after updating his copy; if the deploy
+   stops on a package version, `renv::restore()` first.
+3. Fill the core gaps: the "does this still apply?" flag on the
+   effect-size source when the effect size is changed, and the smallest
+   detectable effect for two proportions, chi-square and regression
+   interactions in the app.
+4. User testing with a link ([`user-testing.md`](user-testing.md),
+   updated for the four screens), recruiting at the maintainer's talk
+   (23 October 2026).
+5. The maintainer's judgement session
+   ([`judgement-session.md`](judgement-session.md); routing from screen A
+   onwards first).
+6. Optional features, guided by testing: a "guess first" teaching mode,
+   an ethics-board version of the write-up, a plan checker for
+   supervisors and reviewers, and a separate "Labs" area for experimental
+   tools.
+7. Before release: wave 2 in the app, published values, independent
+   checks for moderated mediation and the Monte Carlo interval with two or
+   more mediators, phase 3b (binary X and W), and the methodologist
+   collaboration.
