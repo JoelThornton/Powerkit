@@ -1,16 +1,18 @@
 # User testing the routing prototype
 
-*Last updated: 17 October 2026.*
+*Last updated: 18 October 2026 (online link; the session script below
+still describes the earlier screens and is to be updated for the four
+screens).*
 
 A short, practical plan for testing the prototype with psychologists. The
 aim is to find studies the prototype routes wrongly or explains badly, and
 to turn each one into a test case ([`test-cases.md`](test-cases.md)). The
 maintainer runs the sessions.
 
-**What's being tested:** the routing prototype only (how to run it:
-[`routing-prototype.md`](routing-prototype.md)). It calculates nothing, so
-testers judge whether they reach the right analysis and understand the
-card, not whether a number is right.
+**What's being tested:** the prototype online at
+<https://joelthornton-powerkit.share.connect.posit.cloud> (no installing; it runs on Posit Connect Cloud). Testers judge
+whether they reach the right analysis and understand the screens and the
+result, not whether a number is right: results are not yet validated.
 
 ## Who to recruit
 
@@ -33,14 +35,17 @@ then run another round.
 
 ## Before each session
 
-- Run the prototype ([`routing-prototype.md`](routing-prototype.md)) and
-  open it at the start screen. Use a fresh browser tab per session.
+- Open the prototype at <https://joelthornton-powerkit.share.connect.posit.cloud> at the start screen. Use a fresh browser
+  tab per session. The first visit after a quiet spell may take a minute
+  to start.
 - Have this page, a timer and a notes sheet (below) ready.
 - Agree how the session is recorded (notes only, screen recording, audio),
   and get the tester's consent for it. Check whether your institution needs
   ethics approval for usability sessions with colleagues.
-- Nothing typed in the prototype is sent anywhere or saved. The only way
-  information leaves it is when the tester copies text and gives it to you.
+- powerkit saves nothing a tester types, but the online version runs on
+  Posit's servers, so what is typed passes through them. Ask testers not
+  to enter anything identifying. Information otherwise leaves only when
+  the tester copies text or downloads a file and gives it to you.
 
 ## The 20-minute session
 
