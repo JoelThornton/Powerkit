@@ -11,6 +11,13 @@
   of counts). These designs match G\*Power in the engine's tests but are
   not yet in the full validation run; their cards say so.
 
+* App, "Plan my whole study" analyses screen: each analysis now has one
+  choice (not planned, main analysis, or extra analysis) instead of two
+  separate ticks, so an analysis can no longer be marked "primary" without
+  being planned. The question about how the main analyses support the claim
+  appears only when two or more are main, and its options are written in
+  plain words (no "intersection-union").
+
 * The result screen now states every departure and known difference that
   applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
   than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off
