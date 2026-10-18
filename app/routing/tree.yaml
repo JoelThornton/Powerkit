@@ -1359,16 +1359,16 @@ guided:
               - {label: "Both links, or X to the mediator and the direct link", endpoint: E38}
   combination_rules:
     - id: each
-      label: "Each analysis stands alone"
-      note: "Each analysis is a separate claim, tested at its own alpha. No correction."
+      label: "Each result is a separate claim"
+      note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed."
     - id: all
-      label: "All must be significant for the claim"
-      note: "No alpha correction is needed (intersection-union principle). The combined N gives each test its target power on its own; joint power is lower."
+      label: "The claim needs every result to be significant"
+      note: "No adjustment is needed, because the claim only stands if every test succeeds. Each test gets its target power, but the chance that all of them succeed together is lower."
     - id: any
       label: "Any one significant result supports the claim"
-      note: "This inflates the false-positive rate, so it needs an alpha correction (e.g. Bonferroni: alpha / k for k primary analyses), which raises the required N."
+      note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
   placeholders:
-    combined_n: "Combined N for the primary analyses: calculated here once the engine is connected. It will be the largest required N among the primary analyses that run, with the analysis that drives it named."
+    combined_n: "Combined N for the main analyses: calculated here once the engine is connected. It will be the largest required N among the main analyses that run, with the analysis that drives it named."
     consistency: "Consistency check: values will be compared here once the engine is connected."
   # Relationships that several analyses share, for the consistency check
   # (decision-tree.md 4.2). The plan lists the ticked analyses that share each.

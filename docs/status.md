@@ -25,9 +25,11 @@ fully validated. Validation runs are recorded in
   every end point. E1–E9 calculate in the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved
   as a project file and reopened. It is online at
-  <https://joelthornton-powerkit.share.connect.posit.cloud>; the run-it-yourself guide
-  ([`run-it-yourself.md`](run-it-yourself.md)) is for running it on
-  one's own computer.
+  <https://joelthornton-powerkit.share.connect.posit.cloud>; the
+  run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
+  for running it on one's own computer. In "Plan my whole study",
+  each analysis is marked as not planned, main or extra; the sample size
+  will be set by the main ones (the combined N is still a placeholder).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
