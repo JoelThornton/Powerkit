@@ -19,7 +19,9 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   prototype" tab lists what calculates (from `forms.yaml`), how to report
   problems, and credits from each package's `citation()`.
   [`hosting-options.md`](hosting-options.md) compares hosting, including
-  a webR feasibility spike (options and measurements only).
+  a webR feasibility spike (options and measurements only): every package
+  installs in webR except Spower and SimDesign; E2 ran instantly in the
+  browser with the same result; E10 took 3.5 times as long as native R.
 
 - **Phase 5, part 2: E10–E14 (PR #47; the maintainer said yes on 18
   October 2026).** As the maintainer decided: a rough preview (100 simulations, in
