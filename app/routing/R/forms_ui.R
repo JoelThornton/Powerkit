@@ -55,6 +55,7 @@ group_ui <- function(tree, g, values, index) {
     class = "form-group-box",
     tags$legend(class = "h6", legend),
     if (length(hints)) div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint))),
+    if (!is.null(g$note)) p(class = "group-note", g$note),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
 }

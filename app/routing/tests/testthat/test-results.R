@@ -426,3 +426,15 @@ test_that("with attrition, the result shows the number analysed and the number t
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]], calc))
   expect_no_match(html, "To recruit:", fixed = TRUE)
 })
+
+test_that("the smallest detectable effect for a basic test, with no effect size given", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  values$method <- "student_t"; values$goal <- "sensitivity"; values$n <- "128"; values$power <- "0.8"; values$d <- ""
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  expect_equal(calc$result$sensitivity$effect, pwr::pwr.t.test(n = 64, d = NULL, power = 0.8)$d)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "the smallest effect you could detect with 80% power", fixed = TRUE)
+  expect_match(html, "is d = 0.499. The effect: Cohen's d", fixed = TRUE)
+})

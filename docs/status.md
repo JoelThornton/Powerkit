@@ -46,7 +46,8 @@ fully validated. Validation runs are recorded in
    review.
 2. Docs: record the design decisions and close the judgement calls they
    settle (G9, most of B10, G8, part of B6/G7).
-3. App: the start questions and the fixed-N route for E1–E8.
+3. App: the start questions and the fixed-N route for E1–E8. In review
+   (screen A).
 4. App: effect-size source and rationale, with a minimal write-up (needs a
    minimal G4 decision).
 5. App: the plain reading, the .80/.95 cost line and the verdict-word test;

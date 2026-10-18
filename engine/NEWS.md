@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* App, screen A of the new design: the start screen now asks three
+  questions before the design finder. "Your sample size" (choose or fixed)
+  starts the input screen at the smallest effect you could detect when N
+  is fixed. "Your aim" sends estimation and equivalence to their cards.
+  "Your claim" (one test; several claims, each on its own; any of several;
+  all of several) adds a note, and for "any of several" divides alpha
+  between the tests (Bonferroni). The basic tests (E1–E6) now offer the
+  smallest detectable effect, and the t-tests and correlation need no
+  effect size for it.
+
 * Smallest detectable effect for the basic tests (engine only; not in the
   app yet): goal type `sensitivity` now works for the one-sample, paired
   and independent t-tests, the correlation, two proportions and the
