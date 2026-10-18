@@ -9,7 +9,8 @@
 # Before the first run, once:
 #   1. Make a free account at https://connect.posit.cloud (sign in with
 #      GitHub or Google).
-#   2. In the R console, run:  rsconnect::connectCloudUser()
+#   2. In the R console, run:  install.packages("rsconnect")
+#      then:                    rsconnect::connectCloudUser()
 #      A browser window opens; sign in and allow access. This stays on
 #      your computer.
 #
