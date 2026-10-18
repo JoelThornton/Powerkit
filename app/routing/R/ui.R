@@ -200,7 +200,9 @@ status_ui <- function(tree, ep) {
     runs_validation_in_progress = div(
       class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"),
-      tags$strong("Runs, validation in progress."), " ", ep$validation$note, " ", validation_links()
+      tags$strong("Runs, validation in progress."), " ", ep$validation$note, " ", validation_links(),
+      # A card that runs one test but not a related one (E26: Cochran's Q).
+      if (is.character(ep$no_ready_made_tool)) p(class = "mb-0", tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
     ),
     coming_soon = div(class = "status status-soon", tags$strong("Coming soon."), " ", ep$coming_soon_note),
     not_in_powerkit = if (isTRUE(ep$generic)) {

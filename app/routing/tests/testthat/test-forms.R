@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, paste0("E", 1:14))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E24", "E25", "E26"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {
@@ -54,10 +54,12 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_match(html, "(required; starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    problems <- form_problems(form_fields(groups), list())
+    # E24's effect sizes appear once its question is chosen.
+    start <- if (identical(ep, "E24")) list(question = "r2_increase") else list()
+    problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
-    for (f in Filter(function(f) field_applies(f, list()), effect)) {
+    for (f in Filter(function(f) field_applies(f, start), effect)) {
       expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
     }
     expect_true(any(grepl("powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
@@ -314,4 +316,42 @@ test_that("the reasoning is optional to calculate", {
   values <- form_examples[["E2"]]
   values$just_source <- ""
   expect_length(form_problems(fields, values), 0)
+})
+
+test_that("one-way ANOVA takes one mean per group, and the screen counts them", {
+  v <- values_for("E18")
+  spec <- build_spec(forms, "E18", fields_for("E18"), v)
+  expect_identical(spec$template, "oneway_between")
+  expect_identical(spec$variables$A$levels, list("None", "Neutral", "Praise"))
+  expect_identical(spec$population$means, list(10, 11, 13))
+  v$means <- "10, 13"
+  expect_match(form_problems(fields_for("E18"), v), "should have 3 numbers, one for each name you gave", fixed = TRUE)
+  v$means <- "10, 11, thirteen"
+  expect_match(form_problems(fields_for("E18"), v), "every entry should be a number", fixed = TRUE)
+})
+
+test_that("regression: the question sets the template and the effect, and shows only its own fields", {
+  zero <- c(list(Y_label = "Wellbeing score", question = "r2_zero", r2 = "0.1", predictors = "5"), closing_ok)
+  spec <- build_spec(forms, "E24", fields_for("E24"), zero)
+  expect_identical(spec$template, "r2_zero")
+  expect_identical(spec$target_test$effect, "r_squared")
+  expect_identical(spec$population$predictors, 5L)
+  expect_null(spec$population$r2_full)
+  spec <- build_spec(forms, "E24", fields_for("E24"), values_for("E24"))
+  expect_identical(spec$template, "r2_increase")
+  expect_identical(spec$target_test$effect, "r_squared_change")
+  expect_null(spec$population$r2)
+  skip_without_engine()
+  expect_identical(check_spec(build_spec(forms, "E24", fields_for("E24"), zero), fields_for("E24"), validate)$status, "ok")
+})
+
+test_that("Welch's t-test is simulated by default, with pwrss's formula on request", {
+  fields <- fields_for("E2")
+  v <- values_for("E2")
+  expect_identical(build_spec(forms, "E2", fields, c(v, list(welch_method = "simulation")))$options$method, "simulation")
+  spec <- build_spec(forms, "E2", fields, c(v, list(welch_method = "exact")))
+  expect_identical(spec$options$method, "exact")
+  # With Student's test the Welch choice is hidden, and the basic choice applies.
+  student <- modifyList(v, list(method = "student_t", welch_method = "simulation", calc_method = "exact"))
+  expect_identical(build_spec(forms, "E2", fields, student)$options$method, "exact")
 })

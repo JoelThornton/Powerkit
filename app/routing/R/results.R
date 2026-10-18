@@ -112,7 +112,7 @@ whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
 # Group sizes for a total n, for designs with separate groups; NULL for
 # designs where everyone is in one group (one sample, paired, correlation,
-# chi-square). Follows the engine's split (powerkit's spower_inputs()).
+# chi-square, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
 group_sizes <- function(spec, n) {
   switch(
     spec$template,
@@ -124,6 +124,10 @@ group_sizes <- function(spec, n) {
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
+    oneway_between = {
+      k <- length(spec$variables$A$levels)
+      rep(n / k, k)
+    },
     NULL
   )
 }
@@ -474,7 +478,7 @@ departures_for <- function(forms, ep_id, spec) {
   if (!identical(spec$target_test$effect, "interaction")) keys <- setdiff(keys, "1")
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
-  # or Welch's t-test.
+  # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, c("9", "10", "11"))
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }

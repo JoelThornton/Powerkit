@@ -259,6 +259,12 @@ parse_levels <- function(x) {
   out[nzchar(out)]
 }
 
+# Comma-separated numbers on one line (a one-way ANOVA's group means).
+parse_numbers <- function(x) {
+  if (blank(x)) return(numeric())
+  vapply(trimws(strsplit(as.character(x), ",", fixed = TRUE)[[1]]), parse_number, numeric(1), USE.NAMES = FALSE)
+}
+
 parse_table <- function(x) {
   if (blank(x)) return(NULL)
   lines <- trimws(strsplit(as.character(x), "\n", fixed = TRUE)[[1]])
@@ -318,6 +324,14 @@ form_problems <- function(fields, values) {
       if (length(lv) < 2) problems <- c(problems, sprintf("%s needs at least two names, separated by commas.", quote_label(f)))
       if (anyDuplicated(lv)) problems <- c(problems, sprintf("%s has the same name twice.", quote_label(f)))
     }
+    if (identical(f$type, "numbers")) {
+      xs <- parse_numbers(v)
+      if (any(is.nan(xs) | is.na(xs))) {
+        problems <- c(problems, sprintf("%s: every entry should be a number written with a decimal point, such as 10.5, separated by commas.", quote_label(f)))
+      } else if (!is.null(f$per_levels) && length(xs) != length(parse_levels(values[[f$per_levels]]))) {
+        problems <- c(problems, sprintf("%s should have %d numbers, one for each name you gave, in the same order.", quote_label(f), length(parse_levels(values[[f$per_levels]]))))
+      }
+    }
     if (identical(f$type, "table")) {
       tb <- parse_table(v)
       if (any(vapply(tb, function(r) any(is.nan(r) | is.na(r)), logical(1)))) {
@@ -358,6 +372,7 @@ field_value <- function(f, v) {
     f$type,
     number = { x <- parse_number(v); if (isTRUE(f$integer)) as.integer(x) else x },
     levels = as.list(parse_levels(v)),
+    numbers = as.list(parse_numbers(v)),
     table = lapply(parse_table(v), as.list),
     trimws(as.character(v))
   )
@@ -377,6 +392,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     if (blank(v) && effect_optional(f, values)) v <- "0"
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
+    # `sets`: further spec values that follow from a choice (E24's
+    # question sets the template and the effect tested).
+    for (extra in f$sets[[as.character(v)]]) spec <- set_path(spec, split_path(extra$path), extra$value)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   # The range of sample sizes is several engine runs (sensitivity_curve());

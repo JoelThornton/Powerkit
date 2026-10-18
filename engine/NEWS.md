@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* App: four more designs calculate on their input screens. One-way ANOVA
+  for three or more separate groups (E18, Superpower), multiple regression
+  for R-squared against 0 or an R-squared increase, which also covers one
+  predictor's coefficient (E24, pwrss), one proportion against a fixed
+  value (E25, pwrss's exact binomial test) and McNemar's test (E26,
+  pwrss's exact test). Welch's t-test (E2) can now be worked out by
+  pwrss's formula as well as by simulation. One proportion and McNemar
+  show Known difference 2 (power goes up and down with N for exact tests
+  of counts). These designs match G\*Power in the engine's tests but are
+  not yet in the full validation run; their cards say so.
+
 * App, "Plan my whole study" analyses screen: each analysis now has one
   choice (not planned, main analysis, or extra analysis) instead of two
   separate ticks, so an analysis can no longer be marked "primary" without
