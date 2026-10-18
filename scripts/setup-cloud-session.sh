@@ -46,19 +46,36 @@ export R_PROFILE_USER="$PROFILE" RENV_ACTIVATE_PROJECT=FALSE LANG=C.UTF-8 LC_ALL
 
 cd "$(dirname "$0")/.."
 
+# Packages whose current CRAN version needs a newer R than apt's: install
+# an older release from the CRAN archive first (Deriv 4.3.x needs R 4.5;
+# Superpower and Spower depend on it through doBy).
+Rscript -e '
+if (!requireNamespace("Deriv", quietly = TRUE))
+  install.packages("https://cran.r-project.org/src/contrib/Archive/Deriv/Deriv_4.2.0.tar.gz",
+                   repos = NULL, type = "source")
+'
+
 # Everything _dependencies.R names, plus devtools-free test tools.
 Rscript -e '
 pkgs <- sub("^library\\(([^)]+)\\).*", "\\1", grep("^library\\(", readLines("_dependencies.R"), value = TRUE))
 pkgs <- setdiff(unique(c(pkgs, "testthat", "withr")), "power4mome")
 missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
 if (length(missing)) install.packages(missing)
+still <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
+if (length(still)) stop("Could not install: ", paste(still, collapse = ", "))
 '
 
 # power4mome, patched for R 4.3 (see the note at the top).
 if ! Rscript -e 'quit(status = !requireNamespace("power4mome", quietly = TRUE))'; then
   tmp="$(mktemp -d)"
-  (cd "$tmp" && Rscript -e 'download.packages("power4mome", destdir = ".", type = "source")' >/dev/null)
-  tar -xzf "$tmp"/power4mome_*.tar.gz -C "$tmp"
+  # download.packages() hides packages that need a newer R, so build the
+  # URL from the unfiltered index.
+  Rscript -e "
+v <- available.packages(filters = 'duplicates')['power4mome', 'Version']
+download.file(sprintf('https://cran.r-project.org/src/contrib/power4mome_%s.tar.gz', v),
+              file.path('$tmp', 'power4mome.tar.gz'), quiet = TRUE)
+"
+  tar -xzf "$tmp/power4mome.tar.gz" -C "$tmp"
   sed -i 's/R (>= 4\.4[^)]*)/R (>= 4.1)/' "$tmp/power4mome/DESCRIPTION"
   printf '\n`%%||%%` <- function(x, y) if (is.null(x)) y else x\n' > "$tmp/power4mome/R/zzz-null-default.R"
   # Its dependencies first (installing from a folder doesn't fetch them).
