@@ -36,8 +36,9 @@ or a package's own \code{citation()}. A method paper or powerkit paper not in
 refs.bib yet is shown as a placeholder, never filled in from elsewhere.
 }
 \details{
-The methods paragraph is not written yet; the text export shows a
-placeholder for it.
+The methods paragraph (the write-up) is written on powerkit's result
+screen, where the user's reasoning and the departures are known; the
+text export points there.
 }
 \examples{
 \donttest{

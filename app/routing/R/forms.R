@@ -155,6 +155,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "power", label = "Target power, as a proportion (for example 0.9); needed for the sample size and the smallest effect",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
+    list(id = "power_reason", label = "Why this target power (optional; goes in the write-up, for example \"95% because a miss would waste a year of recruitment\")",
+         type = "text", optional = TRUE),
     list(id = "n", label = "Number of participants analysed; needed for power and the smallest effect",
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
     list(id = "n_max", label = "The largest number of participants you could analyse; needed for the range of sample sizes",
