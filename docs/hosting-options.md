@@ -74,12 +74,41 @@ These come from the app and engine as they are now, not from a provider.
   university. Connect Cloud: Posit processes it (as shinyapps.io).
 - **Maintenance.** Self-hosted: someone runs the server (updates, R
   versions, packages). Connect Cloud: low.
-- **How to deploy (Connect Cloud).** `scripts/deploy-online.R` does it
-  from R on the maintainer's computer (the steps are at the top of that
-  file; rsconnect 1.6.0 or later). It installs powerkit's engine from
-  GitHub first, because the server can only install packages from CRAN or
-  GitHub; checked on 18 October 2026 that `rsconnect::appDependencies()`
-  then finds every package the app needs (205, with powerkit from GitHub).
+- **How to deploy (Connect Cloud).** Connect Cloud publishes the app
+  straight from this GitHub repository and republishes it whenever main
+  changes, so a merge is all it takes (set up once on the website, below).
+  It installs the packages listed in `app/routing/manifest.json`, which
+  the `online-app-manifest` workflow rewrites and commits to main after
+  every merge that changes the app, the engine or `renv.lock` (the
+  manifest pins powerkit's engine to one commit, so it must be rewritten
+  for an engine change to reach the online app). The free plan needs the
+  repository to be public (Connect Cloud docs, via search, 18 October
+  2026). `scripts/deploy-online.R` is the fallback: it deploys from R on
+  the maintainer's computer (steps at the top of that file).
+
+#### Publishing from GitHub (once, on the Connect Cloud website)
+
+Button names are from Connect Cloud's documentation (found by search,
+18 October 2026), not checked against the live site.
+
+1. Wait until `app/routing/manifest.json` is on main (the
+   `online-app-manifest` workflow adds it after the PR that set this up
+   is merged; it shows in the repository's file list on GitHub).
+2. Go to https://connect.posit.cloud and sign in.
+3. Remove the old copy first, so the new one can use the same name: open
+   the content list, open the powerkit app, and delete it (its settings
+   or "..." menu). The web address may still change; the new one is shown
+   at the end.
+4. Click **Publish**, then choose **Shiny** and **GitHub** as the source.
+5. If asked, install the Posit Connect Cloud GitHub App and give it access
+   to the JoelThornton/Powerkit repository.
+6. Choose the repository **JoelThornton/Powerkit**, the branch **main**,
+   and the primary file **app/routing/app.R**.
+7. Leave **Automatically publish on push** switched on (the default).
+8. Click **Publish** and wait while it installs the packages (several
+   minutes the first time).
+9. Open the app from the link it shows and check it loads. From now on,
+   each merge to main updates it on its own.
 
 ### A university server (Shiny Server, open source)
 

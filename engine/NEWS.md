@@ -1,5 +1,10 @@
 # powerkit 0.0.0.9000
 
+* The online app can now update itself after each merge: Posit Connect
+  Cloud publishes it from GitHub using `app/routing/manifest.json`, which a
+  new workflow keeps current. One-time setup on the Connect Cloud website:
+  `docs/hosting-options.md`, "Publishing from GitHub".
+
 * App, "Plan my whole study" analyses screen: each analysis now has one
   choice (not planned, main analysis, or extra analysis) instead of two
   separate ticks, so an analysis can no longer be marked "primary" without

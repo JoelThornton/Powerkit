@@ -54,8 +54,11 @@ first, optional features after testing):
 2. A working web app: host the app on an R server so testers can open a
    link (the browser-only route, webR, can't run Spower;
    [`hosting-options.md`](hosting-options.md)). The maintainer chose
-   Posit Connect Cloud (18 October 2026); `scripts/deploy-online.R`
-   deploys it.
+   Posit Connect Cloud (18 October 2026). Automatic updates on merge:
+   Connect Cloud publishes from GitHub, using `app/routing/manifest.json`
+   (kept current by a workflow); the maintainer's one-time website setup
+   is in [`hosting-options.md`](hosting-options.md#publishing-from-github-once-on-the-connect-cloud-website).
+   `scripts/deploy-online.R` stays as the fallback.
 3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source when the effect size is changed, and the smallest
    detectable effect for two proportions, chi-square and regression
