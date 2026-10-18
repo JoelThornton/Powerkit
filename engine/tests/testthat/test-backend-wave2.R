@@ -2,7 +2,7 @@
 # R-squared in multiple regression, one proportion, McNemar's test and
 # Welch's t-test by formula. Each is checked against its backend called
 # directly, from inputs written out by hand here. The checks against
-# G*Power use the maintainer's screenshots (McNemar's is still a placeholder).
+# G*Power use the maintainer's screenshots (McNemar's a priori N is still a placeholder).
 
 wave2_spec <- function(name, goal, ...) {
   spec <- example_spec(name)
@@ -294,13 +294,20 @@ test_that("one proportion matches G*Power, including the smallest N (G*Power val
   expect_equal(round(power_at(spec), 7), 0.8540286)
 })
 
-test_that("McNemar against G*Power's exact option (placeholder)", {
-  # TODO_PUBLISHED_VALUE: the screenshots sent on 18 October 2026 used
-  # G*Power's default "faster approximation (assume number of discordant
-  # pairs as constant)": N = 100 gives 0.7186706 and the a priori N is
-  # 121. powerkit uses pwrss's exact method (0.6742876 at N = 100; 129).
-  # Neither pwrss method equals the approximation (pwrss's "approximate"
-  # gives 0.7240580). The comparison waits for G*Power's "exact
-  # (unconditional) power" screenshots.
-  skip("G*Power's exact McNemar values not yet sent (TODO_PUBLISHED_VALUE)")
+test_that("McNemar matches G*Power's exact option (G*Power value)", {
+  # Exact, "Proportions: Inequality, two dependent groups (McNemar)", two
+  # tails, odds ratio 2.5, proportion of discordant pairs .35, Options:
+  # "exact (unconditional) power". Post hoc, N = 100: power 0.7186706
+  # with the faster approximation, 0.6742876 with the exact option
+  # (docs/figures/gpower/A37_mcnemar_post_hoc_n100_exact.png).
+  spec <- wave2_spec("mcnemar", list(type = "power", n = 100))
+  expect_equal(round(power_at(spec), 7), 0.6742876)
+})
+
+test_that("McNemar a priori N against G*Power's exact option (placeholder)", {
+  # TODO_PUBLISHED_VALUE: the a priori screenshot sent with the exact
+  # option set it to apply only "if N < 100", so its answer (121) came
+  # from the approximation. powerkit's exact answer is 129. Waits for an a
+  # priori screenshot with the exact option for every N.
+  skip("G*Power's exact a priori McNemar N not yet sent (TODO_PUBLISHED_VALUE)")
 })

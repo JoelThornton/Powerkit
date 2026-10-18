@@ -15,9 +15,10 @@ For a short summary and the working rules, see [`handover.md`](handover.md).
   `A37_*`) match the engine to seven decimals for one-way ANOVA, R²
   against 0, R² increase and one proportion. G\*Power's R² noncentrality
   is f² × N (pwrss's convention), and it reports N = 90 for the
-  one-proportion example, as powerkit does. McNemar still needs a
-  screenshot with G\*Power's "exact (unconditional) power" option; the
-  ones sent used its default approximation (121).
+  one-proportion example, as powerkit does. McNemar's post hoc power
+  with G\*Power's exact option matches too (0.6742876); its exact a
+  priori N is still to be screenshotted (the one sent applied the exact
+  option only below N = 100, so 121 is the approximation).
 
 - **Wave 2 engine groundwork (draft PR; waits for the maintainer's yes,
   18 October 2026).** One-way ANOVA, R² against 0 and R² increase, one

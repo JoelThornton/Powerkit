@@ -344,9 +344,10 @@ comparisons are placeholders until the screenshots arrive.
 **G\*Power screenshots received (18 October 2026).** One-way ANOVA (at
 f = 0.279), R² against 0, R² increase and one proportion match the
 engine to seven decimals, a priori N included (`test-backend-wave2.R`;
-`gpower-parity.md`, "Wave 2"). Still needed: **McNemar with G\*Power's
-Options set to "exact (unconditional) power"** (a priori, and post hoc at
-N = 100). The one-way ANOVA at f = 0.2079 and the R² increase post hoc
+`gpower-parity.md`, "Wave 2"). McNemar post hoc at N = 100 with G\*Power's
+exact option matches too (0.6742876). Still needed: **McNemar a priori
+with the exact option for every N** (the threshold left at 1000000, not
+100). The one-way ANOVA at f = 0.2079 and the R² increase post hoc
 are not needed (the cases sent already check the same calculations).
 
 **G\*Power screens and inputs the maintainer was asked to send** (one
