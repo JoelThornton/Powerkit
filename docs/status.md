@@ -71,9 +71,10 @@ first, optional features after testing):
    `scripts/deploy-online.R` (if it stops on a package version,
    `renv::restore()` first).
 3. Fill the core gaps: the "does this still apply?" flag on the
-   effect-size source when the effect size is changed, and the smallest
-   detectable effect for two proportions, chi-square and regression
-   interactions in the app.
+   effect-size source when the effect size is changed (in review); the
+   smallest detectable effect with no effect size for two proportions and
+   chi-square (in review); next, the smallest detectable effect for
+   regression interactions.
 4. User testing with the online link: the plan
    ([`user-testing.md`](user-testing.md)) is ready for the four screens;
    recruiting at the maintainer's talk (23 October 2026).

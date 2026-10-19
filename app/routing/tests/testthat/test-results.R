@@ -478,6 +478,27 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   expect_match(html, "download_project", fixed = TRUE)
 })
 
+test_that("two proportions and chi-square give the range of sample sizes with no effect size", {
+  fields <- form_fields(form_groups(forms, "E6"))
+  values <- modifyList(form_examples[["E6"]], list(just_type = "none", probabilities = "", goal = "sensitivity_curve", n_max = "160"))
+  calc <- run_sensitivity_curve(build_spec(forms, "E6", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  df <- (length(parse_levels(values$X_levels)) - 1) * (length(parse_levels(values$Y_levels)) - 1)
+  expect_equal(calc$curve_table$power_80[8], pwr::pwr.chisq.test(N = 160, w = NULL, df = df, power = 0.8)$w)
+  expect_match(as.character(result_panel_ui(tree, forms, "E6", fields, values, calc)), "Smallest w, 80% power", fixed = TRUE)
+
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- modifyList(form_examples[["E5"]], list(just_type = "none", p2 = "", goal = "sensitivity_curve", n_max = "400"))
+  calc <- run_sensitivity_curve(build_spec(forms, "E5", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  tab <- calc$curve_table
+  expect_true(all(tab$power_80 > as.numeric(values$p1)))
+  expect_true(all(diff(tab$power_80) < 0))
+  html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
+  expect_match(html, "Group 2's proportion, 80% power", fixed = TRUE)
+  expect_match(html, "Group 2's proportion needed (group 1's kept at 0.6). Larger samples can detect smaller differences", fixed = TRUE)
+})
+
 test_that("an effect size from one earlier study gets a short warning", {
   expect_match(source_note(list(just_type = "prior_study")), "BUCSS", fixed = TRUE)
   expect_null(source_note(list(just_type = "meta_analysis")))

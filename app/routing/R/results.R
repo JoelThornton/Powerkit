@@ -361,12 +361,20 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 }
 
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", "effect")
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", "effect")
+  # Two proportions: the column is group 2's proportion, not a size.
+  heading <- function(power) {
+    if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)
+  }
   tagList(
     h4(class = "h6", "The smallest effect you could detect at each sample size"),
-    p(class = "small", sprintf("%s. Larger samples can detect smaller effects; read across to see what each sample size buys.", result$sensitivity$effect_description)),
+    p(class = "small", if (identical(name, "p2")) {
+      sprintf("Group 2's proportion needed (group 1's kept at %s). Larger samples can detect smaller differences; read across to see what each sample size buys.", format(result$sensitivity$p1))
+    } else {
+      sprintf("%s. Larger samples can detect smaller effects; read across to see what each sample size buys.", result$sensitivity$effect_description)
+    }),
     tags$table(class = "table table-sm result-curve-table",
-      tags$thead(tags$tr(tags$th("Participants analysed"), tags$th(sprintf("Smallest %s, 80%% power", name)), tags$th(sprintf("Smallest %s, 95%% power", name)))),
+      tags$thead(tags$tr(tags$th("Participants analysed"), tags$th(heading("80%")), tags$th(heading("95%")))),
       tags$tbody(lapply(seq_len(nrow(table)), function(i) tags$tr(
         tags$td(whole(table$n[i])),
         tags$td(format(round(table$power_80[i], 3), nsmall = 3)),
