@@ -216,17 +216,25 @@ result_sentences <- function(spec, result) {
       s <- result$sensitivity
       if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
-        name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", "the effect")
+        name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
+          r_XW_Y = "the correlation of the interaction with Y", "the effect")
         c(
           headline = sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
             name, format(round(s$effect, 3), nsmall = 2), s$effect_description
           ),
-          detail = sprintf(
-            "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), which finds the effect directly.",
-            percent(spec$goal$power), exact_source(result)
-          )
+          detail = if (isTRUE(s$approximation)) {
+            sprintf(
+              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by InteractionPoweR's fixed-model formula (%s(), no simulation), which is quick; sample size and power for this design are simulated. The formula gives slightly higher power than simulation, so the smallest effect you could detect may be slightly larger than this (see the known difference below).",
+              percent(spec$goal$power), result$provenance$backend_function
+            )
+          } else {
+            sprintf(
+              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), which finds the effect directly.",
+              percent(spec$goal$power), exact_source(result)
+            )
+          }
         )
       } else {
         c(
@@ -397,12 +405,20 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 }
 
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", "effect")
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", "effect")
+  # Two proportions: the column is group 2's proportion, not a size.
+  heading <- function(power) {
+    if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)
+  }
   tagList(
     h4(class = "h6", "The smallest effect you could detect at each sample size"),
-    p(class = "small", sprintf("%s. Larger samples can detect smaller effects; read across to see what each sample size buys.", result$sensitivity$effect_description)),
+    p(class = "small", if (identical(name, "p2")) {
+      sprintf("Group 2's proportion needed (group 1's kept at %s). Larger samples can detect smaller differences; read across to see what each sample size buys.", format(result$sensitivity$p1))
+    } else {
+      sprintf("%s. Larger samples can detect smaller effects; read across to see what each sample size buys.", result$sensitivity$effect_description)
+    }),
     tags$table(class = "table table-sm result-curve-table",
-      tags$thead(tags$tr(tags$th("Participants analysed"), tags$th(sprintf("Smallest %s, 80%% power", name)), tags$th(sprintf("Smallest %s, 95%% power", name)))),
+      tags$thead(tags$tr(tags$th("Participants analysed"), tags$th(heading("80%")), tags$th(heading("95%")))),
       tags$tbody(lapply(seq_len(nrow(table)), function(i) tags$tr(
         tags$td(whole(table$n[i])),
         tags$td(format(round(table$power_80[i], 3), nsmall = 3)),
@@ -559,7 +575,13 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   form <- forms$forms[[ep_id]]
   keys <- unlist(form$known_differences)
   only <- form$known_differences_if_method
-  Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  # A known difference may have its own wording for the smallest detectable
+  # effect (key "1 sensitivity": E9's comes from the fixed-model formula).
+  if (identical(spec$goal$type, "sensitivity")) {
+    keys <- vapply(keys, function(k) if (is.null(forms$known_differences[[paste(k, "sensitivity")]])) k else paste(k, "sensitivity"), character(1), USE.NAMES = FALSE)
+  }
+  keys
 }
 
 known_differences_for <- function(forms, ep_id, spec = NULL) {

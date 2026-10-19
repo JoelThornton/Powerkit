@@ -7,6 +7,31 @@
   times your guess."). The guess isn't part of the plan, the R script or
   the write-up, and nothing is collected.
 
+* Regression interactions (E9) can now find the smallest effect you
+  could detect at a given sample size: the correlation of the interaction
+  with Y, with the other correlations kept as entered. It uses
+  InteractionPoweR's fixed-model formula, `power_interaction_r2()`, which
+  is quick but gives slightly higher power than the simulation used for
+  sample size and power, so the true smallest effect may be slightly
+  larger. The result screen, the write-up and the R script say so. In the
+  engine, a backend can name its own method for the smallest detectable
+  effect (`sensitivity_method`), recorded as `"analytic"`.
+
+* Running powerkit on your own Mac works again: RcppArmadillo is updated
+  to 15.6.2-1 in `renv.lock`. CRAN replaced 15.6.0-1 on 17 October 2026,
+  so a Mac had to build the old version from source, which needs
+  developer tools most people don't have.
+
+* App: "I can't justify an effect size" and "the smallest effect I could
+  detect across a range of sample sizes" now work for two proportions
+  (E5) and the chi-square test (E6), as for the t-tests and the
+  correlation. For two proportions, group 1's proportion is still needed
+  and group 2's can stay empty: powerkit finds how far above group 1's it
+  would need to be (a lower value looks for a decrease). For chi-square,
+  the table can stay empty: powerkit finds the smallest Cohen's w for the
+  numbers of categories, straight from `pwr.chisq.test()`. Engine: these
+  two designs accept a zero effect for the smallest detectable effect.
+
 * App: if you change the effect size after writing your reasoning for it,
   the result screen asks "Does your reasoning still apply?" and shows the
   old and new values. Your reasoning is kept, not wiped. Until you confirm

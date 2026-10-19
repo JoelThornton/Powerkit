@@ -98,16 +98,17 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   form <- forms$forms[[ep_id]]
   groups <- lapply(form$groups, function(g) {
     if (!is.null(g$generated)) g$fields <- generated_fields(form$mediators, g$generated, k)
-    # The t-tests and the correlation need no effect size for the smallest
-    # detectable effect: the engine solves for it (an empty value counts
-    # as zero, and the result is positive).
+    # The basic tests need no effect size for the smallest detectable
+    # effect: the engine solves for it (an empty value counts as zero, or
+    # as the field's `when_empty`, and the result is positive). A
+    # `baseline` field (group 1's proportion) is still needed.
     if (isTRUE(form$sensitivity_without_effect)) {
       has_effect <- any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))
       g$fields <- lapply(g$fields, function(f) {
-        if (isTRUE(f$effect)) f$optional_for <- c("sensitivity", "sensitivity_curve")
+        if (isTRUE(f$effect) && !isTRUE(f$baseline)) f$optional_for <- c("sensitivity", "sensitivity_curve")
         f
       })
-      if (has_effect) g$note <- "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
+      if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
     }
     g
   })
@@ -411,7 +412,7 @@ build_spec <- function(forms, ep_id, fields, values) {
   for (f in fields) {
     if (is.null(f$path) || !field_applies(f, values)) next
     v <- values[[f$id]]
-    if (blank(v) && effect_optional(f, values)) v <- "0"
+    if (blank(v) && effect_optional(f, values)) v <- empty_effect(f, values)
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
     # `sets`: further spec values that follow from a choice (E24's
@@ -427,8 +428,25 @@ build_spec <- function(forms, ep_id, fields, values) {
   spec
 }
 
+# The value an empty effect size stands for: zero; group 1's proportion
+# (two proportions: no difference); or, for a table of proportions, equal
+# proportions in every combination (no association).
+empty_effect <- function(f, values) {
+  switch(
+    f$when_empty %||% "zero",
+    zero = "0",
+    same_as_p1 = values$p1,
+    no_association = {
+      rows <- length(parse_levels(values$X_levels))
+      cols <- length(parse_levels(values$Y_levels))
+      line <- paste(rep(sprintf("%.15g", 1 / (rows * cols)), cols), collapse = ", ")
+      paste(rep(line, rows), collapse = "\n")
+    }
+  )
+}
+
 # An effect size may stay empty for the smallest detectable effect, or
-# when the user can't justify one (t-tests and the correlation only).
+# when the user can't justify one (the basic tests only).
 effect_optional <- function(f, values) {
   isTRUE(f$effect) && length(f$optional_for) > 0 &&
     (isTRUE(values$goal %in% f$optional_for) || identical(values$just_type, "none"))
