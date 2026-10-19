@@ -53,3 +53,12 @@ test_that("the app has an About tab", {
   app <- readLines(file.path(routing_dir, "app.R"))
   expect_true(any(grepl('tabPanel("About this prototype"', app, fixed = TRUE)))
 })
+
+test_that("the About panel says what powerkit doesn't do and how far along it is", {
+  html <- about_html()
+  expect_match(html, "What it doesn&#39;t do|What it doesn't do")
+  expect_match(html, "choose your effect size", fixed = TRUE)
+  expect_match(html, "Where the numbers come from", fixed = TRUE)
+  expect_match(html, "How far along it is", fixed = TRUE)
+  expect_match(html, "until a statistician has checked it", fixed = TRUE)
+})

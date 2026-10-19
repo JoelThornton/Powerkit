@@ -25,6 +25,7 @@ source(file.path("R", "about.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
+whats_new <- load_whats_new("whats-new.yaml")
 # Cards for end points that calculate (or preview, E10-E14) don't say "No
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
@@ -91,6 +92,7 @@ app_css <- "
   .about { max-width: 46rem; }
   .about-endpoints li, .about-credit { margin-bottom: 0.4rem; }
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
+  .whats-new li { margin-bottom: 0.6rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 "
 
@@ -164,6 +166,7 @@ ui <- fluidPage(
       id = "tabs",
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("screen"))),
       tabPanel("About this prototype", div(class = "pt-3", about_ui(tree, forms))),
+      tabPanel("What's new", div(class = "pt-3", whats_new_ui(whats_new))),
       tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
     )
   )
