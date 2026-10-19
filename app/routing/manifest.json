@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "0f70ace7c098e8054b1a8258212862ebadc7a095",
-        "RemoteSha": "0f70ace7c098e8054b1a8258212862ebadc7a095",
+        "RemoteRef": "cfe106589b5ca04bd661eb34601802ece985fac1",
+        "RemoteSha": "cfe106589b5ca04bd661eb34601802ece985fac1",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "0f70ace7c098e8054b1a8258212862ebadc7a095",
-        "GithubSHA1": "0f70ace7c098e8054b1a8258212862ebadc7a095",
+        "GithubRef": "cfe106589b5ca04bd661eb34601802ece985fac1",
+        "GithubSHA1": "cfe106589b5ca04bd661eb34601802ece985fac1",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-19 10:39:15 UTC; runner",
+        "Packaged": "2026-10-19 10:54:21 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-19 10:39:21 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-19 10:54:26 UTC; unix"
       }
     },
     "praise": {
@@ -5782,7 +5782,7 @@
       "checksum": "4db418c3160c27474bf357a0d83ea1de"
     },
     "R/results.R": {
-      "checksum": "1f90215a955f50df8e8e46c43635e62d"
+      "checksum": "8338bd2903f0dbb1e472280a578c9a4a"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5830,7 +5830,7 @@
       "checksum": "8432735c4727ddefb0e8ce7eebe6e581"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "9f4ff490b5b21421af3b20e0ec4ffd19"
+      "checksum": "5652dc12db40f41461c76de09bb3f3af"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "953f42cb81fa7cd5b1c4a04bf7161190"
@@ -5863,7 +5863,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "4f8d4c757bbd3baef70e9d3c0efa32f4"
+      "checksum": "449be5f949b980dd4e14ae1c27ee8245"
     }
   },
   "users": null
