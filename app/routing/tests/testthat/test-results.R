@@ -53,7 +53,7 @@ test_that("E1-E9, E18 and E23-E26 calculate; E10-E14 preview first, then a full 
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
-  expect_true(is.na(usual_seconds(forms, "E9", "sensitivity")))
+  expect_equal(usual_seconds(forms, "E9", "sensitivity"), 2)
   # The maintainer's choices (17 October 2026): a preview of about 100
   # replications; the full run in the app for mediation power at a fixed N
   # only; the R script for everything else.
@@ -282,6 +282,8 @@ test_that("mediation shows departures 6 and 8, parallel mediators 7, and the int
     expect_length(known_differences_for(forms, ep), 0)
   }
   expect_match(known_differences_for(forms, "E9"), "Fixed-model calculations", fixed = TRUE)
+  # The smallest detectable effect has its own wording: it uses the formula.
+  expect_match(known_differences_for(forms, "E9", list(goal = list(type = "sensitivity"))), "comes from InteractionPoweR's fixed-model formula", fixed = TRUE)
   expect_length(known_differences_for(forms, "E1"), 0)
   # Every departure and known difference a form names has its text.
   for (ep in names(forms$forms)) {
@@ -674,6 +676,23 @@ test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes",
   # With the z test, Known difference 2 doesn't apply.
   z <- build_spec(forms, "E5", fields, form_examples$E5)
   expect_length(known_difference_keys(forms, "E5", z), 0)
+})
+
+test_that("E9: the smallest detectable interaction, labelled as the fixed-model formula", {
+  fields <- form_fields(form_groups(forms, "E9"))
+  goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+  expect_true("sensitivity" %in% names(goal$choices))
+  expect_false("sensitivity_curve" %in% names(goal$choices))
+  values <- modifyList(form_examples[["E9"]], list(goal = "sensitivity", n = "300", power = "0.8"))
+  expect_length(form_problems(fields, values), 0)
+  calc <- run_calculation(build_spec(forms, "E9", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  expect_true(calc$result$sensitivity$approximation)
+  html <- as.character(result_panel_ui(tree, forms, "E9", fields, values, calc))
+  expect_match(html, "is the correlation of the interaction with Y = 0.1", fixed = TRUE)
+  expect_match(html, "fixed-model formula (InteractionPoweR::power_interaction_r2(), no simulation)", fixed = TRUE)
+  expect_match(html, "comes from InteractionPoweR&#39;s fixed-model formula|comes from InteractionPoweR's fixed-model formula")
+  expect_match(html, "The smallest detectable effect was found with a fixed-model formula", fixed = TRUE)
 })
 
 # "Does this still apply?" (the new design, 18 October 2026) -----------------

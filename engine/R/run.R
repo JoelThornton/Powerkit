@@ -107,7 +107,11 @@ run_spec <- function(spec) {
   }
   backend <- route_spec(spec, seed)
   method <- spec$options$method %||% backend$default_method
-  if (!method %in% backend$methods) {
+  # A backend that simulates may find the smallest detectable effect by a
+  # formula of its own (InteractionPoweR's fixed-model power).
+  if (identical(spec$goal$type, "sensitivity") && is.null(spec$options$method) && !is.null(backend$sensitivity_method)) {
+    method <- backend$sensitivity_method
+  } else if (!method %in% backend$methods) {
     abort_run(sprintf(
       "The '%s' method isn't available for this design; use %s.",
       method, quote_list(backend$methods)

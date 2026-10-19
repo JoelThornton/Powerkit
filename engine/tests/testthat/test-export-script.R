@@ -122,6 +122,18 @@ test_that("E9 regression interaction: the exported InteractionPoweR script repro
   expect_script_reproduces_power(spec, run_for_export(spec))
 })
 
+test_that("E9 regression interaction: the script reproduces the smallest detectable interaction", {
+  skip_unless_scripts_can_run()
+  spec <- sim_spec("regression_interaction", goal = list(type = "sensitivity", n = 300, power = 0.8))
+  spec <- continuous_and_reliable(spec)
+  spec$variables$X$reliability <- 0.8
+  result <- run_spec(spec)
+  script <- export_script(spec, result)
+  expect_match(paste(script, collapse = "\n"), "fixed-model formula (no simulation)", fixed = TRUE)
+  expect_equal(run_exported_script(spec, result)$reproduced,
+    list(effect = result$sensitivity$effect, power = result$sensitivity$power), tolerance = 1e-8)
+})
+
 mediation_power_spec <- function(name) {
   continuous_and_reliable(sim_spec(name, goal = list(type = "power", n = 150)))
 }

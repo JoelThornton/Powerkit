@@ -91,7 +91,7 @@ calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26]
 # measured with the example values and 1,000 replications on one core
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
-  E9: {power: 5, sample_size: 80}
+  E9: {power: 5, sample_size: 80, sensitivity: 2}
 
 # Mediation and moderated mediation (E10-E14; the maintainer's decision of
 # 17 October 2026, docs/phase5-simulations.md and docs/decisions.md):
@@ -153,12 +153,14 @@ departures:
 # tool, and another gives a different answer.
 known_differences:
   "1": "Regression interactions: powerkit simulates power, drawing the predictors afresh in each sample (InteractionPoweR's power_interaction()). Fixed-model calculations, such as G*Power's and InteractionPoweR's power_interaction_r2(), give slightly higher power: up to about 1.4 points, so the N here may be about 3% larger than G*Power's."
+  "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, power_interaction_r2(), as G*Power's would, not from simulation. Fixed-model power is slightly higher than simulated power (up to about 1.4 points), so the smallest effect you could detect may be slightly larger than shown. Sample size and power for this design are simulated."
   "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
 known_differences_methods:
   "1": "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
+  "1 sensitivity": "The smallest detectable effect was found with a fixed-model formula, which treats the predictors as fixed; for interactions this gives slightly higher power than simulation with the predictors drawn afresh in each sample, so the smallest detectable effect may be slightly larger than reported."
   "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power, as in G*Power; pwrss's own sample-size answer can be slightly larger."
 
 forms:
@@ -427,6 +429,10 @@ forms:
     methods_name: "a moderated regression (continuous × continuous interaction)"
     tool: InteractionPoweR
     known_differences: ["1"]
+    # The smallest detectable effect: the interaction's correlation with Y,
+    # by InteractionPoweR's fixed-model formula (the engine's
+    # interactionpower_sensitivity()); labelled on the result screen.
+    sensitivity: true
     directional: false
     base: {spec_version: "0.1", design: regression_interaction, template: two_way,
            variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
