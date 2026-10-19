@@ -1,0 +1,92 @@
+# "What's new" tab: changes people using the app would notice, in plain
+# words, newest first. Add an entry with every PR that changes what users
+# see (engine/NEWS.md keeps the developer notes). Rules, checked by
+# tests/testthat/test-whats-new.R: a date (YYYY-MM-DD), a short title and a
+# sentence or two of text; newest first; no internal codes such as E5 or
+# "Departure 6"; name the analysis instead.
+entries:
+  - date: "2026-10-19"
+    title: "A reason is asked for if you change the significance level or test direction"
+    text: >-
+      The significance level (.05) and a two-sided test stay filled in. If you
+      change either, a box asks why. It's optional, and what you write goes
+      into the write-up.
+  - date: "2026-10-19"
+    title: "Two new analyses: goodness of fit, and comparing two correlations"
+    text: >-
+      You can now plan a chi-square goodness-of-fit test (one group's answers
+      across several categories, compared with expected proportions) and a
+      comparison of the same correlation in two separate groups. Neither has
+      been checked against G*Power yet; their cards say so.
+  - date: "2026-10-19"
+    title: "\"Guess first\": write down your guess before you see the answer"
+    text: >-
+      At the end of each input screen you can write down the sample size or
+      power you expect. The result screen then shows your guess next to the
+      answer. It's a learning aid only: the guess isn't saved in your plan
+      and nothing is collected.
+  - date: "2026-10-19"
+    title: "More analyses can find the smallest effect you could detect"
+    text: >-
+      If you can't justify an effect size, or your sample size is fixed, the
+      app can now find the smallest effect you could detect for two
+      proportions, the chi-square test and interactions in regression. For
+      interactions it uses a quick formula, which the result screen labels.
+  - date: "2026-10-19"
+    title: "The app asks whether your reasoning still applies"
+    text: >-
+      If you change the effect size after explaining why you chose it, the
+      result screen asks whether your reasoning still applies, rather than
+      quietly keeping a reason written for a different number.
+  - date: "2026-10-19"
+    title: "Fisher's exact test and one-way ANCOVA"
+    text: >-
+      Comparing two proportions now offers Fisher's exact test for small
+      samples, and one-way ANCOVA (group means adjusted for covariates)
+      calculates in the app.
+  - date: "2026-10-18"
+    title: "A methods paragraph you can copy"
+    text: >-
+      The result screen now writes a short and a full methods paragraph for
+      your power analysis, with the citations to use, ready to paste into a
+      preregistration, ethics application or paper.
+  - date: "2026-10-18"
+    title: "One-way ANOVA, regression, one proportion and McNemar's test"
+    text: >-
+      These four analyses now calculate in the app. Welch's t-test can also be
+      calculated by formula as well as by simulation.
+  - date: "2026-10-18"
+    title: "A clearer start, and a clearer result screen"
+    text: >-
+      The first screen now asks about your situation (including a sample
+      size that's already fixed), your aim and the claim you want to make.
+      The effect-size screen asks where your effect size comes from, with a
+      way through if you can't justify one. The result screen gives a plain
+      reading of the answer and shows 80% and 95% power side by side.
+  - date: "2026-10-18"
+    title: "The app is online"
+    text: >-
+      You can use powerkit in a web browser, without installing R. It updates
+      itself each time a change is approved.
+  - date: "2026-10-18"
+    title: "Save your plan and reopen it later"
+    text: >-
+      You can save an analysis to a file, reopen it in the app, and rerun it
+      to get the same result.
+  - date: "2026-10-18"
+    title: "Mediation and moderated mediation"
+    text: >-
+      Mediation models give a quick rough preview of power in the app, then
+      either run the full analysis here (it takes several minutes) or give
+      you an R script to run on your own computer.
+  - date: "2026-10-18"
+    title: "Dropout: how many to recruit"
+    text: >-
+      If you expect some participants to drop out, the result shows both the
+      number you need to analyse and the number to recruit.
+  - date: "2026-10-17"
+    title: "The first working prototype"
+    text: >-
+      The design finder, the cards and the input screens for the t-tests, the
+      correlation, two proportions, the chi-square test, 2 x 2 designs and
+      interactions in regression.

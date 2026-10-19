@@ -92,7 +92,27 @@ about_ui <- function(tree, forms) {
     ), "These calculate in the app:"),
     tags$ul(class = "about-endpoints", about_endpoint_lines(tree, forms)),
     p("The other cards give guidance only for now."),
-    h3(class = "h5", "Reporting a problem"),
+    h3(class = "h5", "What it doesn't do"),
+    tags$ul(
+      tags$li("It doesn't choose your effect size. It asks where yours comes from and helps you explain it, ",
+        "but the number and the reasoning are yours."),
+      tags$li("It doesn't collect or analyse your data. It plans a study; it doesn't run one."),
+      tags$li("It doesn't use AI to calculate or to write anything you see. Every number comes from the R packages below, ",
+        "and the write-up is fixed wording filled in with your numbers."),
+      tags$li("It doesn't replace a statistician for unusual designs. If no card fits your study, ",
+        "or a card gives guidance only, ask someone who knows your design.")
+    ),
+    h3(class = "h5", "Where the numbers come from"),
+    p("Each analysis is handed to the established R package that already does it (listed under Credits). ",
+      "Where powerkit's settings differ from that package's or from G*Power's usual ones, the result screen says so ",
+      "and explains it. The result screen's R script reruns your result with the package alone, ",
+      "so anyone can check it without powerkit."),
+    h3(class = "h5", "How far along it is"),
+    p("powerkit is being built and checked now. Several of its analyses have been compared with G*Power and with ",
+      "published examples; others haven't been checked yet. ",
+      "It won't be released until a statistician has checked it. ",
+      "The What's new tab lists what has changed, newest first."),
+    h3(class = "h5", "Reporting a problem or giving feedback"),
     p(HTML(paste0(
       "Every card has a <strong>Something doesn&#39;t fit?</strong> link at the bottom. Open it, click ",
       "<strong>Copy the path</strong>, paste it into an email, add a sentence on what you expected, ",
@@ -105,5 +125,32 @@ about_ui <- function(tree, forms) {
     tags$ul(class = "about-credits", lapply(about_foundation_tools, about_credit_ui)),
     p("And the software they run on:"),
     tags$ul(class = "about-credits", lapply(about_supporting_tools, about_credit_ui))
+  )
+}
+
+# "What's new": dated changes in plain words, newest first, from
+# whats-new.yaml (one entry per change users would notice).
+load_whats_new <- function(path) {
+  entries <- yaml::read_yaml(path, fileEncoding = "UTF-8")$entries
+  dates <- as.Date(vapply(entries, `[[`, "", "date"))
+  entries[order(dates, decreasing = TRUE)]
+}
+
+whats_new_ui <- function(entries) {
+  dates <- vapply(entries, `[[`, "", "date")
+  days <- unique(dates)
+  div(
+    class = "about",
+    h2("What's new"),
+    p("Changes to powerkit you would notice, newest first. ",
+      "The online app updates itself each time a change is approved."),
+    lapply(days, function(day) {
+      tagList(
+        h3(class = "h5", paste(as.integer(format(as.Date(day), "%d")), format(as.Date(day), "%B %Y"))),
+        tags$ul(class = "whats-new", lapply(entries[dates == day], function(e) {
+          tags$li(tags$strong(e$title), tags$br(), e$text)
+        }))
+      )
+    })
   )
 }
