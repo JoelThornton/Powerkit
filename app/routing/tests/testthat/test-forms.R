@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E24", "E25", "E26"))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E23", "E24", "E25", "E26"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {
@@ -224,7 +224,7 @@ test_that("'Copy my answers' gives the route, the end point and the values as te
 
 test_that("cards with an input screen offer it; others don't", {
   expect_match(as.character(card_nav_ui(forms, "E2")), "Enter your values", fixed = TRUE)
-  expect_no_match(as.character(card_nav_ui(forms, "E23")), "Enter your values", fixed = TRUE)
+  expect_no_match(as.character(card_nav_ui(forms, "E19")), "Enter your values", fixed = TRUE)
 })
 
 test_that("whether effect sizes start empty is an undecided setting, shown on the screens", {
@@ -343,6 +343,48 @@ test_that("regression: the question sets the template and the effect, and shows 
   expect_null(spec$population$r2)
   skip_without_engine()
   expect_identical(check_spec(build_spec(forms, "E24", fields_for("E24"), zero), fields_for("E24"), validate)$status, "ok")
+})
+
+test_that("two proportions: Fisher's exact test is a test version, with no formula or simulation choice", {
+  fields <- fields_for("E5")
+  v <- values_for("E5")
+  z <- build_spec(forms, "E5", fields, c(v, list(calc_method = "exact", proportions_formula = "z_test")))
+  expect_identical(z$target_test$method, "z_test")
+  expect_identical(z$options$proportions_formula, "z_test")
+  # The z test's formula choice needs the formula, not simulation.
+  sim <- build_spec(forms, "E5", fields, c(v, list(calc_method = "simulation", proportions_formula = "z_test")))
+  expect_identical(sim$options$method, "simulation")
+  expect_null(sim$options$proportions_formula)
+  # With Fisher's exact test both are hidden: it is pwrss's formula only.
+  fisher <- build_spec(forms, "E5", fields, modifyList(v, list(method = "fisher_exact", calc_method = "simulation", proportions_formula = "arcsine")))
+  expect_identical(fisher$target_test$method, "fisher_exact")
+  expect_null(fisher$options$method)
+  expect_null(fisher$options$proportions_formula)
+  skip_without_engine()
+  expect_identical(check_spec(fisher, fields, validate)$status, "ok")
+})
+
+test_that("a field can depend on several choices at once", {
+  field <- list(id = "x", shown_if = list(list(field = "a", is = "1"), list(field = "b", is_not = "2")))
+  expect_true(field_applies(field, list(a = "1", b = "3")))
+  expect_false(field_applies(field, list(a = "1", b = "2")))
+  expect_false(field_applies(field, list(a = "0", b = "3")))
+  html <- as.character(field_ui(list(id = "x", label = "X", type = "text", shown_if = field$shown_if), list()))
+  expect_match(html, "input.f_a == &#39;1&#39; &amp;&amp; input.f_b != &#39;2&#39;", fixed = TRUE)
+})
+
+test_that("ANCOVA takes adjusted means, one SD and the covariates' R-squared", {
+  v <- values_for("E23")
+  spec <- build_spec(forms, "E23", fields_for("E23"), v)
+  expect_identical(spec$template, "oneway_ancova")
+  expect_identical(spec$target_test$method, "ancova_f")
+  expect_identical(spec$population$means, list(20, 18, 16))
+  expect_identical(spec$population$r2_covariates, 0.36)
+  expect_equal(spec$population$covariates, 1)
+  v$r2_covariates <- "1"
+  expect_match(form_problems(fields_for("E23"), v), "must be less than 1", fixed = TRUE)
+  skip_without_engine()
+  expect_identical(check_spec(spec, fields_for("E23"), validate)$status, "ok")
 })
 
 test_that("Welch's t-test is simulated by default, with pwrss's formula on request", {

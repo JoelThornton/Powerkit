@@ -34,15 +34,13 @@ field_ui <- function(f, value, described_by = character()) {
     )
   )
   if (is.null(f$shown_if)) return(field)
-  # Shown or hidden in the browser as the other choice changes; the server
+  # Shown or hidden in the browser as the other choices change; the server
   # ignores a hidden field's value (field_applies()).
-  other <- sprintf("input.%s", field_input_id(list(id = f$shown_if$field)))
-  condition <- if (!is.null(f$shown_if[["is"]])) {
-    sprintf("%s == '%s'", other, f$shown_if[["is"]])
-  } else {
-    sprintf("%s != '%s'", other, f$shown_if[["is_not"]])
-  }
-  conditionalPanel(condition, field)
+  condition <- vapply(shown_if_conditions(f), function(cond) {
+    other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
+    if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
+  }, character(1))
+  conditionalPanel(paste(condition, collapse = " && "), field)
 }
 
 # A group of fields: a fieldset whose legend is the card's "What you would

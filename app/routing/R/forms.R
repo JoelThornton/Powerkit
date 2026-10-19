@@ -127,14 +127,13 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
 }
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
-# basic_method_field). Welch's t-test has no pwr formula, so for E2 the
-# choice is shown only with Student's test; with Welch's the engine
-# simulates.
+# basic_method_field). Where the form has a test version (`method`), the
+# choice is shown only with its default version: Welch's t-test (E2) has no
+# pwr formula, and Fisher's exact test (E5) is pwrss's formula only.
 basic_method_field <- function(forms, ep_id) {
   field <- forms$basic_method_field
-  if (any(vapply(form_fields(forms$forms[[ep_id]]$groups), function(f) identical(f$id, "method"), logical(1)))) {
-    field$shown_if <- list(field = "method", is = "student_t")
-  }
+  version <- Filter(function(f) identical(f$id, "method"), form_fields(forms$forms[[ep_id]]$groups))
+  if (length(version)) field$shown_if <- list(field = "method", is = version[[1]][["default"]])
   field
 }
 
@@ -276,17 +275,25 @@ parse_table <- function(x) {
 
 # Whether a field applies, given the goal, the justification and any other
 # choice it depends on (`shown_if`: shown only when another field `is`, or
-# `is_not`, a given value; an empty choice counts as no value).
+# `is_not`, a given value; an empty choice counts as no value; a list of
+# such conditions must all hold).
 field_applies <- function(field, values) {
-  if (!is.null(field$shown_if)) {
-    current <- values[[field$shown_if$field]]
+  for (cond in shown_if_conditions(field)) {
+    current <- values[[cond$field]]
     current <- if (blank(current)) "" else as.character(current)
-    if (!is.null(field$shown_if[["is"]]) && !identical(current, field$shown_if[["is"]])) return(FALSE)
-    if (!is.null(field$shown_if[["is_not"]]) && identical(current, field$shown_if[["is_not"]])) return(FALSE)
+    if (!is.null(cond[["is"]]) && !identical(current, cond[["is"]])) return(FALSE)
+    if (!is.null(cond[["is_not"]]) && identical(current, cond[["is_not"]])) return(FALSE)
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$needed_if_just)) return(identical(values$just_type, field$needed_if_just))
   TRUE
+}
+
+# A field's `shown_if` as a list of conditions (one, or several that must
+# all hold).
+shown_if_conditions <- function(field) {
+  if (is.null(field$shown_if)) return(list())
+  if (!is.null(field$shown_if$field)) list(field$shown_if) else field$shown_if
 }
 
 quote_label <- function(field) sprintf("“%s”", field$label)

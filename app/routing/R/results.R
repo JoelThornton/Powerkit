@@ -124,7 +124,8 @@ group_sizes <- function(spec, n) {
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
-    oneway_between = {
+    oneway_between = ,
+    oneway_ancova = {
       k <- length(spec$variables$A$levels)
       rep(n / k, k)
     },
@@ -480,11 +481,23 @@ departures_for <- function(forms, ep_id, spec) {
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, c("9", "10", "11"))
+  # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
+  # test's departures, nor the continuity correction, apply.
+  if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
-known_differences_for <- function(forms, ep_id) {
-  keys <- unlist(forms$forms[[ep_id]]$known_differences)
+# `known_differences_if_method` limits a known difference to one test
+# version (E5: Known difference 2 applies only to Fisher's exact test).
+known_difference_keys <- function(forms, ep_id, spec = NULL) {
+  form <- forms$forms[[ep_id]]
+  keys <- unlist(form$known_differences)
+  only <- form$known_differences_if_method
+  Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+}
+
+known_differences_for <- function(forms, ep_id, spec = NULL) {
+  keys <- known_difference_keys(forms, ep_id, spec)
   vapply(keys, function(k) forms$known_differences[[k]], character(1))
 }
 
@@ -522,7 +535,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   words <- result_sentences(spec, result)
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
-  known <- known_differences_for(forms, ep_id)
+  known <- known_differences_for(forms, ep_id, spec)
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source)
@@ -573,7 +586,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
-      vapply(unlist(forms$forms[[ep_id]]$known_differences), function(k) forms$known_differences_methods[[k]], character(1)), known)),
+      vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     placeholders_at(tree, "result"),
     tags$details(tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
     tags$details(tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
@@ -648,6 +661,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (blank(values$just_source)) return(NULL)
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
+  if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)

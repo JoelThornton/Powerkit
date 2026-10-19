@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* App: Fisher's exact test is now a test version on the two-proportions
+  screen (E5), for small samples or small expected counts; with it, the
+  formula and simulation choices are hidden (it is pwrss's exact test
+  only), Known difference 2 is shown and the z test's departures are not.
+  One-way ANCOVA (E23) calculates on its own input screen: adjusted group
+  means, one SD, the covariates' R-squared and their number, on pwrss's
+  Shieh method. Both match pwrss in the engine's tests but haven't been
+  checked against G\*Power; their cards say so.
+
 * Engine: generic t, F, chi-square and z tests (design `generic_test`, not
   yet in the app), as G\*Power's "Generic" tests: power from a
   noncentrality parameter and degrees of freedom, or the noncentrality

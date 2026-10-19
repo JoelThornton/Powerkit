@@ -9,9 +9,9 @@
 # engine's citations export, supporting_software()), then R and Shiny.
 about_foundation_tools <- list(
   list(package = "pwr", role = "formulas for the t-tests, the correlation and the chi-square test (E1 to E4, E6), and Cohen's h for two proportions if you choose it"),
-  list(package = "pwrss", role = "the z test for two proportions in unequal groups (E5)"),
+  list(package = "pwrss", role = "the z test for two proportions in unequal groups and Fisher's exact test (E5), Welch's t-test by formula (E2), one-way ANCOVA (E23), multiple regression (E24), one proportion (E25) and McNemar's test (E26)"),
   list(package = "Spower", role = "simulation for the basic tests when you choose it, and for Welch's t-test (E2)"),
-  list(package = "Superpower", role = "the 2 x 2 designs (E7, E8)"),
+  list(package = "Superpower", role = "the 2 x 2 designs (E7, E8) and the one-way ANOVA (E18)"),
   list(package = "InteractionPoweR", role = "interactions in regression (E9)"),
   list(package = "power4mome", role = "mediation and moderated mediation (E10 to E14)")
 )
