@@ -248,6 +248,11 @@ server <- function(input, output, session) {
     pick <- input$pick
     kind <- sub(":.*$", "", pick)
     value <- sub("^[^:]*:", "", pick)
+    if (pick == "check_open" && !is.null(state$checked_project)) {
+      project <- state$checked_project
+      open_in_app(project, restore_from_project(project$route, tree, forms))
+      return()
+    }
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
     } else if (kind == "route") {
@@ -499,11 +504,32 @@ server <- function(input, output, session) {
       output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", restored))
       return()
     }
+    open_in_app(project, restored)
+  })
+  open_in_app <- function(project, restored) {
     cancel_job()
     state$calc <- NULL
     state$long_spec <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
     output$form_result <- renderUI(project_opened_ui(project))
+  }
+  # The plan checker: the same file, read for a reviewer (nothing is run).
+  read_project_file <- function(path) {
+    read <- engine_function("read_project")
+    if (is.null(read)) return("Opening a project needs powerkit's engine, which isn't installed where this prototype is running.")
+    tryCatch(read(path), error = function(e) {
+      if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a powerkit project."
+    })
+  }
+  observeEvent(input$check_project, {
+    project <- read_project_file(input$check_project$datapath)
+    problem <- if (is.character(project)) project else restore_from_project(project$route, tree, forms)
+    if (is.character(problem)) {
+      output$check_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", problem))
+      return()
+    }
+    state$checked_project <- project
+    state$screen <- "check"
   })
   observeEvent(input$form_copy, {
     text <- answers_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint, current_form_fields(), current_form_values())
@@ -514,7 +540,8 @@ server <- function(input, output, session) {
   output$screen <- renderUI({
     switch(
       state$screen,
-      start = tagList(start_ui(tree, isolate(state$start)), open_project_ui()),
+      start = tagList(start_ui(tree, isolate(state$start)), open_project_ui(), check_project_ui()),
+      check = plan_check_ui(tree, forms, state$checked_project),
       known = known_ui(tree, state$history, state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
