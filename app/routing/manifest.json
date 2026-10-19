@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c909d63e49fd9743baf5582581b6f7cbbfe90774",
-        "RemoteSha": "c909d63e49fd9743baf5582581b6f7cbbfe90774",
+        "RemoteRef": "4c889556b3641b17f05cb8cedfdbf37a076d3e51",
+        "RemoteSha": "4c889556b3641b17f05cb8cedfdbf37a076d3e51",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c909d63e49fd9743baf5582581b6f7cbbfe90774",
-        "GithubSHA1": "c909d63e49fd9743baf5582581b6f7cbbfe90774",
+        "GithubRef": "4c889556b3641b17f05cb8cedfdbf37a076d3e51",
+        "GithubSHA1": "4c889556b3641b17f05cb8cedfdbf37a076d3e51",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-19 00:35:36 UTC; runner",
+        "Packaged": "2026-10-19 07:39:12 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-19 00:35:41 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-19 07:39:18 UTC; unix"
       }
     },
     "praise": {
@@ -5761,7 +5761,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "1f54b58a44b80b2142135359cba4fe25"
+      "checksum": "dadd2fcbc626653bc0b2e283d778e897"
     },
     "forms.yaml": {
       "checksum": "ce2e08fc78e1a8639811cc9a953b8d03"
@@ -5782,7 +5782,7 @@
       "checksum": "4db418c3160c27474bf357a0d83ea1de"
     },
     "R/results.R": {
-      "checksum": "60c63f43fda65aaed6dcad80abd51f65"
+      "checksum": "cbf573df551dca614768f19039130eb5"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5830,7 +5830,7 @@
       "checksum": "8432735c4727ddefb0e8ce7eebe6e581"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "6f4d5fe90b6bfad27053a842ec8a1ec6"
+      "checksum": "7e5b76254fcf3463b8deb7df757c4ec8"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "3aabcfad2a722e3a91195cb3909dd19f"
