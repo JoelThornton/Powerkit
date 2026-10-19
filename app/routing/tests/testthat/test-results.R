@@ -675,3 +675,37 @@ test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes",
   z <- build_spec(forms, "E5", fields, form_examples$E5)
   expect_length(known_difference_keys(forms, "E5", z), 0)
 })
+
+# "Does this still apply?" (the new design, 18 October 2026) -----------------
+
+test_that("changing the effect size after writing the reasoning flags it, without wiping it", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on."))
+  # No reasoning: nothing to flag or remember.
+  expect_null(source_check(NULL, "E2", fields, modifyList(values, list(just_source = "")))$record)
+  first <- source_check(NULL, "E2", fields, values)
+  expect_false(first$stale)
+  expect_identical(first$record$effect[["d"]], "0.4")
+  expect_false(source_check(first$record, "E2", fields, values)$stale)
+  changed <- source_check(first$record, "E2", fields, modifyList(values, list(d = "0.6")))
+  expect_true(changed$stale)
+  expect_identical(changed$was, "Cohen's d = 0.4")
+  expect_identical(changed$record, first$record) # still the values the reasoning was written for
+  # Editing the reasoning, or another design, starts afresh.
+  expect_false(source_check(first$record, "E2", fields, modifyList(values, list(d = "0.6", just_source = "New pilot data.")))$stale)
+  expect_false(source_check(first$record, "E1", fields, modifyList(values, list(d = "0.6")))$stale)
+
+  # The result screen keeps the reasoning, asks, and holds saving and the write-up.
+  stale <- modifyList(values, list(d = "0.6", method = "student_t", source_stale = TRUE, source_was = "Cohen's d = 0.4"))
+  calc <- run_calculation(build_spec(forms, "E2", fields, stale), seed = forms$default_seed)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, stale, calc))
+  expect_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "(it was Cohen's d = 0.4; it is now Cohen's d = 0.6)", fixed = TRUE)
+  expect_match(html, "Smallest difference our clinic would act on.", fixed = TRUE)
+  expect_match(html, "source_still_applies", fixed = TRUE)
+  expect_no_match(html, "download_script|download_project|writeup_short")
+  expect_no_match(html, "export-needs-reasoning", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, modifyList(stale, list(source_stale = FALSE)), calc))
+  expect_no_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "writeup_short", fixed = TRUE)
+})

@@ -10,6 +10,13 @@
   numbers of categories, straight from `pwr.chisq.test()`. Engine: these
   two designs accept a zero effect for the smallest detectable effect.
 
+* App: if you change the effect size after writing your reasoning for it,
+  the result screen asks "Does your reasoning still apply?" and shows the
+  old and new values. Your reasoning is kept, not wiped. Until you confirm
+  it ("Yes, it still applies") or edit it, the plan can't be saved or
+  exported and there is no write-up, so the write-up never quotes a reason
+  written for a different number.
+
 * App: Fisher's exact test is now a test version on the two-proportions
   screen (E5), for small samples or small expected counts; with it, the
   formula and simulation choices are hidden (it is pwrss's exact test
