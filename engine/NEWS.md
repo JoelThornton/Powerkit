@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* App: "Guess first", an optional teaching step at the end of every input
+  screen. Write down the sample size, power or smallest effect you expect
+  before pressing "Check my answers"; the result screen shows your guess
+  next to the answer (for example, "Your guess: 60 participants. The answer: 394, 6.6
+  times your guess."). The guess isn't part of the plan, the R script or
+  the write-up, and nothing is collected.
+
 * Regression interactions (E9) can now find the smallest effect you
   could detect at a given sample size: the correlation of the interaction
   with Y, with the other correlations kept as entered. It uses
