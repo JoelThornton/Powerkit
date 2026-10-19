@@ -67,7 +67,9 @@ any time, and user testing is the maintainer's to run):
    It updates itself: Connect Cloud publishes from GitHub on each merge
    (set up by the maintainer, 18 October 2026), using
    `app/routing/manifest.json` (kept current by a workflow). Fallback:
-   `scripts/deploy-online.R`.
+   `scripts/deploy-online.R`. Running it on your own computer: the Mac
+   route broke on 19 October 2026 when CRAN replaced a locked package
+   (RcppArmadillo); the lockfile now has the new version.
 3. Fill the core gaps: the "does this still apply?" flag on the
    effect-size source is merged (19 October 2026); the smallest
    detectable effect with no effect size for two proportions and

@@ -1,5 +1,10 @@
 # powerkit 0.0.0.9000
 
+* Running powerkit on your own Mac works again: RcppArmadillo is updated
+  to 15.6.2-1 in `renv.lock`. CRAN replaced 15.6.0-1 on 17 October 2026,
+  so a Mac had to build the old version from source, which needs
+  developer tools most people don't have.
+
 * App: "I can't justify an effect size" and "the smallest effect I could
   detect across a range of sample sizes" now work for two proportions
   (E5) and the chi-square test (E6), as for the t-tests and the
