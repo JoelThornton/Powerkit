@@ -9,6 +9,13 @@
   available. It describes the plan; it doesn't say whether the study is
   ethical.
 
+* App: the About tab now also says what powerkit doesn't do (it doesn't
+  choose your effect size, collect data, use AI or replace a
+  statistician), where the numbers come from and how far along it is. A
+  new "What's new" tab lists dated changes in plain words, newest first,
+  from `app/routing/whats-new.yaml`; each PR that changes what users see
+  adds an entry there.
+
 * App: changing the significance level from its default, or choosing a
   one-sided test, now opens a box asking why (optional). The reason goes
   into the write-up, for example "The significance level of .01 was chosen

@@ -40,7 +40,10 @@ fully validated. Validation runs are recorded in
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
   Changing alpha or choosing a one-sided test asks for a reason, which
-  goes into the write-up (in review).
+  goes into the write-up (in review). The About tab says what powerkit
+  does and doesn't do, where the numbers come from and how far along it
+  is; a "What's new" tab lists dated changes in plain words, from
+  `app/routing/whats-new.yaml` (both in review).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
