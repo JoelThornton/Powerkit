@@ -77,7 +77,7 @@ any time, and user testing is the maintainer's to run):
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
-6. Optional features (any time; those that help testing first): a "guess first" teaching mode,
+6. Optional features (any time; those that help testing first): "guess first" (in review),
    an ethics-board version of the write-up, a plan checker for
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.

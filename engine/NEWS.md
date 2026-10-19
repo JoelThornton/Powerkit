@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* App: "Guess first", an optional teaching step at the end of every input
+  screen. Write down the sample size, power or smallest effect you expect
+  before pressing "Check my answers"; the result screen shows your guess
+  next to the answer (for example, "Your guess: 60 participants. The answer: 394, 6.6
+  times your guess."). The guess isn't part of the plan, the R script or
+  the write-up, and nothing is collected.
+
 * App: if you change the effect size after writing your reasoning for it,
   the result screen asks "Does your reasoning still apply?" and shows the
   old and new values. Your reasoning is kept, not wiped. Until you confirm
