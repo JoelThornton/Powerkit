@@ -312,43 +312,33 @@ pwr_sensitivity <- function(spec, n, target) {
     },
     chi_square_independence = {
       p <- probability_matrix(spec)
-      w <- solve("pwr.chisq.test", list(N = n, w = NULL, df = (nrow(p) - 1) * (ncol(p) - 1)), "w")
-      list(effect = w, effect_name = "w", effect_description = "Cohen's w (departure from independence)")
+      df <- (nrow(p) - 1) * (ncol(p) - 1)
+      w <- solve("pwr.chisq.test", list(N = n, w = NULL, df = df), "w")
+      # The power at w, from the same pwr call as for power: a table with
+      # no departure from independence (none given) has nothing to scale.
+      power <- call_backend("pwr", quietly(pwr::pwr.chisq.test(w = w, N = n, df = df, sig.level = alpha)))$power
+      list(effect = w, effect_name = "w", effect_description = "Cohen's w (departure from independence)", power = power)
     },
     two_proportions = pwr_sensitivity_p2(spec, n, target)
   )
-  found$power <- pwr_power(pwr_inputs(pwr_spec_with_effect(spec, found)), n)
+  found$power <- found$power %||% pwr_power(pwr_inputs(pwr_spec_with_effect(spec, found)), n)
   found
 }
 
 # The spec with the population effect replaced by a sensitivity result, so
 # the power at that effect can be checked with the usual power call.
 pwr_spec_with_effect <- function(spec, found) {
-  field <- switch(
-    found$effect_name,
-    d = "d", d_z = "dz", r = "r", p2 = "p2",
-    w = NULL
-  )
-  if (is.null(field)) {
-    # Chi-square: scale the table's departure from independence until its
-    # Cohen's w equals the w found (w is proportional to the scale).
-    p <- probability_matrix(spec)
-    expected <- outer(rowSums(p), colSums(p))
-    scale <- found$effect / pwr_w(p)
-    scaled <- expected + scale * (p - expected)
-    # Back to the spec's form: a list of rows (probability_matrix()).
-    spec$population$probabilities <- lapply(seq_len(nrow(scaled)), function(i) as.list(scaled[i, ]))
-    return(spec)
-  }
+  field <- switch(found$effect_name, d = "d", d_z = "dz", r = "r", p2 = "p2")
   spec$population[[field]] <- found$effect
   spec
 }
 
 # Two proportions: keep p1 and move p2 away from it, in the direction of
-# the specified difference, until power reaches the target.
+# the specified difference, until power reaches the target. With no
+# difference given (p2 equal to p1), group 2's proportion goes up.
 pwr_sensitivity_p2 <- function(spec, n, target) {
   p1 <- spec$population$p1
-  direction <- sign(spec$population$p2 - p1)
+  direction <- if (spec$population$p2 >= p1) 1 else -1
   limit <- if (direction > 0) 1 - 1e-9 else 1e-9
   power_at <- function(p2) {
     trial <- spec
