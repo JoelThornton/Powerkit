@@ -83,7 +83,7 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   expect_match(power("E10")$default_source, "target_power = 0.8", fixed = TRUE)
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Mark Rubin's advice (19 October 2026): asked, not pre-filled, and first.
-  expect_null(direction$default)
+  expect_null(direction[["default"]])
   expect_match(direction$label, "Does your hypothesis predict a direction?", fixed = TRUE)
   expect_match(direction$default_source, "Not filled in for you", fixed = TRUE)
   expect_equal(form_groups(forms, "E2")[[1]]$title, "Your hypothesis")
