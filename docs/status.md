@@ -68,11 +68,14 @@ any time, and user testing is the maintainer's to run):
    It updates itself: Connect Cloud publishes from GitHub on each merge
    (set up by the maintainer, 18 October 2026), using
    `app/routing/manifest.json` (kept current by a workflow). Fallback:
-   `scripts/deploy-online.R`.
+   `scripts/deploy-online.R`. Running it on your own computer: the Mac
+   route broke on 19 October 2026 when CRAN replaced a locked package
+   (RcppArmadillo); the lockfile now has the new version.
 3. Fill the core gaps: the "does this still apply?" flag on the
-   effect-size source is in review; next, the smallest
-   detectable effect for two proportions, chi-square and regression
-   interactions in the app.
+   effect-size source is merged (19 October 2026); the smallest
+   detectable effect with no effect size for two proportions and
+   chi-square (in review); next, the smallest detectable effect for
+   regression interactions.
 4. User testing with the online link, run by the maintainer: the plan
    ([`user-testing.md`](user-testing.md)) is ready for the four screens.
 5. The maintainer's judgement session

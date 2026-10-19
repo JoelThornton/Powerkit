@@ -418,7 +418,7 @@ test_that("sensitivity says plainly when no effect can reach the target", {
   expect_error(run_spec(spec), "No proportion in group 2 reaches the target power", class = "powerkit_run_error")
 })
 
-test_that("t-tests and the correlation need no effect size for the smallest detectable effect", {
+test_that("the basic tests need no effect size for the smallest detectable effect", {
   # "I can't justify an effect size": the spec gives a zero effect, and the
   # result is the positive effect pwr solves for.
   spec <- pwr_spec("independent_t", list(type = "sensitivity", n = 128, power = 0.8))
@@ -427,8 +427,18 @@ test_that("t-tests and the correlation need no effect size for the smallest dete
   spec <- pwr_spec("correlation", list(type = "sensitivity", n = 90, power = 0.95))
   spec$population$r <- 0
   expect_equal(run_spec(spec)$sensitivity$effect, pwr::pwr.r.test(n = 90, r = NULL, power = 0.95)$r)
-  # Two proportions still need a direction.
+  # Two proportions with no difference given: group 2's proportion goes up
+  # from group 1's, to the target power.
   spec <- pwr_spec("two_proportions", list(type = "sensitivity", n = 300, power = 0.8))
   spec$population$p2 <- spec$population$p1
-  expect_spec_problem(spec, "no effect pattern to scale")
+  found <- run_spec(spec)$sensitivity
+  expect_gt(found$effect, spec$population$p1)
+  expect_equal(found$power, 0.8, tolerance = 1e-6)
+  # Chi-square with a table showing no association: w comes from pwr
+  # directly, with its power from the same call.
+  spec <- pwr_spec("chi_square_independence", list(type = "sensitivity", n = 200, power = 0.8))
+  spec$population$probabilities <- rep(list(as.list(rep(1 / 6, 2))), 3)
+  found <- run_spec(spec)$sensitivity
+  expect_equal(found$effect, pwr::pwr.chisq.test(N = 200, w = NULL, df = 2, power = 0.8)$w)
+  expect_equal(found$power, 0.8, tolerance = 1e-4) # pwr's own search tolerance
 })
