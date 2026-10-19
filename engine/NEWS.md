@@ -10,6 +10,16 @@
   about 4.26), so the engine checks the answer with pwrss's own power and
   refuses a wrong one with a plain message.
 
+* App: a plan checker. On the start screen, "Or check a plan someone
+  shared with you" opens a saved project for a supervisor, reviewer or
+  colleague: what the plan is for and what it found, the questions worth
+  asking (no reasoning for the effect size, an estimate from a pilot or a
+  previous study, a changed significance level or one-sided test with no
+  reason, no target-power reason, no allowance for drop-out, a claim
+  needing several tests), the reasons in the author's words, and every
+  value entered. It reads the file only; "Open it in the app and rerun
+  it" reruns it. The questions are prompts, not a pass or fail.
+
 * App: the write-up has a third box, a plain-words version for an ethics
   application. It says why this many participants in words a lay panel
   can follow: how many will take part (and be recruited, allowing for

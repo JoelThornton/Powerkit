@@ -95,3 +95,40 @@ test_that("the notice after opening names the version and any differences", {
   expect_match(html, "powerkit 0.0.0.9000", fixed = TRUE)
   expect_match(html, "Saved with pwr 1.2", fixed = TRUE)
 })
+
+# The plan checker (19 October 2026) ------------------------------------------
+
+test_that("the plan checker says what a shared plan found and what it leaves unstated", {
+  skip_without_projects()
+  values <- modifyList(form_examples[["E2"]], list(just_type = "pilot_study", just_source = "Our pilot (n = 20) found d = 0.4.", alpha = "0.01"))
+  out <- save_and_reopen("E2", values)
+  html <- as.character(plan_check_ui(tree, forms, out$project))
+  expect_match(html, "Checking a shared plan", fixed = TRUE)
+  expect_match(html, tree$endpoints$E2$plain_name, fixed = TRUE)
+  expect_match(html, sprintf("You need %s participants in total", whole(out$calc$result$n_required$n)), fixed = TRUE)
+  expect_match(html, "would miss it about 20 times in 100", fixed = TRUE)
+  expect_match(html, "comes from a pilot study", fixed = TRUE)
+  expect_match(html, "The significance level is 0.01 rather than 0.05, with no reason given", fixed = TRUE)
+  expect_match(html, "no allowance for people who drop out", fixed = TRUE)
+  expect_match(html, "No reason is given for the target power", fixed = TRUE)
+  expect_match(html, "Our pilot (n = 20) found d = 0.4.", fixed = TRUE)
+  expect_match(html, "not a pass or fail", fixed = TRUE)
+  expect_match(html, "check_open", fixed = TRUE)
+  expect_no_match(html, "No reasoning is given for the effect size", fixed = TRUE)
+})
+
+test_that("the plan checker's questions follow what the plan states", {
+  base <- list(goal = "sample_size", just_type = "smallest_effect_of_interest", just_source = "A clinic would act on it.",
+    power_reason = "A miss would waste a year.", alpha = "0.05", alternative = "two_sided", attrition = "0.1")
+  result <- list(goal_type = "sample_size")
+  expect_length(plan_questions(base, result), 0)
+  q <- function(...) plan_questions(modifyList(base, list(...)), result)
+  expect_match(q(just_source = ""), "No reasoning is given for the effect size", fixed = TRUE)
+  expect_match(q(alternative = "greater"), "one-sided, with no reason given", fixed = TRUE)
+  expect_length(q(alternative = "greater", alternative_reason = "The theory predicts an increase."), 0)
+  expect_length(q(alpha = "0.01", alpha_reason = "A new claim."), 0)
+  expect_match(q(attrition = ""), "no allowance", fixed = TRUE)
+  expect_length(plan_questions(modifyList(base, list(attrition = "")), list(goal_type = "power")), 0)
+  expect_match(q(claim = "all"), "every one of several tests", fixed = TRUE)
+  expect_match(q(just_type = "prior_study", just_adjustment = "halved"), "adjusted as follows: “halved”", fixed = TRUE)
+})

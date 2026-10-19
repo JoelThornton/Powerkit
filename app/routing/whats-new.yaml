@@ -6,6 +6,22 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-19"
+    title: "Generic t, F, chi-square and z tests"
+    text: >-
+      If you have already worked out your test's noncentrality parameter, as
+      with G*Power's generic tests, choose "Generic t, F, chi-square and z
+      tests" under "I know my analysis". You get the power for that
+      noncentrality, or the noncentrality you'd need; there is no sample
+      size, because the noncentrality already reflects it.
+  - date: "2026-10-19"
+    title: "Check a plan someone shared with you"
+    text: >-
+      Supervisors, reviewers and colleagues can open a saved plan from the
+      start screen and see what it assumes, what it found and which
+      questions are worth asking, such as a missing reason for the effect
+      size or no allowance for drop-out. It doesn't change the file or give
+      a pass or fail.
+  - date: "2026-10-19"
     title: "A plain-words version of the write-up for ethics applications"
     text: >-
       Under the write-up there is now a third box that explains, in words an
