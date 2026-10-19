@@ -1991,7 +1991,10 @@ and 5 of "The new design", 18 October 2026):
    distinction. powerkit keeps that distinction and adds one plain
    sentence where it says separate claims need no correction: not
    everyone agrees, and under the more common error-statistical view some
-   would correct (citing `Rubin2024_typeI`, which contrasts the two).
+   would expect a correction when the tests form a related group,
+   especially if some could go unreported (Mayo, 2018, pp. 275–276,
+   `Mayo2018_severe`, chapter PDFs supplied by the maintainer), citing
+   `Rubin2024_typeI` for the contrast.
    The disjunction and conjunction advice isn't caveated: it rests on the
    standard union-intersection and intersection-union results (Rubin,
    2026, pp. 4–5, citing Roy, 1953, and Berger, 1982). That both views

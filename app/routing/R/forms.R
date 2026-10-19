@@ -274,7 +274,8 @@ claim_groups <- function(claim) {
 # testing depends on one's philosophy of significance testing.
 philosophy_note <- paste(
   "Not everyone agrees: whether to correct depends on your view of significance testing.",
-  "Under the more common error-statistical view, some researchers would correct here too (Rubin, 2024, Journal of Trial and Error, sets out the difference)."
+  "Under the more common error-statistical view, a correction may be expected when the tests form a related group, such as several outcomes of the same treatment,",
+  "especially if some of them could go unreported (Mayo, 2018, pp. 275\u2013276). Rubin (2024, Journal of Trial and Error) sets out the difference."
 )
 
 claim_tests <- function(values) {

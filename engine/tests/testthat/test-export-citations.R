@@ -94,7 +94,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   }
   # Two method papers copied from their packages' citation(), four
   # sources the maintainer checked in full text, and three from Mark
-  # Rubin's reply (19 October 2026).
+  # Rubin's reply and Mayo's book (19 October 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -102,7 +102,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Rubin2021_alpha = "verified", Rubin2024_inconsistent = "verified",
       RubinMikael2025_power = "verified", Frane2019_misguided = "verified",
       Rubin2022_twosided = "verified", Rubin2024_typeI = "verified",
-      FrancisThunell2021_reversing = "verified"
+      FrancisThunell2021_reversing = "verified", Mayo2018_severe = "verified"
     )
   )
 })

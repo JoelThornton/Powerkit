@@ -1413,7 +1413,7 @@ guided:
   combination_rules:
     - id: each
       label: "Each result is a separate claim"
-      note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed (Rubin, 2021). Not everyone agrees: under the more common error-statistical view of significance testing, some researchers would adjust here too."
+      note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed (Rubin, 2021). Not everyone agrees: under the more common error-statistical view of significance testing, an adjustment may be expected when the analyses form a related group, especially if some could go unreported (Mayo, 2018)."
     - id: all
       label: "The claim needs every result to be significant"
       note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each)."
