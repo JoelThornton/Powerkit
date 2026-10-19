@@ -315,6 +315,19 @@ test_that("a smallest detectable effect is reproduced (basic tests on pwr)", {
   result <- run_spec(none)
   expect_gt(result$sensitivity$effect, 0)
   expect_equal(run_exported_script(none, result)$reproduced$effect, result$sensitivity$effect, tolerance = 1e-8)
+  # No effect size for two proportions (p2 = p1) or chi-square (a table
+  # with no association).
+  none <- formula_spec("two_proportions", list(type = "sensitivity", n = 200, power = 0.8))
+  none$population$p2 <- none$population$p1
+  result <- run_spec(none)
+  expect_equal(run_exported_script(none, result)$reproduced,
+    list(effect = result$sensitivity$effect, power = result$sensitivity$power), tolerance = 1e-8)
+  none <- formula_spec("chi_square_independence", list(type = "sensitivity", n = 200, power = 0.8))
+  cells <- length(unlist(none$population$probabilities))
+  none$population$probabilities <- lapply(none$population$probabilities, function(row) as.list(rep(1 / cells, length(row))))
+  result <- run_spec(none)
+  expect_equal(run_exported_script(none, result)$reproduced,
+    list(effect = result$sensitivity$effect, power = result$sensitivity$power), tolerance = 1e-8)
   unequal <- formula_spec("independent_t", list(type = "sensitivity", n = 150, power = 0.9))
   unequal$options$allocation_ratio <- 2
   unequal$target_test$alternative <- "less"

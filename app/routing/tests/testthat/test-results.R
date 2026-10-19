@@ -480,6 +480,27 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   expect_match(html, "download_project", fixed = TRUE)
 })
 
+test_that("two proportions and chi-square give the range of sample sizes with no effect size", {
+  fields <- form_fields(form_groups(forms, "E6"))
+  values <- modifyList(form_examples[["E6"]], list(just_type = "none", probabilities = "", goal = "sensitivity_curve", n_max = "160"))
+  calc <- run_sensitivity_curve(build_spec(forms, "E6", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  df <- (length(parse_levels(values$X_levels)) - 1) * (length(parse_levels(values$Y_levels)) - 1)
+  expect_equal(calc$curve_table$power_80[8], pwr::pwr.chisq.test(N = 160, w = NULL, df = df, power = 0.8)$w)
+  expect_match(as.character(result_panel_ui(tree, forms, "E6", fields, values, calc)), "Smallest w, 80% power", fixed = TRUE)
+
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- modifyList(form_examples[["E5"]], list(just_type = "none", p2 = "", goal = "sensitivity_curve", n_max = "400"))
+  calc <- run_sensitivity_curve(build_spec(forms, "E5", fields, values), seed = forms$default_seed)
+  expect_equal(calc$status, "ok")
+  tab <- calc$curve_table
+  expect_true(all(tab$power_80 > as.numeric(values$p1)))
+  expect_true(all(diff(tab$power_80) < 0))
+  html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
+  expect_match(html, "Group 2's proportion, 80% power", fixed = TRUE)
+  expect_match(html, "Group 2's proportion needed (group 1's kept at 0.6). Larger samples can detect smaller differences", fixed = TRUE)
+})
+
 test_that("an effect size from one earlier study gets a short warning", {
   expect_match(source_note(list(just_type = "prior_study")), "BUCSS", fixed = TRUE)
   expect_null(source_note(list(just_type = "meta_analysis")))
@@ -672,4 +693,38 @@ test_that("E9: the smallest detectable interaction, labelled as the fixed-model 
   expect_match(html, "fixed-model formula (InteractionPoweR::power_interaction_r2(), no simulation)", fixed = TRUE)
   expect_match(html, "comes from InteractionPoweR&#39;s fixed-model formula|comes from InteractionPoweR's fixed-model formula")
   expect_match(html, "The smallest detectable effect was found with a fixed-model formula", fixed = TRUE)
+})
+
+# "Does this still apply?" (the new design, 18 October 2026) -----------------
+
+test_that("changing the effect size after writing the reasoning flags it, without wiping it", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on."))
+  # No reasoning: nothing to flag or remember.
+  expect_null(source_check(NULL, "E2", fields, modifyList(values, list(just_source = "")))$record)
+  first <- source_check(NULL, "E2", fields, values)
+  expect_false(first$stale)
+  expect_identical(first$record$effect[["d"]], "0.4")
+  expect_false(source_check(first$record, "E2", fields, values)$stale)
+  changed <- source_check(first$record, "E2", fields, modifyList(values, list(d = "0.6")))
+  expect_true(changed$stale)
+  expect_identical(changed$was, "Cohen's d = 0.4")
+  expect_identical(changed$record, first$record) # still the values the reasoning was written for
+  # Editing the reasoning, or another design, starts afresh.
+  expect_false(source_check(first$record, "E2", fields, modifyList(values, list(d = "0.6", just_source = "New pilot data.")))$stale)
+  expect_false(source_check(first$record, "E1", fields, modifyList(values, list(d = "0.6")))$stale)
+
+  # The result screen keeps the reasoning, asks, and holds saving and the write-up.
+  stale <- modifyList(values, list(d = "0.6", method = "student_t", source_stale = TRUE, source_was = "Cohen's d = 0.4"))
+  calc <- run_calculation(build_spec(forms, "E2", fields, stale), seed = forms$default_seed)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, stale, calc))
+  expect_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "(it was Cohen's d = 0.4; it is now Cohen's d = 0.6)", fixed = TRUE)
+  expect_match(html, "Smallest difference our clinic would act on.", fixed = TRUE)
+  expect_match(html, "source_still_applies", fixed = TRUE)
+  expect_no_match(html, "download_script|download_project|writeup_short")
+  expect_no_match(html, "export-needs-reasoning", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, modifyList(stale, list(source_stale = FALSE)), calc))
+  expect_no_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "writeup_short", fixed = TRUE)
 })

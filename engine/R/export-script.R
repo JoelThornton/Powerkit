@@ -732,16 +732,18 @@ pwr_sensitivity_section <- function(spec, result) {
     chi_square_independence = c(
       "w <- pwr.chisq.test(N = n_total, w = NULL, df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1),",
       "  sig.level = alpha, power = target_power)$w",
-      "# Scale the table's departure from independence until its Cohen's w",
-      "# equals w (w grows in proportion to the scale).",
-      "expected <- outer(rowSums(probabilities), colSums(probabilities))",
-      "probabilities <- expected + (w / ES.w2(probabilities)) * (probabilities - expected)"
+      "# The power at that w, with the same pwr call as for power.",
+      "power_at <- function(n_total) {",
+      "  pwr.chisq.test(w = w, N = n_total, df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1),",
+      "    sig.level = alpha)$power",
+      "}"
     ),
     two_proportions = c(
       "# Keep group 1's proportion and move group 2's away from it, in the",
-      "# direction you specified, until power reaches the target.",
+      "# direction you specified (up if you gave none), until power reaches",
+      "# the target.",
       "p1 <- proportions[1]",
-      "limit <- if (proportions[2] > p1) 1 - 1e-9 else 1e-9",
+      "limit <- if (proportions[2] >= p1) 1 - 1e-9 else 1e-9",
       "power_with_p2 <- function(p2) {",
       "  proportions[2] <<- p2",
       "  power_at(n_total)",

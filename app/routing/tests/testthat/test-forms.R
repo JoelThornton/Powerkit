@@ -288,17 +288,38 @@ test_that("the t-tests and the correlation need no effect size for the smallest 
   expect_equal(build_spec(forms, "E2", fields, values)$population$d, 0)
   values$goal <- "sample_size"
   expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
-  # Two proportions still need theirs.
-  e5 <- form_fields(form_groups(forms, "E5"))
-  expect_false(any(vapply(e5, function(f) "sensitivity" %in% f$optional_for, logical(1))))
+})
+
+test_that("two proportions and chi-square need no effect size for the smallest detectable effect", {
+  # Two proportions: group 2's proportion may stay empty (no difference),
+  # but group 1's is still needed.
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- modifyList(form_examples[["E5"]], list(goal = "sensitivity", n = "200", power = "0.8", p2 = ""))
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E5", fields, values)
+  expect_equal(spec$population$p2, spec$population$p1)
+  values$p1 <- ""
+  expect_match(form_problems(fields, values), "Proportion of 'yes' in group 1", fixed = TRUE, all = FALSE)
+  expect_match(as.character(form_ui(tree, forms, "E5", form_groups(forms, "E5"))), "group 2's proportion can stay empty", fixed = TRUE)
+  # Chi-square: an empty table stands for no association, sized to the
+  # categories.
+  fields <- form_fields(form_groups(forms, "E6"))
+  values <- modifyList(form_examples[["E6"]], list(goal = "sensitivity", n = "200", power = "0.8", probabilities = ""))
+  expect_length(form_problems(fields, values), 0)
+  p <- build_spec(forms, "E6", fields, values)$population$probabilities
+  rows <- length(parse_levels(values$X_levels)); cols <- length(parse_levels(values$Y_levels))
+  expect_equal(lengths(p), rep(cols, rows))
+  expect_equal(sum(unlist(p)), 1)
+  values$goal <- "sample_size"
+  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
 })
 
 # Screen C: the effect-size source -------------------------------------------
 
-test_that("'I can't justify an effect size' is offered for the t-tests and the correlation, and leads to the smallest detectable effect", {
+test_that("'I can't justify an effect size' is offered for the basic tests, and leads to the smallest detectable effect", {
   just <- function(ep) Filter(function(f) f$id == "just_type", form_fields(form_groups(forms, ep)))[[1]]
-  for (ep in paste0("E", 1:4)) expect_true("none" %in% names(just(ep)$choices), info = ep)
-  for (ep in c("E5", "E6", "E7")) expect_false("none" %in% names(just(ep)$choices), info = ep)
+  for (ep in paste0("E", 1:6)) expect_true("none" %in% names(just(ep)$choices), info = ep)
+  for (ep in c("E7", "E9")) expect_false("none" %in% names(just(ep)$choices), info = ep)
 
   fields <- form_fields(form_groups(forms, "E4"))
   values <- form_examples[["E4"]]
