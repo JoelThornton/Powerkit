@@ -84,7 +84,7 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E49]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -663,3 +663,45 @@ forms:
         fields:
           - {id: p_first_only, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
           - {id: p_second_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
+
+  E48:
+    sides: false
+    methods_name: "a chi-square goodness-of-fit test"
+    tool: pwrss
+    directional: false
+    base: {spec_version: "0.1", design: basic_test, template: chi_square_gof,
+           variables: {"Y": {type: categorical}}, population: {metric: proportion},
+           target_test: {effect: goodness_of_fit, method: pearson_chi_square}}
+    groups:
+      - input: "The categories of the variable"
+        fields:
+          - {id: Y_label, label: "Variable (for example, preferred study method)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_levels, label: "Its categories, separated by commas", type: levels, path: variables.Y.levels, required: true}
+      - input: "The expected proportion in each category, and the fixed proportions they are compared with"
+        fields:
+          - {id: probabilities, writeup_label: "expected proportions", label: "Expected proportions: one for each category, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
+          - {id: null_probabilities, writeup_label: "proportions under the null hypothesis", label: "Fixed proportions to compare with (the null hypothesis), in the same order (optional; equal proportions if left empty)", type: numbers, per_levels: Y_levels, path: population.null_probabilities, optional: true}
+
+  E49:
+    methods_name: "a test of two independent correlations (Fisher's z)"
+    tool: pwrss
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: two_correlations,
+           variables: {G: {type: binary}, X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: correlation_difference, method: fisher_z}}
+    groups:
+      - input: "Names of the two groups and the two variables"
+        fields:
+          - {id: G_label, label: "What the groups are (for example, sample)", type: text, path: variables.G.label, required: true}
+          - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
+          - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
+          - {id: X_label, label: "First variable", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Second variable", type: text, path: variables.Y.label, required: true}
+      - input: "The expected correlation in each group"
+        fields:
+          - {id: r1, writeup_label: "correlation in group 1", label: "Correlation r in group 1", type: number, path: population.r1, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: r2, writeup_label: "correlation in group 2", label: "Correlation r in group 2", type: number, path: population.r2, effect: true, min_exclusive: -1, max_exclusive: 1}
+      - input: "The size of group 2 relative to group 1"
+        fields:
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
