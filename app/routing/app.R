@@ -306,11 +306,27 @@ server <- function(input, output, session) {
       state$form_k <- k
     }
   }, ignoreInit = TRUE)
-  observeEvent(input$form_check, {
+  # The effect values the reasoning was written for ("does this still
+  # apply?"; source_check() in results.R).
+  source_record <- reactiveVal(NULL)
+  observeEvent(input$source_still_applies, {
+    rec <- source_record()
+    if (!is.null(rec)) {
+      rec$effect <- effect_snapshot(current_form_fields(), current_form_values())
+      source_record(rec)
+    }
+    check_form()
+  })
+  observeEvent(input$form_check, check_form())
+  check_form <- function() {
     fields <- current_form_fields()
     values <- current_form_values()
     values$claim <- state$start$claim %||% "one" # screen A's claim, for the result's note
     values$situation <- state$start$situation %||% "choose" # for the write-up
+    src <- source_check(source_record(), state$endpoint, fields, values)
+    source_record(src$record)
+    values$source_stale <- src$stale
+    values$source_was <- src$was
     problems <- form_problems(fields, values)
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
@@ -357,7 +373,7 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(form_result_ui(tree$endpoints[[state$endpoint]], problems, check, spec))
     }
     session$sendCustomMessage("focus_result", "form_result")
-  })
+  }
   # The explore panel: power by N for the effect on the slider. It reads the
   # last calculation and never changes the plan.
   output$explore_plot <- renderPlot({
