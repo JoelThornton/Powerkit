@@ -6,6 +6,20 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-19"
+    title: "Asked whether your hypothesis predicts a direction"
+    text: >-
+      For tests that can be one-sided, the input screen now starts by asking
+      whether your hypothesis predicts a direction, instead of filling in a
+      two-sided test for you.
+  - date: "2026-10-19"
+    title: "Planning for a claim that needs every test to be significant"
+    text: >-
+      If your claim needs all of several tests to be significant, powerkit
+      now asks how many and plans each test at a higher power, so that all
+      of them together reach the power you chose. Where it says no
+      correction is needed for separate claims, it now notes that not
+      everyone agrees.
+  - date: "2026-10-19"
     title: "Check a plan someone shared with you"
     text: >-
       Supervisors, reviewers and colleagues can open a saved plan from the

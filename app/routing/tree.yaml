@@ -260,9 +260,9 @@ start_questions:
     question: "Your claim"
     options:
       one: {label: "One test", help: "Your conclusion rests on a single test. Example: the training group remembers more words than the control group."}
-      each: {label: "Several claims, each standing on its own", help: "Each test supports its own conclusion, so each is powered separately, with no correction. Example: anxiety predicts sleep quality, and separately, anxiety predicts concentration."}
+      each: {label: "Several claims, each standing on its own", help: "Each test supports its own conclusion, so each is powered separately, with no correction. Example: anxiety predicts sleep quality, and separately, anxiety predicts concentration. Not everyone agrees that no correction is needed; it depends on your view of significance testing."}
       any: {label: "Any of several tests", help: "Your claim is about the set, not each test: it is supported if at least one test is significant. Example: the intervention works if it improves mood, sleep or energy. The significance level is divided between the tests (Bonferroni)."}
-      all: {label: "All of several tests", help: "Your claim needs every test to be significant. Example: the manipulation check works and the manipulation changes behaviour. The chance that all succeed is lower than any one test's power."}
+      all: {label: "All of several tests", help: "Your claim needs every test to be significant. Example: the manipulation check works and the manipulation changes behaviour. The chance that all succeed is lower than any one test's power, so powerkit raises each test's target power to make up for it."}
 
 routes:
   doc_id: S0
@@ -1413,10 +1413,10 @@ guided:
   combination_rules:
     - id: each
       label: "Each result is a separate claim"
-      note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed."
+      note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed (Rubin, 2021). Not everyone agrees: under the more common error-statistical view of significance testing, some researchers would adjust here too."
     - id: all
       label: "The claim needs every result to be significant"
-      note: "No adjustment is needed, because the claim only stands if every test succeeds. Each test gets its target power, but the chance that all of them succeed together is lower."
+      note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each)."
     - id: any
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."

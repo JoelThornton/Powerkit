@@ -1,5 +1,20 @@
 # powerkit 0.0.0.9000
 
+* App: following Mark Rubin's advice (19 October 2026), three changes to
+  the input screen. (1) Tests that can be one-sided now start with "Does
+  your hypothesis predict a direction?", with no answer filled in; the
+  packages' two-sided default is still named. (2) When the claim needs
+  all of several tests to be significant, the screen asks how many, and
+  each test's target power is raised to the k-th root of the target
+  (0.8 for two tests becomes 0.894 each), so that all succeed together
+  with the target power if the tests are independent; the result, the
+  80%/95% comparison and the write-up say so, and name the "reverse
+  Bonferroni" (Francis & Thunell, 2021) as another approach powerkit
+  doesn't take. Power at a fixed sample size is unchanged. (3) Where
+  powerkit says no correction is needed for separate claims, it adds that
+  this depends on one's view of significance testing (Rubin, 2024,
+  Journal of Trial and Error). Three references added to refs.bib.
+
 * App: a plan checker. On the start screen, "Or check a plan someone
   shared with you" opens a saved project for a supervisor, reviewer or
   colleague: what the plan is for and what it found, the questions worth

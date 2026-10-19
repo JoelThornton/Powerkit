@@ -312,8 +312,9 @@ source_stale_ui <- function(fields, values) {
 
 # The sample size at 80% and at 95% power side by side (the new design:
 # no silent default for target power). Exact results only: two more engine
-# calls, instant for the formula designs.
-cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L) {
+# calls, instant for the formula designs. With "all of several" tests
+# (`values`), 80% and 95% are for all of them together.
+cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list()) {
   if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
   n_at <- function(power) {
     if (isTRUE(all.equal(power, spec$goal$power))) return(result$n_required$n)
@@ -322,11 +323,12 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA
   }
-  n80 <- n_at(0.8); n95 <- n_at(0.95)
+  n80 <- n_at(claim_power(0.8, values)); n95 <- n_at(claim_power(0.95, values))
   if (is.na(n80) || is.na(n95)) return(NULL)
+  together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
-    "For comparison: 80%% power needs %s participants%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
-    whole(n80), group_text(spec, n80), whole(n95), group_text(spec, n95)
+    "For comparison: 80%% power%s needs %s participants%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
+    together, whole(n80), group_text(spec, n80), whole(n95), group_text(spec, n95)
   )
 }
 
@@ -625,7 +627,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
   known <- known_differences_for(forms, ep_id, spec)
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha), source_note(values), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   div(
@@ -758,7 +760,15 @@ writeup_claim <- function(values, spec) {
     each = "Each hypothesis supports its own claim, so no correction for multiple tests was applied; each test is powered on its own.",
     any = sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
-    all = "The claim requires every one of several tests to be significant; the chance that all succeed is lower than the power of each test.")
+    all = {
+      k <- claim_tests(values)
+      if (!is.na(k) && isTRUE(values$goal %in% c("sample_size", "sensitivity"))) {
+        sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and each test was planned at power %s^(1/%s) = %s, so that if the tests are independent all of them succeed with probability %s.",
+          whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 3)), format(parse_number(values$power)))
+      } else {
+        "The claim requires every one of several tests to be significant; the chance that all succeed is lower than the power of each test."
+      }
+    })
 }
 
 # Returns c(short = ..., full = ...), or NULL when there is no reasoning
