@@ -72,10 +72,10 @@ any time, and user testing is the maintainer's to run):
    route broke on 19 October 2026 when CRAN replaced a locked package
    (RcppArmadillo); the lockfile now has the new version.
 3. Fill the core gaps: the "does this still apply?" flag on the
-   effect-size source is merged (19 October 2026); the smallest
+   effect-size source is merged (19 October 2026), and so is the smallest
    detectable effect with no effect size for two proportions and
-   chi-square (in review); next, the smallest detectable effect for
-   regression interactions.
+   chi-square; the smallest detectable effect for regression
+   interactions (by the fast fixed-model formula, labelled) is in review.
 4. User testing with the online link, run by the maintainer: the plan
    ([`user-testing.md`](user-testing.md)) is ready for the four screens.
 5. The maintainer's judgement session

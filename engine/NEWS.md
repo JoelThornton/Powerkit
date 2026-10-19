@@ -11,6 +11,16 @@
   pwrss in the engine's tests but haven't been checked against G\*Power;
   their cards say so.
 
+* Regression interactions (E9) can now find the smallest effect you
+  could detect at a given sample size: the correlation of the interaction
+  with Y, with the other correlations kept as entered. It uses
+  InteractionPoweR's fixed-model formula, `power_interaction_r2()`, which
+  is quick but gives slightly higher power than the simulation used for
+  sample size and power, so the true smallest effect may be slightly
+  larger. The result screen, the write-up and the R script say so. In the
+  engine, a backend can name its own method for the smallest detectable
+  effect (`sensitivity_method`), recorded as `"analytic"`.
+
 * Running powerkit on your own Mac works again: RcppArmadillo is updated
   to 15.6.2-1 in `renv.lock`. CRAN replaced 15.6.0-1 on 17 October 2026,
   so a Mac had to build the old version from source, which needs
