@@ -153,6 +153,49 @@ test_text <- function(spec) {
 
 simulated <- function(result) identical(result$provenance$method, "simulation")
 
+# Generic tests (E50): which statistic, with its degrees of freedom. Only t
+# and z have a direction.
+generic_test_text <- function(spec) {
+  pop <- spec$population
+  stat <- switch(
+    spec$template,
+    t = sprintf("a t test with %s degrees of freedom", format(pop$df)),
+    f = sprintf("an F test with %s and %s degrees of freedom", format(pop$df1), format(pop$df2)),
+    chi_square = sprintf("a chi-square test with %s degrees of freedom", format(pop$df)),
+    z = "a z test (standard deviation 1)"
+  )
+  if (spec$template %in% c("t", "z")) {
+    side <- switch(spec$target_test$alternative %||% "two_sided", two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
+    sprintf("%s (%s) at alpha = %s", stat, side, alpha_text(spec$target_test$alpha))
+  } else {
+    sprintf("%s at alpha = %s", stat, alpha_text(spec$target_test$alpha))
+  }
+}
+
+# Generic tests have no sample size: the noncentrality already reflects it.
+generic_sentences <- function(spec, result) {
+  test <- generic_test_text(spec)
+  no_n <- "There is no sample size here: the noncentrality parameter already reflects it."
+  if (identical(result$goal_type, "power")) {
+    power <- result$curve$power[1]
+    c(
+      headline = sprintf(
+        "With a noncentrality parameter of %s, %s has %s power: if the true effect is the one this noncentrality stands for, about %d in 100 studies like this would get a significant result.",
+        format(spec$population$ncp), test, percent(power), round(100 * power)
+      ),
+      detail = sprintf("%s Calculated by formula (%s).", no_n, exact_source(result))
+    )
+  } else {
+    c(
+      headline = sprintf(
+        "For %s power with %s, the noncentrality parameter needs to be at least %s.",
+        percent(spec$goal$power), test, format(round(result$sensitivity$effect, 3), nsmall = 2)
+      ),
+      detail = sprintf("%s Worked out by formula (%s), which finds the noncentrality directly.", no_n, exact_source(result))
+    )
+  }
+}
+
 # How an exact result was computed, for the detail sentence.
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
@@ -175,6 +218,7 @@ simulation_note <- function(result) {
 # The headline and supporting sentences for a result (draft wording; setting
 # result_wording).
 result_sentences <- function(spec, result) {
+  if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   test <- test_text(spec)
   switch(
     result$goal_type,
@@ -756,6 +800,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
+  generic <- identical(spec$design, "generic_test")
+  if (generic) {
+    # The statistic and its degrees of freedom; only t and z have sides.
+    name <- paste("a generic", sub("^an? ", "", sub(" \\(two-sided.*| \\(one-sided.*| at alpha.*", "", generic_test_text(spec))))
+    sides <- if (spec$template %in% c("t", "z")) writeup_sides(spec)
+  }
   test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
   effect <- writeup_effect(fields, values)
   reasoning <- writeup_quote(values$just_source)
@@ -770,7 +820,15 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   reason <- if (!blank(values$power_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$power_reason))) else ""
   fixed <- identical(values$situation, "fixed")
-  main <- switch(result$goal_type,
+  no_n <- "from a noncentrality parameter, which already reflects the sample size"
+  main <- if (generic && identical(result$goal_type, "power")) {
+    c(sprintf("A power analysis was conducted for %s, %s.", test, no_n), basis,
+      sprintf("Power to detect this effect is %.1f%%.", 100 * result$curve$power[1]))
+  } else if (generic) {
+    c(sprintf("A sensitivity power analysis was conducted for %s, %s.", test, no_n),
+      sprintf("The smallest noncentrality parameter giving %s power%s is %s.", percent(spec$goal$power), reason, format(round(result$sensitivity$effect, 3), nsmall = 2)),
+      basis)
+  } else switch(result$goal_type,
     sample_size = {
       n <- result$n_required$n
       at_n <- result$curve$power[result$curve$n == n]

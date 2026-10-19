@@ -45,6 +45,8 @@ form_examples <- list(
                probabilities = "0.25, 0.3, 0.45"), closing_ok),
   E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
                Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
+  E50 = c(list(generic_test = "t", ncp = "2.5", df = "30", alternative = "two_sided"),
+          modifyList(closing_ok, list(goal = "power"))),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)

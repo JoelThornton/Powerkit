@@ -354,12 +354,14 @@ glossary_for <- function(tree, text) {
 }
 
 #' The closing questions a card asks: those whose `applies_to` is "all" or
-#' names the card, each with its card-specific note if it has one.
+#' names the card (and whose `not_for` doesn't), each with its
+#' card-specific note if it has one.
 closing_questions_for <- function(tree, ep_id) {
   out <- list()
   for (q in tree$closing_questions) {
     applies <- unlist(q$applies_to)
     if (!(identical(applies, "all") || ep_id %in% applies)) next
+    if (ep_id %in% unlist(q$not_for)) next
     if (!is.null(q$card_notes[[ep_id]])) q$note <- q$card_notes[[ep_id]]
     out[[length(out) + 1]] <- q
   }

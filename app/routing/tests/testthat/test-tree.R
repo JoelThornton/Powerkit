@@ -39,8 +39,9 @@ test_that("every end point can be reached: from the tree, or from the 'I know my
   from_tree <- reachable(tree, start_node(tree))$endpoints
   # The list offers every end point; check that the tree reaches all but
   # the ones decision-tree.md reaches only by other routes (Bayes factors:
-  # open question 8).
-  expect_setequal(setdiff(names(tree$endpoints), from_tree), "E-bayes")
+  # open question 8; the generic tests, E50, for people who already have a
+  # noncentrality parameter).
+  expect_setequal(setdiff(names(tree$endpoints), from_tree), c("E-bayes", "E50"))
 })
 
 test_that("the three routes are defined, and each starts with the screening questions", {

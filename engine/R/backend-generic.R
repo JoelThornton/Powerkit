@@ -66,6 +66,17 @@ run_generic <- function(spec, seed) {
     if (!is.null(inputs$sign)) extra$req.sign <- inputs$sign
     out <- generic_call(inputs, extra)
     found <- out[[inputs$ncp_arg]]
+    # pwrss 1.3.3's search can stop at a wrong value for a t test with few
+    # degrees of freedom (df 3: about 8331 where the answer is about 4.26),
+    # though its power for a given noncentrality is right. So the
+    # noncentrality found is checked with pwrss's own power for it.
+    check_power <- generic_call(inputs, stats::setNames(list(found), inputs$ncp_arg))$power
+    if (!is.finite(check_power) || abs(check_power - goal$power) > 0.001) {
+      abort_run(sprintf(
+        "pwrss couldn't find the noncentrality needed for %s power with these degrees of freedom (its answer gives %s power). Try the power for a noncentrality you choose instead.",
+        format_number(goal$power), format_number(round(check_power, 3))
+      ))
+    }
     power <- goal$power
     sensitivity <- list(
       effect = found, effect_name = "ncp", power = power,
