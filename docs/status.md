@@ -42,6 +42,11 @@ fully validated. Validation runs are recorded in
   for running it on one's own computer. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
+  Changing alpha or choosing a one-sided test asks for a reason, which
+  goes into the write-up (in review). The About tab says what powerkit
+  does and doesn't do, where the numbers come from and how far along it
+  is; a "What's new" tab lists dated changes in plain words, from
+  `app/routing/whats-new.yaml` (both in review).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
@@ -85,7 +90,8 @@ any time, and user testing is the maintainer's to run):
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
 6. Optional features (any time; those that help testing first): "guess first" (merged 19 October 2026),
-   an ethics-board version of the write-up, a plan checker for
+   a plain-words version of the write-up for ethics applications (merged 19
+   October 2026), a plan checker for
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.
 7. More tests by formula from the packages powerkit already uses (the

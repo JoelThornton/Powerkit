@@ -54,5 +54,6 @@ to read small.
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
   (validation tests with TODO placeholders may be skipped, not deleted).
-- Update NEWS.md with user-visible changes.
+- Update NEWS.md with user-visible changes, and add a plain-words entry to
+  app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.
 - Update docs/status.md (where the project is and what's next) in every PR.

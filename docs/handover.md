@@ -68,7 +68,9 @@ maps every document.*
 - **Every PR:** run the engine and app tests (`devtools::test()`,
   `devtools::check()` in `engine/`; `testthat::test_dir("app/routing/tests/testthat")`
   from the repo root with `NOT_CRAN=true`), and update `engine/NEWS.md`
-  and `status.md`.
+  and `status.md`. A PR that changes what users see also adds a dated,
+  plain-words entry at the top of `app/routing/whats-new.yaml` (the app's
+  "What's new" tab; no internal codes such as E5).
 - **Saving usage:** report only failures from tests and checks, and read
   full logs only when something failed.
 

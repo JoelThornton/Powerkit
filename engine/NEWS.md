@@ -10,6 +10,29 @@
   about 4.26), so the engine checks the answer with pwrss's own power and
   refuses a wrong one with a plain message.
 
+* App: the write-up has a third box, a plain-words version for an ethics
+  application. It says why this many participants in words a lay panel
+  can follow: how many will take part (and be recruited, allowing for
+  drop-out), the effect planned for and your reasoning, the chance that a
+  study of this size finds that effect and the chance it misses it, and
+  whether the number came from a power analysis or from the resources
+  available. It describes the plan; it doesn't say whether the study is
+  ethical.
+
+* App: the About tab now also says what powerkit doesn't do (it doesn't
+  choose your effect size, collect data, use AI or replace a
+  statistician), where the numbers come from and how far along it is. A
+  new "What's new" tab lists dated changes in plain words, newest first,
+  from `app/routing/whats-new.yaml`; each PR that changes what users see
+  adds an entry there.
+
+* App: changing the significance level from its default, or choosing a
+  one-sided test, now opens a box asking why (optional). The reason goes
+  into the write-up, for example "The significance level of .01 was chosen
+  because ..." and "A one-sided test was used because ...". This builds
+  the maintainer's decision of 18 October 2026 (alpha and a two-sided test
+  stay pre-filled; a reason is asked only if either is changed).
+
 * App: two new cards that calculate. The chi-square goodness-of-fit test
   (E48) has its own card, as the maintainer decided (judgement call 3.7):
   one group's outcome in several categories, compared with fixed

@@ -611,6 +611,23 @@ test_that("the write-up needs the reasoning, and words the fixed-N route and the
   expect_match(w[["short"]], "divided by 2 (Bonferroni), giving \u03b1 = .025", fixed = TRUE)
 })
 
+test_that("the write-up gives the reasons for a changed alpha or a one-sided test", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$target_test$alpha <- 0.01
+  spec$target_test$alternative <- "greater"
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on.",
+    alpha = "0.01", alpha_reason = "this is a new claim.", alternative = "greater",
+    alternative_reason = "the hypothesis predicts that training raises scores"))
+  w <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "(one-sided, effect positive, α = .01). The significance level of .01 was chosen because this is a new claim. A one-sided test was used because the hypothesis predicts that training raises scores.", fixed = TRUE)
+  # No sentence when the settings are back at their defaults, even with old text in the boxes.
+  values <- modifyList(values, list(alpha = "0.05", alternative = "two_sided"))
+  expect_length(writeup_choices(fields, values), 0)
+})
+
 test_that("the regression interaction's write-up carries the known difference's sentence", {
   expect_match(forms$known_differences_methods[["1"]], "predictors drawn afresh", fixed = TRUE)
   expect_equal(names(forms$known_differences_methods), names(forms$known_differences))
@@ -777,6 +794,7 @@ test_that("the generic tests give power or the noncentrality needed, with no sam
   expect_no_match(lines[["headline"]], "participants", fixed = TRUE)
   w <- writeup_text(forms$forms$E50, calc$spec, calc$result, fields, form_examples$E50)
   expect_match(w[["short"]], "a generic t test with 30 degrees of freedom (two-sided, α = .05), from a noncentrality parameter", fixed = TRUE)
+  expect_true(is.na(w[["ethics"]])) # no participants to describe
   v <- modifyList(form_examples$E50, list(goal = "sensitivity", generic_test = "f", ncp = "", df1 = "2", df2 = "40"))
   calc <- run_calculation(build_spec(forms, "E50", fields, v), run, seed = 1L)
   expect_match(result_sentences(calc$spec, calc$result)[["headline"]], "For 80% power with an F test with 2 and 40 degrees of freedom at alpha = .05, the noncentrality parameter needs to be at least", fixed = TRUE)
@@ -788,3 +806,41 @@ test_that("the generic tests give power or the noncentrality needed, with no sam
   expect_match(calc$message, "couldn't find the noncentrality", fixed = TRUE)
 })
 
+# The plain-words version for an ethics application (19 October 2026) --------
+
+test_that("the write-up has a plain-words version for an ethics application, for each goal", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on.", attrition = "0.1"))
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)[["ethics"]]
+  n <- calc$result$n_required$n
+  expect_match(e, sprintf("We plan to include %s participants in the analysis", whole(n)), fixed = TRUE)
+  expect_match(e, sprintf("we will recruit %s", whole(calc$result$recruitment$n_recruit)), fixed = TRUE)
+  expect_match(e, "This number comes from a power analysis.", fixed = TRUE)
+  expect_match(e, "Cohen's d = 0.4, based on the smallest effect that would matter", fixed = TRUE)
+  expect_match(e, "is 80%, and the chance that it misses it is 20%", fixed = TRUE)
+  expect_match(e, "using a 5% threshold", fixed = TRUE)
+  expect_no_match(e, "ethical", fixed = TRUE) # it describes the plan; no verdict
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "Plain-words version (for an ethics application)", fixed = TRUE)
+  expect_match(html, "writeup_ethics", fixed = TRUE)
+
+  # A fixed sample size: says so, and gives the chance of missing the effect.
+  fixed <- modifyList(values, list(goal = "power", n = "60", situation = "fixed", attrition = ""))
+  calc <- run_calculation(build_spec(forms, "E2", fields, fixed), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, fixed)[["ethics"]]
+  expect_match(e, "set by the resources available, not chosen by a power analysis", fixed = TRUE)
+  p <- calc$result$curve$power[1]
+  expect_match(e, sprintf("is %s, and the chance that it misses it is %s", percent(p), percent(1 - p)), fixed = TRUE)
+
+  # The smallest detectable effect.
+  sens <- modifyList(values, list(method = "student_t", goal = "sensitivity", n = "128", power = "0.8", d = "", attrition = ""))
+  calc <- run_calculation(build_spec(forms, "E2", fields, sens), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, sens)[["ethics"]]
+  expect_match(e, sprintf("would find 80%% of the time (using a 5%% threshold for statistical significance) is %s, measured as Cohen's d",
+    format(round(calc$result$sensitivity$effect, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(e, "Our reasoning about the size of the effect:", fixed = TRUE)
+
+  # No reasoning, no write-up and no ethics version.
+  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = ""))))
+})

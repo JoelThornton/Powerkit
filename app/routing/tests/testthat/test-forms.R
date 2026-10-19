@@ -397,6 +397,19 @@ test_that("a field can depend on several choices at once", {
   expect_match(html, "input.f_a == &#39;1&#39; &amp;&amp; input.f_b != &#39;2&#39;", fixed = TRUE)
 })
 
+test_that("a reason box appears only when alpha or the direction is changed", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  alpha_reason <- by_id("alpha_reason")
+  alternative_reason <- by_id("alternative_reason")
+  expect_false(field_applies(alpha_reason, list(alpha = "0.05")))
+  expect_true(field_applies(alpha_reason, list(alpha = "0.01")))
+  expect_false(field_applies(alternative_reason, list(alternative = "two_sided")))
+  expect_true(field_applies(alternative_reason, list(alternative = "greater")))
+  expect_true(isTRUE(alpha_reason$optional) && isTRUE(alternative_reason$optional))
+  expect_equal(form_problems(fields, modifyList(form_examples[["E2"]], list(alpha = "0.01", alternative = "less"))), character())
+})
+
 test_that("ANCOVA takes adjusted means, one SD and the covariates' R-squared", {
   v <- values_for("E23")
   spec <- build_spec(forms, "E23", fields_for("E23"), v)
