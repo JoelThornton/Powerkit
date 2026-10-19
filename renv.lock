@@ -199,7 +199,7 @@
     },
     "RcppArmadillo": {
       "Package": "RcppArmadillo",
-      "Version": "15.6.0-1",
+      "Version": "15.6.2-1",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -208,8 +208,7 @@
         "methods",
         "stats",
         "utils"
-      ],
-      "Hash": "42ca2009fc269c88b7558555e9c0b984"
+      ]
     },
     "RcppEigen": {
       "Package": "RcppEigen",
