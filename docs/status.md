@@ -58,30 +58,27 @@ fully validated. Validation runs are recorded in
 ## What's next
 
 In priority order (agreed direction, 18 October 2026: a working web app
-first, optional features after testing):
+first; 19 October 2026: optional features that help testing can come in
+any time, and user testing is the maintainer's to run):
 
 1. The write-up (short and full methods paragraph): merged on 18 October
-   2026; it reaches the website with the next deploy.
+   2026.
 2. A working web app: **online since 18 October 2026** at
    <https://joelthornton-powerkit.share.connect.posit.cloud> (Posit Connect Cloud; the version on main).
-   Automatic updates on merge: Connect Cloud publishes from GitHub, using
-   `app/routing/manifest.json` (kept current by a workflow); the
-   maintainer's one-time website setup is in
-   [`hosting-options.md`](hosting-options.md#publishing-from-github-once-on-the-connect-cloud-website).
-   Until that is done, or as a fallback, the maintainer redeploys with
-   `scripts/deploy-online.R` (if it stops on a package version,
-   `renv::restore()` first).
+   It updates itself: Connect Cloud publishes from GitHub on each merge
+   (set up by the maintainer, 18 October 2026), using
+   `app/routing/manifest.json` (kept current by a workflow). Fallback:
+   `scripts/deploy-online.R`.
 3. Fill the core gaps: the "does this still apply?" flag on the
-   effect-size source when the effect size is changed, and the smallest
+   effect-size source is in review; next, the smallest
    detectable effect for two proportions, chi-square and regression
    interactions in the app.
-4. User testing with the online link: the plan
-   ([`user-testing.md`](user-testing.md)) is ready for the four screens;
-   recruiting at the maintainer's talk (23 October 2026).
+4. User testing with the online link, run by the maintainer: the plan
+   ([`user-testing.md`](user-testing.md)) is ready for the four screens.
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
-6. Optional features, guided by testing: a "guess first" teaching mode,
+6. Optional features (any time; those that help testing first): a "guess first" teaching mode,
    an ethics-board version of the write-up, a plan checker for
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.

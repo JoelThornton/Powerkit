@@ -266,6 +266,42 @@ reasoning_line <- function(values) {
   sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
 }
 
+# "Does this still apply?" (the new design, 18 October 2026): if the effect
+# size changes after the reasoning was written, the reasoning is kept but
+# flagged until the user confirms it or edits it. app.R keeps the effect
+# values the reasoning was written for; these helpers compare and word them.
+effect_snapshot <- function(fields, values) {
+  ids <- vapply(Filter(function(f) isTRUE(f$effect) && field_applies(f, values), fields), `[[`, "", "id")
+  vapply(ids, function(id) trimws(paste(as.character(values[[id]] %||% ""), collapse = ", ")), character(1))
+}
+
+# Updates the record of which effect values the reasoning was written for,
+# and says whether the reasoning is stale. `record` is NULL or
+# list(endpoint, source, effect); returns list(record, stale, was).
+source_check <- function(record, endpoint, fields, values) {
+  src <- trimws(values$just_source %||% "")
+  now <- effect_snapshot(fields, values)
+  if (!nzchar(src)) return(list(record = NULL, stale = FALSE))
+  fresh <- list(endpoint = endpoint, source = src, effect = now)
+  if (is.null(record) || !identical(record$endpoint, endpoint) || !identical(record$source, src)) {
+    return(list(record = fresh, stale = FALSE))
+  }
+  if (identical(record$effect, now)) return(list(record = record, stale = FALSE))
+  was <- writeup_effect(fields, modifyList(values, as.list(record$effect)))
+  list(record = record, stale = TRUE, was = was)
+}
+
+source_stale_ui <- function(fields, values) {
+  if (!isTRUE(values$source_stale)) return(NULL)
+  now <- writeup_effect(fields, values)
+  div(class = "alert alert-warning source-stale", role = "alert",
+    p(tags$strong("Does your reasoning still apply?"), " You changed the effect size after writing it",
+      if (!blank(values$source_was) && !blank(now)) sprintf(" (it was %s; it is now %s)", values$source_was, now), ". ",
+      "Your reasoning is kept as you wrote it. Until you confirm it or edit it, the plan can't be saved or exported and there is no write-up."),
+    actionButton("source_still_applies", "Yes, it still applies", class = "btn btn-outline-primary"),
+    span(class = "small", " or edit your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."))
+}
+
 # The sample size at 80% and at 95% power side by side (the new design:
 # no silent default for target power). Exact results only: two more engine
 # calls, instant for the formula designs.
@@ -539,7 +575,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   known <- known_differences_for(forms, ep_id, spec)
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
-  can_export <- !blank(values$just_source)
+  can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   div(
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
@@ -547,6 +583,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
+    source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
@@ -578,7 +615,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
     ),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
-    if (!can_export) p(class = "export-needs-reasoning",
+    if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
     div(class = "nav-buttons",
@@ -659,7 +696,7 @@ writeup_claim <- function(values, spec) {
 # Returns c(short = ..., full = ...), or NULL when there is no reasoning
 # (the write-up, like saving, needs it).
 writeup_text <- function(form, spec, result, fields, values, departures = character(), known_methods = character(), known = character()) {
-  if (blank(values$just_source)) return(NULL)
+  if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
