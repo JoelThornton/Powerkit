@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* App: the write-up has a third box, a plain-words version for an ethics
+  application. It says why this many participants in words a lay panel
+  can follow: how many will take part (and be recruited, allowing for
+  drop-out), the effect planned for and your reasoning, the chance that a
+  study of this size finds that effect and the chance it misses it, and
+  whether the number came from a power analysis or from the resources
+  available. It describes the plan; it doesn't say whether the study is
+  ethical.
+
 * App: the About tab now also says what powerkit doesn't do (it doesn't
   choose your effect size, collect data, use AI or replace a
   statistician), where the numbers come from and how far along it is. A

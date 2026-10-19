@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-19"
+    title: "A plain-words version of the write-up for ethics applications"
+    text: >-
+      Under the write-up there is now a third box that explains, in words an
+      ethics panel can follow, why you plan this many participants: the
+      effect you planned for and why, and the chance of finding or missing
+      it. It describes the plan; it doesn't judge whether the study is
+      ethical.
+  - date: "2026-10-19"
     title: "A reason is asked for if you change the significance level or test direction"
     text: >-
       The significance level (.05) and a two-sided test stay filled in. If you

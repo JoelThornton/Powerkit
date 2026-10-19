@@ -781,3 +781,42 @@ test_that("guess first: the guess is shown next to the answer and goes nowhere e
   expect_equal(guess_gap(100, 130), "30% more than your guess")
   expect_equal(guess_gap(100, 40), "60% fewer than your guess")
 })
+
+# The plain-words version for an ethics application (19 October 2026) --------
+
+test_that("the write-up has a plain-words version for an ethics application, for each goal", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on.", attrition = "0.1"))
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)[["ethics"]]
+  n <- calc$result$n_required$n
+  expect_match(e, sprintf("We plan to include %s participants in the analysis", whole(n)), fixed = TRUE)
+  expect_match(e, sprintf("we will recruit %s", whole(calc$result$recruitment$n_recruit)), fixed = TRUE)
+  expect_match(e, "This number comes from a power analysis.", fixed = TRUE)
+  expect_match(e, "Cohen's d = 0.4, based on the smallest effect that would matter", fixed = TRUE)
+  expect_match(e, "is 80%, and the chance that it misses it is 20%", fixed = TRUE)
+  expect_match(e, "using a 5% threshold", fixed = TRUE)
+  expect_no_match(e, "ethical", fixed = TRUE) # it describes the plan; no verdict
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "Plain-words version (for an ethics application)", fixed = TRUE)
+  expect_match(html, "writeup_ethics", fixed = TRUE)
+
+  # A fixed sample size: says so, and gives the chance of missing the effect.
+  fixed <- modifyList(values, list(goal = "power", n = "60", situation = "fixed", attrition = ""))
+  calc <- run_calculation(build_spec(forms, "E2", fields, fixed), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, fixed)[["ethics"]]
+  expect_match(e, "set by the resources available, not chosen by a power analysis", fixed = TRUE)
+  p <- calc$result$curve$power[1]
+  expect_match(e, sprintf("is %s, and the chance that it misses it is %s", percent(p), percent(1 - p)), fixed = TRUE)
+
+  # The smallest detectable effect.
+  sens <- modifyList(values, list(method = "student_t", goal = "sensitivity", n = "128", power = "0.8", d = "", attrition = ""))
+  calc <- run_calculation(build_spec(forms, "E2", fields, sens), seed = forms$default_seed)
+  e <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, sens)[["ethics"]]
+  expect_match(e, sprintf("would find 80%% of the time (using a 5%% threshold for statistical significance) is %s, measured as Cohen's d",
+    format(round(calc$result$sensitivity$effect, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(e, "Our reasoning about the size of the effect:", fixed = TRUE)
+
+  # No reasoning, no write-up and no ethics version.
+  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = ""))))
+})
