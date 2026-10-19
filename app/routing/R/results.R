@@ -716,6 +716,21 @@ writeup_sides <- function(spec) {
     two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
 }
 
+# The reasons given for a changed alpha or a one-sided test, as sentences
+# (each reason box is shown only when its setting was changed).
+writeup_choices <- function(fields, values) {
+  given <- function(id) {
+    f <- Filter(function(f) identical(f$id, id), fields)
+    length(f) == 1 && !blank(values[[id]]) && field_applies(f[[1]], values)
+  }
+  because <- function(x) sub("[.]\\s*$", "", trimws(gsub("\\s+", " ", as.character(x))))
+  c(
+    if (given("alpha_reason")) sprintf("The significance level of %s was chosen because %s.",
+      writeup_alpha(as.numeric(values$alpha)), because(values$alpha_reason)),
+    if (given("alternative_reason")) sprintf("A one-sided test was used because %s.", because(values$alternative_reason))
+  )
+}
+
 writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
 
 writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
@@ -799,6 +814,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         basis)
     }
   )
+  main <- append(main, writeup_choices(fields, values), after = 1)
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))

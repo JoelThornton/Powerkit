@@ -39,6 +39,8 @@ fully validated. Validation runs are recorded in
   for running it on one's own computer. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
+  Changing alpha or choosing a one-sided test asks for a reason, which
+  goes into the write-up (in review).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

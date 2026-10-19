@@ -162,13 +162,20 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "n_max", label = "The largest number of participants you could analyse; needed for the range of sample sizes",
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
-         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]])
+         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]]),
+    # Shown only when alpha or the direction is changed from its default
+    # (decided 18 October 2026, judgement call G8); goes in the write-up.
+    list(id = "alpha_reason", label = "Why this significance level (optional; goes in the write-up, for example \"the claim is new, so stronger evidence is wanted\")",
+         type = "text", optional = TRUE, shown_if = list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05)))
   )
   if (isTRUE(form$directional)) {
     test <- c(test, list(list(
       id = "alternative", label = "Direction of the test", type = "select", path = "target_test.alternative", required = TRUE,
       choices = list(two_sided = "Two-sided (either direction)", greater = "One-sided: the effect is positive", less = "One-sided: the effect is negative"),
       default = "two_sided", default_source = tool[["alternative_source"]]
+    ), list(
+      id = "alternative_reason", label = "Why a one-sided test (optional; goes in the write-up, for example \"the hypothesis predicts that training raises scores\")",
+      type = "text", optional = TRUE, shown_if = list(field = "alternative", is_not = "two_sided")
     )))
   }
   c(list(

@@ -9,6 +9,13 @@
   available. It describes the plan; it doesn't say whether the study is
   ethical.
 
+* App: changing the significance level from its default, or choosing a
+  one-sided test, now opens a box asking why (optional). The reason goes
+  into the write-up, for example "The significance level of .01 was chosen
+  because ..." and "A one-sided test was used because ...". This builds
+  the maintainer's decision of 18 October 2026 (alpha and a two-sided test
+  stay pre-filled; a reason is asked only if either is changed).
+
 * App: two new cards that calculate. The chi-square goodness-of-fit test
   (E48) has its own card, as the maintainer decided (judgement call 3.7):
   one group's outcome in several categories, compared with fixed

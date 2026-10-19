@@ -609,6 +609,23 @@ test_that("the write-up needs the reasoning, and words the fixed-N route and the
   expect_match(w[["short"]], "divided by 2 (Bonferroni), giving \u03b1 = .025", fixed = TRUE)
 })
 
+test_that("the write-up gives the reasons for a changed alpha or a one-sided test", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$target_test$alpha <- 0.01
+  spec$target_test$alternative <- "greater"
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_source = "Smallest difference our clinic would act on.",
+    alpha = "0.01", alpha_reason = "this is a new claim.", alternative = "greater",
+    alternative_reason = "the hypothesis predicts that training raises scores"))
+  w <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "(one-sided, effect positive, α = .01). The significance level of .01 was chosen because this is a new claim. A one-sided test was used because the hypothesis predicts that training raises scores.", fixed = TRUE)
+  # No sentence when the settings are back at their defaults, even with old text in the boxes.
+  values <- modifyList(values, list(alpha = "0.05", alternative = "two_sided"))
+  expect_length(writeup_choices(fields, values), 0)
+})
+
 test_that("the regression interaction's write-up carries the known difference's sentence", {
   expect_match(forms$known_differences_methods[["1"]], "predictors drawn afresh", fixed = TRUE)
   expect_equal(names(forms$known_differences_methods), names(forms$known_differences))
