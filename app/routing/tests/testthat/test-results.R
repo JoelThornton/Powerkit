@@ -42,8 +42,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18 and E23-E26 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26"))
+test_that("E1-E9, E18, E23-E26, E48 and E49 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E48", "E49"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -617,7 +617,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E23", "E24", "E25", "E26")) {
+  for (ep in c("E18", "E23", "E24", "E25", "E26", "E48", "E49")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -676,6 +676,19 @@ test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes",
   # With the z test, Known difference 2 doesn't apply.
   z <- build_spec(forms, "E5", fields, form_examples$E5)
   expect_length(known_difference_keys(forms, "E5", z), 0)
+})
+
+test_that("goodness of fit and two correlations run on pwrss, with their notes", {
+  skip_without_run()
+  fns <- c(E48 = "pwrss::power.chisq.gof", E49 = "pwrss::power.z.twocors")
+  for (ep in names(fns)) {
+    fields <- form_fields(form_groups(forms, ep))
+    calc <- run_calculation(build_spec(forms, ep, fields, form_examples[[ep]]), run, seed = 1L)
+    expect_identical(calc$result$provenance$backend_function, fns[[ep]], label = ep)
+    expect_gt(calc$result$n_required$n, 0)
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
+    expect_match(html, "Validation in progress. ", fixed = TRUE, label = ep)
+  }
 })
 
 test_that("E9: the smallest detectable interaction, labelled as the fixed-model formula", {

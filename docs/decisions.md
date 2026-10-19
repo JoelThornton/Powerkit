@@ -1946,3 +1946,13 @@ maintainer's note; the date is from a search result, unchecked). Same
 deploy route from R (rsconnect 1.6.0 or later). The maintainer deploys
 with `scripts/deploy-online.R`. Prices and limits are to check on the
 account page; mediation runs may be slow on a small instance.
+
+## 2026-10-19 · Chi-square goodness of fit gets its own card (judgement call 3.7)
+
+**Decision (maintainer, 19 October 2026, on Claude's recommendation).**
+The chi-square goodness-of-fit test (one categorical variable against
+expected proportions) is its own card, E48, not part of E6 (the test of
+independence). They answer different questions, and a separate card keeps
+each screen simple. It runs on pwrss's `power.chisq.gof()`, with equal
+proportions under the null unless the user gives others.
+

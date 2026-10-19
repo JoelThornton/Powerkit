@@ -585,7 +585,7 @@ that table's "Engine can use it?" column:
   from unreliable scores (maintainer decision, 16 October 2026; see
   `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square, and for
-  one proportion and McNemar's test (E25, E26);
+  one proportion, McNemar's test and two correlations (E25, E26, E49);
 - a test version (Q-test) only where there is a choice: Student's or
   Welch's t-test (E2), the z test or Fisher's exact test (E5), or exact or
   simulation (E7, E8, E18).
@@ -620,6 +620,8 @@ the two in step.
 | E24 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E25 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E26 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E48 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E49 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -685,6 +687,8 @@ taken from coverage.md, where they are proposals.
 | E45 | Many measurements over time: segmented regression or interrupted time series | — | Card text (17 October 2026): "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it." The package (PITS, on CRAN since 30 June 2026) isn't named on the card while open question 18 is undecided. For an estimated breakpoint: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; autocorrelation makes standard calculations wrong: too optimistic when it's positive, too pessimistic when it's negative (changed 17 October 2026; Zhang et al., 2011, Table 1). Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
 | E46 | Precision planning (a target confidence-interval width) | — | Generic card, as E43 | — | — | No | later | Not in spec |
 | E47 | Yes/no outcome with two or more crossed factors (factorial logistic regression) | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18). Reached from Q3 (yes/no difference, two or more factors) and from the guided route's moderation analysis (yes/no outcome, X and W of two groups each), so both routes give the same card | — | — | No | later | Not in spec |
+| E48 | Chi-square goodness-of-fit test | `basic_test / chi_square_gof` | `pwrss::power.chisq.gof()`, Cohen's w from `pwrss::probs.to.w()`. Reached from Q3 (one group, outcome in several categories) | Formula (no simulation) | Expected proportions; fixed proportions to compare with (equal if left out) | No: matches pwrss called directly and `pwr::pwr.chisq.test()` in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
+| E49 | Two independent correlations | `basic_test / two_correlations` | `pwrss::power.z.twocors()` (Fisher's z test). Reached from R1 (a relationship between scores that differs between two separate groups) | Formula (no simulation) | r in each group; allocation ratio | No: matches pwrss called directly in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 
@@ -910,6 +914,10 @@ planned effect size (2.2), which is prospective. Some tools call both
   fields, or pre-filled values plus a required reason.
 
 ### 3.7 Chi-square goodness-of-fit: E6 or its own card
+
+**Decided 19 October 2026** (`decisions.md`): its own card, E48, on
+pwrss's `power.chisq.gof()`. The rest of this section is the record of
+the options.
 
 Found by the routing audit's cross-check against the UCLA OARC table
 ([routing audit](routing-audit.md)). A goodness-of-fit test compares one

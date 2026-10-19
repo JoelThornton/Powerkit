@@ -23,7 +23,7 @@ links:
   decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
   tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
 
-banner: "Prototype: calculations are available for E1–E9, E18 and E23–E26; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now."
+banner: "Prototype: calculations are available for E1–E9, E18, E23–E26, E48 and E49; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
@@ -74,9 +74,9 @@ settings:
   - key: chi_square_gof
     ref: "Judgement call 3.7; open question 5"
     question: "Chi-square goodness-of-fit (one categorical variable against expected proportions) has no answer in the tree. E6 is a test of independence only. Should goodness-of-fit go to E6 once the spec has a goodness-of-fit form, or get its own card?"
-    options: {extend_e6: "Extend E6 (spec change; Spower's p_chisq.test() takes a probability vector), with the card explaining the degrees of freedom", own_card: "Its own card: not in powerkit yet, use Spower's p_chisq.test()"}
-    value: null
-    shown_at: [E6, E25]
+    options: {extend_e6: "Extend E6 (spec change; Spower's p_chisq.test() takes a probability vector), with the card explaining the degrees of freedom", own_card: "Its own card (E48, on pwrss's power.chisq.gof())"}
+    value: own_card
+    shown_at: [E6, E48]
   - key: rank_based_tests
     ref: "Judgement call 3.8; open question 5"
     question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should powerkit handle them?"
@@ -476,6 +476,7 @@ nodes:
       - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
       - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
       - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
+      - {label: "One group, outcome in several categories, compared with expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
@@ -501,6 +502,7 @@ nodes:
     text: "What is the other variable like?"
     options:
       - {label: "A score or scale", next: E4}
+      - {label: "A score, and the question is whether the relationship differs between two separate groups", next: E49}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
       - {label: "Several predictors at once, or controlling for other variables", next: E24}
 
@@ -656,7 +658,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18]
@@ -1235,6 +1237,34 @@ endpoints:
     established_tools: true
     card_text: "powerkit doesn't cover designs with two or more crossed factors and a yes/no outcome yet (for example, whether people book a flu jab after a gain or loss message from a doctor or a friend)."
     tier: later
+  E48:
+    doc_name: "Chi-square goodness-of-fit test"
+    plain_name: "Compare one categorical variable with expected proportions"
+    template: "basic_test / chi_square_gof"
+    backend: "pwrss: power.chisq.gof(), with Cohen's w from probs.to.w() (by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and pwr's pwr.chisq.test() in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
+    card_points:
+      - "The test has one fewer degree of freedom than the number of categories."
+      - "Without fixed proportions to compare with, powerkit compares with equal proportions, as pwrss's probs.to.w() does."
+    inputs: ["The categories of the variable", "The expected proportion in each category, and the fixed proportions they are compared with"]
+    tier: v2
+    alternatives: ["an exact multinomial test", "a likelihood-ratio (G) test"]
+  E49:
+    doc_name: "Two independent correlations"
+    plain_name: "Compare a correlation between two separate groups"
+    template: "basic_test / two_correlations"
+    backend: "pwrss: power.z.twocors() (Fisher's z test, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
+    card_points:
+      - "Both groups measure the same two variables; the test compares the correlation between them in one group with that in the other."
+      - "For two correlations in the same people (for example, X with Y and X with Z), powerkit doesn't calculate it yet."
+    inputs: ["Names of the two groups and the two variables", "The expected correlation in each group", "The size of group 2 relative to group 1"]
+    tier: v2
+    alternatives: ["a moderated regression with the group as moderator"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"

@@ -112,12 +112,13 @@ whole <- function(n) format(n, big.mark = ",", scientific = FALSE, trim = TRUE)
 
 # Group sizes for a total n, for designs with separate groups; NULL for
 # designs where everyone is in one group (one sample, paired, correlation,
-# chi-square, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
+# chi-square, goodness of fit, one proportion, McNemar, regression). Follows the engine's split (powerkit's spower_inputs()).
 group_sizes <- function(spec, n) {
   switch(
     spec$template,
     independent_t = ,
-    two_proportions = {
+    two_proportions = ,
+    two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
       n1 <- round(n / (1 + ratio))
       c(n1, n - n1)
