@@ -292,6 +292,9 @@ method_description <- function(result) {
   if (p$method == "exact") {
     return("exact (no simulation)")
   }
+  if (p$method == "analytic") {
+    return("fixed-model formula (no simulation)")
+  }
   sprintf("simulation, %s replications per sample size, seed %s", p$nrep, p$seed)
 }
 
@@ -313,7 +316,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss")) {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend
@@ -1168,7 +1171,7 @@ interactionpower_script <- function(spec, result) {
   v <- spec$variables
   label <- function(role) comment_text(v[[role]]$label)
   c(
-    script_header(spec, result, "InteractionPoweR", "InteractionPoweR::power_interaction()"),
+    script_header(spec, result, "InteractionPoweR", paste0(result$provenance$backend_function, "()")),
     "library(InteractionPoweR)",
     "",
     "# Inputs ----",
@@ -1183,6 +1186,55 @@ interactionpower_script <- function(spec, result) {
     sprintf("rel_y <- %s # reliability of Y", r_code(inputs$rel.y)),
     goal_inputs(spec, result),
     "",
+    if (spec$goal$type == "sensitivity") interactionpower_sensitivity_section(result) else interactionpower_simulation_lines(spec, result)
+  )
+}
+
+# The smallest detectable interaction: the search powerkit ran, with
+# InteractionPoweR's fixed-model power_interaction_r2().
+interactionpower_sensitivity_section <- function(result) {
+  s <- result$sensitivity
+  c(
+    "# Smallest detectable interaction ----",
+    "# Keep the other correlations and the reliabilities, and move the",
+    "# interaction's correlation with Y away from 0 (in the direction you gave;",
+    "# positive if you gave none) until power reaches the target. This uses",
+    "# InteractionPoweR's fixed-model formula, power_interaction_r2(), which",
+    "# gives slightly higher power than simulation (powerkit's conventions,",
+    "# Known difference 1), so the effect is slightly smaller than simulation",
+    "# would give.",
+    "direction <- if (r_x1x2_y < 0) -1 else 1",
+    "power_with_r <- function(r) {",
+    "  tryCatch(power_interaction_r2(",
+    "    N = n_total, r.x1.y = r_x1_y, r.x2.y = r_x2_y, r.x1x2.y = direction * r, r.x1.x2 = r_x1_x2,",
+    "    rel.x1 = rel_x1, rel.x2 = rel_x2, rel.y = rel_y, alpha = alpha",
+    "  )$pwr[1], error = function(e) NA_real_) # NA: correlations impossible together",
+    "}",
+    "lower <- 0",
+    "upper <- NA",
+    "for (r in seq(0.01, 0.99, by = 0.01)) {",
+    "  p <- power_with_r(r)",
+    "  if (is.na(p)) break",
+    "  if (p >= target_power) {",
+    "    upper <- r",
+    "    break",
+    "  }",
+    "  lower <- r",
+    "}",
+    "r <- uniroot(function(r) power_with_r(r) - target_power, lower = lower, upper = upper, tol = 1e-10)$root",
+    "effect <- direction * r",
+    "power <- power_with_r(r)",
+    "cat(sprintf(\"Smallest detectable correlation of the interaction with Y: %.4g (power %.4f)\\n\", effect, power))",
+    "",
+    "reproduced <- list(effect = effect, power = power)",
+    sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
+    "",
+    comparison_section()
+  )
+}
+
+interactionpower_simulation_lines <- function(spec, result) {
+  c(
     "# One batch of simulated data sets: rejections and analysable data sets.",
     "# Each data set is analysed with lm(y ~ x1 + x2 + x1x2), testing the",
     "# product of the observed X and W. powerkit reports this simulated power;",

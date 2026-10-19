@@ -61,3 +61,32 @@ test_that("a binary X or W isn't available yet", {
   expect_match(conditionMessage(error), "Treating them as continuous may give an inaccurate power estimate", fixed = TRUE)
   expect_match(conditionMessage(error), "Because both are yes/no, you can use a 2x2 ANOVA design instead.", fixed = TRUE)
 })
+
+test_that("the smallest detectable interaction comes from power_interaction_r2, the others kept", {
+  result <- run_quietly(sim_spec("regression_interaction", goal = list(type = "sensitivity", n = 300, power = 0.8)))
+  s <- result$sensitivity
+  expect_equal(result$provenance$method, "analytic")
+  expect_equal(result$provenance$backend_function, "InteractionPoweR::power_interaction_r2")
+  expect_true(s$approximation)
+  expect_equal(s$effect_name, "r_XW_Y")
+  expect_gt(s$effect, 0)
+  # Directly: InteractionPoweR's analytic power at the effect found is the target.
+  direct <- suppressWarnings(InteractionPoweR::power_interaction_r2(
+    N = 300, r.x1.y = -0.3, r.x2.y = 0.2, r.x1x2.y = s$effect, r.x1.x2 = -0.1,
+    rel.x1 = 0.8, rel.x2 = 0.85, rel.y = 1, alpha = 0.05
+  ))
+  expect_equal(direct$pwr[1], 0.8, tolerance = 1e-6)
+  expect_equal(s$power, direct$pwr[1])
+  # A negative interaction correlation keeps its sign.
+  spec <- sim_spec("regression_interaction", goal = list(type = "sensitivity", n = 300, power = 0.8))
+  spec$population$r_XW_Y <- -0.1
+  expect_equal(run_quietly(spec)$sensitivity$effect, -s$effect, tolerance = 1e-6)
+})
+
+test_that("the smallest detectable interaction says plainly when none is possible", {
+  spec <- sim_spec("regression_interaction", goal = list(type = "sensitivity", n = 20, power = 0.99))
+  expect_error(run_quietly(spec), "No correlation of the interaction with Y reaches the target power", class = "powerkit_run_error")
+  spec$options$method <- "simulation"
+  spec$goal$n <- 300
+  expect_error(run_quietly(spec), "Sensitivity analysis uses the exact method", class = "powerkit_run_error")
+})

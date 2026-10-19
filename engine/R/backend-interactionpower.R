@@ -16,7 +16,7 @@ interactionpower_backend <- function(spec, seed = NULL) {
     packages = "InteractionPoweR",
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = "InteractionPoweR::power_interaction"),
+    functions = c(simulation = "InteractionPoweR::power_interaction", analytic = "InteractionPoweR::power_interaction_r2"),
     n_step = 1,
     exact_min_n = minimum_n(spec),
     bracket_power = function(n) interactionpower_analytic(inputs, n)$pwr,
@@ -25,7 +25,10 @@ interactionpower_backend <- function(spec, seed = NULL) {
         interactionpower_rejections(inputs, n, k, chunk_seed)
       })
     },
-    sensitivity = NULL,
+    # The smallest detectable effect uses the fixed-model formula
+    # (power_interaction_r2()), not simulation: see interactionpower_sensitivity().
+    sensitivity = function(n, power) interactionpower_sensitivity(inputs, n, power),
+    sensitivity_method = "analytic",
     check_run = function() interactionpower_check_run(spec, inputs, seed)
   )
 }
@@ -75,6 +78,48 @@ interactionpower_analytic <- function(inputs, n, detailed_results = FALSE) {
     InteractionPoweR::power_interaction_r2,
     c(list(N = n, detailed_results = detailed_results), inputs)
   )))
+}
+
+# The smallest detectable effect: the correlation of the interaction XW
+# with Y, the other correlations and the reliabilities kept as entered,
+# searched with InteractionPoweR's fixed-model power_interaction_r2() (as
+# search_n() searches n). Fixed-model power is slightly higher than the
+# simulated power powerkit reports for n (conventions.md, Known
+# difference 1), so this effect is slightly smaller than simulation would
+# give; the app says so. With no interaction correlation given (zero), the
+# result is positive.
+interactionpower_sensitivity <- function(inputs, n, target) {
+  direction <- if (inputs$r.x1x2.y < 0) -1 else 1
+  power_at <- function(r) {
+    trial <- inputs
+    trial$r.x1x2.y <- direction * r
+    # Correlations that are impossible together have no power.
+    tryCatch(interactionpower_analytic(trial, n)$pwr[1], error = function(e) NA_real_)
+  }
+  lower <- 0
+  upper <- NA_real_
+  for (r in seq(0.01, 0.99, by = 0.01)) {
+    p <- power_at(r)
+    if (is.na(p)) break
+    if (p >= target) {
+      upper <- r
+      break
+    }
+    lower <- r
+  }
+  if (is.na(upper)) {
+    abort_run(paste0(
+      "No correlation of the interaction with Y reaches the target power at this n ",
+      "with the other correlations as given. Try a larger n or check the correlations."
+    ))
+  }
+  r <- stats::uniroot(function(r) power_at(r) - target, lower = lower, upper = upper, tol = 1e-10)$root
+  list(
+    effect = direction * r, effect_name = "r_XW_Y",
+    effect_description = "correlation of the interaction XW with Y (the other correlations kept as entered), by the fixed-model formula",
+    power = power_at(r),
+    approximation = TRUE
+  )
 }
 
 # Rejections in `nrep` replications at n. power_interaction() has no seed

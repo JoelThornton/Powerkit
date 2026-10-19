@@ -526,6 +526,16 @@ methods paragraph.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
 - **Shown to users:** on E9's result screen, under "Where other established tools give a different answer" (18 October 2026; `app/routing/forms.yaml`, `known_differences`).
+- **The smallest detectable effect is the exception (in review, 19 October
+  2026):** it comes from `power_interaction_r2()` (a search over the
+  interaction's correlation with Y, the other correlations kept), because
+  a simulation search would take minutes. So it follows the fixed-model
+  convention, and the true smallest detectable effect may be slightly
+  larger. The result screen, the methods sentence (`known_differences`
+  and `known_differences_methods`, key "1 sensitivity") and the R script
+  say so. Tests: `engine/tests/testthat/test-backend-interactionpower.R`
+  (the search against `power_interaction_r2()` called directly) and
+  `app/routing/tests/testthat/test-results.R` (the labels).
 - **Methods paragraph (interaction designs), one sentence:** "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
   To be added when the methods paragraph (`writeup.R`) is built in phases
   4-5.

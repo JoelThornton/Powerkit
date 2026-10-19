@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Regression interactions (E9) can now find the smallest effect you
+  could detect at a given sample size: the correlation of the interaction
+  with Y, with the other correlations kept as entered. It uses
+  InteractionPoweR's fixed-model formula, `power_interaction_r2()`, which
+  is quick but gives slightly higher power than the simulation used for
+  sample size and power, so the true smallest effect may be slightly
+  larger. The result screen, the write-up and the R script say so. In the
+  engine, a backend can name its own method for the smallest detectable
+  effect (`sensitivity_method`), recorded as `"analytic"`.
+
 * App: Fisher's exact test is now a test version on the two-proportions
   screen (E5), for small samples or small expected counts; with it, the
   formula and simulation choices are hidden (it is pwrss's exact test

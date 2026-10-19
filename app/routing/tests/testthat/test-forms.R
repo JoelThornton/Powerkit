@@ -258,7 +258,8 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   goal <- function(ep, start) Filter(function(f) f$id == "goal", form_fields(form_groups(forms, ep, start = start)))[[1]]
   expect_null(goal("E2", list(situation = "choose"))$default)
   expect_equal(goal("E2", list(situation = "fixed"))$default, "sensitivity")
-  expect_equal(goal("E9", list(situation = "fixed"))$default, "power")
+  expect_equal(goal("E9", list(situation = "fixed"))$default, "sensitivity")
+  expect_equal(goal("E10", list(situation = "fixed"))$default, "power")
   for (ep in paste0("E", 1:6)) expect_true("sensitivity" %in% names(goal(ep, list())$choices), info = ep)
 })
 
