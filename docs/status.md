@@ -82,8 +82,8 @@ any time, and user testing is the maintainer's to run):
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
 6. Optional features (any time; those that help testing first): "guess first" (merged 19 October 2026),
-   a plain-words version of the write-up for ethics applications (merged
-   review), a plan checker for
+   a plain-words version of the write-up for ethics applications (merged 19
+   October 2026), a plan checker for
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.
 7. More tests by formula from the packages powerkit already uses (the
