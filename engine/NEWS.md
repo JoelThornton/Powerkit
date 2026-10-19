@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* App: two new cards that calculate. The chi-square goodness-of-fit test
+  (E48) has its own card, as the maintainer decided (judgement call 3.7):
+  one group's outcome in several categories, compared with fixed
+  proportions (equal ones if none are given), on pwrss's
+  `power.chisq.gof()`. A test of two independent correlations (E49,
+  Fisher's z, pwrss's `power.z.twocors()`): the same two variables measured
+  in two separate groups. "Help me choose" reaches them from the
+  categorical-outcome question and the relationship question. Both match
+  pwrss in the engine's tests but haven't been checked against G\*Power;
+  their cards say so.
+
 * App: "Guess first", an optional teaching step at the end of every input
   screen. Write down the sample size, power or smallest effect you expect
   before pressing "Check my answers"; the result screen shows your guess

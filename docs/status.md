@@ -21,15 +21,16 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
-- **More tests by formula** (pwrss): Fisher's exact test and one-way
-  ANCOVA are in the app (E5's test version, E23; in review);
-  chi-square goodness of fit and two independent correlations are in the
-  engine only. None is checked against G\*Power yet.
+- **More tests by formula** (pwrss): Fisher's exact test (E5's test
+  version) and one-way ANCOVA (E23) are in the app; chi-square goodness of
+  fit (E48, its own card) and two independent correlations (E49) are in
+  the app in review. None is checked against G\*Power yet.
 - **Generic tests** (engine only): t, F, chi-square and z from a
   noncentrality parameter, as in G\*Power. Not yet in the app.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
-  regression (E24), one proportion (E25) and McNemar (E26) calculate in
+  regression (E24), one proportion (E25), McNemar (E26), goodness of fit
+  (E48, in review) and two correlations (E49, in review) calculate in
   the app; E10–E14 give a rough
   preview, then a full run in the app or an R script. Results can be saved
   as a project file and reopened. It is online at
@@ -85,11 +86,10 @@ any time, and user testing is the maintainer's to run):
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.
 7. More tests by formula from the packages powerkit already uses (the
-   maintainer's direction, 18 October 2026): wave 2 is wired in (in
-   review); next, one regression coefficient's own card if needed,
-   chi-square goodness of fit, Fisher's exact test, two correlations,
-   ANCOVA, and the generic t, F, z, chi-square and binomial tests.
-   Validation later.
+   maintainer's direction, 18 October 2026): all but the generic tests
+   are in the app or in review; next, the generic t, F, z and chi-square
+   tests in the app (reached only from "I know my analysis", with no
+   sample size in the result). Validation later.
 8. Before release: published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
    more mediators, phase 3b (binary X and W), and the methodologist

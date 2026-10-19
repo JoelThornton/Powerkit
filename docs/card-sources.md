@@ -31,7 +31,7 @@ cites `coverage.md`, that page's own source tags ([Sp], [SP], [p4m], [IP],
 first-hand. Sources outside the repository are cited only if they were
 opened and read on 16 October 2026; nothing is cited from memory.
 
-**Counts:** partly sourced: 24, sourced: 163, no claim: 1
+**Counts:** partly sourced: 24, sourced: 171, no claim: 1
 
 ## Contradictions
 
@@ -147,6 +147,14 @@ None open. Resolved:
 | E46 | Card text | Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet. | coverage.md, 'Precision (AIPE)' rows (planned; MBESS, Spower precision criterion) | — | — | sourced |
 | E46 | Card text | Established tools exist for this design; powerkit hasn't checked them. | coverage.md, 'Precision (AIPE)' rows (Spower, MBESS) | — | — | sourced |
 | E47 | Card text | powerkit doesn't cover designs with two or more crossed factors and a yes/no outcome yet (for example, whether people book a flu jab after a gain or … | — (describes the design only) | — | — | no claim |
+| E48 | Status line | Matches pwrss called directly and pwr's pwr.chisq.test() in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example. | engine/tests/testthat/test-backend-formula-tests.R; PR #68 | — | — | sourced |
+| E48 | Backend | pwrss: power.chisq.gof(), with Cohen's w from probs.to.w() (by formula) | engine/R/backend-pwrss.R, engine/R/route.R | — | — | sourced |
+| E48 | Card point | The test has one fewer degree of freedom than the number of categories. | pwrss 1.3.3 probs.to.w() (returns df = 2 for three categories; run 19 October 2026); engine/R/backend-pwrss.R (gof_w()) | — | — | sourced |
+| E48 | Card point | Without fixed proportions to compare with, powerkit compares with equal proportions, as pwrss's probs.to.w() does. | pwrss 1.3.3 probs.to.w() (null.prob.matrix 1/3 each when none is given; run 19 October 2026); engine schema, template_chi_square_gof (null_probabilities) | — | — | sourced |
+| E49 | Status line | Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example. | engine/tests/testthat/test-backend-formula-tests.R; PR #68 | — | — | sourced |
+| E49 | Backend | pwrss: power.z.twocors() (Fisher's z test, by formula) | engine/R/backend-pwrss.R, engine/R/route.R | — | — | sourced |
+| E49 | Card point | Both groups measure the same two variables; the test compares the correlation between them in one group with that in the other. | engine schema, template_two_correlations ("Two independent groups compared on the correlation between X and Y") | — | — | sourced |
+| E49 | Card point | For two correlations in the same people (for example, X with Y and X with Z), powerkit doesn't calculate it yet. | engine/R/route.R (no template for dependent correlations) | — | — | sourced |
 | E47 | Card text | Established tools exist for this design; powerkit hasn't checked them. | Spower (see Sources opened); coverage.md, 'Logistic regression' row | `p_glm`, "Arguments" (`family`, `test`) and "Examples" ("ANCOVA setup with logistic regression") | Spower's `p_glm()` simulates power for generalised linear models with factor predictors, including `family = binomial()`, testing any linear hypothesis (so a factorial interaction). G*Power remains second-hand in coverage.md. | sourced |
 | E-bayes | Tool: bfpwr | Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors. | coverage.md (the row or section naming bfpwr; its source tags give the original) | — | — | sourced |
 | E-bayes | Tool: BFDA | Bayes factor design analysis by simulation, fixed-N and sequential (GitHub, not on CRAN). | coverage.md (the row or section naming BFDA; its source tags give the original) | — | — | sourced |

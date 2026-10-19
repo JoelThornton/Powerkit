@@ -41,6 +41,10 @@ form_examples <- list(
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
                p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
+  E48 = c(list(Y_label = "Preferred study method", Y_levels = "Rereading, Highlighting, Practice testing",
+               probabilities = "0.25, 0.3, 0.45"), closing_ok),
+  E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
+               Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)

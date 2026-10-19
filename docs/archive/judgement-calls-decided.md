@@ -551,3 +551,30 @@ the record of the options.
   if "can't justify" leads to sensitivity; validation of sensitivity for
   E1–E6 and E9–E14; the result wording (B11).
 - **Recorded in:** this entry; B5; B13; roadmap C11.
+
+### C9. Chi-square goodness-of-fit (judgement call 3.7)
+
+**Decided 19 October 2026** (`decisions.md`): its own card, E48, on
+pwrss's `power.chisq.gof()` (Cohen's w from `probs.to.w()`), reached from
+Q3 (one group, outcome in several categories). The entry is kept below as
+the record of the options.
+
+
+- **Question:** one categorical variable against expected proportions has
+  no answer and no end point. Extend E6, or give it its own card?
+- **Options:**
+  - extend E6 (a spec change; Spower's `p_chisq.test()` takes a
+    probability vector), with the card explaining the degrees of freedom;
+  - its own card: not in powerkit yet, use Spower's `p_chisq.test()`.
+- **What tools and sources do:**
+  - Spower's `p_chisq.test()` does both goodness-of-fit and independence
+    (opened).
+  - UCLA OARC lists "Chi-square goodness-of-fit" (opened).
+  - G\*Power's single chi-square routine is the maintainer's recollection
+    (second-hand).
+- **Who might disagree, and why:**
+  - Extending E6 keeps one card for one routine.
+  - Its own card is honest until the spec supports it.
+- **Knock-on effects:** a schema change and a validation test if E6 is
+  extended.
+- **Recorded in:** `decision-tree.md` 3.7; setting `chi_square_gof`.
