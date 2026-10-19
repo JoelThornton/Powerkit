@@ -75,13 +75,13 @@ any time, and user testing is the maintainer's to run):
    effect-size source is merged (19 October 2026), and so is the smallest
    detectable effect with no effect size for two proportions and
    chi-square; the smallest detectable effect for regression
-   interactions (by the fast fixed-model formula, labelled) is in review.
+   interactions (by the fast fixed-model formula, labelled) is merged too.
 4. User testing with the online link, run by the maintainer: the plan
    ([`user-testing.md`](user-testing.md)) is ready for the four screens.
 5. The maintainer's judgement session
    ([`judgement-session.md`](judgement-session.md); routing from screen A
    onwards first).
-6. Optional features (any time; those that help testing first): a "guess first" teaching mode,
+6. Optional features (any time; those that help testing first): "guess first" (merged 19 October 2026),
    an ethics-board version of the write-up, a plan checker for
    supervisors and reviewers, and a separate "Labs" area for experimental
    tools.

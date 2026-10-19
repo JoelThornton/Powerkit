@@ -741,3 +741,26 @@ test_that("changing the effect size after writing the reasoning flags it, withou
   expect_no_match(html, "Does your reasoning still apply?", fixed = TRUE)
   expect_match(html, "writeup_short", fixed = TRUE)
 })
+
+test_that("guess first: the guess is shown next to the answer and goes nowhere else", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  expect_true("guess" %in% vapply(fields, `[[`, "", "id"))
+  values <- modifyList(form_examples[["E2"]], list(guess = "60"))
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_identical(spec, build_spec(forms, "E2", fields, form_examples[["E2"]]))
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  n <- calc$result$n_required$n
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, sprintf("Your guess: 60 participants. The answer: %s", whole(n)), fixed = TRUE)
+  expect_no_match(paste(writeup_text(forms$forms[["E2"]], calc$spec, calc$result, fields, values), collapse = " "), "guess", fixed = TRUE)
+  # No guess, no line.
+  expect_no_match(as.character(result_panel_ui(tree, forms, "E2", fields, form_examples[["E2"]], calc)), "Your guess", fixed = TRUE)
+  # Power: a guess above 1 is a percentage.
+  expect_equal(guess_line(list(guess = "80"), list(goal_type = "power", curve = data.frame(power = 0.34))), "Your guess: 80% power. The answer: 34%.")
+  expect_equal(guess_line(list(guess = "0.8"), list(goal_type = "power", curve = data.frame(power = 0.34))), "Your guess: 80% power. The answer: 34%.")
+  expect_equal(guess_gap(100, 394), "3.9 times your guess")
+  expect_equal(guess_gap(100, 105), "close to your guess")
+  expect_equal(guess_gap(100, 130), "30% more than your guess")
+  expect_equal(guess_gap(100, 40), "60% fewer than your guess")
+})

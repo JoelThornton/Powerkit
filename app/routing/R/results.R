@@ -429,6 +429,36 @@ curve_table_ui <- function(spec, result, table) {
   )
 }
 
+# Guess first: the user's guess next to the answer (forms.R, closing_groups()).
+# A guess for power above 1 is read as a percentage.
+guess_line <- function(values, result) {
+  if (blank(values$guess)) return(NULL)
+  g <- parse_number(values$guess)
+  if (is.nan(g) || is.na(g)) return(NULL)
+  switch(
+    result$goal_type,
+    sample_size = {
+      answer <- result$n_required$n
+      sprintf("Your guess: %s participants. The answer: %s, %s.", whole(g), whole(answer), guess_gap(g, answer))
+    },
+    power = {
+      guessed <- if (g > 1) g / 100 else g
+      sprintf("Your guess: %s power. The answer: %s.", percent(guessed), percent(result$curve$power[1]))
+    },
+    sensitivity = sprintf("Your guess: %s. The answer: %s.", format(g), format(round(result$sensitivity$effect, 3), nsmall = 2)),
+    NULL
+  )
+}
+
+guess_gap <- function(guess, answer) {
+  if (guess <= 0) return("so your guess was too small")
+  ratio <- answer / guess
+  if (abs(ratio - 1) <= 0.1) return("close to your guess")
+  if (ratio >= 1.5) return(sprintf("%s times your guess", format(round(ratio, 1), nsmall = 1)))
+  if (ratio > 1) return(sprintf("%d%% more than your guess", round(100 * (ratio - 1))))
+  sprintf("%d%% fewer than your guess", round(100 * (1 - ratio)))
+}
+
 # A short warning for effect sizes taken from one earlier study.
 source_note <- function(values) {
   if (!identical(values$just_type, "prior_study")) return(NULL)
@@ -602,6 +632,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     class = "result-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
+    if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),

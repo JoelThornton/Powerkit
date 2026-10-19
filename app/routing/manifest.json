@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "adab5af292ce68d77bfddd1ef6a41893eb5f6c5d",
-        "RemoteSha": "adab5af292ce68d77bfddd1ef6a41893eb5f6c5d",
+        "RemoteRef": "dc13816b2ee238c10bfe14d509ea28e07ba50674",
+        "RemoteSha": "dc13816b2ee238c10bfe14d509ea28e07ba50674",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "adab5af292ce68d77bfddd1ef6a41893eb5f6c5d",
-        "GithubSHA1": "adab5af292ce68d77bfddd1ef6a41893eb5f6c5d",
+        "GithubRef": "dc13816b2ee238c10bfe14d509ea28e07ba50674",
+        "GithubSHA1": "dc13816b2ee238c10bfe14d509ea28e07ba50674",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-19 08:53:50 UTC; runner",
+        "Packaged": "2026-10-19 09:07:11 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-19 08:53:53 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-19 09:07:16 UTC; unix"
       }
     },
     "praise": {
@@ -5776,13 +5776,13 @@
       "checksum": "9ee72831fdba10ef355a1f2c2397c862"
     },
     "R/forms.R": {
-      "checksum": "c9db1a97e606fa42d8edecd9112d9d93"
+      "checksum": "e0abee7bc82618d4b841ff71db053dbb"
     },
     "R/project.R": {
       "checksum": "4db418c3160c27474bf357a0d83ea1de"
     },
     "R/results.R": {
-      "checksum": "a79c3816a2f426e1436ba57455bf2e3c"
+      "checksum": "47767930fc2ab73e5810724b8e1c5818"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5830,7 +5830,7 @@
       "checksum": "8432735c4727ddefb0e8ce7eebe6e581"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "0d6f1ab91cff435e2b0e61f385b30c31"
+      "checksum": "6d2868bf5edbd6edae2038c1b6ffe264"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "3aabcfad2a722e3a91195cb3909dd19f"

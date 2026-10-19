@@ -196,9 +196,22 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "seed", label = sprintf("Random seed (a whole number; used when power is simulated, so the same seed gives the same result; empty = %s)", forms$default_seed),
            type = "number", path = "options.seed", optional = TRUE, integer = TRUE, min = 1, max = 2147483647,
            default = forms$default_seed, default_source = "powerkit's fixed default seed (judgement-calls.md B15)")
+    )),
+    # Guess first (optional teaching mode): the guess is shown next to the
+    # answer and goes nowhere else (no spec path, not in the exports).
+    list(input = NULL, title = "Guess first (optional)", note = guess_note, fields = list(
+      list(id = "guess", label = "Your guess (optional)", type = "number", optional = TRUE, min = 0,
+           shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
   ))
 }
+
+guess_note <- paste(
+  "Before you press \u201cCheck my answers\u201d, write down what you expect:",
+  "the number of participants (for the sample size), the power as a percentage (for power),",
+  "or the size of the smallest effect you could detect. Your guess is shown next to the answer;",
+  "it isn't part of the plan, the R script or the write-up."
+)
 
 # The claim from screen A, on the input screen: a note for every claim but
 # "one test", and for "any of several" the number of tests, which divides
