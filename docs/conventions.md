@@ -526,7 +526,7 @@ methods paragraph.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
 - **Shown to users:** on E9's result screen, under "Where other established tools give a different answer" (18 October 2026; `app/routing/forms.yaml`, `known_differences`).
-- **The smallest detectable effect is the exception (in review, 19 October
+- **The smallest detectable effect is the exception (maintainer's decision, 19 October
   2026):** it comes from `power_interaction_r2()` (a search over the
   interaction's correlation with Y, the other correlations kept), because
   a simulation search would take minutes. So it follows the fixed-model

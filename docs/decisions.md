@@ -1890,7 +1890,11 @@ Further changes from the maintainer:
   maintainer's PDFs; Vankelecom et al. and Bakker et al. still need them.)
 
 **Decision 10** (interactions' fixed-N route by the fast fixed-model
-approximation, labelled): decided after the basic tests are done.
+approximation, labelled): **decided 19 October 2026**, the fast
+fixed-model formula (`power_interaction_r2()`), labelled on the result
+screen, in the methods sentence and in the R script (maintainer's choice
+on the thread's decision card; built in PR #76). Simulation stays the
+method for sample size and power.
 **Decision 11** (a clickable mock for the talk): dropped; the maintainer
 gives the talk.
 
