@@ -814,16 +814,66 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
   tidy <- function(x) gsub("([.!?])\u201d\\.", "\\1\u201d", x)
-  c(short = tidy(short), full = tidy(full))
+  c(short = tidy(short), full = tidy(full), ethics = tidy(ethics_text(spec, result, fields, values)))
+}
+
+# The ethics-board version (optional feature, 19 October 2026): the same
+# result in plain words for a lay ethics panel, saying why this many
+# participants. It only words the engine's result, like the write-up, and
+# passes no verdict on whether the study is ethical.
+ethics_text <- function(spec, result, fields, values) {
+  alpha <- paste0(format(100 * spec$target_test$alpha), "%")
+  fixed <- identical(values$situation, "fixed")
+  effect <- writeup_effect(fields, values)
+  reasoning <- writeup_quote(values$just_source)
+  basis <- if (identical(values$just_type, "none") || is.null(effect)) {
+    sprintf("Our reasoning about the size of the effect: %s.", reasoning)
+  } else {
+    sprintf("We are planning for an effect of %s, based on %s: %s.", effect,
+      writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning)
+  }
+  n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  chance <- function(p) sprintf(
+    "If that effect is real, the chance that a study of this size finds it (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If the real effect is smaller, the chance of missing it is higher.",
+    alpha, percent(p), percent(1 - p))
+  include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
+  recruit <- result$recruitment
+  recruit_line <- if (is.list(recruit)) sprintf(
+    "To allow for about %s who may drop out or be excluded, we will recruit %s.",
+    percent_attrition(recruit$attrition), whole(recruit$n_recruit))
+  set_by <- if (fixed) "This number is set by the resources available, not chosen by a power analysis."
+  body <- switch(result$goal_type,
+    sample_size = c(include, recruit_line, "This number comes from a power analysis.", basis, chance(spec$goal$power),
+      "With fewer participants, the study would be more likely to miss the effect, so people's time could go into a study that can't answer its question. This number is enough for that aim without asking more people to take part than it needs."),
+    power = c(include, recruit_line, set_by, basis, chance(result$curve$power[1])),
+    sensitivity = {
+      s <- result$sensitivity
+      size <- if (is.null(s$cohen_f)) {
+        sprintf("%s, measured as %s", format(round(s$effect, 3), nsmall = 2), s$effect_description)
+      } else {
+        sprintf("%s (Cohen's f = %.3f), measured as %s", format(signif(s$effect, 3)), s$cohen_f, s$effect_description)
+      }
+      c(include, recruit_line, set_by,
+        sprintf("A power analysis shows the smallest effect a study of this size would find %s of the time (using a %s threshold for statistical significance) is %s. Smaller effects would more often be missed.",
+          percent(spec$goal$power), alpha, size),
+        sprintf("Our reasoning about the size of the effect: %s.", reasoning))
+    })
+  p <- result$provenance
+  paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
+    p$backend, p$packages[[p$backend]])), collapse = " ")
 }
 
 writeup_ui <- function(text) {
   if (is.null(text)) return(NULL)
   div(class = "result-writeup",
     h4(class = "h6", "Write-up"),
-    p(class = "small", "Edit as you like before you copy it. The short version is for your paper; the full version is for a supplement or preregistration."),
+    p(class = "small", "Edit as you like before you copy it. The short version is for your paper; the full version is for a supplement or preregistration; the plain-words version is for an ethics application."),
     tags$label(`for` = "writeup_short", "Short version (for the paper)"),
     tags$textarea(id = "writeup_short", class = "form-control writeup", rows = 6, text[["short"]]),
     tags$label(`for` = "writeup_full", "Full version (for a supplement or preregistration)"),
-    tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]]))
+    tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]]),
+    if (!is.na(text["ethics"])) tagList(
+      tags$label(`for` = "writeup_ethics", "Plain-words version (for an ethics application)"),
+      p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
+      tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
 }

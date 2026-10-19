@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* App: the write-up has a third box, a plain-words version for an ethics
+  application. It says why this many participants in words a lay panel
+  can follow: how many will take part (and be recruited, allowing for
+  drop-out), the effect planned for and your reasoning, the chance that a
+  study of this size finds that effect and the chance it misses it, and
+  whether the number came from a power analysis or from the resources
+  available. It describes the plan; it doesn't say whether the study is
+  ethical.
+
 * App: "Guess first", an optional teaching step at the end of every input
   screen. Write down the sample size, power or smallest effect you expect
   before pressing "Check my answers"; the result screen shows your guess
