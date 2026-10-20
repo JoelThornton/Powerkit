@@ -61,7 +61,10 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
     X_label = "Group", X_level1 = "Group 1", X_level2 = "Group 2", Y_label = "Outcome",
     X_levels = levels_of(rows), Y_levels = levels_of(cols),
     goal = "sensitivity", n = as.character(n %||% ""), power = as.character(power %||% ""),
-    alpha = as.character(alpha %||% ""), p1 = as.character(p1 %||% ""), just_type = "none"
+    alpha = as.character(alpha %||% ""), p1 = as.character(p1 %||% ""), just_type = "none",
+    # The input screen no longer pre-fills the direction; Labs looks at the
+    # original study's test, taken as two-sided (the packages' default).
+    alternative = "two_sided"
   ))
   problems <- form_problems(fields, values)
   if (length(problems)) return(list(status = "problems", problems = problems))
