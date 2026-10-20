@@ -91,9 +91,11 @@ any time, and user testing is the maintainer's to run):
    onwards first).
 6. Optional features (any time; those that help testing first): "guess first" (merged 19 October 2026),
    a plain-words version of the write-up for ethics applications (merged 19
-   October 2026), a plan checker for
-   supervisors and reviewers (in review), and a separate "Labs" area for experimental
-   tools.
+   October 2026), a plan checker for supervisors and reviewers (merged 19
+   October 2026), and a "Labs (experimental)" tab whose first tool,
+   pre-replication notes (Karhulahti et al., 2025), is in review (plan:
+   the "Powerkit Labs: plan" Claude Doc). Later Labs tools, such as the
+   design-upgrade comparator, wait for a statistician.
 7. More tests by formula from the packages powerkit already uses (the
    maintainer's direction, 18 October 2026): all are in the app or in
    review. Left for later: Wilcoxon and other rank tests (need a

@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-20"
+    title: "Labs: pre-replication notes"
+    text: >-
+      A new, experimental Labs tab. Its first tool helps you think before
+      replicating a finding: three questions from a recent paper on
+      pre-replication, answered in your own words, plus the smallest effect
+      the original study could detect. Nothing is required or scored, and
+      deciding a finding isn't worth replicating counts as a good outcome.
   - date: "2026-10-19"
     title: "Generic t, F, chi-square and z tests"
     text: >-
