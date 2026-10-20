@@ -1,5 +1,20 @@
 # powerkit 0.0.0.9000
 
+* App: a new "Labs (experimental)" tab, kept apart from the main route.
+  Its first tool, pre-replication notes, walks through the three
+  questions of Karhulahti, Martončik and Adamkovič (2025) in the user's
+  own words: the finding, epistemic goals (with the smallest effect that
+  would matter), methodological quality (what the original did and what
+  the replication will improve), value, and where they landed (go ahead,
+  change the plan, or not worth replicating, as equal choices). An
+  optional panel finds the original study's smallest detectable effect
+  for the basic tests with the engine's sensitivity. Notes download as
+  Markdown, copy, or print; they stay in the browser tab only, with a
+  "Clear notes" button. Nothing is required or scored. On the input
+  screen, choosing "A previous study" as the effect size's source shows
+  one optional line pointing to Labs, which can be hidden. The paper is
+  added to `refs.bib`.
+
 * App: a plan checker. On the start screen, "Or check a plan someone
   shared with you" opens a saved project for a supervisor, reviewer or
   colleague: what the plan is for and what it found, the questions worth
