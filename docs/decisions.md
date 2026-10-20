@@ -1636,8 +1636,8 @@ Spower 0.7, `p_r()` replaces the p-value when `rho != 0` with
 `pnorm(abs(t), lower.tail=FALSE)*2` (`R/p_r.R`, line 75), which is
 two-sided whatever `two.tailed` or `alternative` says. With `rho = 0`
 the p-value comes from `cor.test()` and follows `alternative`. powerkit
-doesn't use a non-zero null correlation, so nothing is affected. A draft
-note to Phil Chalmers is in `upstream-questions.md` (not sent).
+doesn't use a non-zero null correlation, so nothing is affected. The question
+is listed in `upstream-questions.md` (not yet raised).
 
 
 ## 2026-10-17 · E5: G\*Power's z test by `power.prop.test()` (waits for the maintainer's yes)
@@ -1879,11 +1879,10 @@ Further changes from the maintainer:
   the fixed-N route. It shows the smallest detectable effect across a
   range of N (a sensitivity curve), at .80 and .95 power.
 - **Direction:** the two-sided default stays for now. Asking "Do you
-  predict a direction?" instead is recorded for the maintainer's meeting
-  with Mark Rubin (`judgement-calls.md`, B18).
-- **Sources for the talk and the app:** no statistic from Vankelecom et
+  predict a direction?" instead is an open call (`judgement-calls.md`, B18).
+- **Sources for the app:** no statistic from Vankelecom et
   al. (2025), Schäfer and Schwarz (2019), Bakker et al. (2016) or Devezer
-  et al. (2021) appears in the app or the talk until it is checked in the
+  et al. (2021) appears in the app until it is checked in the
   full text with page numbers. Until then each stays a candidate. (A
   full-text check of 18 October 2026 corrected several figures. Schäfer
   and Schwarz and Devezer et al. now have page numbers from the
@@ -1895,8 +1894,7 @@ fixed-model formula (`power_interaction_r2()`), labelled on the result
 screen, in the methods sentence and in the R script (maintainer's choice
 on the thread's decision card; built in PR #76). Simulation stays the
 method for sample size and power.
-**Decision 11** (a clickable mock for the talk): dropped; the maintainer
-gives the talk.
+**Decision 11** (a clickable mock for presentations): dropped.
 
 **Build order (one PR each; each user-visible PR needs the maintainer's
 yes):**

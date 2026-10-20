@@ -35,8 +35,8 @@ to alpha, power and N.
   corrections "lead to an unjustifiable loss of statistical power" (Rubin,
   2024, p. 4). **What to power the study for in each case, and how N
   changes (the tables below), is not in either paper. That part is
-  powerkit's own extension and should be checked with Mark Rubin before it
-  is used.**
+  powerkit's own extension and needs independent methodological review
+  before it is used.**
 - **Two different authors.** Mark Rubin (2021, 2024) wrote the multiple
   testing papers. Mikael Rubin (2025, *International Journal of
   Psychology*, doi:10.1002/ijop.70017) wrote a review of power analysis in
@@ -310,9 +310,9 @@ compute joint power directly (power4mome `rejection_rates(collapse =
   continuous endpoints)?
 - Is a correction offered for answers 1 and 3, to reflect the competing
   view (G7)?
-- Check the extension of Rubin's framework to power with Mark Rubin.
-  Both papers are now opened; wording attributed to him on screen should
-  use the quotes above.
+- Have the extension of Rubin's framework to power reviewed by a
+  methodologist. Both papers are now opened; wording attributed to Rubin
+  on screen should use the quotes above.
 - Should the guidance for "any one is enough" use Rubin's fuller
   conditions (above), or the shorter two-point version?
 

@@ -46,6 +46,13 @@ to read small.
 - Prefer updating an existing doc to adding a new one.
 - One design or one feature per PR; keep code changes to a few hundred
   lines where possible, and keep docs-only changes in their own PR.
+- Public content: the repository is public and must read as a professional
+  software project. Commit messages, PR titles and descriptions, comments
+  and repo files say what a change does, why it is needed (in terms of the
+  software, its users or the published literature) and how it does it.
+  Never summarise project chats, private emails or correspondence, or who
+  said what in a discussion; cite published sources, not conversations.
+  Personal and discussion notes stay outside the repository.
 - One thread per area at a time (engine, app, docs). Before editing a
   shared page (handover.md, status.md), check open PRs for edits to it.
 - Local R in a cloud session: scripts/setup-cloud-session.sh (also usable

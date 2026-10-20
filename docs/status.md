@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 18 October 2026. This page says where the project is now
+*Last updated: 20 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -57,8 +57,7 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up was merged the same day. The maintainer gives the department talk
-  (Friday 23 October 2026).
+  the write-up was merged the same day.
 
 ## What's next
 

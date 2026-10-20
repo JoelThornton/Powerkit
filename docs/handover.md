@@ -42,6 +42,12 @@ maps every document.*
   next". How to keep reviews small (recommendations on judgement
   calls, PR size, one thread per area, status as current state) is in
   `CLAUDE.md`, "Working process".
+- **Public content:** the repository is public. Commits, PR titles and
+  descriptions, comments and repo files explain what a change does, why
+  (in terms of the software, its users or published sources) and how.
+  They never summarise project chats, private emails or correspondence,
+  or who said what; personal and discussion notes stay outside the
+  repository (`CLAUDE.md`, "Working process").
 - **Merging:** anything that changes what users see (cards, wording,
   results, defaults, routing) needs the maintainer's explicit yes before
   merging. Docs-only and test-only PRs can merge on green when the

@@ -495,8 +495,8 @@ their missing-data options are under C3.
   (Spower source, `R/p_r.R`). powerkit doesn't use a non-zero ρ0 yet; if
   it does, one-sided tests against ρ0 would need a workaround or an
   upstream fix. Recorded in [`decisions.md`](decisions.md) (17 October
-  2026); a draft note to Spower's author is in
-  [`upstream-questions.md`](upstream-questions.md) (not sent).
+  2026); the question is listed in
+  [`upstream-questions.md`](upstream-questions.md) (not yet raised).
 - pwr's two-proportion functions (`pwr.2p.test()`, `pwr.2p2n.test()`) use
   Cohen's h (the arcsine transformation), which isn't the z test G\*Power
   lists (A41). The size of the difference is in
