@@ -120,12 +120,40 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     )))), groups)
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
+  if (isTRUE(form$directional)) groups <- c(list(direction_group(forms$tool_defaults[[form$tool]])), groups)
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
   c(groups, closing_groups(forms, ep_id, start))
 }
+
+# The direction, asked first and not filled in: the choice of a one- or
+# two-sided test should follow from the hypothesis (Rubin, 2022), not from
+# a pre-filled default. The packages' default is still named.
+direction_group <- function(tool) {
+  list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
+    list(
+      id = "alternative", label = "Does your hypothesis predict a direction?", type = "select", path = "target_test.alternative", required = TRUE,
+      choices = list(
+        greater = "Yes: it predicts a positive effect (one-sided test)",
+        less = "Yes: it predicts a negative effect (one-sided test)",
+        two_sided = "No: an effect in either direction would support it (two-sided test)"),
+      default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")")
+    ),
+    list(
+      id = "alternative_reason", label = "Why your hypothesis predicts this direction (optional; goes in the write-up, for example \"the theory predicts that training raises scores\")",
+      type = "text", optional = TRUE, shown_if = list(field = "alternative", is_not = "two_sided")
+    )
+  ))
+}
+
+direction_note <- paste(
+  "Answer this from your hypothesis, before the numbers.",
+  "If it says which way the effect goes (for example, that training raises scores), a one-sided test in that direction fits it.",
+  "If any difference would support it, a two-sided test fits; its p-value doesn't support a claim about which way the effect goes",
+  "(Rubin, 2022, Significance)."
+)
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
 # basic_method_field). Where the form has a test version (`method`), the
@@ -163,21 +191,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]]),
-    # Shown only when alpha or the direction is changed from its default
-    # (decided 18 October 2026, judgement call G8); goes in the write-up.
+    # Shown only when alpha is changed from its default (decided 18 October
+    # 2026, judgement call G8); goes in the write-up.
     list(id = "alpha_reason", label = "Why this significance level (optional; goes in the write-up, for example \"the claim is new, so stronger evidence is wanted\")",
          type = "text", optional = TRUE, shown_if = list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05)))
   )
-  if (isTRUE(form$directional)) {
-    test <- c(test, list(list(
-      id = "alternative", label = "Direction of the test", type = "select", path = "target_test.alternative", required = TRUE,
-      choices = list(two_sided = "Two-sided (either direction)", greater = "One-sided: the effect is positive", less = "One-sided: the effect is negative"),
-      default = "two_sided", default_source = tool[["alternative_source"]]
-    ), list(
-      id = "alternative_reason", label = "Why a one-sided test (optional; goes in the write-up, for example \"the hypothesis predicts that training raises scores\")",
-      type = "text", optional = TRUE, shown_if = list(field = "alternative", is_not = "two_sided")
-    )))
-  }
   c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
     claim_groups(start$claim),
@@ -221,27 +239,55 @@ guess_note <- paste(
 )
 
 # The claim from screen A, on the input screen: a note for every claim but
-# "one test", and for "any of several" the number of tests, which divides
-# alpha between them (Bonferroni; docs/decisions.md, 18 October 2026).
+# "one test", and the number of tests for "any of several" (which divides
+# alpha between them: Bonferroni; docs/decisions.md, 18 October 2026) and
+# for "all of several" (which raises each test's target power so that all
+# succeed together with the target power; docs/decisions.md, 19 October
+# 2026).
 claim_groups <- function(claim) {
   claim <- claim %||% "one"
   if (identical(claim, "one")) return(list())
   note <- switch(
     claim,
-    each = "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others. No correction for several tests is needed, because no single conclusion rests on more than one test.",
+    each = paste(
+      "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
+      "No correction for several tests is needed, because no single conclusion rests on more than one test (Rubin, 2021).",
+      philosophy_note
+    ),
     any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
-    all = "You said your claim needs every test to be significant. The chance that all succeed is lower than any one test's power: for two independent tests powered at 0.9, about 0.9 x 0.9 = 0.81. Tests on the same people are usually positively correlated, so that product is roughly a floor, not exact. Consider a higher target power for each test."
+    all = paste(
+      "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
+      "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
+      "So powerkit raises this test's target power so that all the tests together reach your target power, if each test is planned the same way."
+    )
   )
-  fields <- if (identical(claim, "any")) {
-    list(list(id = "n_tests", label = "Number of tests in the set", type = "number", required = TRUE, min = 2, integer = TRUE))
-  } else {
+  fields <- switch(
+    claim,
+    any = list(list(id = "n_tests", label = "Number of tests in the set", type = "number", required = TRUE, min = 2, integer = TRUE)),
+    all = list(list(id = "n_tests", label = "Number of tests that must all be significant", type = "number", required = TRUE, min = 2, integer = TRUE)),
     list()
-  }
+  )
   list(list(input = NULL, title = "Your claim", note = note, fields = fields))
 }
 
+# Whether separate claims need a correction depends on one's philosophy of
+# significance testing (Rubin, 2024, Journal of Trial and Error; Mayo, 2018).
+philosophy_note <- paste(
+  "Not everyone agrees: whether to correct depends on your view of significance testing.",
+  "Under the more common error-statistical view, a correction may be expected when the tests form a related group, such as several outcomes of the same treatment,",
+  "especially if some of them could go unreported (Mayo, 2018, pp. 275\u2013276). Rubin (2024, Journal of Trial and Error) sets out the difference."
+)
+
+claim_tests <- function(values) {
+  k <- parse_number(values$n_tests)
+  if (length(k) != 1 || is.na(k) || k < 2) NA else k
+}
+
 # One line for the result screen on how the claim was handled, or NULL.
-claim_result_note <- function(values, alpha_used) {
+# `goal`: the goal type; the target power was raised only for the sample
+# size and the smallest detectable effect.
+claim_result_note <- function(values, alpha_used, goal = NULL) {
+  k <- claim_tests(values)
   switch(
     values$claim %||% "one",
     one = NULL,
@@ -250,16 +296,34 @@ claim_result_note <- function(values, alpha_used) {
       "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
     ),
-    all = "Your claim: all of several tests. The chance that every test succeeds is lower than this power: for two independent tests at 0.9, about 0.81, and roughly that or a little higher for correlated tests on the same people."
+    all = if (!is.na(k) && isTRUE(goal %in% c("sample_size", "sensitivity"))) {
+      target <- parse_number(values$power)
+      sprintf(paste(
+        "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
+        "This assumes the tests are independent. Tests on the same people are usually positively related, which makes the chance a little higher, so this errs on the safe side.",
+        "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); powerkit doesn't do that."),
+        whole(k), format(target), format(target), whole(k), format(signif(claim_power(target, values), 3)))
+    } else {
+      "Your claim: all of several tests. The power shown is for this test alone. The chance that every test succeeds is about the product of their powers (for two tests at 0.8, about 0.64), or a little higher for related tests on the same people."
+    }
   )
 }
 
 # Alpha for this test: the significance level entered, divided by the
 # number of tests when the claim is "any of several".
 claim_alpha <- function(alpha, values) {
-  k <- parse_number(values$n_tests)
-  if (is.na(k) || is.nan(k) || k < 2) return(alpha)
+  k <- claim_tests(values)
+  if (identical(values$claim, "all") || is.na(k)) return(alpha)
   alpha / k
+}
+
+# Target power for this test: when the claim is "all of several", the
+# k-th root of the target, so that k independent tests planned this way
+# all succeed with the target power (power^k = target).
+claim_power <- function(power, values) {
+  k <- claim_tests(values)
+  if (!identical(values$claim, "all") || is.na(k) || is.null(power)) return(power)
+  power^(1 / k)
 }
 
 form_fields <- function(groups) unlist(lapply(groups, `[[`, "fields"), recursive = FALSE)
@@ -427,6 +491,7 @@ build_spec <- function(forms, ep_id, fields, values) {
     for (extra in f$sets[[as.character(v)]]) spec <- set_path(spec, split_path(extra$path), extra$value)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
+  if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)
   # The range of sample sizes is several engine runs (sensitivity_curve());
   # the spec kept for the exports is the largest N at 80% power.
   if (identical(values$goal, "sensitivity_curve")) {
