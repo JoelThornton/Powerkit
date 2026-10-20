@@ -33,6 +33,9 @@ field_ui <- function(f, value, described_by = character()) {
       if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], f$default_source) else paste0(f$default_source, ".")
     )
   )
+  # Labs' one way in: a line under the effect size's source, for people
+  # basing it on a previous study (R/labs.R).
+  if (identical(f$id, "just_type")) field <- tagList(field, labs_signpost_ui())
   if (is.null(f$shown_if)) return(field)
   # Shown or hidden in the browser as the other choices change; the server
   # ignores a hidden field's value (field_applies()).
