@@ -84,7 +84,7 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E49]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E49, E50]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -715,3 +715,34 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
+
+  # Generic tests (G*Power's "Generic" tests): no sample size, because the
+  # noncentrality already reflects it. Goals: the power for a noncentrality,
+  # or the noncentrality needed for a target power (R/forms.R,
+  # closing_groups()). Only t and z have a direction.
+  E50:
+    generic: true
+    sides: false
+    methods_name: "a generic test from a noncentrality parameter"
+    tool: pwrss
+    directional: true
+    direction_shown_if: [{field: generic_test, is_not: f}, {field: generic_test, is_not: chi_square}]
+    base: {spec_version: "0.1", design: generic_test, template: t, variables: {},
+           population: {metric: noncentrality}, target_test: {effect: noncentrality, method: t_test}}
+    groups:
+      - input: "The test statistic"
+        fields:
+          - {id: generic_test, label: "Which test statistic", type: select, path: template, required: true,
+             choices: {t: "t", f: "F", chi_square: "Chi-square", z: "z (standard deviation 1)"},
+             default: t, default_source: "powerkit's first choice; pick the statistic your analysis reports",
+             sets: {t: [{path: target_test.method, value: t_test}], f: [{path: target_test.method, value: f_test}],
+                    chi_square: [{path: target_test.method, value: chi_square_test}], z: [{path: target_test.method, value: z_test}]}}
+      - input: "The noncentrality parameter and the degrees of freedom"
+        fields:
+          - {id: ncp, writeup_label: "noncentrality parameter", label: "Noncentrality parameter (for z, the mean of the z statistic if the effect is real); needed for power", type: number, path: population.ncp, effect: true, optional_for: [sensitivity]}
+          - {id: df, label: "Degrees of freedom", type: number, path: population.df, required: true, min_exclusive: 0,
+             shown_if: [{field: generic_test, is_not: f}, {field: generic_test, is_not: z}]}
+          - {id: df1, label: "Numerator degrees of freedom", type: number, path: population.df1, required: true, min_exclusive: 0,
+             shown_if: {field: generic_test, is: f}}
+          - {id: df2, label: "Denominator degrees of freedom", type: number, path: population.df2, required: true, min_exclusive: 0,
+             shown_if: {field: generic_test, is: f}}

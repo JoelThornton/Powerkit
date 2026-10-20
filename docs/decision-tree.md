@@ -585,7 +585,10 @@ that table's "Engine can use it?" column:
   from unreliable scores (maintainer decision, 16 October 2026; see
   `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square, and for
-  one proportion, McNemar's test and two correlations (E25, E26, E49);
+  one proportion, McNemar's test and two correlations (E25, E26, E49),
+  and the generic t and z tests (E50);
+- participants expected to be lost (Q-attr) on every card but the generic
+  tests (E50), which have no sample size;
 - a test version (Q-test) only where there is a choice: Student's or
   Welch's t-test (E2), the z test or Fisher's exact test (E5), or exact or
   simulation (E7, E8, E18).
@@ -622,6 +625,7 @@ the two in step.
 | E26 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E48 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E49 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E50 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -689,6 +693,7 @@ taken from coverage.md, where they are proposals.
 | E47 | Yes/no outcome with two or more crossed factors (factorial logistic regression) | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18). Reached from Q3 (yes/no difference, two or more factors) and from the guided route's moderation analysis (yes/no outcome, X and W of two groups each), so both routes give the same card | — | — | No | later | Not in spec |
 | E48 | Chi-square goodness-of-fit test | `basic_test / chi_square_gof` | `pwrss::power.chisq.gof()`, Cohen's w from `pwrss::probs.to.w()`. Reached from Q3 (one group, outcome in several categories) | Formula (no simulation) | Expected proportions; fixed proportions to compare with (equal if left out) | No: matches pwrss called directly and `pwr::pwr.chisq.test()` in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
 | E49 | Two independent correlations | `basic_test / two_correlations` | `pwrss::power.z.twocors()` (Fisher's z test). Reached from R1 (a relationship between scores that differs between two separate groups) | Formula (no simulation) | r in each group; allocation ratio | No: matches pwrss called directly in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
+| E50 | Generic t, F, chi-square and z tests (from a noncentrality parameter) | `generic_test / t, f, chi_square or z` | `pwrss::power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`. Reached only from "I know my analysis" | Formula (no simulation) | Noncentrality parameter; degrees of freedom. No sample size | No: matches pwrss called directly and base R's noncentral distributions in `test-backend-generic.R` (G\*Power and published value TODO) | v2 | Runs |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 

@@ -13,6 +13,14 @@ entries:
       pre-replication, answered in your own words, plus the smallest effect
       the original study could detect. Nothing is required or scored, and
       deciding a finding isn't worth replicating counts as a good outcome.
+  - date: "2026-10-20"
+    title: "Generic t, F, chi-square and z tests"
+    text: >-
+      If you have already worked out your test's noncentrality parameter, as
+      with G*Power's generic tests, choose "Generic t, F, chi-square and z
+      tests" under "I know my analysis". You get the power for that
+      noncentrality, or the noncentrality you'd need; there is no sample
+      size, because the noncentrality already reflects it.
   - date: "2026-10-19"
     title: "Asked whether your hypothesis predicts a direction"
     text: >-

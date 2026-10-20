@@ -120,7 +120,12 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     )))), groups)
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
-  if (isTRUE(form$directional)) groups <- c(list(direction_group(forms$tool_defaults[[form$tool]])), groups)
+  # A generic test asks for the direction after the test type, since only
+  # t and z tests have one.
+  if (isTRUE(form$directional)) {
+    direction <- direction_group(forms$tool_defaults[[form$tool]], form$direction_shown_if)
+    groups <- if (isTRUE(form$generic)) c(groups, list(direction)) else c(list(direction), groups)
+  }
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
@@ -131,7 +136,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
 # The direction, asked first and not filled in: the choice of a one- or
 # two-sided test should follow from the hypothesis (Rubin, 2022), not from
 # a pre-filled default. The packages' default is still named.
-direction_group <- function(tool) {
+direction_group <- function(tool, shown_if = NULL) {
   list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
     list(
       id = "alternative", label = "Does your hypothesis predict a direction?", type = "select", path = "target_test.alternative", required = TRUE,
@@ -139,11 +144,12 @@ direction_group <- function(tool) {
         greater = "Yes: it predicts a positive effect (one-sided test)",
         less = "Yes: it predicts a negative effect (one-sided test)",
         two_sided = "No: an effect in either direction would support it (two-sided test)"),
-      default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")")
+      default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
+      shown_if = shown_if
     ),
     list(
       id = "alternative_reason", label = "Why your hypothesis predicts this direction (optional; goes in the write-up, for example \"the theory predicts that training raises scores\")",
-      type = "text", optional = TRUE, shown_if = list(field = "alternative", is_not = "two_sided")
+      type = "text", optional = TRUE, shown_if = if (is.null(shown_if)) list(field = "alternative", is_not = "two_sided") else c(list(list(field = "alternative", is_not = "two_sided")), shown_if)
     )
   ))
 }
@@ -171,6 +177,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
   tool <- forms$tool_defaults[[form$tool]]
   goals <- list(sample_size = "The sample size I need", power = "The power I'd have at a given sample size")
+  # Generic tests have no sample size: the noncentrality reflects it.
+  if (isTRUE(form$generic)) goals <- list(power = "The power for this noncentrality", sensitivity = "The noncentrality I'd need for a target power")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
@@ -196,7 +204,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "alpha_reason", label = "Why this significance level (optional; goes in the write-up, for example \"the claim is new, so stronger evidence is wanted\")",
          type = "text", optional = TRUE, shown_if = list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05)))
   )
-  c(list(
+  if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
     claim_groups(start$claim),
     list(
@@ -211,7 +220,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_adjustment", label = "How you adjusted it (needed for a previous study; for example halved for publication bias)",
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study")
     )),
-    list(input = NULL, title = "Participants you expect to lose", fields = list(
+    if (!isTRUE(form$generic)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose (optional; for example 0.1 for 10%)", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),
@@ -228,7 +237,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "guess", label = "Your guess (optional)", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
-  ))
+  )))
 }
 
 guess_note <- paste(

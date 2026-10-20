@@ -79,3 +79,13 @@ test_that("exported scripts for the generic tests reproduce powerkit's results",
     }
   }
 })
+
+test_that("a noncentrality pwrss can't find is refused, not reported", {
+  # pwrss 1.3.3's search stops at about 8331 for a t test with 3 degrees of
+  # freedom; the answer is about 4.26, where its own power is 0.8.
+  spec <- generic_spec("generic_t", goal = list(type = "sensitivity", power = 0.8))
+  spec$population$df <- 3
+  expect_error(run_spec(spec), "couldn't find the noncentrality", class = "powerkit_error")
+  expect_equal(pwrss::power.t.test(ncp = 4.255907, df = 3, alpha = 0.05, plot = FALSE, verbose = 0)$power, 0.8, tolerance = 1e-5)
+})
+

@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E23", "E24", "E25", "E26", "E48", "E49"))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E23", "E24", "E25", "E26", "E48", "E49", "E50"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {
@@ -122,7 +122,9 @@ test_that("the example values build the spec the engine expects", {
     fields <- fields_for(ep, as.integer(v$n_mediators %||% 2))
     expect_length(form_problems(fields, v), 0)
     spec <- build_spec(forms, ep, fields, v)
-    expect_identical(spec$goal, list(type = "sample_size", power = 0.8), label = ep)
+    # The generic tests (E50) have no sample size to find.
+    goal <- if (ep == "E50") list(type = "power") else list(type = "sample_size", power = 0.8)
+    expect_identical(spec$goal, goal, label = ep)
     expect_null(spec$goal$n)
   }
   spec <- build_spec(forms, "E7", fields_for("E7"), values_for("E7"))
@@ -439,6 +441,29 @@ test_that("Welch's t-test is simulated by default, with pwrss's formula on reque
   # With Student's test the Welch choice is hidden, and the basic choice applies.
   student <- modifyList(v, list(method = "student_t", welch_method = "simulation", calc_method = "exact"))
   expect_identical(build_spec(forms, "E2", fields, student)$options$method, "exact")
+})
+
+test_that("the generic tests ask for no sample size, and only t and z have a direction", {
+  fields <- form_fields(form_groups(forms, "E50"))
+  ids <- vapply(fields, `[[`, "", "id")
+  expect_false(any(c("n", "n_max", "attrition") %in% ids))
+  goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+  expect_setequal(names(goal$choices), c("power", "sensitivity"))
+  shown <- function(id, test) field_applies(Filter(function(f) identical(f$id, id), fields)[[1]], list(generic_test = test, goal = "power"))
+  expect_true(shown("df", "t")); expect_true(shown("df", "chi_square")); expect_false(shown("df", "f")); expect_false(shown("df", "z"))
+  expect_true(shown("df1", "f")); expect_false(shown("df1", "t"))
+  expect_true(shown("alternative", "z")); expect_false(shown("alternative", "chi_square"))
+  # The noncentrality is needed for power, not for the noncentrality needed.
+  v <- modifyList(form_examples$E50, list(ncp = ""))
+  expect_match(form_problems(fields, v), "Noncentrality parameter", fixed = TRUE)
+  expect_length(form_problems(fields, modifyList(v, list(goal = "sensitivity"))), 0)
+  skip_without_engine()
+  for (test in c("t", "f", "chi_square", "z")) {
+    v <- modifyList(form_examples$E50, list(generic_test = test, df1 = "2", df2 = "40"))
+    spec <- build_spec(forms, "E50", fields, v)
+    expect_identical(spec$template, test)
+    expect_identical(check_spec(spec, fields, validate)$status, "ok", label = test)
+  }
 })
 
 test_that("'all of several' raises each test's target power, not alpha", {

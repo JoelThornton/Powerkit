@@ -21,6 +21,8 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   v <- form_examples[[ep]]
   fields <- form_fields(form_groups(forms, ep))
   spec <- build_spec(forms, ep, fields, v)
+  # The generic tests (E50) have no sample size and nothing to simulate.
+  if (ep == "E50") return(spec)
   spec$goal <- goal
   if (!ep %in% c("E7", "E8")) spec$options$nrep <- 100L
   spec
@@ -42,8 +44,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E23-E26, E48 and E49 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E48", "E49"))
+test_that("E1-E9, E18, E23-E26 and E48-E50 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E48", "E49", "E50"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -780,6 +782,28 @@ test_that("guess first: the guess is shown next to the answer and goes nowhere e
   expect_equal(guess_gap(100, 105), "close to your guess")
   expect_equal(guess_gap(100, 130), "30% more than your guess")
   expect_equal(guess_gap(100, 40), "60% fewer than your guess")
+})
+
+test_that("the generic tests give power or the noncentrality needed, with no sample size", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E50"))
+  calc <- run_calculation(build_spec(forms, "E50", fields, form_examples$E50), run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.test")
+  lines <- result_sentences(calc$spec, calc$result)
+  expect_match(lines[["headline"]], "With a noncentrality parameter of 2.5, a t test with 30 degrees of freedom (two-sided)", fixed = TRUE)
+  expect_no_match(lines[["headline"]], "participants", fixed = TRUE)
+  w <- writeup_text(forms$forms$E50, calc$spec, calc$result, fields, form_examples$E50)
+  expect_match(w[["short"]], "a generic t test with 30 degrees of freedom (two-sided, α = .05), from a noncentrality parameter", fixed = TRUE)
+  expect_true(is.na(w[["ethics"]])) # no participants to describe
+  v <- modifyList(form_examples$E50, list(goal = "sensitivity", generic_test = "f", ncp = "", df1 = "2", df2 = "40"))
+  calc <- run_calculation(build_spec(forms, "E50", fields, v), run, seed = 1L)
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], "For 80% power with an F test with 2 and 40 degrees of freedom at alpha = .05, the noncentrality parameter needs to be at least", fixed = TRUE)
+  # pwrss's search goes wrong for a t test with 3 degrees of freedom; the
+  # engine refuses its answer.
+  v <- modifyList(form_examples$E50, list(goal = "sensitivity", ncp = "", df = "3"))
+  calc <- run_calculation(build_spec(forms, "E50", fields, v), run, seed = 1L)
+  expect_identical(calc$status, "error")
+  expect_match(calc$message, "couldn't find the noncentrality", fixed = TRUE)
 })
 
 # The plain-words version for an ethics application (19 October 2026) --------

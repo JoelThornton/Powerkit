@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* App: the generic t, F, chi-square and z tests (E50), as G\*Power's
+  generic tests, for people who have worked out their test's noncentrality
+  parameter. Found only from "I know my analysis". There is no sample
+  size: the result is the power for a noncentrality, or the noncentrality
+  needed for a target power, and the write-up says so. Engine: pwrss
+  1.3.3's search for the noncentrality needed goes wrong for a t test with
+  few degrees of freedom (with 3, it gives about 8331 where the answer is
+  about 4.26), so the engine checks the answer with pwrss's own power and
+  refuses a wrong one with a plain message.
+
 * App: three changes to the input screen on test direction and multiple
   tests. (1) Tests that can be one-sided now start with "Does your
   hypothesis predict a direction?", with no answer filled in; the
