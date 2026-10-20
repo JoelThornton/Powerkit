@@ -1,9 +1,10 @@
 # powerkit 0.0.0.9000
 
-* App: following Mark Rubin's advice (19 October 2026), three changes to
-  the input screen. (1) Tests that can be one-sided now start with "Does
-  your hypothesis predict a direction?", with no answer filled in; the
-  packages' two-sided default is still named. (2) When the claim needs
+* App: three changes to the input screen on test direction and multiple
+  tests. (1) Tests that can be one-sided now start with "Does your
+  hypothesis predict a direction?", with no answer filled in; the
+  packages' two-sided default is still named. A two-sided p-value does
+  not support a directional claim (Rubin, 2022). (2) When the claim needs
   all of several tests to be significant, the screen asks how many, and
   each test's target power is raised to the k-th root of the target
   (0.8 for two tests becomes 0.894 each), so that all succeed together
@@ -12,8 +13,24 @@
   Bonferroni" (Francis & Thunell, 2021) as another approach powerkit
   doesn't take. Power at a fixed sample size is unchanged. (3) Where
   powerkit says no correction is needed for separate claims, it adds that
-  this depends on one's view of significance testing (Rubin, 2024,
-  Journal of Trial and Error). Three references added to refs.bib.
+  under the error-statistical view a correction may be expected for a
+  related group of tests (Mayo, 2018; Rubin, 2024, Journal of Trial and
+  Error). Four references added to refs.bib.
+
+* App: a new "Labs (experimental)" tab, kept apart from the main route.
+  Its first tool, pre-replication notes, walks through the three
+  questions of Karhulahti, Martončik and Adamkovič (2025) in the user's
+  own words: the finding, epistemic goals (with the smallest effect that
+  would matter), methodological quality (what the original did and what
+  the replication will improve), value, and where they landed (go ahead,
+  change the plan, or not worth replicating, as equal choices). An
+  optional panel finds the original study's smallest detectable effect
+  for the basic tests with the engine's sensitivity. Notes download as
+  Markdown, copy, or print; they stay in the browser tab only, with a
+  "Clear notes" button. Nothing is required or scored. On the input
+  screen, choosing "A previous study" as the effect size's source shows
+  one optional line pointing to Labs, which can be hidden. The paper is
+  added to `refs.bib`.
 
 * App: a plan checker. On the start screen, "Or check a plan someone
   shared with you" opens a saved project for a supervisor, reviewer or

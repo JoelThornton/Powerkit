@@ -1956,47 +1956,41 @@ independence). They answer different questions, and a separate card keeps
 each screen simple. It runs on pwrss's `power.chisq.gof()`, with equal
 proportions under the null unless the user gives others.
 
-## 2026-10-19 · Mark Rubin's answers on claims and direction (waits for the maintainer's yes)
+## 2026-10-19 · Test direction and "all of several" claims (waits for the maintainer's yes)
 
-Mark Rubin (Durham; author of `Rubin2021_alpha`) replied to the
-maintainer on 19 October 2026. He confirmed that powerkit's wording of the
-individual, disjunction and conjunction cases is fair, and answered two
-questions. Proposed changes (draft PR; they replace parts of decisions 3
-and 5 of "The new design", 18 October 2026):
+Three changes to the input screen. They replace parts of decisions 3 and
+5 of "The new design" (18 October 2026). The individual, disjunction and
+conjunction framework of the claim question is unchanged (Rubin, 2021,
+`Rubin2021_alpha`).
 
-1. **Direction is asked, not pre-filled.** Rubin: yes, ask "Does your
-   hypothesis predict a direction?" up front rather than pre-filling
-   two-sided. The question is now the first on the input screen for tests
-   that can be one-sided, with no default; the packages' two-sided default
-   is still named under it. The note follows Rubin (2022, *Significance*;
-   `Rubin2022_twosided`): a two-sided p-value doesn't support a
-   directional claim. Not a departure: the test run is whichever the user
-   picks, by the packages' own options.
-2. **"All of several": plan for the joint chance.** Rubin: yes, planning N
-   so that the chance of all tests succeeding reaches the target addresses
-   the power deficit; another approach is a reverse Bonferroni (Francis &
-   Thunell, 2021; `FrancisThunell2021_reversing`), which raises each
-   test's alpha (Rubin, 2026, arXiv:2602.21792, p. 5). powerkit asks for
-   the number of tests k and plans each at power target^(1/k). That is
-   exact for independent tests; for positively related tests the joint
-   chance is usually higher, so it errs on the safe side. Only for the
-   sample size and the smallest detectable effect; power at a fixed N
-   keeps the product as guidance. The reverse Bonferroni is named, not
-   offered. Recommendation: accept; it is the option Rubin endorsed first
-   and needs no change to alpha.
-3. **Philosophy caveat.** Rubin: the "right" approach to multiple testing
-   depends on one's philosophy of significance testing; Mayo's
-   error-statistical approach is dominant, and some would call his views
-   wrong, though he stands by the individual/disjunction/conjunction
-   distinction. powerkit keeps that distinction and adds one plain
-   sentence where it says separate claims need no correction: not
-   everyone agrees, and under the more common error-statistical view some
-   would expect a correction when the tests form a related group,
-   especially if some could go unreported (Mayo, 2018, pp. 275–276,
-   `Mayo2018_severe`, chapter PDFs supplied by the maintainer), citing
-   `Rubin2024_typeI` for the contrast.
-   The disjunction and conjunction advice isn't caveated: it rests on the
+1. **Direction is asked, not pre-filled.** For tests that can be
+   one-sided, the first question is "Does your hypothesis predict a
+   direction?", with no default; the packages' two-sided default is named
+   under it. Reason: a two-sided p-value does not support a directional
+   claim, so the test should follow from the hypothesis (Rubin, 2022,
+   *Significance*; `Rubin2022_twosided`; see also Rubin, 2024, *Methods in
+   Psychology*, `Rubin2024_inconsistent`, section 7). Not a departure: the
+   test run is whichever the user picks, by the packages' own options.
+2. **"All of several": plan for the joint chance.** A conjunction claim
+   needs no alpha correction (intersection-union testing), but its power
+   is lower than each test's (Rubin, 2021). powerkit asks for the number
+   of tests k and plans each at power target^(1/k). That is exact for
+   independent tests; for positively related tests the joint chance is
+   usually higher, so it errs on the safe side. Only for the sample size
+   and the smallest detectable effect; power at a fixed N keeps the
+   product as guidance. The alternative, raising each test's alpha
+   ("reverse Bonferroni"; Francis & Thunell, 2021,
+   `FrancisThunell2021_reversing`; Rubin, 2026, arXiv:2602.21792, p. 5),
+   is named, not offered. Recommendation: accept; it needs no change to
+   alpha.
+3. **Philosophy caveat.** Whether separate claims need a correction
+   depends on one's philosophy of significance testing (Rubin, 2024,
+   *Journal of Trial and Error*, `Rubin2024_typeI`; Rubin, 2026). powerkit
+   keeps the no-correction rule for separate claims and adds one plain
+   sentence: under the error-statistical view, a correction may be
+   expected when the tests form a related group, especially if some could
+   go unreported (Mayo, 2018, pp. 275–276, `Mayo2018_severe`). The
+   disjunction and conjunction advice isn't caveated: it rests on the
    standard union-intersection and intersection-union results (Rubin,
    2026, pp. 4–5, citing Roy, 1953, and Berger, 1982). That both views
    agree there is inferred, not checked.
-

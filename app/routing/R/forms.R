@@ -128,9 +128,9 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   c(groups, closing_groups(forms, ep_id, start))
 }
 
-# The direction, asked first and not filled in (Mark Rubin's advice,
-# 19 October 2026: ask whether the hypothesis predicts a direction rather
-# than pre-filling two-sided). The packages' default is still named.
+# The direction, asked first and not filled in: the choice of a one- or
+# two-sided test should follow from the hypothesis (Rubin, 2022), not from
+# a pre-filled default. The packages' default is still named.
 direction_group <- function(tool) {
   list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
     list(
@@ -242,7 +242,7 @@ guess_note <- paste(
 # "one test", and the number of tests for "any of several" (which divides
 # alpha between them: Bonferroni; docs/decisions.md, 18 October 2026) and
 # for "all of several" (which raises each test's target power so that all
-# succeed together with the target power: Mark Rubin's advice, 19 October
+# succeed together with the target power; docs/decisions.md, 19 October
 # 2026).
 claim_groups <- function(claim) {
   claim <- claim %||% "one"
@@ -270,8 +270,8 @@ claim_groups <- function(claim) {
   list(list(input = NULL, title = "Your claim", note = note, fields = fields))
 }
 
-# Mark Rubin's caveat (19 October 2026): the right approach to multiple
-# testing depends on one's philosophy of significance testing.
+# Whether separate claims need a correction depends on one's philosophy of
+# significance testing (Rubin, 2024, Journal of Trial and Error; Mayo, 2018).
 philosophy_note <- paste(
   "Not everyone agrees: whether to correct depends on your view of significance testing.",
   "Under the more common error-statistical view, a correction may be expected when the tests form a related group, such as several outcomes of the same treatment,",

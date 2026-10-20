@@ -22,6 +22,7 @@ source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
+source(file.path("R", "labs.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -94,6 +95,12 @@ app_css <- "
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
   .whats-new li { margin-bottom: 0.6rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+  .labs-notice { border-left: 4px solid #b26b00; background: #fff6e5; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
+  .labs-sde { margin-top: 0.75rem; }
+  .labs-sde summary { font-weight: 600; color: #0a5a8c; cursor: pointer; }
+  .labs-signpost { font-size: 0.9rem; background: #eef3fa; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
+  .labs-hint-hidden .labs-signpost { display: none; }
+  @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
 "
 
 # After each screen change, move keyboard and screen-reader focus to the new
@@ -127,6 +134,9 @@ copy_js <- "
   Shiny.addCustomMessageHandler('copy_answers', function(text) {
     pkCopyText(text, document.getElementById('copy-status'));
   });
+  Shiny.addCustomMessageHandler('copy_labs', function(text) {
+    pkCopyText(text, document.getElementById('labs-copy-status'));
+  });
   // Move focus to the check's result, so keyboard and screen-reader users hear it.
   Shiny.addCustomMessageHandler('focus_result', function(id) {
     setTimeout(function() { var el = document.querySelector('#' + id + ' [tabindex]'); if (el) el.focus(); }, 50);
@@ -155,7 +165,7 @@ ui <- fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js))),
+  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit routing prototype"),
     prototype_banner(tree)
@@ -167,6 +177,7 @@ ui <- fluidPage(
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("screen"))),
       tabPanel("About this prototype", div(class = "pt-3", about_ui(tree, forms))),
       tabPanel("What's new", div(class = "pt-3", whats_new_ui(whats_new))),
+      tabPanel(labs_tab_title, div(class = "pt-3", labs_ui(tree))),
       tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
     )
   )
@@ -537,6 +548,63 @@ server <- function(input, output, session) {
       textAreaInput("copy_text_box", "Your answers as text (select and copy if the button didn't)", value = text, rows = 8, width = "100%")))
     session$sendCustomMessage("copy_answers", text)
   })
+  # Labs (experimental): pre-replication notes (R/labs.R). The notes live in
+  # the browser tab; the server only reads them to build the download.
+  labs_answers <- function() stats::setNames(lapply(labs_fields, function(f) input[[f$id]] %||% ""),
+    vapply(labs_fields, `[[`, character(1), "id"))
+  labs_sde_calc <- reactiveVal(NULL)
+  observeEvent(input$labs_sde_run, {
+    labs_sde_calc(NULL)
+    if (!nzchar(input$labs_test %||% "")) {
+      output$labs_sde_result <- renderUI(div(class = "form-problems", role = "alert", "Choose the original study's test first."))
+      return()
+    }
+    calc <- labs_sde(forms, input$labs_test, input$labs_n, input$labs_power, input$labs_alpha,
+      p1 = input$labs_p1, rows = input$labs_rows, cols = input$labs_cols)
+    if (identical(calc$status, "problems") || identical(calc$status, "error")) {
+      output$labs_sde_result <- renderUI(div(class = "form-problems", role = "alert",
+        tags$ul(lapply(calc$problems %||% calc$message, tags$li))))
+      return()
+    }
+    labs_sde_calc(calc)
+    smallest <- trimws(input$labs_smallest %||% "")
+    output$labs_sde_result <- renderUI(div(class = "result-panel mt-2", role = "status",
+      p(tags$strong(labs_sde_sentence(tree, calc, input$labs_power))),
+      p(if (nzchar(smallest)) paste0("The smallest effect that matters, from step 2: \u201c", smallest, "\u201d")
+        else "Step 2 has no smallest effect that matters yet; writing one there gives this number something to be compared with."),
+      p(class = "small", labs_provenance(calc))))
+  })
+  labs_sde_notes <- function() {
+    calc <- labs_sde_calc()
+    if (is.null(calc)) return(NULL)
+    list(sentence = labs_sde_sentence(tree, calc, calc$spec$goal$power), provenance = labs_provenance(calc))
+  }
+  output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
+  labs_text <- function() labs_markdown(labs_answers(), input$labs_outcome, labs_sde_notes())
+  output$labs_download <- downloadHandler(
+    filename = function() sprintf("pre-replication-notes-%s.md", format(Sys.Date())),
+    content = function(file) writeLines(labs_text(), file, useBytes = TRUE)
+  )
+  observeEvent(input$labs_copy, {
+    text <- labs_text()
+    output$labs_copy_text <- renderUI(div(class = "form-field mt-2",
+      textAreaInput("labs_copy_box", "Your notes as text (select and copy if the button didn't)", value = text, rows = 10, width = "100%")))
+    session$sendCustomMessage("copy_labs", text)
+  })
+  # Step 6: into the main app, on the original's test where there is one.
+  observeEvent(input$labs_plan, {
+    test <- input$labs_test %||% ""
+    cancel_job()
+    state$history <- list(); state$node <- NULL; state$ctx <- list()
+    if (identical(input$labs_outcome, "go") && nzchar(test)) {
+      state$endpoint <- test; state$came_from <- "known"; state$screen <- "card"
+    } else {
+      state$screen <- "start"
+    }
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  })
+  # The one way in from the main route (labs_signpost_ui()).
+  observeEvent(input$go_labs, updateTabsetPanel(session, "tabs", selected = labs_tab_title))
   output$screen <- renderUI({
     switch(
       state$screen,
