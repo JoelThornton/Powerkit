@@ -10,6 +10,23 @@
   about 4.26), so the engine checks the answer with pwrss's own power and
   refuses a wrong one with a plain message.
 
+* App: three changes to the input screen on test direction and multiple
+  tests. (1) Tests that can be one-sided now start with "Does your
+  hypothesis predict a direction?", with no answer filled in; the
+  packages' two-sided default is still named. A two-sided p-value does
+  not support a directional claim (Rubin, 2022). (2) When the claim needs
+  all of several tests to be significant, the screen asks how many, and
+  each test's target power is raised to the k-th root of the target
+  (0.8 for two tests becomes 0.894 each), so that all succeed together
+  with the target power if the tests are independent; the result, the
+  80%/95% comparison and the write-up say so, and name the "reverse
+  Bonferroni" (Francis & Thunell, 2021) as another approach powerkit
+  doesn't take. Power at a fixed sample size is unchanged. (3) Where
+  powerkit says no correction is needed for separate claims, it adds that
+  under the error-statistical view a correction may be expected for a
+  related group of tests (Mayo, 2018; Rubin, 2024, Journal of Trial and
+  Error). Four references added to refs.bib.
+
 * App: a new "Labs (experimental)" tab, kept apart from the main route.
   Its first tool, pre-replication notes, walks through the three
   questions of Karhulahti, Martončik and Adamkovič (2025) in the user's

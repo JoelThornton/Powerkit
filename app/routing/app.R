@@ -383,7 +383,7 @@ server <- function(input, output, session) {
       ep_id <- state$endpoint
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
-        if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed)
+        if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")

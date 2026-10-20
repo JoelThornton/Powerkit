@@ -92,15 +92,18 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   for (key in names(entries)) {
     expect_true(refs_entry_source(key, entries[[key]]) %in% c("citation", "verified"), label = key)
   }
-  # Two method papers copied from their packages' citation(), and five
-  # sources the maintainer checked in full text.
+  # Two method papers copied from their packages' citation(), five
+  # sources the maintainer checked in full text, and four on test
+  # direction and multiple tests (19 October 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
       Superpower_method = "citation", InteractionPoweR_method = "citation",
       Rubin2021_alpha = "verified", Rubin2024_inconsistent = "verified",
       RubinMikael2025_power = "verified", Frane2019_misguided = "verified",
-      Karhulahti2025_prereplication = "verified"
+      Karhulahti2025_prereplication = "verified",
+      Rubin2022_twosided = "verified", Rubin2024_typeI = "verified",
+      FrancisThunell2021_reversing = "verified", Mayo2018_severe = "verified"
     )
   )
 })

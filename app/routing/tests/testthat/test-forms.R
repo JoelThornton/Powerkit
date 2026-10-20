@@ -82,7 +82,13 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   expect_equal(power("E10")$default, 0.8)
   expect_match(power("E10")$default_source, "target_power = 0.8", fixed = TRUE)
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
-  expect_equal(direction$default, "two_sided")
+  # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
+  expect_null(direction[["default"]])
+  expect_match(direction$label, "Does your hypothesis predict a direction?", fixed = TRUE)
+  expect_match(direction$default_source, "Not filled in for you", fixed = TRUE)
+  expect_equal(form_groups(forms, "E2")[[1]]$title, "Your hypothesis")
+  expect_match(form_problems(fields_for("E2"), modifyList(form_examples[["E2"]], list(alternative = ""))),
+    "Does your hypothesis predict a direction?", fixed = TRUE, all = FALSE)
   expect_length(Filter(function(f) f$id == "alternative", fields_for("E9")), 0)
 })
 
@@ -271,7 +277,9 @@ test_that("the claim adds a note, and 'any of several' divides alpha between the
   expect_false("Your claim" %in% titles("one"))
   for (claim in c("each", "any", "all")) expect_true("Your claim" %in% titles(claim), info = claim)
   expect_true("n_tests" %in% vapply(form_fields(groups("any")), `[[`, "", "id"))
-  expect_match(as.character(form_ui(tree, forms, "E2", groups("all"))), "roughly a floor, not exact", fixed = TRUE)
+  expect_true("n_tests" %in% vapply(form_fields(groups("all")), `[[`, "", "id"))
+  expect_match(as.character(form_ui(tree, forms, "E2", groups("all"))), "raises this test's target power", fixed = TRUE)
+  expect_match(as.character(form_ui(tree, forms, "E2", groups("each"))), "error-statistical view", fixed = TRUE)
 
   fields <- form_fields(groups("any"))
   values <- c(form_examples[["E2"]], list(n_tests = "4"))
@@ -458,3 +466,22 @@ test_that("the generic tests ask for no sample size, and only t and z have a dir
   }
 })
 
+test_that("'all of several' raises each test's target power, not alpha", {
+  fields <- form_fields(form_groups(forms, "E2", start = list(claim = "all")))
+  values <- modifyList(form_examples[["E2"]], list(claim = "all", n_tests = "2", goal = "sample_size", power = "0.8"))
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$target_test$alpha, 0.05)
+  expect_equal(spec$goal$power, sqrt(0.8))
+  expect_equal(spec$goal$power^2, 0.8)
+  expect_match(claim_result_note(values, 0.05, "sample_size"), "0.8^(1/2) = 0.894 power", fixed = TRUE)
+  expect_match(claim_result_note(values, 0.05, "sample_size"), "Francis & Thunell, 2021", fixed = TRUE)
+  expect_match(writeup_claim(values, spec), "planned at power 0.8^(1/2) = 0.894", fixed = TRUE)
+  # Power at a fixed sample size is left as it is, with the product as guidance.
+  power_values <- modifyList(values, list(goal = "power", n = "100"))
+  expect_null(build_spec(forms, "E2", fields, power_values)$goal$power)
+  expect_match(claim_result_note(power_values, 0.05, "power"), "product of their powers", fixed = TRUE)
+  # Other claims leave the target power alone.
+  expect_equal(claim_power(0.8, list(claim = "any", n_tests = "3")), 0.8)
+  expect_equal(claim_alpha(0.05, list(claim = "any", n_tests = "2")), 0.025)
+})

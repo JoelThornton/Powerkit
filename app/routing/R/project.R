@@ -123,7 +123,9 @@ plan_questions <- function(values, result, alpha_default = 0.05) {
   if (identical(goal, "sample_size") && is.null(v("attrition"))) {
     out <- c(out, "There is no allowance for people who drop out or are excluded. Ask whether everyone recruited will be analysed.")
   }
-  if (identical(v("claim"), "all")) {
+  # Plans made before 19 October 2026 have no number of tests for "all of
+  # several", and power at a fixed N isn't raised for it.
+  if (identical(v("claim"), "all") && (is.null(v("n_tests")) || !goal %in% c("sample_size", "sensitivity"))) {
     out <- c(out, "The claim needs every one of several tests to be significant. The chance that all of them succeed is lower than the power of each one. Ask whether the plan allows for that.")
   }
   out
