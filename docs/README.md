@@ -31,8 +31,8 @@ reasoning and are not current instructions.
   before binary X or W is coded.
 - [`hosting-options.md`](hosting-options.md): how other people could use
   the app (options only; prices unchecked).
-- [`upstream-questions.md`](upstream-questions.md): draft questions for
-  the authors of the backend packages (not sent).
+- [`upstream-questions.md`](upstream-questions.md): open technical
+  questions about the backend packages (not yet raised).
 
 ## Statistics: conventions and validation
 

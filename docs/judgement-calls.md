@@ -569,7 +569,7 @@ Rubin.
     add a step they can't answer.
   - Rubin discusses the power cost of conjunction tests and of
     inconsistent corrections, but not how to plan N for each case. That
-    part is powerkit's extension, to be checked with him.
+    part is powerkit's extension, still to be reviewed.
 - **Knock-on effects:**
   - D4 and D6 (the guided route and its study-level result); G7 (any
     correction by default); the methods paragraph must state which of the
@@ -762,8 +762,8 @@ draft sentences, and a source for the "observed power" line.
     well established (and is worth noting again) that post hoc power
     analyses are useless at best, misleading at worst (Dziak et al.
     2020)" (p. 14 of 15).
-  - **The competing view: not fetched.** Joel linked a Replication Index
-    post (replicationindex.com/2016/01/14/the-abuse-of-hoenig/). The
+  - **The competing view: not fetched.** A Replication Index
+    post was suggested (replicationindex.com/2016/01/14/the-abuse-of-hoenig/). The
     session's proxy refused the host (403), so its author, title, date and
     claim could not be read from the page. `decision-tree.md` 3.1 lists it
     second-hand as "The abuse of Hoenig and Heisey" (2016) and says it
@@ -924,7 +924,7 @@ results.
 
 ### B18. Asking whether the hypothesis predicts a direction
 
-*Added 18 October 2026, for the maintainer's meeting with Mark Rubin.*
+*Added 18 October 2026.*
 
 - **Question:** the inputs screen pre-fills a two-sided test, with a
   reason asked only if it is changed (G8, decided). Should powerkit ask
@@ -953,10 +953,10 @@ results.
 - **Knock-on effects:** B3 (a preregistration note for one-sided
   tests); the write-up states the tails and the reason; one-sided tests
   beyond E1–E5 need engine support.
-- **Recommendation:** keep the two-sided default for now, and ask Mark
-  Rubin whether "Do you predict a direction?" is better. Reason: the
-  default follows the wrapped tools, and Rubin's view is the one the
-  change would rest on.
+- **Recommendation:** keep the two-sided default for now, and weigh
+  "Do you predict a direction?" against Rubin's published argument
+  (Rubin, 2024, p. 7). Reason: the default follows the wrapped tools,
+  and Rubin's view is the one the change would rest on.
 - **Recorded in:** this entry; `decisions.md` (18 October 2026);
   setting `one_sided_tests`.
 

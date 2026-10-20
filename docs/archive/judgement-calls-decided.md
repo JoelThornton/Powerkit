@@ -380,7 +380,7 @@ alpha .05 and a two-sided test stay pre-filled, labelled with their
 source, and a reason is asked only if either is changed (it goes into
 the write-up). Target power has no silent default (B4). Still open:
 whether to ask "Do you predict a direction?" instead of the silent
-two-sided default (B18, for the maintainer's meeting with Mark Rubin),
+two-sided default (B18),
 and B3 (one-sided tests). The entry is kept below as the record of the
 options.
 

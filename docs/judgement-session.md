@@ -30,7 +30,7 @@ of what named people said.
   decided; power for "all of several" and the guided route remain);
   naming other tools (A1: decided for E36 and E46).
 - Moved: whether to ask "Do you predict a direction?" (B18, with B3) is
-  for the maintainer's meeting with Mark Rubin, not this session.
+  handled separately, not in this session.
 - New: item 1 replaces the old routing item. It now starts from screen A.
 
 | # | Call | Touches | Detail |
@@ -160,7 +160,7 @@ in the guided route.
 - Rubin (2021; verified, maintainer): conjunction testing needs no alpha
   adjustment but lowers joint power (.80 × .80 = .64, p. 7). Neither of
   his papers sets out how to plan N for each case; that is powerkit's
-  extension, to check with him.
+  extension, still to be reviewed.
 - Tools: power4mome's `rejection_rates(collapse = )` gives "all_sig" and
   "at_least_one_sig"; powertools has co-primary and alternative primary
   functions (opened).
@@ -170,8 +170,8 @@ will make. Joint power computed by powerkit itself, without a backend,
 would be new maths (CLAUDE.md).
 
 **Knock-on effects.** The guided route's study-level result (D4, D6);
-the write-up states the claim chosen; the option wording goes to the
-meeting with Mark Rubin.
+the write-up states the claim chosen; the option wording is still to be
+reviewed.
 
 ---
 
