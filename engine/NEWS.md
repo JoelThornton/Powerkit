@@ -1,5 +1,10 @@
 # powerkit 0.0.0.9000
 
+* App: the About, What's new, Labs, Feedback and maintainer tabs are built
+  once when the app starts, not for every visitor, so the page opens
+  faster when many people arrive together. The Labs citation falls back
+  to a link instead of failing when the engine is only partly loaded.
+
 * App: at most two long calculations (interactions in regression, and
   mediation's preview and full run) run at once across everyone using the
   app; anyone else is told plainly that powerkit is busy and to try again

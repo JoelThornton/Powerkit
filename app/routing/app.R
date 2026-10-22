@@ -163,6 +163,15 @@ focus_js <- "
   });
 "
 
+# The tabs that are the same for everyone, built once when the app starts
+# (About reads every package's citation(), so building it per visitor is
+# slow when many people open the app at once).
+about_tab <- about_ui(tree, forms)
+whats_new_tab <- whats_new_ui(whats_new)
+labs_tab <- labs_ui(tree)
+feedback_tab <- feedback_tab_ui(tree)
+maintainer_tab <- settings_table_ui(tree)
+
 # A function of the request, so the maintainer's tab is only there when
 # asked for (maintainer_view_requested(), R/ui.R).
 ui <- function(req) fluidPage(
@@ -182,11 +191,11 @@ ui <- function(req) fluidPage(
     tabsetPanel(
       id = "tabs",
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("screen"))),
-      tabPanel("About this prototype", div(class = "pt-3", about_ui(tree, forms))),
-      tabPanel("What's new", div(class = "pt-3", whats_new_ui(whats_new))),
-      tabPanel(labs_tab_title, div(class = "pt-3", labs_ui(tree))),
-      tabPanel("Feedback", div(class = "pt-3", feedback_tab_ui(tree))),
-      if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
+      tabPanel("About this prototype", div(class = "pt-3", about_tab)),
+      tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
+      tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
+      tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
+      if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     )
   )
 )

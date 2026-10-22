@@ -66,6 +66,8 @@ fully validated. Validation runs are recorded in
   ([`decisions.md`](decisions.md)); the observed-power warning, the
   rank-test label, named tools on "not covered" cards and two parallel
   mediators are in review.
+- **Fix (22 October 2026):** the shared tabs are built once at start-up,
+  not per visitor (a regression from the maintainer's view in #87).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
