@@ -80,6 +80,15 @@ app_css <- "
   .hint dfn { font-style: normal; font-weight: 600; }
   .card-points { margin-bottom: 1rem; }
   .form-group-box { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 1rem; }
+  .progress-steps ol { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; list-style: none; padding: 0; margin: 0 0 1rem 0; font-size: 0.9rem; }
+  .progress-steps li { display: flex; align-items: center; gap: 0.4rem; color: #545b62; }
+  .progress-steps .step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+                              border: 1.5px solid #8a929a; font-weight: 600; font-size: 0.8rem; background: #fff; }
+  .progress-steps .done .step-num { background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }
+  .progress-steps .current { color: #14284b; font-weight: 600; }
+  .progress-steps .current .step-num { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  .card-more { margin-top: 0.75rem; }
+  .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
   .form-section { margin-bottom: 0.5rem; }
   @media (min-width: 768px) { .form-group-names { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
     .form-group-names > legend, .form-group-names > .hint, .form-group-names > .group-note { grid-column: 1 / -1; } }
@@ -201,7 +210,7 @@ ui <- function(req) fluidPage(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
-      tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("screen"))),
+      tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About this prototype", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
@@ -329,7 +338,7 @@ server <- function(input, output, session) {
       state$history <- state$history[seq_len(i - 1)]
       state$screen <- "node"
     } else if (pick == "form") {
-      state$form_values <- list(); state$form_k <- 2L
+      state$form_values <- list(); state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
     } else if (pick == "form_back") {
       state$form_values <- current_form_values()
@@ -684,6 +693,12 @@ server <- function(input, output, session) {
       updateTextAreaInput(session, "fb_message", value = "")
     }
     session$sendCustomMessage("fb_status", feedback_result_message(result))
+  })
+  # The four steps, apart from the screen itself, so that showing a result
+  # never redraws the form.
+  output$progress <- renderUI({
+    has_result <- !is.null(state$calc) && identical(state$calc$status, "ok")
+    progress_ui(screen_step(state$screen, has_result))
   })
   output$screen <- renderUI({
     switch(

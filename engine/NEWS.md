@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* App: four steps across the top of "Plan a power analysis" (Your study,
+  Find your design, Your numbers, Result) show where you are: named steps,
+  not a percentage, as the design finder's length depends on the answers.
+  Cards fold what you'd enter, the package that calculates it and the
+  next questions into "More about this analysis", so a card fits on
+  about one screen; the effect-size guidance stays in view.
+
 * App: the input screen is shorter and in a clearer order (about a third
   less scrolling). "What do you want to find out?" comes first, and the
   target power and the number of participants appear only for the goals

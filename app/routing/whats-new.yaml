@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "See where you are"
+    text: >-
+      Four steps across the top show where you are: your study, finding
+      your design, your numbers and the result. Analysis cards are shorter:
+      the details of what you'd enter and which package calculates it are
+      under "More about this analysis".
+  - date: "2026-10-22"
     title: "A shorter input screen"
     text: >-
       The screen where you enter your values now starts with what you want
