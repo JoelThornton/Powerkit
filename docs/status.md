@@ -76,6 +76,7 @@ fully validated. Validation runs are recorded in
 - **Progress steps and shorter cards** (in review, 22 October 2026).
 - **Shorter labels and problems next to their fields** (in review,
   22 October 2026).
+- **Labs menu and planning from the notes** (in review, 22 October 2026).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

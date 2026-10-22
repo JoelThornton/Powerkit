@@ -1,5 +1,14 @@
 # powerkit 0.0.0.9000
 
+* App: Labs opens on a list of tools, so that more can be added; the
+  pre-replication notes open when chosen, with a link back to the list,
+  and stay open after a reload. "Plan the replication's sample size" no
+  longer wipes a plan in progress without asking: it asks first. The
+  notes' finding, original study and smallest effect that would matter
+  go into "Why this effect size?" on the replication's input screen (the
+  user's own words; no number is filled in), and a strip on the
+  replication's screens links back to the notes, which are kept.
+
 * App: shorter labels on the input screen, with the detail as help text
   under the field ("Why this effect size?" instead of a two-line label).
   Definitions of terms and the reason the direction is asked first open

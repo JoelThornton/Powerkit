@@ -88,3 +88,32 @@ test_that("the tabs that are the same for everyone are built once, not per visit
     expect_false(grepl(call, ui_body, fixed = TRUE), label = call)
   }
 })
+
+
+# A Labs menu, and planning from the notes without losing work (22 October 2026)
+
+test_that("Labs opens on a list of tools; the notes appear once their tool is chosen", {
+  html <- as.character(labs_ui(tree))
+  menu_at <- regexpr("labs-menu", html); tool_at <- regexpr("labs_finding", html)
+  expect_gt(menu_at, 0); expect_gt(tool_at, menu_at)
+  expect_match(html, 'data-display-if="!input.labs_tool"', fixed = TRUE)
+  expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
+  expect_match(html, "Open Pre-replication notes", fixed = TRUE)
+  expect_match(html, "All Labs tools", fixed = TRUE)
+  expect_length(labs_tools, 1)
+  expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
+})
+
+test_that("planning from the notes carries the user's own words, never a number into a box", {
+  answers <- list(labs_study = "Smith (2020)", labs_finding = "Training raises recall.", labs_smallest = "d = 0.2, a third of a grade")
+  seed <- labs_seed_reasoning(answers)
+  expect_identical(seed, "Replicating: Training raises recall (original study: Smith (2020)). The smallest effect that would matter, from my pre-replication notes: d = 0.2, a third of a grade")
+  expect_null(labs_seed_reasoning(list()))
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  # Only the reasoning box is filled.
+  expect_match(code, "list(just_source = state$labs_seed)", fixed = TRUE)
+  # A plan in progress is replaced only after asking.
+  expect_match(code, "if (plan_in_progress()) showModal(labs_replace_modal()) else labs_start_plan()", fixed = TRUE)
+  expect_match(as.character(labs_replace_modal()), "Your pre-replication notes are kept either way.", fixed = TRUE)
+  expect_match(as.character(labs_return_ui(TRUE, TRUE)), "Back to the notes", fixed = TRUE)
+})

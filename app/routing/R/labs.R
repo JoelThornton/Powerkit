@@ -9,6 +9,13 @@
 # engine's sensitivity, as in the main app.
 
 labs_tab_title <- "Labs (experimental)"
+
+# The tools on Labs' first screen; each opens on its own (22 October 2026),
+# so that more can be added.
+labs_tools <- list(
+  list(id = "prereplication", title = "Pre-replication notes",
+       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.")
+)
 labs_ref_key <- "Karhulahti2025_prereplication"
 
 # The paper's three questions, word for word (its "Pre-replication" section).
@@ -169,6 +176,14 @@ labs_ui <- function(tree) {
   div(id = "labs-notes", class = "labs",
     h2("Labs (experimental)"),
     p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
+    # First screen: the list of tools.
+    conditionalPanel("!input.labs_tool",
+      div(class = "labs-menu", lapply(labs_tools, function(t) div(class = "labs-tool-card",
+        h3(class = "h5", t$title), p(t$text),
+        tags$button(type = "button", class = "btn btn-primary", onclick = sprintf("pkLabsOpen('%s')", t$id), paste("Open", t$title))))),
+      p(class = "small text-muted", "More tools will be added here.")),
+    conditionalPanel("input.labs_tool == 'prereplication'",
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note",
       tags$strong("Experimental and not validated. "),
       "Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
@@ -213,7 +228,42 @@ labs_ui <- function(tree) {
       div(id = "labs-copy-status", class = "visually-hidden", `aria-live` = "polite"),
       uiOutput("labs_copy_text")),
     p(class = "small text-muted", "Reference: ", labs_citation())
+    )
   )
+}
+
+# Planning the replication from the notes (22 October 2026): the user's own
+# words go into "Why this effect size?" on the input screen, never a
+# number into a box. NULL when the notes say nothing to carry.
+labs_seed_reasoning <- function(answers) {
+  a <- function(id) trimws(answers[[id]] %||% "")
+  parts <- c(
+    if (nzchar(a("labs_finding"))) sprintf("Replicating: %s%s.", sub("[.]$", "", a("labs_finding")),
+      if (nzchar(a("labs_study"))) sprintf(" (original study: %s)", a("labs_study")) else ""),
+    if (nzchar(a("labs_smallest"))) sprintf("The smallest effect that would matter, from my pre-replication notes: %s", a("labs_smallest"))
+  )
+  if (!length(parts)) return(NULL)
+  paste(parts, collapse = " ")
+}
+
+# On the main route's card and input screens while planning from the notes.
+labs_return_ui <- function(on_form = FALSE, carried = FALSE) {
+  div(class = "labs-return", role = "note",
+    "You're planning the replication from your pre-replication notes. Your notes are kept in Labs. ",
+    actionLink("labs_back", "Back to the notes"),
+    if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy this effect size?\u201d below; edit them as you like."))
+}
+
+# Asked before planning from the notes replaces a plan in progress.
+labs_replace_modal <- function() {
+  modalDialog(
+    title = "Replace the plan in progress?",
+    p("You have a plan in progress on \u201cPlan a power analysis\u201d. Planning the replication starts a new one there, and the plan in progress will be lost unless you save it first (\u201cSave this project\u201d on its result) or copy your answers."),
+    p("Your pre-replication notes are kept either way."),
+    footer = tagList(
+      modalButton("Keep my plan"),
+      actionButton("labs_plan_confirm", "Start the replication's plan", class = "btn btn-primary")),
+    easyClose = TRUE)
 }
 
 # What step 6 offers depends on where the user landed.
@@ -278,6 +328,17 @@ labs_js <- "
       document.querySelectorAll('#labs-notes input[name=labs_outcome]').forEach(function(r) { r.checked = false; });
       Shiny.setInputValue('labs_outcome', null);
     };
+    // Which Labs tool is open, kept for the tab like the notes.
+    window.pkLabsOpen = function(tool) {
+      Shiny.setInputValue('labs_tool', tool || '');
+      var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
+      var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
+    };
+    $(document).on('shiny:connected', function() {
+      var s = store(); var t = null; if (s) { try { t = s.getItem('powerkit-labs-tool'); } catch (e) {} }
+      if (t) Shiny.setInputValue('labs_tool', t);
+    });
+    Shiny.addCustomMessageHandler('labs_open', function(tool) { window.pkLabsOpen(tool); });
     window.pkLabsHideHint = function() {
       document.body.classList.add('labs-hint-hidden');
       var s = store(); if (s) { try { s.setItem('powerkit-labs-hint-hidden', '1'); } catch (e) {} }
