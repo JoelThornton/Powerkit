@@ -67,6 +67,8 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Fix (22 October 2026):** the shared tabs are built once at start-up,
+  not per visitor (a regression from the maintainer's view in #87).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

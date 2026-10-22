@@ -100,11 +100,15 @@ labs_citation <- function(path = labs_refs_path()) {
   fallback <- "See https://doi.org/10.15626/MP.2024.4155"
   if (!nzchar(path) || !file.exists(path)) return(fallback)
   ns <- tryCatch(asNamespace("powerkit"), error = function(e) NULL)
-  if (is.null(ns)) return(fallback)
-  entry <- ns$read_bib(path)[[labs_ref_key]]
-  if (is.null(entry)) return(fallback)
-  text <- paste(ns$bib_entry_text(entry), collapse = " ")
-  gsub("\\s+", " ", gsub("[*_]{1,2}([^*_]+)[*_]{1,2}", "\\1", text))
+  # A partly loaded engine (no bib reader) or a reading error gives the
+  # fallback, never an error page.
+  if (is.null(ns) || !is.function(ns$read_bib) || !is.function(ns$bib_entry_text)) return(fallback)
+  tryCatch({
+    entry <- ns$read_bib(path)[[labs_ref_key]]
+    if (is.null(entry)) return(fallback)
+    text <- paste(ns$bib_entry_text(entry), collapse = " ")
+    gsub("\\s+", " ", gsub("[*_]{1,2}([^*_]+)[*_]{1,2}", "\\1", text))
+  }, error = function(e) fallback)
 }
 
 labs_refs_path <- function() {
