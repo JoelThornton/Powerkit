@@ -24,10 +24,10 @@ test_that("the About panel lists every end point that calculates, and only those
   expect_match(html, "E13</strong>\\s*: [^<]*an R script to run the full analysis on your computer", perl = TRUE)
 })
 
-test_that("the About panel explains how to report problems with 'Something doesn't fit?'", {
+test_that("the About panel explains how to report problems: the Feedback tab and 'Something doesn't fit?'", {
   html <- about_html()
+  expect_match(html, "<strong>Feedback</strong> tab", fixed = TRUE)
   expect_match(html, "Something doesn&#39;t fit?|Something doesn't fit?")
-  expect_match(html, "Copy the path", fixed = TRUE)
   expect_match(html, "Nothing is sent from this app", fixed = TRUE)
   # The same words as the link on the cards.
   expect_match(as.character(mismatch_ui("x", "path")), "Something doesn&#39;t fit?|Something doesn't fit?")

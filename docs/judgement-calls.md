@@ -840,6 +840,12 @@ results.
 - **Update (phase 5, part 2, 17 October 2026):** with E9 wired, the banner
   reads "calculations are available for E1–E9", and E9's card no longer
   says "No numbers are calculated".
+- **Update (22 October 2026):** the banner names the analyses in plain
+  words instead of end-point codes, which users don't see elsewhere:
+  "Prototype, still being checked: t-tests, correlations, ANOVA, ANCOVA,
+  regression, proportions and chi-square tests calculate here; mediation
+  gives a quick preview, then a full run or an R script; other designs
+  give guidance only for now." A test checks it has no codes.
 
 ### B15. The seed for a calculation
 

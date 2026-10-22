@@ -114,10 +114,11 @@ about_ui <- function(tree, forms) {
       "The What's new tab lists what has changed, newest first."),
     h3(class = "h5", "Reporting a problem or giving feedback"),
     p(HTML(paste0(
-      "Every card has a <strong>Something doesn&#39;t fit?</strong> link at the bottom. Open it, click ",
-      "<strong>Copy the path</strong>, paste it into an email, add a sentence on what you expected, ",
-      "and send it to whoever asked you to try the prototype. Nothing is sent from this app: ",
-      "everything you enter stays on your computer."
+      "Use the <strong>Feedback</strong> tab for bugs, questions, suggestions and any other comments. ",
+      "It fills in where you are in powerkit for you and shows the whole message before you send it. ",
+      "Every card also has a <strong>Something doesn&#39;t fit?</strong> link at the bottom that leads there. ",
+      "Nothing is sent from this app without you: the only thing it ever sends is a feedback message, ",
+      "when you click Send, and everything else you enter stays on your computer."
     ))),
     h3(class = "h5", "Credits"),
     p("powerkit is built on these R packages. Their own citations are below; ",

@@ -235,7 +235,8 @@ test_that("cards with an input screen offer it; others don't", {
   expect_no_match(as.character(card_nav_ui(forms, "E19")), "Enter your values", fixed = TRUE)
 })
 
-test_that("whether effect sizes start empty is an undecided setting, shown on the screens", {
+test_that("whether effect sizes start empty is an undecided setting, shown on the screens in the maintainer's view", {
+  withr::local_options(powerkit.maintainer_view = TRUE)
   s <- setting_by_key(tree, "effect_size_inputs")
   expect_null(s$value)
   expect_true("form" %in% unlist(s$shown_at))

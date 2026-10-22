@@ -1992,3 +1992,16 @@ conjunction framework of the claim question is unchanged (Rubin, 2021,
    standard union-intersection and intersection-union results (Rubin,
    2026, pp. 4–5, citing Roy, 1953, and Berger, 1982). That both views
    agree there is inferred, not checked.
+
+## 2026-10-22 · Plain-words banner and "Coming soon" labels (judgement call B14, update)
+
+The banner listed what calculates by end-point code ("E1–E9, E18,
+E23–E26 and E48–E50"), which means nothing to people using the app. It
+now names the analyses: "Prototype, still being checked: t-tests,
+correlations, ANOVA, ANCOVA, regression, proportions and chi-square tests
+calculate here; mediation gives a quick preview, then a full run or an R
+script; other designs give guidance only for now." In "Plan my whole
+study", the combined sample size and the consistency check are labelled
+"Coming soon" rather than "once the engine is connected"; the combined N
+says to use the largest N from the analyses' cards meanwhile, which is
+the rule the feature will apply.

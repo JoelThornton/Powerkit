@@ -8,6 +8,32 @@
   The limit is `background_limit` in `forms.yaml`, or
   `POWERKIT_BACKGROUND_LIMIT`.
 
+* App: a Feedback tab for bug reports, questions, suggestions and other
+  comments, linked from the top of every page and from each card's
+  "Something doesn't fit?". It fills in where the user is (route,
+  answers, the analysis reached and the values entered) and shows the
+  whole message before it goes. Send stores it, with an optional email
+  for a reply, in a feedback table in Supabase through one function,
+  `send_powerkit_feedback()`, which checks the kind and length and caps
+  messages per hour; the publishable key can't read the table. No account
+  is needed. It is the only thing the app sends, and only on Send. The
+  tab also offers a GitHub issue and copying the message, and an email
+  button when an address is set (`tree.yaml`, `feedback: email`, or
+  `POWERKIT_FEEDBACK_EMAIL`).
+
+* App: the undecided settings (the "Undecided, for the maintainer"
+  placeholders, recorded decisions and the "For the maintainer" tab) are
+  now shown only in the maintainer's view, so people using the app see
+  only what applies to them. Open the app with `?view=maintainer`, or set
+  `POWERKIT_MAINTAINER_VIEW=true`, to see them.
+
+* App: the banner names the analyses that calculate in plain words
+  instead of end-point codes (E1–E9 and so on), and the browser tab reads
+  "powerkit (prototype)". In "Plan my whole study", the combined sample
+  size and the consistency check are labelled "Coming soon" instead of
+  "once the engine is connected", and the combined N says what to do
+  meanwhile (use the largest N from the analyses' cards).
+
 * App: the generic t, F, chi-square and z tests (E50), as G\*Power's
   generic tests, for people who have worked out their test's noncentrality
   parameter. Found only from "I know my analysis". There is no sample
