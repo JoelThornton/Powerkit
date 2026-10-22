@@ -51,7 +51,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_null(f[["default"]], label = paste(ep, f$id))
       html <- as.character(field_ui(f, f[["default"]]))
       expect_match(html, if (identical(f$type, "table")) '"></textarea>' else 'value=""', fixed = TRUE, label = paste(ep, f$id))
-      expect_match(html, "(required; starts empty)", fixed = TRUE)
+      expect_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
     # E24's effect sizes appear once its question is chosen.
@@ -507,4 +507,52 @@ test_that("observed power is allowed as an effect-size source, with a warning (d
   # The engine's schema accepts it.
   schema <- readLines(file.path(repo_dir, "engine", "inst", "schema", "design.schema.json"))
   expect_true(any(grepl('"own_study_result"', schema, fixed = TRUE)))
+})
+
+# The input screen's sections (22 October 2026) ------------------------------
+
+test_that("the input screen asks the goal first, keeps the effect size with its source, and folds the settings", {
+  for (ep in form_ids) {
+    groups <- form_groups(forms, ep)
+    section <- vapply(groups, form_section, character(1))
+    ids_in <- function(which) unlist(lapply(groups[section == which], function(g) vapply(g$fields, `[[`, "", "id")))
+    expect_true("goal" %in% ids_in("goal"), label = ep)
+    expect_true("just_type" %in% ids_in("effect"), label = ep)
+    # Every effect size is in the effect section; nothing without a default
+    # (that isn't optional) is folded away.
+    effect_ids <- vapply(Filter(function(f) isTRUE(f$effect), form_fields(groups)), `[[`, "", "id")
+    expect_true(all(effect_ids %in% ids_in("effect")), label = ep)
+    for (f in unlist(lapply(groups[section == "settings"], `[[`, "fields"), recursive = FALSE)) {
+      expect_true(!is.null(f[["default"]]) || isTRUE(f$optional), label = paste(ep, f$id))
+    }
+    html <- as.character(form_ui(tree, forms, ep, groups))
+    headings <- regmatches(html, gregexpr("form-section-title\">[^<]+", html))[[1]]
+    expect_match(headings[1], "1. What you want to find out", fixed = TRUE, label = ep)
+    expect_match(html, "Your effect size, and where it comes from", fixed = TRUE)
+    # The goal's section comes before the effect size's.
+    expect_lt(regexpr("What you want to find out", html), regexpr("Your effect size, and where it comes from", html), label = ep)
+  }
+})
+
+test_that("the settings line shows each setting's value, and opens when one has been changed", {
+  groups <- form_groups(forms, "E2")
+  html <- as.character(form_ui(tree, forms, "E2", groups))
+  expect_match(html, '<details class="form-settings">', fixed = TRUE)
+  expect_match(html, 'data-setting-for="f_seed">1<', fixed = TRUE)
+  expect_match(html, 'data-setting-for="f_attrition">none<', fixed = TRUE)
+  expect_match(html, "Student", fixed = TRUE)
+  changed <- as.character(form_ui(tree, forms, "E2", groups, values = list(seed = "42")))
+  expect_match(changed, '<details class="form-settings" open>', fixed = TRUE)
+  expect_match(changed, 'data-setting-for="f_seed">42<', fixed = TRUE)
+})
+
+test_that("power and N appear only for the goals that need them; optional fields say so", {
+  f <- Filter(function(f) f$id == "n", form_fields(form_groups(forms, "E2")))[[1]]
+  html <- as.character(field_ui(f, NULL))
+  expect_match(html, "input.f_goal == &#39;power&#39; || input.f_goal == &#39;sensitivity&#39;|input.f_goal == 'power' \\|\\| input.f_goal == 'sensitivity'")
+  expect_false(grepl("needed for", html, fixed = TRUE))
+  att <- Filter(function(f) f$id == "attrition", form_fields(form_groups(forms, "E2")))[[1]]
+  expect_match(as.character(field_ui(att, NULL)), "optional", fixed = TRUE)
+  goal <- Filter(function(f) f$id == "goal", form_fields(form_groups(forms, "E2")))[[1]]
+  expect_false(grepl("(required)", as.character(field_ui(goal, NULL)), fixed = TRUE))
 })

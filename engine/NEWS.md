@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* App: the input screen is shorter and in a clearer order (about a third
+  less scrolling). "What do you want to find out?" comes first, and the
+  target power and the number of participants appear only for the goals
+  that need them. The effect size and where it comes from are together
+  in one highlighted section. Settings that start at a tool's default
+  (test version, method, group-size ratio, attrition, seed) fold into one
+  line that shows their values and opens to change them; it opens by
+  itself when one has been changed. Everything is needed unless marked
+  optional, instead of "(required)" on every field.
+
 * App: the About, What's new, Labs, Feedback and maintainer tabs are built
   once when the app starts, not for every visitor, so the page opens
   faster when many people arrive together. The Labs citation falls back

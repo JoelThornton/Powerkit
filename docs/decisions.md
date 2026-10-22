@@ -2065,3 +2065,29 @@ The maintainer accepted the recommendations on four open questions.
   mediation offers two mediators until three or more are validated;
   serial mediation still offers up to four. A project file asking for
   more opens with two.
+
+## 2026-10-22 · The input screen: less effort on the mechanics, more on the effect size
+
+The input screen for a two-group comparison had 22 fields over about five
+screens of scrolling, with the goal halfway down and the effect size's
+source three boxes away from the effect size. The maintainer approved
+these changes, all about where effort goes, not what is asked:
+
+- **The goal first.** "What do you want to find out?" opens the screen,
+  and target power and the number of participants appear only for the
+  goals that need them.
+- **The effect size with its source**, in one highlighted section: the
+  justification is powerkit's main question, so it gets the space.
+- **Settings that start at a tool's default** (fields with a default, or
+  optional, other than the number of mediators) fold into one line that
+  shows every value, so nothing is hidden; it opens by itself when a
+  value has been changed.
+- **One convention:** everything is needed unless marked optional.
+
+Not done, on purpose: no pre-filled effect sizes or small/medium/large
+buttons (anchoring; decided 18 October 2026), no warnings behind info
+buttons, no live-updating sample size on the main inputs (it invites
+tuning the effect size until the N is affordable; the explore panel is
+for "what if"), and no one-field-per-screen wizard (the overview of the
+whole plan is part of checking it). The spec, project files and write-up
+don't depend on the screen's order.

@@ -69,6 +69,10 @@ fully validated. Validation runs are recorded in
   cards, and two parallel mediators only.
 - **Fix (22 October 2026):** the shared tabs are built once at start-up,
   not per visitor (a regression from the maintainer's view in #87).
+- **Input screen in sections** (in review, 22 October 2026): goal first,
+  fields shown only for the goals that need them, the effect size with
+  its source, default settings folded into one line that shows their
+  values ([`decisions.md`](decisions.md)).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

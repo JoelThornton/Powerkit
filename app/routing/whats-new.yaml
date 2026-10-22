@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "A shorter input screen"
+    text: >-
+      The screen where you enter your values now starts with what you want
+      to find out, and only shows the boxes that goal needs. Your effect
+      size and where it comes from sit together, and settings you rarely
+      change are folded into one line you can open.
+  - date: "2026-10-22"
     title: "Rank-based tests, observed power and other tools"
     text: >-
       Cards for t-tests, correlations and one-way ANOVA now say that their
