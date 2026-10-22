@@ -853,3 +853,38 @@ test_that("the write-up has a plain-words version for an ethics application, for
   # No reasoning, no write-up and no ethics version.
   expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = ""))))
 })
+
+# Sharing the server: a limit on background calculations --------------------
+
+test_that("at most background_limit() background calculations run at once, across all visitors", {
+  withr::local_envvar(POWERKIT_BACKGROUND_LIMIT = "")
+  expect_identical(background_limit(forms), 2L)
+  expect_identical(background_limit(list()), 2L)
+  withr::local_envvar(POWERKIT_BACKGROUND_LIMIT = "5")
+  expect_identical(background_limit(forms), 5L)
+  withr::local_envvar(POWERKIT_BACKGROUND_LIMIT = "none")
+  expect_identical(background_limit(forms), 2L)
+
+  old <- background_registry$processes
+  on.exit(background_registry$processes <- old, add = TRUE)
+  background_registry$processes <- list()
+  fake <- function(alive) { state <- alive; list(is_alive = function() state, finish = function() state <<- FALSE) }
+  a <- register_background(fake(TRUE)); b <- register_background(fake(TRUE))
+  expect_identical(background_running(), 2L)
+  # A finished run frees its place, and is dropped from the registry.
+  a$finish()
+  expect_identical(background_running(), 1L)
+  expect_length(background_registry$processes, 1)
+})
+
+test_that("the app checks the limit before starting any background run, and says so plainly", {
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "if (background_running() >= background_limit(forms)) {", fixed = TRUE)
+  expect_match(code, "register_background(start_background_calculation(", fixed = TRUE)
+  # start_background_calculation() is only called through start_job().
+  expect_length(regmatches(code, gregexpr("start_background_calculation(", code, fixed = TRUE))[[1]], 1)
+  html <- as.character(busy_ui())
+  expect_match(html, "powerkit is busy just now", fixed = TRUE)
+  expect_match(html, "in a minute or two", fixed = TRUE)
+  expect_false(grepl("Error|error|stack", html))
+})

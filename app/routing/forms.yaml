@@ -92,6 +92,11 @@ calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
+# At most this many background calculations (E9 and E10-E14's preview and
+# full run) at once, across everyone using the app; others are asked to try
+# again shortly (R/results.R, background_limit()). Two suits a server with
+# two cores; POWERKIT_BACKGROUND_LIMIT overrides it.
+background_limit: 2
 
 # Mediation and moderated mediation (E10-E14; the maintainer's decision of
 # 17 October 2026, docs/phase5-simulations.md and docs/decisions.md):

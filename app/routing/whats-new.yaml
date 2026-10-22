@@ -14,6 +14,13 @@ entries:
       a warning about observed power. Cards for designs powerkit doesn't
       cover yet name established tools you can use instead.
   - date: "2026-10-22"
+    title: "Long calculations take turns"
+    text: >-
+      Interactions in regression and mediation take a while to calculate,
+      and everyone using powerkit online shares one server. If several
+      people start one at the same moment, you may be asked to try again
+      in a minute or two. Quick calculations aren't affected.
+  - date: "2026-10-22"
     title: "A Feedback tab"
     text: >-
       Tell us about a problem, ask a question or suggest something from the

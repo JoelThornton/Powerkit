@@ -73,6 +73,46 @@ start_background_calculation <- function(spec, seed = 1L,
   )
 }
 
+# --- Sharing the server ---------------------------------------------------------
+
+# Everyone using the online app shares one server, and each background
+# calculation is a separate R process with its own core and memory. A room
+# of people starting long runs at once could use up the server's memory
+# and stop the app for everyone, so at most background_limit() run at
+# once, across all visitors (forms.yaml, `background_limit`, or the
+# environment variable POWERKIT_BACKGROUND_LIMIT). The registry lives in
+# the app's one R process, so every visitor's session sees it.
+background_registry <- new.env()
+background_registry$processes <- list()
+
+background_limit <- function(forms) {
+  from_env <- suppressWarnings(as.integer(Sys.getenv("POWERKIT_BACKGROUND_LIMIT")))
+  if (!is.na(from_env) && from_env > 0) return(from_env)
+  as.integer(forms$background_limit %||% 2L)
+}
+
+# How many background calculations are running now (finished ones are
+# dropped from the registry).
+background_running <- function() {
+  alive <- Filter(function(p) p$is_alive(), background_registry$processes)
+  background_registry$processes <- alive
+  length(alive)
+}
+
+register_background <- function(process) {
+  background_registry$processes <- c(background_registry$processes, list(process))
+  process
+}
+
+# Shown instead of starting a run when the limit is reached.
+busy_ui <- function() {
+  div(class = "form-problems", role = "status", tabindex = "-1",
+    h3(class = "h5", "powerkit is busy just now"),
+    p("Other people's long calculations are using the server, so this one can't start yet. ",
+      "Please choose \u201cCheck my answers\u201d again in a minute or two. ",
+      "Quick calculations, such as t-tests, correlations and ANOVA, still work as usual."))
+}
+
 # The finished process's value: run_calculation()'s list, or a plain-English
 # error if the process itself failed (e.g. the engine couldn't be loaded).
 collect_background_calculation <- function(job) {
