@@ -2115,3 +2115,18 @@ size? (needed to save or export the plan)" rather than being marked
 optional, as it is the justification powerkit is built around. Problems
 show under their field as well as in the list, and folded settings open
 when a problem is inside them.
+
+## 2026-10-22 · Labs: a list of tools, and planning from the notes without losing work
+
+Labs opened straight onto the pre-replication notes; the maintainer asked
+for a list to choose from, as more tools will follow. Labs now opens on
+that list, the notes open when chosen, and the open tool is kept for the
+browser tab like the notes.
+
+"Plan the replication's sample size" kept the notes but reset the main
+route without asking, so a plan in progress there was lost, and nothing
+from the notes reached the plan. Now it asks before replacing a plan in
+progress; it copies the notes' finding, original study and smallest
+effect that would matter into "Why this effect size?" (the user's own
+words, never a number into an effect-size box); and the replication's card
+and input screen show that the notes are kept, with a link back.

@@ -126,6 +126,9 @@ app_css <- "
   .labs-sde { margin-top: 0.75rem; }
   .labs-sde summary { font-weight: 600; color: #0a5a8c; cursor: pointer; }
   .observed-power-warning { font-size: 0.9rem; border-left: 4px solid #a12a2a; background: #fbeaea; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
+  .labs-tool-card { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.9rem 1rem; margin-bottom: 0.75rem; }
+  .labs-back { padding-left: 0; margin-bottom: 0.5rem; }
+  .labs-return { font-size: 0.9rem; background: #eef3fa; border-left: 4px solid #0a5a8c; border-radius: 0.4rem; padding: 0.5rem 0.75rem; margin-bottom: 1rem; }
   .labs-signpost { font-size: 0.9rem; background: #eef3fa; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-hint-hidden .labs-signpost { display: none; }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
@@ -230,6 +233,8 @@ server <- function(input, output, session) {
   session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
   state <- reactiveValues(
     screen = "start",        # start | known | node | card | form | g_vars | g_analyses | g_plan
+    from_labs = FALSE,       # planning a replication from the pre-replication notes (Labs)
+    labs_seed = NULL,        # the notes' words for "Why this effect size?" (labs_seed_reasoning())
     start = list(),          # screen A: situation, aim and claim
     route = "choose",        # the route chosen on the start screen
     node = NULL,             # current question id (screening or "Help me choose")
@@ -310,6 +315,7 @@ server <- function(input, output, session) {
     }
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
+      state$from_labs <- FALSE; state$labs_seed <- NULL
     } else if (kind == "route") {
       # Screen A first: estimation and equivalence go to their cards.
       state$start <- start_answers(tree, input)
@@ -343,7 +349,9 @@ server <- function(input, output, session) {
       state$history <- state$history[seq_len(i - 1)]
       state$screen <- "node"
     } else if (pick == "form") {
-      state$form_values <- list(); state$form_k <- 2L; state$calc <- NULL
+      # From the pre-replication notes: the user's own words as the reasoning.
+      state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
+      state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
     } else if (pick == "form_back") {
       state$form_values <- current_form_values()
@@ -573,6 +581,7 @@ server <- function(input, output, session) {
   })
   open_in_app <- function(project, restored) {
     cancel_job()
+    state$from_labs <- FALSE; state$labs_seed <- NULL
     state$calc <- NULL
     state$long_spec <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
@@ -646,19 +655,35 @@ server <- function(input, output, session) {
     session$sendCustomMessage("copy_labs", text)
   })
   # Step 6: into the main app, on the original's test where there is one.
-  observeEvent(input$labs_plan, {
+  # A plan in progress there is only replaced after asking; the notes stay
+  # in Labs, and the user's own words go into "Why this effect size?".
+  labs_start_plan <- function() {
     test <- input$labs_test %||% ""
     cancel_job()
-    state$history <- list(); state$node <- NULL; state$ctx <- list()
+    state$history <- list(); state$node <- NULL; state$ctx <- list(); state$calc <- NULL
+    state$from_labs <- TRUE
+    state$labs_seed <- labs_seed_reasoning(labs_answers())
     if (identical(input$labs_outcome, "go") && nzchar(test)) {
       state$endpoint <- test; state$came_from <- "known"; state$screen <- "card"
     } else {
       state$screen <- "start"
     }
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  }
+  plan_in_progress <- function() !identical(state$screen, "start") || length(state$history) > 0
+  observeEvent(input$labs_plan, {
+    if (plan_in_progress()) showModal(labs_replace_modal()) else labs_start_plan()
+  })
+  observeEvent(input$labs_plan_confirm, { removeModal(); labs_start_plan() })
+  observeEvent(input$labs_back, {
+    session$sendCustomMessage("labs_open", "prereplication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
   # The one way in from the main route (labs_signpost_ui()).
-  observeEvent(input$go_labs, updateTabsetPanel(session, "tabs", selected = labs_tab_title))
+  observeEvent(input$go_labs, {
+    session$sendCustomMessage("labs_open", "prereplication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
   # The Feedback tab: from the header link, or from "Something doesn't fit?"
   # (which picks "confusing").
   observeEvent(input$go_feedback_link, updateTabsetPanel(session, "tabs", selected = "Feedback"))
@@ -717,12 +742,15 @@ server <- function(input, output, session) {
       known = known_ui(tree, state$history, state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx),
       card = tagList(
+        if (isTRUE(state$from_labs)) labs_return_ui(),
         trail_ui(state$history),
         card_ui(tree, state$endpoint, history = state$history),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
       ),
-      form = form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, state$start), isolate(state$form_values), state$history),
+      form = tagList(
+        if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
+        form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, state$start), isolate(state$form_values), state$history)),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,

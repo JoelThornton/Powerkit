@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "Labs: choose a tool, and keep your work"
+    text: >-
+      Labs now opens on a list of tools. When you go from your
+      pre-replication notes to planning the replication's sample size,
+      powerkit asks before replacing a plan you've started, copies your
+      notes' words into the reason for your effect size, and gives you a
+      link back to the notes, which are kept.
+  - date: "2026-10-22"
     title: "Clearer boxes and problems where they are"
     text: >-
       The boxes on the input screen have shorter names, with a line of help
