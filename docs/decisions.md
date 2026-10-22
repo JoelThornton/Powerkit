@@ -2091,3 +2091,15 @@ tuning the effect size until the N is affordable; the explore panel is
 for "what if"), and no one-field-per-screen wizard (the overview of the
 whole plan is part of checking it). The spec, project files and write-up
 don't depend on the screen's order.
+
+## 2026-10-22 · Progress steps and shorter cards
+
+Approved with the input-screen changes. Four named steps (Your study,
+Find your design, Your numbers, Result) sit above the screen, drawn
+separately so that a result never redraws the form. Named steps, not a
+percentage or "question 3 of 7": the design finder's length depends on
+the answers, and a wrong progress figure costs more trust than none.
+Cards keep the status, the effect-size guidance and the notes that bear
+on the choice (rank-based tests, other analyses) in view, and fold what
+you'd enter, the backend and the next questions into "More about this
+analysis"; the two-group card goes from about two screens to one.

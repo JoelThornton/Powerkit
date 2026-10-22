@@ -73,6 +73,7 @@ fully validated. Validation runs are recorded in
   fields shown only for the goals that need them, the effect size with
   its source, default settings folded into one line that shows their
   values ([`decisions.md`](decisions.md)).
+- **Progress steps and shorter cards** (in review, 22 October 2026).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

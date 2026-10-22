@@ -82,6 +82,29 @@ coming_soon_ui <- function(text) {
   div(class = "status status-soon coming-soon", tags$span(class = "badge-soon", "Coming soon"), text)
 }
 
+# Progress -------------------------------------------------------------------
+
+# The app's four steps (the new design, 18 October 2026). Steps, not a
+# percentage: the design finder's length depends on the answers.
+progress_steps <- c(study = "Your study", design = "Find your design", numbers = "Your numbers", result = "Result")
+
+screen_step <- function(screen, has_result = FALSE) {
+  if (screen %in% c("start", "check")) return("study")
+  if (identical(screen, "form")) return(if (isTRUE(has_result)) "result" else "numbers")
+  "design"
+}
+
+progress_ui <- function(current) {
+  at <- match(current, names(progress_steps))
+  tags$nav(class = "progress-steps", `aria-label` = "Progress",
+    tags$ol(lapply(seq_along(progress_steps), function(i) {
+      state <- if (i < at) "done" else if (i == at) "current" else "todo"
+      tags$li(class = state, `aria-current` = if (i == at) "step",
+        tags$span(class = "step-num", `aria-hidden` = "true", if (i < at) "\u2713" else i),
+        tags$span(progress_steps[[i]], if (i < at) tags$span(class = "visually-hidden", " (done)")))
+    })))
+}
+
 # Start screen ---------------------------------------------------------------
 
 # Screen A's three questions (tree.yaml, start_questions), each a set of
@@ -340,10 +363,6 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
-        input,
-        hints_ui(tree, input)
-      )))),
       if (!compact && !isTRUE(ep$generic)) tagList(
         section_heading("Where your effect size comes from"),
         p(jp$text),
@@ -351,17 +370,27 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       ),
       other_analyses_ui(tree, ep),
       rank_test_ui(tree, ep),
-      if (runs) tagList(
-        p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
-        hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))
-      ),
-      if (!compact && runs) tagList(
-        section_heading("What you'd be asked next"),
-        tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
-          q$text,
-          if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
-          if (maintainer_view()) lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
-        )))
+      # What the input screen will ask and which package calculates it:
+      # useful before starting, but it repeats the input screen, so it is
+      # folded (22 October 2026).
+      if (!is.null(ep$inputs) || runs) tags$details(class = "card-more",
+        tags$summary("More about this analysis: what you'd enter, and which package calculates it"),
+        if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
+          input,
+          hints_ui(tree, input)
+        )))),
+        if (runs) tagList(
+          p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
+          hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))
+        ),
+        if (!compact && runs) tagList(
+          section_heading("What you'd be asked next"),
+          tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
+            q$text,
+            if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
+            if (maintainer_view()) lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
+          )))
+        )
       ),
       if (!compact && ep$status == "not_in_powerkit" && !isTRUE(ep$generic) && maintainer_view()) div(
         lapply(c("not_in_spec_wording", "r_script_for_uncovered"), function(key) div(placeholder_inline(setting_by_key(tree, key))))

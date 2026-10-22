@@ -257,3 +257,35 @@ test_that("hints also explain terms in standard names and backend lines, once pe
   expect_no_match(eb, "<dfn>factor and levels</dfn>", fixed = TRUE)
   expect_match(eb, "<dfn>Bayes factor</dfn>", fixed = TRUE)
 })
+
+# Progress and shorter cards (22 October 2026) -------------------------------
+
+test_that("the progress steps follow the four screens, with the current one marked", {
+  expect_identical(screen_step("start"), "study")
+  expect_identical(screen_step("node"), "design")
+  expect_identical(screen_step("card"), "design")
+  expect_identical(screen_step("g_plan"), "design")
+  expect_identical(screen_step("form"), "numbers")
+  expect_identical(screen_step("form", has_result = TRUE), "result")
+  html <- as.character(progress_ui("numbers"))
+  expect_match(html, 'aria-label="Progress"', fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr('aria-current="step"', html, fixed = TRUE))), 1L)
+  expect_match(html, '<li class="current" aria-current="step">', fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr("(done)", html, fixed = TRUE))), 2L)
+  # Steps, never a percentage.
+  expect_false(grepl("%", html, fixed = TRUE))
+  # Drawn apart from the screen, so a result never redraws the form.
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'uiOutput("progress"), uiOutput("screen")', fixed = TRUE)
+})
+
+test_that("cards fold what you'd enter, the package and the next questions into one section", {
+  html <- as.character(card_ui(tree, "E2"))
+  expect_match(html, '<details class="card-more">', fixed = TRUE)
+  more <- sub('.*<details class="card-more">', "", html)
+  for (text in c("What you would enter", "Backend:", "be asked next")) expect_match(more, text, fixed = TRUE)
+  # What matters for choosing stays in view: the effect size's source and the rank-test note.
+  before <- sub('<details class="card-more">.*', "", html)
+  expect_match(before, "Where your effect size comes from", fixed = TRUE)
+  expect_match(before, "rank-test-note", fixed = TRUE)
+})
