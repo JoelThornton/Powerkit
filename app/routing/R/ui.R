@@ -46,7 +46,31 @@ placeholder_inline <- function(setting) {
   tags$span(class = "placeholder-inline", tags$strong("Undecided, for the maintainer"), sprintf(" (%s): %s", setting$ref, setting$question))
 }
 
+# The maintainer's view ------------------------------------------------------
+
+# The undecided settings (the placeholders above and the "For the
+# maintainer" tab) are questions for the maintainer, not for people using
+# the app, so the public site leaves them out. They show when the app runs
+# with the environment variable POWERKIT_MAINTAINER_VIEW=true, or when its
+# address ends in ?view=maintainer.
+maintainer_view_requested <- function(query = "") {
+  identical(tolower(Sys.getenv("POWERKIT_MAINTAINER_VIEW")), "true") ||
+    identical(shiny::parseQueryString(query %||% "")$view, "maintainer")
+}
+
+# Whether to show them now: the option powerkit.maintainer_view if set (for
+# tests), else the session's choice (set in app.R's server), else the
+# environment variable.
+maintainer_view <- function() {
+  opt <- getOption("powerkit.maintainer_view")
+  if (!is.null(opt)) return(isTRUE(opt))
+  session <- shiny::getDefaultReactiveDomain()
+  if (!is.null(session)) return(isTRUE(session$userData$maintainer_view))
+  maintainer_view_requested()
+}
+
 placeholders_at <- function(tree, where) {
+  if (!maintainer_view()) return(NULL)
   shown <- settings_shown_at(tree, where)
   if (length(shown) == 0) return(NULL)
   div(class = "placeholders", lapply(shown, placeholder_ui))
@@ -317,10 +341,10 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
         tags$ol(lapply(closing_questions_for(tree, ep_id), function(q) tags$li(
           q$text,
           if (!is.null(q$note)) tags$span(class = "text-muted", paste0(" ", q$note)),
-          lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
+          if (maintainer_view()) lapply(unlist(q$setting), function(key) div(placeholder_inline(setting_by_key(tree, key))))
         )))
       ),
-      if (!compact && ep$status == "not_in_powerkit" && !isTRUE(ep$generic)) div(
+      if (!compact && ep$status == "not_in_powerkit" && !isTRUE(ep$generic) && maintainer_view()) div(
         lapply(c("not_in_spec_wording", "r_script_for_uncovered"), function(key) div(placeholder_inline(setting_by_key(tree, key))))
       ),
       if (!compact) placeholders_at(tree, ep_id),

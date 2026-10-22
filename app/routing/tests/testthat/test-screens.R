@@ -87,12 +87,35 @@ test_that("undecided settings show a labelled placeholder; decided ones show the
   expect_match(html, "Warn and allow", fixed = TRUE)
 })
 
-test_that("cards show undecided settings as compact labelled placeholders", {
+test_that("cards show undecided settings as compact labelled placeholders, in the maintainer's view", {
+  withr::local_options(powerkit.maintainer_view = TRUE)
   html <- as.character(card_ui(tree, "E7"))
   expect_match(html, "Undecided, for the maintainer", fixed = TRUE)
   expect_match(html, "Judgement call 3.1", fixed = TRUE)
   html_not <- as.character(card_ui(tree, "E36"))
   expect_match(html_not, "Open question 6", fixed = TRUE)
+})
+
+test_that("the public view shows no settings for the maintainer, decided or not", {
+  withr::local_options(powerkit.maintainer_view = FALSE)
+  for (id in names(tree$endpoints)) {
+    html <- as.character(card_ui(tree, id))
+    expect_false(grepl("for the maintainer|Maintainer decision|Judgement call|Open question [0-9]", html), label = id)
+  }
+  expect_false(grepl("for the maintainer|Maintainer decision", as.character(start_ui(tree))))
+  expect_null(placeholders_at(tree, "card"))
+})
+
+test_that("the maintainer's view is asked for by the environment or the address", {
+  withr::local_envvar(POWERKIT_MAINTAINER_VIEW = "")
+  expect_false(maintainer_view_requested(""))
+  expect_false(maintainer_view_requested("?view=public"))
+  expect_true(maintainer_view_requested("?view=maintainer"))
+  withr::local_envvar(POWERKIT_MAINTAINER_VIEW = "true")
+  expect_true(maintainer_view_requested(""))
+  # The tab is only built into the page in that view.
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer', fixed = TRUE)
 })
 
 test_that("deciding against the guided route hides it, with no code change", {

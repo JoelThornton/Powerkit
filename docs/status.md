@@ -51,9 +51,15 @@ fully validated. Validation runs are recorded in
   does and doesn't do, where the numbers come from and how far along it
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
-  In review (22 October 2026): the banner names the analyses in plain
-  words, and the guided plan's combined N and consistency check are
-  labelled "Coming soon".
+- **Feedback and the public view** (in review, 22 October 2026): a
+  Feedback tab (bugs, questions, suggestions) whose Send button stores
+  the message in the `powerkit_feedback` table of the goal-machine
+  Supabase project (read it in Supabase's table editor), with a GitHub
+  issue and copying as alternatives. The undecided settings now show only
+  in the maintainer's view (`?view=maintainer`).
+  Merged 22 October 2026: the banner names the analyses in plain words,
+  and the guided plan's combined N and consistency check are labelled
+  "Coming soon".
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
