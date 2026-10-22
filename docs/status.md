@@ -81,6 +81,8 @@ fully validated. Validation runs are recorded in
   routes to a defensible number and an "I don't know" button; still to
   come, entering the difference in raw units (an engine change) and
   worked examples.
+- **Browser Back and Forward** (in review, 22 October 2026): each screen
+  or tab change is a browser history entry.
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

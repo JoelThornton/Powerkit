@@ -293,3 +293,19 @@ test_that("cards fold what you'd enter, the package and the next questions into 
 test_that("app.R parses (the other tests read it as text)", {
   expect_no_error(parse(file.path(routing_dir, "app.R"), encoding = "UTF-8"))
 })
+
+test_that("the browser's Back and Forward move between powerkit's screens", {
+  # Each screen or tab change is a history entry; the key tells them apart.
+  expect_false(identical(nav_key("card", NULL, "E2", 7, "Plan"), nav_key("form", NULL, "E2", 7, "Plan")))
+  expect_false(identical(nav_key("node", "q1", NULL, 1, "Plan"), nav_key("node", "q2", NULL, 2, "Plan")))
+  expect_false(identical(nav_key("form", NULL, "E2", 7, "Plan"), nav_key("form", NULL, "E2", 7, "About")))
+  expect_identical(nav_key("card", NULL, "E2", 7, "Plan"), nav_key("card", NULL, "E2", 7, "Plan"))
+  # What an entry restores includes where you are and what you typed, not a calculation.
+  expect_true(all(c("screen", "node", "history", "endpoint", "form_values", "ctx") %in% nav_fields))
+  expect_false(any(c("calc", "long_spec") %in% nav_fields))
+  expect_match(nav_js, "history.pushState", fixed = TRUE)
+  expect_match(nav_js, "popstate", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "observeEvent(input$pk_nav_to,", fixed = TRUE)
+  expect_match(code, "tags$script(HTML(nav_js))", fixed = TRUE)
+})
