@@ -74,3 +74,17 @@ test_that("the main route's only link into Labs is shown for a previous study", 
   expect_match(html, "go_labs", fixed = TRUE)
   expect_match(html, "Hide this", fixed = TRUE)
 })
+
+test_that("the Labs citation falls back, never errors, when the engine is only partly loaded", {
+  fake <- new.env()
+  local_mocked_bindings(asNamespace = function(...) fake, .package = "base")
+  expect_match(labs_citation(labs_refs_path()), "doi.org/10.15626/MP.2024.4155", fixed = TRUE)
+})
+
+test_that("the tabs that are the same for everyone are built once, not per visitor", {
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  ui_body <- sub("(?s).*ui <- function\\(req\\) fluidPage\\((.*?)\nserver <- function.*", "\\1", code, perl = TRUE)
+  for (call in c("about_ui(", "labs_ui(", "whats_new_ui(", "feedback_tab_ui(", "settings_table_ui(")) {
+    expect_false(grepl(call, ui_body, fixed = TRUE), label = call)
+  }
+})

@@ -186,6 +186,7 @@ test_that("'Something doesn't fit?' leads to the Feedback tab", {
   expect_match(html, "Tell us on the Feedback tab", fixed = TRUE)
   expect_match(html, "go_feedback", fixed = TRUE)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, 'tabPanel("Feedback", div(class = "pt-3", feedback_tab_ui(tree)))', fixed = TRUE)
+  expect_match(code, 'tabPanel("Feedback", div(class = "pt-3", feedback_tab))', fixed = TRUE)
+  expect_match(code, 'feedback_tab <- feedback_tab_ui(tree)', fixed = TRUE)
   expect_match(code, "observeEvent(input$go_feedback,", fixed = TRUE)
 })

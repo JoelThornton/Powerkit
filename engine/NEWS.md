@@ -1,5 +1,10 @@
 # powerkit 0.0.0.9000
 
+* App: the About, What's new, Labs, Feedback and maintainer tabs are built
+  once when the app starts, not for every visitor, so the page opens
+  faster when many people arrive together. The Labs citation falls back
+  to a link instead of failing when the engine is only partly loaded.
+
 * Spec: `effect_justification.type` accepts `own_study_result`, an effect
   size from the finished study itself (observed power). It is valid, and
   the checker warns that observed power is widely discouraged (Rubin,
