@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-22"
+    title: "Clearer labels"
+    text: >-
+      The banner at the top now names the analyses that calculate in plain
+      words. In "Plan my whole study", the combined sample size and the
+      consistency check are marked "Coming soon"; until then, use the
+      largest sample size from your analyses' cards.
   - date: "2026-10-20"
     title: "Labs: pre-replication notes"
     text: >-

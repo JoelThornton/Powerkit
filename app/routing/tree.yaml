@@ -23,7 +23,7 @@ links:
   decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
   tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
 
-banner: "Prototype: calculations are available for E1–E9, E18, E23–E26 and E48–E50; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now."
+banner: "Prototype, still being checked: t-tests, correlations, ANOVA, ANCOVA, regression, proportions and chi-square tests calculate here; mediation gives a quick preview, then a full run or an R script; other designs give guidance only for now."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
@@ -1436,8 +1436,8 @@ guided:
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
   placeholders:
-    combined_n: "Combined N for the main analyses: calculated here once the engine is connected. It will be the largest required N among the main analyses that run, with the analysis that drives it named."
-    consistency: "Consistency check: values will be compared here once the engine is connected."
+    combined_n: "The combined sample size for your main analyses: the largest N any of them needs, with that analysis named. For now, work out each analysis's N from its card and use the largest."
+    consistency: "A check that the values you give for a shared relationship match across your analyses."
   # Relationships that several analyses share, for the consistency check
   # (decision-tree.md 4.2). The plan lists the ticked analyses that share each.
   shared_relationships:
