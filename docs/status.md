@@ -51,7 +51,7 @@ fully validated. Validation runs are recorded in
   does and doesn't do, where the numbers come from and how far along it
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
-- **Feedback and the public view** (in review, 22 October 2026): a
+- **Feedback and the public view** (merged 22 October 2026): a
   Feedback tab (bugs, questions, suggestions) whose Send button stores
   the message in the `powerkit_feedback` table of the goal-machine
   Supabase project (read it in Supabase's table editor), with a GitHub

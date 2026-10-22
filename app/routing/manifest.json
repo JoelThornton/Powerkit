@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "fa29bd72b3bb8db10efe5935ea2d5181518f8e0c",
-        "RemoteSha": "fa29bd72b3bb8db10efe5935ea2d5181518f8e0c",
+        "RemoteRef": "bf7d7f185832e7e11cb49d1254dcb4126a83a362",
+        "RemoteSha": "bf7d7f185832e7e11cb49d1254dcb4126a83a362",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "fa29bd72b3bb8db10efe5935ea2d5181518f8e0c",
-        "GithubSHA1": "fa29bd72b3bb8db10efe5935ea2d5181518f8e0c",
+        "GithubRef": "bf7d7f185832e7e11cb49d1254dcb4126a83a362",
+        "GithubSHA1": "bf7d7f185832e7e11cb49d1254dcb4126a83a362",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-20 18:58:31 UTC; runner",
+        "Packaged": "2026-10-22 06:44:20 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-20 18:58:34 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-22 06:44:26 UTC; unix"
       }
     },
     "praise": {
@@ -5761,7 +5761,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "136a8aa6a1b5619ae9d98c9880b89af6"
+      "checksum": "5b8bd4a5ee6e476314dff123be5a71e8"
     },
     "forms.yaml": {
       "checksum": "ba28725bc97849082d94d9d21c3f5477"
@@ -5794,7 +5794,7 @@
       "checksum": "01ee0fbb2868e692c244d1178122d9a1"
     },
     "R/ui.R": {
-      "checksum": "a5ada5cb84b833170faa1c0ff633c316"
+      "checksum": "64829498d371c4f2c00fd06444503d43"
     },
     "README.md": {
       "checksum": "cb0e69557df6c6d21567f413d7e23c59"
@@ -5839,7 +5839,7 @@
       "checksum": "2f463d4eb7914e55a06ab574ff01c02d"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "439ba9100780a7b1a4e38a18e884fadb"
+      "checksum": "f71019107970f64c377a352bc033bddf"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "7fae2f60e99ae34e374b97254a58be5f"
@@ -5854,7 +5854,7 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "0cb3f5d5e959b31e3794bae01c856bd2"
+      "checksum": "151c72e641e6c2c31b62c02235ff3c04"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "1bba44fa6b29bbde724644773897db85"
@@ -5869,7 +5869,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "e4f96dd37787ed05aaa84bf853c19085"
+      "checksum": "27bf4ecb7d66ea9184375f9be059f9b2"
     }
   },
   "users": null
