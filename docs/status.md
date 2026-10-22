@@ -60,6 +60,11 @@ fully validated. Validation runs are recorded in
   Merged 22 October 2026: the banner names the analyses in plain words,
   and the guided plan's combined N and consistency check are labelled
   "Coming soon".
+- **Decisions recorded 22 October 2026:** eleven settings that were
+  marked undecided but already built now record their value
+  ([`decisions.md`](decisions.md)); the observed-power warning, the
+  rank-test label, named tools on "not covered" cards and two parallel
+  mediators are in review.
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

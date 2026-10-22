@@ -63,8 +63,8 @@ settings:
   - key: one_sided_tests
     ref: "Judgement call 3.3; open question 5"
     question: "Should a one-sided test require a preregistration note? Should one-sided tests be offered for more designs than the basic tests?"
-    options: {as_now: "Basic tests only, no note required", note: "Basic tests only, preregistration note required", wider: "More designs, preregistration note required"}
-    value: null
+    options: {as_now: "Basic tests only, no note required", note: "Basic tests only, preregistration note required", wider: "More designs, preregistration note required", as_built: "The basic tests; the input screen asks first whether the hypothesis predicts a direction, and a one-sided test needs a reason, which goes into the write-up (as built)"}
+    value: as_built
     shown_at: [card]
   - key: simple_effects_target
     ref: "Judgement call 3.4; open question 5"
@@ -76,13 +76,13 @@ settings:
     ref: "Judgement call 3.5; open question 5"
     question: "Should single-analysis routes ask whether the study tests several hypotheses?"
     options: {"no": "No", ask: "Yes: ask, and point to the guided route"}
-    value: null
+    value: ask
     shown_at: [card]
   - key: alpha_power_defaults
     ref: "Judgement call 3.6; open question 5"
     question: "Which defaults, if any, should alpha and target power have?"
-    options: {none: "Blank: the user enters both", conventional: "Pre-filled .05 and .80", conventional_reason: "Pre-filled .05 and .80, with a required reason if changed or kept", rr: "Pre-filled .05 and .90"}
-    value: null
+    options: {none: "Blank: the user enters both", conventional: "Pre-filled .05 and .80", conventional_reason: "Pre-filled .05 and .80, with a required reason if changed or kept", rr: "Pre-filled .05 and .90", as_built: "Alpha pre-filled at .05, with a reason asked if it is changed; target power shown at .80 and .95 side by side, with the N each needs (as built)"}
+    value: as_built
     shown_at: [card]
   - key: chi_square_gof
     ref: "Judgement call 3.7; open question 5"
@@ -100,7 +100,7 @@ settings:
     ref: "Judgement call 3.9; open question 5"
     question: "Fisher's exact test reaches the large-sample tests (E5, E6), which can be quite wrong with small expected counts. What should powerkit do?"
     options: {exact: "Offer the exact test (Spower's p_prop.test(exact = TRUE)) as a test version", warn: "Warn that the figure isn't reliable for small expected counts", both: "Both"}
-    value: null
+    value: exact
     shown_at: [E5, E6]
   - key: starting_point
     ref: "Open question 1"
@@ -118,7 +118,7 @@ settings:
     ref: "Open question 3"
     question: "Ask 'what do you want to find out?' after the design (G*Power's order, as here) or first (PAMLj's order)?"
     options: {after: "After the design", first: "First"}
-    value: null
+    value: first
     shown_at: [start]
   - key: unstored_answers
     ref: "Open question 4"
@@ -136,7 +136,7 @@ settings:
     ref: "Open question 6"
     question: "Confirm the wording that points users to another tool, and the rule that powerkit never routes to a simpler stand-in test."
     options: {proposed: "Use the proposed wording (below)"}
-    value: null
+    value: proposed
     proposed_text: "powerkit doesn't cover {analysis} yet. {package} does: see the link. powerkit can't check results from other tools."
     shown_at: [card]
   - key: r_script_for_uncovered
@@ -161,7 +161,7 @@ settings:
     ref: "Open question 11"
     question: "Add the guided 'plan my whole study' route? (Its study file would be a schema change.)"
     options: {"yes": "Yes", "no": "No"}
-    value: null
+    value: "yes"
     hides_guided_route_when: "no"
     shown_at: [start, plan]
   - key: consistency_approach
@@ -210,25 +210,25 @@ settings:
     ref: "Input screens (17 October 2026); judgement call 3.2"
     question: "On the input screens, effect sizes, SDs and correlations start empty and must be filled in, with a justification. Should they instead offer suggested values (for example conventional benchmarks) that the user can change?"
     options: {empty_required: "Start empty and required, with a justification (as now)", suggested: "Offer suggested values the user can change, still with a justification"}
-    value: null
+    value: empty_required
     shown_at: [form]
   - key: result_wording
     ref: "Result screen (phase 5, part 1, 17 October 2026); judgement-calls.md B11"
     question: "How should results be worded? The draft gives the number in a sentence (for example 'You need 206 participants in total (103 per group) for 80% power to detect the effect you entered'), plus a fixed line that this is planned power, not 'observed power' from a finished study. Keep, or change the wording?"
     options: {draft: "Keep the draft wording, including the 'not observed power' line", shorter: "A shorter number-first wording", other: "Other wording (say which)"}
-    value: null
+    value: draft
     shown_at: [result]
   - key: n_rounding
     ref: "Result screen (phase 5, part 1); judgement-calls.md B12"
     question: "How is the required N rounded and reported? Now: the engine gives the smallest total N, in steps that keep groups whole (for example even totals for two equal groups, multiples of 4 for a 2 x 2 between design), and the screen adds the size per group. Report total, per group, or both?"
     options: {both: "Total and per group (as now)", total: "Total only", per_group: "Per group first, total second"}
-    value: null
+    value: both
     shown_at: [result]
   - key: power_curve
     ref: "Result screen (phase 5, part 1); judgement-calls.md B13"
     question: "Should the result screen show a power curve (power against N)? Now: no curve; the number only. The engine already returns the simulated points for a sample-size search."
     options: {"no": "No curve (as now)", table: "A table of the computed points", plot: "A plot of power against N"}
-    value: null
+    value: plot
     shown_at: [result]
   - key: calculation_seed
     ref: "Result screen (phase 5, part 1); judgement-calls.md B15"

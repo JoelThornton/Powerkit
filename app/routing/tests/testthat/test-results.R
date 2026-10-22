@@ -206,7 +206,11 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   for (key in result_settings) expect_no_match(html, setting_by_key(tree, key)$question |> htmltools::htmlEscape(), fixed = TRUE, label = key)
   html_maintainer <- withr::with_options(list(powerkit.maintainer_view = TRUE),
     as.character(result_panel_ui(tree, forms, "E5", fields, form_examples$E5, calc)))
-  for (key in result_settings) expect_match(html_maintainer, setting_by_key(tree, key)$question |> htmltools::htmlEscape(), fixed = TRUE, label = key)
+  # All three were decided on 22 October 2026, so they show as decisions.
+  for (key in result_settings) {
+    s <- setting_by_key(tree, key)
+    expect_match(html_maintainer, htmltools::htmlEscape(s$options[[s$value]]), fixed = TRUE, label = key)
+  }
   # Citations come from the engine's export.
   expect_match(citations(calc$result, format = "text"), "citation(\"stats\")", fixed = TRUE)
 })

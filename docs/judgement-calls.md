@@ -165,27 +165,8 @@ Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls
 
 ### A4. Wording that points to another tool, and "never a simpler stand-in"
 
-- **Question:** confirm the wording "powerkit doesn't cover {analysis}
-  yet. {package} does: see the link. powerkit can't check results from
-  other tools." Also confirm the rule that powerkit never routes a design
-  it doesn't cover to a simpler stand-in test.
-- **Options:**
-  - use the proposed wording;
-  - revise it.
-- **What tools and sources do:**
-  - Established tools don't route to other tools (opened,
-    `decision-tree.md`, section 1).
-  - The stand-in rule generalises decision N2 (`decisions.md`) beyond
-    2 x 2 main effects (opened).
-- **Who might disagree, and why:**
-  - Some users would rather have an approximate number from a simpler
-    test than none.
-  - The rule prevents that, on the view that a wrong number is worse
-    than no number.
-- **Knock-on effects:**
-  - Interacts with A1 (whether to name tools at all) and with C10
-    (rank-based tests, where an approximation is one of the options).
-- **Recorded in:** open question 6; setting `not_in_spec_wording`.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#a4-wording-that-points-to-another-tool-and-never-a-simpler-stand-in).
+Setting `not_in_spec_wording` records it.
 
 ### A5. The dyadic card's wording (E44)
 
@@ -396,38 +377,13 @@ benchmarks are shown at all, even as context.
 
 ### B3. One-sided tests (judgement call 3.3)
 
-**See also B18** (18 October 2026): whether to ask "Do you predict a
-direction?" instead of the silent two-sided default.
-
-- **Question:** should a one-sided test require a preregistration note,
-  and should it be offered beyond the basic tests?
-- **Options:**
-  - basic tests only, no note required;
-  - basic tests only, preregistration note required;
-  - more designs, preregistration note required.
-- **What tools and sources do:**
-  - G\*Power asks for the number of tails (opened).
-  - Cho and Abe (2013) and Ruxton and Neuhäuser (2010) set conditions for
-    one-tailed tests (second-hand).
-  - A one-sided test counts only effects in the stated direction: Spower's
-    own one-sided test since Spower 0.7 (before that, powerkit's
-    Departure 4, now retired; `conventions.md`) (opened).
-- **Who might disagree, and why:**
-  - Some see one-sided tests as legitimate for directional hypotheses.
-  - Others, including many journals, treat them as suspect unless
-    preregistered (unsourced for journal policies).
-- **Knock-on effects:**
-  - Offering one-sided tests for more designs needs engine support and
-    validation.
-  - Q-dir is shown only on E1–E5 now.
-- **Recorded in:** `decision-tree.md` 3.3; open question 5; setting
-  `one_sided_tests`.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b3-one-sided-tests-judgement-call-33).
+Setting `one_sided_tests` records it.
 
 ### B4. Defaults for alpha and target power (judgement call 3.6)
 
 Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b4-defaults-for-alpha-and-target-power-judgement-call-36).
-Setting `alpha_power_defaults` is updated to match when the inputs
-screen is built.
+Setting `alpha_power_defaults` records it (`as_built`, 22 October 2026).
 
 ### B5. Which kinds of analysis to offer (open question 2)
 
@@ -471,6 +427,8 @@ correlated, so the product of their powers is roughly a floor). Still
 open: power for "all of several" beyond guidance, the guided route's
 study-level result (D4, D6), and checking the option wording with Mark
 Rubin.
+
+**Setting recorded 22 October 2026:** `several_hypotheses` is `ask` (the start screen asks what the claim rests on).
 
 - **Question:** when a study tests several hypotheses, how does powerkit
   ask what the user will conclude from them, and what does that mean for
@@ -655,6 +613,8 @@ can't justify one" leads to the smallest detectable effect (G9). Still
 open: benchmarks as context (B2), and the schema change for the new
 "can't justify" source.
 
+**Setting recorded 22 October 2026:** `effect_size_inputs` is `empty_required`.
+
 - **Question:** the input screens (E1–E14) leave effect sizes, SDs and
   correlations empty and require them, with a justification. Should they
   offer suggested values (for example conventional benchmarks) that the
@@ -693,6 +653,8 @@ effect-size source in the user's own words and adds one line on what
 power can't tell you. No verdict words ("justified", "adequate",
 "sufficiently powered"), enforced by a test. Still open: the rest of the
 draft sentences, and a source for the "observed power" line.
+
+**Decided 22 October 2026:** keep the draft sentences (`result_wording` is `draft`). Still open: a source for the "observed power" line.
 
 - **Question:** the result screen (E1–E8, phase 5 part 1) gives the
   number in a sentence. Keep the draft wording, or change it?
@@ -784,20 +746,8 @@ draft sentences, and a source for the "observed power" line.
 
 ### B12. Rounding of N
 
-- **Question:** how is the required N rounded and reported?
-- **Now:** the engine gives the smallest total N in steps that keep groups
-  whole (even totals for two equal groups; multiples of 4 for a 2 x 2
-  between design; with an allocation ratio, steps that keep both groups
-  whole). The screen adds the size per group (or per cell). Nothing is
-  rounded on the screen itself.
-- **Options:** total and per group (as now); total only; per group first.
-- **What tools and sources do:** G\*Power reports both a total and group
-  sizes (unsourced here; to check in its manual).
-- **Who might disagree, and why:** per-group numbers are what a recruiter
-  plans with; the total is what a preregistration usually states.
-- **Knock-on effects:** attrition (the recruitment target is reported
-  separately once attrition is wired in).
-- **Recorded in:** setting `n_rounding` (shown on the result screen).
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b12-rounding-of-n).
+Setting `n_rounding` records it.
 
 ### B13. A power curve
 
@@ -805,6 +755,8 @@ draft sentences, and a source for the "observed power" line.
 power curve goes in an explore panel that never changes the saved plan,
 for formula designs only in v1. Still open: a curve for simulated
 results.
+
+**Setting recorded 22 October 2026:** `power_curve` is `plot` (the explore panel, formula designs). Still open: a curve for simulated results.
 
 - **Question:** should the result screen show a power curve (power
   against N)?
@@ -1180,22 +1132,8 @@ Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls
 
 ### C11. Fisher's exact test reaching the large-sample tests (judgement call 3.9)
 
-- **Question:** Fisher's exact test reaches E5 or E6, which can be quite
-  wrong with small expected counts. Offer the exact test, warn, or both?
-- **Options:**
-  - offer Spower's `p_prop.test(exact = TRUE)` as a test version;
-  - warn about small expected counts;
-  - both.
-- **What tools and sources do:**
-  - Spower's exact option (opened).
-  - G\*Power's Fisher's exact test: confirmed in G\*Power 3.1.9.7's Tests
-    menu (Proportions: "Two independent groups: Fisher's exact"), from the
-    maintainer's list, 17 October 2026.
-- **Who might disagree, and why:**
-  - A warning needs a threshold for "small", itself a convention.
-  - The exact test changes E5's spec and needs validation.
-- **Knock-on effects:** spec, validation, and the Q-test card note on E5.
-- **Recorded in:** `decision-tree.md` 3.9; setting `fisher_exact`.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#c11-fishers-exact-test-reaching-the-large-sample-tests-judgement-call-39).
+Setting `fisher_exact` records it.
 
 ### C12. Curvilinear effects
 
@@ -1346,6 +1284,8 @@ start screen joins the design finder without asking twice
 (`routing-design-options.md`, "Screen A as the start of the profile";
 `judgement-session.md`, item 1).
 
+**Setting recorded 22 October 2026:** `closing_order` is `first`. Still open: how the start screen joins the design finder without asking twice.
+
 - **Question:** ask it after the design (G\*Power's order, as now) or
   first (PAMLj's order)?
 - **Options:**
@@ -1382,20 +1322,8 @@ start screen joins the design finder without asking twice
 
 ### D4. The guided "plan my whole study" route (open question 11)
 
-- **Question:** keep the guided route? If so, is a study file that wraps
-  several specs acceptable (a schema change)?
-- **Options:**
-  - yes;
-  - no.
-- **What tools and sources do:** no tool reviewed plans several analyses
-  together (`decision-tree.md`, section 1) (opened).
-- **Who might disagree, and why:**
-  - It helps users with several hypotheses.
-  - It adds scope, and a choice (individual, "at least one" or "all")
-    that is itself contested (B6).
-- **Knock-on effects:** D5–D7; the walkthroughs' guided runs.
-- **Recorded in:** open question 11; setting `guided_route` (hides the
-  route when "no").
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#d4-the-guided-plan-my-whole-study-route-open-question-11).
+Setting `guided_route` records it.
 
 ### D5. What the guided route covers (open question 14)
 

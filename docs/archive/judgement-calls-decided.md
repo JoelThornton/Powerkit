@@ -90,8 +90,8 @@ alpha is pre-filled at .05 (two-sided), with a reason asked only if it
 is changed. Target power has no silent default: the inputs screen shows
 .80 and .95 side by side with the N each needs and asks which and why.
 None of the setting's four options matches this exactly, so
-`alpha_power_defaults` in `tree.yaml` is updated when the inputs screen
-is built. The entry is kept below as the record of the options.
+`alpha_power_defaults` in `tree.yaml` has a fifth, `as_built`, which
+records this (22 October 2026). The entry is kept below as the record of the options.
 
 
 - **Question:** should alpha and target power have defaults, and which?
@@ -578,3 +578,119 @@ the record of the options.
 - **Knock-on effects:** a schema change and a validation test if E6 is
   extended.
 - **Recorded in:** `decision-tree.md` 3.7; setting `chi_square_gof`.
+
+### B3. One-sided tests (judgement call 3.3)
+
+**Decided 22 October 2026** (`decisions.md`): as built: the basic tests ask first whether the hypothesis predicts a direction, and a one-sided test needs a reason, which goes into the write-up (decided 19 October 2026, B18). Setting `one_sided_tests`. The entry is kept below as the record of the options.
+
+**See also B18** (18 October 2026): whether to ask "Do you predict a
+direction?" instead of the silent two-sided default.
+
+- **Question:** should a one-sided test require a preregistration note,
+  and should it be offered beyond the basic tests?
+- **Options:**
+  - basic tests only, no note required;
+  - basic tests only, preregistration note required;
+  - more designs, preregistration note required.
+- **What tools and sources do:**
+  - G\*Power asks for the number of tails (opened).
+  - Cho and Abe (2013) and Ruxton and Neuhäuser (2010) set conditions for
+    one-tailed tests (second-hand).
+  - A one-sided test counts only effects in the stated direction: Spower's
+    own one-sided test since Spower 0.7 (before that, powerkit's
+    Departure 4, now retired; `conventions.md`) (opened).
+- **Who might disagree, and why:**
+  - Some see one-sided tests as legitimate for directional hypotheses.
+  - Others, including many journals, treat them as suspect unless
+    preregistered (unsourced for journal policies).
+- **Knock-on effects:**
+  - Offering one-sided tests for more designs needs engine support and
+    validation.
+  - Q-dir is shown only on E1–E5 now.
+- **Recorded in:** `decision-tree.md` 3.3; open question 5; setting
+  `one_sided_tests`.
+
+### B12. Rounding of N
+
+**Decided 22 October 2026** (`decisions.md`): total and per group, as now. Setting `n_rounding`. The entry is kept below as the record of the options.
+
+- **Question:** how is the required N rounded and reported?
+- **Now:** the engine gives the smallest total N in steps that keep groups
+  whole (even totals for two equal groups; multiples of 4 for a 2 x 2
+  between design; with an allocation ratio, steps that keep both groups
+  whole). The screen adds the size per group (or per cell). Nothing is
+  rounded on the screen itself.
+- **Options:** total and per group (as now); total only; per group first.
+- **What tools and sources do:** G\*Power reports both a total and group
+  sizes (unsourced here; to check in its manual).
+- **Who might disagree, and why:** per-group numbers are what a recruiter
+  plans with; the total is what a preregistration usually states.
+- **Knock-on effects:** attrition (the recruitment target is reported
+  separately once attrition is wired in).
+- **Recorded in:** setting `n_rounding` (shown on the result screen).
+
+### C11. Fisher's exact test reaching the large-sample tests (judgement call 3.9)
+
+**Decided 22 October 2026** (`decisions.md`): offer the exact test: two proportions (E5) has Fisher's exact test as a test version, from pwrss's power.exact.fisher(); the chi-square test of independence (E6) doesn't have one yet. Setting `fisher_exact`. The entry is kept below as the record of the options.
+
+- **Question:** Fisher's exact test reaches E5 or E6, which can be quite
+  wrong with small expected counts. Offer the exact test, warn, or both?
+- **Options:**
+  - offer Spower's `p_prop.test(exact = TRUE)` as a test version;
+  - warn about small expected counts;
+  - both.
+- **What tools and sources do:**
+  - Spower's exact option (opened).
+  - G\*Power's Fisher's exact test: confirmed in G\*Power 3.1.9.7's Tests
+    menu (Proportions: "Two independent groups: Fisher's exact"), from the
+    maintainer's list, 17 October 2026.
+- **Who might disagree, and why:**
+  - A warning needs a threshold for "small", itself a convention.
+  - The exact test changes E5's spec and needs validation.
+- **Knock-on effects:** spec, validation, and the Q-test card note on E5.
+- **Recorded in:** `decision-tree.md` 3.9; setting `fisher_exact`.
+
+### D4. The guided "plan my whole study" route (open question 11)
+
+**Decided 22 October 2026** (`decisions.md`): yes: "Plan my whole study" stays. Setting `guided_route`. The entry is kept below as the record of the options.
+
+- **Question:** keep the guided route? If so, is a study file that wraps
+  several specs acceptable (a schema change)?
+- **Options:**
+  - yes;
+  - no.
+- **What tools and sources do:** no tool reviewed plans several analyses
+  together (`decision-tree.md`, section 1) (opened).
+- **Who might disagree, and why:**
+  - It helps users with several hypotheses.
+  - It adds scope, and a choice (individual, "at least one" or "all")
+    that is itself contested (B6).
+- **Knock-on effects:** D5–D7; the walkthroughs' guided runs.
+- **Recorded in:** open question 11; setting `guided_route` (hides the
+  route when "no").
+
+### A4. Wording that points to another tool, and "never a simpler stand-in"
+
+**Decided 22 October 2026** (`decisions.md`): use the proposed wording, and powerkit never routes to a simpler stand-in test; the cards that point to another tool already use it. Setting `not_in_spec_wording`. The entry is kept below as the record of the options.
+
+- **Question:** confirm the wording "powerkit doesn't cover {analysis}
+  yet. {package} does: see the link. powerkit can't check results from
+  other tools." Also confirm the rule that powerkit never routes a design
+  it doesn't cover to a simpler stand-in test.
+- **Options:**
+  - use the proposed wording;
+  - revise it.
+- **What tools and sources do:**
+  - Established tools don't route to other tools (opened,
+    `decision-tree.md`, section 1).
+  - The stand-in rule generalises decision N2 (`decisions.md`) beyond
+    2 x 2 main effects (opened).
+- **Who might disagree, and why:**
+  - Some users would rather have an approximate number from a simpler
+    test than none.
+  - The rule prevents that, on the view that a wrong number is worse
+    than no number.
+- **Knock-on effects:**
+  - Interacts with A1 (whether to name tools at all) and with C10
+    (rank-based tests, where an approximation is one of the options).
+- **Recorded in:** open question 6; setting `not_in_spec_wording`.
