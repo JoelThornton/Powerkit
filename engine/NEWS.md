@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* App: shorter labels on the input screen, with the detail as help text
+  under the field ("Why this effect size?" instead of a two-line label).
+  Definitions of terms and the reason the direction is asked first open
+  on request ("What these terms mean"); warnings stay in view. "How you
+  adjusted it" appears only for a previous study. After "Check my
+  answers", each problem also shows under its own field, and the
+  settings open if a problem is inside them.
+
 * App: four steps across the top of "Plan a power analysis" (Your study,
   Find your design, Your numbers, Result) show where you are: named steps,
   not a percentage, as the design finder's length depends on the answers.

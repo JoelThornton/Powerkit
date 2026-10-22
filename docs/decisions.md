@@ -2103,3 +2103,15 @@ Cards keep the status, the effect-size guidance and the notes that bear
 on the choice (rank-based tests, other analyses) in view, and fold what
 you'd enter, the backend and the next questions into "More about this
 analysis"; the two-group card goes from about two screens to one.
+
+## 2026-10-22 · Shorter labels, help on request, problems in place
+
+Approved with the input-screen changes. Long labels become short ones with
+the detail as help text linked to the field. Definitions ("What these
+terms mean") and the reason the direction is asked first open on request;
+warnings (pilot study, observed power, departures) never do, because
+optional text is rarely opened. The reasoning field reads "Why this effect
+size? (needed to save or export the plan)" rather than being marked
+optional, as it is the justification powerkit is built around. Problems
+show under their field as well as in the list, and folded settings open
+when a problem is inside them.

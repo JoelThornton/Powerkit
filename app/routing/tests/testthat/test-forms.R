@@ -553,6 +553,48 @@ test_that("power and N appear only for the goals that need them; optional fields
   expect_false(grepl("needed for", html, fixed = TRUE))
   att <- Filter(function(f) f$id == "attrition", form_fields(form_groups(forms, "E2")))[[1]]
   expect_match(as.character(field_ui(att, NULL)), "optional", fixed = TRUE)
+  reason <- Filter(function(f) f$id == "power_reason", form_fields(form_groups(forms, "E2")))[[1]]
+  expect_match(as.character(field_ui(reason, NULL)), "input.f_goal == &#39;sample_size&#39;|input.f_goal == 'sample_size'")
   goal <- Filter(function(f) f$id == "goal", form_fields(form_groups(forms, "E2")))[[1]]
   expect_false(grepl("(required)", as.character(field_ui(goal, NULL)), fixed = TRUE))
+})
+
+# Shorter labels and problems next to their fields (22 October 2026) ---------
+
+test_that("problems are named by their field, so the screen can show them in place", {
+  fields <- fields_for("E2")
+  v <- values_for("E2"); v$d <- ""; v$power <- "1.5"
+  problems <- form_problems(fields, v)
+  expect_true(all(c("d", "power") %in% names(problems)))
+  expect_match(problems[["d"]], "is empty", fixed = TRUE)
+  expect_match(problems[["power"]], "must be less than 1", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'session$sendCustomMessage("field_problems", as.list(by_field))', fixed = TRUE)
+  expect_match(field_problems_js, "aria-invalid", fixed = TRUE)
+  expect_match(field_problems_js, "folded.open = true", fixed = TRUE)
+})
+
+test_that("long labels are short, with the detail as help linked to the field", {
+  fields <- fields_for("E2")
+  just <- Filter(function(f) f$id == "just_source", fields)[[1]]
+  html <- as.character(field_ui(just, NULL))
+  expect_match(html, "Why this effect size? (needed to save or export the plan)", fixed = TRUE)
+  expect_false(grepl("(optional)", html, fixed = TRUE))
+  expect_match(html, 'id="f_just_source_help"', fixed = TRUE)
+  expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
+  for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
+  # The adjustment appears only for a previous study.
+  adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
+  expect_identical(adj$shown_if, list(field = "just_type", is = "prior_study"))
+})
+
+test_that("definitions and the direction's reason open on request; warnings and needed notes stay in view", {
+  groups <- form_groups(forms, "E2")
+  html <- as.character(form_ui(tree, forms, "E2", groups))
+  expect_match(html, "<summary>What these terms mean</summary>", fixed = TRUE)
+  expect_match(html, "<summary>Why this is asked first</summary>", fixed = TRUE)
+  # The observed-power warning is not folded.
+  warning_at <- regexpr("observed-power-warning", html)
+  expect_gt(warning_at, 0)
+  expect_false(grepl("<details[^>]*>[^<]*<summary>[^<]*</summary>[^<]*<div[^>]*observed-power-warning", html))
 })

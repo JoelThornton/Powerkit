@@ -11,6 +11,8 @@ field_ui <- function(f, value, described_by = character()) {
   # optional. Effect sizes say they start empty, as nothing is filled in.
   label <- if (isTRUE(f$effect)) paste0(f$label, " (starts empty)") else if (field_is_optional(f)) paste0(f$label, " (optional)") else f$label
   source_id <- paste0(id, "_default")
+  help_id <- paste0(id, "_help")
+  if (!is.null(f$help)) described_by <- c(help_id, described_by)
   if (!is.null(f$default_source)) described_by <- c(described_by, source_id)
   current <- if (is.null(value) || length(value) == 0) "" else as.character(value)
   input <- switch(
@@ -31,6 +33,7 @@ field_ui <- function(f, value, described_by = character()) {
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
+    if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source",
       if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], f$default_source) else paste0(f$default_source, ".")
     )
@@ -40,8 +43,11 @@ field_ui <- function(f, value, described_by = character()) {
   if (identical(f$id, "just_type")) field <- tagList(field, observed_power_warning_ui(), labs_signpost_ui())
   # Fields needed only for some goals (power, N) appear when that goal is
   # chosen, instead of saying which goals need them.
-  if (!is.null(f$needed_for)) {
-    field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", f$needed_for), collapse = " || "), field)
+  # (`shown_for_goals`: the same for an optional field, such as the reason
+  # for the target power.)
+  goals <- f$needed_for %||% f$shown_for_goals
+  if (!is.null(goals)) {
+    field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), field)
   }
   if (is.null(f$shown_if)) return(field)
   # Shown or hidden in the browser as the other choices change; the server
@@ -65,8 +71,12 @@ group_ui <- function(tree, g, values, index) {
   tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6", legend),
-    if (length(hints)) div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint))),
-    if (!is.null(g$note)) p(class = "group-note", g$note),
+    # Definitions open on request; notes that change what's needed stay in
+    # view, except the reason the direction is asked first.
+    if (length(hints)) tags$details(class = "form-terms", tags$summary("What these terms mean"),
+      div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint)))),
+    if (!is.null(g$note) && identical(g$note, direction_note)) tags$details(class = "form-terms", tags$summary("Why this is asked first"), p(class = "group-note", g$note))
+    else if (!is.null(g$note)) p(class = "group-note", g$note),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
 }
@@ -222,5 +232,34 @@ settings_js <- "
     var text = this.tagName === 'SELECT' ? (this.selectedIndex >= 0 ? this.options[this.selectedIndex].text : '') : this.value;
     text = (text || '').split(/[:(]/)[0].trim();
     out.textContent = text || (this.tagName === 'SELECT' ? 'not set' : 'none');
+  });
+"
+
+# Problems next to their fields (22 October 2026), as well as in the list
+# under the buttons: form_problems() names each problem by its field.
+field_problems_js <- "
+  Shiny.addCustomMessageHandler('field_problems', function(problems) {
+    document.querySelectorAll('.field-problem').forEach(function(el) {
+      var input = document.getElementById(el.getAttribute('data-for'));
+      if (input) {
+        input.removeAttribute('aria-invalid');
+        var ids = (input.getAttribute('aria-describedby') || '').split(' ').filter(function(x) { return x && x !== el.id; });
+        if (ids.length) input.setAttribute('aria-describedby', ids.join(' ')); else input.removeAttribute('aria-describedby');
+      }
+      el.remove();
+    });
+    Object.keys(problems || {}).forEach(function(field) {
+      var input = document.getElementById('f_' + field);
+      if (!input) return;
+      var note = document.createElement('div');
+      note.className = 'field-problem'; note.id = 'f_' + field + '_problem'; note.setAttribute('data-for', input.id);
+      note.textContent = problems[field];
+      var box = input.closest('.form-field') || input.parentNode;
+      box.appendChild(note);
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', ((input.getAttribute('aria-describedby') || '') + ' ' + note.id).trim());
+      var folded = input.closest('details');
+      if (folded) folded.open = true;
+    });
   });
 "

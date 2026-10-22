@@ -289,3 +289,7 @@ test_that("cards fold what you'd enter, the package and the next questions into 
   expect_match(before, "Where your effect size comes from", fixed = TRUE)
   expect_match(before, "rank-test-note", fixed = TRUE)
 })
+
+test_that("app.R parses (the other tests read it as text)", {
+  expect_no_error(parse(file.path(routing_dir, "app.R"), encoding = "UTF-8"))
+})

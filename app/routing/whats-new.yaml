@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "Clearer boxes and problems where they are"
+    text: >-
+      The boxes on the input screen have shorter names, with a line of help
+      underneath, and definitions open when you ask for them. When
+      something needs fixing, the message now appears right under the box
+      as well as in the list at the bottom.
+  - date: "2026-10-22"
     title: "See where you are"
     text: >-
       Four steps across the top show where you are: your study, finding
