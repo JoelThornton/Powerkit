@@ -301,6 +301,13 @@ test_that("pilot-study effect sizes give a warning, not an error", {
   expect_s3_class(out, "powerkit_spec")
 })
 
+test_that("an effect size from the finished study itself (observed power) gives a warning, not an error", {
+  spec <- example_spec("independent_t")
+  spec$effect_justification <- list(type = "own_study_result", source = "Our study's d")
+  expect_warning(out <- validate_spec(spec), "useless at best, misleading at worst", class = "powerkit_spec_warning")
+  expect_s3_class(out, "powerkit_spec")
+})
+
 test_that("low replication counts and high attrition give warnings", {
   spec <- example_spec("independent_t")
   spec$options$nrep <- 200

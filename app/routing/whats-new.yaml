@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "Rank-based tests, observed power and other tools"
+    text: >-
+      Cards for t-tests, correlations and one-way ANOVA now say that their
+      figure only approximates a rank-based test such as Mann-Whitney. You
+      can choose your finished study's own result as the effect size, with
+      a warning about observed power. Cards for designs powerkit doesn't
+      cover yet name established tools you can use instead.
+  - date: "2026-10-22"
     title: "Long calculations take turns"
     text: >-
       Interactions in regression and mediation take a while to calculate,

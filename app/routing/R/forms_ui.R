@@ -35,7 +35,7 @@ field_ui <- function(f, value, described_by = character()) {
   )
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
-  if (identical(f$id, "just_type")) field <- tagList(field, labs_signpost_ui())
+  if (identical(f$id, "just_type")) field <- tagList(field, observed_power_warning_ui(), labs_signpost_ui())
   if (is.null(f$shown_if)) return(field)
   # Shown or hidden in the browser as the other choices change; the server
   # ignores a hidden field's value (field_applies()).
@@ -121,4 +121,17 @@ card_nav_ui <- function(forms, ep_id) {
     if (has_form(forms, ep_id)) pick_button("Enter your values", "form", class = "btn btn-primary"),
     pick_button("Back", "back", class = "btn btn-secondary"),
     pick_button("Start again", "home", class = "btn btn-link"))
+}
+
+# Observed power (judgement call 3.1, decided 22 October 2026: warn and
+# allow). Shown as soon as the source is chosen; the engine's checker gives
+# the same warning with the result.
+observed_power_warning_ui <- function() {
+  conditionalPanel("input.f_just_type == 'own_study_result'",
+    div(class = "observed-power-warning", role = "note",
+      tags$strong("Observed power is widely discouraged. "),
+      "Power calculated from a finished study's own effect is a post hoc power analysis, and ",
+      "\u201cpost hoc power analyses are useless at best, misleading at worst\u201d ",
+      "(Rubin, 2025, p. 14, citing Dziak et al., 2020). Use it only if you have to, for example if a reviewer asks, ",
+      "and say how it was calculated. To plan a new study, choose the smallest effect that would matter instead."))
 }

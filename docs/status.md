@@ -63,9 +63,10 @@ fully validated. Validation runs are recorded in
   memory.
 - **Decisions recorded 22 October 2026:** eleven settings that were
   marked undecided but already built now record their value
-  ([`decisions.md`](decisions.md)); the observed-power warning, the
-  rank-test label, named tools on "not covered" cards and two parallel
-  mediators are in review.
+  ([`decisions.md`](decisions.md)); so are four that change the app:
+  observed power allowed with a warning (a new spec type,
+  `own_study_result`), the rank-test label, named tools on "not covered"
+  cards, and two parallel mediators only.
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

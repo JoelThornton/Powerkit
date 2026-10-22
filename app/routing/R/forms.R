@@ -11,9 +11,12 @@ load_forms <- function(path = "forms.yaml") yaml::read_yaml(path)
 
 has_form <- function(forms, ep_id) !is.null(forms$forms[[ep_id]])
 
-# Number of mediators offered for parallel and serial mediation. Two is the
-# validated case; more is open question 10 (setting parallel_mediators_max).
+# Number of mediators offered. Two is the validated case. Parallel
+# mediation stays at two until three or more are validated (open question
+# 10, decided 22 October 2026: setting parallel_mediators_max, `two`);
+# serial mediation offers up to four.
 mediator_choices <- 2:4
+mediator_choices_for <- function(kind) if (identical(kind, "parallel")) 2L else mediator_choices
 
 # Mediator roles for k mediators.
 mediator_roles <- function(k) paste0("M", seq_len(k))
@@ -96,6 +99,9 @@ names_group <- function(form, k) {
 # goal's starting choice and add the claim's questions.
 form_groups <- function(forms, ep_id, k = 2, start = list()) {
   form <- forms$forms[[ep_id]]
+  # A number of mediators not offered (e.g. from an older project file) is
+  # brought within range.
+  if (!is.null(form$mediators)) k <- min(max(k, 2L), max(mediator_choices_for(form$mediators)))
   groups <- lapply(form$groups, function(g) {
     if (!is.null(g$generated)) g$fields <- generated_fields(form$mediators, g$generated, k)
     # The basic tests need no effect size for the smallest detectable
@@ -115,8 +121,10 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
       id = "n_mediators", label = "Number of mediators", type = "select", required = TRUE,
-      choices = stats::setNames(as.list(as.character(mediator_choices)), mediator_choices),
-      default = "2", default_source = "the number powerkit has validated (two); more is open question 10"
+      choices = stats::setNames(as.list(as.character(mediator_choices_for(form$mediators))), mediator_choices_for(form$mediators)),
+      default = "2", default_source = if (identical(form$mediators, "parallel"))
+        "two, the number powerkit has validated for parallel mediation; more will be offered once checked"
+      else "the number powerkit has validated (two)"
     )))), groups)
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
@@ -213,7 +221,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
-             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study"),
+             meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
+             own_study_result = "The result of my finished study (observed power)"),
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
       list(id = "just_source", label = "Your reasoning, in your own words: where the number comes from, or why there isn't one (any length, any language; needed to save or export the plan, not to calculate)",
            type = "text", path = "effect_justification.source", optional = TRUE),
