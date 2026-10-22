@@ -553,6 +553,8 @@ test_that("power and N appear only for the goals that need them; optional fields
   expect_false(grepl("needed for", html, fixed = TRUE))
   att <- Filter(function(f) f$id == "attrition", form_fields(form_groups(forms, "E2")))[[1]]
   expect_match(as.character(field_ui(att, NULL)), "optional", fixed = TRUE)
+  reason <- Filter(function(f) f$id == "power_reason", form_fields(form_groups(forms, "E2")))[[1]]
+  expect_match(as.character(field_ui(reason, NULL)), "input.f_goal == &#39;sample_size&#39;|input.f_goal == 'sample_size'")
   goal <- Filter(function(f) f$id == "goal", form_fields(form_groups(forms, "E2")))[[1]]
   expect_false(grepl("(required)", as.character(field_ui(goal, NULL)), fixed = TRUE))
 })

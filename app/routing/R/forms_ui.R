@@ -43,8 +43,11 @@ field_ui <- function(f, value, described_by = character()) {
   if (identical(f$id, "just_type")) field <- tagList(field, observed_power_warning_ui(), labs_signpost_ui())
   # Fields needed only for some goals (power, N) appear when that goal is
   # chosen, instead of saying which goals need them.
-  if (!is.null(f$needed_for)) {
-    field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", f$needed_for), collapse = " || "), field)
+  # (`shown_for_goals`: the same for an optional field, such as the reason
+  # for the target power.)
+  goals <- f$needed_for %||% f$shown_for_goals
+  if (!is.null(goals)) {
+    field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), field)
   }
   if (is.null(f$shown_if)) return(field)
   # Shown or hidden in the browser as the other choices change; the server

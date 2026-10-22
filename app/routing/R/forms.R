@@ -200,7 +200,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
-         type = "text", optional = TRUE),
+         type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
     list(id = "n_max", label = "The largest number of participants you could analyse",
@@ -390,6 +390,7 @@ field_applies <- function(field, values) {
     if (!is.null(cond[["is_not"]]) && identical(current, cond[["is_not"]])) return(FALSE)
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
+  if (!is.null(field$shown_for_goals)) return(isTRUE(values$goal %in% field$shown_for_goals))
   if (!is.null(field$needed_if_just)) return(identical(values$just_type, field$needed_if_just))
   TRUE
 }
