@@ -211,7 +211,7 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit (prototype)"),
     prototype_banner(tree),
@@ -737,6 +737,45 @@ server <- function(input, output, session) {
   output$progress <- renderUI({
     has_result <- !is.null(state$calc) && identical(state$calc$status, "ok")
     progress_ui(screen_step(state$screen, has_result))
+  })
+  # Browser history (nav_js, R/ui.R): an entry for each screen or tab change,
+  # and Back or Forward restores the app as it was at that entry.
+  nav <- new.env()
+  nav$snaps <- list(); nav$pos <- 0L
+  nav_snapshot <- function() {
+    snap <- lapply(nav_fields, function(f) state[[f]])
+    names(snap) <- nav_fields
+    snap$tab <- input$tabs
+    snap
+  }
+  observe({
+    key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs)
+    isolate({
+      if (nav$pos > 0 && identical(nav$snaps[[nav$pos]]$key, key)) return()
+      # Leaving an input screen: keep what was typed with its entry.
+      if (nav$pos > 0 && identical(nav$snaps[[nav$pos]]$screen, "form")) {
+        typed <- tryCatch(current_form_values(), error = function(e) NULL)
+        if (length(typed)) nav$snaps[[nav$pos]]$form_values <- typed
+      }
+      # A new step after going back drops the steps that were ahead.
+      if (nav$pos < length(nav$snaps)) nav$snaps <- nav$snaps[seq_len(nav$pos)]
+      snap <- nav_snapshot(); snap$key <- key
+      nav$snaps[[nav$pos + 1L]] <- snap
+      nav$pos <- nav$pos + 1L
+      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L))
+    })
+  })
+  observeEvent(input$pk_nav_to, {
+    to <- as.integer(input$pk_nav_to)
+    if (is.na(to) || to < 1L || to > length(nav$snaps) || to == nav$pos) return()
+    # Keep what was typed on an input screen, for coming forward again.
+    if (identical(state$screen, "form")) nav$snaps[[nav$pos]]$form_values <- current_form_values()
+    cancel_job()
+    snap <- nav$snaps[[to]]
+    nav$pos <- to
+    for (f in nav_fields) state[[f]] <- snap[[f]]
+    state$calc <- NULL; state$long_spec <- NULL
+    if (!identical(input$tabs, snap$tab) && !is.null(snap$tab)) updateTabsetPanel(session, "tabs", selected = snap$tab)
   })
   output$screen <- renderUI({
     switch(

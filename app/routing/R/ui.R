@@ -105,6 +105,36 @@ progress_ui <- function(current) {
     })))
 }
 
+# The browser's Back and Forward buttons ------------------------------------
+
+# The app changes screens without loading pages, so the browser had no
+# earlier page to go back to and Back left powerkit. Each screen or tab
+# change now adds a browser history entry (nav_js), and Back or Forward
+# restores the app as it was at that entry (app.R, "Browser history").
+
+# The parts of the app's state that make up "where you are", saved with
+# each history entry. Not the calculation itself: it is run again.
+nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
+  "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
+  "checked_project")
+
+# What makes one entry differ from the last: the screen, the question or
+# card on it, how many answers were given, and the tab.
+nav_key <- function(screen, node, endpoint, n_answers, tab) {
+  paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", sep = "|")
+}
+
+nav_js <- "
+  Shiny.addCustomMessageHandler('pk_nav', function(m) {
+    var entry = { pk: m.pos };
+    if (m.replace) history.replaceState(entry, '', window.location.href);
+    else history.pushState(entry, '', window.location.href);
+  });
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
+  });
+"
+
 # Start screen ---------------------------------------------------------------
 
 # Screen A's three questions (tree.yaml, start_questions), each a set of

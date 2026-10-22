@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "The browser's Back button works"
+    text: >-
+      Your browser's Back and Forward buttons now move between powerkit's
+      screens, instead of leaving the site. What you typed on the input
+      screen is still there when you come forward again.
+  - date: "2026-10-22"
     title: "Help when you're not sure of your effect size"
     text: >-
       The effect-size section now explains, in plain words, the ways to a

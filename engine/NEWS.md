@@ -1,5 +1,11 @@
 # powerkit 0.0.0.9000
 
+* App: the browser's Back and Forward buttons move between powerkit's
+  screens and tabs. Before, the app changed screens without the browser
+  knowing, so Back left powerkit altogether. Values typed on an input
+  screen are kept when you go back and forward again; a calculation is
+  run again rather than restored.
+
 * App: help for people unsure of their effect size, in the effect-size
   section. "Don't know what effect to expect?" is in view, with a button
   that sets the goal to the smallest detectable effect (and the source to
