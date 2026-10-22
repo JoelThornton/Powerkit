@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-22"
+    title: "Help when you're not sure of your effect size"
+    text: >-
+      The effect-size section now explains, in plain words, the ways to a
+      number you can defend, starting from the smallest difference that
+      would matter in your measure's own units. If you don't know what to
+      expect, one button sets powerkit to show the smallest effect your
+      sample could detect instead.
+  - date: "2026-10-22"
     title: "Labs: choose a tool, and keep your work"
     text: >-
       Labs now opens on a list of tools. When you go from your

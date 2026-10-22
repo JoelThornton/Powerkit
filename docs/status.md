@@ -77,6 +77,10 @@ fully validated. Validation runs are recorded in
 - **Shorter labels and problems next to their fields** (in review,
   22 October 2026).
 - **Labs menu and planning from the notes** (in review, 22 October 2026).
+- **Help with the effect size** (in review, 22 October 2026): honest
+  routes to a defensible number and an "I don't know" button; still to
+  come, entering the difference in raw units (an engine change) and
+  worked examples.
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

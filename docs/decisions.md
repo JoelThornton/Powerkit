@@ -2130,3 +2130,25 @@ progress; it copies the notes' finding, original study and smallest
 effect that would matter into "Why this effect size?" (the user's own
 words, never a number into an effect-size box); and the replication's card
 and input screen show that the notes are kept, with a link back.
+
+## 2026-10-22 · Help for people unsure of their effect size
+
+powerkit asks for a justified effect size, which is hardest for people
+new to power analysis; a pre-filled value would be easier and would
+undercut the point (decided 18 October 2026: no defaults, no
+small/medium/large). The maintainer chose to help them reach a number they
+can defend instead:
+
+- **"Don't know what effect to expect?"**, in view in the effect-size
+  section, with a button. For the basic tests it sets the goal to the
+  smallest detectable effect and the source to "I can't justify an effect
+  size"; for the 2 x 2 designs and regression interactions it sets the goal
+  only, as the engine scales the entered pattern. It fills in no number.
+- **"Not sure what number to put here?"**: the smallest effect that would
+  matter, starting in the measure's own units (with how to turn a
+  difference into d or d_z, the definitions the glossary already uses); a
+  meta-analysis; one previous study, reduced for bias; and not knowing.
+
+Next, not yet built: entering the difference and SD in raw units for the
+t-tests (a spec option, as the 2 x 2 designs have), and worked examples
+that open separately so their numbers can't be carried into a plan.

@@ -598,3 +598,25 @@ test_that("definitions and the direction's reason open on request; warnings and 
   expect_gt(warning_at, 0)
   expect_false(grepl("<details[^>]*>[^<]*<summary>[^<]*</summary>[^<]*<div[^>]*observed-power-warning", html))
 })
+
+# Help with the effect size (22 October 2026) --------------------------------
+
+test_that("people unsure of their effect size get honest routes, never a suggested number", {
+  e2 <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_match(e2, "Not sure what number to put here?", fixed = TRUE)
+  expect_match(e2, "I don&#39;t know my effect size|I don't know my effect size")
+  expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
+  expect_match(e2, "divide it by how much people usually vary", fixed = TRUE)
+  e3 <- as.character(form_ui(tree, forms, "E3", form_groups(forms, "E3")))
+  expect_match(e3, "SD of the differences", fixed = TRUE)
+  # 2 x 2 designs scale the entered pattern; mediation can't yet.
+  e7 <- as.character(effect_unsure_ui(forms$forms$E7))
+  expect_match(e7, "pkEffectUnsure(false)", fixed = TRUE)
+  expect_null(effect_unsure_ui(forms$forms$E10))
+  expect_match(as.character(effect_help_ui(forms$forms$E10, form_groups(forms, "E10"))), "won&#39;t suggest one|won't suggest one")
+  # The button sets two choices only: no effect-size box is filled.
+  expect_match(effect_unsure_js, "set('f_goal', 'sensitivity')", fixed = TRUE)
+  expect_false(grepl("f_d'|f_dz|f_r'|f_p1|f_p2", effect_unsure_js))
+  # Effect sizes still start empty on every form.
+  for (ep in form_ids) for (f in Filter(function(f) isTRUE(f$effect), form_fields(form_groups(forms, ep)))) expect_null(f[["default"]], label = paste(ep, f$id))
+})
