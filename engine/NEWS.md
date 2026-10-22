@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* App: at most two long calculations (interactions in regression, and
+  mediation's preview and full run) run at once across everyone using the
+  app; anyone else is told plainly that powerkit is busy and to try again
+  in a minute or two. Each runs in its own R process, and many at once
+  could use up the online server's memory and stop the app for everyone.
+  The limit is `background_limit` in `forms.yaml`, or
+  `POWERKIT_BACKGROUND_LIMIT`.
+
 * App: the generic t, F, chi-square and z tests (E50), as G\*Power's
   generic tests, for people who have worked out their test's noncentrality
   parameter. Found only from "I know my analysis". There is no sample

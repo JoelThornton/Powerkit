@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-22"
+    title: "Long calculations take turns"
+    text: >-
+      Interactions in regression and mediation take a while to calculate,
+      and everyone using powerkit online shares one server. If several
+      people start one at the same moment, you may be asked to try again
+      in a minute or two. Quick calculations aren't affected.
   - date: "2026-10-20"
     title: "Labs: pre-replication notes"
     text: >-
