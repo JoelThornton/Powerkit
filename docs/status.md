@@ -57,6 +57,9 @@ fully validated. Validation runs are recorded in
   Supabase project (read it in Supabase's table editor), with a GitHub
   issue and copying as alternatives. The undecided settings now show only
   in the maintainer's view (`?view=maintainer`).
+  Merged 22 October 2026: the banner names the analyses in plain words,
+  and the guided plan's combined N and consistency check are labelled
+  "Coming soon".
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

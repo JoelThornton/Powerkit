@@ -18,6 +18,13 @@ entries:
     text: >-
       The grey "Undecided" boxes and the tab of open questions were notes
       for powerkit's developers. They are gone from the screens you see.
+  - date: "2026-10-22"
+    title: "Clearer labels"
+    text: >-
+      The banner at the top now names the analyses that calculate in plain
+      words. In "Plan my whole study", the combined sample size and the
+      consistency check are marked "Coming soon"; until then, use the
+      largest sample size from your analyses' cards.
   - date: "2026-10-20"
     title: "Labs: pre-replication notes"
     text: >-
