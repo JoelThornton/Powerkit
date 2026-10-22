@@ -166,7 +166,7 @@ Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls
 ### A4. Wording that points to another tool, and "never a simpler stand-in"
 
 Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#a4-wording-that-points-to-another-tool-and-never-a-simpler-stand-in).
-Setting `not_in_spec_wording` records it.
+Setting `not_in_spec_wording` records it (open question 6).
 
 ### A5. The dyadic card's wording (E44)
 
