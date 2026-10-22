@@ -23,7 +23,7 @@ test_that("in the other two routes, every path leaves the screening at an end po
   }
 })
 
-test_that("generic 'not covered' cards have their own text, and those that claim tools exist use the neutral sentence", {
+test_that("generic 'not covered' cards have their own text, and those that claim tools exist name them (or use the neutral sentence)", {
   expect_identical(tree$established_tools_text, "Established tools exist for this design; powerkit hasn't checked them.")
   for (id in names(tree$endpoints)) {
     ep <- tree$endpoints[[id]]
@@ -31,8 +31,30 @@ test_that("generic 'not covered' cards have their own text, and those that claim
     expect_null(ep$packages, label = id)
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(ep$card_text), fixed = TRUE, label = id)
-    if (isTRUE(ep$established_tools)) expect_match(html, htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE, label = id)
+    if (!isTRUE(ep$established_tools)) next
+    # Setting name_other_tools is `name` (22 October 2026): cards with
+    # `tools` name them, each with a link; the rest keep the neutral sentence.
+    if (is.null(ep$tools)) {
+      expect_match(html, htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE, label = id)
+    } else {
+      expect_match(html, htmltools::htmlEscape(tree$named_tools_text), fixed = TRUE, label = id)
+      for (t in ep$tools) expect_match(html, sprintf('href="%s"', t$url), fixed = TRUE, label = paste(id, t$name))
+    }
   }
+  # Undecided or `neutral`, the neutral sentence comes back.
+  t2 <- tree
+  for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "name_other_tools") t2$settings[[i]]$value <- "neutral"
+  expect_match(as.character(card_ui(t2, "E43")), htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE)
+  expect_false(grepl("Hmisc", as.character(card_ui(t2, "E43")), fixed = TRUE))
+})
+
+test_that("cards for t-tests, correlations and ANOVA say the figure only approximates a rank-based test", {
+  for (id in c("E1", "E2", "E3", "E4", "E18")) {
+    html <- as.character(card_ui(tree, id))
+    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
+    expect_match(html, "only approximates the rank-based one", fixed = TRUE, label = id)
+  }
+  expect_false(grepl("rank-based one", as.character(card_ui(tree, "E7")), fixed = TRUE))
 })
 
 test_that("every end point can be reached: from the tree, or from the 'I know my analysis' list", {

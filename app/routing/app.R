@@ -101,6 +101,7 @@ app_css <- "
   .labs-notice { border-left: 4px solid #b26b00; background: #fff6e5; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
   .labs-sde { margin-top: 0.75rem; }
   .labs-sde summary { font-weight: 600; color: #0a5a8c; cursor: pointer; }
+  .observed-power-warning { font-size: 0.9rem; border-left: 4px solid #a12a2a; background: #fbeaea; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-signpost { font-size: 0.9rem; background: #eef3fa; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-hint-hidden .labs-signpost { display: none; }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }

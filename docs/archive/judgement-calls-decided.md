@@ -694,3 +694,115 @@ direction?" instead of the silent two-sided default.
   - Interacts with A1 (whether to name tools at all) and with C10
     (rank-based tests, where an approximation is one of the options).
 - **Recorded in:** open question 6; setting `not_in_spec_wording`.
+
+### B1. Observed power (judgement call 3.1)
+
+**Decided 22 October 2026** (`decisions.md`): warn and allow. The effect-size source gains "The result of my finished study (observed power)" (spec type `own_study_result`); choosing it shows a warning quoting Rubin (2025, p. 14), and the engine's checker gives the same warning. Setting `observed_power`. The entry is kept below as the record of the options.
+
+- **Question:** if the effect size comes from the study's own result,
+  should the form block it, warn about it, or allow it?
+- **Options:**
+  - block it;
+  - warn and allow;
+  - allow without comment.
+- **What tools and sources do:**
+  - G\*Power's manual reproduces SPSS's "Observed Power" column with its
+    "post hoc" analysis (opened, read directly).
+  - Hoenig and Heisey (2001) argue it adds nothing to the p-value
+    (second-hand; still not opened). Uttley (2019) quotes them (see B11).
+  - Mikael Rubin (2025, *International Journal of Psychology*,
+    doi:10.1002/ijop.70017; opened): "post hoc power analyses are useless
+    at best, misleading at worst (Dziak et al. 2020)" (p. 14 of 15). He
+    also notes that "it is sometimes requested by reviewers" (same page).
+  - Perugini et al. (2014) note post hoc power can describe a body of
+    research (opened, read in full).
+- **Who might disagree, and why:**
+  - Methodologists who follow Hoenig and Heisey would block it.
+  - Users asked for it by reviewers, or who use it to describe a
+    literature, would want it allowed.
+- **Knock-on effects:** `effect_justification.type` has no "this study's
+  own result" option. Blocking or warning needs one (a schema change).
+- **Recorded in:** `decision-tree.md` 3.1; open question 5; setting
+  `observed_power`.
+
+### C10. Rank-based tests reaching the parametric cards (judgement call 3.8)
+
+**Decided 22 October 2026** (`decisions.md`): give the parametric figure and say plainly that it only approximates the rank-based test, on the t-test, correlation and one-way ANOVA cards. Simulating the rank tests (Spower) can come later. Setting `rank_based_tests`. The entry is kept below as the record of the options.
+
+- **Question:** Mann–Whitney, Wilcoxon, Kruskal–Wallis, Friedman and rank
+  correlation reach the parametric end points. How should powerkit handle
+  them?
+- **Options:**
+  - G\*Power's efficiency adjustment, recorded as the convention;
+  - simulate the rank test with Spower;
+  - label the parametric figure as an approximation;
+  - honest cards until one of these is built.
+- **What tools and sources do:**
+  - Spower's `p_wilcox.test()` and `p_kruskal.test()` (opened); no
+    Friedman function.
+  - G\*Power's efficiency approach (second-hand).
+- **Who might disagree, and why:**
+  - The two approaches can give different answers, and both need an
+    assumed distribution users rarely know.
+- **Knock-on effects:** whichever is chosen is a convention to record in
+  `conventions.md`, with a test of the size of any difference.
+- **Recorded in:** `decision-tree.md` 3.8; setting `rank_based_tests`.
+
+### A1. Naming other tools on "not covered" cards
+
+**Decided 22 October 2026** (`decisions.md`): name the tools: the generic "not covered" cards (E43, E44, E46, E47) list Hmisc, apimpower, MBESS and Spower, each sourced in card-sources.md, under "Established tools for this design (powerkit hasn't checked them)". Setting `name_other_tools`. The entry is kept below as the record of the options.
+
+**Decided 18 October 2026, for two cards** (`decisions.md`, "The new
+design"): the start screen's aims that powerkit doesn't run point to
+established tools: estimation to MBESS and Spower's precision criterion
+(E46), and showing there's no meaningful effect to established
+equivalence tools (E36, which already names TOSTER). Still open: every
+other "not covered" card.
+
+- **Question:** should cards for designs powerkit doesn't cover name other
+  established tools (for example simr, or G\*Power's logistic and Poisson
+  routines)? Now the generic cards (E43, E44, E46, E47) say only
+  "Established tools exist for this design; powerkit hasn't checked them".
+  Cards built from [`coverage.md`](coverage.md) already list its tools.
+- **Options:**
+  - name the tools, as `coverage.md` does;
+  - the neutral sentence only, on every "not covered" card.
+- **What tools and sources do:**
+  - G\*Power, Spower, Superpower, InteractionPoweR and PAMLj don't
+    point users to other tools (`decision-tree.md`, section 1) (opened).
+  - The tools themselves exist and are documented (opened, see
+    `card-sources.md`):
+    - Hmisc `cpower()` and `spower()` (time-to-event);
+    - Ackerman and Kenny's apimpower app (dyadic);
+    - Spower `p_glm()` (factorial logistic regression);
+    - PITS (interrupted time series).
+- **Who might disagree, and why:**
+  - Naming tools helps users act, but powerkit hasn't checked them, and a
+    named tool reads as an endorsement.
+  - The neutral sentence avoids that, but can read as unhelpful, or as
+    hiding names that are easy to find.
+- **Knock-on effects:**
+  - Applies to the cards built from `coverage.md` too.
+  - Naming tools means keeping the names current. PITS (CRAN, 30 June
+    2026) appeared after E45 was written (A2).
+  - Every named tool needs a source in `card-sources.md`.
+- **Recorded in:** open question 18; setting `name_other_tools`.
+
+### B9. Three or more parallel mediators (open question 10)
+
+**Decided 22 October 2026** (`decisions.md`): two only until three or more are validated. Parallel mediation offers two mediators; serial mediation still offers up to four. Setting `parallel_mediators_max`. The entry is kept below as the record of the options.
+
+- **Question:** allow three or more parallel mediators before that is
+  validated (validated with two)?
+- **Options:**
+  - two only, until validated;
+  - up to nine, as the spec allows.
+- **What tools and sources do:** power4mome's quick functions take paths
+  for any number of mediators (`coverage.md`); powerkit's validation
+  covers two (`validation-log.md`).
+- **Who might disagree, and why:**
+  - Users with three mediators would otherwise be turned away.
+  - The validation rule says not to offer what isn't validated.
+- **Knock-on effects:** a validation run with three or more mediators is
+  in `status.md`, "What's next".
+- **Recorded in:** open question 10; setting `parallel_mediators_max`.

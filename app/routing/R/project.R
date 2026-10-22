@@ -103,6 +103,9 @@ plan_questions <- function(values, result, alpha_default = 0.05) {
   if (identical(type, "none")) {
     out <- c(out, "The plan says no effect size could be justified, so it reports the smallest effect the study could detect. Ask whether effects that small would matter, and whether smaller ones would.")
   }
+  if (identical(type, "own_study_result")) {
+    out <- c(out, "The effect size is the finished study's own result, so this is observed power. Ask why it was needed: observed power is widely discouraged, and a new study should be planned from a smallest effect of interest.")
+  }
   if (identical(type, "pilot_study")) {
     out <- c(out, "The effect size comes from a pilot study. A pilot is usually small, so its estimate is uncertain. Ask how far the true effect could be from it, and what happens to the plan if it is smaller.")
   }

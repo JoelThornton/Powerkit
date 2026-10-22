@@ -240,7 +240,7 @@ status_ui <- function(tree, ep) {
         class = "status status-not",
         tags$strong(ep$card_heading %||% "Not in powerkit yet."),
         p(class = if (!isTRUE(ep$established_tools)) "mb-0", ep$card_text),
-        if (isTRUE(ep$established_tools)) p(class = "mb-0", tree$established_tools_text)
+        if (isTRUE(ep$established_tools)) named_tools_ui(tree, ep) %||% p(class = "mb-0", tree$established_tools_text)
       )
     } else if (isTRUE(ep$no_ready_made_tool)) {
       div(
@@ -274,6 +274,24 @@ status_ui <- function(tree, ep) {
 other_analyses_ui <- function(tree, ep) {
   if (is.null(ep$alternatives) || !identical(setting_by_key(tree, "other_analyses_note")$value, "show")) return(NULL)
   p(class = "other-analyses", sub("{alternatives}", paste(unlist(ep$alternatives), collapse = "; "), tree$other_analyses_text, fixed = TRUE))
+}
+
+# Other established tools on generic "not covered" cards (setting
+# name_other_tools, `name`), from the end point's `tools` (each sourced in
+# docs/card-sources.md).
+named_tools_ui <- function(tree, ep) {
+  if (is.null(ep$tools) || !identical(setting_by_key(tree, "name_other_tools")$value, "name")) return(NULL)
+  tagList(
+    p(class = "mb-1", tree$named_tools_text),
+    tags$ul(class = "mb-0", lapply(ep$tools, function(t) tags$li(tags$a(href = t$url, target = "_blank", t$name), ": ", t$what)))
+  )
+}
+
+# Rank-based tests (setting rank_based_tests, `label`): on cards whose end
+# point names the rank-based alternative, say the figure only approximates it.
+rank_test_ui <- function(tree, ep) {
+  if (is.null(ep$rank_test) || !identical(setting_by_key(tree, "rank_based_tests")$value, "label")) return(NULL)
+  p(class = "rank-test-note", sub("{rank_test}", ep$rank_test, tree$rank_test_text, fixed = TRUE))
 }
 
 # On the safety-net card: what to write down for a statistician, filled in
@@ -332,6 +350,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
         tags$ul(lapply(unname(jp$types), tags$li))
       ),
       other_analyses_ui(tree, ep),
+      rank_test_ui(tree, ep),
       if (runs) tagList(
         p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
         hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))

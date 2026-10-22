@@ -147,18 +147,22 @@ test_that("a valid set of answers passes validate_spec() for every screen", {
   }
 })
 
-test_that("three mediators give the extra paths, and the spec still passes", {
-  fields <- fields_for("E11", 3)
-  ids <- vapply(fields, `[[`, "", "id")
-  expect_true(all(c("M3_label", "p_X_M3", "p_M3_Y", "rc_M1_M3", "rc_M2_M3") %in% ids))
-  target <- Filter(function(f) f$id == "target_path", fields)[[1]]
-  expect_identical(unname(unlist(target$choices)), c("X->M1->Y", "X->M2->Y", "X->M3->Y"))
+test_that("parallel mediation offers two mediators only (decided 22 October 2026); serial offers up to four", {
+  choices <- function(ep) unname(unlist(Filter(function(f) f$id == "n_mediators", fields_for(ep, 2))[[1]]$choices))
+  expect_identical(choices("E11"), "2")
+  expect_identical(choices("E12"), c("2", "3", "4"))
+  expect_identical(setting_by_key(tree, "parallel_mediators_max")$value, "two")
+  # Three asked for (e.g. from an older project file) gives two for parallel mediation.
+  ids <- vapply(fields_for("E11", 3), `[[`, "", "id")
+  expect_false(any(c("M3_label", "p_X_M3") %in% ids))
+  target <- Filter(function(f) f$id == "target_path", fields_for("E11", 3))[[1]]
+  expect_identical(unname(unlist(target$choices)), c("X->M1->Y", "X->M2->Y"))
+})
+
+test_that("three serial mediators give the extra paths", {
   serial <- Filter(function(f) f$id == "target_path", fields_for("E12", 3))[[1]]
   expect_true("X->M1->M2->M3->Y" %in% unlist(serial$choices))
-  skip_without_engine()
-  v <- c(values_for("E11"), list(n_mediators = "3", M3_label = "Detachment", p_X_M3 = "0.2", p_M3_Y = "0.1"))
-  v <- v[!duplicated(names(v), fromLast = TRUE)]
-  expect_identical(check_spec(build_spec(forms, "E11", fields, v), fields, validate)$status, "ok")
+  expect_true("M3_label" %in% vapply(fields_for("E12", 3), `[[`, "", "id"))
 })
 
 test_that("the engine's messages name the screen's fields, in plain English", {
@@ -486,4 +490,21 @@ test_that("'all of several' raises each test's target power, not alpha", {
   # Other claims leave the target power alone.
   expect_equal(claim_power(0.8, list(claim = "any", n_tests = "3")), 0.8)
   expect_equal(claim_alpha(0.05, list(claim = "any", n_tests = "2")), 0.025)
+})
+
+test_that("observed power is allowed as an effect-size source, with a warning (decided 22 October 2026)", {
+  expect_identical(setting_by_key(tree, "observed_power")$value, "warn")
+  just <- Filter(function(f) f$id == "just_type", fields_for("E2"))[[1]]
+  expect_true("own_study_result" %in% names(just$choices))
+  html <- as.character(observed_power_warning_ui())
+  expect_match(html, "input.f_just_type == &#39;own_study_result&#39;|input.f_just_type == 'own_study_result'")
+  expect_match(html, "useless at best, misleading at worst", fixed = TRUE)
+  expect_match(html, "Rubin, 2025, p. 14", fixed = TRUE)
+  # The write-up, the reasoning line and the plan checker all name it.
+  expect_match(writeup_source[["own_study_result"]], "observed power", fixed = TRUE)
+  expect_match(reasoning_line(list(just_type = "own_study_result")), "observed power", fixed = TRUE)
+  expect_true(any(grepl("observed power", plan_questions(list(just_type = "own_study_result", just_source = "x"), list()), fixed = TRUE)))
+  # The engine's schema accepts it.
+  schema <- readLines(file.path(repo_dir, "engine", "inst", "schema", "design.schema.json"))
+  expect_true(any(grepl('"own_study_result"', schema, fixed = TRUE)))
 })

@@ -52,7 +52,7 @@ settings:
     ref: "Judgement call 3.1; open question 5"
     question: "If the effect size comes from the study's own result (observed power), should the form block it, warn about it, or allow it?"
     options: {block: "Block it", warn: "Warn and allow", allow: "Allow without comment"}
-    value: null
+    value: warn
     shown_at: [card]
   - key: effect_size_benchmarks
     ref: "Judgement call 3.2; open question 5"
@@ -94,7 +94,7 @@ settings:
     ref: "Judgement call 3.8; open question 5"
     question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should powerkit handle them?"
     options: {efficiency: "Adjust the t-test calculation by an efficiency factor for an assumed distribution (G*Power's approach), recorded as the convention", simulate: "Simulate the rank test (Spower's p_wilcox.test(), p_kruskal.test()) from an assumed distribution", label: "Give the parametric figure and say plainly that it only approximates the rank-based test", honest: "Honest cards for rank-based tests until one of the above is built"}
-    value: null
+    value: label
     shown_at: [E1, E2, E3, E4, E18]
   - key: fisher_exact
     ref: "Judgement call 3.9; open question 5"
@@ -155,7 +155,7 @@ settings:
     ref: "Open question 10"
     question: "Allow three or more parallel mediators before that validation exists (validated with two)?"
     options: {two: "Two only until validated", up_to_nine: "Up to nine, as the spec allows"}
-    value: null
+    value: two
     shown_at: [me3, E11]
   - key: guided_route
     ref: "Open question 11"
@@ -198,7 +198,7 @@ settings:
     ref: "Open question 18"
     question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
-    value: null
+    value: name
     shown_at: [E43, E44, E46, E47]
   - key: other_analyses_note
     ref: "Open question 20"
@@ -678,8 +678,8 @@ closing_questions:
     card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
-    note: "The smallest detectable effect isn't available for this design yet. Observed power (from the study's own result) is not offered."
-    card_notes: {E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from the study's own result) is not offered.", E8: "All three are available for this design. Observed power (from the study's own result) is not offered."}
+    note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
+    card_notes: {E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
   - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all}
@@ -710,11 +710,18 @@ safety_net:
 
 # Shown on generic "not covered" cards that have `established_tools: true`.
 # Whether such cards should name the tools is open question 18.
+# Named instead of established_tools_text when setting name_other_tools is
+# `name` (decided 22 October 2026) and the end point lists `tools`.
+named_tools_text: "Established tools for this design (powerkit hasn't checked them):"
 established_tools_text: "Established tools exist for this design; powerkit hasn't checked them."
 
 # Shown on cards for end points with `no_ready_made_tool`.
 # Draft note for covered cards; {alternatives} is the card's list. Shown
 # only when other_analyses_note is "show".
+# Rank-based tests reaching the parametric cards (judgement call 3.8,
+# decided 22 October 2026: setting rank_based_tests, `label`). Shown on the
+# cards whose end point has a `rank_test`.
+rank_test_text: "Planning {rank_test} instead? The figure here is for the parametric test, and only approximates the rank-based one: how closely depends on how your data are distributed, and powerkit hasn't checked it."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -760,6 +767,7 @@ justification_prompt:
 # ---------------------------------------------------------------------------
 endpoints:
   E1:
+    rank_test: "the Wilcoxon signed-rank test"
     doc_name: "One-sample t-test"
     plain_name: "Compare one group's average with a fixed value"
     template: "basic_test / one_sample_t"
@@ -771,6 +779,7 @@ endpoints:
     tier: MVP
     alternatives: ["the one-sample Wilcoxon signed-rank test", "the sign test"]
   E2:
+    rank_test: "the Mann-Whitney test"
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
     plain_name: "Compare two separate groups on a score"
     template: "basic_test / independent_t"
@@ -782,6 +791,7 @@ endpoints:
     tier: MVP
     alternatives: ["Student's or Welch's t-test", "the Mann-Whitney test", "a permutation test"]
   E3:
+    rank_test: "the Wilcoxon signed-rank test"
     doc_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
     template: "basic_test / paired_t"
@@ -793,6 +803,7 @@ endpoints:
     tier: MVP
     alternatives: ["the Wilcoxon signed-rank test", "the sign test"]
   E4:
+    rank_test: "Spearman's or Kendall's rank correlation"
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
     template: "basic_test / correlation"
@@ -957,6 +968,7 @@ endpoints:
     tier: MVP
     alternatives: ["conditional indirect effects for each group"]
   E18:
+    rank_test: "the Kruskal-Wallis test (or Friedman's test, for the same people)"
     doc_name: "One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus"
     plain_name: "Any difference among three or more groups or conditions"
     template: "factorial_anova / oneway_between"
@@ -1200,6 +1212,8 @@ endpoints:
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E43:
+    tools:
+      - {name: Hmisc, url: "https://cran.r-project.org/package=Hmisc", what: "cpower() for the Cox or log-rank test, and spower() for simulated power with censored data."}
     doc_name: "Time-to-event (survival) outcome"
     plain_name: "An outcome that is the time until something happens"
     status: not_in_powerkit
@@ -1208,6 +1222,8 @@ endpoints:
     card_text: "powerkit doesn't cover outcomes that are the time until something happens (survival or time-to-event analysis), where some people may not reach the event before the study ends."
     tier: later
   E44:
+    tools:
+      - {name: apimpower, url: "https://robert-a-ackerman.shinyapps.io/apimpower/", what: "a web app by Ackerman and Kenny for power in the actor-partner interdependence model."}
     doc_name: "Paired or dyadic data (pairs of people whose scores are related)"
     plain_name: "Data that come in pairs, such as couples or a parent and child"
     status: not_in_powerkit
@@ -1235,6 +1251,9 @@ endpoints:
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     tier: later
   E46:
+    tools:
+      - {name: MBESS, url: "https://cran.r-project.org/package=MBESS", what: "the ss.aipe functions, for a target confidence-interval width."}
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "its precision criterion, by simulation."}
     doc_name: "Precision planning (a target confidence-interval width)"
     plain_name: "Estimate an effect precisely (plan for a confidence-interval width)"
     status: not_in_powerkit
@@ -1243,6 +1262,8 @@ endpoints:
     card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
     tier: later
   E47:
+    tools:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "p_glm() with family = binomial(), simulated power for logistic regression with crossed factors."}
     doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
     plain_name: "Two or more factors crossed, with a yes/no outcome"
     status: not_in_powerkit

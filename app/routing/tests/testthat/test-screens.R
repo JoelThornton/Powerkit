@@ -78,11 +78,10 @@ test_that("every question screen renders with a back button", {
 })
 
 test_that("undecided settings show a labelled placeholder; decided ones show the decision", {
-  s <- setting_by_key(tree, "observed_power")
+  s <- setting_by_key(tree, "simple_effects_target")
   expect_null(s$value)
   expect_match(as.character(placeholder_ui(s)), "Undecided: for the maintainer", fixed = TRUE)
-  s$value <- "warn"
-  html <- as.character(placeholder_ui(s))
+  html <- as.character(placeholder_ui(setting_by_key(tree, "observed_power")))
   expect_match(html, "Maintainer decision", fixed = TRUE)
   expect_match(html, "Warn and allow", fixed = TRUE)
 })

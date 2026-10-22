@@ -2035,3 +2035,33 @@ questions. No behaviour changes.
 
 Entries B3, B12, C11, D4 and A4 moved to
 `archive/judgement-calls-decided.md`.
+
+## 2026-10-22 · Observed power, rank-based tests, named tools and parallel mediators
+
+The maintainer accepted the recommendations on four open questions.
+
+- **Observed power: warn and allow** (judgement call 3.1, B1). The
+  effect-size source gains "The result of my finished study (observed
+  power)", stored as a new `effect_justification.type`,
+  `own_study_result` (schema change). Choosing it shows a warning at once,
+  and the engine's checker adds the same advice to the result: "post hoc
+  power analyses are useless at best, misleading at worst" (Rubin, 2025,
+  p. 14, citing Dziak et al., 2020; refs.bib `RubinMikael2025_power`).
+  Reviewers sometimes ask for it (same page). The write-up, the reasoning
+  line and the plan checker name it. Reason: blocking would leave users
+  whom reviewers ask for it with no way to answer; a warning explains why
+  it is misleading.
+- **Rank-based tests: label the parametric figure** (judgement call 3.8,
+  C10). The cards for the one-sample, independent and paired t-tests,
+  the correlation and one-way ANOVA name the rank-based alternative and
+  say the figure only approximates it. Reason: honest and cheap now;
+  simulating the rank tests with Spower can follow.
+- **Name other tools on "not covered" cards** (open question 18, A1).
+  E43, E44, E46 and E47 name Hmisc, apimpower, MBESS and Spower, each
+  sourced in `card-sources.md`, under "Established tools for this design
+  (powerkit hasn't checked them)". Reason: a name lets users act; the
+  wording says powerkit hasn't checked them.
+- **Parallel mediators: two only** (open question 10, B9). Parallel
+  mediation offers two mediators until three or more are validated;
+  serial mediation still offers up to four. A project file asking for
+  more opens with two.

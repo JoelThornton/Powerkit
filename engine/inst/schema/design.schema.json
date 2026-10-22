@@ -224,6 +224,7 @@
             "meta_analysis",
             "prior_study",
             "pilot_study",
+            "own_study_result",
             "none"
           ]
         },

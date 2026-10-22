@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "10653faa51b398be3c970448bc01eb8e178f0bfc",
-        "RemoteSha": "10653faa51b398be3c970448bc01eb8e178f0bfc",
+        "RemoteRef": "bab6a70887d87a91bfcb84272d4ed399919bb47c",
+        "RemoteSha": "bab6a70887d87a91bfcb84272d4ed399919bb47c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "10653faa51b398be3c970448bc01eb8e178f0bfc",
-        "GithubSHA1": "10653faa51b398be3c970448bc01eb8e178f0bfc",
+        "GithubRef": "bab6a70887d87a91bfcb84272d4ed399919bb47c",
+        "GithubSHA1": "bab6a70887d87a91bfcb84272d4ed399919bb47c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-22 07:33:56 UTC; runner",
+        "Packaged": "2026-10-22 07:52:57 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-22 07:34:01 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-22 07:53:02 UTC; unix"
       }
     },
     "praise": {
@@ -5761,7 +5761,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "7a851f8a3583ebbd9953a09192657eda"
+      "checksum": "f11c694fd7203ba28dbbd496576a735e"
     },
     "forms.yaml": {
       "checksum": "425375dfd3e51d03f0a4de092f99fd4a"
@@ -5773,19 +5773,19 @@
       "checksum": "42102805122e9bfd028022d0751264d5"
     },
     "R/forms_ui.R": {
-      "checksum": "b067c779bb1b806cb79f1408403bc649"
+      "checksum": "75f6725c82f84d4392fb666851c312e4"
     },
     "R/forms.R": {
-      "checksum": "e40be6d815acffe8f5576fa8c29aa596"
+      "checksum": "97ea0eb57a8ee214820170a5c19ba094"
     },
     "R/labs.R": {
       "checksum": "abad1bd34c5ace25a590056e7de22df1"
     },
     "R/project.R": {
-      "checksum": "2e055acd6373a1f1c8609d4a2d4a0098"
+      "checksum": "f2efdc5502c8218f3cec206a1f5bcccc"
     },
     "R/results.R": {
-      "checksum": "3aa4d5a54a5b3dd61df5213ec87daaa2"
+      "checksum": "0637a639228d8c5da4f4ca9031e65ca2"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5794,7 +5794,7 @@
       "checksum": "01ee0fbb2868e692c244d1178122d9a1"
     },
     "R/ui.R": {
-      "checksum": "134a36e32c4f498b6296000863ddc8df"
+      "checksum": "e05df110e8bce3219f71d65946740667"
     },
     "README.md": {
       "checksum": "cb0e69557df6c6d21567f413d7e23c59"
@@ -5821,7 +5821,7 @@
       "checksum": "6fbc3303cb8753f5e1383e2a6d0414ac"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "34ef8c02bb142c8a1ca5302bbb4d6747"
+      "checksum": "130a7d35ca3c02fe2deba42aa0d81a46"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "f5db51ab99279e695706cb32f3276272"
@@ -5839,13 +5839,13 @@
       "checksum": "10356e1e81072e5473381a953a6db27c"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "5efcf8843a4b64d58dd11e6810702353"
+      "checksum": "8f895a5731fc3d7ee79d2ce64b662338"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "7fae2f60e99ae34e374b97254a58be5f"
+      "checksum": "add0982ce3e26f26efdf680492a0bc95"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
-      "checksum": "6126144c314b1891772174c46de82f97"
+      "checksum": "1e22930a5e9b044133a723dc321730eb"
     },
     "tests/testthat/test-walkthroughs.R": {
       "checksum": "65e053621b32226343cd019be25d99a4"
@@ -5854,7 +5854,7 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "17c39b6c571a234d5075380ef20be121"
+      "checksum": "275f7b12e3e947beb040f4ffaa749562"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "4062f52d3dfb929fdd76adbb9efc5c5a"
@@ -5869,7 +5869,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "64cf815960d2b106b7b6e2a15f36c8c9"
+      "checksum": "028c64ee94f8ef9b47d76d32725933e5"
     }
   },
   "users": null
