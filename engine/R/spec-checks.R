@@ -40,6 +40,18 @@ spec_advice <- function(spec) {
       "pilot estimate and say how in 'effect_justification > adjustment'."
     ))
   }
+  # Observed power: allowed, with a warning (judgement call 3.1, decided
+  # 22 October 2026). Source: Rubin (2025), refs.bib RubinMikael2025_power.
+  if (identical(spec$effect_justification$type, "own_study_result")) {
+    advice <- c(advice, paste0(
+      "The effect size is the one a finished study found, so this is ",
+      "'observed power'. It is widely discouraged: \"post hoc power analyses ",
+      "are useless at best, misleading at worst\" (Rubin, 2025, p. 14, citing ",
+      "Dziak et al., 2020). Reviewers sometimes ask for it (same page); if you ",
+      "report it, say how it was calculated. To plan a new study, use a ",
+      "smallest effect of interest instead."
+    ))
+  }
   nrep <- spec$options$nrep
   if (!is.null(nrep) && nrep < 1000 && uses_simulation(spec)) {
     advice <- c(advice, sprintf(

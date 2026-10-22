@@ -1,5 +1,19 @@
 # powerkit 0.0.0.9000
 
+* Spec: `effect_justification.type` accepts `own_study_result`, an effect
+  size from the finished study itself (observed power). It is valid, and
+  the checker warns that observed power is widely discouraged (Rubin,
+  2025, p. 14).
+
+* App: four decisions of 22 October 2026. Observed power can be chosen as
+  the effect-size source, with a warning. The t-test, correlation and
+  one-way ANOVA cards say their figure only approximates the rank-based
+  test (Mann-Whitney, Wilcoxon, Spearman, Kruskal-Wallis). The "not
+  covered" cards for time-to-event, dyadic, precision and factorial
+  yes/no designs name established tools (Hmisc, apimpower, MBESS,
+  Spower). Parallel mediation offers two mediators until more are
+  validated.
+
 * App: a Feedback tab for bug reports, questions, suggestions and other
   comments, linked from the top of every page and from each card's
   "Something doesn't fit?". It fills in where the user is (route,

@@ -312,7 +312,8 @@ power_limits <- "Power is only about how often a study like this would get a sig
 reasoning_line <- function(values) {
   if (blank(values$just_type)) return(NULL)
   types <- list(smallest_effect_of_interest = "the smallest effect that would matter", meta_analysis = "a meta-analysis",
-                prior_study = "a previous study", pilot_study = "a pilot study", none = "none (you said you can't justify an effect size)")
+                prior_study = "a previous study", pilot_study = "a pilot study",
+                own_study_result = "the finished study's own result (observed power)", none = "none (you said you can't justify an effect size)")
   label <- types[[values$just_type]] %||% values$just_type
   if (blank(values$just_source)) return(sprintf("Effect size source: %s.", label))
   sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
@@ -744,7 +745,8 @@ writeup_source <- c(
   smallest_effect_of_interest = "the smallest effect that would matter",
   meta_analysis = "an estimate from a meta-analysis",
   prior_study = "an estimate from a previous study",
-  pilot_study = "an estimate from a pilot study"
+  pilot_study = "an estimate from a pilot study",
+  own_study_result = "the effect observed in the finished study itself (observed power)"
 )
 
 # "Cohen's d = 0.4", from the fields marked as the effect.

@@ -41,7 +41,8 @@ test_that("F3: a yes/no outcome with two crossed factors reaches E47 in 'Help me
   moderation <- analysis_by_id(tree, "moderation")
   expect_identical(resolve_analysis(tree, moderation, guided(list(outcome = "yesno", times = "once"), outcome = "yesno", moderator = "two"))$endpoint, "E47")
   html <- withr::with_options(list(powerkit.maintainer_view = TRUE), as.character(card_ui(tree, "E47")))
-  expect_match(html, htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE)
+  # Named tools (setting name_other_tools, decided 22 October 2026).
+  expect_match(html, "p_glm()", fixed = TRUE)
   expect_match(html, "Open question 18", fixed = TRUE)
   expect_null(tree$endpoints$E47$packages)
 })
