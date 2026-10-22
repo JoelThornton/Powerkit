@@ -94,6 +94,10 @@ app_css <- "
   [aria-invalid='true'] { border-color: #a12a2a !important; }
   .form-terms { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
   .form-terms > summary { cursor: pointer; color: #0a5a8c; min-height: 32px; }
+  .effect-unsure { background: #eef3fa; border-radius: 0.5rem; padding: 0.6rem 0.9rem; margin-bottom: 0.75rem; }
+  .effect-help { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.5rem 1rem; margin-bottom: 0.75rem; }
+  .effect-help > summary { cursor: pointer; color: #0a5a8c; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+  .effect-help dt { margin-top: 0.5rem; }
   .form-section { margin-bottom: 0.5rem; }
   @media (min-width: 768px) { .form-group-names { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
     .form-group-names > legend, .form-group-names > .hint, .form-group-names > .group-note { grid-column: 1 / -1; } }
@@ -207,7 +211,7 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit (prototype)"),
     prototype_banner(tree),

@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* App: help for people unsure of their effect size, in the effect-size
+  section. "Don't know what effect to expect?" is in view, with a button
+  that sets the goal to the smallest detectable effect (and the source to
+  "I can't justify an effect size" for the basic tests); on the 2 x 2
+  designs and regression interactions it scales the entered pattern. "Not
+  sure what number to put here?" sets out the four honest routes: the
+  smallest effect that would matter, starting in the measure's own units
+  (with how to turn a difference into d or d_z), a meta-analysis, one
+  previous study reduced for bias, and not knowing. No number is
+  suggested or filled in.
+
 * App: Labs opens on a list of tools, so that more can be added; the
   pre-replication notes open when chosen, with a link back to the list,
   and stay open after a reload. "Plan the replication's sample size" no

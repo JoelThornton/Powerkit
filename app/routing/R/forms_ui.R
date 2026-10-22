@@ -94,7 +94,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
     p("Everything is needed unless it says optional. Effect sizes, SDs and correlations start empty: enter the values you expect, and say where they come from."),
     placeholders_at(tree, "form"),
-    form_sections_ui(tree, groups, values),
+    form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
     div(class = "nav-buttons",
       actionButton("form_check", "Check my answers", class = "btn btn-primary"),
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
@@ -199,7 +199,7 @@ settings_summary_ui <- function(groups, values) {
   Reduce(function(a, b) tagList(a, " \u00b7 ", b), items)
 }
 
-form_sections_ui <- function(tree, groups, values) {
+form_sections_ui <- function(tree, groups, values, form = list()) {
   section <- vapply(groups, form_section, character(1))
   index <- seq_along(groups)
   part <- function(which) lapply(index[section == which], function(i) group_ui(tree, groups[[i]], values, i))
@@ -215,6 +215,8 @@ form_sections_ui <- function(tree, groups, values) {
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       p(class = "hint", "This is the heart of a power analysis: the result is only as good as the effect size and your reason for it."),
+      effect_unsure_ui(form),
+      effect_help_ui(form, groups),
       part("effect")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings"), " (each starts at the default of the tool powerkit uses; open to change): ",
@@ -262,4 +264,74 @@ field_problems_js <- "
       if (folded) folded.open = true;
     });
   });
+"
+
+# Help with the effect size (22 October 2026) -------------------------------
+
+# For people new to power analysis: ways to a number they can defend, in
+# plain words, never a suggested value (no defaults or small/medium/large;
+# decided 18 October 2026). `form`: the end point's entry in forms.yaml.
+
+# "Don't know what effect to expect?", in view, with a button where the
+# design can find the smallest detectable effect instead. The button only
+# sets the two choices (what to find out, and the source); it fills in no
+# number.
+effect_unsure_ui <- function(form) {
+  if (isTRUE(form$sensitivity_without_effect)) {
+    return(div(class = "effect-unsure",
+      tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough.",
+      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+  }
+  if (isTRUE(form$sensitivity)) {
+    return(div(class = "effect-unsure",
+      tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and powerkit can scale it up or down to the smallest size your sample could detect.",
+      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
+  }
+  NULL
+}
+
+# "Not sure what number to put here?": the four honest routes.
+effect_help_ui <- function(form, groups) {
+  ids <- unlist(lapply(groups, function(g) vapply(g$fields, `[[`, "", "id")))
+  convert <- if ("d" %in% ids) {
+    "To turn it into Cohen's d, divide it by how much people usually vary on the measure (its SD): 3 points where the SD is 10 gives d = 0.3."
+  } else if ("dz" %in% ids) {
+    "To turn it into d_z, divide it by how much people's changes usually vary (the SD of the differences, second minus first)."
+  }
+  unsure <- if (isTRUE(form$sensitivity_without_effect)) {
+    "Choose \u201cI can't justify an effect size\u201d as the source (or use the button above): powerkit shows the smallest effect your sample could detect."
+  } else if (isTRUE(form$sensitivity)) {
+    "Enter the pattern you expect and choose \u201cThe smallest effect I could detect at a given sample size\u201d: powerkit scales your pattern to the smallest size your sample could detect."
+  } else {
+    "This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; powerkit won't suggest one."
+  }
+  tags$details(class = "effect-help",
+    tags$summary("Not sure what number to put here?"),
+    p("powerkit won't suggest a number: a value you can't explain is no better than a guess. These are the ways to one you can defend."),
+    tags$dl(
+      tags$dt("The smallest effect that would matter"),
+      tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
+        " Choose \u201cThe smallest effect that would matter\u201d as the source and say why that difference matters."),
+      tags$dt("A meta-analysis"),
+      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Choose \u201cA meta-analysis\u201d as the source."),
+      tags$dt("One previous study"),
+      tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
+      tags$dt("You don't know"),
+      tags$dd(unsure)))
+}
+
+# The button above: sets what to find out (and, where the design allows,
+# the source to "I can't justify an effect size"), then moves to the
+# number of participants.
+effect_unsure_js <- "
+  window.pkEffectUnsure = function(noEffect) {
+    var set = function(id, value) {
+      var el = document.getElementById(id);
+      if (!el || !Array.prototype.some.call(el.options, function(o) { return o.value === value; })) return false;
+      el.value = value; $(el).trigger('change'); return true;
+    };
+    set('f_goal', 'sensitivity');
+    if (noEffect) set('f_just_type', 'none');
+    setTimeout(function() { var n = document.getElementById('f_n'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus(); } }, 150);
+  };
 "
