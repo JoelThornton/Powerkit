@@ -25,5 +25,6 @@ library(testthat)
 # renv.lock.
 library(bslib)
 library(callr)   # E9's calculation runs in a background R process
+library(curl)    # the Feedback tab's Send button
 library(shiny)
 library(yaml)

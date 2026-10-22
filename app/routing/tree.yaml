@@ -23,11 +23,16 @@ links:
   decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
   tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
 
-# The Feedback tab (R/feedback.R): where messages go. The tab always offers
-# a GitHub issue and copying the message. An email button appears when an
-# address is set here or in the environment variable POWERKIT_FEEDBACK_EMAIL
-# (which keeps the address out of the repository).
+# The Feedback tab (R/feedback.R): where messages go. Send stores a message
+# in the feedback database (a Supabase project; the key is its publishable
+# key, which is meant to be public: it can only call
+# send_powerkit_feedback(), never read the messages). The tab also offers a
+# GitHub issue and copying the message. An email button appears when an
+# address is set here or in POWERKIT_FEEDBACK_EMAIL. The database settings
+# can also come from POWERKIT_FEEDBACK_URL and POWERKIT_FEEDBACK_KEY.
 feedback:
+  database_url: https://tberlvceqqspgwlfzisy.supabase.co
+  database_key: sb_publishable_MWscSX55HngqhhwXVJ337w_WczvUbz9
   issues_url: https://github.com/JoelThornton/Powerkit/issues/new
   email: null
 

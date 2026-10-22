@@ -52,11 +52,11 @@ fully validated. Validation runs are recorded in
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
 - **Feedback and the public view** (in review, 22 October 2026): a
-  Feedback tab (bugs, questions, suggestions) that opens a filled-in
-  GitHub issue or email, or copies the message; the app sends nothing
-  itself. The email button needs an address (`POWERKIT_FEEDBACK_EMAIL` in
-  Connect Cloud, or `feedback: email` in `tree.yaml`). The undecided
-  settings now show only in the maintainer's view (`?view=maintainer`).
+  Feedback tab (bugs, questions, suggestions) whose Send button stores
+  the message in the `powerkit_feedback` table of the goal-machine
+  Supabase project (read it in Supabase's table editor), with a GitHub
+  issue and copying as alternatives. The undecided settings now show only
+  in the maintainer's view (`?view=maintainer`).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)

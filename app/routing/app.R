@@ -620,18 +620,42 @@ server <- function(input, output, session) {
     if (input$go_feedback %in% names(feedback_kinds)) updateRadioButtons(session, "fb_kind", selected = input$go_feedback)
     updateTabsetPanel(session, "tabs", selected = "Feedback")
   })
+  # The Feedback tab's message: where the user is (if they agree), and the
+  # values on the input screen.
+  feedback_context_now <- reactive({
+    if (!isTRUE(input$fb_include_path %||% TRUE)) return(character())
+    on_screen <- state$screen %in% c("card", "form")
+    feedback_context(tree, feedback_screen_label(state$screen),
+      route_label = if (state$screen != "start") route_by_id(tree, state$route)$label,
+      history = state$history, endpoint = if (on_screen) state$endpoint,
+      values = if (state$screen == "form") tryCatch(current_form_values(), error = function(e) list()) else list(),
+      updated = if (length(whats_new)) whats_new[[1]]$date)
+  })
   output$fb_preview <- renderUI({
     kind <- input$fb_kind %||% "bug"
     message <- input$fb_message %||% ""
-    context <- if (isTRUE(input$fb_include_path %||% TRUE)) {
-      on_screen <- state$screen %in% c("card", "form")
-      feedback_context(tree, feedback_screen_label(state$screen),
-        route_label = if (state$screen != "start") route_by_id(tree, state$route)$label,
-        history = state$history, endpoint = if (on_screen) state$endpoint,
-        values = if (state$screen == "form") tryCatch(current_form_values(), error = function(e) list()) else list(),
-        updated = if (length(whats_new)) whats_new[[1]]$date)
+    feedback_preview_ui(feedback_subject(kind, message), feedback_text(kind, message, feedback_context_now()))
+  })
+  # Send: stored in the feedback database (send_feedback()), at most ten
+  # messages per visit.
+  feedback_sent <- 0L
+  observeEvent(input$fb_send, {
+    message <- trimws(input$fb_message %||% "")
+    result <- if (nchar(message) < 3) {
+      "empty"
+    } else if (feedback_sent >= 10L) {
+      "limit"
+    } else {
+      send_feedback(feedback_config(tree), input$fb_kind %||% "other", message,
+        context = feedback_context_now(), contact = trimws(input$fb_contact %||% ""),
+        meta = list(app_updated = if (length(whats_new)) whats_new[[1]]$date,
+          browser = substr(session$request$HTTP_USER_AGENT %||% "", 1, 200)))
     }
-    feedback_preview_ui(feedback_subject(kind, message), feedback_text(kind, message, context))
+    if (identical(result, "ok")) {
+      feedback_sent <<- feedback_sent + 1L
+      updateTextAreaInput(session, "fb_message", value = "")
+    }
+    session$sendCustomMessage("fb_status", feedback_result_message(result))
   })
   output$screen <- renderUI({
     switch(

@@ -1,8 +1,9 @@
 # Feedback: the Feedback tab (bug reports, questions, suggestions) and, on
 # every card, "Something doesn't fit", the exact path the user took as text
-# they can copy. The app itself sends nothing: the Feedback tab's buttons
-# open the user's own email program or a GitHub issue with the message
-# filled in, and the user sends it.
+# they can copy. The Feedback tab's Send button stores the message in
+# powerkit's feedback database (send_feedback()); it is the only thing the
+# app ever sends, and only when the user clicks it. The other buttons open
+# a GitHub issue or the user's email program, or copy the message.
 
 feedback_prompt <- "What did you expect instead? Tell us on the Feedback tab: it adds the path you took for you. Or copy the path below and paste it into an email."
 
@@ -67,14 +68,58 @@ feedback_kinds <- c(
   other = "Another comment"
 )
 
-# Where feedback goes (tree.yaml, `feedback`). The email address can come
-# from the environment instead, so it needn't be in the repository.
+# Where feedback goes (tree.yaml, `feedback`). Each setting can come from
+# the environment instead: POWERKIT_FEEDBACK_EMAIL, POWERKIT_FEEDBACK_URL
+# and POWERKIT_FEEDBACK_KEY (the database's address and publishable key).
 feedback_config <- function(tree) {
   cfg <- tree$feedback %||% list()
-  email <- Sys.getenv("POWERKIT_FEEDBACK_EMAIL")
-  if (nzchar(email)) cfg$email <- email
-  if (!is.null(cfg$email) && !nzchar(cfg$email)) cfg$email <- NULL
+  from_env <- c(email = "POWERKIT_FEEDBACK_EMAIL", database_url = "POWERKIT_FEEDBACK_URL", database_key = "POWERKIT_FEEDBACK_KEY")
+  for (k in names(from_env)) {
+    value <- Sys.getenv(from_env[[k]])
+    if (nzchar(value)) cfg[[k]] <- value
+    if (!is.null(cfg[[k]]) && !nzchar(cfg[[k]])) cfg[[k]] <- NULL
+  }
   cfg
+}
+
+can_send_feedback <- function(cfg) !is.null(cfg$database_url) && !is.null(cfg$database_key)
+
+# Store one message in the feedback database: a POST to its
+# send_powerkit_feedback() function (Supabase's REST interface), which
+# checks the kind and length, caps how many arrive in an hour, and
+# returns "ok", "empty", "bad" or "busy". Anything else (no connection, a
+# server error) comes back as "error". Nobody can read the messages with
+# the publishable key; only the database's owner can.
+send_feedback <- function(cfg, kind, message, context = character(), contact = "", meta = list(),
+                          timeout = 5) {
+  if (!can_send_feedback(cfg)) return("error")
+  body <- jsonlite::toJSON(list(
+    p_kind = kind, p_message = message, p_context = paste(context, collapse = "\n"),
+    p_contact = contact %||% "", p_meta = meta
+  ), auto_unbox = TRUE, null = "null")
+  handle <- curl::new_handle(customrequest = "POST", postfields = as.character(body), timeout = timeout)
+  headers <- list(apikey = cfg$database_key, `Content-Type` = "application/json")
+  # Older Supabase keys are JWTs and also go in the Authorization header.
+  if (startsWith(cfg$database_key, "eyJ")) headers$Authorization <- paste("Bearer", cfg$database_key)
+  do.call(curl::handle_setheaders, c(list(handle), headers))
+  target <- paste0(sub("/+$", "", cfg$database_url), "/rest/v1/rpc/send_powerkit_feedback")
+  tryCatch({
+    res <- curl::curl_fetch_memory(target, handle = handle)
+    if (res$status_code != 200) return("error")
+    answer <- jsonlite::fromJSON(rawToChar(res$content))
+    if (is.character(answer) && length(answer) == 1) answer else "error"
+  }, error = function(e) "error")
+}
+
+# What the user sees after clicking Send.
+feedback_result_message <- function(result) {
+  switch(result,
+    ok = "Thank you: your message has been sent.",
+    empty = "Write a few words first.",
+    busy = "A lot of messages have arrived in the last hour, so this one wasn't stored. Please copy it and try again later.",
+    limit = "You've sent several messages already. Please copy this one and send it another way.",
+    "It couldn't be sent just now. Please try again, or copy it and send it another way."
+  )
 }
 
 # The app's screens (app.R, state$screen) in words.
@@ -137,17 +182,22 @@ feedback_tab_ui <- function(tree) {
     radioButtons("fb_kind", "What is it about?", choices = stats::setNames(names(feedback_kinds), unname(feedback_kinds)), selected = "bug", width = "100%"),
     textAreaInput("fb_message", "Your message", rows = 6, width = "100%",
       placeholder = "What happened, what you expected, and the numbers you entered if it's about a result."),
+    textInput("fb_contact", "Your email, if you'd like a reply (optional)", width = "100%"),
     checkboxInput("fb_include_path", "Include where I am in powerkit (the questions I answered and the analysis I reached)", value = TRUE, width = "100%"),
     div(class = "form-field",
       tags$label(`for` = "fb-preview", class = "control-label", "What you'll send"),
       uiOutput("fb_preview")),
     h3(class = "h5", "Send it"),
-    p(class = "hint", "Nothing is sent from this page. Each button opens your message, filled in, for you to check and send yourself. ",
+    if (can_send_feedback(cfg)) p(class = "hint", "Send stores the message above, and your email if you give one, ",
+      "in powerkit's feedback database, which only the developer can read. Nothing else you enter in powerkit is sent. ",
+      "Please don't include anything that could identify a participant.")
+    else p(class = "hint", "Nothing is sent from this page. Each button opens your message, filled in, for you to check and send yourself. ",
       "Please don't include anything that could identify a participant."),
     div(class = "nav-buttons",
-      if (!is.null(cfg$email)) tags$button(type = "button", class = "btn btn-primary",
+      if (can_send_feedback(cfg)) actionButton("fb_send", "Send", class = "btn btn-primary"),
+      if (!is.null(cfg$email)) tags$button(type = "button", class = if (can_send_feedback(cfg)) "btn btn-outline-primary" else "btn btn-primary",
         onclick = "pkSendFeedback('email')", `data-address` = cfg$email, id = "fb-email", "Email it"),
-      if (!is.null(cfg$issues_url)) tags$button(type = "button", class = if (is.null(cfg$email)) "btn btn-primary" else "btn btn-outline-primary",
+      if (!is.null(cfg$issues_url)) tags$button(type = "button", class = if (is.null(cfg$email) && !can_send_feedback(cfg)) "btn btn-primary" else "btn btn-outline-primary",
         onclick = "pkSendFeedback('github')", `data-target` = cfg$issues_url, id = "fb-github", "Post it on GitHub"),
       tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkSendFeedback('copy')", "Copy it")),
     if (!is.null(cfg$issues_url)) p(class = "hint", "GitHub needs a free account, and posts there are public."),
@@ -163,6 +213,10 @@ feedback_preview_ui <- function(subject, text) {
 # In the browser: open the user's email program or a new GitHub issue with
 # the preview's text, or copy it. Nothing is sent by the app.
 feedback_js <- "
+  Shiny.addCustomMessageHandler('fb_status', function(text) {
+    var status = document.getElementById('fb-status');
+    if (status) status.textContent = text;
+  });
   window.pkSendFeedback = function(how) {
     var status = document.getElementById('fb-status');
     var say = function(msg) { if (status) status.textContent = msg; };

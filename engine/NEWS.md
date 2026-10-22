@@ -4,10 +4,14 @@
   comments, linked from the top of every page and from each card's
   "Something doesn't fit?". It fills in where the user is (route,
   answers, the analysis reached and the values entered) and shows the
-  whole message before it goes. The app sends nothing itself: the buttons
-  open a GitHub issue or the user's email program with the message filled
-  in, or copy it. The email button appears when an address is set in
-  `tree.yaml` (`feedback: email`) or in `POWERKIT_FEEDBACK_EMAIL`.
+  whole message before it goes. Send stores it, with an optional email
+  for a reply, in a feedback table in Supabase through one function,
+  `send_powerkit_feedback()`, which checks the kind and length and caps
+  messages per hour; the publishable key can't read the table. No account
+  is needed. It is the only thing the app sends, and only on Send. The
+  tab also offers a GitHub issue and copying the message, and an email
+  button when an address is set (`tree.yaml`, `feedback: email`, or
+  `POWERKIT_FEEDBACK_EMAIL`).
 
 * App: the undecided settings (the "Undecided, for the maintainer"
   placeholders, recorded decisions and the "For the maintainer" tab) are
