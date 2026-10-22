@@ -89,6 +89,11 @@ app_css <- "
   .progress-steps .current .step-num { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
   .card-more { margin-top: 0.75rem; }
   .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
+  .field-help { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
+  .field-problem { font-size: 0.9rem; color: #8a1f1f; border-left: 3px solid #a12a2a; background: #fbeaea; padding: 0.2rem 0.5rem; margin-top: 0.3rem; }
+  [aria-invalid='true'] { border-color: #a12a2a !important; }
+  .form-terms { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+  .form-terms > summary { cursor: pointer; color: #0a5a8c; min-height: 32px; }
   .form-section { margin-bottom: 0.5rem; }
   @media (min-width: 768px) { .form-group-names { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
     .form-group-names > legend, .form-group-names > .hint, .form-group-names > .group-note { grid-column: 1 / -1; } }
@@ -199,7 +204,7 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit (prototype)"),
     prototype_banner(tree),
@@ -386,6 +391,10 @@ server <- function(input, output, session) {
     values$source_stale <- src$stale
     values$source_was <- src$was
     problems <- form_problems(fields, values)
+    # Next to each field too (first problem per field).
+    by_field <- problems[nzchar(names(problems) %||% rep("", length(problems)))]
+    by_field <- by_field[!duplicated(names(by_field))]
+    session$sendCustomMessage("field_problems", as.list(by_field))
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
     check <- if (length(problems) == 0) check_spec(spec, fields)
     state$calc <- NULL

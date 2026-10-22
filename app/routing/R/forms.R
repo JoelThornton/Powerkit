@@ -156,7 +156,7 @@ direction_group <- function(tool, shown_if = NULL) {
       shown_if = shown_if
     ),
     list(
-      id = "alternative_reason", label = "Why your hypothesis predicts this direction (optional; goes in the write-up, for example \"the theory predicts that training raises scores\")",
+      id = "alternative_reason", label = "Why your hypothesis predicts this direction", help = "Goes in the write-up; for example \"the theory predicts that training raises scores\".",
       type = "text", optional = TRUE, shown_if = if (is.null(shown_if)) list(field = "alternative", is_not = "two_sided") else c(list(list(field = "alternative", is_not = "two_sided")), shown_if)
     )
   ))
@@ -196,10 +196,10 @@ closing_groups <- function(forms, ep_id, start = list()) {
   }
   test <- list(
     goal,
-    list(id = "power", label = "Target power, as a proportion (for example 0.9)",
+    list(id = "power", label = "Target power", help = "As a proportion, for example 0.9.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
-    list(id = "power_reason", label = "Why this target power (optional; goes in the write-up, for example \"95% because a miss would waste a year of recruitment\")",
+    list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE),
     list(id = "n", label = "Number of participants analysed",
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
@@ -209,7 +209,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]]),
     # Shown only when alpha is changed from its default (decided 18 October
     # 2026, judgement call G8); goes in the write-up.
-    list(id = "alpha_reason", label = "Why this significance level (optional; goes in the write-up, for example \"the claim is new, so stronger evidence is wanted\")",
+    list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
          type = "text", optional = TRUE, shown_if = list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
@@ -224,26 +224,28 @@ closing_groups <- function(forms, ep_id, start = list()) {
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
              own_study_result = "The result of my finished study (observed power)"),
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
-      list(id = "just_source", label = "Your reasoning, in your own words: where the number comes from, or why there isn't one (any length, any language; needed to save or export the plan, not to calculate)",
+      list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
+           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
            type = "text", path = "effect_justification.source", optional = TRUE),
-      list(id = "just_adjustment", label = "How you adjusted it (needed for a previous study; for example halved for publication bias)",
-           type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study")
+      list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias.",
+           type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
+           shown_if = list(field = "just_type", is = "prior_study"))
     )),
     if (!isTRUE(form$generic)) list(input = NULL, title = "Participants you expect to lose", fields = list(
-      list(id = "attrition", label = "Proportion you expect to lose (optional; for example 0.1 for 10%)", type = "number",
+      list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),
     # A fixed default seed, so the same answers give the same result
     # (judgement-calls.md B15); the user can change it.
     list(input = NULL, title = "Random seed", fields = list(
-      list(id = "seed", label = sprintf("Random seed (a whole number; used when power is simulated, so the same seed gives the same result; empty = %s)", forms$default_seed),
+      list(id = "seed", label = "Random seed", help = sprintf("A whole number, used when power is simulated, so the same seed gives the same result; empty = %s.", forms$default_seed),
            type = "number", path = "options.seed", optional = TRUE, integer = TRUE, min = 1, max = 2147483647,
            default = forms$default_seed, default_source = "powerkit's fixed default seed (judgement-calls.md B15)")
     )),
     # Guess first (optional teaching mode): the guess is shown next to the
     # answer and goes nowhere else (no spec path, not in the exports).
     list(input = NULL, title = "Guess first (optional)", note = guess_note, fields = list(
-      list(id = "guess", label = "Your guess (optional)", type = "number", optional = TRUE, min = 0,
+      list(id = "guess", label = "Your guess", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
   )))
@@ -405,6 +407,9 @@ quote_label <- function(field) sprintf("“%s”", field$label)
 # English, naming each field by its label.
 form_problems <- function(fields, values) {
   problems <- character()
+  # Each problem is named by its field's id, so the screen can show it next
+  # to the field as well as in the list.
+  add <- function(message) problems <<- c(problems, stats::setNames(message, f$id))
   for (f in fields) {
     if (!field_applies(f, values)) next
     v <- values[[f$id]]
@@ -413,45 +418,45 @@ form_problems <- function(fields, values) {
     if (blank(v)) {
       if (effect_optional(f, values)) next
       if (isTRUE(f$effect)) {
-        problems <- c(problems, sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
+        add(sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
-        problems <- c(problems, sprintf("%s is empty.", quote_label(f)))
+        add(sprintf("%s is empty.", quote_label(f)))
       }
       next
     }
     if (identical(f$type, "number")) {
       x <- parse_number(v)
       if (is.nan(x)) {
-        problems <- c(problems, sprintf("%s should be a number written with a decimal point, such as 0.3.", quote_label(f)))
+        add(sprintf("%s should be a number written with a decimal point, such as 0.3.", quote_label(f)))
         next
       }
-      if (!is.null(f[["min"]]) && x < f[["min"]]) problems <- c(problems, sprintf("%s must be at least %s.", quote_label(f), f[["min"]]))
-      if (!is.null(f[["max"]]) && x > f[["max"]]) problems <- c(problems, sprintf("%s must be at most %s.", quote_label(f), f[["max"]]))
-      if (!is.null(f$min_exclusive) && x <= f$min_exclusive) problems <- c(problems, sprintf("%s must be more than %s.", quote_label(f), f$min_exclusive))
-      if (!is.null(f$max_exclusive) && x >= f$max_exclusive) problems <- c(problems, sprintf("%s must be less than %s.", quote_label(f), f$max_exclusive))
-      if (isTRUE(f$integer) && x != round(x)) problems <- c(problems, sprintf("%s must be a whole number.", quote_label(f)))
+      if (!is.null(f[["min"]]) && x < f[["min"]]) add(sprintf("%s must be at least %s.", quote_label(f), f[["min"]]))
+      if (!is.null(f[["max"]]) && x > f[["max"]]) add(sprintf("%s must be at most %s.", quote_label(f), f[["max"]]))
+      if (!is.null(f$min_exclusive) && x <= f$min_exclusive) add(sprintf("%s must be more than %s.", quote_label(f), f$min_exclusive))
+      if (!is.null(f$max_exclusive) && x >= f$max_exclusive) add(sprintf("%s must be less than %s.", quote_label(f), f$max_exclusive))
+      if (isTRUE(f$integer) && x != round(x)) add(sprintf("%s must be a whole number.", quote_label(f)))
     }
     if (identical(f$type, "levels")) {
       lv <- parse_levels(v)
-      if (length(lv) < 2) problems <- c(problems, sprintf("%s needs at least two names, separated by commas.", quote_label(f)))
-      if (anyDuplicated(lv)) problems <- c(problems, sprintf("%s has the same name twice.", quote_label(f)))
+      if (length(lv) < 2) add(sprintf("%s needs at least two names, separated by commas.", quote_label(f)))
+      if (anyDuplicated(lv)) add(sprintf("%s has the same name twice.", quote_label(f)))
     }
     if (identical(f$type, "numbers")) {
       xs <- parse_numbers(v)
       if (any(is.nan(xs) | is.na(xs))) {
-        problems <- c(problems, sprintf("%s: every entry should be a number written with a decimal point, such as 10.5, separated by commas.", quote_label(f)))
+        add(sprintf("%s: every entry should be a number written with a decimal point, such as 10.5, separated by commas.", quote_label(f)))
       } else if (!is.null(f$per_levels) && length(xs) != length(parse_levels(values[[f$per_levels]]))) {
-        problems <- c(problems, sprintf("%s should have %d numbers, one for each name you gave, in the same order.", quote_label(f), length(parse_levels(values[[f$per_levels]]))))
+        add(sprintf("%s should have %d numbers, one for each name you gave, in the same order.", quote_label(f), length(parse_levels(values[[f$per_levels]]))))
       }
     }
     if (identical(f$type, "table")) {
       tb <- parse_table(v)
       if (any(vapply(tb, function(r) any(is.nan(r) | is.na(r)), logical(1)))) {
-        problems <- c(problems, sprintf("%s: every entry should be a number written with a decimal point, such as 0.25.", quote_label(f)))
+        add(sprintf("%s: every entry should be a number written with a decimal point, such as 0.25.", quote_label(f)))
       } else {
         rows <- length(parse_levels(values$X_levels)); cols <- length(parse_levels(values$Y_levels))
         if (length(tb) != rows || any(lengths(tb) != cols)) {
-          problems <- c(problems, sprintf("%s should have %d lines (one per category of the first variable) of %d numbers each (one per category of the second).", quote_label(f), rows, cols))
+          add(sprintf("%s should have %d lines (one per category of the first variable) of %d numbers each (one per category of the second).", quote_label(f), rows, cols))
         }
       }
     }
