@@ -35,8 +35,10 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await btn('Enter your values'); await audit('input screen E2');
     await btn('Check my answers'); await p.waitForSelector('#form_result .form-problems', { timeout: 10000 }); await audit('input screen E2, problems');
     const fill = async (id, v) => { await p.fill('#f_' + id, v); };
+    // The goal comes first: target power appears once it is chosen.
+    await p.selectOption('#f_goal', 'sample_size'); await p.selectOption('#f_alternative', 'two_sided');
     for (const [id, v] of [['X_label', 'Condition'], ['X_level1', 'Control'], ['X_level2', 'Training'], ['Y_label', 'Recall'], ['d', '0.4'], ['power', '0.8'], ['just_source', 'Example']]) await fill(id, v);
-    await p.selectOption('#f_goal', 'sample_size'); await p.selectOption('#f_just_type', 'smallest_effect_of_interest');
+    await p.selectOption('#f_just_type', 'smallest_effect_of_interest');
     await btn('Check my answers'); await p.waitForSelector('#form_result .not-wired, #form_result .form-problems, #form_result .result-panel:not(.calculating)', { timeout: 60000 }); await audit('result screen E2 (required N)');
     await btn('Back to the card');
     await btn('Start again'); await btn('Help me choose'); await label('A score or scale'); await label('Independent people'); await label('Many times');
@@ -47,7 +49,8 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await audit('end-point list');
     await btn('Start again'); await btn('Plan my whole study'); await label('A score or scale'); await label('Independent people'); await label('Once'); await label('Detect an effect');
     await audit('guided variables');
-    await btn('Next: choose the analyses'); await p.check('#tick_compare'); await settle(); await audit('guided analyses');
+    await btn('Next: choose the analyses'); await audit('guided analyses');
+    await p.locator('input[type=radio][value=main]').first().check(); await settle();
     await btn('Show my plan'); await audit('guided plan');
     await p.locator('a', { hasText: 'Feedback' }).first().click(); await settle(); await audit('feedback tab');
     // The maintainer's tab is only there in the maintainer's view.

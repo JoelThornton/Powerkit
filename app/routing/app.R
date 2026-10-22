@@ -80,6 +80,16 @@ app_css <- "
   .hint dfn { font-style: normal; font-weight: 600; }
   .card-points { margin-bottom: 1rem; }
   .form-group-box { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 1rem; }
+  .form-section { margin-bottom: 0.5rem; }
+  @media (min-width: 768px) { .form-group-names { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
+    .form-group-names > legend, .form-group-names > .hint, .form-group-names > .group-note { grid-column: 1 / -1; } }
+  .form-section-title { margin: 1.25rem 0 0.6rem 0; }
+  .form-section-effect > .form-group-box { border-color: #0a5a8c; border-width: 2px; }
+  .form-settings, .form-guess { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.6rem 1rem; margin: 1rem 0; }
+  .form-settings > summary, .form-guess > summary { cursor: pointer; min-height: 44px; padding: 0.3rem 0; }
+  .form-settings-title { font-weight: 600; color: #0a5a8c; text-decoration: underline; }
+  .form-settings[open] > summary { margin-bottom: 0.5rem; }
+  .setting-item { white-space: normal; }
   .form-group-box legend { float: none; width: auto; padding: 0 0.25rem; margin-bottom: 0.25rem; font-weight: 600; }
   .form-field { margin-bottom: 0.75rem; }
   .form-field .form-control, .form-field .form-select { min-height: 44px; }
@@ -180,7 +190,7 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit (prototype)"),
     prototype_banner(tree),
