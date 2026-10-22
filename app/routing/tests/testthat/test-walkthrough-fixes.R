@@ -40,7 +40,7 @@ test_that("F3: a yes/no outcome with two crossed factors reaches E47 in 'Help me
   expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E47")
   moderation <- analysis_by_id(tree, "moderation")
   expect_identical(resolve_analysis(tree, moderation, guided(list(outcome = "yesno", times = "once"), outcome = "yesno", moderator = "two"))$endpoint, "E47")
-  html <- as.character(card_ui(tree, "E47"))
+  html <- withr::with_options(list(powerkit.maintainer_view = TRUE), as.character(card_ui(tree, "E47")))
   expect_match(html, htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE)
   expect_match(html, "Open question 18", fixed = TRUE)
   expect_null(tree$endpoints$E47$packages)

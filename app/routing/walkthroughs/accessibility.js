@@ -49,6 +49,9 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await audit('guided variables');
     await btn('Next: choose the analyses'); await p.check('#tick_compare'); await settle(); await audit('guided analyses');
     await btn('Show my plan'); await audit('guided plan');
+    await p.locator('a', { hasText: 'Feedback' }).first().click(); await settle(); await audit('feedback tab');
+    // The maintainer's tab is only there in the maintainer's view.
+    await p.goto(URL + '?view=maintainer'); await settle();
     await p.locator('a', { hasText: 'For the maintainer' }).click(); await settle(); await audit('maintainer tab');
     await p.close();
   }

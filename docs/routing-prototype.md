@@ -251,8 +251,14 @@ there, and fail rather than skip if the engine can't be loaded
 
 Judgement calls and open questions that `decision-tree.md` leaves undecided
 appear in the app as grey dashed placeholders labelled *"Undecided, for the
-maintainer"*. The second tab, **For the maintainer: undecided settings**,
+maintainer"*. The last tab, **For the maintainer: undecided settings**,
 lists them all.
+
+These are shown only in the maintainer's view, so the public site doesn't
+show them: open the app with `?view=maintainer` at the end of its address
+(for example
+<https://joelthornton-powerkit.share.connect.posit.cloud/?view=maintainer>),
+or run it with the environment variable `POWERKIT_MAINTAINER_VIEW=true`.
 
 Each is a setting in `app/routing/tree.yaml` (the `settings:` section). To
 record a decision, change its `value:` from `null` to one of its option

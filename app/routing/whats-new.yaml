@@ -5,6 +5,18 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-22"
+    title: "A Feedback tab"
+    text: >-
+      Tell us about a problem, ask a question or suggest something from the
+      new Feedback tab, or from "Something doesn't fit?" on any card. It
+      adds where you are in powerkit for you and shows the whole message
+      first; you send it yourself, as a GitHub issue or by copying it.
+  - date: "2026-10-22"
+    title: "Fewer notes for the developers"
+    text: >-
+      The grey "Undecided" boxes and the tab of open questions were notes
+      for powerkit's developers. They are gone from the screens you see.
   - date: "2026-10-20"
     title: "Labs: pre-replication notes"
     text: >-

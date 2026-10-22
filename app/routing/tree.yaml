@@ -23,6 +23,14 @@ links:
   decision_tree: https://github.com/JoelThornton/Powerkit/blob/main/docs/decision-tree.md
   tests_folder: https://github.com/JoelThornton/Powerkit/tree/main/engine/tests/testthat
 
+# The Feedback tab (R/feedback.R): where messages go. The tab always offers
+# a GitHub issue and copying the message. An email button appears when an
+# address is set here or in the environment variable POWERKIT_FEEDBACK_EMAIL
+# (which keeps the address out of the repository).
+feedback:
+  issues_url: https://github.com/JoelThornton/Powerkit/issues/new
+  email: null
+
 banner: "Prototype: calculations are available for E1–E9, E18, E23–E26 and E48–E50; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now."
 
 # ---------------------------------------------------------------------------

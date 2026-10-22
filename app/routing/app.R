@@ -90,6 +90,7 @@ app_css <- "
   .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
+  .feedback-link { text-align: center; font-size: 0.95rem; margin: -0.75rem 0 1rem 0; }
   .about { max-width: 46rem; }
   .about-endpoints li, .about-credit { margin-bottom: 0.4rem; }
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
@@ -160,15 +161,19 @@ focus_js <- "
   });
 "
 
-ui <- fluidPage(
+# A function of the request, so the maintainer's tab is only there when
+# asked for (maintainer_view_requested(), R/ui.R).
+ui <- function(req) fluidPage(
   lang = "en",
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js))),
+  tags$head(tags$title("powerkit routing prototype"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js))),
   tags$header(
     h1(class = "visually-hidden", "powerkit routing prototype"),
-    prototype_banner(tree)
+    prototype_banner(tree),
+    p(class = "feedback-link", "Questions, problems or ideas? ",
+      actionLink("go_feedback_link", "Tell us on the Feedback tab"))
   ),
   tags$main(
     class = "app-main",
@@ -178,12 +183,15 @@ ui <- fluidPage(
       tabPanel("About this prototype", div(class = "pt-3", about_ui(tree, forms))),
       tabPanel("What's new", div(class = "pt-3", whats_new_ui(whats_new))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_ui(tree))),
-      tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
+      tabPanel("Feedback", div(class = "pt-3", feedback_tab_ui(tree))),
+      if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", settings_table_ui(tree)))
     )
   )
 )
 
 server <- function(input, output, session) {
+  # Placeholders for undecided settings show only in the maintainer's view.
+  session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
   state <- reactiveValues(
     screen = "start",        # start | known | node | card | form | g_vars | g_analyses | g_plan
     start = list(),          # screen A: situation, aim and claim
@@ -605,6 +613,26 @@ server <- function(input, output, session) {
   })
   # The one way in from the main route (labs_signpost_ui()).
   observeEvent(input$go_labs, updateTabsetPanel(session, "tabs", selected = labs_tab_title))
+  # The Feedback tab: from the header link, or from "Something doesn't fit?"
+  # (which picks "confusing").
+  observeEvent(input$go_feedback_link, updateTabsetPanel(session, "tabs", selected = "Feedback"))
+  observeEvent(input$go_feedback, {
+    if (input$go_feedback %in% names(feedback_kinds)) updateRadioButtons(session, "fb_kind", selected = input$go_feedback)
+    updateTabsetPanel(session, "tabs", selected = "Feedback")
+  })
+  output$fb_preview <- renderUI({
+    kind <- input$fb_kind %||% "bug"
+    message <- input$fb_message %||% ""
+    context <- if (isTRUE(input$fb_include_path %||% TRUE)) {
+      on_screen <- state$screen %in% c("card", "form")
+      feedback_context(tree, feedback_screen_label(state$screen),
+        route_label = if (state$screen != "start") route_by_id(tree, state$route)$label,
+        history = state$history, endpoint = if (on_screen) state$endpoint,
+        values = if (state$screen == "form") tryCatch(current_form_values(), error = function(e) list()) else list(),
+        updated = if (length(whats_new)) whats_new[[1]]$date)
+    }
+    feedback_preview_ui(feedback_subject(kind, message), feedback_text(kind, message, context))
+  })
   output$screen <- renderUI({
     switch(
       state$screen,

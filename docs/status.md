@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 20 October 2026. This page says where the project is now
+*Last updated: 22 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -51,6 +51,12 @@ fully validated. Validation runs are recorded in
   does and doesn't do, where the numbers come from and how far along it
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
+- **Feedback and the public view** (in review, 22 October 2026): a
+  Feedback tab (bugs, questions, suggestions) that opens a filled-in
+  GitHub issue or email, or copies the message; the app sends nothing
+  itself. The email button needs an address (`POWERKIT_FEEDBACK_EMAIL` in
+  Connect Cloud, or `feedback: email` in `tree.yaml`). The undecided
+  settings now show only in the maintainer's view (`?view=maintainer`).
 - **Open PRs:** see [`handover.md`](handover.md).
 
 ## Priorities (the maintainer, 18 October 2026)
