@@ -1,5 +1,12 @@
 # powerkit 0.0.0.9000
 
+* App: the banner names the analyses that calculate in plain words
+  instead of end-point codes (E1–E9 and so on), and the browser tab reads
+  "powerkit (prototype)". In "Plan my whole study", the combined sample
+  size and the consistency check are labelled "Coming soon" instead of
+  "once the engine is connected", and the combined N says what to do
+  meanwhile (use the largest N from the analyses' cards).
+
 * App: the generic t, F, chi-square and z tests (E50), as G\*Power's
   generic tests, for people who have worked out their test's noncentrality
   parameter. Found only from "I know my analysis". There is no sample

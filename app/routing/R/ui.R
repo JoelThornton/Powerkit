@@ -52,6 +52,12 @@ placeholders_at <- function(tree, where) {
   div(class = "placeholders", lapply(shown, placeholder_ui))
 }
 
+# A feature that isn't built yet, labelled as such (the guided plan's
+# combined N and consistency check).
+coming_soon_ui <- function(text) {
+  div(class = "status status-soon coming-soon", tags$span(class = "badge-soon", "Coming soon"), text)
+}
+
 # Start screen ---------------------------------------------------------------
 
 # Screen A's three questions (tree.yaml, start_questions), each a set of
@@ -434,12 +440,12 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
     h3(class = "h4 mt-4", "Combined sample size"),
     if (length(intersect(ticked, primary)) >= 2) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
-    div(class = "engine-placeholder", g$placeholders$combined_n),
+    coming_soon_ui(g$placeholders$combined_n),
     h3(class = "h4 mt-4", "Consistency between analyses"),
     if (length(shared) == 0) p("No shared relationships among the ticked analyses.") else tags$ul(lapply(shared, function(s) {
       tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
     })),
-    div(class = "engine-placeholder", g$placeholders$consistency),
+    coming_soon_ui(g$placeholders$consistency),
     placeholders_at(tree, "plan"),
     div(class = "nav-buttons",
       pick_button("Back to the analyses", "guided:analyses", class = "btn btn-secondary"),

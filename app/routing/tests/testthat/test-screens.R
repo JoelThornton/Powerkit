@@ -2,8 +2,10 @@
 # the app never calculates power itself: it builds specs and calls the
 # engine (validate_spec(), run_spec() and the exports).
 
-test_that("the banner says which designs calculate (judgement call B14)", {
-  expect_identical(tree$banner, "Prototype: calculations are available for E1–E9, E18, E23–E26 and E48–E50; E10–E14 give a rough preview of power, then the full analysis here or as an R script (a required N goes straight to the R script); other designs show guidance only for now.")
+test_that("the banner says in plain words which designs calculate (judgement call B14)", {
+  expect_identical(tree$banner, "Prototype, still being checked: t-tests, correlations, ANOVA, ANCOVA, regression, proportions and chi-square tests calculate here; mediation gives a quick preview, then a full run or an R script; other designs give guidance only for now.")
+  # No internal codes such as E1 or E10-E14.
+  expect_false(grepl("E[0-9]", tree$banner))
   expect_match(as.character(prototype_banner(tree)), tree$banner, fixed = TRUE)
 })
 
@@ -100,11 +102,13 @@ test_that("deciding against the guided route hides it, with no code change", {
   expect_false(grepl("Plan my whole study", as.character(start_ui(t2)), fixed = TRUE))
 })
 
-test_that("the plan screen shows placeholders for the combined N and the consistency check, and no numbers", {
+test_that("the plan screen labels the combined N and the consistency check 'Coming soon', and shows no numbers", {
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline")
   html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation", "mediation"), c("compare", "moderation", "mediation"),
     list(compare = "ANCOVA: the outcome adjusting for the baseline"), "any"))
-  expect_match(html, "calculated here once the engine is connected", fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr("<span class=\"badge-soon\">Coming soon</span>", html, fixed = TRUE))), 2L)
+  expect_match(html, "the largest N any of them needs", fixed = TRUE)
+  expect_false(grepl("once the engine is connected", html, fixed = TRUE))
   expect_match(html, "The effect of x on the outcome appears in", ignore.case = TRUE)
   expect_match(html, "needs an alpha correction", fixed = TRUE)
   expect_match(html, "E23", fixed = TRUE)
