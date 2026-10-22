@@ -1,5 +1,13 @@
 # powerkit 0.0.0.9000
 
+* App: at most two long calculations (interactions in regression, and
+  mediation's preview and full run) run at once across everyone using the
+  app; anyone else is told plainly that powerkit is busy and to try again
+  in a minute or two. Each runs in its own R process, and many at once
+  could use up the online server's memory and stop the app for everyone.
+  The limit is `background_limit` in `forms.yaml`, or
+  `POWERKIT_BACKGROUND_LIMIT`.
+
 * App: a Feedback tab for bug reports, questions, suggestions and other
   comments, linked from the top of every page and from each card's
   "Something doesn't fit?". It fills in where the user is (route,

@@ -425,9 +425,15 @@ server <- function(input, output, session) {
   }
   # kind: "calc" (E9, or E10-E12's full run) shows the result; "preview"
   # shows the preview panel.
+  # Nothing starts while the server is at its limit (background_limit()).
   start_job <- function(kind, spec, usual, shown) {
+    if (background_running() >= background_limit(forms)) {
+      output$form_result <- renderUI(busy_ui())
+      session$sendCustomMessage("focus_result", "form_result")
+      return(invisible(FALSE))
+    }
     job$kind <- kind
-    job$process <- start_background_calculation(spec, seed = forms$default_seed)
+    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed))
     job$started <- Sys.time()
     job$usual <- usual
     job$shown <- shown
