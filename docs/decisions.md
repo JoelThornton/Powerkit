@@ -2005,3 +2005,33 @@ study", the combined sample size and the consistency check are labelled
 "Coming soon" rather than "once the engine is connected"; the combined N
 says to use the largest N from the analyses' cards meanwhile, which is
 the rule the feature will apply.
+
+## 2026-10-22 · Settings that record what is already built
+
+Eleven settings in `app/routing/tree.yaml` were still marked undecided
+although the app already works one way, decided earlier or built since.
+They now record that, so the maintainer's view lists only real open
+questions. No behaviour changes.
+
+- `alpha_power_defaults`: `as_built`, a new option (alpha pre-filled at
+  .05 with a reason asked if changed; target power shown at .80 and .95
+  side by side). Decided 18 October 2026 (B4).
+- `one_sided_tests`: `as_built`, a new option (the direction is asked
+  first; a one-sided test needs a reason, which goes into the write-up).
+  Decided 19 October 2026 (B18).
+- `fisher_exact`: `exact`. Two proportions (E5) offers Fisher's exact test
+  (pwrss's `power.exact.fisher()`); the chi-square test of independence
+  (E6) doesn't yet.
+- `guided_route`: `yes`. "Plan my whole study" stays.
+- `several_hypotheses`: `ask`; `effect_size_inputs`: `empty_required`;
+  `power_curve`: `plot` (formula designs); `closing_order`: `first`.
+  Decided 18 October 2026 ("The new design").
+- `result_wording`: `draft`. The draft sentences stay; a source for the
+  "observed power" line is still open (B11).
+- `n_rounding`: `both`. The result gives the total and the size per group.
+- `not_in_spec_wording`: `proposed`. Cards that point to another tool use
+  the proposed wording, and powerkit never routes to a simpler stand-in
+  test (A4).
+
+Entries B3, B12, C11, D4 and A4 moved to
+`archive/judgement-calls-decided.md`.
