@@ -67,6 +67,14 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Fix (25 October 2026):** the nightly validation job runs again. It had
+  failed on every run since it was set up on 12 October (13 runs), before
+  a single test ran: testthat's JUnit reporter needs xml2, which
+  `renv.lock` has never carried. Fixing that uncovered a second fault in
+  the same step, which would have failed the job at the *end* of a full
+  run: the report's path was relative, and `test_local()` runs from
+  `engine/tests/testthat`. So there is no nightly result yet for any
+  commit; the first one will come from the next scheduled run.
 - **Fix (22 October 2026):** the shared tabs are built once at start-up,
   not per visitor (a regression from the maintainer's view in #87).
 - **Input screen in sections** (in review, 22 October 2026): goal first,
