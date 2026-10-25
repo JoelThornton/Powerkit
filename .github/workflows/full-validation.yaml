@@ -58,6 +58,7 @@ on:
           - mediation_crosscheck
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial
+          - logistic
 
 permissions:
   contents: read

@@ -261,6 +261,7 @@ zero_effect_cases <- list(
   fisher_exact = function(s) within(s, population$p2 <- population$p1),
   chi_square_gof = function(s) within(s, population$probabilities <- list(1 / 3, 1 / 3, 1 / 3)),
   two_correlations = function(s) within(s, population$r2 <- population$r1),
+  logistic_regression = function(s) within(s, population$odds_ratio <- 1),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18))
 )
 

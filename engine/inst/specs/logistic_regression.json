@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "logistic_regression",
+  "template": "single_predictor",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Loneliness"
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Seeks help",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    }
+  },
+  "population": {
+    "metric": "odds_ratio",
+    "odds_ratio": 1.5,
+    "base_prob": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: odds of seeking help 1.5 times higher per SD of loneliness, from 30% at average loneliness, is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "odds_ratio",
+    "method": "wald_z",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

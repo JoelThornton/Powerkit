@@ -27,6 +27,11 @@
 #' `probs.to.w()`), two independent correlations (`power.z.twocors()`) and
 #' one-way ANCOVA (`power.f.ancova.shieh()`). None has a simulation option;
 #' Fisher's exact test is an exact test of counts too.
+#' Logistic regression (design `logistic_regression`, engine only): the Wald z
+#' test of one predictor, a score (odds ratio per SD) or a yes/no group,
+#' optionally adjusted for other predictors through their R-squared with
+#' it, by pwrss's `power.z.logistic()` (Demidenko's method with variance
+#' correction).
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

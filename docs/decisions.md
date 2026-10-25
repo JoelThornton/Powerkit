@@ -2152,3 +2152,51 @@ can defend instead:
 Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
+
+## 2026-10-25 · Logistic regression: engine
+
+**What.** Logistic regression in the engine only (not in the app):
+G\*Power's "z tests: Logistic regression" (coverage-roadmap row A14,
+decision-tree end point E27). Like the other tests by formula (18 October
+2026), it is one pwrss call: `power.z.logistic()`, the Wald z test of one
+coefficient, with pwrss's default method, Demidenko (2007) with variance
+correction. Design `logistic_regression`, template `single_predictor`.
+
+- Variables: a yes/no outcome Y and a predictor X that is a score or a
+  yes/no group.
+- Population: `odds_ratio`, `base_prob`, and optionally `x_prob` (yes/no X)
+  and `r2_other_predictors` (X's R-squared with the other predictors; their
+  own effects aren't needed, as in G\*Power and pwrss).
+- Effect `odds_ratio`, method `wald_z`; one-sided tests must point the way
+  of the odds ratio ("greater" means above 1), as pwrss's one-sided test
+  runs in the direction of the effect.
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. An odds ratio of 1 at a fixed N gives
+  power .05 at alpha .05 (Type I check).
+
+**Judgement call: what the odds ratio of a score X is per.** pwrss takes
+the odds ratio for a one-unit increase in X and the base probability at
+X = 0, with X normal (mean 0, SD 1 by default). **Recommendation: take a
+score X as standardised**, so the odds ratio is per SD of X and the base
+probability is at X's mean, because then no mean or SD has to be asked
+and the base probability is at a value of X that occurs. Studies that
+report an odds ratio per raw unit would need converting (OR per SD = OR
+per unit ^ SD), which the input screen can help with later. Not a
+departure: it is pwrss's own default distribution.
+
+**Not decided here.** Whether G\*Power's default for this test is
+Demidenko's method with variance correction (pwrss's default), and
+whether its "Pr(Y=1|X=1) H0" is pwrss's base probability, are to check
+against the manual; the validation placeholders say so.
+
+**Validation.** `test-validation-logistic-regression.R`, a new chunk
+(`logistic`) in `scripts/run-validation.R` and the full-validation
+workflow: two published tests for the G\*Power manual's examples (normal
+X, yes/no X), with `TODO_PUBLISHED_VALUE` placeholders. The unit tests
+check powerkit against pwrss called directly (score and yes/no X, with and
+without other predictors, one- and two-sided), the required N against
+N - 1, the refusals, and the exported R script.
+
+**Next.** Poisson regression (pwrss's `power.z.poisson()`) in its own PR;
+then a card for E27.
+

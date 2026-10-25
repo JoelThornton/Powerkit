@@ -148,6 +148,15 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | Spower | to check | to check | to check |
 | **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n in the sample-size search; reported power and n always come from simulation, and no analytic option is offered (see "Known differences", 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
 
+## Logistic regression (one predictor)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "z tests: Logistic regression": a large-sample z test of one coefficient; options include Demidenko (2007) with or without variance correction and Hsieh et al. (1998) (to check against the manual, including which is the default) | odds ratio; "Pr(Y=1\|X=1) H0"; "R² other X" | X distribution (normal, binomial, and others) and its parameters (to check) |
+| pwrss | `power.z.logistic()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction: factor 0.85 for a binary X, 1 for a normal X), or `"demidenko"`, `"hsieh"`; its help says the formulas "are validated using G\*Power and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.logistic.R`) | `odds.ratio` (or `prob`, `beta1`) for a one-unit increase in X; `base.prob`, the probability when X = 0 | `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
+| Spower | `p_glm(family = binomial())`, simulation [Sp] | coefficients | — |
+| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout |
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |

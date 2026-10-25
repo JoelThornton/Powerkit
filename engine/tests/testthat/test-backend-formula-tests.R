@@ -14,12 +14,21 @@ formula_spec <- function(name, goal, ...) {
   spec
 }
 
+# The example spec with a yes/no X: 40% in the second group, odds ratio 2.
+logistic_binary_x <- function(spec) {
+  spec$variables$X <- list(type = "binary", label = "Group", levels = list("Control", "Treated"))
+  spec$population$odds_ratio <- 2
+  spec$population$x_prob <- 0.4
+  spec
+}
+
 test_that("each formula test runs on pwrss, exactly, and passes its check run", {
   cases <- c(
     fisher_exact = "pwrss::power.exact.fisher",
     chi_square_gof = "pwrss::power.chisq.gof",
     two_correlations = "pwrss::power.z.twocors",
-    anova_oneway_ancova = "pwrss::power.f.ancova.shieh"
+    anova_oneway_ancova = "pwrss::power.f.ancova.shieh",
+    logistic_regression = "pwrss::power.z.logistic"
   )
   for (name in names(cases)) {
     result <- run_spec(formula_spec(name, list(type = "power", n = 120)))
@@ -130,7 +139,9 @@ test_that("exported scripts for the formula tests reproduce powerkit's results",
     formula_spec("fisher_exact", list(type = "power", n = 90), options = list(seed = 7, allocation_ratio = 2)),
     formula_spec("chi_square_gof", list(type = "sample_size", power = 0.8)),
     formula_spec("two_correlations", list(type = "power", n = 180), options = list(seed = 7, attrition = 0.1)),
-    formula_spec("anova_oneway_ancova", list(type = "sample_size", power = 0.8))
+    formula_spec("anova_oneway_ancova", list(type = "sample_size", power = 0.8)),
+    formula_spec("logistic_regression", list(type = "sample_size", power = 0.8)),
+    logistic_binary_x(formula_spec("logistic_regression", list(type = "power", n = 200), options = list(seed = 7, attrition = 0.1)))
   )
   for (spec in specs) {
     result <- run_spec(spec)
@@ -138,3 +149,73 @@ test_that("exported scripts for the formula tests reproduce powerkit's results",
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$template)
   }
 })
+
+# Logistic regression -------------------------------------------------------------
+
+test_that("logistic regression equals pwrss::power.z.logistic() called directly", {
+  # Example: odds ratio 1.5 per SD of X, 30% at X's mean; n = 200.
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  direct <- function(...) {
+    pwrss::power.z.logistic(
+      base.prob = 0.3, n = 200, alpha = 0.05, method = "demidenko(vc)", ceil.n = FALSE, verbose = 0, ...
+    )$power
+  }
+  normal <- list(dist = "normal", mean = 0, sd = 1)
+  expect_equal(run_spec(spec)$curve$power, direct(odds.ratio = 1.5, alternative = "two.sided", distribution = normal))
+  # Adjusting for other predictors that explain 20% of X's variance.
+  spec$population$r2_other_predictors <- 0.2
+  expect_equal(
+    run_spec(spec)$curve$power,
+    direct(odds.ratio = 1.5, r.squared.predictor = 0.2, alternative = "two.sided", distribution = normal)
+  )
+  # A yes/no X, 40% in the second group.
+  spec <- logistic_binary_x(formula_spec("logistic_regression", list(type = "power", n = 200)))
+  expect_equal(
+    run_spec(spec)$curve$power,
+    direct(odds.ratio = 2, alternative = "two.sided", distribution = list(dist = "bernoulli", prob = 0.4))
+  )
+  # One-sided tests run in the direction of the odds ratio.
+  spec$target_test$alternative <- "less"
+  expect_spec_problem(spec, "goes the other way")
+  spec$target_test$alternative <- "greater"
+  expect_equal(
+    run_spec(spec)$curve$power,
+    direct(odds.ratio = 2, alternative = "one.sided", distribution = list(dist = "bernoulli", prob = 0.4))
+  )
+})
+
+test_that("logistic regression: the required n is the smallest that reaches the target", {
+  for (spec in list(
+    formula_spec("logistic_regression", list(type = "sample_size", power = 0.8)),
+    logistic_binary_x(formula_spec("logistic_regression", list(type = "sample_size", power = 0.8)))
+  )) {
+    spec <- validate_spec(spec)
+    n <- run_spec(spec)$n_required$n
+    backend <- route_spec(spec)
+    expect_gte(backend$exact_power(n), 0.8)
+    expect_lt(backend$exact_power(n - 1), 0.8)
+  }
+})
+
+test_that("logistic regression: an odds ratio of 1 gives power alpha at a fixed n", {
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  spec$population$odds_ratio <- 1
+  # pwrss integrates numerically: 0.0500000013.
+  expect_equal(run_spec(spec)$curve$power, 0.05, tolerance = 1e-6)
+})
+
+test_that("logistic regression specs that can't be right are refused", {
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  spec$population$x_prob <- 0.4
+  expect_spec_problem(spec, "'population > x_prob' is the proportion in the second group of a yes/no X")
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  spec$options$method <- "simulation"
+  expect_spec_problem(spec, "'simulation' isn't available for this test yet")
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  spec$population$odds_ratio <- 0
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  spec <- formula_spec("logistic_regression", list(type = "power", n = 200))
+  spec$variables$Y$type <- "continuous"
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+})
+

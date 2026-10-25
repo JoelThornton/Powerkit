@@ -1,7 +1,7 @@
 # Scripts for the tests pwrss computes by formula (backend-pwrss.R): one
 # proportion, McNemar's test, Welch's t-test by formula, R-squared in
 # multiple regression, Fisher's exact test, goodness of fit, two
-# correlations and ANCOVA. Each passes the same values to pwrss
+# correlations, ANCOVA and logistic regression. Each passes the same values to pwrss
 # as powerkit does (pwrss_inputs()).
 
 pwrss_script <- function(spec, result) {
@@ -98,6 +98,22 @@ pwrss_script_inputs <- function(spec) {
       sprintf("covariates <- %s # number of covariates", r_code(pop$covariates)),
       sprintf("groups <- %s", r_code(length(unlist(v$A$levels))))
     ),
+    single_predictor = c(
+      sprintf("odds_ratio <- %s # %s", r_code(pop$odds_ratio), if (identical(v$X$type, "binary")) {
+        sprintf("odds of %s = %s in %s against %s", comment_text(v$Y$label), lv("Y", 2), lv("X", 2), lv("X", 1))
+      } else {
+        sprintf("odds of %s = %s per SD of %s", comment_text(v$Y$label), lv("Y", 2), comment_text(v$X$label))
+      }),
+      sprintf("base_prob <- %s # proportion with %s = %s %s", r_code(pop$base_prob), comment_text(v$Y$label), lv("Y", 2),
+        if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 1)) else sprintf("at the mean of %s", comment_text(v$X$label))),
+      sprintf("r2_other <- %s # R-squared of %s on the other predictors", r_code(pop$r2_other_predictors %||% 0), comment_text(v$X$label)),
+      if (identical(v$X$type, "binary")) {
+        sprintf("predictor <- list(dist = \"bernoulli\", prob = %s) # proportion in %s", r_code(pop$x_prob %||% 0.5), lv("X", 2))
+      } else {
+        sprintf("predictor <- list(dist = \"normal\", mean = 0, sd = 1) # %s, standardised", comment_text(v$X$label))
+      },
+      alt_line
+    ),
     r2_zero = c(
       sprintf("r2 <- %s # expected R-squared of the model", r_code(pop$r2)),
       sprintf("predictors <- %s # number of predictors", r_code(pop$predictors))
@@ -171,6 +187,12 @@ pwrss_script_call_lines <- function(spec, inputs) {
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
       "n.vector = rep(n_total / groups, groups) # equal groups", "r.squared = r2_covariates",
       "k.covariates = covariates", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
+    )),
+    single_predictor = list(head = "power.z.logistic( # Wald z test of the predictor in logistic regression", args = c(
+      "base.prob = base_prob", "odds.ratio = odds_ratio", "n = n_total",
+      "r.squared.predictor = r2_other", "alpha = alpha", "alternative = alternative",
+      "method = \"demidenko(vc)\" # Demidenko (2007) with variance correction, pwrss's default",
+      "distribution = predictor", "ceil.n = FALSE", "verbose = 0"
     )),
     r2_zero = list(head = "power.f.regression( # F test of R-squared", args = c(
       "r.squared.change = r2", "k.total = predictors", "k.tested = predictors",

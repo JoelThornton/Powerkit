@@ -209,6 +209,12 @@ design_description <- function(spec) {
       "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
     ),
+    "logistic_regression/single_predictor" = sprintf(
+      "logistic regression of %s (%s) on %s%s: Wald z test of %s",
+      label("Y"), levels("Y"), label("X"),
+      if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
+    ),
     "multiple_regression/r2_zero" = sprintf(
       "multiple regression of %s on %s predictors: is R-squared greater than 0? (F test)",
       label("Y"), spec$population$predictors

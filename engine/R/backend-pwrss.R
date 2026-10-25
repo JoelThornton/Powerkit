@@ -19,6 +19,10 @@
 #                      pwrss::power.z.twocors()
 #   ANCOVA             factorial_anova/oneway_ancova: Shieh's method,
 #                      pwrss::power.f.ancova.shieh()
+#   logistic           logistic_regression/single_predictor: the Wald z
+#   regression         test of one predictor, pwrss::power.z.logistic()
+#                      (Demidenko's 2007 method with its variance
+#                      correction, pwrss's default)
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -29,7 +33,8 @@ pwrss_covers <- function(spec) {
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "factorial_anova/oneway_ancova",
-             "multiple_regression/r2_zero", "multiple_regression/r2_increase") ||
+             "multiple_regression/r2_zero", "multiple_regression/r2_increase",
+             "logistic_regression/single_predictor") ||
     (identical(key, "basic_test/two_proportions") &&
       identical(spec$target_test$method, "fisher_exact")) ||
     (identical(key, "basic_test/independent_t") &&
@@ -179,6 +184,19 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
+    single_predictor = {
+      distribution <- logistic_predictor_distribution(spec)
+      list(
+        fun = "power.z.logistic",
+        distribution = distribution,
+        args = function(n) list(
+          base.prob = pop$base_prob, odds.ratio = pop$odds_ratio, n = n,
+          r.squared.predictor = pop$r2_other_predictors %||% 0,
+          alpha = alpha, alternative = alternative, method = "demidenko(vc)",
+          distribution = distribution, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
     r2_zero = ,
     r2_increase = {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
@@ -195,6 +213,18 @@ pwrss_inputs <- function(spec) {
   )
   call$description <- sprintf("pwrss::%s", call$fun)
   call
+}
+
+# The predictor's distribution for pwrss's logistic regression: a
+# standardised score (normal, mean 0, SD 1), so the odds ratio is per SD and
+# the base probability is at X's mean; or a yes/no group (Bernoulli, with
+# the proportion in X's second level).
+logistic_predictor_distribution <- function(spec) {
+  if (identical(spec$variables$X$type, "binary")) {
+    list(dist = "bernoulli", prob = spec$population$x_prob %||% 0.5)
+  } else {
+    list(dist = "normal", mean = 0, sd = 1)
+  }
 }
 
 # Cohen's w for a goodness-of-fit spec, by pwrss::probs.to.w().
@@ -252,6 +282,16 @@ pwrss_check_run <- function(spec, inputs) {
     oneway_ancova = rbind(
       row("adjusted means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
       row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared)
+    ),
+    single_predictor = rbind(
+      row("odds ratio passed to pwrss (odds.ratio)", pop$odds_ratio, args$odds.ratio),
+      row("base probability passed to pwrss (base.prob)", pop$base_prob, args$base.prob),
+      row("R-squared of X on the other predictors (r.squared.predictor)", pop$r2_other_predictors %||% 0, args$r.squared.predictor),
+      if (identical(args$distribution$dist, "bernoulli")) {
+        row("proportion in X's second level (distribution prob)", pop$x_prob %||% 0.5, args$distribution$prob)
+      } else {
+        row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
+      }
     ),
     r2_zero = ,
     r2_increase = {
