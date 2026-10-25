@@ -50,14 +50,28 @@ jobs:
       # Restores the package versions in renv.lock (cached between runs).
       - uses: r-lib/actions/setup-renv@v2
 
+      # testthat's JunitReporter below needs xml2. Nothing in engine/ uses
+      # xml2, so it isn't a project dependency and renv.lock doesn't carry
+      # it; without this step the job stops before the first test with
+      # 'The package "xml2" is required to use JunitReporter'. renv.lock
+      # pins everything the tests themselves use.
+      - name: Install xml2, which writes the JUnit test report
+        shell: Rscript {0}
+        run: renv::install("xml2")
+
       # Runs from the repository root, so its .Rprofile activates renv.
       - name: Run unit tests and the fast validation subset
         shell: Rscript {0}
         run: |
           options(warn = 1)
+          # test_local() runs with the working directory set to
+          # engine/tests/testthat, so the report's path has to be absolute:
+          # a relative one is resolved there, and write_xml() then fails at
+          # the end of the run, after every test has already run.
+          report <- file.path(getwd(), "engine", "validation-results.xml")
           reporter <- testthat::MultiReporter$new(list(
             testthat::ProgressReporter$new(show_praise = FALSE),
-            testthat::JunitReporter$new(file = "engine/validation-results.xml")
+            testthat::JunitReporter$new(file = report)
           ))
           # Every test file except the slow validation files (matched
           # against the file's path, so the pattern is not anchored).
