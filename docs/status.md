@@ -67,6 +67,13 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **G\*Power checks (25 October 2026, in review):** of the eight rows
+  marked "wired, not yet checked against G\*Power", the manual settles
+  two, and both reproduce it: two independent correlations (A6, section
+  27) and the generic t test (A47, section 25). The other six have no
+  section in the manual (ANCOVA, goodness of fit, the generic F,
+  chi-square and z tests) or an empty Examples subsection (Fisher's exact
+  test), so they need G\*Power itself.
 - **Fix (25 October 2026):** the nightly validation job runs again. It had
   failed on every run since it was set up on 12 October (13 runs), before
   a single test ran: testthat's JUnit reporter needs xml2, which

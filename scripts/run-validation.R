@@ -93,7 +93,9 @@ validation_chunks <- function() {
     process_14 = "test-validation-modmed-process14.R",
     mediation_crosscheck = "test-validation-mediation-crosscheck.R",
     mediation_crosscheck_parallel = "test-validation-mediation-crosscheck-parallel.R",
-    mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R"
+    mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R",
+    two_correlations = "test-validation-two-correlations.R",
+    generic = "test-validation-generic-tests.R"
   )
 }
 
@@ -104,7 +106,7 @@ validation_minutes <- function() {
   c(basic = 0.3, anova = 15, interactions = 1.5, process_4 = 60,
     process_6 = 60, process_7 = 120, process_14 = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
-    mediation_crosscheck_serial = 40)
+    mediation_crosscheck_serial = 40, two_correlations = 0.3, generic = 0.3)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
