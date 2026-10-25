@@ -2737,3 +2737,42 @@ correlation question that turned out to have been settled on 17 October).
 status.md and forms.yaml were both right. The lesson for the next session
 is to check `forms.yaml` and status.md before trusting a roadmap status,
 which the new test now enforces for the "wired" claim at least.
+
+## 2026-10-25 · Four consistency tests for the parts no test was watching
+
+**What.** `app/routing/tests/testthat/test-repo-consistency.R`, four tests
+for places where a document, a script and a workflow have to agree and
+nothing was checking that they did. Each was confirmed to fail when the
+thing it guards is broken, not only to pass as things stand.
+
+| Test | What breaks without it |
+| --- | --- |
+| Every `test-validation-*.R` file is in a chunk of `run-validation.R`, and every chunk names a file that exists | A new validation file never runs in the full validation, and nobody notices because the run still reports success |
+| Every chunk has an entry in `validation_minutes()` | The progress report has no estimate to divide |
+| Every chunk can be chosen in the full-validation workflow | A chunk exists but can't be run from GitHub |
+| Every test named in conventions.md exists, with the name it is given | A departure's evidence is a dangling reference, which CLAUDE.md requires to be real |
+| coverage-roadmap.md's summary counts match its rows | The counts drift, as they had (the table covered 125 of 130 rows) |
+
+**Where they live, and why.** In the app's suite, not the engine's. The
+engine's tests run against a built copy of `engine/` and can't see `docs/`
+or `scripts/`; the app's suite runs from the repository and already holds
+tree.yaml to decision-tree.md, so the pattern was there to follow. The
+file says so at the top, so nobody moves them and wonders why they break.
+
+**Two things found while writing them.**
+
+- `yaml::read_yaml()` reads a workflow's `on:` key as the boolean true, so
+  it arrives named `"TRUE"`. The test handles all three spellings rather
+  than assuming one.
+- Sourcing `scripts/run-validation.R` from inside a test is safe because
+  its command-line block is guarded by `sys.nframe() == 0`, which is
+  non-zero under `sys.source()` in a function. The test notes this, since
+  the obvious worry is that sourcing it starts a validation run.
+
+**Not done:** the app's six tests that compare the app's result with the
+engine's (including every wired end point) skip with "On CRAN" unless
+`NOT_CRAN` is set, and CI doesn't set it, although the job does install
+the engine. Letting them run in CI is a one-line change to the workflow
+and would have caught the stale "not wired" statuses a week earlier. It
+lengthens the job, so it is the maintainer's call rather than something to
+slip into a test PR.
