@@ -35,7 +35,8 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/overlapping_correlations" = ,
     "basic_test/nonoverlapping_correlations" = ,
     "multiple_regression/r2_zero" = ,
-    "multiple_regression/r2_increase" = pwrss_backend(spec, seed),
+    "multiple_regression/r2_increase" = ,
+    "logistic_regression/single_predictor" = pwrss_backend(spec, seed),
     "basic_test/independent_t" = if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {

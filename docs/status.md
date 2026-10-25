@@ -30,6 +30,10 @@ fully validated. Validation runs are recorded in
   unpooled as G\*Power (Departure 12, decided 25 October 2026),
   with validation placeholders for the G\*Power manual's examples 28.3.1
   and 28.3.2.
+- **Logistic regression** (pwrss's Wald z test of one predictor, a score or
+  a yes/no group, with other predictors through an R-squared): in the
+  engine only, in review (25 October 2026), with validation placeholders
+  for the G\*Power manual's examples. Poisson regression is next.
 - **Generic tests**: t, F, chi-square and z from a noncentrality
   parameter, as in G\*Power, are in the app in review (E50, only from "I
   know my analysis"; no sample size). pwrss's search for the noncentrality
@@ -146,10 +150,10 @@ any time, and user testing is the maintainer's to run):
    design-upgrade comparator, wait for a statistician.
 7. More tests by formula from the packages powerkit already uses (the
    maintainer's direction, 18 October 2026): all are in the app or in
-   review. Dependent correlations: engine in review (25 October 2026),
-   the card next. Left for later: Wilcoxon and other rank tests (need a
-   statistician's view), logistic and Poisson regression, and contrasts.
-   Validation later.
+   review. Dependent correlations and logistic regression: engine in
+   review (25 October 2026); Poisson regression next. Left for later:
+   Wilcoxon and other rank tests (need a statistician's view), and
+   contrasts. Validation later.
 8. Before release: published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
    more mediators, phase 3b (binary X and W), and the methodologist

@@ -31,6 +31,11 @@
 #' test with pwrss's `power.z.twocors.steiger()` (unpooled, as G*Power):
 #' templates `overlapping_correlations` (X with Y against X with Z) and
 #' `nonoverlapping_correlations` (X1 with Y1 against X2 with Y2).
+#' Logistic regression (design `logistic_regression`, engine only): the Wald z
+#' test of one predictor, a score (odds ratio per SD) or a yes/no group,
+#' optionally adjusted for other predictors through their R-squared with
+#' it, by pwrss's `power.z.logistic()` (Demidenko's method with variance
+#' correction).
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

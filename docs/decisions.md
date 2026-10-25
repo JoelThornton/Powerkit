@@ -2219,4 +2219,91 @@ script, and the size of Departure 12.
 **Next.** A card (the app's E49 card says dependent correlations aren't
 calculated yet) and the result screen's departure line, in a separate
 PR.
+## 2026-10-25 · Logistic regression: engine
+
+**What.** Logistic regression in the engine only (not in the app):
+G\*Power's "z tests: Logistic regression" (coverage-roadmap row A14,
+decision-tree end point E27). Like the other tests by formula (18 October
+2026), it is one pwrss call: `power.z.logistic()`, the Wald z test of one
+coefficient, with pwrss's default method, Demidenko (2007) with variance
+correction. Design `logistic_regression`, template `single_predictor`.
+
+- Variables: a yes/no outcome Y and a predictor X that is a score or a
+  yes/no group.
+- Population: `odds_ratio`, `base_prob`, and optionally `x_prob` (yes/no X)
+  and `r2_other_predictors` (X's R-squared with the other predictors; their
+  own effects aren't needed, as in G\*Power and pwrss).
+- Effect `odds_ratio`, method `wald_z`; one-sided tests must point the way
+  of the odds ratio ("greater" means above 1), as pwrss's one-sided test
+  runs in the direction of the effect.
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. An odds ratio of 1 at a fixed N gives
+  power .05 at alpha .05 (Type I check).
+
+**Judgement call: what the odds ratio of a score X is per.** pwrss takes
+the odds ratio for a one-unit increase in X and the base probability at
+X = 0, with X normal (mean 0, SD 1 by default). **Recommendation: take a
+score X as standardised**, so the odds ratio is per SD of X and the base
+probability is at X's mean, because then no mean or SD has to be asked
+and the base probability is at a value of X that occurs. Studies that
+report an odds ratio per raw unit would need converting (OR per SD = OR
+per unit ^ SD), which the input screen can help with later. Not a
+departure: it is pwrss's own default distribution.
+
+**Checked against the manual** (the maintainer supplied the G\*Power 3.1
+manual, edition of 1 June 2023, on 25 October 2026; section 29,
+pp. 70-74). Both questions above are settled, and one new one is open.
+
+- *"Pr(Y=1|X=1) H0" is powerkit's base probability.* The manual defines it
+  as p1, the probability of an event under H0, where beta1 = 0 and so Y
+  doesn't depend on X (29.1, p. 70). That is pwrss's `base.prob`.
+- *The procedure powerkit uses is the one the manual recommends.* G\*Power
+  offers an enumeration procedure (Lyles et al., 2007) and two
+  large-sample approximations; the manual recommends Demidenko (2007) "as
+  standard procedure" and its Monte Carlo study found Demidenko with
+  variance correction the most accurate (29.2, p. 70; Table 1, p. 74).
+  That is pwrss's default, so powerkit needs no option. Its variance
+  correction factors (0.75 lognormal, 0.85 binomial, 1 otherwise;
+  29.6.2, p. 72) are pwrss's exactly.
+- *"R² other X" is `r2_other_predictors`*, the Hsieh et al. (1998)
+  correction N' = N / (1 - R²) (29.1, p. 70).
+- *The manual's printed examples select Hsieh et al., not Demidenko*, so
+  their N is not powerkit's. The validation placeholders say to set
+  Options > Procedure to Demidenko with variance correction before
+  transcribing.
+
+**Checks run against the manual's examples** (pwrss 1.3.3 called with
+powerkit's arguments; no published value was transcribed into a test):
+
+| Example (29.4) | Manual | powerkit |
+| --- | --- | --- |
+| Normal X, OR 1.5, p1 .5, two-sided, alpha .05, power .95: Demidenko with variance correction | 337 | 337 |
+| the same, without variance correction | 355 | 355 |
+| the same, Hsieh et al. | 317 | 317 |
+| Binary X (pi .5), p1 .05, p2 .10, power .95: Demidenko with variance correction | 1437 | 1437 |
+| Normal X as above with "R² other X" 0.1, said to be Demidenko with variance correction | 395 | **375** |
+
+**Open question for the maintainer: "R² other X" above 0.** Everything
+agrees at R² = 0. At R² = 0.1 the manual reports 395 where powerkit gives
+375 = 337 / 0.9; 395 is exactly 355 / 0.9, powerkit's answer with the
+variance correction switched off. The manual's own formulas (14) and (15)
+(29.6.2, p. 72) put R² in the mean of the H1 distribution only, which is
+what powerkit does and implies 375, and its validation notes record a
+deviation from PASS for this case too (29.7, p. 73). So the manual's 395
+may come from a run with the correction off, or G\*Power may drop it once
+R² is above 0. Nothing was changed in the engine on this evidence: the
+maintainer has G\*Power and can settle it. Recorded as "Known
+differences", 3 in conventions.md; the validation placeholders prefer an
+example with "R² other X" = 0 meanwhile.
+
+**Validation.** `test-validation-logistic-regression.R`, a new chunk
+(`logistic`) in `scripts/run-validation.R` and the full-validation
+workflow: two published tests for the G\*Power manual's examples (normal
+X, yes/no X), with `TODO_PUBLISHED_VALUE` placeholders. The unit tests
+check powerkit against pwrss called directly (score and yes/no X, with and
+without other predictors, one- and two-sided), the required N against
+N - 1, the refusals, and the exported R script.
+
+**Next.** Poisson regression (pwrss's `power.z.poisson()`) in its own PR;
+then a card for E27.
 

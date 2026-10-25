@@ -118,7 +118,7 @@ and from each package's own GitHub repository for the development version.
 | Simple linear regression slope | Spower `p_slr()` [Sp]; G\*Power Example 12.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Regression for two groups (slopes or intercepts) | G\*Power Examples 17.3, 18.3, reproduced in Spower's vignette [GP via Sp] | planned | later *(proposal)* | No | Check in the manual |
 | Any linear hypothesis in a linear or generalised linear model with fixed predictors | Spower `p_glm(formula, X, betas, test)`, tested with `car::lht()` [Sp] | not planned as a form | later *(proposal)* | No | A candidate backend for the full-model builder |
-| Logistic regression | Spower `p_glm(family = binomial())` [Sp]; G\*Power z test, logistic regression [GP, search] | planned | v2 *(build guide)* | No | |
+| Logistic regression | pwrss `power.z.logistic()` (engine, by formula; one predictor, a score or a yes/no group) [powerkit]; Spower `p_glm(family = binomial())` [Sp]; G\*Power z test, logistic regression [GP, search] | engine only (design `logistic_regression`; not in the app) | v2 *(build guide)* | No | |
 | Poisson regression | Spower `p_glm(family = poisson())` [Sp]; G\*Power z test, Poisson regression [GP, search] | planned | v2 *(build guide)* | No | |
 
 ## Factorial ANOVA

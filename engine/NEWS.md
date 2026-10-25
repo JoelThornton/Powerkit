@@ -10,6 +10,15 @@
   pwrss's pooled default (Departure 12); the required N is 1 to 4% larger
   than with pwrss's default. Correlations that can't hold together are refused with a
   plain-English message.
+* Engine (not yet in the app): logistic regression, the Wald z test of one
+  predictor, by pwrss's `power.z.logistic()` (Demidenko's method with its
+  variance correction, pwrss's default). Design `logistic_regression`,
+  template `single_predictor`: a yes/no outcome Y and a predictor X that is
+  a score (odds ratio per SD, base probability at X's mean) or a yes/no
+  group (odds ratio of the second group against the first, and the
+  proportion in the second group), optionally adjusted for other
+  predictors through X's R-squared with them. Power at a fixed N or the
+  required N; one-sided tests run in the direction of the odds ratio.
 
 * App: the browser's Back and Forward buttons move between powerkit's
   screens and tabs. Before, the app changed screens without the browser

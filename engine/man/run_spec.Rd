@@ -79,6 +79,11 @@ Two dependent correlations in one group (engine only), by Steiger's z
 test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
 \code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
+Logistic regression (design \code{logistic_regression}, engine only): the Wald z
+test of one predictor, a score (odds ratio per SD) or a yes/no group,
+optionally adjusted for other predictors through their R-squared with
+it, by pwrss's \code{power.z.logistic()} (Demidenko's method with variance
+correction).
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.

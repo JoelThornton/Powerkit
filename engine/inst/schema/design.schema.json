@@ -30,6 +30,7 @@
         "mediation",
         "moderated_mediation",
         "multiple_regression",
+        "logistic_regression",
         "generic_test"
       ]
     },
@@ -79,6 +80,9 @@
     },
     {
       "$ref": "#/definitions/design_multiple_regression"
+    },
+    {
+      "$ref": "#/definitions/design_logistic_regression"
     },
     {
       "$ref": "#/definitions/design_generic_test"
@@ -1892,6 +1896,67 @@
         ]
       }
     },
+    "design_logistic_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "logistic_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "single_predictor"
+            ]
+          },
+          "variables": {
+            "required": [
+              "X",
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "X": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "Y": {
+                "$ref": "#/definitions/variable_binary"
+              }
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "method": {
+                "const": "wald_z"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "single_predictor"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_single_predictor"
+            }
+          }
+        ]
+      }
+    },
     "template_r2_zero": {
       "description": "Linear multiple regression (fixed predictors): is R-squared greater than 0? The F test of all predictors together.",
       "properties": {
@@ -2606,6 +2671,50 @@
             },
             "method": {
               "const": "ancova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_single_predictor": {
+      "description": "Logistic regression of a yes/no outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "odds_ratio",
+            "base_prob"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "odds_ratio"
+            },
+            "odds_ratio": {
+              "description": "Odds ratio for X: per standard deviation of X for a score (X is taken as standardised), or the second level of X against the first for a yes/no group. 1 (no effect) is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_prob": {
+              "description": "Proportion with Y = yes (Y's second level) when X is at its mean (a score) or in X's first level (a yes/no group).",
+              "$ref": "#/definitions/proportion"
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level. 0.5 (equal groups) if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_other_predictors": {
+              "description": "R-squared of X on the other predictors in the model (0 if omitted, or if X is the only predictor). The other predictors' own effects aren't needed.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "odds_ratio"
             }
           }
         }
