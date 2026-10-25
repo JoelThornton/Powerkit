@@ -42,6 +42,11 @@ different answer, the difference is listed in "Known differences".
   - **[IP-web]** InteractionPoweR's website (dbaranger.github.io/InteractionPoweR):
     home page and the articles "The InteractionPoweR Package" and
     "Questions & Errors", read on 2026-10-13.
+  - **[GP-man]** The G\*Power 3.1 manual, edition of 1 June 2023 (PDF
+    supplied by the maintainer, 25 October 2026). Sections and page
+    numbers refer to that edition. Entries marked [GP via Sp] or
+    [GP, search] were taken at second hand before it was available and
+    have not all been rechecked against it.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
 - G*Power's manual and the pwrss documentation were not available when this
   file was written (no network access to CRAN or the web), so their entries
@@ -77,7 +82,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G\*Power | "Correlations: Two dependent Pearson r's", common index (ρ_ab against ρ_ac) or no common index (ρ_ab against ρ_cd): Steiger's (1980) z test (manual examples 28.3.1 and 28.3.2, as reproduced in Spower's `gpower_examples` vignette [GP via Sp]; the manual itself to check) | the two compared correlations and the others among the variables | tails; alpha. Its required N for the two examples (144 common index, 886 none, as the vignette reports) is what pwrss gives with `pooled = FALSE` [powerkit] |
+| G\*Power | "Correlations: Two dependent Pearson r's", common index (ρ_ab against ρ_ac) or no common index (ρ_ab against ρ_cd): the tests Z1\* and Z2\* of Dunn and Clark (1969), Eqns (11) and (12) in Steiger (1980) [GP-man, section 28, pp. 66-69] | ρ_ab is the correlation under H0 and ρ_ac (or ρ_cd) the one under H1; the remaining correlations describe how the two depend on each other [GP-man, 28.1, p. 66] | tails; alpha. **Under H0 it sets the H1 correlation equal to the H0 one** (ρ_ac = ρ_ab, or ρ_cd = ρ_ab) when computing their covariance [GP-man, 28.5.3, p. 69] |
 | pwrss | `power.z.twocors.steiger()`: Steiger's (1980) z test on Fisher's z scale; `common.index = TRUE` compares rho12 with rho13, `FALSE` compares rho12 with rho34 (pwrss 1.3.3 source, `R/correlations.R`) | `rho12`, `rho13`, `rho23` (and `rho14`, `rho24`, `rho34` with no common index) | **`pooled = TRUE` by default**: the covariance of the two correlations under the null uses their average; with `FALSE` it uses the specified values (source) |
 | Spower | `p_2r()`, simulation; default test `"steiger1980"` [Sp] | `r.ab`, `r.ac`, `r.bc` (and `r.ad`, `r.bd`, `r.cd`) | — |
 | **powerkit** | pwrss's `power.z.twocors.steiger()` by formula, templates `overlapping_correlations` (X with Y against X with Z) and `nonoverlapping_correlations` (X1 with Y1 against X2 with Y2); no simulation option yet (engine only, not in the app) [powerkit] | `r_X_Y`, `r_X_Z`, `r_Y_Z`; or `r_X1_Y1`, `r_X2_Y2` and the four others. "greater" = the second compared correlation is larger | **`pooled = FALSE`, as G\*Power** (Departure 12). A one-sided test runs in the direction of the specified difference, as for two independent correlations |
@@ -505,19 +510,26 @@ kept so later departures keep theirs.
 **The maintainer's decision, 25 October 2026** (`docs/decisions.md`).
 
 - **Established convention:** G\*Power's test of two dependent
-  correlations (common index or none) is Steiger's (1980) z test, and its
-  required N for the manual's examples 28.3.1 and 28.3.2 is 886 and 144
-  (as Spower's `gpower_examples` vignette reports them; the manual itself
-  is to check). pwrss 1.3.3's `power.z.twocors.steiger()`, the backend,
-  defaults to `pooled = TRUE`: under the null it uses the average of the
-  two compared correlations for their covariance (`R/correlations.R`).
-- **powerkit:** `pooled = FALSE`, which uses the specified correlations
-  and reproduces G\*Power's N for both examples.
+  correlations (common index or none) is Steiger's (1980) z test. Under
+  H0 it computes the covariance of the two correlations with the H1
+  correlation set equal to the H0 one, ρ_ac = ρ_ab (or ρ_cd = ρ_ab)
+  [GP-man, 28.5.3, p. 69]. Its required N for the manual's examples
+  28.3.1 and 28.3.2 is 886 and 144 [GP-man, 28.3, p. 67]. pwrss 1.3.3's
+  `power.z.twocors.steiger()`, the backend, defaults to `pooled = TRUE`:
+  under the null it uses the *average* of the two compared correlations
+  instead (`R/correlations.R`).
+- **powerkit:** `pooled = FALSE`, whose source substitutes the H0
+  correlation for the H1 one (its `# rho12 = rho13` branch) — the same
+  rule the manual states — and which reproduces G\*Power's N for both
+  examples.
 - **Size:** the required N is about 1 to 4% larger than with pwrss's
   default. One-sided, alpha .05, 80% power: 144 against 139 (common
-  index: .40 and .20 compared, the third correlation .50) and 886 against
-  875 (no common index: .10 and .20 compared; the others .50, .40, -.40,
-  .80).
+  index: .40 under H0 and .20 under H1, the third correlation .50) and 886
+  against 875 (no common index: .10 under H0 and .20 under H1; the others
+  .50, .40, -.40, .80). Both are the manual's own examples, and powerkit's
+  power at those N matches its "actual power" to six decimal places for
+  the common-index case (0.801161) and to about 6e-5 for the other
+  (0.800156 against 0.800093).
 - **Test:** `test-backend-formula-tests.R`, "departure: dependent
   correlations use G\*Power's unpooled test, not pwrss's pooled default
   (Departure 12)".

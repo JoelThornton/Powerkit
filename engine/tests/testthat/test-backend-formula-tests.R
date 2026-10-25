@@ -215,11 +215,12 @@ test_that("dependent correlations that can't be right are refused", {
 })
 
 test_that("departure: dependent correlations use G*Power's unpooled test, not pwrss's pooled default (Departure 12)", {
-  # The examples of G*Power 3.1's manual, sections 28.3.2 (common index)
-  # and 28.3.1 (no common index), one-sided, alpha .05, 80% power, as
-  # Spower's gpower_examples vignette gives them. Spower's vignette reports
-  # G*Power's required N as 144 and 886. With pooled = FALSE pwrss gives
-  # the same; with its default, pooled = TRUE, it gives 139 and 875.
+  # The examples of the G*Power 3.1 manual (edition of 1 June 2023),
+  # sections 28.3.2 (common index) and 28.3.1 (no common index), p. 67:
+  # one-sided, alpha .05, 80% power. The manual reports a required N of
+  # 144 and 886. With pooled = FALSE pwrss gives the same, because that
+  # branch makes the same H0 substitution the manual describes (28.5.3,
+  # p. 69); with its default, pooled = TRUE, it gives 139 and 875.
   required <- function(pooled, ...) {
     pwrss::power.z.twocors.steiger(
       ..., power = 0.8, alpha = 0.05, alternative = "one.sided", pooled = pooled, verbose = 0

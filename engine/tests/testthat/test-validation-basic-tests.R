@@ -467,15 +467,18 @@ dependent_correlations_spec <- function(template, population, alpha, tails, seed
 
 test_that("two dependent correlations, common index: matches G*Power 3.1 manual example 28.3.2 (published)", {
   skip_unless_full_validation()
-  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28
-  #   ("Correlations: Two dependent Pearson r's"), example 28.3.2, the
-  #   common-index case: a priori analysis. Transcribe the inputs and the
-  #   Output block.
+  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28.3.2
+  #   ("z test: Correlation - inequality of two dependent Pearson r's",
+  #   Examples, "Special case: Common index"), p. 67: an a priori analysis
+  #   with the procedure "Correlations: Two dependent Pearson r's (common
+  #   index)". Transcribe its Input and Output blocks.
   # The manual's rho_ab and rho_ac are the two correlations compared (they
   #   share variable a), and rho_bc is the third. Here a is X, b is Y and c
-  #   is Z: r_X_Y = rho_ab, r_X_Z = rho_ac, r_Y_Z = rho_bc.
-  # Spower's gpower_examples vignette reproduces this example (G*Power's
-  #   required N, 144); transcribe from the manual itself.
+  #   is Z: r_X_Y = rho_ab ("H0 Corr rho_ab"), r_X_Z = rho_ac ("H1 corr
+  #   rho_ac"), r_Y_Z = rho_bc ("Corr rho_bc"). G*Power names them for the
+  #   hypotheses: rho_ab is the correlation under H0 and rho_ac the one
+  #   under H1, which is why powerkit's one-sided test runs from the first
+  #   compared correlation to the second.
   r_x_y <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
   r_x_z <- TODO_PUBLISHED_VALUE # rho_ac (the second compared)
   r_y_z <- TODO_PUBLISHED_VALUE # rho_bc
@@ -499,16 +502,21 @@ test_that("two dependent correlations, common index: matches G*Power 3.1 manual 
 
 test_that("two dependent correlations, no common index: matches G*Power 3.1 manual example 28.3.1 (published)", {
   skip_unless_full_validation()
-  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28
-  #   ("Correlations: Two dependent Pearson r's"), example 28.3.1, the
-  #   no-common-index case: a priori analysis. Transcribe the inputs and
-  #   the Output block.
+  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28.3.1
+  #   ("z test: Correlation - inequality of two dependent Pearson r's",
+  #   Examples, "General case: No common index"), p. 67: an a priori
+  #   analysis with the procedure "Correlations: Two dependent Pearson r's
+  #   (no common index)". Transcribe its Input and Output blocks.
   # The manual's rho_ab and rho_cd are the two correlations compared, and
   #   rho_ac, rho_ad, rho_bc and rho_bd the other four. Here a is X1, b is
-  #   Y1, c is X2 and d is Y2: r_X1_Y1 = rho_ab, r_X2_Y2 = rho_cd,
-  #   r_X1_X2 = rho_ac, r_X1_Y2 = rho_ad, r_Y1_X2 = rho_bc, r_Y1_Y2 = rho_bd.
-  # Spower's gpower_examples vignette reproduces this example (G*Power's
-  #   required N, 886); transcribe from the manual itself.
+  #   Y1, c is X2 and d is Y2: r_X1_Y1 = rho_ab ("H0 Corr rho_ab"),
+  #   r_X2_Y2 = rho_cd ("H1 corr rho_cd"), r_X1_X2 = rho_ac,
+  #   r_X1_Y2 = rho_ad, r_Y1_X2 = rho_bc, r_Y1_Y2 = rho_bd.
+  # Note on the actual power: powerkit's power at the manual's N differs
+  #   from the manual's by about 6e-5 in this case (0.800156 against
+  #   0.800093), well inside the tolerance of this check; the common-index
+  #   example agrees to six decimal places (docs/decisions.md, 25 October
+  #   2026).
   r_x1_y1 <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
   r_x2_y2 <- TODO_PUBLISHED_VALUE # rho_cd (the second compared)
   r_x1_x2 <- TODO_PUBLISHED_VALUE # rho_ac

@@ -2188,6 +2188,26 @@ manual's examples as Spower's `gpower_examples` vignette reports them
 against, following the precedent of Departure 5 (G\*Power's choice over a
 backend's default). The difference is 1 to 4% in N.
 
+**Confirmed against the manual** (supplied by the maintainer on
+25 October 2026; section 28, pp. 66-69). The decision now rests on the
+formula, not only on the two N's matching:
+
+- The manual's implementation notes (28.5.3, p. 69) say that under H0
+  G\*Power sets the H1 correlation equal to the H0 one, ρ_ac = ρ_ab (or
+  ρ_cd = ρ_ab), when it computes their covariance. pwrss's
+  `pooled = FALSE` branch makes exactly that substitution (its
+  `# rho12 = rho13` comment); `pooled = TRUE` averages the two instead.
+- Its examples 28.3.1 and 28.3.2 (p. 67) are the source of 886 and 144,
+  so the unit test for Departure 12 now cites the manual rather than
+  Spower's vignette at second hand.
+- powerkit's power at those N matches the manual's "actual power" to six
+  decimal places for the common-index example (0.801161) and to about
+  6e-5 for the other (0.800156 against 0.800093). The second gap is well
+  inside the validation check's tolerance; it is noted in the test.
+- G\*Power names the inputs "H0 Corr rho_ab" and "H1 corr rho_ac" (or
+  "rho_cd"), which confirms the direction powerkit uses: the one-sided
+  test runs from the first compared correlation to the second.
+
 **Validation.** Two published tests in `test-validation-basic-tests.R`
 (section 5), for the G\*Power manual's examples 28.3.2 (common index) and
 28.3.1 (no common index), with `TODO_PUBLISHED_VALUE` placeholders for the
