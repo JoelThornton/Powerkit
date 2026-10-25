@@ -121,6 +121,27 @@ direct_spower_chisq <- function(n, probabilities, alpha, nrep, seed) {
   )
 }
 
+# One variance against `sigma2` (one value in `vars`), or two independent
+# variances of the same size (two values). `n` is the number of
+# participants in each group. Given one variance, p_var.test() runs
+# EnvStats::varTest() (the chi-square test); given two,
+# stats::var.test() (the F test). Its `alternative` is in the spec's own
+# order (the variance in `vars[1]` against `sigma2`, or `vars[1]` over
+# `vars[2]`), so it is passed through unchanged, and only when it is a
+# one-sided test: `alternative = NULL` would make Spower read the
+# argument as the quantity to solve for.
+direct_spower_var_test <- function(n, vars, sigma2 = 1, alternative = NULL,
+                                   alpha, nrep, seed) {
+  experiment <- if (is.null(alternative)) {
+    bquote(Spower::p_var.test(n = .(n), vars = vars, sigma2 = .(sigma2)))
+  } else {
+    bquote(Spower::p_var.test(
+      n = .(n), vars = vars, sigma2 = .(sigma2), alternative = .(alternative)
+    ))
+  }
+  run_spower(experiment, alpha, nrep, seed, data = list(vars = vars))
+}
+
 # InteractionPoweR ----------------------------------------------------------------
 
 direct_interactionpower_analytic <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,

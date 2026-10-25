@@ -152,8 +152,8 @@ Departure 10 in [`conventions.md`](conventions.md).
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A43 | Variances: one group | GP | none: not reachable | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_var.test(vars, sigma2)` (Example 26.3) | coverage.md: not planned | [G1][] |
-| A44 | Variances: two groups | GP | none: not reachable | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_var.test(vars = c(v1, v2))` (Example 15.3). Its `test` argument (Levene, Bartlett, Fligner) is documented for "multi-sample applications"; which test it runs for two groups, and whether that is G\*Power's F test, is unknown | Check against G\*Power before use | [G1][] |
+| A43 | Variances: one group | GP | none: engine only (template `one_variance`) | Planned (engine groundwork, draft PR; not wired) | Now: AP, PN (simulated). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars, sigma2)`**, which runs `EnvStats::varTest()`, the chi-square test of G\*Power's section 26 | Transcribe the published values (Example 26.3); then the app, if G1 says so | [G1][] |
+| A44 | Variances: two groups | GP | none: engine only (template `two_variances`) | Planned (engine groundwork, draft PR; not wired) | Now: AP, PN (simulated, equal groups only). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars = c(v1, v2))`**. Answered (25 October 2026): for two groups it runs `stats::var.test()`, the F test of G\*Power's section 15, whatever `test` says (Levene, Bartlett and Fligner are for three groups or more); `test = "Fligner"` is the one exception. Unequal groups fail in `gen_var.test()`, so an allocation ratio is refused (`upstream-questions.md`) | Transcribe the published values (Example 15.3); then the app, if G1 says so | [G1][] |
 
 ### Generic
 
@@ -413,8 +413,8 @@ Counts are of the rows above. Parts A, B and C have 49, 69 and 12 rows.
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 2 | 3 | 15 |
 | Validated, not wired | 0 | 6 | 2 | 8 |
-| Planned | 9 | 25 | 3 | 37 |
-| Foundation tool can do it, not planned | 18 | 12 | 2 | 32 |
+| Planned | 11 | 25 | 3 | 39 |
+| Foundation tool can do it, not planned | 16 | 12 | 2 | 30 |
 | G\*Power covers it, powerkit doesn't | 11 | 0 | 0 | 11 |
 | Unknown | 1 | 19 | 2 | 22 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
@@ -490,6 +490,15 @@ their missing-data options are under C3.
 
 **Flagged while writing this page:**
 
+- Spower 0.7's `p_var.test()` (A43, A44): `two.tailed = FALSE` means
+  "greater" whichever way the variances point, so a one-sided test of a
+  *smaller* variance has no power unless `alternative` is passed (the
+  version of G\*Power's Example 26.3 in Spower's own vignette hits this);
+  and `gen_var.test()` fails outright for unequal groups, so the
+  allocation-ratio case of Example 15.3 can't be simulated. powerkit
+  always passes `alternative` and refuses an allocation ratio for A44.
+  Reported in [`upstream-questions.md`](upstream-questions.md), with a
+  reproducible example in `docs/upstream/spower-var-test.R`.
 - Spower 0.7's `p_r()` with `rho` ≠ 0 always returns a two-sided p-value
   (`pnorm(abs(t), lower.tail = FALSE) * 2`), whatever `alternative` says
   (Spower source, `R/p_r.R`). powerkit doesn't use a non-zero ρ0 yet; if

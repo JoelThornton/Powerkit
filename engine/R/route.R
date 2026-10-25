@@ -51,6 +51,8 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
+    "basic_test/one_variance" = ,
+    "basic_test/two_variances" = spower_backend(spec, seed),
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {
@@ -69,7 +71,8 @@ route_spec <- function(spec, seed = NULL) {
 }
 
 # Basic tests use pwr's exact formula unless simulation is requested or
-# the test isn't one pwr covers (Welch's t-test), when Spower simulates.
+# the test isn't one pwr covers (Welch's t-test, and the variance tests,
+# which no formula backend covers at all), when Spower simulates.
 # Welch's t-test by formula (pwrss) only when options > method = "exact".
 basic_test_method <- function(spec) {
   spec$options$method %||% if (pwr_covers(spec)) "exact" else "simulation"

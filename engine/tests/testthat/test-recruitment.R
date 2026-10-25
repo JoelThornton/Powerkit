@@ -47,6 +47,14 @@ test_that("groups are rounded up one by one, in the design's split", {
 
   r <- recruitment_target(with_attrition("anova_2x2_mixed", 0.25), 60)
   expect_equal(r$groups_recruit, c(40, 40))
+
+  # The two-variance test splits its total into two equal groups too, so
+  # each group is rounded up on its own.
+  r <- recruitment_target(with_attrition("two_variances", 0.1), 200)
+  expect_equal(r$groups_analysed, c(100, 100))
+  expect_equal(r$groups_recruit, c(112, 112)) # not ceiling(200 / 0.9) = 223
+  expect_equal(r$n_recruit, 224)
+  expect_equal(r$unit, "group")
 })
 
 test_that("run_spec() records the number to recruit for each goal", {

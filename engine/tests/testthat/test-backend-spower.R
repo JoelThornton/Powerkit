@@ -205,3 +205,109 @@ test_that("departure: no continuity correction, unlike Spower's default (correct
   spec$options$seed <- 3
   expect_equal(run_quietly(spec)$curve$power, uncorrected)
 })
+
+# Variance tests -------------------------------------------------------------
+#
+# p_var.test() runs a different test depending on how many variances it is
+# given: one variance with sigma2 goes to EnvStats::varTest(), the
+# chi-square test of one variance; two go to stats::var.test(), the F test.
+# Those are the two tests G*Power computes (manual, sections 26 and 15), so
+# powerkit uses the function for both templates and never touches its
+# `test` argument, which chooses between Levene, Bartlett and Fligner for
+# three groups or more.
+
+test_that("the variance tests run on Spower and pass their check run", {
+  expected_rows <- list(
+    one_variance = "variance of Y",
+    two_variances = c(
+      "variance in group 1", "variance in group 2",
+      "group size ratio (group 2 / group 1)"
+    )
+  )
+  for (template in c("one_variance", "two_variances")) {
+    result <- run_quietly(sim_spec(template, goal = list(type = "power", n = 120)))
+    expect_s3_class(result, "powerkit_result")
+    # The check run recovers the variances from the generated data, so the
+    # rows must be there: all(NULL) would pass on its own.
+    expect_equal(result$check_run$parameter, expected_rows[[template]])
+    expect_true(all(result$check_run$ok), label = template)
+    expect_equal(result$provenance$backend, "Spower")
+    expect_match(result$provenance$backend_function, "p_var.test", fixed = TRUE)
+  }
+  expect_equal(
+    names(run_quietly(sim_spec("one_variance", goal = list(type = "power", n = 80)))$provenance$packages),
+    c("powerkit", "Spower", "SimDesign", "EnvStats")
+  )
+})
+
+test_that("variance specs are translated to Spower's parametrisation", {
+  one <- spower_inputs(validate_quietly(sim_spec("one_variance", goal = list(type = "power", n = 80))))$args(80)
+  # One variance plus the null value: that is what sends p_var.test() to the
+  # chi-square test.
+  expect_equal(one[c("n", "vars", "sigma2")], list(n = 80, vars = 1, sigma2 = 1.5))
+
+  spec <- sim_spec("two_variances", goal = list(type = "power", n = 150))
+  two <- spower_inputs(validate_quietly(spec))$args(150)
+  # n is one group's size, and the variances stay in the spec's order.
+  expect_equal(two[c("n", "vars")], list(n = 75, vars = c(1.5, 1)))
+  # No n.ratios: Spower can't draw unequal groups for this test, so an
+  # allocation ratio is refused rather than passed on.
+  expect_null(two$n.ratios)
+})
+
+test_that("one-sided variance tests keep the spec's direction", {
+  # Spower gets the variances in the spec's own order, so "greater" means
+  # "greater" to both, unlike the t-tests (where powerkit reverses the sign).
+  spec <- sim_spec("one_variance", goal = list(type = "power", n = 80))
+  expect_equal(spower_alternative("one_variance", "less"), "less")
+  expect_equal(spower_alternative("two_variances", "greater"), "greater")
+  # The example expects a smaller variance than the fixed value, so a test
+  # in the other direction can't be what the user means.
+  spec$target_test$alternative <- "greater"
+  expect_spec_problem(spec, "goes the other way")
+  # Spower's own default for two.tailed = FALSE is "greater", which would
+  # have no power here; powerkit always passes `alternative`.
+  spec$target_test$alternative <- "less"
+  expect_match(
+    spower_inputs(validate_quietly(spec))$description,
+    'alternative = "less"', fixed = TRUE
+  )
+})
+
+test_that("equal variances give power near alpha", {
+  spec <- sim_spec("one_variance", nrep = 500, goal = list(type = "power", n = 80))
+  spec$population$var0 <- spec$population$var
+  spec$target_test$alternative <- "two_sided"
+  expect_lt(run_quietly(spec)$curve$power, 0.12)
+  spec <- sim_spec("two_variances", nrep = 500, goal = list(type = "power", n = 120))
+  spec$population$var2 <- spec$population$var1
+  expect_lt(run_quietly(spec)$curve$power, 0.12)
+})
+
+test_that("variance specs that can't be right are refused", {
+  spec <- sim_spec("one_variance", goal = list(type = "power", n = 80))
+  spec$options$method <- "exact"
+  expect_spec_problem(spec, "exact")
+  spec <- sim_spec("two_variances", goal = list(type = "power", n = 121))
+  expect_spec_problem(spec, "split into two whole groups")
+  spec$goal$n <- 120
+  spec$options$allocation_ratio <- 2
+  expect_spec_problem(spec, "can only draw groups of the same size")
+  spec <- sim_spec("one_variance", goal = list(type = "power", n = 80))
+  spec$population$var <- 0
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+})
+
+test_that("the exported script reproduces a variance run", {
+  skip_unless_scripts_can_run()
+  # With attrition, so that the script's own recruitment figure is checked
+  # too: it has to split the total into the same two equal groups.
+  spec <- sim_spec("two_variances", goal = list(type = "power", n = 120))
+  spec$options$attrition <- 0.1
+  result <- run_for_export(spec)
+  run <- run_exported_script(spec, result)
+  expect_equal(run$reproduced$power, result$curve$power, tolerance = 1e-10)
+  expect_equal(run$reproduced$n_recruit, result$recruitment$n_recruit)
+  expect_equal(run$reproduced$n_recruit, 134) # 60 / 0.9 = 66.7 per group
+  expect_equal(run$reproduced, run$powerkit)
+})

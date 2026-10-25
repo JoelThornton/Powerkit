@@ -1,6 +1,6 @@
 # Input and output parity with G\*Power (E1–E14)
 
-*Last updated: 17 October 2026.*
+*Last updated: 25 October 2026.*
 
 For each end point powerkit runs, what a user can enter and what they get
 back, set against the matching G\*Power test. It records gaps; nothing
@@ -376,6 +376,29 @@ Notes:
   left at 1000000), post hoc power and the a priori N match powerkit.
   With the threshold at N < 100, the a priori answer falls back to the
   approximation (121).
+
+## Variance tests (engine only, 25 October 2026)
+
+Matching G\*Power tests: Variance, "Difference from constant (one sample
+case)" (manual section 26, p. 64) and "Inequality of two Variances"
+(manual section 15, p. 39).
+
+| Input or output | G\*Power | powerkit | Mark | Note |
+| --- | --- | --- | --- | --- |
+| Effect size | The ratio var1/var0, from the drawer's two variances; ratios in [0.999, 1.001] refused (sections 26.1, 15.1) | The two variances themselves (`var` and `var0`, or `var1` and `var2`); power depends on their ratio alone. A ratio of exactly 1 is refused as a zero effect | **Has** | Same information, entered as variances rather than a ratio |
+| Test | Exact: central chi-square with N - 1 df, scaled by the ratio under H1 (section 26.5); central F with N1 - 1 and N0 - 1 df, scaled by the ratio (section 15.5) | The same two tests, simulated: `EnvStats::varTest()` and `stats::var.test()` through Spower's `p_var.test()` | **Has (simulated)** | Known difference 3 in [`conventions.md`](conventions.md): Monte Carlo error rather than an exact number, about 0.004 of power at 10,000 replications |
+| Tails | One or two (sections 26, 15) | `alternative`: `two_sided`, `greater` or `less`, always passed to Spower | **Has** | Spower's own `two.tailed = FALSE` means "greater" whichever way the variances point, which is why powerkit passes the direction ([`upstream-questions.md`](upstream-questions.md)) |
+| Allocation ratio N2/N1 (two groups) | Yes (section 15.3: N = 443, 148 and 295, at a ratio of 2) | Refused: Spower's `gen_var.test()` cannot draw unequal groups | **Gap** | Reported upstream; the groups are split equally until it is fixed ([`upstream-questions.md`](upstream-questions.md)) |
+| Analysis types | A priori, post hoc, criterion, compromise, sensitivity | Power and sample size | **Gap** | As for every powerkit end point |
+| Output | Critical values, df, actual power | Power with its Monte Carlo interval, or the required N with an uncertainty interval | **Differs** | powerkit reports no critical values |
+
+The manual's two worked examples (sections 26.3 and 15.3) are set up as
+validation tests in
+`engine/tests/testthat/test-validation-variance-tests.R`, with the
+published values left for the maintainer to transcribe
+(`TODO_PUBLISHED_VALUE`). Run at 10,000 replications, powerkit's estimates
+for those two examples came out +0.003 and -0.005 from the manual's exact
+values, each within about one Monte Carlo standard error (0.004).
 
 ## Effect-size calculators ("Determine")
 

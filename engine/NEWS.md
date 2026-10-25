@@ -1,5 +1,16 @@
 # powerkit 0.0.0.9000
 
+* Engine: two variance tests, the ones G*Power computes in its sections 26
+  and 15 (templates `one_variance` and `two_variances` of the basic-test
+  design). One group's variance is compared with a fixed value by the
+  chi-square test; two groups' variances by the F test. Both run through
+  Spower's `p_var.test()` and are simulated, because no package powerkit
+  builds on has a formula for them (`docs/conventions.md`, Known
+  difference 3), so `options > method` can only be `"simulation"`. An
+  allocation ratio is refused for the two-group test: Spower's generator
+  cannot draw unequal groups (`docs/upstream-questions.md`). Not wired
+  into the app.
+
 * App: the browser's Back and Forward buttons move between powerkit's
   screens and tabs. Before, the app changed screens without the browser
   knowing, so Back left powerkit altogether. Values typed on an input

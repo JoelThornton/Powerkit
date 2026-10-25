@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "two_variances",
+  "variables": {
+    "G": {
+      "type": "binary",
+      "label": "Group",
+      "levels": ["Trained", "Untrained"]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time"
+    }
+  },
+  "population": {
+    "metric": "variance",
+    "var1": 1.5,
+    "var2": 1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: reaction times varying half again as much in the untrained group is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "variance_ratio",
+    "method": "f_var",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

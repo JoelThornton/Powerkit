@@ -181,6 +181,21 @@ test_that("the software used underneath is listed, each from its own citation()"
   }
 })
 
+test_that("a package only some of a backend's tests use is cited only then", {
+  # Spower's p_var.test() runs EnvStats::varTest() for the variance of one
+  # group, and nothing else powerkit sends to Spower touches EnvStats. The
+  # run's own package list decides, so the citation follows the provenance.
+  plain <- export_citations(fake_result("Spower"))
+  expect_no_match(plain, "EnvStats", fixed = TRUE)
+
+  result <- fake_result("Spower")
+  result$provenance$packages <- c(result$provenance$packages, EnvStats = "3.1.0")
+  text <- export_citations(result)
+  expect_match(text, "(from citation(\"EnvStats\"))", fixed = TRUE)
+  first_line <- strsplit(format(utils::citation("EnvStats"), style = "text")[1], "\n")[[1]][1]
+  expect_match(text, first_line, fixed = TRUE)
+})
+
 test_that("the package's own citation() is included, as the package gives it", {
   for (backend in backends) {
     text <- export_citations(fake_result(backend))

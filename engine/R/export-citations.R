@@ -60,7 +60,9 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
       key = powerkit_paper_key()
     )
   )
-  software <- lapply(supporting_software(package), function(s) {
+  software <- lapply(
+    supporting_software(package, names(result$provenance$packages)),
+    function(s) {
     list(
       label = sprintf("%s, %s (from citation(\"%s\"))", s$name, s$role, s$citation),
       citation = package_citation(s$citation),
@@ -94,11 +96,19 @@ powerkit_paper_key <- function() "powerkit"
 # and their confidence intervals with manymome; InteractionPoweR uses base
 # R only), then R itself (except for stats, which is R). `citation` is the package whose citation() is
 # used ("base" for R).
-supporting_software <- function(backend) {
+#
+# `used` is the run's own package list (the provenance), so that a package
+# only some of a backend's tests call is cited only when it was called.
+supporting_software <- function(backend, used = character()) {
   s <- function(name, role, citation = name) list(name = name, role = role, citation = citation)
   packages <- switch(
     backend,
-    Spower = list(s("SimDesign", "which runs Spower's simulations")),
+    Spower = c(
+      list(s("SimDesign", "which runs Spower's simulations")),
+      if ("EnvStats" %in% used) {
+        list(s("EnvStats", "whose varTest() is the chi-square test of one variance that Spower's p_var.test() runs"))
+      }
+    ),
     Superpower = list(
       s("afex", "which fits Superpower's ANOVAs (aov_car())"),
       s("MASS", "which Superpower uses to generate data (mvrnorm())")

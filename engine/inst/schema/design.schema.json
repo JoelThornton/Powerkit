@@ -438,6 +438,11 @@
       "exclusiveMinimum": -1,
       "exclusiveMaximum": 1
     },
+    "variance": {
+      "description": "A variance, which must be above 0.",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
     "proportion": {
       "type": "number",
       "exclusiveMinimum": 0,
@@ -573,7 +578,9 @@
               "one_proportion",
               "mcnemar",
               "chi_square_gof",
-              "two_correlations"
+              "two_correlations",
+              "one_variance",
+              "two_variances"
             ]
           },
           "target_test": {
@@ -731,6 +738,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_correlations"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "one_variance"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_one_variance"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_variances"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_two_variances"
             }
           }
         ]
@@ -2356,6 +2393,104 @@
             },
             "method": {
               "const": "fisher_z"
+            }
+          }
+        }
+      }
+    },
+    "template_one_variance": {
+      "description": "The variance of one group compared with a fixed value (the chi-square test of one variance). The effect is the ratio of the two.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "var",
+            "var0"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "variance"
+            },
+            "var": {
+              "description": "Expected variance of Y in the population.",
+              "$ref": "#/definitions/variance"
+            },
+            "var0": {
+              "description": "The fixed variance it is compared with (the null value). Equal variances (no effect) are allowed, to check the Type I error rate at a fixed n.",
+              "$ref": "#/definitions/variance"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "variance_ratio"
+            },
+            "method": {
+              "const": "chi_square_var"
+            }
+          }
+        }
+      }
+    },
+    "template_two_variances": {
+      "description": "Two independent groups compared on the variance of Y (the F test of two variances). The effect is the ratio of the two.",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "var1",
+            "var2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "variance"
+            },
+            "var1": {
+              "description": "Variance of Y in the first group.",
+              "$ref": "#/definitions/variance"
+            },
+            "var2": {
+              "description": "Variance of Y in the second group. Equal variances (no effect) are allowed, to check the Type I error rate at a fixed n.",
+              "$ref": "#/definitions/variance"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "variance_ratio"
+            },
+            "method": {
+              "const": "f_var"
             }
           }
         }

@@ -67,6 +67,19 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Variance tests (engine only, 25 October 2026):** the two tests
+  G\*Power computes in its sections 26 and 15 — one group's variance
+  against a fixed value (chi-square) and two groups' variances (F) — run
+  through Spower's `p_var.test()`. They are simulated, because no package
+  powerkit builds on has a formula for them
+  ([`conventions.md`](conventions.md), Known difference 3), so there is no
+  exact method for them. An allocation ratio is refused for the two-group
+  test while Spower can't draw unequal groups
+  ([`upstream-questions.md`](upstream-questions.md), which also reports
+  two more faults found in `p_var.test()`). Not wired into the app, and
+  the published values in the validation file are still to be
+  transcribed; whether these two reach the app is part of the open scope
+  question G1 ([`judgement-calls.md`](judgement-calls.md)).
 - **Fix (25 October 2026):** the nightly validation job runs again. It had
   failed on every run since it was set up on 12 October (13 runs), before
   a single test ran: testthat's JUnit reporter needs xml2, which

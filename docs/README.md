@@ -86,3 +86,6 @@ reasoning and are not current instructions.
   page's entries up to 18 October 2026.
 - `upstream/spower-one-sided-tests.R`: the example reported to Spower's
   author about one-sided tests (`decisions.md`, 13 October 2026).
+- `upstream/spower-var-test.R`: the example prepared for Spower's author
+  about `p_var.test()` — the direction of a one-sided test, unequal
+  groups, and `alternative = NULL` (`upstream-questions.md`).
