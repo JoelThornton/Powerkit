@@ -75,6 +75,10 @@ chi-square goodness-of-fit test (\code{power.chisq.gof()}, with Cohen's w from
 \code{probs.to.w()}), two independent correlations (\code{power.z.twocors()}) and
 one-way ANCOVA (\code{power.f.ancova.shieh()}). None has a simulation option;
 Fisher's exact test is an exact test of counts too.
+Two dependent correlations in one group (engine only), by Steiger's z
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
+templates \code{overlapping_correlations} (X with Y against X with Z) and
+\code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.

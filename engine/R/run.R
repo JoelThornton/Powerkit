@@ -27,6 +27,10 @@
 #' `probs.to.w()`), two independent correlations (`power.z.twocors()`) and
 #' one-way ANCOVA (`power.f.ancova.shieh()`). None has a simulation option;
 #' Fisher's exact test is an exact test of counts too.
+#' Two dependent correlations in one group (engine only), by Steiger's z
+#' test with pwrss's `power.z.twocors.steiger()` (unpooled, as G*Power):
+#' templates `overlapping_correlations` (X with Y against X with Z) and
+#' `nonoverlapping_correlations` (X1 with Y1 against X2 with Y2).
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

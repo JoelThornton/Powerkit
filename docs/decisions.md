@@ -2152,3 +2152,50 @@ can defend instead:
 Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
+
+## 2026-10-25 · Two dependent correlations: engine (waits for the maintainer's yes)
+
+**What.** Two dependent correlations in one group, in the engine only
+(not in the app): G\*Power's "Correlations: Two dependent Pearson r's",
+common index and no common index (coverage-roadmap rows A4, A5). Like the
+other tests by formula (18 October 2026), each is one pwrss call:
+`power.z.twocors.steiger()`, Steiger's (1980) z test.
+
+- Template `overlapping_correlations`: X with Y against X with Z (the two
+  correlations share X); population `r_X_Y`, `r_X_Z`, `r_Y_Z`.
+- Template `nonoverlapping_correlations`: X1 with Y1 against X2 with Y2,
+  for example the same two measures at two ages; population `r_X1_Y1`,
+  `r_X2_Y2` and the four other correlations.
+- Effect `correlation_difference`, method `steiger_z`; "greater" means the
+  second compared correlation is larger, and a one-sided test must point
+  that way (pwrss's one-sided test runs in the direction of the specified
+  difference, as for two independent correlations).
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. Correlations that can't hold together
+  (a correlation matrix no population could have) are refused in plain
+  English, and so is a two-sided power goal with equal compared
+  correlations, which pwrss can't compute (a one-sided test gives the
+  Type I error check: power .05 at alpha .05).
+
+**Judgement call: pooled or unpooled.** pwrss's default, `pooled = TRUE`,
+uses the average of the two compared correlations for their covariance
+under the null; `pooled = FALSE` uses the specified values. With
+`pooled = FALSE`, pwrss gives G\*Power's required N for both of the
+manual's examples as Spower's `gpower_examples` vignette reports them
+(144 and 886; pooled: 139 and 875). **Recommendation: unpooled, as
+G\*Power** (Departure 12), because G\*Power is the tool psychologists
+check against, and this follows the precedent of Departure 5 (G\*Power's
+choice over a backend's default). The difference is 1 to 4% in N.
+
+**Validation.** Two published tests in `test-validation-basic-tests.R`
+(section 5), for the G\*Power manual's examples 28.3.2 (common index) and
+28.3.1 (no common index), with `TODO_PUBLISHED_VALUE` placeholders for the
+maintainer to transcribe from the manual itself; they run in the `basic`
+chunk. The unit tests check powerkit against pwrss called directly, the
+required N against the power at N - 1, the refusals, the exported R
+script, and the size of Departure 12.
+
+**Next.** A card (the app's E49 card says dependent correlations aren't
+calculated yet) and the result screen's departure line, in a separate
+PR.
+

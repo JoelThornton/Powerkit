@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 22 October 2026. This page says where the project is now
+*Last updated: 25 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -24,7 +24,12 @@ fully validated. Validation runs are recorded in
 - **More tests by formula** (pwrss): Fisher's exact test (E5's test
   version) and one-way ANCOVA (E23) are in the app; chi-square goodness of
   fit (E48, its own card) and two independent correlations (E49) are in
-  the app. None is checked against G\*Power yet.
+  the app. None is checked against G\*Power yet. Two dependent
+  correlations (one group, with or without a shared variable) are in the
+  engine only, in review (25 October 2026): pwrss's Steiger test,
+  unpooled as G\*Power (Departure 12, waits for the maintainer's yes),
+  with validation placeholders for the G\*Power manual's examples 28.3.1
+  and 28.3.2.
 - **Generic tests**: t, F, chi-square and z from a noncentrality
   parameter, as in G\*Power, are in the app in review (E50, only from "I
   know my analysis"; no sample size). pwrss's search for the noncentrality
@@ -133,9 +138,10 @@ any time, and user testing is the maintainer's to run):
    design-upgrade comparator, wait for a statistician.
 7. More tests by formula from the packages powerkit already uses (the
    maintainer's direction, 18 October 2026): all are in the app or in
-   review. Left for later: Wilcoxon and other rank tests (need a
-   statistician's view), dependent correlations, logistic and Poisson
-   regression, and contrasts. Validation later.
+   review. Dependent correlations: engine in review (25 October 2026),
+   the card next. Left for later: Wilcoxon and other rank tests (need a
+   statistician's view), logistic and Poisson regression, and contrasts.
+   Validation later.
 8. Before release: published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
    more mediators, phase 3b (binary X and W), and the methodologist

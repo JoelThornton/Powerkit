@@ -188,6 +188,14 @@ design_description <- function(spec) {
       "comparison of two correlations (Fisher's z test): %s with %s, between the groups of %s (%s)",
       label("X"), label("Y"), label("G"), levels("G")
     ),
+    "basic_test/overlapping_correlations" = sprintf(
+      "comparison of two dependent correlations (Steiger's z test), same people: %s with %s against %s with %s",
+      label("X"), label("Y"), label("X"), label("Z")
+    ),
+    "basic_test/nonoverlapping_correlations" = sprintf(
+      "comparison of two dependent correlations (Steiger's z test), same people: %s with %s against %s with %s",
+      label("X1"), label("Y1"), label("X2"), label("Y2")
+    ),
     "basic_test/chi_square_gof" = sprintf(
       "chi-square goodness-of-fit test of %s (%s) against %s proportions",
       label("Y"), levels("Y"), if (is.null(spec$population$null_probabilities)) "equal" else "fixed"

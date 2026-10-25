@@ -1,7 +1,7 @@
 # Scripts for the tests pwrss computes by formula (backend-pwrss.R): one
 # proportion, McNemar's test, Welch's t-test by formula, R-squared in
 # multiple regression, Fisher's exact test, goodness of fit, two
-# correlations and ANCOVA. Each passes the same values to pwrss
+# correlations, dependent correlations and ANCOVA. Each passes the same values to pwrss
 # as powerkit does (pwrss_inputs()).
 
 pwrss_script <- function(spec, result) {
@@ -75,6 +75,21 @@ pwrss_script_inputs <- function(spec) {
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
         r_code(spec$options$allocation_ratio %||% 1), lv("G", 2), lv("G", 1)
       ),
+      alt_line
+    ),
+    overlapping_correlations = c(
+      sprintf("r_X_Y <- %s # correlation of %s with %s (the first compared)", r_code(pop$r_X_Y), comment_text(v$X$label), comment_text(v$Y$label)),
+      sprintf("r_X_Z <- %s # correlation of %s with %s (the second compared)", r_code(pop$r_X_Z), comment_text(v$X$label), comment_text(v$Z$label)),
+      sprintf("r_Y_Z <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y_Z), comment_text(v$Y$label), comment_text(v$Z$label)),
+      alt_line
+    ),
+    nonoverlapping_correlations = c(
+      sprintf("r_X1_Y1 <- %s # correlation of %s with %s (the first compared)", r_code(pop$r_X1_Y1), comment_text(v$X1$label), comment_text(v$Y1$label)),
+      sprintf("r_X2_Y2 <- %s # correlation of %s with %s (the second compared)", r_code(pop$r_X2_Y2), comment_text(v$X2$label), comment_text(v$Y2$label)),
+      sprintf("r_X1_X2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_X1_X2), comment_text(v$X1$label), comment_text(v$X2$label)),
+      sprintf("r_X1_Y2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_X1_Y2), comment_text(v$X1$label), comment_text(v$Y2$label)),
+      sprintf("r_Y1_X2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y1_X2), comment_text(v$Y1$label), comment_text(v$X2$label)),
+      sprintf("r_Y1_Y2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y1_Y2), comment_text(v$Y1$label), comment_text(v$Y2$label)),
       alt_line
     ),
     chi_square_gof = c(
@@ -162,6 +177,25 @@ pwrss_script_call_lines <- function(spec, inputs) {
       args = c(
         "rho1 = r1", "rho2 = r2", "n.ratio = n_group1 / n_group2 # pwrss's n.ratio is n1 / n2",
         "n2 = n_group2", "alpha = alpha", "alternative = alternative", "ceil.n = FALSE", "verbose = 0"
+      )
+    ),
+    overlapping_correlations = list(
+      head = "power.z.twocors.steiger( # Steiger's z test, two correlations sharing a variable",
+      args = c(
+        "rho12 = r_X_Y # pwrss numbers the variables: 1 = X (shared), 2 = Y, 3 = Z",
+        "rho13 = r_X_Z", "rho23 = r_Y_Z", "n = n_total", "alpha = alpha", "alternative = alternative",
+        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "common.index = TRUE", "ceil.n = FALSE", "verbose = 0"
+      )
+    ),
+    nonoverlapping_correlations = list(
+      head = "power.z.twocors.steiger( # Steiger's z test, two correlations with no variable in common",
+      args = c(
+        "rho12 = r_X1_Y1 # pwrss numbers the variables: 1 = X1, 2 = Y1, 3 = X2, 4 = Y2",
+        "rho34 = r_X2_Y2", "rho13 = r_X1_X2", "rho14 = r_X1_Y2", "rho23 = r_Y1_X2", "rho24 = r_Y1_Y2",
+        "n = n_total", "alpha = alpha", "alternative = alternative",
+        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "common.index = FALSE", "ceil.n = FALSE", "verbose = 0"
       )
     ),
     chi_square_gof = list(head = "power.chisq.gof( # chi-square goodness-of-fit test", args = c(
