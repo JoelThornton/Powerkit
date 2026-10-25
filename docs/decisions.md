@@ -2307,3 +2307,106 @@ N - 1, the refusals, and the exported R script.
 **Next.** Poisson regression (pwrss's `power.z.poisson()`) in its own PR;
 then a card for E27.
 
+
+## 2026-10-25 · Poisson regression: engine
+
+**What.** Poisson regression in the engine only (not in the app):
+G\*Power's "z tests: Poisson regression" (coverage-roadmap row A15,
+decision-tree end point E28). As with logistic regression, it is one pwrss
+call: `power.z.poisson()`, the Wald z test of one coefficient, with
+pwrss's default method, Demidenko (2007) with variance correction. Design
+`poisson_regression`, template `single_predictor_count`.
+
+- Variables: a count outcome Y and a predictor X that is a score or a
+  yes/no group.
+- Population: `rate_ratio`, `base_rate`, and optionally `mean_exposure`
+  (1 if omitted), `x_prob` (yes/no X) and `r2_other_predictors`.
+- Effect `rate_ratio`, method `wald_z`; one-sided tests must point the way
+  of the rate ratio ("greater" means above 1), as for logistic regression.
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. A rate ratio of 1 at a fixed N gives
+  power .05 at alpha .05 (Type I check).
+- A score X is taken as standardised, so the rate ratio is per SD and the
+  base rate is at X's mean: the same judgement as for logistic regression
+  (above), for the same reasons.
+
+**Three small decisions, not worth holding the PR for.**
+
+- *A `count` variable type.* A Poisson outcome is neither a score nor a
+  yes/no, so `variable.type` gains `count`. Additive: every other design
+  pins Y by `$ref` to the continuous or binary variable, so none of them
+  accepts it.
+- *The template is `single_predictor_count`, not `single_predictor`.* The
+  backend, the check run and the script export all switch on the template
+  alone, so a template name has to be unique across designs. If those
+  switches are ever keyed on design and template together, the two
+  designs could share the name `single_predictor`.
+- *`mean_exposure` defaults to 1*, as in pwrss and G\*Power, so the base
+  rate is the expected count per person unless an exposure is given.
+
+**Checked against the manual** (G\*Power 3.1 manual, edition of 1 June
+2023, section 30, pp. 75-80).
+
+- *The procedure powerkit uses is the one the manual recommends.* It
+  recommends Demidenko (2007) "as the standard procedure" and says
+  Signorini's (1991) "is problematic and should not be used; it is only
+  included to allow checks of published results referring to this
+  widespread procedure" (30.2, p. 76). pwrss's default is Demidenko with
+  variance correction, so powerkit needs no option.
+- *The variance correction factor is 0.75 for a lognormal X and 1
+  otherwise* (30.5.2, p. 77), which is what pwrss uses for this test; the
+  0.85 it applies to a binary X in logistic regression is commented out in
+  its Poisson function. So a yes/no X is corrected differently in the two
+  designs, in both tools, deliberately.
+- *"Mean exposure" is `mean_exposure`*, the exposure time t in the
+  manual's equations (16) to (18) (30.5.2, p. 77), and pwrss's
+  `mean.exposure`.
+- *The manual's printed example selects Signorini*, so its output block is
+  not powerkit's answer; the sample sizes for the other procedures are in
+  the text that follows it. The validation placeholders say so.
+
+**Checks run against the manual's examples** (pwrss 1.3.3 called with
+powerkit's arguments; no published value was transcribed into a test).
+Rows marked with another procedure are pwrss's other methods, not
+powerkit's, and are there to show the whole example reproduces.
+
+| Example (section 30) | Manual | powerkit |
+| --- | --- | --- |
+| Swimmers (30.3, pp. 76-77; Signorini, 1991, p. 449), one-sided, Exp(beta1) 1.3, base rate .85, exposure 1, X binomial pi .5, alpha .05, power .95: Demidenko with variance correction | 649 | 649 |
+| the same, without variance correction | 655 | 655 (pwrss's `"demidenko"`) |
+| the same, Signorini's procedure | 697 | 697 (pwrss's `"signorini"`) |
+| the same with "R² other X" 0.1, Signorini's procedure | 774 | 774 (pwrss's `"signorini"`) |
+| Table 2 (30.4, p. 78), X normal, beta1 -0.10, -0.15, -0.20; two-sided, N 200, beta0 .5, alpha .05: "Demi(c)" column | .445, .782, .956 | .444591, .782076, .956209 |
+| Table 2, X binomial pi .2, beta1 -0.20, -0.40: "Demi(c)" column | .254, .716 | .254388, .716318 |
+
+The binomial rows matter: an X that is not symmetric about its mean is
+where the variance correction changes the answer, and the manual's "Demi"
+and "Demi(c)" columns differ there (.268 and .254 for beta1 -0.20). The
+engine lands on the corrected value, which is also the closer of the two
+to the manual's own simulation.
+
+**This bears on the open logistic question.** The R-squared correction
+sits in the same place in both tests' formulas, and for Poisson the
+manual's figure for R² above 0 does match: 774 is Signorini's own R² = 0
+answer (697) with the correction applied inside that procedure's formula,
+which is what powerkit does. So G\*Power appears to apply R² within
+whichever procedure produced the R² = 0 answer, and the logistic manual's
+395 (said to be Demidenko with variance correction, but exactly 355 / 0.9,
+the uncorrected answer) looks more like a run with the correction off than
+a different rule. Still the maintainer's to settle with G\*Power
+("Known differences", 3 in conventions.md); nothing was changed in the
+engine on this evidence, and the Poisson validation placeholders note that
+an example with "R² other X" above 0 is usable for this test.
+
+**Validation.** `test-validation-poisson-regression.R`, a new chunk
+(`poisson`) in `scripts/run-validation.R` and the full-validation
+workflow: three published tests with `TODO_PUBLISHED_VALUE` placeholders
+(the swimmers example's required N, and one Table 2 row each for a score
+and a yes/no X). The unit tests check powerkit against pwrss called
+directly (score and yes/no X, a non-default exposure, with and without
+other predictors, one- and two-sided), the required N against N - 1, the
+refusals, and the exported R script.
+
+**Next.** A pass over the entries still marked "to check" in
+conventions.md, now that the manual is to hand; cards for E27 and E28
+later.

@@ -171,6 +171,15 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | Spower | `p_glm(family = binomial())`, simulation [Sp] | coefficients | — |
 | **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. With "R² other X" = 0 powerkit reproduces all three of the manual's procedures exactly; above 0 see "Known differences", 3 |
 
+## Poisson regression (one predictor)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "Z tests: Poisson Regression": the Wald z test of one coefficient, by the enumeration procedure of Lyles, Lin & Williamson (2007) or one of two large-sample approximations, Demidenko (2007) with or without variance correction and Signorini (1991). The manual recommends Demidenko "as the standard procedure" and says Signorini's "is problematic and should not be used; it is only included to allow checks of published results referring to this widespread procedure"; its worked example nonetheless prints the Signorini output, giving the others' sample sizes in the text [GP-man, section 30, pp. 75-80] | "Exp(β1)", the rate ratio for a one-unit increase in X; "Base rate exp(β0)", the rate when X = 0; "Mean exposure", the exposure time t; "R² other X", in the mean of the H1 distribution as N(1 − R²) [GP-man, 30.5.2, p. 77, equations (16) to (18)] | X distribution: normal (with "X parm µ", "X parm σ"), binomial (with "X parm π"), and five others. Variance correction factor: 0.75 lognormal, 1 otherwise [GP-man, 30.5.2, p. 77] |
+| pwrss | `power.z.poisson()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction), or `"demidenko"`, `"signorini"`, of which its help says the first "is more precise"; its formulas "are validated using Monte Carlo simulation, G\*Power, and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.poisson.R`). Its correction factor is 0.75 for a lognormal X and 1 for every other distribution, the logistic function's 0.85 for a binary X being commented out — which is G\*Power's rule for this test | `rate.ratio` (or `base.rate` with `beta1`) for a one-unit increase in X; `base.rate`, the rate when X = 0 | `mean.exposure` (1 by default); `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
+| Spower | `p_glm(family = poisson())`, simulation [Sp] | coefficients | — |
+| **powerkit** | pwrss's `power.z.poisson(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `rate_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_rate` at X's mean or in X's first level, per unit of exposure | `mean_exposure` (1 if omitted); `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the rate ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. powerkit's procedure gives the manual's N for its worked example (649), and pwrss's other two methods give the manual's other two (655, 697) [GP-man, 30.3, p. 77]; powerkit also reproduces, to the three decimals printed, all five rows of the manual's Table 2 whose X distribution it has (three normal, two binomial) [GP-man, 30.4, p. 78]. The manual's only "R² other X" above 0 figure for this test is for Signorini's procedure, which pwrss reproduces as well (774) |
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |
@@ -645,6 +654,15 @@ Wired into the app on 18 October 2026 (E25, E26).*
   whether that correction still applies once R² is above 0. The manual's
   formulas (14) and (15) [GP-man, 29.6.2, p. 72] put R² in the mean of the
   H1 distribution only, which is what powerkit does and implies 375.
+- **What Poisson regression suggests.** The same correction, in the same
+  place in the formula, is used for Poisson regression, and there the
+  manual's R² figure does match: for the swimmers example at R² = 0.1 it
+  reports 774 with Signorini's procedure [GP-man, 30.3, p. 77], which is
+  that procedure's own R² = 0 answer (697) with the correction applied
+  inside its formula, and pwrss's `"signorini"` method gives 774 too. So
+  G*Power appears to apply R² within whichever procedure produced the
+  R² = 0 answer, as powerkit does, which is what the logistic figure of
+  395 (Demidenko with variance correction, but 355 / 0.9) does not do.
 - **Not resolved here.** G*Power itself has not been run; the manual's own
   validation notes record a deviation from PASS for this case as well
   [GP-man, 29.7, p. 73]. The maintainer has G*Power and can settle it
