@@ -27,7 +27,7 @@ fully validated. Validation runs are recorded in
   the app. None is checked against G\*Power yet. Two dependent
   correlations (one group, with or without a shared variable) are in the
   engine only, in review (25 October 2026): pwrss's Steiger test,
-  unpooled as G\*Power (Departure 12, waits for the maintainer's yes),
+  unpooled as G\*Power (Departure 12, decided 25 October 2026),
   with validation placeholders for the G\*Power manual's examples 28.3.1
   and 28.3.2.
 - **Generic tests**: t, F, chi-square and z from a noncentrality

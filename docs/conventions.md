@@ -502,7 +502,7 @@ kept so later departures keep theirs.
 
 ### 12. Two dependent correlations: G\*Power's unpooled Steiger test, not pwrss's pooled default
 
-**Waits for the maintainer's yes** (`docs/decisions.md`, 25 October 2026).
+**The maintainer's decision, 25 October 2026** (`docs/decisions.md`).
 
 - **Established convention:** G\*Power's test of two dependent
   correlations (common index or none) is Steiger's (1980) z test, and its

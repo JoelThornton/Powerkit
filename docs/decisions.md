@@ -2153,7 +2153,7 @@ Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
 
-## 2026-10-25 · Two dependent correlations: engine (waits for the maintainer's yes)
+## 2026-10-25 · Two dependent correlations: engine
 
 **What.** Two dependent correlations in one group, in the engine only
 (not in the app): G\*Power's "Correlations: Two dependent Pearson r's",
@@ -2177,15 +2177,16 @@ other tests by formula (18 October 2026), each is one pwrss call:
   correlations, which pwrss can't compute (a one-sided test gives the
   Type I error check: power .05 at alpha .05).
 
-**Judgement call: pooled or unpooled.** pwrss's default, `pooled = TRUE`,
+**Pooled or unpooled: unpooled, as G\*Power (the maintainer's decision,
+25 October 2026).** pwrss's default, `pooled = TRUE`,
 uses the average of the two compared correlations for their covariance
 under the null; `pooled = FALSE` uses the specified values. With
 `pooled = FALSE`, pwrss gives G\*Power's required N for both of the
 manual's examples as Spower's `gpower_examples` vignette reports them
-(144 and 886; pooled: 139 and 875). **Recommendation: unpooled, as
-G\*Power** (Departure 12), because G\*Power is the tool psychologists
-check against, and this follows the precedent of Departure 5 (G\*Power's
-choice over a backend's default). The difference is 1 to 4% in N.
+(144 and 886; pooled: 139 and 875). Decided: unpooled, as G\*Power
+(Departure 12), because G\*Power is the tool psychologists check
+against, following the precedent of Departure 5 (G\*Power's choice over a
+backend's default). The difference is 1 to 4% in N.
 
 **Validation.** Two published tests in `test-validation-basic-tests.R`
 (section 5), for the G\*Power manual's examples 28.3.2 (common index) and
