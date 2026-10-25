@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "oneway_contrast",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Training dose",
+      "levels": ["None", "One session", "Four sessions", "Eight sessions"]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reading score"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [1.5, 2, 3, 4],
+    "sd": 2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: reading scores rising steadily with training dose is the smallest pattern of interest."
+  },
+  "target_test": {
+    "effect": "contrast",
+    "method": "contrast_t",
+    "alpha": 0.05,
+    "weights": [-3, -1, 1, 3]
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

@@ -28,6 +28,7 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/2x2_mixed" = ,
     "factorial_anova/oneway_between" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,
+    "factorial_anova/oneway_contrast" = ,
     "basic_test/one_proportion" = ,
     "basic_test/mcnemar" = ,
     "basic_test/chi_square_gof" = ,

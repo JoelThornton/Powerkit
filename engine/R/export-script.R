@@ -197,6 +197,11 @@ design_description <- function(spec) {
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       spec$population$covariates, if (spec$population$covariates == 1) "" else "s"
     ),
+    "factorial_anova/oneway_contrast" = sprintf(
+      "planned comparison of %s across the %d groups of %s (%s), with weights %s; t test of the contrast",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      paste(format_number(as.numeric(unlist(spec$target_test$weights))), collapse = ", ")
+    ),
     "basic_test/one_proportion" = sprintf(
       "exact binomial test of one proportion: %s = %s, compared with a fixed value",
       label("Y"), comment_text(unlist(v$Y$levels)[2])
@@ -458,6 +463,7 @@ add_recruitment_section <- function(lines, spec, result) {
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,
+    oneway_contrast = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),

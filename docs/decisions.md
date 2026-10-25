@@ -2152,3 +2152,97 @@ can defend instead:
 Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
+
+## 2026-10-25 · Planned comparisons (contrasts): engine
+
+**What.** A planned comparison between the levels of one
+between-participants factor, in the engine only (coverage-roadmap row B32,
+decision-tree end point E19). Design `factorial_anova`, template
+`oneway_contrast`: the means, the within-group SD and one weight per level.
+Like the other tests by formula it is one pwrss call,
+`power.t.contrasts()`, which is a t test of the weighted combination of
+means (t squared is G\*Power's F with numerator df 1, so it is the same
+test). Trend tests are contrasts with the matching weights.
+
+- The weights live in `target_test > weights`, not in `population`,
+  because they say which effect is being tested rather than what the
+  population is like: the same place as `target_test > path` for
+  mediation.
+- Refused in plain English: the wrong number of weights, weights that
+  don't add up to 0, weights that are all 0, weights on a template that
+  isn't a contrast, unequal groups, and a one-sided test.
+- The weights' scale doesn't matter: (-3, -1, 1, 3) and
+  (-1.5, -0.5, 0.5, 1.5) are the same contrast, which a unit test checks.
+
+**Judgement call: which tool computes it.** The roadmap named Superpower's
+`emmeans_power()` for this row, and the decision tree also named pwranova's
+`pwrcontrast()`. **Recommendation, taken: pwrss.** Three reasons, and the
+risk turned out to be low:
+
+- pwrss takes an arbitrary weight vector. Superpower's `contrast_type` is
+  an emmeans family (`"poly"`, `"pairwise"`), which covers trends but not
+  a comparison like "the first two levels against the last two" that the
+  manual's own example uses.
+- It is a formula, so it needs no data generation and no seed, which is
+  the pattern for every other test by formula.
+- Superpower's emmeans route computes the same contrast on one exact data
+  set and **agrees** with it, so the choice doesn't trade accuracy for
+  convenience. That agreement is now a unit test, which also confirms the
+  weights mean to powerkit what they would mean to the ANOVA backend.
+
+pwranova is not a powerkit dependency and was not checked.
+
+**Judgement call: adjusting alpha for several contrasts.** pwrss's
+`adjust.alpha` offers Tukey, Bonferroni, Holm, Hochberg, Hommel, BH, BY
+and fdr for a matrix of several contrasts. **Recommendation: one contrast
+at a time, with no adjustment** (pwrss's own default), because powerkit
+already treats corrections for multiple tests as an inference question of
+its own (`docs/inference-question-design.md`), and applying one inside the
+power calculation as well would count it twice. A user planning several
+contrasts can run each one. The maintainer can overrule this; offering a
+contrast *family* with its adjustment is the natural follow-up, and
+Superpower's emmeans route would be the better tool for it.
+
+**A trap worth recording.** pwrss's `k.covariates` defaults to **1**,
+which spends a denominator degree of freedom a plain one-way design does
+not have. powerkit passes 0 explicitly. With the default, the manual's
+example comes out at 0.426971 and 0.487157 instead of 0.451898 and
+0.514737 — wrong by about .03, with no warning. The check run reports the
+value pwrss used.
+
+**Checks run against the manual's example** (G\*Power 3.1 manual, 11.3.3,
+p. 29: four levels, means 1.5, 2, 3, 4, five per group, SD 2; pwrss and
+Superpower called with powerkit's arguments; no published value was
+transcribed into a test):
+
+| Contrast (weights) | Manual | powerkit (pwrss) | Superpower (emmeans) |
+| --- | --- | --- | --- |
+| 1,2 vs 3,4 (-0.5, -0.5, 0.5, 0.5) | 0.451898 | 0.451898 | — (not an emmeans family) |
+| linear trend (-3, -1, 1, 3) | 0.514736 | 0.514737 | 0.514737 |
+| quadratic trend (1, -1, -1, 1) | 0.057970 | 0.057970 | 0.0579695 |
+
+The quadratic row is the useful one for the arithmetic: its power is close
+to alpha, so a sign or weighting mistake shows up plainly.
+
+**Not a departure.** Every pwrss argument is its own default except
+`k.covariates`, which is 0 because the design has no covariates. Recorded
+in conventions.md under "Planned comparisons (contrasts)" rather than
+under "Departures".
+
+**Two-sided only.** pwrss's contrast function has no one-sided option, and
+the schema refuses a direction for this template. G\*Power's contrast is
+an F test, which is two-sided in the same way.
+
+**Validation.** `test-validation-anova-contrast.R`, a new chunk
+(`contrast`) in `scripts/run-validation.R` and the full-validation
+workflow: three published tests, one per contrast in the manual's table,
+with `TODO_PUBLISHED_VALUE` placeholders. The source comment explains that
+G\*Power has no contrast screen (a contrast is entered as an f with
+numerator df 1), so what is transcribed is the power, and that the
+manual's printed block says "A priori" while supplying a sample size and
+reporting power, which is a post hoc analysis.
+
+**Next.** The exact one-sample correlation test (closing the open question
+from 25 October 2026), then the two rows the manual can still settle (A6
+two independent correlations, A47 the generic t test), then wiring the six
+validated-but-unwired designs into the app.

@@ -27,6 +27,12 @@
 #' `probs.to.w()`), two independent correlations (`power.z.twocors()`) and
 #' one-way ANCOVA (`power.f.ancova.shieh()`). None has a simulation option;
 #' Fisher's exact test is an exact test of counts too.
+#' Planned comparisons (design `factorial_anova`, template
+#' `oneway_contrast`, engine only): the t test of a weighted combination of
+#' one factor's group means, by pwrss's `power.t.contrasts()`. The weights
+#' go in `target_test > weights`, one per level, adding up to 0; a trend
+#' test is the contrast with the matching weights. Two-sided only, equal
+#' groups, one contrast at a time.
 #' Generic tests (design `generic_test`, engine only): power for a t, F,
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.

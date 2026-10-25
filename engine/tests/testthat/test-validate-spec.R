@@ -25,6 +25,8 @@ test_that("there is an example for every template", {
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
     # More tests by formula (engine only).
     "chi_square_gof", "two_correlations", "oneway_ancova",
+    # Planned comparisons (engine only).
+    "oneway_contrast",
     # Generic tests (engine only).
     "t", "f", "chi_square", "z"
   ))

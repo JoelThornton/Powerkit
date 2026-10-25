@@ -75,6 +75,12 @@ chi-square goodness-of-fit test (\code{power.chisq.gof()}, with Cohen's w from
 \code{probs.to.w()}), two independent correlations (\code{power.z.twocors()}) and
 one-way ANCOVA (\code{power.f.ancova.shieh()}). None has a simulation option;
 Fisher's exact test is an exact test of counts too.
+Planned comparisons (design \code{factorial_anova}, template
+\code{oneway_contrast}, engine only): the t test of a weighted combination of
+one factor's group means, by pwrss's \code{power.t.contrasts()}. The weights
+go in \code{target_test > weights}, one per level, adding up to 0; a trend
+test is the contrast with the matching weights. Two-sided only, equal
+groups, one contrast at a time.
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.

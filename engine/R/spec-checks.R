@@ -22,6 +22,7 @@ population_problems <- function(spec) {
     check_method_allowed(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
+    check_weights_allowed(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -87,7 +88,7 @@ uses_simulation <- function(spec) {
 # Designs with an exact method: factorial ANOVA (Superpower's
 # ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
 # (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
-# fit, two correlations, ANCOVA, and Welch's t-test on request).
+# fit, two correlations, ANCOVA, contrasts, and Welch's t-test on request).
 exact_available <- function(spec) {
   spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
     pwr_covers(spec) ||
@@ -103,7 +104,8 @@ simulation_available <- function(spec) {
 
 # Tests powerkit computes with pwrss's formulas only.
 pwrss_only <- function(spec) {
-  spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations", "oneway_ancova") ||
+  spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
+                       "oneway_ancova", "oneway_contrast") ||
     identical(spec$target_test$method, "fisher_exact")
 }
 
@@ -318,7 +320,7 @@ check_factorial_anova <- function(spec) {
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
     ))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     if (length(pop$means) != k) {
       return(sprintf(
@@ -327,10 +329,53 @@ check_factorial_anova <- function(spec) {
       ))
     }
   }
+  if (identical(spec$template, "oneway_contrast")) {
+    return(check_contrast_weights(spec))
+  }
+  character()
+}
+
+# 'weights' say which combination of means a contrast tests, so they mean
+# nothing for any other test.
+check_weights_allowed <- function(spec) {
+  if (is.null(spec$target_test$weights) || identical(spec$template, "oneway_contrast")) {
+    return(character())
+  }
+  "'target_test > weights' are the weights of a planned comparison, which only the 'oneway_contrast' template tests. Remove them, or use that template."
+}
+
+# A contrast's weights: one per level, adding up to 0, and not all 0. The
+# scale doesn't matter, so (-3, -1, 1, 3) and (-1.5, -0.5, 0.5, 1.5) are the
+# same contrast.
+check_contrast_weights <- function(spec) {
+  weights <- as.numeric(unlist(spec$target_test$weights))
+  k <- length(spec$variables$A$levels)
+  if (length(weights) != k) {
+    return(sprintf(
+      "'target_test > weights' has %d values, but %s has %d levels. Give one weight for each level, in the same order.",
+      length(weights), var_label(spec, "A"), k
+    ))
+  }
+  if (all(weights == 0)) {
+    return("'target_test > weights' are all 0, so they don't compare anything. Give negative weights to the levels on one side of the comparison and positive weights to the other.")
+  }
+  # The same tolerance as the whole-number checks elsewhere in this file.
+  if (abs(sum(weights)) > 1e-9) {
+    return(sprintf(
+      "'target_test > weights' add up to %s, but a contrast's weights must add up to 0. For example, to compare the first two levels with the last two, use -0.5, -0.5, 0.5, 0.5.",
+      format_number(sum(weights))
+    ))
+  }
   character()
 }
 
 anova_contrast <- function(spec) {
+  if (identical(spec$template, "oneway_contrast")) {
+    # The contrast itself: zero when the weighted means cancel out, which
+    # includes every mean being equal.
+    weights <- as.numeric(unlist(spec$target_test$weights))
+    return(sum(weights * as.numeric(unlist(spec$population$means))))
+  }
   if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
@@ -819,7 +864,8 @@ minimum_n <- function(spec) {
       "2x2_mixed" = 4,
       # Two participants per group, so the error df is at least the number
       # of groups.
-      oneway_between = 2 * length(spec$variables$A$levels),
+      oneway_between = ,
+      oneway_contrast = 2 * length(spec$variables$A$levels),
       # Two per group, plus one error df for each covariate.
       oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates
     ),
@@ -839,7 +885,7 @@ group_split <- function(spec) {
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
