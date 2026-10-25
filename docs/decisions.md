@@ -2152,3 +2152,40 @@ can defend instead:
 Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
+
+## 2026-10-25 · Three candidate packages recorded for rows that had none
+
+**What.** Three of the five roadmap rows with "no ready-made tool" now name
+a candidate in coverage.md and coverage-roadmap.md:
+
+- **B14, mediation with a yes/no or count outcome:** powerMediation, said
+  to implement Vittinghoff, Sen and McCulloch's (2009) method for logistic
+  and Poisson outcomes.
+- **B17, longitudinal (cross-lagged) mediation:** semPower, which already
+  appears for B43 with dedicated `semPower.powerCLPM()` and
+  `semPower.powerRICLPM()` entry points. The open question is whether it
+  can test a *product* of paths, which an indirect effect needs; its
+  purpose-built cross-lagged functions are the place to start, not a
+  general path test with a product constraint.
+- **B27, Cochran's Q:** DescTools' `CochranQTest()`, which is the test and
+  not its power. It would make a custom simulation possible; a published
+  power method would still be needed, because powerkit doesn't write the
+  maths itself.
+
+**Marked as unchecked, deliberately.** coverage.md's standard for that
+section is that a candidate has been read in the package's own
+`DESCRIPTION`, `NAMESPACE` and help files. None of these three has: CRAN
+and the CRAN mirror were both unreachable from the build environment on
+25 October 2026 (HTTP 403 through the proxy), so the function names and
+arguments come from a secondary description and may be wrong. Every row
+says so and says to check the package's own files first. Nothing was built
+on them.
+
+**Why record them at all.** Those rows read "none found", which is
+stronger than the evidence: it means nobody had found one, not that none
+exists. A named candidate with an explicit "not checked" is more useful to
+the next person than silence, and it costs nothing to verify later.
+
+**Not changed.** B43 already named powRICLPM and semPower, so nothing was
+added there. The five rows stay "no ready-made tool" and their cards stay
+honest until a candidate is verified and a published method exists.
