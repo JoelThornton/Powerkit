@@ -107,6 +107,7 @@ simulation_available <- function(spec) {
 pwrss_only <- function(spec) {
   identical(spec$design, "logistic_regression") ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations", "oneway_ancova") ||
+    spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
 }
 
@@ -188,13 +189,14 @@ check_proportions_formula_allowed <- function(spec) {
 }
 
 # pwrss's one-sided tests (one proportion, McNemar, Fisher's exact test,
-# two correlations, logistic regression, Welch's t-test by formula) run in
-# the direction of the specified effect, so a one-sided test pointing the
+# two correlations, dependent correlations, logistic regression, Welch's
+# t-test by formula) run in the direction of the specified effect, so a
+# one-sided test pointing the
 # other way can't be computed with them.
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
-                 "single_predictor", "t", "z")
+                 dependent_correlation_templates(), "single_predictor", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -211,6 +213,8 @@ check_direction_allowed <- function(spec) {
     one_proportion = pop$p - pop$p0,
     mcnemar = pop$p_second_only - pop$p_first_only,
     two_correlations = pop$r2 - pop$r1,
+    overlapping_correlations = ,
+    nonoverlapping_correlations = dependent_correlation_difference(spec),
     # "greater" means the odds go up with X (odds ratio above 1).
     single_predictor = log(pop$odds_ratio),
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
@@ -252,8 +256,67 @@ check_basic_test <- function(spec) {
     chi_square_independence = check_probability_table(spec),
     chi_square_gof = check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
+    overlapping_correlations = ,
+    nonoverlapping_correlations = check_dependent_correlations(spec),
     character()
   )
+}
+
+# Dependent correlations (one group): X with Y against X with Z
+# (overlapping), or X1 with Y1 against X2 with Y2 (non-overlapping).
+dependent_correlation_templates <- function() {
+  c("overlapping_correlations", "nonoverlapping_correlations")
+}
+
+# The correlation matrix of the variables, in pwrss's order (X, Y, Z; or
+# X1, Y1, X2, Y2).
+dependent_correlation_matrix <- function(spec) {
+  pop <- spec$population
+  if (spec$template == "overlapping_correlations") {
+    r <- matrix(c(
+      1, pop$r_X_Y, pop$r_X_Z,
+      pop$r_X_Y, 1, pop$r_Y_Z,
+      pop$r_X_Z, pop$r_Y_Z, 1
+    ), nrow = 3)
+    dimnames(r) <- list(c("X", "Y", "Z"), c("X", "Y", "Z"))
+    return(r)
+  }
+  r <- matrix(c(
+    1, pop$r_X1_Y1, pop$r_X1_X2, pop$r_X1_Y2,
+    pop$r_X1_Y1, 1, pop$r_Y1_X2, pop$r_Y1_Y2,
+    pop$r_X1_X2, pop$r_Y1_X2, 1, pop$r_X2_Y2,
+    pop$r_X1_Y2, pop$r_Y1_Y2, pop$r_X2_Y2, 1
+  ), nrow = 4)
+  dimnames(r) <- list(c("X1", "Y1", "X2", "Y2"), c("X1", "Y1", "X2", "Y2"))
+  r
+}
+
+# The second compared correlation minus the first: r_X_Z - r_X_Y, or
+# r_X2_Y2 - r_X1_Y1 ("greater" means the second is larger).
+dependent_correlation_difference <- function(spec) {
+  pop <- spec$population
+  if (spec$template == "overlapping_correlations") pop$r_X_Z - pop$r_X_Y else pop$r_X2_Y2 - pop$r_X1_Y1
+}
+
+check_dependent_correlations <- function(spec) {
+  r <- dependent_correlation_matrix(spec)
+  if (min(eigen(r, symmetric = TRUE, only.values = TRUE)$values) <= 1e-8) {
+    return(paste0(
+      "These correlations are impossible together: no population could have all of them at once. ",
+      "Change one or more of them (the correlations that aren't compared are often the ones to check)."
+    ))
+  }
+  # pwrss's Steiger test has no power for two equal correlations with a
+  # two-sided test (there is no difference to detect).
+  if (identical(spec$goal$type, "power") && abs(dependent_correlation_difference(spec)) < 1e-12 &&
+    identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
+    compared <- if (spec$template == "overlapping_correlations") "r_X_Y and r_X_Z" else "r_X1_Y1 and r_X2_Y2"
+    return(sprintf(
+      "The two correlations compared (%s) are equal, so a two-sided test has no difference to detect and its power can't be calculated. Give them different values (for a Type I error check, use a one-sided test).",
+      compared
+    ))
+  }
+  character()
 }
 
 # The two discordant proportions are parts of one population, so together
@@ -833,6 +896,10 @@ minimum_n <- function(spec) {
       # Fisher's z needs more than 3 people in each group (its SE is
       # 1 / sqrt(n - 3)).
       two_correlations = 10,
+      # Steiger's z, on Fisher's z scale too, needs more than 3 people;
+      # pwrss's own search for n starts at 5.
+      overlapping_correlations = ,
+      nonoverlapping_correlations = 5,
       4
     ),
     factorial_anova = switch(
@@ -893,6 +960,8 @@ target_effect_is_zero <- function(spec) {
       correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
       two_correlations = pop$r1 - pop$r2,
+      overlapping_correlations = ,
+      nonoverlapping_correlations = dependent_correlation_difference(spec),
       chi_square_gof = {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))

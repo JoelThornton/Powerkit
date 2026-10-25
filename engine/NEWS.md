@@ -1,5 +1,15 @@
 # powerkit 0.0.0.9000
 
+* Engine (not yet in the app): two dependent correlations in one group,
+  by Steiger's z test with pwrss's `power.z.twocors.steiger()`. Template
+  `overlapping_correlations` compares X with Y against X with Z;
+  `nonoverlapping_correlations` compares X1 with Y1 against X2 with Y2
+  (for example, the same two measures at two ages). Power at a fixed N or
+  the required N, by formula; one-sided tests run in the direction of the
+  specified difference. powerkit uses the unpooled test, as G*Power, not
+  pwrss's pooled default (Departure 12); the required N is 1 to 4% larger
+  than with pwrss's default. Correlations that can't hold together are refused with a
+  plain-English message.
 * Engine (not yet in the app): logistic regression, the Wald z test of one
   predictor, by pwrss's `power.z.logistic()` (Demidenko's method with its
   variance correction, pwrss's default). Design `logistic_regression`,

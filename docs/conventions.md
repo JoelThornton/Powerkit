@@ -78,6 +78,15 @@ different answer, the difference is listed in "Known differences".
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
 | **powerkit** | **By default, a formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation); for two proportions the z test with pooled variance under the null, as G*Power (Departure 11): base R's `stats::power.prop.test(strict = TRUE)` for equal groups and `pwrss::power.z.twoprops(std.error = "pooled")` for unequal groups, or on request `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation), none with a continuity correction; and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
+### Two dependent correlations (one group): common index or none
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "Correlations: Two dependent Pearson r's", common index (ρ_ab against ρ_ac) or no common index (ρ_ab against ρ_cd): the tests Z1\* and Z2\* of Dunn and Clark (1969), Eqns (11) and (12) in Steiger (1980) [GP-man, section 28, pp. 66-69] | ρ_ab is the correlation under H0 and ρ_ac (or ρ_cd) the one under H1; the remaining correlations describe how the two depend on each other [GP-man, 28.1, p. 66] | tails; alpha. **Under H0 it sets the H1 correlation equal to the H0 one** (ρ_ac = ρ_ab, or ρ_cd = ρ_ab) when computing their covariance [GP-man, 28.5.3, p. 69] |
+| pwrss | `power.z.twocors.steiger()`: Steiger's (1980) z test on Fisher's z scale; `common.index = TRUE` compares rho12 with rho13, `FALSE` compares rho12 with rho34 (pwrss 1.3.3 source, `R/correlations.R`) | `rho12`, `rho13`, `rho23` (and `rho14`, `rho24`, `rho34` with no common index) | **`pooled = TRUE` by default**: the covariance of the two correlations under the null uses their average; with `FALSE` it uses the specified values (source) |
+| Spower | `p_2r()`, simulation; default test `"steiger1980"` [Sp] | `r.ab`, `r.ac`, `r.bc` (and `r.ad`, `r.bd`, `r.cd`) | — |
+| **powerkit** | pwrss's `power.z.twocors.steiger()` by formula, templates `overlapping_correlations` (X with Y against X with Z) and `nonoverlapping_correlations` (X1 with Y1 against X2 with Y2); no simulation option yet (engine only, not in the app) [powerkit] | `r_X_Y`, `r_X_Z`, `r_Y_Z`; or `r_X1_Y1`, `r_X2_Y2` and the four others. "greater" = the second compared correlation is larger | **`pooled = FALSE`, as G\*Power** (Departure 12). A one-sided test runs in the direction of the specified difference, as for two independent correlations |
+
 ## Factorial ANOVA
 
 ### 2 x 2 between-participants
@@ -504,6 +513,37 @@ kept so later departures keep theirs.
   line) and on the result screen when the formula was used
   (`app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up
   (18 October 2026).
+
+### 12. Two dependent correlations: G\*Power's unpooled Steiger test, not pwrss's pooled default
+
+**The maintainer's decision, 25 October 2026** (`docs/decisions.md`).
+
+- **Established convention:** G\*Power's test of two dependent
+  correlations (common index or none) is Steiger's (1980) z test. Under
+  H0 it computes the covariance of the two correlations with the H1
+  correlation set equal to the H0 one, ρ_ac = ρ_ab (or ρ_cd = ρ_ab)
+  [GP-man, 28.5.3, p. 69]. Its required N for the manual's examples
+  28.3.1 and 28.3.2 is 886 and 144 [GP-man, 28.3, p. 67]. pwrss 1.3.3's
+  `power.z.twocors.steiger()`, the backend, defaults to `pooled = TRUE`:
+  under the null it uses the *average* of the two compared correlations
+  instead (`R/correlations.R`).
+- **powerkit:** `pooled = FALSE`, whose source substitutes the H0
+  correlation for the H1 one (its `# rho12 = rho13` branch) — the same
+  rule the manual states — and which reproduces G\*Power's N for both
+  examples.
+- **Size:** the required N is about 1 to 4% larger than with pwrss's
+  default. One-sided, alpha .05, 80% power: 144 against 139 (common
+  index: .40 under H0 and .20 under H1, the third correlation .50) and 886
+  against 875 (no common index: .10 under H0 and .20 under H1; the others
+  .50, .40, -.40, .80). Both are the manual's own examples, and powerkit's
+  power at those N matches its "actual power" to six decimal places for
+  the common-index case (0.801161) and to about 6e-5 for the other
+  (0.800156 against 0.800093).
+- **Test:** `test-backend-formula-tests.R`, "departure: dependent
+  correlations use G\*Power's unpooled test, not pwrss's pooled default
+  (Departure 12)".
+- **Shown to users / in the methods paragraph:** to do, when the test is
+  wired into the app (a card and the result screen's departures).
 
 ## Known differences
 

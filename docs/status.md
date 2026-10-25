@@ -24,7 +24,12 @@ fully validated. Validation runs are recorded in
 - **More tests by formula** (pwrss): Fisher's exact test (E5's test
   version) and one-way ANCOVA (E23) are in the app; chi-square goodness of
   fit (E48, its own card) and two independent correlations (E49) are in
-  the app. None is checked against G\*Power yet.
+  the app. None is checked against G\*Power yet. Two dependent
+  correlations (one group, with or without a shared variable) are in the
+  engine only, in review (25 October 2026): pwrss's Steiger test,
+  unpooled as G\*Power (Departure 12, decided 25 October 2026),
+  with validation placeholders for the G\*Power manual's examples 28.3.1
+  and 28.3.2.
 - **Logistic regression** (pwrss's Wald z test of one predictor, a score or
   a yes/no group, with other predictors through an R-squared): in the
   engine only, in review (25 October 2026), with validation placeholders
@@ -71,6 +76,14 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Fix (25 October 2026):** the nightly validation job runs again. It had
+  failed on every run since it was set up on 12 October (13 runs), before
+  a single test ran: testthat's JUnit reporter needs xml2, which
+  `renv.lock` has never carried. Fixing that uncovered a second fault in
+  the same step, which would have failed the job at the *end* of a full
+  run: the report's path was relative, and `test_local()` runs from
+  `engine/tests/testthat`. So there is no nightly result yet for any
+  commit; the first one will come from the next scheduled run.
 - **Fix (22 October 2026):** the shared tabs are built once at start-up,
   not per visitor (a regression from the maintainer's view in #87).
 - **Input screen in sections** (in review, 22 October 2026): goal first,
@@ -137,10 +150,10 @@ any time, and user testing is the maintainer's to run):
    design-upgrade comparator, wait for a statistician.
 7. More tests by formula from the packages powerkit already uses (the
    maintainer's direction, 18 October 2026): all are in the app or in
-   review. Logistic regression: engine in review (25 October 2026);
-   Poisson regression next. Left for later: Wilcoxon and other rank tests
-   (need a statistician's view), dependent correlations (engine in review
-   in its own PR), and contrasts. Validation later.
+   review. Dependent correlations and logistic regression: engine in
+   review (25 October 2026); Poisson regression next. Left for later:
+   Wilcoxon and other rank tests (need a statistician's view), and
+   contrasts. Validation later.
 8. Before release: published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
    more mediators, phase 3b (binary X and W), and the methodologist

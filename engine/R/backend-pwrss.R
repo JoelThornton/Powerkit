@@ -17,6 +17,11 @@
 #                      pwrss::probs.to.w(), then pwrss::power.chisq.gof()
 #   two correlations   basic_test/two_correlations: Fisher's z test,
 #                      pwrss::power.z.twocors()
+#   dependent          basic_test/overlapping_correlations (X with Y vs X
+#   correlations       with Z) and nonoverlapping_correlations (X1 with Y1
+#                      vs X2 with Y2), one group: Steiger's (1980) z test,
+#                      pwrss::power.z.twocors.steiger(), unpooled as in
+#                      G*Power (Departure 12)
 #   ANCOVA             factorial_anova/oneway_ancova: Shieh's method,
 #                      pwrss::power.f.ancova.shieh()
 #   logistic           logistic_regression/single_predictor: the Wald z
@@ -32,6 +37,7 @@ pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
+             "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
              "factorial_anova/oneway_ancova",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase",
              "logistic_regression/single_predictor") ||
@@ -163,6 +169,29 @@ pwrss_inputs <- function(spec) {
         }
       )
     },
+    # pwrss numbers the variables 1 to 4. Overlapping: 1 = X (shared),
+    # 2 = Y, 3 = Z, so rho12 and rho13 are compared. Non-overlapping:
+    # 1 = X1, 2 = Y1, 3 = X2, 4 = Y2, so rho12 and rho34 are compared.
+    # pooled = FALSE: the covariance of the two correlations under the null
+    # uses the specified correlations, as G*Power does; pwrss's default
+    # (TRUE) uses their average (Departure 12).
+    overlapping_correlations = list(
+      fun = "power.z.twocors.steiger",
+      args = function(n) list(
+        rho12 = pop$r_X_Y, rho13 = pop$r_X_Z, rho23 = pop$r_Y_Z,
+        n = n, alpha = alpha, alternative = alternative,
+        pooled = FALSE, common.index = TRUE, ceil.n = FALSE, verbose = 0
+      )
+    ),
+    nonoverlapping_correlations = list(
+      fun = "power.z.twocors.steiger",
+      args = function(n) list(
+        rho12 = pop$r_X1_Y1, rho34 = pop$r_X2_Y2, rho13 = pop$r_X1_X2,
+        rho14 = pop$r_X1_Y2, rho23 = pop$r_Y1_X2, rho24 = pop$r_Y1_Y2,
+        n = n, alpha = alpha, alternative = alternative,
+        pooled = FALSE, common.index = FALSE, ceil.n = FALSE, verbose = 0
+      )
+    ),
     chi_square_gof = {
       # Cohen's w and its df from pwrss's own conversion; equal fixed
       # proportions unless given (probs.to.w()'s default).
@@ -270,6 +299,19 @@ pwrss_check_run <- function(spec, inputs) {
     two_correlations = rbind(
       row("r1 passed to pwrss (rho1)", pop$r1, args$rho1),
       row("r2 passed to pwrss (rho2)", pop$r2, args$rho2)
+    ),
+    overlapping_correlations = rbind(
+      row("r_X_Y passed to pwrss (rho12)", pop$r_X_Y, args$rho12),
+      row("r_X_Z passed to pwrss (rho13)", pop$r_X_Z, args$rho13),
+      row("r_Y_Z passed to pwrss (rho23)", pop$r_Y_Z, args$rho23)
+    ),
+    nonoverlapping_correlations = rbind(
+      row("r_X1_Y1 passed to pwrss (rho12)", pop$r_X1_Y1, args$rho12),
+      row("r_X2_Y2 passed to pwrss (rho34)", pop$r_X2_Y2, args$rho34),
+      row("r_X1_X2 passed to pwrss (rho13)", pop$r_X1_X2, args$rho13),
+      row("r_X1_Y2 passed to pwrss (rho14)", pop$r_X1_Y2, args$rho14),
+      row("r_Y1_X2 passed to pwrss (rho23)", pop$r_Y1_X2, args$rho23),
+      row("r_Y1_Y2 passed to pwrss (rho24)", pop$r_Y1_Y2, args$rho24)
     ),
     chi_square_gof = {
       p <- as.numeric(unlist(pop$probabilities))

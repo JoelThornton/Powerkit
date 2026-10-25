@@ -577,7 +577,9 @@
               "one_proportion",
               "mcnemar",
               "chi_square_gof",
-              "two_correlations"
+              "two_correlations",
+              "overlapping_correlations",
+              "nonoverlapping_correlations"
             ]
           },
           "target_test": {
@@ -735,6 +737,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_correlations"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "overlapping_correlations"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_overlapping_correlations"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "nonoverlapping_correlations"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_nonoverlapping_correlations"
             }
           }
         ]
@@ -2421,6 +2453,145 @@
             },
             "method": {
               "const": "fisher_z"
+            }
+          }
+        }
+      }
+    },
+    "template_overlapping_correlations": {
+      "description": "One group: two correlations that share a variable, X with Y and X with Z, compared (Steiger's z test for dependent, overlapping correlations; G*Power's 'two dependent Pearson r's, common index').",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y",
+            "Z"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Z": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X_Y",
+            "r_X_Z",
+            "r_Y_Z"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X_Y": {
+              "description": "Correlation of X with Y: the first of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X_Z": {
+              "description": "Correlation of X with Z: the second of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y_Z": {
+              "description": "Correlation of Y with Z. Not tested, but it sets how strongly the two compared correlations depend on each other.",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation_difference"
+            },
+            "method": {
+              "const": "steiger_z"
+            }
+          }
+        }
+      }
+    },
+    "template_nonoverlapping_correlations": {
+      "description": "One group: two correlations with no variable in common, X1 with Y1 and X2 with Y2, compared (Steiger's z test for dependent, non-overlapping correlations; G*Power's 'two dependent Pearson r's, no common index'), for example the same two measures at two time points.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X1",
+            "Y1",
+            "X2",
+            "Y2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X1": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y1": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "X2": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y2": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X1_Y1",
+            "r_X2_Y2",
+            "r_X1_X2",
+            "r_X1_Y2",
+            "r_Y1_X2",
+            "r_Y1_Y2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X1_Y1": {
+              "description": "Correlation of X1 with Y1: the first of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X2_Y2": {
+              "description": "Correlation of X2 with Y2: the second of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X1_X2": {
+              "description": "Correlation of X1 with X2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X1_Y2": {
+              "description": "Correlation of X1 with Y2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y1_X2": {
+              "description": "Correlation of Y1 with X2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y1_Y2": {
+              "description": "Correlation of Y1 with Y2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation_difference"
+            },
+            "method": {
+              "const": "steiger_z"
             }
           }
         }

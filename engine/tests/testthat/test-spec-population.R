@@ -261,6 +261,18 @@ zero_effect_cases <- list(
   fisher_exact = function(s) within(s, population$p2 <- population$p1),
   chi_square_gof = function(s) within(s, population$probabilities <- list(1 / 3, 1 / 3, 1 / 3)),
   two_correlations = function(s) within(s, population$r2 <- population$r1),
+  # Dependent correlations: one-sided, since pwrss's Steiger test can't give
+  # two-sided power for equal correlations (powerkit refuses that case).
+  overlapping_correlations = function(s) {
+    s$population$r_X_Z <- s$population$r_X_Y
+    s$target_test$alternative <- "greater"
+    s
+  },
+  nonoverlapping_correlations = function(s) {
+    s$population$r_X2_Y2 <- s$population$r_X1_Y1
+    s$target_test$alternative <- "greater"
+    s
+  },
   logistic_regression = function(s) within(s, population$odds_ratio <- 1),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18))
 )
