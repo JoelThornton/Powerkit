@@ -45,10 +45,10 @@ fully validated. Validation runs are recorded in
   review, 25 October 2026); the manual has no section on
   repeated-measures ANOVA, the two-proportions z test, the chi-square test
   of independence, ANCOVA or mediation, so those entries need G\*Power
-  itself. One judgement call is waiting: powerkit uses the Fisher z
-  approximation for a correlation where G\*Power defaults to the exact
-  distribution below a threshold N (docs/decisions.md). Next: the pwrss
-  column, from the installed sources.
+  itself. No new judgement call came out of it: the one the first draft
+  raised, powerkit's Fisher z against G\*Power's exact correlation test,
+  was already settled on 17 October 2026 and written up as Known
+  difference 10. Next: the pwrss column, from the installed sources.
 - **Generic tests**: t, F, chi-square and z from a noncentrality
   parameter, as in G\*Power, are in the app in review (E50, only from "I
   know my analysis"; no sample size). pwrss's search for the noncentrality

@@ -2470,23 +2470,24 @@ manual:
   corrected (6.6.2, p. 17). It is a different test, so this is a caution,
   not evidence against the decision.
 
-**New judgement call: the correlation test.** G\*Power's one-sample
-correlation test offers the exact distribution of the sample correlation
-(Barabesi & Greco, 2002) or the Fisher z approximation, and uses the exact
-one below a threshold N set in its options (3.2, p. 9). powerkit always
-uses pwr's Fisher z, with sigma = sqrt(1 / (N - 3)), which is G\*Power's
-approximation. The manual gives the size of the gap itself: for rho0 = .8,
-rho = .3, N = 8, two-sided alpha .05 the exact power is 0.482927 against
-the approximation's 0.422599, while its a priori example needs 1,928
-people exactly and 1,929 by the approximation (3.3, p. 10).
-**Recommendation: leave the engine as it is and record this as a known
-difference with a test showing the size**, because the approximation is
-pwr's formula, which is already powerkit's default for the basic tests
-(Departure 9), and the gap only matters at sample sizes too small for a
-correlation study. Not done in this PR: a departure or known difference
-has to be shown on the result screen, stated in the methods paragraph and
-covered by a test (CLAUDE.md), which is a code change and the maintainer's
-call.
+**The correlation test: nothing new, and a correction.** An earlier draft
+of this entry presented G\*Power's exact correlation test as a new
+judgement call for the maintainer. That was wrong, and the claim is
+withdrawn. It was settled on 17 October 2026 and is already written up as
+Known difference 10 in conventions.md, which cites the same manual section
+(3, pp. 9-10) and its "Use exact distribution if N <" option, records that
+pwrss's `power.exact.onecor()` reproduces both of the manual's examples
+(N = 1928, and power 0.4829271 against the printed 0.482927), gives the
+size of the difference for r = .3 to .5 and N = 20 to 100 (at most 0.0038
+two-sided, 0.0047 one-sided, and at most one participant in the required
+N), names the test that holds it there
+(`test-backend-pwr.R`, "departure: correlation by Fisher's z, not
+G\*Power's exact method"), and is shown to users on E4's card and the
+result screen. Section 3 therefore confirmed what was already recorded and
+added nothing. One detail is worth keeping in mind for anyone revisiting
+it: the manual's largest gap (0.482927 against 0.422599) is at rho0 = .8,
+a null correlation other than zero, which powerkit's template cannot
+express, so it is outside what powerkit computes.
 
 **One smaller open point.** For Fisher's exact test the manual says the
 test "has no options" (6.3) but then describes three asymptotically
