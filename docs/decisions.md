@@ -2410,3 +2410,90 @@ refusals, and the exported R script.
 **Next.** A pass over the entries still marked "to check" in
 conventions.md, now that the manual is to hand; cards for E27 and E28
 later.
+
+## 2026-10-25 · Conventions: the G\*Power entries filled in from the manual
+
+**What.** The maintainer supplied the G\*Power 3.1 manual (edition of
+1 June 2023), so the entries in conventions.md still marked "to check" for
+G\*Power were worked through: sections 3 to 6 (the exact correlation and
+proportion tests), 10 and 11 (fixed-effects ANOVA), 13 and 14 (multiple
+regression) and 19 to 21 (the t-tests). Sections 29 and 30 were covered by
+the logistic and Poisson regression PRs. Docs only; no code, no test and
+no expected value changed.
+
+**Settled.**
+
+- *The independent t-test is Student's, with equal variances assumed.*
+  The manual states it outright ("The t-test assumes the variances in both
+  populations to be equal", 21.1, p. 52), which confirms the premise of
+  maintainer's decision D7 in design-finder.md. Its noncentrality is
+  d sqrt(n1 n2 / (n1 + n2)) on t(N - 2); the one-sample and matched-pairs
+  tests use d sqrt(N) on t(N - 1) (19.5, 20.5, 21.5). All three "have no
+  options".
+- *"Total sample size" for the matched-pairs t-test is the number of
+  pairs*, not of people: the manual's worked example enters 50 for 50
+  IQ-matched pairs, that is 100 pupils (19.3, p. 48). For the repeated
+  measures powerkit's `paired_t` covers, pairs and participants are the
+  same number, so nothing changes.
+- *Factorial ANOVA* (11, pp. 26-30): lambda = f^2 N on F(df1, N - k),
+  where k is the total number of cells in the design, and f = sigma_m /
+  sigma with sigma_m a root mean square over all of the tested effect's
+  residuals rather than over its df. No options. Its worked example
+  reproduces SPSS's observed power exactly. One-way ANOVA (10, p. 25) is
+  the same, with df1 = k - 1.
+- *Multiple regression, R² increase* (14, pp. 36-38): the fixed model is
+  explicit (Y = X beta + e with "fixed and known predictor variables"),
+  lambda = f^2 N on F(q, N - m - 1) with q tested of m predictors. This
+  confirms what "Known differences", 1 had assumed about G\*Power
+  treating the predictors as fixed.
+- *Effect sizes and settings* for the exact correlation (3) and
+  proportion tests (4 one proportion, 5 McNemar, 6 Fisher), including the
+  alpha-balancing options for the two discrete tests ("Assign alpha/2 to
+  both sides" by default) and that McNemar's N is also a number of pairs.
+  G\*Power parametrises McNemar by the odds ratio pi12 / pi21 plus the
+  proportion of discordant pairs; powerkit's two discordant proportions
+  determine both, so the parametrisations are equivalent.
+
+**What the manual cannot settle.** It says of itself that it "is not yet
+complete", and it has no section on repeated-measures ANOVA, the
+two-independent-proportions z test, the chi-square test of independence,
+ANCOVA or mediation. Two open items therefore stay open, and both are now
+recorded in conventions.md as needing G\*Power itself rather than the
+manual:
+
+- which "Effect size specification" setting produced the within-between
+  values the Superpower vignette attributes to G\*Power (Departure 2);
+- whether G\*Power's two-proportions z test applies a continuity
+  correction (maintainer's decision 6, Departure 5). The manual's only
+  documented pooled z test for two proportions is the large-sample
+  approximation to Fisher's exact test, and that one *is* continuity
+  corrected (6.6.2, p. 17). It is a different test, so this is a caution,
+  not evidence against the decision.
+
+**New judgement call: the correlation test.** G\*Power's one-sample
+correlation test offers the exact distribution of the sample correlation
+(Barabesi & Greco, 2002) or the Fisher z approximation, and uses the exact
+one below a threshold N set in its options (3.2, p. 9). powerkit always
+uses pwr's Fisher z, with sigma = sqrt(1 / (N - 3)), which is G\*Power's
+approximation. The manual gives the size of the gap itself: for rho0 = .8,
+rho = .3, N = 8, two-sided alpha .05 the exact power is 0.482927 against
+the approximation's 0.422599, while its a priori example needs 1,928
+people exactly and 1,929 by the approximation (3.3, p. 10).
+**Recommendation: leave the engine as it is and record this as a known
+difference with a test showing the size**, because the approximation is
+pwr's formula, which is already powerkit's default for the basic tests
+(Departure 9), and the gap only matters at sample sizes too small for a
+correlation study. Not done in this PR: a departure or known difference
+has to be shown on the result screen, stated in the methods paragraph and
+covered by a test (CLAUDE.md), which is a code change and the maintainer's
+call.
+
+**One smaller open point.** For Fisher's exact test the manual says the
+test "has no options" (6.3) but then describes three asymptotically
+equivalent two-sided statistics without saying which is used (6.6.1).
+powerkit calls `pwrss::power.exact.fisher(method = "exact")`. Recorded in
+the table; nothing to do unless a published value disagrees.
+
+**Next.** The pwrss column, which is still mostly "to check" and can be
+filled from the installed sources: in particular whether pwrss's two-sided
+exact tests balance alpha the way G\*Power does by default.

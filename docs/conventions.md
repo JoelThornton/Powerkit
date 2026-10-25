@@ -46,11 +46,19 @@ different answer, the difference is listed in "Known differences".
     supplied by the maintainer, 25 October 2026). Sections and page
     numbers refer to that edition. Entries marked [GP via Sp] or
     [GP, search] were taken at second hand before it was available and
-    have not all been rechecked against it.
+    have not all been rechecked against it. Read so far: sections 3 to 6
+    (the exact correlation and proportion tests), 10 and 11 (fixed-effects
+    ANOVA), 13 and 14 (multiple regression), 19 to 21 (the t-tests), 29
+    (logistic regression) and 30 (Poisson regression). **The manual is
+    incomplete by its own account**, and has no section on
+    repeated-measures ANOVA, the two-independent-proportions z test, the
+    chi-square test of independence, ANCOVA or mediation, so some entries
+    below can only be settled in the program itself.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
-- G*Power's manual and the pwrss documentation were not available when this
-  file was written (no network access to CRAN or the web), so their entries
-  are **to check**.
+- The pwrss documentation was not available when this file was written (no
+  network access to CRAN or the web), so its entries are mostly still
+  **to check**; the G*Power entries are being filled in from [GP-man] as
+  the sections are read.
 
 ## Basic tests
 
@@ -58,7 +66,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings that change the answer |
 | --- | --- | --- | --- |
-| G*Power | Independent: to check (believed Student's, equal variances; maintainer's decision D7 in `docs/design-finder.md` relies on this). Paired: dependent-means t-test [SP-vig]. | Independent: d, to check. Paired: d_z, the mean difference divided by the SD of the difference scores [SP-vig]. | Tails (one or two); allocation ratio N2/N1: to check |
+| G*Power | One sample: "t test: Means - difference from constant", H0 central t(N - 1), H1 noncentral with delta = d sqrt(N) [GP-man, 20, pp. 50-51]. Independent: "Means - difference between two independent means (two groups)", Student's t, which "assumes the variances in both populations to be equal"; H0 central t(N - 2), H1 noncentral with delta = d sqrt(n1 n2 / (n1 + n2)) [GP-man, 21, pp. 52-53], so maintainer's decision D7 in `docs/design-finder.md` is confirmed. Paired: "Means - difference between two dependent means (matched pairs)", H0 central t(N - 1), H1 noncentral with delta = d_z sqrt(N) [GP-man, 19, pp. 48-49] | One sample: d = (mu - mu0) / sigma. Independent: d = (mu1 - mu2) / sigma, with Cohen's (1969) small .2, medium .5, large .8; the effect-size drawer can pool unequal SDs as sqrt((sigma1^2 + sigma2^2) / 2), which Cohen says not to use when the group sizes differ substantially. Paired: d_z = \|mu_z\| / sigma_z = \|mu_x - mu_y\| / sqrt(sigma_x^2 + sigma_y^2 - 2 rho sigma_x sigma_y), and the drawer computes d_z from the two means, SDs and their correlation [GP-man, 19.1, 20.1, 21.1] | Tails (one or two). **All three tests have no options** [GP-man, 19.2, 20.2, 21.2]. The allocation ratio N2/N1 is not described in the manual's section on the two-group test, but unequal n1 and n2 enter the noncentrality as above. For the matched-pairs test, "Total sample size" is the number of pairs (df = N - 1), which for the repeated measures powerkit supports is the number of participants. Validated against GPower 2.0 [GP-man, 19.6, 20.6, 21.6] |
 | Superpower | Not covered as a t-test (no t-test function [SP-src]). A two-level `ANOVA_design` gives the equivalent F-test; for two within conditions with r = .5, d equals d_z [SP-vig]. | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (interactions only): to check | | |
@@ -70,7 +78,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (correlation: exact bivariate normal test or the z approximation; proportions: several z and exact tests) | to check (r; proportions or h; w) | to check |
+| G*Power | Correlation: "Exact: Correlation - difference from constant (one sample case)", the bivariate normal model, computed either from the exact distribution of the sample correlation (Barabesi & Greco, 2002) or from the Fisher z large-sample approximation, H1 N((Fz(rho) - Fz(rho0)) / sigma, 1) with sigma = sqrt(1 / (N - 3)) [GP-man, 3, pp. 9-10]. Two proportions: the manual (1 June 2023) documents only the exact tests - one proportion against a constant (binomial, 4, pp. 11-13), McNemar (5, pp. 14-16) and Fisher's exact test (6, pp. 17-18) - and has **no section on the two-independent-proportions z test** or on the chi-square test of independence | Correlation: the alternative correlation rho with the null value rho0 (the effect is rho - rho0; rho0 = 0 is a special case), with Cohen's (1969) small .1, medium .3, large .5, and a drawer to get \|rho\| from r-squared. One proportion: g = pi - pi0, entered as a difference, ratio or odds ratio. McNemar: the odds ratio pi12 / pi21 **and** the proportion of discordant pairs pi_D = pi12 + pi21. Fisher: the two proportions directly [GP-man, 3.1, 4.1, 5.1, 6.2] | Correlation: **"Use exact distribution if N < x" (with a threshold) or "Use large sample approximation (Fisher Z)"**; the critical value is named r for the exact procedure and z for the approximation. The manual's own example of the size of the difference: for rho0 = .8, rho = .3, N = 8, two-sided alpha .05 the exact power is 0.482927 and the approximation 0.422599; at N near 1,928 the two differ by one person [GP-man, 3.2, 3.3]. One proportion and McNemar: **alpha balancing in two-sided tests**, three options, "Assign alpha/2 to both sides" by default; McNemar also chooses exact unconditional power or a faster approximation, and its N is the number of pairs [GP-man, 4.2, 5.2]. Fisher: "no options" in 6.3, although 6.6.1 describes three asymptotically equivalent two-sided statistics, which one is used by default being unstated; its large-sample approximation is a **continuity-corrected** pooled z test [GP-man, 6.3, 6.6] |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered: to check | | |
@@ -93,7 +101,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (ANOVA: fixed effects, special, main effects and interactions) | Cohen's f: to check | to check |
+| G*Power | "F test: Fixed effects ANOVA - special, main effects and interactions", for any main effect or interaction of a factorial design. H0 central F(df1, N - k), H1 noncentral with lambda = f^2 N, where df1 is the effect's own df and **k is the total number of cells in the design** (4 for a 2 x 2). Equal cell sizes, normality and equal variances are assumed throughout [GP-man, 11, 11.5, pp. 26-30]. One-way (powerkit's E18) is section 10: the same lambda = f^2 N with df1 = k - 1, df2 = N - k [GP-man, 10.5, p. 25] | Cohen's f = sigma_m / sigma, where sigma_m is the SD of the effect being tested - for an interaction, of the cell residuals after subtracting the main effects, **as a root mean square over all of that effect's residuals, not over its df** - and sigma is the common within-cell SD. Equivalently eta^2 = f^2 / (1 + f^2). Cohen's (1969) small .10, medium .25, large .40 [GP-man, 11.1, 11.3.1] | Inputs are f, the numerator df and the number of groups; **the test has no options** [GP-man, 11.2]. Validated against GPower 2.0, and the manual's worked example reproduces SPSS's observed power exactly [GP-man, 11.3.1, 11.6] |
 | Superpower | `ANOVA_exact()`: one data set with exactly the specified means and SDs (`mvrnorm(empirical = TRUE)`), analysed once [SP-intro]. `ANOVA_power()`: simulation, `nsims = 1000` by default [SP-src]. `power_twoway_between()`: analytic [SP-src]. | Input is cell means, SD(s) and n per cell; output reports partial eta squared and Cohen's f [SP-src] | `alpha_level` .05, `correction` "none", `liberal_lambda` FALSE, `emm` FALSE (`Superpower_options()` [SP-src]). `ANOVA_exact()` needs n per cell greater than the number of cells (n ≥ 5 for 2x2); for smaller n the vignette points to `ANOVA_exact2()` [SP-intro]. |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (regression interactions; see below) | | |
@@ -105,7 +113,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig]. **The manual has no section on any repeated-measures ANOVA** (edition of 1 June 2023; it says of itself that it "is not yet complete"), so nothing below can be settled from it [GP-man, contents] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power itself, as the manual does not cover this test)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
 | Superpower | `ANOVA_exact()`, `ANOVA_exact2()`, `ANOVA_power()` as above. The vignette's own within-between example calls `ANOVA_exact2()` [SP-vig]. | As above, plus a correlation `r` between repeated measures [SP-src] | As above |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered | | |
@@ -154,7 +162,7 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (e.g. linear multiple regression, R² increase; believed to treat the predictors as fixed, see "Known differences", 1) | to check (f²) | to check |
+| G*Power | "F test: Multiple Regression - special (increase of R²), fixed model": the interaction is one tested predictor added to X and W. The fixed (conditional) model is explicit - Y = X beta + e "with fixed and known predictor variables" - which **confirms** what "Known differences", 1 assumed. H0 central F(q, N - m - 1), H1 noncentral with lambda = f² N, where q is the number of tested predictors (1 for a two-way interaction) and m the total number [GP-man, 14, 14.5, pp. 36-38] | f² = (R²full - R²reduced) / (1 - R²full), with Cohen's (1988) small .02, medium .15, large .35; a drawer computes it from the two variances or a partial R² [GP-man, 14.1] | **No options** [GP-man, 14.2]. Validated against GPower 2.0 and PASS; it differs slightly from Cohen's (1988) tables because Cohen approximates lambda downwards [GP-man, 14.6] |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()`, valid for continuous, normally distributed variables. Neither is presented as the primary method (see "Not departures" below) [IP-src, IP-web] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
@@ -322,8 +330,14 @@ kept so later departures keep theirs.
 - **Established convention:** Spower's `p_prop.test()` and `p_chisq.test()`
   apply Yates' continuity correction by default (`correct = TRUE`)
   [Spower-src]. G*Power's z test and Pearson chi-square do not
-  (maintainer's decision 6; G*Power's documentation itself is still to check
-  here).
+  (maintainer's decision 6). **The G*Power manual cannot settle this**: its
+  edition of 1 June 2023 has no section on the two-independent-proportions
+  z test or on the chi-square test of independence. The one pooled z test
+  for two proportions it does document is the large-sample approximation to
+  Fisher's exact test, and that one **is** continuity corrected [GP-man,
+  6.6.2, p. 17]. That is a different test from the z test G*Power offers
+  separately, so it is a caution rather than evidence against decision 6;
+  the maintainer can check the program itself.
 - **powerkit:** no correction, and no option for one (maintainer's decision
   6), as in G*Power. This applies when Spower simulates (on request since
   17 October 2026); pwr's formulas, the default (Departure 9), have no
@@ -583,9 +597,13 @@ methods paragraph.
   df convention (`power_interaction_r2()` uses N - 3 denominator df, where
   Y ~ X + W + XW leaves N - 4) [IP-src].
 - **G*Power:** the grid measured `power_interaction_r2()`, not G*Power.
-  G*Power is expected to behave the same way because it also treats the
-  predictors as fixed; this, and its noncentrality and df, are to check in
-  G*Power's manual.
+  G*Power is expected to behave the same way, and the manual now confirms
+  why: its R² increase test is the "fixed model", Y = X beta + e with
+  "fixed and known predictor variables", with lambda = f² N on
+  F(q, N - m - 1), so for a two-way interaction q = 1 and m = 3, giving
+  N - 4 denominator df [GP-man, 14, 14.5, pp. 36-38]. The predictors being
+  fixed is therefore established; how much power G*Power reports for these
+  designs has still not been measured, because the grid did not run it.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
 - **Shown to users:** on E9's result screen, under "Where other established tools give a different answer" (18 October 2026; `app/routing/forms.yaml`, `known_differences`).
