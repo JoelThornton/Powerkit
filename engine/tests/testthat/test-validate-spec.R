@@ -28,6 +28,8 @@ test_that("there is an example for every template", {
     "overlapping_correlations", "nonoverlapping_correlations",
     # Logistic regression (engine only).
     "single_predictor",
+    # Poisson regression (engine only).
+    "single_predictor_count",
     # Generic tests (engine only).
     "t", "f", "chi_square", "z"
   ))

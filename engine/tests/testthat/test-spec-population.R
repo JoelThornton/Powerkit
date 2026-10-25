@@ -274,6 +274,7 @@ zero_effect_cases <- list(
     s
   },
   logistic_regression = function(s) within(s, population$odds_ratio <- 1),
+  poisson_regression = function(s) within(s, population$rate_ratio <- 1),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18))
 )
 

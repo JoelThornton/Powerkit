@@ -31,6 +31,7 @@
         "moderated_mediation",
         "multiple_regression",
         "logistic_regression",
+        "poisson_regression",
         "generic_test"
       ]
     },
@@ -83,6 +84,9 @@
     },
     {
       "$ref": "#/definitions/design_logistic_regression"
+    },
+    {
+      "$ref": "#/definitions/design_poisson_regression"
     },
     {
       "$ref": "#/definitions/design_generic_test"
@@ -140,10 +144,11 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "description": "continuous = a score or scale; binary = two groups or yes/no; categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
+          "description": "continuous = a score or scale; binary = two groups or yes/no; count = a number of events (0, 1, 2, ...); categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
           "enum": [
             "continuous",
             "binary",
+            "count",
             "categorical",
             "between_factor",
             "within_factor"
@@ -516,6 +521,13 @@
       "properties": {
         "type": {
           "const": "binary"
+        }
+      }
+    },
+    "variable_count": {
+      "properties": {
+        "type": {
+          "const": "count"
         }
       }
     },
@@ -1957,6 +1969,67 @@
         ]
       }
     },
+    "design_poisson_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "poisson_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "single_predictor_count"
+            ]
+          },
+          "variables": {
+            "required": [
+              "X",
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "X": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "Y": {
+                "$ref": "#/definitions/variable_count"
+              }
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "method": {
+                "const": "wald_z"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "single_predictor_count"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_single_predictor_count"
+            }
+          }
+        ]
+      }
+    },
     "template_r2_zero": {
       "description": "Linear multiple regression (fixed predictors): is R-squared greater than 0? The F test of all predictors together.",
       "properties": {
@@ -2715,6 +2788,56 @@
           "properties": {
             "effect": {
               "const": "odds_ratio"
+            }
+          }
+        }
+      }
+    },
+    "template_single_predictor_count": {
+      "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "rate_ratio",
+            "base_rate"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "rate_ratio"
+            },
+            "rate_ratio": {
+              "description": "Rate ratio for X: the multiple of the event rate per standard deviation of X for a score (X is taken as standardised), or for the second level of X against the first for a yes/no group. 1 (no effect) is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_rate": {
+              "description": "Expected number of events per unit of exposure when X is at its mean (a score) or in X's first level (a yes/no group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mean_exposure": {
+              "description": "Mean exposure per person: the time, distance or number of opportunities over which the events are counted. 1 if omitted, so the base rate is the expected count per person.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level. 0.5 (equal groups) if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_other_predictors": {
+              "description": "R-squared of X on the other predictors in the model (0 if omitted, or if X is the only predictor). The other predictors' own effects aren't needed.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "rate_ratio"
             }
           }
         }
