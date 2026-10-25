@@ -42,6 +42,11 @@ different answer, the difference is listed in "Known differences".
   - **[IP-web]** InteractionPoweR's website (dbaranger.github.io/InteractionPoweR):
     home page and the articles "The InteractionPoweR Package" and
     "Questions & Errors", read on 2026-10-13.
+  - **[GP-man]** The G\*Power 3.1 manual, edition of 1 June 2023 (PDF
+    supplied by the maintainer, 25 October 2026). Sections and page
+    numbers refer to that edition. Entries marked [GP via Sp] or
+    [GP, search] were taken at second hand before it was available and
+    have not all been rechecked against it.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
 - G*Power's manual and the pwrss documentation were not available when this
   file was written (no network access to CRAN or the web), so their entries
@@ -152,10 +157,10 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G\*Power | "z tests: Logistic regression": a large-sample z test of one coefficient; options include Demidenko (2007) with or without variance correction and Hsieh et al. (1998) (to check against the manual, including which is the default) | odds ratio; "Pr(Y=1\|X=1) H0"; "R² other X" | X distribution (normal, binomial, and others) and its parameters (to check) |
+| G\*Power | "Z test: Multiple Logistic Regression": the Wald z test of one coefficient, by an enumeration procedure (Lyles, Lin & Williamson, 2007) or one of two large-sample approximations, Demidenko (2007) with or without variance correction and Hsieh, Bloch & Larsen (1998). The manual recommends Demidenko "as standard procedure", and its simulations found Demidenko with variance correction the most accurate; its worked examples nonetheless select Hsieh [GP-man, section 29, pp. 70-74] | Odds ratio (or two probabilities); "Pr(Y=1\|X=1) H0" = p1, the probability of an event under H0; "R² other X", applied as N' = N / (1 − R²) after Hsieh et al. [GP-man, 29.1, p. 70] | X distribution: normal (with "X parm µ", "X parm σ"), binomial (with "X parm π"), and five others. Variance correction factor: 0.75 lognormal, 0.85 binomial, 1 otherwise [GP-man, 29.6.2, p. 72] |
 | pwrss | `power.z.logistic()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction: factor 0.85 for a binary X, 1 for a normal X), or `"demidenko"`, `"hsieh"`; its help says the formulas "are validated using G\*Power and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.logistic.R`) | `odds.ratio` (or `prob`, `beta1`) for a one-unit increase in X; `base.prob`, the probability when X = 0 | `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
 | Spower | `p_glm(family = binomial())`, simulation [Sp] | coefficients | — |
-| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout |
+| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. With "R² other X" = 0 powerkit reproduces all three of the manual's procedures exactly; above 0 see "Known differences", 3 |
 
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
@@ -583,6 +588,33 @@ Wired into the app on 18 October 2026 (E25, E26).*
 - **Methods paragraph:** to do with the write-up: a note that power for
   these tests goes up and down with N, so a slightly larger N can have
   lower power.
+
+### 3. Logistic regression with other predictors ("R² other X" above 0)
+
+- **What powerkit does:** pwrss's `power.z.logistic()` with Demidenko's
+  variance correction, where `r.squared.predictor` enters the
+  noncentrality as an effective sample size N(1 − R²). The required N is
+  therefore the R² = 0 answer divided by (1 − R²).
+- **The difference:** at R² = 0 powerkit reproduces every number the
+  manual prints for its normal-X example: 337 (Demidenko with variance
+  correction), 355 (without) and 317 (Hsieh et al.) [GP-man, 29.4, p. 71].
+  At R² = 0.1 the manual reports 395 for "the procedure of Demidenko
+  (2007) with variance correction" [GP-man, 29.4, p. 72], where powerkit
+  gives 375 = 337 / 0.9. 395 is exactly 355 / 0.9, powerkit's answer with
+  the variance correction switched off, so the two appear to differ in
+  whether that correction still applies once R² is above 0. The manual's
+  formulas (14) and (15) [GP-man, 29.6.2, p. 72] put R² in the mean of the
+  H1 distribution only, which is what powerkit does and implies 375.
+- **Not resolved here.** G*Power itself has not been run; the manual's own
+  validation notes record a deviation from PASS for this case as well
+  [GP-man, 29.7, p. 73]. The maintainer has G*Power and can settle it
+  (`docs/decisions.md`, 25 October 2026). Until then powerkit's answer for
+  R² above 0 may be a few per cent smaller than G*Power's.
+- **Test:** none yet; the validation placeholders
+  (`test-validation-logistic-regression.R`) say to prefer an example with
+  "R² other X" = 0.
+- **Shown to users / in the methods paragraph:** to do, when the test is
+  wired into the app.
 
 ## Not departures, but worth stating
 
