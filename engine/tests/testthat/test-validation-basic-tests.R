@@ -7,6 +7,8 @@
 #   2. published-example agreement with G*Power 3.1, to 3 decimal places
 #   3. direct-call agreement with Spower (simulation)
 #   4. Type I error (simulation)
+#   5. two dependent correlations (Steiger's z test by pwrss's formula):
+#      published examples from the G*Power 3.1 manual
 # Sections 1 and 2 have no Monte Carlo tolerance (docs/decisions.md,
 # 17 October 2026).
 # Expected values below are owned by the maintainer: do not edit them.
@@ -420,4 +422,127 @@ test_that("chi-square test of independence: Type I error is near alpha", {
   spec <- basic_spec("chi_square_independence", list(probabilities = independent), n = 300, seed = 407,
     options = list(method = "simulation"))
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+# 5. Two dependent correlations: G*Power 3.1 -----------------------------------
+#
+# Steiger's z test by pwrss's formula (Departure 12: unpooled, as G*Power).
+# Each test runs powerkit's required N for the published target power and
+# compares it with the published total sample size, then compares the
+# power at that N with the published "actual power".
+
+dependent_correlations_spec <- function(template, population, alpha, tails, seed,
+                                        n = NULL, target_power = NULL) {
+  v <- validation_variable
+  variables <- if (template == "overlapping_correlations") {
+    list(X = v("continuous", "Shared"), Y = v("continuous", "First"), Z = v("continuous", "Second"))
+  } else {
+    list(
+      X1 = v("continuous", "X1"), Y1 = v("continuous", "Y1"),
+      X2 = v("continuous", "X2"), Y2 = v("continuous", "Y2")
+    )
+  }
+  pop <- c(list(metric = "correlation"), population)
+  # A one-tailed test runs in the direction of the specified difference
+  # (the second compared correlation minus the first).
+  difference <- if (template == "overlapping_correlations") {
+    pop$r_X_Z - pop$r_X_Y
+  } else {
+    pop$r_X2_Y2 - pop$r_X1_Y1
+  }
+  validation_spec(
+    design = "basic_test",
+    template = template,
+    variables = variables,
+    population = pop,
+    target_test = list(
+      effect = "correlation_difference", method = "steiger_z", alpha = alpha,
+      alternative = if (tails == 1) (if (difference > 0) "greater" else "less") else "two_sided"
+    ),
+    seed = seed,
+    n = n,
+    target_power = target_power
+  )
+}
+
+test_that("two dependent correlations, common index: matches G*Power 3.1 manual example 28.3.2 (published)", {
+  skip_unless_full_validation()
+  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28.3.2
+  #   ("z test: Correlation - inequality of two dependent Pearson r's",
+  #   Examples, "Special case: Common index"), p. 67: an a priori analysis
+  #   with the procedure "Correlations: Two dependent Pearson r's (common
+  #   index)". Transcribe its Input and Output blocks.
+  # The manual's rho_ab and rho_ac are the two correlations compared (they
+  #   share variable a), and rho_bc is the third. Here a is X, b is Y and c
+  #   is Z: r_X_Y = rho_ab ("H0 Corr rho_ab"), r_X_Z = rho_ac ("H1 corr
+  #   rho_ac"), r_Y_Z = rho_bc ("Corr rho_bc"). G*Power names them for the
+  #   hypotheses: rho_ab is the correlation under H0 and rho_ac the one
+  #   under H1, which is why powerkit's one-sided test runs from the first
+  #   compared correlation to the second.
+  r_x_y <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
+  r_x_z <- TODO_PUBLISHED_VALUE # rho_ac (the second compared)
+  r_y_z <- TODO_PUBLISHED_VALUE # rho_bc
+  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
+  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
+  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
+  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
+  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  skip_if_todo(r_x_y, r_x_z, r_y_z, alpha, tails, target_power, total_n, actual_power)
+
+  population <- list(r_X_Y = r_x_y, r_X_Z = r_x_z, r_Y_Z = r_y_z)
+  spec <- dependent_correlations_spec(
+    "overlapping_correlations", population, alpha, tails, seed = 501, target_power = target_power
+  )
+  expect_n_near(engine_n_required(spec), total_n)
+  spec <- dependent_correlations_spec(
+    "overlapping_correlations", population, alpha, tails, seed = 501, n = total_n
+  )
+  expect_power_exact(engine_power(spec), actual_power)
+})
+
+test_that("two dependent correlations, no common index: matches G*Power 3.1 manual example 28.3.1 (published)", {
+  skip_unless_full_validation()
+  # Source: G*Power 3.1 manual (version of June 1, 2023), section 28.3.1
+  #   ("z test: Correlation - inequality of two dependent Pearson r's",
+  #   Examples, "General case: No common index"), p. 67: an a priori
+  #   analysis with the procedure "Correlations: Two dependent Pearson r's
+  #   (no common index)". Transcribe its Input and Output blocks.
+  # The manual's rho_ab and rho_cd are the two correlations compared, and
+  #   rho_ac, rho_ad, rho_bc and rho_bd the other four. Here a is X1, b is
+  #   Y1, c is X2 and d is Y2: r_X1_Y1 = rho_ab ("H0 Corr rho_ab"),
+  #   r_X2_Y2 = rho_cd ("H1 corr rho_cd"), r_X1_X2 = rho_ac,
+  #   r_X1_Y2 = rho_ad, r_Y1_X2 = rho_bc, r_Y1_Y2 = rho_bd.
+  # Note on the actual power: powerkit's power at the manual's N differs
+  #   from the manual's by about 6e-5 in this case (0.800156 against
+  #   0.800093), well inside the tolerance of this check; the common-index
+  #   example agrees to six decimal places (docs/decisions.md, 25 October
+  #   2026).
+  r_x1_y1 <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
+  r_x2_y2 <- TODO_PUBLISHED_VALUE # rho_cd (the second compared)
+  r_x1_x2 <- TODO_PUBLISHED_VALUE # rho_ac
+  r_x1_y2 <- TODO_PUBLISHED_VALUE # rho_ad
+  r_y1_x2 <- TODO_PUBLISHED_VALUE # rho_bc
+  r_y1_y2 <- TODO_PUBLISHED_VALUE # rho_bd
+  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
+  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
+  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
+  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
+  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  skip_if_todo(
+    r_x1_y1, r_x2_y2, r_x1_x2, r_x1_y2, r_y1_x2, r_y1_y2, alpha, tails,
+    target_power, total_n, actual_power
+  )
+
+  population <- list(
+    r_X1_Y1 = r_x1_y1, r_X2_Y2 = r_x2_y2, r_X1_X2 = r_x1_x2,
+    r_X1_Y2 = r_x1_y2, r_Y1_X2 = r_y1_x2, r_Y1_Y2 = r_y1_y2
+  )
+  spec <- dependent_correlations_spec(
+    "nonoverlapping_correlations", population, alpha, tails, seed = 502, target_power = target_power
+  )
+  expect_n_near(engine_n_required(spec), total_n)
+  spec <- dependent_correlations_spec(
+    "nonoverlapping_correlations", population, alpha, tails, seed = 502, n = total_n
+  )
+  expect_power_exact(engine_power(spec), actual_power)
 })

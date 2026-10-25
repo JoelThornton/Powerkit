@@ -89,7 +89,7 @@ and from each package's own GitHub repository for the development version.
 | Pearson correlation against 0 | Spower `p_r()` [Sp]; G\*Power exact test, bivariate normal model [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |
 | Correlation against a constant other than 0 | Spower `p_r(rho = )` [Sp]; G\*Power Example 3.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Two independent correlations | Spower `p_2r()` [Sp]; G\*Power Example 27.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
-| Two dependent correlations (common index or none) | Spower `p_2r()` [Sp]; G\*Power Examples 28.3.1, 28.3.2 [GP via Sp] | planned | later *(proposal)* | No | |
+| Two dependent correlations (common index or none) | pwrss `power.z.twocors.steiger()` (engine, by formula; unpooled as G\*Power, Departure 12) [powerkit]; Spower `p_2r()` [Sp]; G\*Power Examples 28.3.1, 28.3.2 [GP via Sp] | engine only (templates `overlapping_correlations`, `nonoverlapping_correlations`; not in the app) | later *(proposal)* | No | |
 | Point-biserial correlation | G\*Power Example 16.3, reproduced in Spower's vignette [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Tetrachoric, polychoric and polyserial correlation | Spower `p_r.cat()` [Sp]; G\*Power Example 31.3 (tetrachoric) [GP via Sp] | planned | later *(proposal)* | No | |
 | One proportion against a constant (binomial or exact) | Spower `p_prop.test()` (`binom.test()`) [Sp]; G\*Power exact test, proportion: difference from constant (Example 4.3) [GP via Sp] | planned | v2 *(proposal)* | No | |

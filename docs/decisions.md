@@ -2152,3 +2152,71 @@ can defend instead:
 Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
+
+## 2026-10-25 · Two dependent correlations: engine
+
+**What.** Two dependent correlations in one group, in the engine only
+(not in the app): G\*Power's "Correlations: Two dependent Pearson r's",
+common index and no common index (coverage-roadmap rows A4, A5). Like the
+other tests by formula (18 October 2026), each is one pwrss call:
+`power.z.twocors.steiger()`, Steiger's (1980) z test.
+
+- Template `overlapping_correlations`: X with Y against X with Z (the two
+  correlations share X); population `r_X_Y`, `r_X_Z`, `r_Y_Z`.
+- Template `nonoverlapping_correlations`: X1 with Y1 against X2 with Y2,
+  for example the same two measures at two ages; population `r_X1_Y1`,
+  `r_X2_Y2` and the four other correlations.
+- Effect `correlation_difference`, method `steiger_z`; "greater" means the
+  second compared correlation is larger, and a one-sided test must point
+  that way (pwrss's one-sided test runs in the direction of the specified
+  difference, as for two independent correlations).
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. Correlations that can't hold together
+  (a correlation matrix no population could have) are refused in plain
+  English, and so is a two-sided power goal with equal compared
+  correlations, which pwrss can't compute (a one-sided test gives the
+  Type I error check: power .05 at alpha .05).
+
+**Pooled or unpooled: unpooled, as G\*Power (the maintainer's decision,
+25 October 2026).** pwrss's default, `pooled = TRUE`,
+uses the average of the two compared correlations for their covariance
+under the null; `pooled = FALSE` uses the specified values. With
+`pooled = FALSE`, pwrss gives G\*Power's required N for both of the
+manual's examples as Spower's `gpower_examples` vignette reports them
+(144 and 886; pooled: 139 and 875). Decided: unpooled, as G\*Power
+(Departure 12), because G\*Power is the tool psychologists check
+against, following the precedent of Departure 5 (G\*Power's choice over a
+backend's default). The difference is 1 to 4% in N.
+
+**Confirmed against the manual** (supplied by the maintainer on
+25 October 2026; section 28, pp. 66-69). The decision now rests on the
+formula, not only on the two N's matching:
+
+- The manual's implementation notes (28.5.3, p. 69) say that under H0
+  G\*Power sets the H1 correlation equal to the H0 one, ρ_ac = ρ_ab (or
+  ρ_cd = ρ_ab), when it computes their covariance. pwrss's
+  `pooled = FALSE` branch makes exactly that substitution (its
+  `# rho12 = rho13` comment); `pooled = TRUE` averages the two instead.
+- Its examples 28.3.1 and 28.3.2 (p. 67) are the source of 886 and 144,
+  so the unit test for Departure 12 now cites the manual rather than
+  Spower's vignette at second hand.
+- powerkit's power at those N matches the manual's "actual power" to six
+  decimal places for the common-index example (0.801161) and to about
+  6e-5 for the other (0.800156 against 0.800093). The second gap is well
+  inside the validation check's tolerance; it is noted in the test.
+- G\*Power names the inputs "H0 Corr rho_ab" and "H1 corr rho_ac" (or
+  "rho_cd"), which confirms the direction powerkit uses: the one-sided
+  test runs from the first compared correlation to the second.
+
+**Validation.** Two published tests in `test-validation-basic-tests.R`
+(section 5), for the G\*Power manual's examples 28.3.2 (common index) and
+28.3.1 (no common index), with `TODO_PUBLISHED_VALUE` placeholders for the
+maintainer to transcribe from the manual itself; they run in the `basic`
+chunk. The unit tests check powerkit against pwrss called directly, the
+required N against the power at N - 1, the refusals, the exported R
+script, and the size of Departure 12.
+
+**Next.** A card (the app's E49 card says dependent correlations aren't
+calculated yet) and the result screen's departure line, in a separate
+PR.
+

@@ -1,6 +1,7 @@
 # More tests by formula (the maintainer's direction, 18 October 2026):
 # Fisher's exact test, chi-square goodness of fit, two independent
-# correlations and one-way ANCOVA, each one pwrss call. Each is checked
+# correlations, two dependent correlations and one-way ANCOVA, each one
+# pwrss call. Each is checked
 # against its backend called directly, from inputs written out by hand,
 # and against a second package where one does the same test. No G*Power
 # or published values yet: validation comes later.
@@ -19,6 +20,8 @@ test_that("each formula test runs on pwrss, exactly, and passes its check run", 
     fisher_exact = "pwrss::power.exact.fisher",
     chi_square_gof = "pwrss::power.chisq.gof",
     two_correlations = "pwrss::power.z.twocors",
+    overlapping_correlations = "pwrss::power.z.twocors.steiger",
+    nonoverlapping_correlations = "pwrss::power.z.twocors.steiger",
     anova_oneway_ancova = "pwrss::power.f.ancova.shieh"
   )
   for (name in names(cases)) {
@@ -130,6 +133,8 @@ test_that("exported scripts for the formula tests reproduce powerkit's results",
     formula_spec("fisher_exact", list(type = "power", n = 90), options = list(seed = 7, allocation_ratio = 2)),
     formula_spec("chi_square_gof", list(type = "sample_size", power = 0.8)),
     formula_spec("two_correlations", list(type = "power", n = 180), options = list(seed = 7, attrition = 0.1)),
+    formula_spec("overlapping_correlations", list(type = "sample_size", power = 0.8)),
+    formula_spec("nonoverlapping_correlations", list(type = "power", n = 150), options = list(seed = 7, attrition = 0.1)),
     formula_spec("anova_oneway_ancova", list(type = "sample_size", power = 0.8))
   )
   for (spec in specs) {
@@ -137,4 +142,109 @@ test_that("exported scripts for the formula tests reproduce powerkit's results",
     out <- run_exported_script(spec, result)
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$template)
   }
+})
+
+# Two dependent correlations (one group) -----------------------------------------
+
+test_that("overlapping correlations equal pwrss::power.z.twocors.steiger() called directly", {
+  # Example: X with Y .40 against X with Z .20; Y with Z .50; n = 150.
+  spec <- formula_spec("overlapping_correlations", list(type = "power", n = 150))
+  direct <- pwrss::power.z.twocors.steiger(
+    rho12 = 0.4, rho13 = 0.2, rho23 = 0.5, n = 150, alpha = 0.05,
+    alternative = "two.sided", pooled = FALSE, common.index = TRUE, ceil.n = FALSE, verbose = 0
+  )
+  expect_equal(run_spec(spec)$curve$power, direct$power)
+  # The second correlation (r_X_Z) is the smaller, so a one-sided test is
+  # "less"; "greater" points the other way.
+  spec$target_test$alternative <- "greater"
+  expect_spec_problem(spec, "goes the other way")
+  spec$target_test$alternative <- "less"
+  expect_gt(run_spec(spec)$curve$power, direct$power)
+})
+
+test_that("non-overlapping correlations equal pwrss::power.z.twocors.steiger() called directly", {
+  # Example: X1 with Y1 .20 against X2 with Y2 .40; X1-X2 and Y1-Y2 .50,
+  # cross-correlations .10; n = 150.
+  spec <- formula_spec("nonoverlapping_correlations", list(type = "power", n = 150))
+  direct <- pwrss::power.z.twocors.steiger(
+    rho12 = 0.2, rho34 = 0.4, rho13 = 0.5, rho14 = 0.1, rho23 = 0.1, rho24 = 0.5,
+    n = 150, alpha = 0.05, alternative = "two.sided", pooled = FALSE,
+    common.index = FALSE, ceil.n = FALSE, verbose = 0
+  )
+  expect_equal(run_spec(spec)$curve$power, direct$power)
+  spec$target_test$alternative <- "less"
+  expect_spec_problem(spec, "goes the other way")
+  spec$target_test$alternative <- "greater"
+  expect_gt(run_spec(spec)$curve$power, direct$power)
+})
+
+test_that("dependent correlations: the required n is the smallest that reaches the target", {
+  for (name in c("overlapping_correlations", "nonoverlapping_correlations")) {
+    spec <- validate_spec(formula_spec(name, list(type = "sample_size", power = 0.8)))
+    result <- run_spec(spec)
+    backend <- route_spec(spec)
+    n <- result$n_required$n
+    expect_gte(backend$exact_power(n), 0.8)
+    expect_lt(backend$exact_power(n - 1), 0.8)
+  }
+})
+
+test_that("dependent correlations that can't be right are refused", {
+  spec <- formula_spec("overlapping_correlations", list(type = "power", n = 150))
+  # X with Y .40, X with Z .90 and Y with Z -.50 can't all hold at once.
+  spec$population$r_X_Z <- 0.9
+  spec$population$r_Y_Z <- -0.5
+  expect_spec_problem(spec, "impossible together")
+  spec <- formula_spec("nonoverlapping_correlations", list(type = "power", n = 150))
+  spec$population$r_X1_X2 <- 0.95
+  spec$population$r_Y1_Y2 <- -0.95
+  expect_spec_problem(spec, "impossible together")
+  # Equal compared correlations: nothing to detect (two-sided power), and
+  # no sample size can reach the target.
+  spec <- formula_spec("overlapping_correlations", list(type = "power", n = 150))
+  spec$population$r_X_Z <- 0.4
+  expect_spec_problem(spec, "(r_X_Y and r_X_Z) are equal")
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  expect_spec_problem(spec, "The effect you want to detect is zero")
+  # No simulation, and allocation ratios belong to two-group designs.
+  spec <- formula_spec("nonoverlapping_correlations", list(type = "power", n = 150))
+  spec$options$method <- "simulation"
+  expect_spec_problem(spec, "'simulation' isn't available for this test yet")
+  spec <- formula_spec("nonoverlapping_correlations", list(type = "power", n = 150), options = list(seed = 7, allocation_ratio = 2))
+  expect_spec_problem(spec, "only applies to two-group designs")
+})
+
+test_that("departure: dependent correlations use G*Power's unpooled test, not pwrss's pooled default (Departure 12)", {
+  # The examples of the G*Power 3.1 manual (edition of 1 June 2023),
+  # sections 28.3.2 (common index) and 28.3.1 (no common index), p. 67:
+  # one-sided, alpha .05, 80% power. The manual reports a required N of
+  # 144 and 886. With pooled = FALSE pwrss gives the same, because that
+  # branch makes the same H0 substitution the manual describes (28.5.3,
+  # p. 69); with its default, pooled = TRUE, it gives 139 and 875.
+  required <- function(pooled, ...) {
+    pwrss::power.z.twocors.steiger(
+      ..., power = 0.8, alpha = 0.05, alternative = "one.sided", pooled = pooled, verbose = 0
+    )$n
+  }
+  common <- list(rho12 = 0.4, rho13 = 0.2, rho23 = 0.5, common.index = TRUE)
+  none <- list(
+    rho12 = 0.1, rho34 = 0.2, rho13 = 0.5, rho14 = 0.4, rho23 = -0.4, rho24 = 0.8,
+    common.index = FALSE
+  )
+  expect_equal(do.call(required, c(list(pooled = FALSE), common)), 144)
+  expect_equal(do.call(required, c(list(pooled = TRUE), common)), 139)
+  expect_equal(do.call(required, c(list(pooled = FALSE), none)), 886)
+  expect_equal(do.call(required, c(list(pooled = TRUE), none)), 875)
+
+  # powerkit's result is the unpooled one.
+  spec <- formula_spec("overlapping_correlations", list(type = "sample_size", power = 0.8))
+  spec$target_test$alternative <- "less"
+  expect_equal(run_spec(spec)$n_required$n, 144)
+  spec <- formula_spec("nonoverlapping_correlations", list(type = "sample_size", power = 0.8))
+  spec$population <- list(
+    metric = "correlation", r_X1_Y1 = 0.1, r_X2_Y2 = 0.2, r_X1_X2 = 0.5,
+    r_X1_Y2 = 0.4, r_Y1_X2 = -0.4, r_Y1_Y2 = 0.8
+  )
+  spec$target_test$alternative <- "greater"
+  expect_equal(run_spec(spec)$n_required$n, 886)
 })
