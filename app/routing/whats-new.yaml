@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Poisson regression: predicting a count"
+    text: >-
+      powerkit can now work out the sample size or power when you predict a
+      count, such as how many times someone visits a clinic in a year, from
+      a score or a yes/no group. You enter the rate ratio, the starting
+      rate and how long people are followed. It assumes the counts vary as
+      much as their average; counts that vary more need a negative binomial
+      model, which powerkit doesn't do yet.
+  - date: "2026-10-26"
     title: "powerkit has a version number"
     text: >-
       The About page now says which version of powerkit you are using, and

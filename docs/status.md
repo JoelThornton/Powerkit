@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -39,9 +39,9 @@ fully validated. Validation runs are recorded in
   a yes/no group, with other predictors through an R-squared): in the
   engine only, in review (25 October 2026), with validation placeholders
   for the G\*Power manual's examples.
-- **Poisson regression** (pwrss's Wald z test of one predictor of a count
-  outcome, over a mean exposure): in the engine only, in review (25
-  October 2026), with validation placeholders for the G\*Power manual's
+- **Poisson regression** (E28; pwrss's Wald z test of one predictor of a
+  count outcome, over a mean exposure): card and input screen in review
+  (26 October 2026); engine merged 26 October 2026, with validation placeholders for the G\*Power manual's
   examples. It reproduces every number in the manual's section 30 that
   powerkit can compute (docs/decisions.md).
 - **Conventions against the G\*Power manual**: the G\*Power entries in

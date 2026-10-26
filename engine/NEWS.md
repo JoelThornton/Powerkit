@@ -1,3 +1,17 @@
+# powerkit 0.5.0
+
+Batch 1: the five designs the engine already computed become reachable in
+the app (docs/next.md).
+
+* App: Poisson regression with one predictor (E28) calculates in the app.
+  Its card now says what powerkit does, and that negative binomial
+  regression (for overdispersed counts) is still not covered; the input
+  screen asks for the count outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the rate ratio, the starting rate, the mean exposure and the predictor's
+  R-squared with any other predictors, with the direction question.
+  `single_predictor_count` leaves `engine_only`.
+
 # powerkit 0.4.0
 
 powerkit has a version number from here on: 0.x.y while it is a prototype,
