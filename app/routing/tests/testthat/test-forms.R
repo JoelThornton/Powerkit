@@ -236,7 +236,7 @@ test_that("'Copy my answers' gives the route, the end point and the values as te
 
 test_that("cards with an input screen offer it; others don't", {
   expect_match(as.character(card_nav_ui(forms, "E2")), "Enter your values", fixed = TRUE)
-  expect_no_match(as.character(card_nav_ui(forms, "E19")), "Enter your values", fixed = TRUE)
+  expect_no_match(as.character(card_nav_ui(forms, "E20")), "Enter your values", fixed = TRUE)
 })
 
 test_that("effect sizes start empty (decided 22 October 2026), shown as a decision in the maintainer's view", {
