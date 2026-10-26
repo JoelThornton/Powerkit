@@ -278,7 +278,10 @@ zero_effect_cases <- list(
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   # Equal means make every contrast zero, whatever its weights.
-  anova_oneway_contrast = function(s) within(s, population$means <- list(2, 2, 2, 2))
+  anova_oneway_contrast = function(s) within(s, population$means <- list(2, 2, 2, 2)),
+  anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
+  one_variance = function(s) within(s, population$var0 <- population$var),
+  two_variances = function(s) within(s, population$var2 <- population$var1)
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

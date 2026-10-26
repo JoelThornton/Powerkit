@@ -210,6 +210,14 @@ design_description <- function(spec) {
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       paste(format_number(as.numeric(unlist(spec$target_test$weights))), collapse = ", ")
     ),
+    "basic_test/one_variance" = sprintf(
+      "chi-square test of one variance: is the variance of %s different from a fixed value?",
+      label("Y")
+    ),
+    "basic_test/two_variances" = sprintf(
+      "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
+      label("Y"), label("G"), levels("G")
+    ),
     "basic_test/one_proportion" = sprintf(
       "exact binomial test of one proportion: %s = %s, compared with a fixed value",
       label("Y"), comment_text(unlist(v$Y$levels)[2])
@@ -480,6 +488,7 @@ add_recruitment_section <- function(lines, spec, result) {
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
+    two_variances = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,
@@ -866,6 +875,15 @@ spower_script_inputs <- function(spec) {
       ),
       ratio_line
     ),
+    one_variance = c(
+      sprintf("variance <- %s # expected variance of %s", r_code(pop$var), comment_text(v$Y$label)),
+      sprintf("variance_null <- %s # the fixed variance it is compared with", r_code(pop$var0))
+    ),
+    two_variances = sprintf(
+      "variances <- %s # variance of %s in %s, then in %s",
+      r_code(c(pop$var1, pop$var2)), comment_text(v$Y$label),
+      comment_text(unlist(v$G$levels)[1]), comment_text(unlist(v$G$levels)[2])
+    ),
     chi_square_independence = c(
       sprintf(
         "# Probability of each combination: rows are %s (%s), columns %s (%s).",
@@ -885,6 +903,12 @@ spower_group_size_lines <- function(spec) {
     return(c(
       "  # Spower's n is the size of group 1; group 2 has allocation_ratio times as many.",
       "  n_group1 <- round(batch_n / (1 + allocation_ratio))"
+    ))
+  }
+  if (spec$template == "two_variances") {
+    return(c(
+      "  # Spower's n is the size of one group; the two groups are equal.",
+      "  n_group1 <- round(batch_n / 2)"
     ))
   }
   character()
@@ -923,6 +947,15 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n.ratios = group_ratios, # group sizes relative to group 1",
       "correct = FALSE # no continuity correction (Spower's default is TRUE; powerkit's Departure 5)"
     ),
+    one_variance = c(
+      "n = batch_n, # sample size",
+      "vars = variance, # one variance: p_var.test() then runs the chi-square test",
+      "sigma2 = variance_null # the fixed variance under the null"
+    ),
+    two_variances = c(
+      "n = n_group1, # size of each group",
+      "vars = variances # two variances: p_var.test() then runs the F test (var.test)"
+    ),
     chi_square_independence = c(
       "n = batch_n, # total sample size",
       "P = probabilities, # probability of each combination",
@@ -954,6 +987,14 @@ spower_alternative_line <- function(spec, inputs) {
     two_proportions = sprintf(
       "your test expects p2 to be %s than p1; Spower tests p1 minus p2",
       if (positive) "higher" else "lower"
+    ),
+    one_variance = sprintf(
+      "your test expects the variance to be %s than the fixed value",
+      if (positive) "larger" else "smaller"
+    ),
+    two_variances = sprintf(
+      "your test expects group 1's variance to be %s than group 2's",
+      if (positive) "larger" else "smaller"
     ),
     sprintf("one-sided: the effect is expected to be %s", if (positive) "positive" else "negative")
   )

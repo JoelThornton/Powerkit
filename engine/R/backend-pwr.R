@@ -34,6 +34,7 @@
 pwr_covers <- function(spec) {
   spec$design == "basic_test" &&
     !pwrss_only(spec) &&
+    !spower_only(spec) &&
     !identical(spec$target_test$method, "welch_t")
 }
 

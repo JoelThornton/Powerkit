@@ -32,6 +32,8 @@ test_that("there is an example for every template", {
     "single_predictor_count",
     # Planned comparisons (engine only).
     "oneway_contrast",
+    # Variance tests, simulated (engine only).
+    "one_variance", "two_variances",
     # Generic tests (engine only).
     "t", "f", "chi_square", "z"
   ))

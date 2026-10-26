@@ -101,6 +101,14 @@ different answer, the difference is listed in "Known differences".
 | G*Power | Two independent r's: "z test: Correlation - inequality of two independent Pearson r's". H0 is N(0, 1) and H1 is N(q/s, 1) with s = sqrt(1/(N1 - 3) + 1/(N2 - 3)) [GP-man, 27, 27.5, pp. 65-66]. Generic t: "t test: Generic case", the central t(df) against the noncentral t(df, delta); it has **no a priori analysis**, "the reason being that there is no definite association between N and df" [GP-man, 25, 25.5, p. 63]. The manual has no section for the generic F, chi-square or z test | Two independent r's: q = z1 - z2, the difference of the Fisher-transformed correlations, with Cohen's (1969) small .1, medium .3, large .5; an effect-size drawer converts between q and the pair of correlations [GP-man, 27.1]. Generic t: the noncentrality delta itself [GP-man, 25.1] | Both "have no options" [GP-man, 25.2, 27.2]. Two independent r's takes the two sample sizes separately, or an allocation ratio N2/N1 for an a priori analysis. One-sided generic t: the critical value takes the sign of delta. Validated against Cohen (1969, chap. 4) and GPower 2.0 respectively [GP-man, 25.6, 27.6] |
 | pwrss | Two independent r's: `power.z.twocors()`, Fisher's z test. Generic tests: `power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`, each taking a noncentrality and degrees of freedom | The two correlations themselves, not q; a noncentrality for the generic tests | **`n.ratio` is n1 / n2**, the inverse of powerkit's `allocation_ratio` (n2 / n1), and the adapter inverts it [powerkit, `backend-pwrss.R`] |
 | **powerkit** | pwrss's `power.z.twocors()` and the four generic functions, by formula; no simulation option (two correlations: engine and app, E49; generic tests: E50, from "I know my analysis" only) [powerkit] | `r1` and `r2`; `ncp` with `df` (or `df1` and `df2`) | `allocation_ratio` is n2 / n1 and `goal.n` is the total, so a published pair of group sizes is entered as their sum with their ratio. A generic test has no sample size: the curve has one row with `n` `NA`. Both reproduce the manual's worked examples: power 0.7263517 against 0.726352 and a required 168 against 84 per group (27.3), and 0.2245240 against 0.224525 (25.3), the last agreeing to five decimals and differing in the sixth |
+### Variance tests (one group, two groups)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G*Power | One group: the chi-square test. (N - 1)s^2/sigma0^2 is central chi-square with N - 1 df under H0, and the same distribution scaled by sigma^2/sigma0^2 under H1 (section 26.5) [GP-man]. Two groups: the F test. s1^2/s0^2 is central F with N1 - 1 and N0 - 1 df under H0, scaled by sigma1^2/sigma0^2 under H1 (section 15.5) [GP-man] | The variance ratio var1/var0; the effect-size drawer works it out from two variances. Ratios in [0.999, 1.001] are refused (sections 26.1, 15.1) [GP-man] | Tails (one or two); allocation ratio N2/N1 (two groups, section 15.3) [GP-man] |
+| Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
+| pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
+| **powerkit** | Spower's `p_var.test()`, simulated: no package powerkit builds on has a formula for either test, and powerkit doesn't write the maths itself (CLAUDE.md), so these two templates have no exact method (Known difference 4) [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), always passed on to Spower; `goal.n` is the total, split into two equal groups for the two-group test. **An allocation ratio is refused** for the two-group test while Spower can't draw unequal groups |
 
 ## Factorial ANOVA
 
@@ -442,7 +450,9 @@ kept so later departures keep theirs.
   (Fisher's z) and two proportions (a normal approximation: the z test by
   `power.prop.test()`, Departure 11, or Cohen's h) the formulas are
   approximations. Spower simulation stays available on request, and is
-  used for Welch's t-test, which pwr doesn't cover.
+  used for Welch's t-test, which pwr doesn't cover. The two variance
+  templates are basic tests that no formula backend covers at all, so they
+  are always simulated and offer no exact method (Known difference 4).
 - **Size:** the example designs below, alpha = .05 two-sided, formula
   against Spower simulation with 5,000 seeded replications (seed 9, one
   core). Every difference is within 2 Monte Carlo standard errors, so it
@@ -707,6 +717,32 @@ Wired into the app on 18 October 2026 (E25, E26).*
   "R² other X" = 0.
 - **Shown to users / in the methods paragraph:** to do, when the test is
   wired into the app.
+### 4. Variance tests: simulated, where G\*Power uses an exact formula
+
+- **What differs:** G\*Power computes both variance tests from their exact
+  distributions (the chi-square test of one variance, section 26.5 of its
+  manual; the F test of two, section 15.5), so it reports one number.
+  powerkit simulates them with Spower's `p_var.test()`, because no package
+  powerkit builds on has a formula for either and powerkit doesn't write
+  the maths itself (CLAUDE.md). Its answer therefore carries Monte Carlo
+  error, and two runs with different seeds differ slightly.
+- **Size:** the error is the Monte Carlo error alone, not a difference in
+  the test: about 0.013 of power at the default 1,000 replications and
+  about 0.004 at 10,000 (at 80% power). Run at 10,000 replications, the two
+  examples in the manual (sections 26.3 and 15.3) came out +0.003 and
+  -0.005 from G\*Power's exact values, each within about one Monte Carlo
+  standard error. Required sample sizes can differ by a participant or two
+  for the same reason.
+- **Test:** `engine/tests/testthat/test-validation-variance-tests.R` holds
+  the two published examples (values to transcribe) and the direct-call and
+  Type I error checks; `test-backend-spower.R` checks the translation and
+  that no exact method is offered.
+- **Shown to users:** not yet. These two templates are engine-only; the
+  entry goes into `app/routing/forms.yaml` (`known_differences`) when they
+  are wired into the app.
+- **Methods paragraph:** to do with the write-up: a sentence that power for
+  this test was estimated by simulation, so it carries Monte Carlo error,
+  whereas G\*Power computes it exactly.
 
 ## Not departures, but worth stating
 

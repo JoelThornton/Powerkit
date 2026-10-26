@@ -1,0 +1,34 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "one_variance",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time"
+    }
+  },
+  "population": {
+    "metric": "variance",
+    "var": 1,
+    "var0": 1.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: reaction times varying less than the published variance of 1.5, down to 1, is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "variance_ratio",
+    "method": "chi_square_var",
+    "alpha": 0.05,
+    "alternative": "less"
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

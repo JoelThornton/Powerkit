@@ -27,7 +27,28 @@ answered are recorded in `docs/conventions.md` (Departures 4 and 8) and
 
 ## Spower
 
-1. **`p_r()`: one-sided tests when `rho` isn't 0.** In Spower 0.7, when
+1. **`p_var.test()`: one-sided tests, unequal groups, and
+   `alternative = NULL`.** Three points about the variance tests, found
+   while reproducing the G*Power 3.1 manual's examples 26.3 and 15.3.
+   Reproducible example: `docs/upstream/spower-var-test.R`.
+   1. `two.tailed = FALSE` becomes `alternative <- "greater"` whichever way
+      the variances point. The manual's example 26.3 tests whether a
+      variance is *lower* than the fixed value, so "greater" has no power,
+      and the version of that example in Spower's own vignette
+      (`vignettes/gpower_examples.Rmd`) cannot reach the manual's N = 81.
+      powerkit always passes `alternative` and is unaffected.
+   2. `gen_var.test()` fails for unequal groups: `sapply()` over groups of
+      different sizes returns a list, so the data frame is built from
+      columns of different lengths ("arguments imply differing number of
+      rows"). `unlist(Map(...))` would fix it. Until then the allocation
+      ratio in example 15.3 (N = 443, 148 and 295) can't be simulated, and
+      powerkit refuses an allocation ratio for its two-variance test
+      (`docs/conventions.md`, variance tests).
+   3. Passing `alternative = NULL` explicitly, which is `p_var.test()`'s own
+      default, stops `Spower()` with "Exactly *one* argument must be set to
+      'NA'", so a caller that always supplies the argument has to drop it
+      when it is NULL.
+2. **`p_r()`: one-sided tests when `rho` isn't 0.** In Spower 0.7, when
    `rho != 0` the p-value is replaced with the Fisher's z test against
    `rho`:
 

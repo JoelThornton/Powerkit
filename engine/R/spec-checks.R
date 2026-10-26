@@ -105,6 +105,14 @@ simulation_available <- function(spec) {
   !(spec$design %in% c("multiple_regression", "generic_test") || pwrss_only(spec))
 }
 
+# Basic tests powerkit computes by simulation only: neither pwr nor pwrss
+# has a formula for them. G*Power computes the variance tests by formula,
+# but no package powerkit is built on does, and powerkit doesn't write the
+# maths itself (CLAUDE.md), so these are simulated with Spower.
+spower_only <- function(spec) {
+  spec$template %in% c("one_variance", "two_variances")
+}
+
 # Tests powerkit computes with pwrss's formulas only.
 pwrss_only <- function(spec) {
   spec$design %in% c("logistic_regression", "poisson_regression") ||
@@ -147,8 +155,20 @@ check_reliability_allowed <- function(spec) {
 }
 
 check_allocation_allowed <- function(spec) {
-  if (is.null(spec$options$allocation_ratio) ||
-    spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
+  if (is.null(spec$options$allocation_ratio)) {
+    return(character())
+  }
+  # The two-variance test has two groups, but Spower can only simulate
+  # equal ones: gen_var.test() builds a data frame of the wrong length when
+  # the group sizes differ (docs/upstream-questions.md).
+  if (identical(spec$template, "two_variances")) {
+    return(paste0(
+      "'options > allocation_ratio' isn't available for the two-variance ",
+      "test yet: the simulation it uses can only draw groups of the same ",
+      "size. Remove it, or plan for two equal groups."
+    ))
+  }
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
     return(character())
   }
   paste0(
@@ -166,6 +186,13 @@ check_method_allowed <- function(spec) {
   }
   if (!identical(spec$options$method, "exact") || exact_available(spec)) {
     return(character())
+  }
+  if (spower_only(spec)) {
+    return(paste0(
+      "'options > method' 'exact' isn't available for this test: none of the ",
+      "packages powerkit uses has a formula for it, so its power is ",
+      "simulated. Remove 'options > method'."
+    ))
   }
   paste0(
     "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
@@ -200,7 +227,8 @@ check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor",
-                 "single_predictor_count", "t", "z")
+                 "single_predictor_count", "one_variance", "two_variances",
+                 "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -223,6 +251,10 @@ check_direction_allowed <- function(spec) {
     single_predictor = log(pop$odds_ratio),
     # "greater" means the event rate goes up with X (rate ratio above 1).
     single_predictor_count = log(pop$rate_ratio),
+    # "greater" means the variance is the larger one: Y's against the fixed
+    # value, or the first group's against the second.
+    one_variance = pop$var - pop$var0,
+    two_variances = pop$var1 - pop$var2,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -949,6 +981,10 @@ minimum_n <- function(spec) {
       # pwrss's own search for n starts at 5.
       overlapping_correlations = ,
       nonoverlapping_correlations = 5,
+      # One degree of freedom for the chi-square test of one variance; two
+      # people per group for the F test of two.
+      one_variance = 2,
+      two_variances = 4,
       4
     ),
     factorial_anova = switch(
@@ -986,7 +1022,7 @@ group_split <- function(spec) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances")) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
@@ -1013,6 +1049,8 @@ target_effect_is_zero <- function(spec) {
       two_correlations = pop$r1 - pop$r2,
       overlapping_correlations = ,
       nonoverlapping_correlations = dependent_correlation_difference(spec),
+      one_variance = pop$var - pop$var0,
+      two_variances = pop$var1 - pop$var2,
       chi_square_gof = {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))

@@ -6,7 +6,8 @@
 # (backend-pwr.R; docs/decisions.md, 17 October 2026).
 #
 # Power is simulated with Spower::Spower() and Spower's own experiment
-# functions (p_t.test(), p_r(), p_prop.test(), p_chisq.test()), exactly as a
+# functions (p_t.test(), p_r(), p_prop.test(), p_chisq.test(),
+# p_var.test()), exactly as a
 # user would call them. One-sided tests use their `alternative` argument
 # (Spower 0.7 and later), translated to Spower's orientation by
 # spower_alternative(). Spower 0.6.4's `two.tailed = FALSE` halved the
@@ -20,7 +21,12 @@ spower_backend <- function(spec, seed = NULL) {
   n_min <- step * ceiling(minimum_n(spec) / step)
   list(
     name = "Spower",
-    packages = c("Spower", "SimDesign"),
+    # EnvStats carries the chi-square test of one variance that
+    # p_var.test() calls, so its version belongs in the provenance.
+    packages = c(
+      "Spower", "SimDesign",
+      if (identical(spec$template, "one_variance")) "EnvStats"
+    ),
     methods = "simulation",
     default_method = "simulation",
     functions = c(simulation = inputs$description),
@@ -88,6 +94,24 @@ spower_inputs <- function(spec) {
     chi_square_independence = list(
       experiment = "p_chisq.test", generator = "gen_chisq.test",
       args = function(n) list(n = n, P = probability_matrix(spec), correct = FALSE)
+    ),
+    # One variance against a fixed value: p_var.test() with one variance and
+    # sigma2 runs EnvStats::varTest(), the chi-square test, which is the
+    # test G*Power's "Variance: difference from constant" computes.
+    one_variance = list(
+      experiment = "p_var.test", generator = "gen_var.test",
+      args = function(n) list(n = n, vars = pop$var, sigma2 = pop$var0)
+    ),
+    # Two variances: p_var.test() with two variances runs stats::var.test(),
+    # the F test, whatever its `test` argument says (that argument chooses
+    # between Levene, Bartlett and Fligner for three groups or more). The F
+    # test is what G*Power computes.
+    # The groups are always the same size: an allocation ratio is refused
+    # in the spec checks, because Spower's generator can't draw unequal
+    # groups for this test (docs/upstream-questions.md).
+    two_variances = list(
+      experiment = "p_var.test", generator = "gen_var.test",
+      args = function(n) list(n = first_group(n), vars = c(pop$var1, pop$var2))
     )
   )
   alternative <- spec$target_test$alternative %||% "two_sided"
@@ -120,6 +144,8 @@ spower_alternative <- function(template, alternative) {
   if (alternative == "two_sided") {
     return("two.sided")
   }
+  # The variances go to Spower in the spec's own order, so their direction
+  # is not reversed either.
   reversed <- template %in% c("independent_t", "paired_t", "two_proportions")
   if (!reversed) {
     return(alternative)
@@ -212,6 +238,28 @@ spower_check_run <- function(spec, inputs, n, seed) {
           sqrt(p_hat * (1 - p_hat) / data[2, ])
         ),
         group_sizes(data[2, 1], data[2, 2])
+      )
+    },
+    # gen_var.test() returns the outcome in DV, with a group column when
+    # there are two variances. The SE of a sample variance from normal
+    # data is var * sqrt(2 / (n - 1)).
+    one_variance = {
+      v <- stats::var(data$DV)
+      check_run_rows(
+        "variance of Y", pop$var, v, pop$var * sqrt(2 / (nrow(data) - 1))
+      )
+    },
+    two_variances = {
+      by_group <- split(data$DV, data$group)
+      specified <- c(pop$var1, pop$var2)
+      rbind(
+        check_run_rows(
+          c("variance in group 1", "variance in group 2"),
+          specified,
+          vapply(by_group, stats::var, numeric(1), USE.NAMES = FALSE),
+          specified * sqrt(2 / (unname(lengths(by_group)) - 1))
+        ),
+        group_sizes(length(by_group[[1]]), length(by_group[[2]]))
       )
     },
     chi_square_independence = {
