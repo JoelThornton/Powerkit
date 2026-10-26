@@ -34,7 +34,6 @@ options(powerkit.routing_dir = getwd())
 
 app_css <- "
   body { background: #f7f8fa; }
-  .prototype-banner { font-size: 1.05rem; text-align: center; margin: 0 0 1.25rem 0; }
   .app-main { max-width: 980px; margin: 0 auto 3rem auto; }
   .choices { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0 1.5rem 0; }
   .choice { text-align: left; padding: 0.75rem 1rem; white-space: normal; }
@@ -120,7 +119,6 @@ app_css <- "
   .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
-  .feedback-link { text-align: center; font-size: 0.95rem; margin: -0.75rem 0 1rem 0; }
   .about { max-width: 46rem; }
   .about-endpoints li, .about-credit { margin-bottom: 0.4rem; }
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
@@ -136,6 +134,80 @@ app_css <- "
   .labs-return { font-size: 0.9rem; background: #eef3fa; border-left: 4px solid #0a5a8c; border-radius: 0.4rem; padding: 0.5rem 0.75rem; margin-bottom: 1rem; }
   .labs-signpost { font-size: 0.9rem; background: #eef3fa; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-hint-hidden .labs-signpost { display: none; }
+
+  /* A cleaner, card-based look (26 October 2026). */
+  :root { --pk-navy: #14284b; --pk-blue: #0a5a8c; --pk-amber: #b97a00; --pk-line: #e3e7ee; --pk-bg: #f5f7fa;
+          --pk-radius: 14px; --pk-shadow: 0 1px 2px rgba(20,40,75,.06), 0 4px 16px rgba(20,40,75,.06); }
+  body { background: var(--pk-bg); color: #1d2733; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+  h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
+  .lead { font-size: 1.05rem; color: #44505e; }
+  .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
+  .topbar-inner { max-width: 1100px; margin: 0 auto; }
+  .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
+  .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
+  .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
+  .badge-proto { display: inline-block; background: #f2b84b; color: #2b1d00; border-radius: 1rem; padding: 0.02rem 0.55rem;
+                 font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .app-main { max-width: 1100px; margin: 0 auto 6rem auto; }
+  .app-main > .tabbable > .nav-tabs { border-bottom: 1px solid var(--pk-line); margin-top: 0.5rem; gap: 0.25rem; }
+  .app-main > .tabbable > .nav-tabs .nav-link { border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #44505e; font-weight: 500; padding: 0.7rem 0.9rem; }
+  .app-main > .tabbable > .nav-tabs .nav-link.active { background: transparent; color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
+  .progress-steps ol { margin: 0.25rem 0 1rem 0; }
+  .screen-nav { display: flex; justify-content: space-between; align-items: center; margin: -0.25rem 0 0.5rem 0; }
+  .screen-nav .btn-link { padding: 0.35rem 0; text-decoration: none; font-weight: 500; min-height: 44px; }
+  .screen-nav .back-link { color: var(--pk-blue); }
+  .screen-nav .restart-link { color: #5a6573; margin-left: auto; }
+  .screen-nav .btn-link:hover { text-decoration: underline; }
+  .choices { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+  @media (min-width: 768px) { .choices:not(.list) { grid-template-columns: 1fr 1fr; } .route-choices { grid-template-columns: repeat(3, 1fr) !important; } }
+  .choice { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow);
+            padding: 1rem 1.15rem; color: var(--pk-navy); transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease; }
+  .choice .choice-label { font-size: 1.02rem; }
+  .choice:hover, .choice:focus { background: #fff; color: var(--pk-navy); border-color: var(--pk-blue); transform: translateY(-1px);
+                                  box-shadow: 0 2px 4px rgba(20,40,75,.08), 0 8px 24px rgba(20,40,75,.10); }
+  .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #3d4852; }
+  .choice:active { background: #eef4fa; color: var(--pk-navy); }
+  .choice-safety { background: transparent; box-shadow: none; border: 1.5px dashed #a9b3c1; }
+  .route-choices .choice { padding: 1.25rem; min-height: 7.5rem; }
+  .route-choices .choice-label { font-size: 1.15rem; color: var(--pk-blue); margin-bottom: 0.25rem; }
+  .start-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 992px) { .start-grid { grid-template-columns: repeat(3, 1fr); } }
+  .start-question { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 1rem 1.15rem 0.25rem 1.15rem; }
+  .start-question .control-label .h5 { font-weight: 650; color: var(--pk-navy); }
+  .start-question .radio { margin-bottom: 0.4rem; }
+  .start-question .option-help { display: block; margin-top: 0.15rem; }
+  /* Each option's help shows under the chosen option only; the others keep it for screen readers. */
+  .start-question .radio label:not(:has(input:checked)) .option-help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .saved-projects { margin-top: 1.5rem; background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.4rem 1.15rem; }
+  .saved-projects > summary { cursor: pointer; color: var(--pk-blue); font-weight: 500; min-height: 44px; display: flex; align-items: center; }
+  .saved-projects-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; padding-bottom: 0.5rem; }
+  @media (min-width: 768px) { .saved-projects-grid { grid-template-columns: 1fr 1fr; } .saved-projects-grid .mt-4 { margin-top: 0.5rem !important; } }
+  .endpoint-card { border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); }
+  .endpoint-card > .card-body { padding: 1.5rem 1.75rem; }
+  .endpoint-card .card-title { color: var(--pk-navy); font-weight: 650; }
+  .status { border-radius: 10px; font-size: 0.92rem; }
+  .card-effect { background: var(--pk-bg); border-radius: 10px; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 0.75rem; font-size: 0.95rem; }
+  .card-effect h3, .card-effect h4 { font-weight: 650; color: var(--pk-navy); }
+  .card-effect ul { margin-bottom: 0.5rem; }
+  .form-group-box, .form-settings, .form-guess, .effect-help, .analysis-row, .plan-item, .labs-tool-card { border-radius: var(--pk-radius); border-color: var(--pk-line); box-shadow: var(--pk-shadow); }
+  .form-section-effect > .form-group-box { border-color: var(--pk-blue); }
+  .form-section-title { color: var(--pk-navy); font-weight: 650; }
+  .trail-title { font-size: 0.8rem; }
+  .chip { background: #fff; border-color: var(--pk-line); }
+  .result-panel { margin-top: 1.5rem; }
+  .result-card { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .result-card h3, .result-card h4 { color: var(--pk-navy); font-weight: 650; }
+  .result-main { border-top: 5px solid var(--pk-blue); }
+  .result-main .result-headline { font-size: 1.4rem; font-weight: 600; color: var(--pk-navy); line-height: 1.35; }
+  .result-more { margin: 0.75rem 0 0 0; }
+  .result-more > summary { cursor: pointer; color: var(--pk-blue); min-height: 44px; display: flex; align-items: center; }
+  /* The screen's next step, pinned to the bottom of the window. */
+  .action-bar { position: sticky; bottom: 0; z-index: 10; justify-content: flex-end; background: rgba(255,255,255,.96);
+                backdrop-filter: blur(6px); border-top: 1px solid var(--pk-line); margin: 1.5rem 0 0 0; padding: 0.75rem 1rem;
+                box-shadow: 0 -4px 16px rgba(20,40,75,.06); border-radius: var(--pk-radius) var(--pk-radius) 0 0; }
+  .action-bar .btn { min-height: 44px; padding-left: 1.25rem; padding-right: 1.25rem; border-radius: 10px; font-weight: 600; }
+  .btn-primary { background: var(--pk-blue); border-color: var(--pk-blue); }
+  @media print { .topbar, .screen-nav, .action-bar, .saved-projects { display: none !important; } }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
 "
 
@@ -213,18 +285,19 @@ ui <- function(req) fluidPage(
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
   tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
-  tags$header(
-    h1(class = "visually-hidden", "powerkit (prototype)"),
-    prototype_banner(tree),
-    p(class = "feedback-link", "Questions, problems or ideas? ",
-      actionLink("go_feedback_link", "Tell us on the Feedback tab"))
+  # The name, and that it is a prototype with its version; what the
+  # prototype can do is on the About tab (prototype_banner()).
+  tags$header(class = "topbar",
+    div(class = "topbar-inner",
+      h1(class = "brand", "powerkit",
+        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))))
   ),
   tags$main(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About this prototype", div(class = "pt-3", about_tab)),
+      tabPanel("About", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
@@ -751,7 +824,6 @@ server <- function(input, output, session) {
   })
   # The Feedback tab: from the header link, or from "Something doesn't fit?"
   # (which picks "confusing").
-  observeEvent(input$go_feedback_link, updateTabsetPanel(session, "tabs", selected = "Feedback"))
   observeEvent(input$go_feedback, {
     if (input$go_feedback %in% names(feedback_kinds)) updateRadioButtons(session, "fb_kind", selected = input$go_feedback)
     updateTabsetPanel(session, "tabs", selected = "Feedback")
@@ -841,11 +913,15 @@ server <- function(input, output, session) {
   output$screen <- renderUI({
     switch(
       state$screen,
-      start = tagList(start_ui(tree, isolate(state$start)), open_project_ui(), check_project_ui()),
+      start = tagList(start_ui(tree, isolate(state$start)),
+        tags$details(class = "saved-projects",
+          tags$summary("Have a saved project, or one someone shared with you?"),
+          div(class = "saved-projects-grid", open_project_ui(), check_project_ui()))),
       check = plan_check_ui(tree, forms, state$checked_project),
       known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route),
       card = tagList(
+        screen_nav_ui(),
         if (isTRUE(state$from_labs)) labs_return_ui(),
         trail_ui(state$history),
         card_ui(tree, state$endpoint, history = state$history),

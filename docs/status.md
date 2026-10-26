@@ -68,7 +68,10 @@ fully validated. Validation runs are recorded in
   as a project file and reopened. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud>; the
   run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
-  for running it on one's own computer. In "Plan my whole study",
+  for running it on one's own computer. A cleaner, card-based layout is
+  in review (26 October 2026, 0.5.0): Back and Start again at the top of
+  each screen, the next step pinned to the bottom of the window, choices
+  and results as cards, and the About tab renamed. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
   Changing alpha or choosing a one-sided test asks for a reason, which
@@ -101,12 +104,12 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
-- **Whole-study plan (in review, 26 October 2026, 0.5.0):** the plan
+- **Whole-study plan (in review, 26 October 2026, 0.6.0):** the plan
   gives the combined sample size (the largest N among the main
   analyses, named, from the calculations made from the plan) and asks
   for shared values once: an input two analyses both ask for fills the
   second's input screen. Whole-study simulation is queued
-  ([`next.md`](next.md), item 9) and needs a statistician's check.
+  ([`next.md`](next.md), item 7) and needs a statistician's check.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
   with no ready-made tool now name one (powerMediation for B14,
   semPower for B17, DescTools for B27's test). All three are marked
@@ -126,6 +129,17 @@ fully validated. Validation runs are recorded in
   full-validation workflow, every test conventions.md names existing, and
   coverage-roadmap.md's summary counts matching its rows
   (`app/routing/tests/testthat/test-repo-consistency.R`).
+- **The app's calculation tests run in CI (26 October 2026, in review):**
+  the six app tests that check a result against the engine and the
+  downloaded script against the result were thought to skip in CI. They
+  don't: setup-r sets `NOT_CRAN`. Both test workflows now set it
+  themselves, so the tests can't be lost if the jobs change how R is
+  installed.
+- **CI in a prebuilt image (26 October 2026, in review):** the test
+  workflows run in an image with R and the locked packages already
+  installed, rebuilt only when `renv.lock` changes, so a check no longer
+  spends most of its time, or fails, downloading R and system libraries
+  (docs/decisions.md).
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the

@@ -7,7 +7,7 @@ powerkit is a prototype: it helps you find the right power analysis for
 your study and, for some designs, calculates it with established R
 packages. Its results are not yet fully validated, so please don't use
 them for a real study yet. What it does and doesn't do is on its
-**About this prototype** tab.
+**About** tab.
 
 You will:
 

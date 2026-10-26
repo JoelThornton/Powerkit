@@ -34,8 +34,8 @@ field_ui <- function(f, value, described_by = character()) {
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
     if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
-    if (!is.null(f$default_source)) div(id = source_id, class = "default-source",
-      if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], f$default_source) else paste0(f$default_source, ".")
+    if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
+      if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
   # Labs' one way in: a line under the effect size's source, for people
@@ -57,6 +57,19 @@ field_ui <- function(f, value, described_by = character()) {
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
   conditionalPanel(paste(condition, collapse = " && "), field)
+}
+
+# Where a default comes from, without the function calls and version
+# numbers in brackets: "pwr's default (pwr.t.test(sig.level = 0.05), pwr
+# 1.3-0)" reads "pwr's default". The full text is the line's tooltip, and
+# the R script, write-up and project file keep it.
+short_source <- function(text) {
+  repeat {
+    shorter <- gsub("\\s*\\([^()]*\\)", "", text)
+    if (identical(shorter, text)) break
+    text <- shorter
+  }
+  trimws(text)
 }
 
 # A group of fields: a fieldset whose legend is the card's "What you would
@@ -86,21 +99,19 @@ group_ui <- function(tree, g, values, index) {
 form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE, carried = NULL) {
   ep <- tree$endpoints[[ep_id]]
   tagList(
+    screen_nav_ui("form_back", if (from_plan) "Back to my plan" else "Back to the card"),
     trail_ui(history),
-    div(class = "card-eid", ep_id),
+    div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
-    p(class = "lead", "Fill in the values for your study, then choose \u201cCheck my answers\u201d."),
+    p(class = "lead", "Everything is needed unless it says optional. Effect sizes start empty: enter the value you expect, and say where it comes from."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
     carried,
-    p("Everything is needed unless it says optional. Effect sizes, SDs and correlations start empty: enter the values you expect, and say where they come from."),
     placeholders_at(tree, "form"),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
-    div(class = "nav-buttons",
-      actionButton("form_check", "Check my answers", class = "btn btn-primary"),
+    action_bar(
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
-      pick_button(if (from_plan) "Back to my plan" else "Back to the card", "form_back", class = "btn btn-secondary"),
-      pick_button("Start again", "home", class = "btn btn-link")
+      actionButton("form_check", "Check my answers", class = "btn btn-primary")
     ),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
@@ -135,13 +146,12 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
   )
 }
 
-# The buttons under a card: "Enter your values" where the end point has an
-# input screen, then Back and Start again.
+# The card's next step, pinned to the bottom of the window: "Enter your
+# values" where the end point has an input screen (Back and Start again are
+# at the top of the screen, screen_nav_ui()).
 card_nav_ui <- function(forms, ep_id) {
-  div(class = "nav-buttons",
-    if (has_form(forms, ep_id)) pick_button("Enter your values", "form", class = "btn btn-primary"),
-    pick_button("Back", "back", class = "btn btn-secondary"),
-    pick_button("Start again", "home", class = "btn btn-link"))
+  if (!has_form(forms, ep_id)) return(NULL)
+  action_bar(pick_button("Enter your values \u2192", "form", class = "btn btn-primary btn-lg"))
 }
 
 # Observed power (judgement call 3.1, decided 22 October 2026: warn and

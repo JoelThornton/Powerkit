@@ -404,7 +404,8 @@ input-screen checks, where it is available) and check:
 - that `tree.yaml` matches `decision-tree.md`.
 
 They run on GitHub on every pull request and push
-(`.github/workflows/routing-prototype-tests.yaml`). That job installs the
-package versions in `renv.lock` and the engine itself, so the input
+(`.github/workflows/routing-prototype-tests.yaml`). That job runs in the
+CI image, which holds the package versions in `renv.lock`, and installs
+the engine itself, so the input
 screens' checks with `validate_spec()` run there too; the prototype never
 computes power. They aren't part of the engine's `devtools::test()`.
