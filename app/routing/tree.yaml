@@ -1329,7 +1329,7 @@ endpoints:
     backend: "pwrss: power.z.twocors.steiger() (Steiger's z test, unpooled as in G*Power, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and reproduces the sample sizes of the G*Power manual's two examples (test-backend-formula-tests.R). Not yet in the validation run, where the published values are still to be transcribed."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and reproduces the sample sizes of the G*Power manual's two examples (test-backend-formula-tests.R). Not yet in the full validation run."}
     card_points:
       - "Compares two correlations measured in the same people: either sharing a variable (is X more strongly related to Y or to Z?) or with no variable in common (is the link between stress and sleep stronger at 16 than at 14?)."
       - "Because the same people give both correlations, you also give the correlations between the other pairs of variables: they decide how much the two compared correlations move together."

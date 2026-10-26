@@ -54,8 +54,8 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    # E24's effect sizes appear once its question is chosen.
-    start <- if (identical(ep, "E24")) list(question = "r2_increase") else list()
+    # E24's and E51's effect sizes appear once their first question is chosen.
+    start <- switch(ep, E24 = list(question = "r2_increase"), E51 = list(comparison = "overlapping_correlations"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
