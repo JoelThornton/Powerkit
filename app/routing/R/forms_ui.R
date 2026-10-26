@@ -38,6 +38,11 @@ field_ui <- function(f, value, described_by = character()) {
       if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
+  # A note for each choice that needs one, shown when it is chosen (the
+  # claim's choices).
+  if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
+    conditionalPanel(sprintf("input.%s == '%s'", id, k), p(class = "group-note choice-note", f$choice_notes[[k]]))
+  }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
   if (identical(f$id, "just_type")) field <- tagList(field, observed_power_warning_ui(), labs_signpost_ui())
@@ -176,7 +181,9 @@ observed_power_warning_ui <- function() {
 # project files and write-up don't depend on this order.
 form_section <- function(g) {
   ids <- vapply(g$fields, `[[`, "", "id")
-  if ("goal" %in% ids || identical(g$title, "Your claim")) return("goal")
+  # The claim sits with the settings: most studies rest on one test.
+  if (identical(g$title, "Your claim")) return("settings")
+  if ("goal" %in% ids) return("goal")
   if ("guess" %in% ids) return("guess")
   if ("just_type" %in% ids || any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return("effect")
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))

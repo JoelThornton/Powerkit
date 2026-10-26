@@ -41,6 +41,14 @@ entries:
       other predictors, you say how much they overlap with this one. Until
       today this card said powerkit couldn't do it.
   - date: "2026-10-26"
+    title: "A simpler first screen"
+    text: >-
+      The first screen now asks just one thing: how you want to start. The
+      next screen asks what your study is trying to do. Whether your sample
+      size is fixed, and whether your conclusion rests on several tests,
+      are now asked on the screen where you enter your numbers; most
+      studies rest on one test, so that setting starts there.
+  - date: "2026-10-26"
     title: "A cleaner, simpler look"
     text: >-
       The app has a new look. "Back" and "Start again" are at the top of
