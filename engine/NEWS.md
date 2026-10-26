@@ -1,4 +1,19 @@
-# powerkit 0.0.0.9000
+# powerkit 0.4.0
+
+powerkit has a version number from here on: 0.x.y while it is a prototype,
+where the minor number counts batches of user-visible work that have
+shipped, and 1.0.0 at release (docs/adding-a-test.md, "Version numbers").
+0.4.0 is what is already online: the first prototype, the four-screen
+design, the tests by formula, and the shorter input screen with Labs,
+feedback and browser history. The version shows on the About page, in
+every exported R script and in each result's provenance.
+
+* Docs: docs/adding-a-test.md is the one page to follow when powerkit
+  gains a power analysis it couldn't do before — what counts as added
+  (engine, validation placeholders, card, input screen, a plain-words
+  "What's new" entry, a version bump and the status update, all in one
+  pull request), how a backend package is chosen with the maintainer,
+  every file a design touches, and the queue of what to add next.
 
 * Engine (not yet in the app): two dependent correlations in one group,
   by Steiger's z test with pwrss's `power.z.twocors.steiger()`. Template

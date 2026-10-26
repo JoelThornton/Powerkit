@@ -2777,6 +2777,115 @@ and would have caught the stale "not wired" statuses a week earlier. It
 lengthens the job, so it is the maintainer's call rather than something to
 slip into a test PR.
 
+## 2026-10-26 · Every design is reachable from the design finder
+
+**What.** The rule written into
+[`adding-a-test.md`](adding-a-test.md) when the process page was first
+drafted — common designs in the design finder, rare ones listed only
+under "I know my analysis" — is wrong and has been replaced. Every design
+powerkit can run is reachable from the finder. The only exception is a
+design that cannot be identified from a description of a study, but only
+by name: the generic tests (E50), where the researcher must already know
+they have a noncentrality parameter.
+
+**Why (the maintainer, 26 October 2026).** Letting users find only the
+obvious designs through the finder is poor scientific practice. The
+researcher who needs a multilevel model and doesn't know it cannot look it
+up by name, so a finder that leads only to familiar designs would send
+exactly that person to a t-test — the failure powerkit exists to prevent.
+Rarity is not the test; identifiability is.
+
+**It also matched the app badly.** The four screening questions already
+lead to clustered data (E34), counts (E28), ordered categories (E29),
+survival (E43), pairs (E44), many stimuli per person (E33), equivalence
+(E36) and planning for precision (E46). The rule as first written would
+have contradicted the tree that is already built.
+
+**What keeps a simple design simple** is where the questions sit, not
+which designs exist: four screening questions for everyone, and anything a
+rare design needs asked only of people whose earlier answers imply it.
+Someone comparing two groups on a score is never asked about nesting or
+exposure time.
+
+## 2026-10-26 · The toolbox doesn't decide the method
+
+**What (the maintainer, 26 October 2026).** Two things are now written into
+the process ([`adding-a-test.md`](adding-a-test.md) section 2, `CLAUDE.md`,
+and the framing of [`conventions.md`](conventions.md) and
+[`gpower-parity.md`](gpower-parity.md)):
+
+1. **The method is chosen first and the package second.** What powerkit
+   can do, and how it does it, is not decided by which packages happen to
+   be installed. If nothing available computes a design properly, the
+   outcomes are a better package or the design staying uncovered with the
+   reason recorded — not a worse approximation offered as the answer.
+2. **Familiar is not correct.** G\*Power tells powerkit what researchers
+   expect to type and read; it is not the standard of correctness, and is
+   criticised in the methods literature. Where it does something badly,
+   powerkit should not copy it so that the numbers match what people are
+   used to. The packages powerkit calls get the same treatment: this
+   project has already found and reported three faults in Spower's
+   `p_var.test()` and one in its `p_r()`
+   ([`upstream-questions.md`](upstream-questions.md)), so a package default
+   is a claim to check rather than an instruction.
+
+**How this sits with "follow the established tools' conventions by
+default".** That rule stays, but it is a rule against *silent* divergence,
+not deference. The departures machinery — recorded in `conventions.md`,
+shown on the result screen, stated in the methods paragraph, and covered
+by a test showing the size of the difference — is what lets powerkit use
+the better method and still leave a user able to see exactly why its
+number differs from the tool they know. powerkit already does this where a
+default was wrong for the design: no continuity correction, no spurious
+covariate in a contrast, the unpooled Steiger test, and the direction of a
+one-sided variance test.
+
+**Who decides.** Which method is right is the maintainer's call, with the
+literature behind it, and some questions need a statistician. A thread
+never settles it quietly, and never settles it by reaching for what is
+already installed.
+
+## 2026-10-26 · Three product ideas from an outside review, recorded not adopted
+
+**Where they came from.** A catalogue of psychology power analyses the
+maintainer commissioned from a language model (26 October 2026). Most of it
+restates what [`coverage-roadmap.md`](coverage-roadmap.md) already holds,
+and its frequency figures ("70% of studies use ten tests") and
+effect-size benchmarks ("median d of 0.36 to 0.40") are unsourced, so
+nothing numerical from it is used. The test names it mentions that the
+roadmap misses are listed there. Three product ideas are worth keeping:
+
+1. **A safeguard-power adjuster.** When a user takes an effect size from a
+   pilot or a single published study, offer the lower confidence bound of
+   that estimate instead of the point estimate (the method is attributed to
+   Perugini and colleagues; **to read before use**). This fits what
+   powerkit already does — it asks where an effect size came from and
+   whether the reasoning still applies — and would answer the commonest way
+   a power analysis goes wrong: a noisy pilot estimate taken at face value.
+2. **A power curve with three lines.** The expected effect, plus an
+   optimistic and a conservative one either side, so the user sees how
+   sensitive the sample size is to being wrong about the effect. powerkit
+   draws one curve today.
+3. **A downloadable synthetic data set** beside the R script, for
+   registered reports: analysis code can be written and pre-registered
+   against simulated data before real participants are recruited. Cheap for
+   the simulated designs, because the engine already generates one large
+   data set per run for its check run. **Caveats to settle first:** it
+   would carry powerkit's data-generating assumptions, which are thinner
+   than real data (no missingness beyond attrition, no floor or ceiling
+   effects unless asked for), so it must be labelled as simulated in the
+   file itself, and it must not read as a substitute for the real analysis
+   plan.
+
+**Not adopted from the review.** Its technical recommendation — implement
+the closed-form distributions in the browser in TypeScript or Rust — is the
+opposite of how powerkit works and of why its numbers are defensible:
+powerkit never writes the statistics itself, and every result names the
+validated R package that produced it (`CLAUDE.md`). Its advice to ban
+post-hoc observed power also runs against the maintainer's decision of
+22 October 2026 (allowed, with a warning), though its reasoning — that
+observed power is a transformation of the p-value and adds nothing — is the
+argument the warning already makes.
 ## 2026-10-26 · "I know my analysis" can skip the screening
 
 **What.** The "I know my analysis" route now offers, on every screening

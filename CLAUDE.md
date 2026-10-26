@@ -7,6 +7,31 @@ with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
 
+## What to work on
+docs/next.md is the ordered queue: take the first item marked Ready, one item
+per PR, and delete its row when it lands. An item marked "Needs a decision" is
+not yours to start — say what the decision is and move on, or ask. Check the
+top item still makes sense before starting: the page is dated, and the
+maintainer's priorities beat it.
+
+## Adding a power analysis
+Follow docs/adding-a-test.md, start to finish, in one PR. A test is added when a
+researcher can run it and see that it exists: engine, validation placeholders,
+card, input screen, a plain-words "What's new" entry, a version bump and the
+status update all land together. For a design whose power must be simulated,
+"run it" can mean the R script the app hands them to run themselves (as E10-E14
+do) — say which route they are on. Never leave a design the engine can compute
+with a card that says powerkit cannot.
+Split a big batch by design, never by layer: splitting by layer is what left
+five designs in the engine that no researcher could reach.
+Every design is reachable from the design finder, rare ones most of all (a
+researcher who needs a multilevel model can't look it up by name); only a design
+that can't be identified from a description of a study, such as the generic
+tests, is listed in "I know my analysis" alone.
+app/routing/tests/testthat/test-repo-consistency.R refuses an engine template
+that is neither named by a card nor listed in forms.yaml's engine_only, so an
+engine-side change alone will fail the app suite.
+
 ## Non-negotiables
 - Never write new statistical maths when a backend package already does it; adapt the spec.
 - Never edit expected values in tests/testthat/test-validation-*. They are transcribed
@@ -17,12 +42,24 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
 - Citations come only from inst/citations/refs.bib or a package's own citation().
   Never invent references or write one from memory.
 - Plain-English errors for users; no stack traces in the UI.
-- powerkit follows the established tools' conventions by default. Any
-  departure must be recorded in docs/conventions.md, shown to the user on the
-  results screen, stated in the methods paragraph, and covered by a test
-  showing the size of the difference.
+- powerkit follows the established tools' conventions by default, so that users
+  comparing tools are never surprised silently. Any departure must be recorded
+  in docs/conventions.md, shown to the user on the results screen, stated in the
+  methods paragraph, and covered by a test showing the size of the difference.
+  Following by default is about not diverging silently, not about treating the
+  usual tools as correct: G*Power is the benchmark for what researchers expect
+  to enter and see, not for what is right, and the packages powerkit calls have
+  their own faults (docs/upstream-questions.md). Where the literature says a
+  method is better, prefer it and record the departure — that machinery exists
+  so powerkit can be right and honest at once. Which method is right is the
+  maintainer's call, with the literature behind it; never the thread's quiet
+  decision, and never settled by what is already installed.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
   a phase and summarise what was done, what's untested, and open questions.
+- engine/DESCRIPTION's Version is powerkit's version, shown to users and in
+  every export: 0.x.y while it is a prototype (the minor number counts shipped
+  batches of user-visible work), 1.0.0 at release. Bump it with the batch, and
+  keep CITATION.cff (repository root) and engine/NEWS.md in step.
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.
@@ -60,6 +97,10 @@ to read small.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
+- Run the app's suite too when anything outside engine/ changed:
+  testthat::test_dir("tests/testthat") in app/routing/. The cross-checks that
+  tie the engine, the docs and the app together live there, so an engine-only
+  run will not see them.
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
   app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.

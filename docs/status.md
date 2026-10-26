@@ -121,6 +121,17 @@ fully validated. Validation runs are recorded in
   summary counts are recounted from the rows, and a test now holds the
   page to forms.yaml's record of what calculates. No code changed: there
   was nothing to wire.
+- **How tests get added (26 October 2026, in review):**
+  [`adding-a-test.md`](adding-a-test.md) is now the one page for it: what
+  "added" means (engine, validation placeholders, card, input screen,
+  "What's new" entry, version bump, status, all in one PR), how a backend
+  package is chosen with the maintainer, every file a design touches, and
+  the queue of what to add next. powerkit has a version number too:
+  `engine/DESCRIPTION`, 0.x.y while it is a prototype, 1.0.0 at release.
+  **Batch 1 is the five designs the engine already computes but the app
+  can't reach** (logistic and Poisson regression, planned contrasts, two
+  dependent correlations, the two variance tests); three of them have
+  cards that tell users powerkit can't do what it can.
 - **Straight to the list (26 October 2026, in review):** "I know my
   analysis" can skip the four screening questions and show every end point,
   as G\*Power's menu does; the questions are offered on the list as a
@@ -166,7 +177,8 @@ fully validated. Validation runs are recorded in
   worked examples.
 - **Browser Back and Forward** (in review, 22 October 2026): each screen
   or tab change is a browser history entry.
-- **Open PRs:** see [`handover.md`](handover.md).
+- **Open PRs:** GitHub is the list; this page doesn't duplicate it.
+  What to work on is [`next.md`](next.md).
 
 ## Priorities (the maintainer, 18 October 2026)
 
@@ -182,6 +194,10 @@ fully validated. Validation runs are recorded in
   the write-up was merged the same day.
 
 ## What's next
+
+**The ordered queue is [`next.md`](next.md)** — twenty items, Ready ones
+first. What follows is the direction those items serve.
+
 
 In priority order (agreed direction, 18 October 2026: a working web app
 first; 19 October 2026: optional features that help testing can come in
