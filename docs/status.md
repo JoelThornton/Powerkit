@@ -96,6 +96,11 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Candidates recorded (25 October 2026):** three of the five roadmap rows
+  with no ready-made tool now name one (powerMediation for B14,
+  semPower for B17, DescTools for B27's test). All three are marked
+  **not checked** against their own help files, because CRAN wasn't
+  reachable from the build environment; nothing is built on them.
 - **G\*Power checks (25 October 2026, in review):** of the eight rows
   marked "wired, not yet checked against G\*Power", the manual settles
   two, and both reproduce it: two independent correlations (A6, section
