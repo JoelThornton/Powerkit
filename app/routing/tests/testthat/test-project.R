@@ -76,6 +76,16 @@ test_that("projects the app can't reopen get a plain-English reason", {
   expect_match(restore_from_project(route, tree, forms), "doesn't offer")
 })
 
+test_that("a project saved from an input screen opened from the plan reopens with the plan's claim", {
+  state <- modifyList(example_state("E23"), list(came_from = "plan", plan_id = "compare", start = list(aim = "predict", claim = "one"),
+    primary = c("compare", "mediation"), rule = "all"))
+  route <- project_route(state, list(n_tests = "2"))
+  expect_identical(route$came_from, "node")
+  expect_identical(route$start$claim, "all")
+  expect_null(route$start$n_tests)
+  expect_identical(restore_from_project(route, tree, forms)$start$claim, "all")
+})
+
 test_that("the start screen offers to open a project, and results offer to save one", {
   html <- as.character(open_project_ui())
   expect_match(html, "open_project", fixed = TRUE)

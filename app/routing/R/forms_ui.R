@@ -96,10 +96,10 @@ group_ui <- function(tree, g, values, index) {
 
 # The whole screen. `values` keeps what the user typed when the screen is
 # redrawn (e.g. after changing the number of mediators).
-form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list()) {
+form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE) {
   ep <- tree$endpoints[[ep_id]]
   tagList(
-    screen_nav_ui("form_back", "Back to the card"),
+    screen_nav_ui("form_back", if (from_plan) "Back to my plan" else "Back to the card"),
     trail_ui(history),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),

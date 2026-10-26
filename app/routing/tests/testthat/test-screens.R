@@ -183,6 +183,33 @@ test_that("the plan screen labels the combined N and the consistency check 'Comi
   expect_match(html, "E16", fixed = TRUE)
 })
 
+test_that("the plan opens each analysis's input screen, where powerkit has one", {
+  answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline", times = "once")
+  ticked <- c("compare", "moderation", "mediation")
+  asks <- list(compare = "ANCOVA: the outcome adjusting for the baseline")
+  html <- as.character(guided_plan_ui(tree, answers, ticked, c("compare", "mediation"), asks, "any", forms = forms))
+  # ANCOVA (E23) and the condition x score interaction (E15) have input
+  # screens; mediation with a two-group X (E16) doesn't yet.
+  for (id in ticked) {
+    ep <- resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])$endpoint
+    expect_identical(grepl(sprintf("gform:%s&#39;", id), html, fixed = TRUE), has_form(forms, ep), label = id)
+  }
+  expect_match(html, "gform:compare&#39;", fixed = TRUE)
+  # Two main analyses and "any one": the claim and the number of tests go to
+  # the input screen. An extra analysis, or a lone main one, stands alone.
+  expect_identical(plan_form_start(list(aim = "predict"), "compare", c("compare", "mediation"), "any")[c("claim", "n_tests")],
+    list(claim = "any", n_tests = 2L))
+  expect_identical(plan_form_start(list(), "compare", c("compare", "mediation"), "each")$claim, "each")
+  expect_null(plan_form_start(list(), "compare", c("compare", "mediation"), "each")$n_tests)
+  expect_identical(plan_form_start(list(claim = "all"), "moderation", c("compare", "mediation"), "all")$claim, "one")
+  expect_identical(plan_form_start(list(claim = "all"), "compare", "compare", "all")$claim, "one")
+  # The input screen's back button returns to the plan.
+  expect_match(as.character(form_ui(tree, forms, "E23", form_groups(forms, "E23"), from_plan = TRUE)), "Back to my plan", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'kind == "gform"', fixed = TRUE)
+  expect_match(code, 'if (identical(state$came_from, "plan")) "g_plan" else "card"', fixed = TRUE)
+})
+
 test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec() and exports", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")

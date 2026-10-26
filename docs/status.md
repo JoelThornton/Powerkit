@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -69,9 +69,9 @@ fully validated. Validation runs are recorded in
   <https://joelthornton-powerkit.share.connect.posit.cloud>; the
   run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
   for running it on one's own computer. A cleaner, card-based layout is
-  in review (26 October 2026): Back and Start again at the top of each
-  screen, the next step pinned to the bottom of the window, and choices
-  as cards. In "Plan my whole study",
+  in review (26 October 2026, 0.5.0): Back and Start again at the top of
+  each screen, the next step pinned to the bottom of the window, choices
+  and results as cards, and the About tab renamed. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
   Changing alpha or choosing a one-sided test asks for a reason, which
@@ -83,6 +83,11 @@ fully validated. Validation runs are recorded in
   does and doesn't do, where the numbers come from and how far along it
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
+- **In review (26 October 2026, 0.4.1):** each analysis on the guided
+  plan ("Plan my whole study") opens its input screen, carrying the
+  plan's claim and number of main analyses; before, the plan showed
+  cards with no way to calculate. The combined N and consistency check
+  are still "Coming soon".
 - **Merged 22 October 2026:** a Feedback tab whose Send button stores
   the message in the `powerkit_feedback` table of the goal-machine
   Supabase project (read it in Supabase's table editor), with a GitHub
@@ -99,6 +104,10 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Whole-study plan, still to build (26 October 2026):** the combined
+  sample size and the consistency check, labelled "Coming soon" on the
+  plan, are now in the queue ([`next.md`](next.md), items 9 and 10); the
+  consistency check waits on open question 12.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
   with no ready-made tool now name one (powerMediation for B14,
   semPower for B17, DescTools for B27's test). All three are marked

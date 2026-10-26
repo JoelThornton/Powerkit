@@ -319,13 +319,14 @@ server <- function(input, output, session) {
     skip_screening = FALSE,  # "I know my analysis": the list is unfiltered
     history = list(),        # list(node, answer, ctx) for each answer given
     endpoint = NULL,         # end point shown on the card screen
-    came_from = NULL,        # "known" or "node", for the card's back button
+    came_from = NULL,        # "known", "node" or "plan", for the back buttons
     form_values = list(),    # input screen: values typed so far (kept when it's redrawn)
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
     calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
-    ticked = character(), primary = character(), asks = list(), rule = "each"
+    ticked = character(), primary = character(), asks = list(), rule = "each",
+    plan_id = NULL           # guided route: the analysis whose input screen is open
   )
 
   # Keep the guided route's inputs in state as they change.
@@ -375,7 +376,12 @@ server <- function(input, output, session) {
   }
 
   # The input screen's fields and the values typed into them.
-  current_form_fields <- function() form_fields(form_groups(forms, state$endpoint, state$form_k, state$start))
+  # Screen A's answers for the input screen; opened from the plan, a main
+  # analysis takes the plan's claim instead (plan_form_start()).
+  form_start <- function() {
+    if (identical(state$came_from, "plan")) plan_form_start(state$start, state$plan_id, state$primary, state$rule) else state$start
+  }
+  current_form_fields <- function() form_fields(form_groups(forms, state$endpoint, state$form_k, form_start()))
   current_form_values <- function() {
     fields <- current_form_fields()
     values <- lapply(fields, function(f) input[[field_input_id(f)]])
@@ -447,7 +453,18 @@ server <- function(input, output, session) {
       state$screen <- "form"
     } else if (pick == "form_back") {
       state$form_values <- current_form_values()
-      state$screen <- "card"
+      state$screen <- if (identical(state$came_from, "plan")) "g_plan" else "card"
+    } else if (kind == "gform") {
+      # An analysis's input screen, opened from the plan.
+      a <- analysis_by_id(tree, value)
+      res <- resolve_analysis(tree, a, routed_answers(), state$asks[[value]])
+      if (!is.null(res$endpoint) && has_form(forms, res$endpoint)) {
+        state$endpoint <- res$endpoint; state$came_from <- "plan"; state$plan_id <- value
+        n <- plan_form_start(state$start, value, state$primary, state$rule)$n_tests
+        state$form_values <- if (!is.null(n)) list(n_tests = as.character(n)) else list()
+        state$form_k <- 2L; state$calc <- NULL
+        state$screen <- "form"
+      }
     } else if (kind == "ep") {
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
@@ -484,8 +501,9 @@ server <- function(input, output, session) {
   check_form <- function() {
     fields <- current_form_fields()
     values <- current_form_values()
-    values$claim <- state$start$claim %||% "one" # screen A's claim, for the result's note
-    values$situation <- state$start$situation %||% "choose" # for the write-up
+    start <- form_start()
+    values$claim <- start$claim %||% "one" # screen A's claim (or the plan's), for the result's note
+    values$situation <- start$situation %||% "choose" # for the write-up
     src <- source_check(source_record(), state$endpoint, fields, values)
     source_record(src$record)
     values$source_stale <- src$stale
@@ -884,11 +902,12 @@ server <- function(input, output, session) {
       ),
       form = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
-        form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, state$start), isolate(state$form_values), state$history)),
+        form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, form_start()), isolate(state$form_values), state$history,
+          from_plan = identical(state$came_from, "plan"))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
-        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers)
+        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms)
     )
   })
 }
