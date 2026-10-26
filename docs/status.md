@@ -96,6 +96,11 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Candidates recorded (25 October 2026):** three of the five roadmap rows
+  with no ready-made tool now name one (powerMediation for B14,
+  semPower for B17, DescTools for B27's test). All three are marked
+  **not checked** against their own help files, because CRAN wasn't
+  reachable from the build environment; nothing is built on them.
 - **Fix (25 October 2026):** the nightly validation job runs again. It had
   failed on every run since it was set up on 12 October (13 runs), before
   a single test ran: testthat's JUnit reporter needs xml2, which

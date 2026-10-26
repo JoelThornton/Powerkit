@@ -191,10 +191,10 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B11 | 3+ mediators | ML | E11, E12 (the spec takes up to M9 parallel, M4 serial) | Planned (validation; status.md "What's next", item 1; no phase) | As B8 | As B9, B10 | Validate with three or more | [B9][] |
 | B12 | Binary X | ML; BG | E16 | Planned (phase 3b) | Could: AP, PN, S | power4mome `x_fun` with `rbinary_rs()`; Spower `p_mediation(dichotomous.X = TRUE)` (Sobel/Wald test) | Phase 3b | [E4][] |
 | B13 | Multi-category X | ML | E42 | No ready-made tool | — | none found (coverage.md) | — | — |
-| B14 | Binary or count outcome | ML; Audit | E32 | No ready-made tool | — | none found: `x_fun` on an endogenous variable sets its error term, so a binary Y isn't covered (build guide, phase 3b a) | — | — |
+| B14 | Binary or count outcome | ML; Audit | E32 | No ready-made tool | — | none found among the five: `x_fun` on an endogenous variable sets its error term, so a binary Y isn't covered (build guide, phase 3b a). **Candidate, not checked:** powerMediation's Vittinghoff, Sen and McCulloch (2009) logistic and Poisson mediation functions (coverage.md) | Check the candidate against its own help files | — |
 | B15 | With covariates | ML | none: reaches E10–E12, which have no covariates | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test(model = )`: any lavaan model, so covariates can be added as predictors | Add covariates to the spec | [D7][] |
 | B16 | Latent-variable mediation | ML; Audit | E37; entered as mediation, E10 | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test()` with `number_of_indicators`, `reliability` (vignette "power4test_latent_mediation") | — | [C16][] |
-| B17 | Longitudinal mediation | ML | E41 | No ready-made tool | — | none found (coverage.md: within-person mediation) | — | — |
+| B17 | Longitudinal mediation | ML | E41 | No ready-made tool | — | none found among the five (coverage.md: within-person mediation). **Candidate, not checked:** semPower, whose cross-lagged functions are already named for B43; the open question is whether it can test a product of paths (coverage.md) | Check the candidate against its own help files | — |
 
 ### Moderated mediation
 
@@ -223,7 +223,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B24 | Welch's t | ML | E2 (an option) | Done (validated and wired) | Now: AP, PN (Spower). Engine on request: AP, PN by formula (pwrss). Could: S, Co, Cr | Spower `p_t.test(var.equal = FALSE)` (default). **Engine, with `options > method = "exact"` only: pwrss `power.t.welch(d, var.ratio = 1, n.ratio)`** (wave 2, draft PR; the app still uses Spower) | G\*Power check of the formula (wave 2 list below) | — |
 | B25 | Kruskal–Wallis | ML; UCLA | none: reaches E18 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_kruskal.test(n, k, means, n.ratios)` | Decide judgement call 3.8 | [C10][] |
 | B26 | Friedman | ML; UCLA | none: reaches E18 | Unknown (no Friedman power function in the foundation tools or the 47 other packages opened; check further) | — | unknown | Search | [C10][] |
-| B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found | — | [C6][] |
+| B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found. **Candidate, not checked:** DescTools' `CochranQTest()` is the test, not its power, so it would support a custom simulation only, and a published power method would still be needed (coverage.md) | Check the candidate against its own help files | [C6][] |
 | B28 | Factorial logistic regression | ML; UCLA | E47 | Planned (phase 6: GLMs) | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
 | B29 | Ordinal regression | ML; UCLA | E29 | Planned (phase 6: GLMs include ordinal outcomes) | Could: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
 | B30 | Negative binomial and zero-inflated counts | ML | E28 | Unknown (check whether Spower `p_glm()` accepts a negative-binomial family; zero-inflated: no candidate found) | — | MKpower `power.nb.test()` (negative binomial; not a foundation tool) | Check | — |
