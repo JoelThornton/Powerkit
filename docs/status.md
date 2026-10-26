@@ -38,9 +38,17 @@ fully validated. Validation runs are recorded in
   outcome, over a mean exposure): in the engine only, in review (25
   October 2026), with validation placeholders for the G\*Power manual's
   examples. It reproduces every number in the manual's section 30 that
-  powerkit can compute (docs/decisions.md). Next: a pass over the entries
-  still marked "to check" in conventions.md, now that the manual is to
-  hand.
+  powerkit can compute (docs/decisions.md).
+- **Conventions against the G\*Power manual**: the G\*Power entries in
+  docs/conventions.md are being filled in from the manual the maintainer
+  supplied. Sections 3 to 6, 10, 11, 13, 14 and 19 to 21 are done (in
+  review, 25 October 2026); the manual has no section on
+  repeated-measures ANOVA, the two-proportions z test, the chi-square test
+  of independence, ANCOVA or mediation, so those entries need G\*Power
+  itself. No new judgement call came out of it: the one the first draft
+  raised, powerkit's Fisher z against G\*Power's exact correlation test,
+  was already settled on 17 October 2026 and written up as Known
+  difference 10. Next: the pwrss column, from the installed sources.
 - **Generic tests**: t, F, chi-square and z from a noncentrality
   parameter, as in G\*Power, are in the app in review (E50, only from "I
   know my analysis"; no sample size). pwrss's search for the noncentrality
