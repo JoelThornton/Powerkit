@@ -45,6 +45,26 @@ the app (docs/next.md).
   unpooled Steiger test, not pwrss's pooled default). Both templates
   leave `engine_only`.
 
+* App: a cleaner, card-based layout. Back and Start again sit at the top
+  of every screen, and the screen's next step ("Enter your values",
+  "Check my answers", the whole-study route's Next and Show my plan) is in
+  a bar pinned to the bottom of the window, so neither needs scrolling to
+  find. Choices are cards, two to a row on wide screens; the start
+  screen's three questions sit side by side, with each option's
+  explanation shown under the chosen option only. The header is a slim
+  bar with the name, "Prototype" and the version; what the prototype can
+  do moves to the About tab (renamed from "About this prototype").
+  Validated designs no longer show a "Runs in powerkit" box (their
+  validation note is under "More about this analysis"), and cards no
+  longer show the internal design ID and engine template outside the
+  maintainer's view. Results are in cards (the answer; exploring it; how
+  it was calculated, with departures from the tools' defaults still in
+  view; saving and sharing), with the values used, the seed and the
+  limits of power folded under "More about this result". Input screens
+  give a default's source without the function calls in brackets; the
+  full source is the line's tooltip and stays in every export. No
+  calculation or routing changes.
+
 # powerkit 0.4.1
 
 * App: in "Plan my whole study", each analysis on the plan that powerkit

@@ -2777,6 +2777,12 @@ and would have caught the stale "not wired" statuses a week earlier. It
 lengthens the job, so it is the maintainer's call rather than something to
 slip into a test PR.
 
+**Correction (26 October 2026):** the six tests were already running in
+CI. `r-lib/actions/setup-r` sets `NOT_CRAN=true` for every later step
+unless it is already set, and the app job's test summary reports no
+skipped tests (`SKIP 0`). Both test workflows now set `NOT_CRAN`
+themselves, so the tests keep running if a job stops using setup-r.
+
 ## 2026-10-26 · Every design is reachable from the design finder
 
 **What.** The rule written into
@@ -2925,3 +2931,62 @@ every screening question of this route and on no question of the others;
 the skipped list holds every end point, says how many, and offers the
 filter; the filtered list still says how many fit; and the skip is part of
 the state the browser's Back and Forward buttons restore.
+
+## 2026-10-26 · Consistency between analyses in the whole-study plan (open question 12)
+
+**Decision.** Both approaches, in two steps.
+
+1. **Enter once (build now).** On "Plan my whole study", a relationship
+   that several analyses share (for example, the effect of X on the
+   outcome, which is the total effect in a mediation with the same X) is
+   entered once on the plan, and each analysis's input screen starts from
+   those values. Each analysis is still calculated by its own backend,
+   with that backend's established method, so nothing departs from the
+   tools researchers compare against.
+2. **Whole-study simulation (later, optional).** One data-generating
+   model for the whole study, simulated by an existing package (a
+   candidate is power4mome, whose models are written in lavaan syntax;
+   its coverage of every combination the plan allows is not yet checked),
+   giving power for every main analysis from the same simulated data sets
+   and one sample size. No established tool plans a whole study this way,
+   so before it is offered it is recorded in `conventions.md`, shown on the
+   results screen, stated in the methods paragraph, covered by a test of
+   the size of the difference, and checked by a statistician.
+
+**Why.** Separately entered values can contradict each other, and a plan's
+sample size is then right for no single study (`decision-tree.md` 4.2).
+Entering shared values once removes the contradiction at the source, with
+no new method. Whole-study simulation is more coherent still, and handles
+"every result must be significant" exactly rather than by raising each
+test's power, but it is new and slower, so it waits for checking.
+
+**Recorded in:** setting `consistency_approach` (`both`); `next.md`;
+`archive/judgement-calls-decided.md` (D6).
+
+## 2026-10-26 · CI runs in a prebuilt image
+
+**What.** The four test workflows (R CMD check, the app's tests, the
+nightly and the full validation) run inside a Docker image that already
+holds R at `renv.lock`'s version, the system libraries, and every package
+in `renv.lock` at its locked version (`.github/ci/Dockerfile`).
+`.github/workflows/ci-image.yaml`, the first job of each workflow, tags
+the image with a hash of `renv.lock` and the Dockerfile and builds it in
+GitHub's container registry only when that tag is missing.
+
+**Why.** Each job used to install R (`r-lib/actions/setup-r`) and apt
+packages before any code ran. On a good day that took two minutes; on
+26 October the apt step took up to 12 minutes and setup-r up to 21, so a
+check that runs in 10 minutes took 45, and several runs failed when a
+download timed out. The renv package cache was never the slow part.
+
+**What stays the same.** The 17 October decision holds: CI uses exactly
+the versions in `renv.lock`, and a new backend release changes results
+only through a PR that updates it. The build stops if the base image's R
+differs from the lockfile's, or if any locked package fails to load or
+isn't its locked version. A lockfile change rebuilds the image once (about
+three minutes); every other run pulls it. `NOT_CRAN` is set in each job,
+since setup-r, which used to set it, is no longer used.
+
+**Not changed.** `online-app-manifest.yaml` (it writes the manifest from
+an activated renv project) and `run-it-yourself.yaml` (it exists to test
+a clean install on each operating system).

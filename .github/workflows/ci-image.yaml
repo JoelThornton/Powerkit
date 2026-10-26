@@ -1,0 +1,68 @@
+# Makes sure the CI image for the current renv.lock exists, building it
+# only if it doesn't, and tells the calling job its name. Called as the
+# first job of each test workflow; the test jobs then run inside the image
+# (`container:`), so they don't install R, system libraries or packages.
+#
+# The tag is a hash of renv.lock and .github/ci/Dockerfile: a change to
+# either builds a new image (about 15 minutes, once), and a job can never
+# run on an image built from another lockfile. Images live in GitHub's
+# container registry (ghcr.io), next to the repository, so a job doesn't
+# depend on CRAN, Posit Package Manager or the Ubuntu mirrors being
+# reachable.
+name: ci-image
+
+on:
+  workflow_call:
+    outputs:
+      image:
+        description: The image to run the test jobs in
+        value: ${{ jobs.image.outputs.image }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      image: ${{ steps.name.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Name the image after renv.lock and the Dockerfile
+        id: name
+        env:
+          HASH: ${{ hashFiles('renv.lock', '.github/ci/Dockerfile') }}
+        run: |
+          repo="${GITHUB_REPOSITORY,,}"
+          echo "image=ghcr.io/${repo}-ci:${HASH:0:16}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check whether the image exists
+        id: exists
+        env:
+          IMAGE: ${{ steps.name.outputs.image }}
+        run: |
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "Using $IMAGE"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "$IMAGE not found; building it"
+          fi
+
+      - name: Build and push the image
+        if: steps.exists.outputs.found != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .github/ci/Dockerfile
+          push: true
+          tags: ${{ steps.name.outputs.image }}
