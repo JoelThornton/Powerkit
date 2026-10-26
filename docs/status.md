@@ -27,12 +27,13 @@ fully validated. Validation runs are recorded in
   G\*Power manual's examples, and reaches the app in its own PR:
   - **Logistic regression** (E27; pwrss's Wald z test of one predictor, a
     score or a yes/no group, with other predictors through an R-squared):
-    card and input screen **in review** (26 October 2026). Above an
-    R-squared of 0 the result screen states Known difference 3, which
-    G\*Power itself has to settle.
+    **in the app** (26 October 2026). Above an R-squared of 0 the result
+    screen states Known difference 3, which G\*Power itself has to settle.
   - **Poisson regression** (E28; one predictor of a count outcome, over a
-    mean exposure): engine only. It reproduces every number in the
-    manual's section 30 that powerkit can compute.
+    mean exposure): card and input screen **in review** (26 October 2026).
+    It reproduces every number in the manual's section 30 that powerkit
+    can compute. Count outcomes now pass the screening questions first:
+    only a count measured once per person reaches it.
   - **Planned comparisons (contrasts)** (E19; pwrss's t test of a weighted
     combination of one factor's means, trend tests included): engine only.
     Superpower's emmeans route agrees with it (a unit test).

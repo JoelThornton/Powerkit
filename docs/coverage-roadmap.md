@@ -104,7 +104,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
 | A13 | Linear multiple regression: random model | GP | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_lm.R2(fixed = FALSE)` (Example 7.3) | — | [G1][] |
 | A14 | Logistic regression | GP; UCLA | E27 | Wired (in the app; the G\*Power manual's examples reproduce when "R² other X" is 0, see conventions.md, Known difference 3, above it; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders); settle Known difference 3 with G\*Power | — |
-| A15 | Poisson regression | GP | E28 | Planned (more tests by formula: engine built, not wired; checked against G\*Power's manual, values to transcribe) | Engine: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders), then a card | — |
+| A15 | Poisson regression | GP | E28 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders) | — |
 
 **Note 1 (A1, the method for correlations).** The maintainer reports that
 G\*Power uses the exact distribution of r below N = 10,000 by default and
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 14 | 0 | 0 | 14 |
+| Wired (validation not finished) | 15 | 0 | 0 | 15 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 6 | 26 | 2 | 34 |
+| Planned | 5 | 26 | 2 | 33 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

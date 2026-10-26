@@ -14,6 +14,18 @@ the app (docs/next.md).
   difference 3 (forms.yaml, `known_differences_if_above_zero`, a new key).
   `single_predictor` leaves `engine_only`.
 
+* App: Poisson regression with one predictor (E28) calculates in the app.
+  Its card now says what powerkit does, and that negative binomial
+  regression (for overdispersed counts) is still not covered; the input
+  screen asks for the count outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the rate ratio, the starting rate, the mean exposure and the predictor's
+  R-squared with any other predictors, with the direction question.
+  `single_predictor_count` leaves `engine_only`. Count outcomes now go
+  through the screening questions like the others: a count measured once
+  per person reaches E28, a count measured twice or more reaches the
+  safety net, and moderation or mediation with a count reaches E32.
+
 # powerkit 0.5.1
 
 * App: the start screen asks only how to start (I know my analysis, Help
