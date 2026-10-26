@@ -4132,7 +4132,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.6.0",
+        "Version": "0.7.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome).",
         "License": "GPL (>= 3)",
@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "f0e7ac18244cafbec4d84ff1d3b295a76074f02a",
-        "RemoteSha": "f0e7ac18244cafbec4d84ff1d3b295a76074f02a",
+        "RemoteRef": "47cee509dc4b81a26323fb689895b90a68869bca",
+        "RemoteSha": "47cee509dc4b81a26323fb689895b90a68869bca",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "f0e7ac18244cafbec4d84ff1d3b295a76074f02a",
-        "GithubSHA1": "f0e7ac18244cafbec4d84ff1d3b295a76074f02a",
+        "GithubRef": "47cee509dc4b81a26323fb689895b90a68869bca",
+        "GithubSHA1": "47cee509dc4b81a26323fb689895b90a68869bca",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-26 23:37:54 UTC; runner",
+        "Packaged": "2026-10-26 23:53:46 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-26 23:38:00 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-26 23:53:52 UTC; unix"
       }
     },
     "praise": {
@@ -5761,7 +5761,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "129e51d71acb4b5cdd4ff972812e1a3e"
+      "checksum": "f9df53c64786dcd3f83e7ed133ec7a14"
     },
     "forms.yaml": {
       "checksum": "705cce187e1d1c7ec35b984f88212f36"
@@ -5773,7 +5773,7 @@
       "checksum": "42102805122e9bfd028022d0751264d5"
     },
     "R/forms_ui.R": {
-      "checksum": "adbb84d6ed58039dca514467ca830ef5"
+      "checksum": "4ac04f05ebfa92426593a83db0fff4e2"
     },
     "R/forms.R": {
       "checksum": "d9a6151d0259a57072e038590bb730fe"
@@ -5791,10 +5791,10 @@
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
     },
     "R/tree.R": {
-      "checksum": "01ee0fbb2868e692c244d1178122d9a1"
+      "checksum": "2b5de56c655a3cdd17e3b664d2497b66"
     },
     "R/ui.R": {
-      "checksum": "c50141e1d2aa2c6c38a04439c9c4a505"
+      "checksum": "9448d6af126fb7c233ca563747de500a"
     },
     "README.md": {
       "checksum": "cb0e69557df6c6d21567f413d7e23c59"
@@ -5842,7 +5842,7 @@
       "checksum": "c5bed6967c6fc11179ca00e2c4f5f10f"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "cddd86920556c6c2213eec0b572235b8"
+      "checksum": "30b31ba1f3e1c44d38ea8205bb482b3c"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "add0982ce3e26f26efdf680492a0bc95"
@@ -5857,7 +5857,7 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "b270d65ea57a595786838f93551bcd4f"
+      "checksum": "91fdd3cc6303461017c1c3d7ccc051b4"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "8e047af7587d77728019e0f63b34e3bd"
@@ -5872,7 +5872,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "534b70b50c01194e39af14c3263e7be6"
+      "checksum": "a8e36a6b0665cd0bed82033ca5a4c429"
     }
   },
   "users": null
