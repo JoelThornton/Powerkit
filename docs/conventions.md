@@ -42,10 +42,23 @@ different answer, the difference is listed in "Known differences".
   - **[IP-web]** InteractionPoweR's website (dbaranger.github.io/InteractionPoweR):
     home page and the articles "The InteractionPoweR Package" and
     "Questions & Errors", read on 2026-10-13.
+  - **[GP-man]** The G\*Power 3.1 manual, edition of 1 June 2023 (PDF
+    supplied by the maintainer, 25 October 2026). Sections and page
+    numbers refer to that edition. Entries marked [GP via Sp] or
+    [GP, search] were taken at second hand before it was available and
+    have not all been rechecked against it. Read so far: sections 3 to 6
+    (the exact correlation and proportion tests), 10 and 11 (fixed-effects
+    ANOVA), 13 and 14 (multiple regression), 19 to 21 (the t-tests), 29
+    (logistic regression) and 30 (Poisson regression). **The manual is
+    incomplete by its own account**, and has no section on
+    repeated-measures ANOVA, the two-independent-proportions z test, the
+    chi-square test of independence, ANCOVA or mediation, so some entries
+    below can only be settled in the program itself.
   - **[powerkit]** this repository (`engine/R/`, `docs/decisions.md`).
-- G*Power's manual and the pwrss documentation were not available when this
-  file was written (no network access to CRAN or the web), so their entries
-  are **to check**.
+- The pwrss documentation was not available when this file was written (no
+  network access to CRAN or the web), so its entries are mostly still
+  **to check**; the G*Power entries are being filled in from [GP-man] as
+  the sections are read.
 
 ## Basic tests
 
@@ -53,7 +66,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings that change the answer |
 | --- | --- | --- | --- |
-| G*Power | Independent: to check (believed Student's, equal variances; maintainer's decision D7 in `docs/design-finder.md` relies on this). Paired: dependent-means t-test [SP-vig]. | Independent: d, to check. Paired: d_z, the mean difference divided by the SD of the difference scores [SP-vig]. | Tails (one or two); allocation ratio N2/N1: to check |
+| G*Power | One sample: "t test: Means - difference from constant", H0 central t(N - 1), H1 noncentral with delta = d sqrt(N) [GP-man, 20, pp. 50-51]. Independent: "Means - difference between two independent means (two groups)", Student's t, which "assumes the variances in both populations to be equal"; H0 central t(N - 2), H1 noncentral with delta = d sqrt(n1 n2 / (n1 + n2)) [GP-man, 21, pp. 52-53], so maintainer's decision D7 in `docs/design-finder.md` is confirmed. Paired: "Means - difference between two dependent means (matched pairs)", H0 central t(N - 1), H1 noncentral with delta = d_z sqrt(N) [GP-man, 19, pp. 48-49] | One sample: d = (mu - mu0) / sigma. Independent: d = (mu1 - mu2) / sigma, with Cohen's (1969) small .2, medium .5, large .8; the effect-size drawer can pool unequal SDs as sqrt((sigma1^2 + sigma2^2) / 2), which Cohen says not to use when the group sizes differ substantially. Paired: d_z = \|mu_z\| / sigma_z = \|mu_x - mu_y\| / sqrt(sigma_x^2 + sigma_y^2 - 2 rho sigma_x sigma_y), and the drawer computes d_z from the two means, SDs and their correlation [GP-man, 19.1, 20.1, 21.1] | Tails (one or two). **All three tests have no options** [GP-man, 19.2, 20.2, 21.2]. The allocation ratio N2/N1 is not described in the manual's section on the two-group test, but unequal n1 and n2 enter the noncentrality as above. For the matched-pairs test, "Total sample size" is the number of pairs (df = N - 1), which for the repeated measures powerkit supports is the number of participants. Validated against GPower 2.0 [GP-man, 19.6, 20.6, 21.6] |
 | Superpower | Not covered as a t-test (no t-test function [SP-src]). A two-level `ANOVA_design` gives the equivalent F-test; for two within conditions with r = .5, d equals d_z [SP-vig]. | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (interactions only): to check | | |
@@ -65,7 +78,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (correlation: exact bivariate normal test or the z approximation; proportions: several z and exact tests) | to check (r; proportions or h; w) | to check |
+| G*Power | Correlation: "Exact: Correlation - difference from constant (one sample case)", the bivariate normal model, computed either from the exact distribution of the sample correlation (Barabesi & Greco, 2002) or from the Fisher z large-sample approximation, H1 N((Fz(rho) - Fz(rho0)) / sigma, 1) with sigma = sqrt(1 / (N - 3)) [GP-man, 3, pp. 9-10]. Two proportions: the manual (1 June 2023) documents only the exact tests - one proportion against a constant (binomial, 4, pp. 11-13), McNemar (5, pp. 14-16) and Fisher's exact test (6, pp. 17-18) - and has **no section on the two-independent-proportions z test** or on the chi-square test of independence | Correlation: the alternative correlation rho with the null value rho0 (the effect is rho - rho0; rho0 = 0 is a special case), with Cohen's (1969) small .1, medium .3, large .5, and a drawer to get \|rho\| from r-squared. One proportion: g = pi - pi0, entered as a difference, ratio or odds ratio. McNemar: the odds ratio pi12 / pi21 **and** the proportion of discordant pairs pi_D = pi12 + pi21. Fisher: the two proportions directly [GP-man, 3.1, 4.1, 5.1, 6.2] | Correlation: **"Use exact distribution if N < x" (with a threshold) or "Use large sample approximation (Fisher Z)"**; the critical value is named r for the exact procedure and z for the approximation. The manual's own example of the size of the difference: for rho0 = .8, rho = .3, N = 8, two-sided alpha .05 the exact power is 0.482927 and the approximation 0.422599; at N near 1,928 the two differ by one person [GP-man, 3.2, 3.3]. One proportion and McNemar: **alpha balancing in two-sided tests**, three options, "Assign alpha/2 to both sides" by default; McNemar also chooses exact unconditional power or a faster approximation, and its N is the number of pairs [GP-man, 4.2, 5.2]. Fisher: "no options" in 6.3, although 6.6.1 describes three asymptotically equivalent two-sided statistics, which one is used by default being unstated; its large-sample approximation is a **continuity-corrected** pooled z test [GP-man, 6.3, 6.6] |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered: to check | | |
@@ -73,13 +86,22 @@ different answer, the difference is listed in "Known differences".
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
 | **powerkit** | **By default, a formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation); for two proportions the z test with pooled variance under the null, as G*Power (Departure 11): base R's `stats::power.prop.test(strict = TRUE)` for equal groups and `pwrss::power.z.twoprops(std.error = "pooled")` for unequal groups, or on request `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation), none with a continuity correction; and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
+### Two dependent correlations (one group): common index or none
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "Correlations: Two dependent Pearson r's", common index (ρ_ab against ρ_ac) or no common index (ρ_ab against ρ_cd): the tests Z1\* and Z2\* of Dunn and Clark (1969), Eqns (11) and (12) in Steiger (1980) [GP-man, section 28, pp. 66-69] | ρ_ab is the correlation under H0 and ρ_ac (or ρ_cd) the one under H1; the remaining correlations describe how the two depend on each other [GP-man, 28.1, p. 66] | tails; alpha. **Under H0 it sets the H1 correlation equal to the H0 one** (ρ_ac = ρ_ab, or ρ_cd = ρ_ab) when computing their covariance [GP-man, 28.5.3, p. 69] |
+| pwrss | `power.z.twocors.steiger()`: Steiger's (1980) z test on Fisher's z scale; `common.index = TRUE` compares rho12 with rho13, `FALSE` compares rho12 with rho34 (pwrss 1.3.3 source, `R/correlations.R`) | `rho12`, `rho13`, `rho23` (and `rho14`, `rho24`, `rho34` with no common index) | **`pooled = TRUE` by default**: the covariance of the two correlations under the null uses their average; with `FALSE` it uses the specified values (source) |
+| Spower | `p_2r()`, simulation; default test `"steiger1980"` [Sp] | `r.ab`, `r.ac`, `r.bc` (and `r.ad`, `r.bd`, `r.cd`) | — |
+| **powerkit** | pwrss's `power.z.twocors.steiger()` by formula, templates `overlapping_correlations` (X with Y against X with Z) and `nonoverlapping_correlations` (X1 with Y1 against X2 with Y2); no simulation option yet (engine only, not in the app) [powerkit] | `r_X_Y`, `r_X_Z`, `r_Y_Z`; or `r_X1_Y1`, `r_X2_Y2` and the four others. "greater" = the second compared correlation is larger | **`pooled = FALSE`, as G\*Power** (Departure 12). A one-sided test runs in the direction of the specified difference, as for two independent correlations |
+
 ## Factorial ANOVA
 
 ### 2 x 2 between-participants
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (ANOVA: fixed effects, special, main effects and interactions) | Cohen's f: to check | to check |
+| G*Power | "F test: Fixed effects ANOVA - special, main effects and interactions", for any main effect or interaction of a factorial design. H0 central F(df1, N - k), H1 noncentral with lambda = f^2 N, where df1 is the effect's own df and **k is the total number of cells in the design** (4 for a 2 x 2). Equal cell sizes, normality and equal variances are assumed throughout [GP-man, 11, 11.5, pp. 26-30]. One-way (powerkit's E18) is section 10: the same lambda = f^2 N with df1 = k - 1, df2 = N - k [GP-man, 10.5, p. 25] | Cohen's f = sigma_m / sigma, where sigma_m is the SD of the effect being tested - for an interaction, of the cell residuals after subtracting the main effects, **as a root mean square over all of that effect's residuals, not over its df** - and sigma is the common within-cell SD. Equivalently eta^2 = f^2 / (1 + f^2). Cohen's (1969) small .10, medium .25, large .40 [GP-man, 11.1, 11.3.1] | Inputs are f, the numerator df and the number of groups; **the test has no options** [GP-man, 11.2]. Validated against GPower 2.0, and the manual's worked example reproduces SPSS's observed power exactly [GP-man, 11.3.1, 11.6] |
 | Superpower | `ANOVA_exact()`: one data set with exactly the specified means and SDs (`mvrnorm(empirical = TRUE)`), analysed once [SP-intro]. `ANOVA_power()`: simulation, `nsims = 1000` by default [SP-src]. `power_twoway_between()`: analytic [SP-src]. | Input is cell means, SD(s) and n per cell; output reports partial eta squared and Cohen's f [SP-src] | `alpha_level` .05, `correction` "none", `liberal_lambda` FALSE, `emm` FALSE (`Superpower_options()` [SP-src]). `ANOVA_exact()` needs n per cell greater than the number of cells (n ≥ 5 for 2x2); for smaller n the vignette points to `ANOVA_exact2()` [SP-intro]. |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered (regression interactions; see below) | | |
@@ -91,7 +113,7 @@ different answer, the difference is listed in "Known differences".
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" [SP-vig]. **The manual has no section on any repeated-measures ANOVA** (edition of 1 June 2023; it says of itself that it "is not yet complete"), so nothing below can be settled from it [GP-man, contents] | Cohen's f; whether the correlation among repeated measures is a separate field or folded into f depends on the setting below | **Effect size specification (Options button).** With "As in SPSS" the "Corr among rep measures" field disappears and the correlation is folded into f; in the vignette's one-factor within-participants example, f = 0.25 becomes f = 0.7024394 [SP-vig]. **Which setting produced the 91.25% within-between example is to check (maintainer to verify in G*Power itself, as the manual does not cover this test)**; the sources disagree (see Departure 2). The name of the default option, and whether it is the default, is also to check. |
 | Superpower | `ANOVA_exact()`, `ANOVA_exact2()`, `ANOVA_power()` as above. The vignette's own within-between example calls `ANOVA_exact2()` [SP-vig]. | As above, plus a correlation `r` between repeated measures [SP-src] | As above |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Not covered | | |
@@ -149,13 +171,31 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 
 | Tool | Test | Effect size | Settings |
 | --- | --- | --- | --- |
-| G*Power | to check (e.g. linear multiple regression, R² increase; believed to treat the predictors as fixed, see "Known differences", 1) | to check (f²) | to check |
+| G*Power | "F test: Multiple Regression - special (increase of R²), fixed model": the interaction is one tested predictor added to X and W. The fixed (conditional) model is explicit - Y = X beta + e "with fixed and known predictor variables" - which **confirms** what "Known differences", 1 assumed. H0 central F(q, N - m - 1), H1 noncentral with lambda = f² N, where q is the number of tested predictors (1 for a two-way interaction) and m the total number [GP-man, 14, 14.5, pp. 36-38] | f² = (R²full - R²reduced) / (1 - R²full), with Cohen's (1988) small .02, medium .15, large .35; a drawer computes it from the two variances or a partial R² [GP-man, 14.1] | **No options** [GP-man, 14.2]. Validated against GPower 2.0 and PASS; it differs slightly from Cohen's (1988) tables because Cohen approximates lambda downwards [GP-man, 14.6] |
 | Superpower | Not covered [SP-src] | | |
 | pwrss | to check | to check | to check |
 | InteractionPoweR | Simulation, `power_interaction()`: OLS `lm(y ~ x1 + x2 + x1x2)`, t test of the product of the **observed** x1 and x2; analytic, `power_interaction_r2()`, valid for continuous, normally distributed variables. Neither is presented as the primary method (see "Not departures" below) [IP-src, IP-web] | Correlations `r.x1.y`, `r.x2.y`, `r.x1x2.y`, `r.x1.x2` among the true scores (x2 is the moderator) [IP-src] | `rel.x1`, `rel.x2`, `rel.y` (default 1); `k.x1`, `k.x2`, `k.y` make variables binary or ordinal; no seed argument (uses R's generator on one core) [IP-src] |
 | power4mome | to check (moderation is in scope per the build guide) | to check | to check |
 | Spower | to check | to check | to check |
 | **powerkit** | `power_interaction()` (simulation). The analytic `power_interaction_r2()` only brackets the required n in the sample-size search; reported power and n always come from simulation, and no analytic option is offered (see "Known differences", 1) [powerkit] | Correlations `r_X_Y`, `r_W_Y`, `r_XW_Y`, `r_X_W`, InteractionPoweR's parametrisation (X = x1, W = x2) [powerkit] | Reliabilities per variable. Binary X or W: not available yet |
+
+## Logistic regression (one predictor)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "Z test: Multiple Logistic Regression": the Wald z test of one coefficient, by an enumeration procedure (Lyles, Lin & Williamson, 2007) or one of two large-sample approximations, Demidenko (2007) with or without variance correction and Hsieh, Bloch & Larsen (1998). The manual recommends Demidenko "as standard procedure", and its simulations found Demidenko with variance correction the most accurate; its worked examples nonetheless select Hsieh [GP-man, section 29, pp. 70-74] | Odds ratio (or two probabilities); "Pr(Y=1\|X=1) H0" = p1, the probability of an event under H0; "R² other X", applied as N' = N / (1 − R²) after Hsieh et al. [GP-man, 29.1, p. 70] | X distribution: normal (with "X parm µ", "X parm σ"), binomial (with "X parm π"), and five others. Variance correction factor: 0.75 lognormal, 0.85 binomial, 1 otherwise [GP-man, 29.6.2, p. 72] |
+| pwrss | `power.z.logistic()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction: factor 0.85 for a binary X, 1 for a normal X), or `"demidenko"`, `"hsieh"`; its help says the formulas "are validated using G\*Power and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.logistic.R`) | `odds.ratio` (or `prob`, `beta1`) for a one-unit increase in X; `base.prob`, the probability when X = 0 | `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
+| Spower | `p_glm(family = binomial())`, simulation [Sp] | coefficients | — |
+| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. With "R² other X" = 0 powerkit reproduces all three of the manual's procedures exactly; above 0 see "Known differences", 3 |
+
+## Poisson regression (one predictor)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | "Z tests: Poisson Regression": the Wald z test of one coefficient, by the enumeration procedure of Lyles, Lin & Williamson (2007) or one of two large-sample approximations, Demidenko (2007) with or without variance correction and Signorini (1991). The manual recommends Demidenko "as the standard procedure" and says Signorini's "is problematic and should not be used; it is only included to allow checks of published results referring to this widespread procedure"; its worked example nonetheless prints the Signorini output, giving the others' sample sizes in the text [GP-man, section 30, pp. 75-80] | "Exp(β1)", the rate ratio for a one-unit increase in X; "Base rate exp(β0)", the rate when X = 0; "Mean exposure", the exposure time t; "R² other X", in the mean of the H1 distribution as N(1 − R²) [GP-man, 30.5.2, p. 77, equations (16) to (18)] | X distribution: normal (with "X parm µ", "X parm σ"), binomial (with "X parm π"), and five others. Variance correction factor: 0.75 lognormal, 1 otherwise [GP-man, 30.5.2, p. 77] |
+| pwrss | `power.z.poisson()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction), or `"demidenko"`, `"signorini"`, of which its help says the first "is more precise"; its formulas "are validated using Monte Carlo simulation, G\*Power, and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.poisson.R`). Its correction factor is 0.75 for a lognormal X and 1 for every other distribution, the logistic function's 0.85 for a binary X being commented out — which is G\*Power's rule for this test | `rate.ratio` (or `base.rate` with `beta1`) for a one-unit increase in X; `base.rate`, the rate when X = 0 | `mean.exposure` (1 by default); `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
+| Spower | `p_glm(family = poisson())`, simulation [Sp] | coefficients | — |
+| **powerkit** | pwrss's `power.z.poisson(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `rate_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_rate` at X's mean or in X's first level, per unit of exposure | `mean_exposure` (1 if omitted); `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the rate ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. powerkit's procedure gives the manual's N for its worked example (649), and pwrss's other two methods give the manual's other two (655, 697) [GP-man, 30.3, p. 77]; powerkit also reproduces, to the three decimals printed, all five rows of the manual's Table 2 whose X distribution it has (three normal, two binomial) [GP-man, 30.4, p. 78]. The manual's only "R² other X" above 0 figure for this test is for Signorini's procedure, which pwrss reproduces as well (774) |
 
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
@@ -299,8 +339,14 @@ kept so later departures keep theirs.
 - **Established convention:** Spower's `p_prop.test()` and `p_chisq.test()`
   apply Yates' continuity correction by default (`correct = TRUE`)
   [Spower-src]. G*Power's z test and Pearson chi-square do not
-  (maintainer's decision 6; G*Power's documentation itself is still to check
-  here).
+  (maintainer's decision 6). **The G*Power manual cannot settle this**: its
+  edition of 1 June 2023 has no section on the two-independent-proportions
+  z test or on the chi-square test of independence. The one pooled z test
+  for two proportions it does document is the large-sample approximation to
+  Fisher's exact test, and that one **is** continuity corrected [GP-man,
+  6.6.2, p. 17]. That is a different test from the z test G*Power offers
+  separately, so it is a caution rather than evidence against decision 6;
+  the maintainer can check the program itself.
 - **powerkit:** no correction, and no option for one (maintainer's decision
   6), as in G*Power. This applies when Spower simulates (on request since
   17 October 2026); pwr's formulas, the default (Departure 9), have no
@@ -500,6 +546,37 @@ kept so later departures keep theirs.
   (`app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up
   (18 October 2026).
 
+### 12. Two dependent correlations: G\*Power's unpooled Steiger test, not pwrss's pooled default
+
+**The maintainer's decision, 25 October 2026** (`docs/decisions.md`).
+
+- **Established convention:** G\*Power's test of two dependent
+  correlations (common index or none) is Steiger's (1980) z test. Under
+  H0 it computes the covariance of the two correlations with the H1
+  correlation set equal to the H0 one, ρ_ac = ρ_ab (or ρ_cd = ρ_ab)
+  [GP-man, 28.5.3, p. 69]. Its required N for the manual's examples
+  28.3.1 and 28.3.2 is 886 and 144 [GP-man, 28.3, p. 67]. pwrss 1.3.3's
+  `power.z.twocors.steiger()`, the backend, defaults to `pooled = TRUE`:
+  under the null it uses the *average* of the two compared correlations
+  instead (`R/correlations.R`).
+- **powerkit:** `pooled = FALSE`, whose source substitutes the H0
+  correlation for the H1 one (its `# rho12 = rho13` branch) — the same
+  rule the manual states — and which reproduces G\*Power's N for both
+  examples.
+- **Size:** the required N is about 1 to 4% larger than with pwrss's
+  default. One-sided, alpha .05, 80% power: 144 against 139 (common
+  index: .40 under H0 and .20 under H1, the third correlation .50) and 886
+  against 875 (no common index: .10 under H0 and .20 under H1; the others
+  .50, .40, -.40, .80). Both are the manual's own examples, and powerkit's
+  power at those N matches its "actual power" to six decimal places for
+  the common-index case (0.801161) and to about 6e-5 for the other
+  (0.800156 against 0.800093).
+- **Test:** `test-backend-formula-tests.R`, "departure: dependent
+  correlations use G\*Power's unpooled test, not pwrss's pooled default
+  (Departure 12)".
+- **Shown to users / in the methods paragraph:** to do, when the test is
+  wired into the app (a card and the result screen's departures).
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -529,9 +606,13 @@ methods paragraph.
   df convention (`power_interaction_r2()` uses N - 3 denominator df, where
   Y ~ X + W + XW leaves N - 4) [IP-src].
 - **G*Power:** the grid measured `power_interaction_r2()`, not G*Power.
-  G*Power is expected to behave the same way because it also treats the
-  predictors as fixed; this, and its noncentrality and df, are to check in
-  G*Power's manual.
+  G*Power is expected to behave the same way, and the manual now confirms
+  why: its R² increase test is the "fixed model", Y = X beta + e with
+  "fixed and known predictor variables", with lambda = f² N on
+  F(q, N - m - 1), so for a two-way interaction q = 1 and m = 3, giving
+  N - 4 denominator df [GP-man, 14, 14.5, pp. 36-38]. The predictors being
+  fixed is therefore established; how much power G*Power reports for these
+  designs has still not been measured, because the grid did not run it.
 - **Test:** `scripts/run-validation.R --only interaction_grid` (on demand;
   full results in `docs/decisions.md`).
 - **Shown to users:** on E9's result screen, under "Where other established tools give a different answer" (18 October 2026; `app/routing/forms.yaml`, `known_differences`).
@@ -583,6 +664,42 @@ Wired into the app on 18 October 2026 (E25, E26).*
 - **Methods paragraph:** to do with the write-up: a note that power for
   these tests goes up and down with N, so a slightly larger N can have
   lower power.
+
+### 3. Logistic regression with other predictors ("R² other X" above 0)
+
+- **What powerkit does:** pwrss's `power.z.logistic()` with Demidenko's
+  variance correction, where `r.squared.predictor` enters the
+  noncentrality as an effective sample size N(1 − R²). The required N is
+  therefore the R² = 0 answer divided by (1 − R²).
+- **The difference:** at R² = 0 powerkit reproduces every number the
+  manual prints for its normal-X example: 337 (Demidenko with variance
+  correction), 355 (without) and 317 (Hsieh et al.) [GP-man, 29.4, p. 71].
+  At R² = 0.1 the manual reports 395 for "the procedure of Demidenko
+  (2007) with variance correction" [GP-man, 29.4, p. 72], where powerkit
+  gives 375 = 337 / 0.9. 395 is exactly 355 / 0.9, powerkit's answer with
+  the variance correction switched off, so the two appear to differ in
+  whether that correction still applies once R² is above 0. The manual's
+  formulas (14) and (15) [GP-man, 29.6.2, p. 72] put R² in the mean of the
+  H1 distribution only, which is what powerkit does and implies 375.
+- **What Poisson regression suggests.** The same correction, in the same
+  place in the formula, is used for Poisson regression, and there the
+  manual's R² figure does match: for the swimmers example at R² = 0.1 it
+  reports 774 with Signorini's procedure [GP-man, 30.3, p. 77], which is
+  that procedure's own R² = 0 answer (697) with the correction applied
+  inside its formula, and pwrss's `"signorini"` method gives 774 too. So
+  G*Power appears to apply R² within whichever procedure produced the
+  R² = 0 answer, as powerkit does, which is what the logistic figure of
+  395 (Demidenko with variance correction, but 355 / 0.9) does not do.
+- **Not resolved here.** G*Power itself has not been run; the manual's own
+  validation notes record a deviation from PASS for this case as well
+  [GP-man, 29.7, p. 73]. The maintainer has G*Power and can settle it
+  (`docs/decisions.md`, 25 October 2026). Until then powerkit's answer for
+  R² above 0 may be a few per cent smaller than G*Power's.
+- **Test:** none yet; the validation placeholders
+  (`test-validation-logistic-regression.R`) say to prefer an example with
+  "R² other X" = 0.
+- **Shown to users / in the methods paragraph:** to do, when the test is
+  wired into the app.
 
 ## Not departures, but worth stating
 

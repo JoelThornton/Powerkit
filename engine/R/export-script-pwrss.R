@@ -1,8 +1,9 @@
 # Scripts for the tests pwrss computes by formula (backend-pwrss.R): one
 # proportion, McNemar's test, Welch's t-test by formula, R-squared in
 # multiple regression, Fisher's exact test, goodness of fit, two
-# correlations and ANCOVA. Each passes the same values to pwrss
-# as powerkit does (pwrss_inputs()).
+# correlations, dependent correlations, ANCOVA, and logistic and Poisson
+# regression. Each passes the same values to pwrss as powerkit does
+# (pwrss_inputs()).
 
 pwrss_script <- function(spec, result) {
   inputs <- pwrss_inputs(spec)
@@ -77,6 +78,21 @@ pwrss_script_inputs <- function(spec) {
       ),
       alt_line
     ),
+    overlapping_correlations = c(
+      sprintf("r_X_Y <- %s # correlation of %s with %s (the first compared)", r_code(pop$r_X_Y), comment_text(v$X$label), comment_text(v$Y$label)),
+      sprintf("r_X_Z <- %s # correlation of %s with %s (the second compared)", r_code(pop$r_X_Z), comment_text(v$X$label), comment_text(v$Z$label)),
+      sprintf("r_Y_Z <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y_Z), comment_text(v$Y$label), comment_text(v$Z$label)),
+      alt_line
+    ),
+    nonoverlapping_correlations = c(
+      sprintf("r_X1_Y1 <- %s # correlation of %s with %s (the first compared)", r_code(pop$r_X1_Y1), comment_text(v$X1$label), comment_text(v$Y1$label)),
+      sprintf("r_X2_Y2 <- %s # correlation of %s with %s (the second compared)", r_code(pop$r_X2_Y2), comment_text(v$X2$label), comment_text(v$Y2$label)),
+      sprintf("r_X1_X2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_X1_X2), comment_text(v$X1$label), comment_text(v$X2$label)),
+      sprintf("r_X1_Y2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_X1_Y2), comment_text(v$X1$label), comment_text(v$Y2$label)),
+      sprintf("r_Y1_X2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y1_X2), comment_text(v$Y1$label), comment_text(v$X2$label)),
+      sprintf("r_Y1_Y2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y1_Y2), comment_text(v$Y1$label), comment_text(v$Y2$label)),
+      alt_line
+    ),
     chi_square_gof = c(
       sprintf("probabilities <- %s # expected proportion in each category: %s",
         r_code(as.numeric(unlist(pop$probabilities))), paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
@@ -105,6 +121,39 @@ pwrss_script_inputs <- function(spec) {
       sprintf("r2_covariates <- %s # variance in the outcome the covariates explain", r_code(pop$r2_covariates)),
       sprintf("covariates <- %s # number of covariates", r_code(pop$covariates)),
       sprintf("groups <- %s", r_code(length(unlist(v$A$levels))))
+    ),
+    single_predictor = c(
+      sprintf("odds_ratio <- %s # %s", r_code(pop$odds_ratio), if (identical(v$X$type, "binary")) {
+        sprintf("odds of %s = %s in %s against %s", comment_text(v$Y$label), lv("Y", 2), lv("X", 2), lv("X", 1))
+      } else {
+        sprintf("odds of %s = %s per SD of %s", comment_text(v$Y$label), lv("Y", 2), comment_text(v$X$label))
+      }),
+      sprintf("base_prob <- %s # proportion with %s = %s %s", r_code(pop$base_prob), comment_text(v$Y$label), lv("Y", 2),
+        if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 1)) else sprintf("at the mean of %s", comment_text(v$X$label))),
+      sprintf("r2_other <- %s # R-squared of %s on the other predictors", r_code(pop$r2_other_predictors %||% 0), comment_text(v$X$label)),
+      if (identical(v$X$type, "binary")) {
+        sprintf("predictor <- list(dist = \"bernoulli\", prob = %s) # proportion in %s", r_code(pop$x_prob %||% 0.5), lv("X", 2))
+      } else {
+        sprintf("predictor <- list(dist = \"normal\", mean = 0, sd = 1) # %s, standardised", comment_text(v$X$label))
+      },
+      alt_line
+    ),
+    single_predictor_count = c(
+      sprintf("rate_ratio <- %s # %s", r_code(pop$rate_ratio), if (identical(v$X$type, "binary")) {
+        sprintf("multiple of the rate of %s in %s against %s", comment_text(v$Y$label), lv("X", 2), lv("X", 1))
+      } else {
+        sprintf("multiple of the rate of %s per SD of %s", comment_text(v$Y$label), comment_text(v$X$label))
+      }),
+      sprintf("base_rate <- %s # expected %s per unit of exposure %s", r_code(pop$base_rate), comment_text(v$Y$label),
+        if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 1)) else sprintf("at the mean of %s", comment_text(v$X$label))),
+      sprintf("mean_exposure <- %s # mean exposure per person", r_code(pop$mean_exposure %||% 1)),
+      sprintf("r2_other <- %s # R-squared of %s on the other predictors", r_code(pop$r2_other_predictors %||% 0), comment_text(v$X$label)),
+      if (identical(v$X$type, "binary")) {
+        sprintf("predictor <- list(dist = \"bernoulli\", prob = %s) # proportion in %s", r_code(pop$x_prob %||% 0.5), lv("X", 2))
+      } else {
+        sprintf("predictor <- list(dist = \"normal\", mean = 0, sd = 1) # %s, standardised", comment_text(v$X$label))
+      },
+      alt_line
     ),
     r2_zero = c(
       sprintf("r2 <- %s # expected R-squared of the model", r_code(pop$r2)),
@@ -172,6 +221,25 @@ pwrss_script_call_lines <- function(spec, inputs) {
         "n2 = n_group2", "alpha = alpha", "alternative = alternative", "ceil.n = FALSE", "verbose = 0"
       )
     ),
+    overlapping_correlations = list(
+      head = "power.z.twocors.steiger( # Steiger's z test, two correlations sharing a variable",
+      args = c(
+        "rho12 = r_X_Y # pwrss numbers the variables: 1 = X (shared), 2 = Y, 3 = Z",
+        "rho13 = r_X_Z", "rho23 = r_Y_Z", "n = n_total", "alpha = alpha", "alternative = alternative",
+        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "common.index = TRUE", "ceil.n = FALSE", "verbose = 0"
+      )
+    ),
+    nonoverlapping_correlations = list(
+      head = "power.z.twocors.steiger( # Steiger's z test, two correlations with no variable in common",
+      args = c(
+        "rho12 = r_X1_Y1 # pwrss numbers the variables: 1 = X1, 2 = Y1, 3 = X2, 4 = Y2",
+        "rho34 = r_X2_Y2", "rho13 = r_X1_X2", "rho14 = r_X1_Y2", "rho23 = r_Y1_X2", "rho24 = r_Y1_Y2",
+        "n = n_total", "alpha = alpha", "alternative = alternative",
+        "pooled = FALSE # as G*Power (powerkit's Departure 12; pwrss's default is TRUE)",
+        "common.index = FALSE", "ceil.n = FALSE", "verbose = 0"
+      )
+    ),
     chi_square_gof = list(head = "power.chisq.gof( # chi-square goodness-of-fit test", args = c(
       "w = effect$w", "df = effect$df", "n = n_total", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
     )),
@@ -186,6 +254,19 @@ pwrss_script_call_lines <- function(spec, inputs) {
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
       "n.vector = rep(n_total / groups, groups) # equal groups", "r.squared = r2_covariates",
       "k.covariates = covariates", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
+    )),
+    single_predictor = list(head = "power.z.logistic( # Wald z test of the predictor in logistic regression", args = c(
+      "base.prob = base_prob", "odds.ratio = odds_ratio", "n = n_total",
+      "r.squared.predictor = r2_other", "alpha = alpha", "alternative = alternative",
+      "method = \"demidenko(vc)\" # Demidenko (2007) with variance correction, pwrss's default",
+      "distribution = predictor", "ceil.n = FALSE", "verbose = 0"
+    )),
+    single_predictor_count = list(head = "power.z.poisson( # Wald z test of the predictor in Poisson regression", args = c(
+      "base.rate = base_rate", "rate.ratio = rate_ratio", "n = n_total",
+      "mean.exposure = mean_exposure", "r.squared.predictor = r2_other",
+      "alpha = alpha", "alternative = alternative",
+      "method = \"demidenko(vc)\" # Demidenko's method with variance correction, pwrss's default",
+      "distribution = predictor", "ceil.n = FALSE", "verbose = 0"
     )),
     r2_zero = list(head = "power.f.regression( # F test of R-squared", args = c(
       "r.squared.change = r2", "k.total = predictors", "k.tested = predictors",

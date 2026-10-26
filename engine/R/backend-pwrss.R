@@ -17,8 +17,21 @@
 #                      pwrss::probs.to.w(), then pwrss::power.chisq.gof()
 #   two correlations   basic_test/two_correlations: Fisher's z test,
 #                      pwrss::power.z.twocors()
+#   dependent          basic_test/overlapping_correlations (X with Y vs X
+#   correlations       with Z) and nonoverlapping_correlations (X1 with Y1
+#                      vs X2 with Y2), one group: Steiger's (1980) z test,
+#                      pwrss::power.z.twocors.steiger(), unpooled as in
+#                      G*Power (Departure 12)
 #   ANCOVA             factorial_anova/oneway_ancova: Shieh's method,
 #                      pwrss::power.f.ancova.shieh()
+#   logistic           logistic_regression/single_predictor: the Wald z
+#   regression         test of one predictor, pwrss::power.z.logistic()
+#                      (Demidenko's 2007 method with its variance
+#                      correction, pwrss's default)
+#   Poisson            poisson_regression/single_predictor_count: the Wald
+#   regression         z test of one predictor, pwrss::power.z.poisson()
+#                      (Demidenko's method with its variance correction,
+#                      as for logistic regression)
 #   contrast           factorial_anova/oneway_contrast: a planned
 #                      comparison between the levels of one factor, the t
 #                      test of a weighted combination of the group means,
@@ -32,8 +45,11 @@ pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
+             "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
              "factorial_anova/oneway_ancova", "factorial_anova/oneway_contrast",
-             "multiple_regression/r2_zero", "multiple_regression/r2_increase") ||
+             "multiple_regression/r2_zero", "multiple_regression/r2_increase",
+             "logistic_regression/single_predictor",
+             "poisson_regression/single_predictor_count") ||
     (identical(key, "basic_test/two_proportions") &&
       identical(spec$target_test$method, "fisher_exact")) ||
     (identical(key, "basic_test/independent_t") &&
@@ -162,6 +178,29 @@ pwrss_inputs <- function(spec) {
         }
       )
     },
+    # pwrss numbers the variables 1 to 4. Overlapping: 1 = X (shared),
+    # 2 = Y, 3 = Z, so rho12 and rho13 are compared. Non-overlapping:
+    # 1 = X1, 2 = Y1, 3 = X2, 4 = Y2, so rho12 and rho34 are compared.
+    # pooled = FALSE: the covariance of the two correlations under the null
+    # uses the specified correlations, as G*Power does; pwrss's default
+    # (TRUE) uses their average (Departure 12).
+    overlapping_correlations = list(
+      fun = "power.z.twocors.steiger",
+      args = function(n) list(
+        rho12 = pop$r_X_Y, rho13 = pop$r_X_Z, rho23 = pop$r_Y_Z,
+        n = n, alpha = alpha, alternative = alternative,
+        pooled = FALSE, common.index = TRUE, ceil.n = FALSE, verbose = 0
+      )
+    ),
+    nonoverlapping_correlations = list(
+      fun = "power.z.twocors.steiger",
+      args = function(n) list(
+        rho12 = pop$r_X1_Y1, rho34 = pop$r_X2_Y2, rho13 = pop$r_X1_X2,
+        rho14 = pop$r_X1_Y2, rho23 = pop$r_Y1_X2, rho24 = pop$r_Y1_Y2,
+        n = n, alpha = alpha, alternative = alternative,
+        pooled = FALSE, common.index = FALSE, ceil.n = FALSE, verbose = 0
+      )
+    ),
     chi_square_gof = {
       # Cohen's w and its df from pwrss's own conversion; equal fixed
       # proportions unless given (probs.to.w()'s default).
@@ -180,6 +219,33 @@ pwrss_inputs <- function(spec) {
           mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k),
           n.vector = rep(n / k, k), r.squared = pop$r2_covariates,
           k.covariates = pop$covariates, alpha = alpha, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
+    single_predictor = {
+      distribution <- pwrss_predictor_distribution(spec)
+      list(
+        fun = "power.z.logistic",
+        distribution = distribution,
+        args = function(n) list(
+          base.prob = pop$base_prob, odds.ratio = pop$odds_ratio, n = n,
+          r.squared.predictor = pop$r2_other_predictors %||% 0,
+          alpha = alpha, alternative = alternative, method = "demidenko(vc)",
+          distribution = distribution, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
+    single_predictor_count = {
+      distribution <- pwrss_predictor_distribution(spec)
+      list(
+        fun = "power.z.poisson",
+        distribution = distribution,
+        args = function(n) list(
+          base.rate = pop$base_rate, rate.ratio = pop$rate_ratio, n = n,
+          mean.exposure = pop$mean_exposure %||% 1,
+          r.squared.predictor = pop$r2_other_predictors %||% 0,
+          alpha = alpha, alternative = alternative, method = "demidenko(vc)",
+          distribution = distribution, ceil.n = FALSE, verbose = 0
         )
       )
     },
@@ -217,6 +283,18 @@ pwrss_inputs <- function(spec) {
   )
   call$description <- sprintf("pwrss::%s", call$fun)
   call
+}
+
+# The predictor's distribution for pwrss's logistic and Poisson regression:
+# a standardised score (normal, mean 0, SD 1), so the odds or rate ratio is
+# per SD and the base probability or rate is at X's mean; or a yes/no group
+# (Bernoulli, with the proportion in X's second level).
+pwrss_predictor_distribution <- function(spec) {
+  if (identical(spec$variables$X$type, "binary")) {
+    list(dist = "bernoulli", prob = spec$population$x_prob %||% 0.5)
+  } else {
+    list(dist = "normal", mean = 0, sd = 1)
+  }
 }
 
 # Cohen's w for a goodness-of-fit spec, by pwrss::probs.to.w().
@@ -263,6 +341,19 @@ pwrss_check_run <- function(spec, inputs) {
       row("r1 passed to pwrss (rho1)", pop$r1, args$rho1),
       row("r2 passed to pwrss (rho2)", pop$r2, args$rho2)
     ),
+    overlapping_correlations = rbind(
+      row("r_X_Y passed to pwrss (rho12)", pop$r_X_Y, args$rho12),
+      row("r_X_Z passed to pwrss (rho13)", pop$r_X_Z, args$rho13),
+      row("r_Y_Z passed to pwrss (rho23)", pop$r_Y_Z, args$rho23)
+    ),
+    nonoverlapping_correlations = rbind(
+      row("r_X1_Y1 passed to pwrss (rho12)", pop$r_X1_Y1, args$rho12),
+      row("r_X2_Y2 passed to pwrss (rho34)", pop$r_X2_Y2, args$rho34),
+      row("r_X1_X2 passed to pwrss (rho13)", pop$r_X1_X2, args$rho13),
+      row("r_X1_Y2 passed to pwrss (rho14)", pop$r_X1_Y2, args$rho14),
+      row("r_Y1_X2 passed to pwrss (rho23)", pop$r_Y1_X2, args$rho23),
+      row("r_Y1_Y2 passed to pwrss (rho24)", pop$r_Y1_Y2, args$rho24)
+    ),
     chi_square_gof = {
       p <- as.numeric(unlist(pop$probabilities))
       p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))
@@ -274,6 +365,27 @@ pwrss_check_run <- function(spec, inputs) {
     oneway_ancova = rbind(
       row("adjusted means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
       row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared)
+    ),
+    single_predictor = rbind(
+      row("odds ratio passed to pwrss (odds.ratio)", pop$odds_ratio, args$odds.ratio),
+      row("base probability passed to pwrss (base.prob)", pop$base_prob, args$base.prob),
+      row("R-squared of X on the other predictors (r.squared.predictor)", pop$r2_other_predictors %||% 0, args$r.squared.predictor),
+      if (identical(args$distribution$dist, "bernoulli")) {
+        row("proportion in X's second level (distribution prob)", pop$x_prob %||% 0.5, args$distribution$prob)
+      } else {
+        row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
+      }
+    ),
+    single_predictor_count = rbind(
+      row("rate ratio passed to pwrss (rate.ratio)", pop$rate_ratio, args$rate.ratio),
+      row("base rate passed to pwrss (base.rate)", pop$base_rate, args$base.rate),
+      row("mean exposure passed to pwrss (mean.exposure)", pop$mean_exposure %||% 1, args$mean.exposure),
+      row("R-squared of X on the other predictors (r.squared.predictor)", pop$r2_other_predictors %||% 0, args$r.squared.predictor),
+      if (identical(args$distribution$dist, "bernoulli")) {
+        row("proportion in X's second level (distribution prob)", pop$x_prob %||% 0.5, args$distribution$prob)
+      } else {
+        row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
+      }
     ),
     oneway_contrast = rbind(
       row("means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
