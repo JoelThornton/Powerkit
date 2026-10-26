@@ -1,10 +1,11 @@
-# The "About this prototype" panel.
+# The "About" tab.
 
 about_html <- function() as.character(about_ui(tree, forms))
 
 test_that("the About panel says it's a prototype and what it does", {
   html <- about_html()
-  expect_match(html, "About this prototype", fixed = TRUE)
+  expect_match(html, "About powerkit", fixed = TRUE)
+  expect_match(html, tree$banner, fixed = TRUE)
   expect_match(html, "This is a prototype.", fixed = TRUE)
   expect_match(html, "not yet fully validated", fixed = TRUE)
   expect_match(html, "never does the statistics itself", fixed = TRUE)
@@ -51,7 +52,7 @@ test_that("the About panel credits every foundation tool, from its own citation(
 
 test_that("the app has an About tab", {
   app <- readLines(file.path(routing_dir, "app.R"))
-  expect_true(any(grepl('tabPanel("About this prototype"', app, fixed = TRUE)))
+  expect_true(any(grepl('tabPanel("About"', app, fixed = TRUE)))
 })
 
 test_that("the About panel says what powerkit doesn't do and how far along it is", {

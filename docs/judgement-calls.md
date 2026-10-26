@@ -1261,20 +1261,8 @@ Setting `guided_route` records it.
 
 ### D6. Consistency between hypotheses (open question 12)
 
-- **Question:** per-hypothesis forms with a consistency check,
-  whole-study simulation from one model, or both?
-- **Options:**
-  - per hypothesis;
-  - whole-study simulation;
-  - both.
-- **What tools and sources do:** `decision-tree.md` 4.2 sets out both
-  (opened). Whether either is a departure from established tools is part
-  of the question.
-- **Who might disagree, and why:**
-  - Per hypothesis follows each backend exactly.
-  - Whole-study simulation is more coherent, but new.
-- **Knock-on effects:** may need a record in `conventions.md`.
-- **Recorded in:** open question 12; setting `consistency_approach`.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#d6-consistency-between-hypotheses-open-question-12).
+Setting `consistency_approach` records it.
 
 ### D7. Covariates in each analysis (open questions 13 and 15)
 
