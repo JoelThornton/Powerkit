@@ -35,10 +35,18 @@ engine-side change alone will fail the app suite.
 - Citations come only from inst/citations/refs.bib or a package's own citation().
   Never invent references or write one from memory.
 - Plain-English errors for users; no stack traces in the UI.
-- powerkit follows the established tools' conventions by default. Any
-  departure must be recorded in docs/conventions.md, shown to the user on the
-  results screen, stated in the methods paragraph, and covered by a test
-  showing the size of the difference.
+- powerkit follows the established tools' conventions by default, so that users
+  comparing tools are never surprised silently. Any departure must be recorded
+  in docs/conventions.md, shown to the user on the results screen, stated in the
+  methods paragraph, and covered by a test showing the size of the difference.
+  Following by default is about not diverging silently, not about treating the
+  usual tools as correct: G*Power is the benchmark for what researchers expect
+  to enter and see, not for what is right, and the packages powerkit calls have
+  their own faults (docs/upstream-questions.md). Where the literature says a
+  method is better, prefer it and record the departure — that machinery exists
+  so powerkit can be right and honest at once. Which method is right is the
+  maintainer's call, with the literature behind it; never the thread's quiet
+  decision, and never settled by what is already installed.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
   a phase and summarise what was done, what's untested, and open questions.
 - engine/DESCRIPTION's Version is powerkit's version, shown to users and in

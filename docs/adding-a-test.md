@@ -82,25 +82,62 @@ Within a batch, the lens is **what researchers realistically need**:
   maintainer and a statistician. Never write the maths in powerkit
   (`CLAUDE.md`).
 
-## 2. Agree the backend package
+## 2. Agree the method, then the package
 
 powerkit never computes power itself: it translates a spec and calls a
-package. Before writing any engine code, bring the maintainer a short
-shortlist — this is a decision for them, not for the thread:
+package. That does **not** mean the packages already installed decide what
+powerkit can do, or how it does it. Two rules:
+
+**The method comes first, the package second.** Ask what the right way to
+compute power for this design is, from the literature, and then find
+something that implements it. Never fit the design to whatever is
+convenient. If nothing available does it properly, the honest outcomes are
+a better package (the maintainer's decision) or the design staying
+uncovered with the reason recorded — never a worse approximation presented
+as though it were the answer.
+
+**Being familiar is not being right.** G\*Power is the benchmark for what
+researchers expect to type and see, not for what is correct: it is
+criticised in the methods literature, and where it does something badly
+powerkit should not copy it for familiarity's sake. The same goes for the
+packages powerkit already calls — this project has found and reported
+three faults in Spower's `p_var.test()` alone, and one in its `p_r()`
+([`upstream-questions.md`](upstream-questions.md)) — so a package's
+default is a claim to check, not an instruction. powerkit already
+overrides defaults that are wrong for the design (Yates' correction off,
+`k.covariates = 0` for a contrast, the unpooled Steiger test, the
+direction of a one-sided variance test), each recorded as a departure.
+
+Before writing any engine code, bring the maintainer a shortlist. This is
+their decision, not the thread's:
 
 | What to bring | Why |
 | --- | --- |
-| Which function in which package, and what it computes | The design must match, not merely sound similar |
+| What the right method is, and who says so | The design decides the method, not the toolbox |
+| Which function in which package implements it, and what it computes | The design must match, not merely sound similar |
 | Its version, licence and whether it is on CRAN | Anything not installable is not a candidate |
-| What G\*Power (or the published source) does for the same test | Differences become a departure or a known difference |
+| How it is criticised, in the literature or in its own issues | A known weakness is a reason to prefer another, or to say so plainly |
+| What G\*Power does for the same test, and whether that is sound | Differences become a departure or a known difference; "G\*Power does it" is not a justification |
 | A second package or a published example to check it against | Agreement is what makes it trustworthy |
 | What it cannot do | The spec checks must refuse those cases plainly |
 
 The five foundation packages (Spower, power4mome, Superpower,
-InteractionPoweR, pwr) and pwrss cover most of the queue; a new package is
-a bigger decision, so say plainly what it adds. Record the choice in
-[`decisions.md`](decisions.md) and the package's own conventions in
-[`conventions.md`](conventions.md), with any departure or known difference.
+InteractionPoweR, pwr) and pwrss cover much of the queue, and reusing one
+keeps the dependency list and the citations short — but say so because it
+is the best fit, not because it is already there. A new package is a
+bigger decision: say what it adds and what it costs.
+
+**When the right tool is wrong in part**, the playbook this project has
+used works: override the bad default and record the departure; report the
+fault upstream with a reproducible example in `docs/upstream/`; and refuse
+plainly, in the spec checks, whatever cannot be done properly (as the
+two-variance test refuses unequal groups). A question of *which method is
+right* goes to the maintainer with the literature behind it, and some need
+a statistician — the thread does not settle it quietly.
+
+Record the choice in [`decisions.md`](decisions.md) and the package's
+conventions in [`conventions.md`](conventions.md), with any departure or
+known difference.
 
 ## 3. The engine
 

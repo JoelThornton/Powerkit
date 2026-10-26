@@ -4,7 +4,14 @@
 
 For each end point powerkit runs, what a user can enter and what they get
 back, set against the matching G\*Power test. It records gaps; nothing
-here changes what powerkit does. The decisions it raises are judgement
+here changes what powerkit does.
+
+**Parity here means what a researcher can enter and read, not that
+G\*Power is the standard of correctness.** Where its method is the weaker
+one, powerkit's answer should differ and say why
+([`conventions.md`](conventions.md)); a "Gap" in the tables below is a
+prompt to ask whether the thing is worth having, not an instruction to
+copy it. The decisions it raises are judgement
 calls G4–G6 in [`judgement-calls.md`](judgement-calls.md).
 
 ## Sources and limits
