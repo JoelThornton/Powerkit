@@ -2844,3 +2844,45 @@ one-sided variance test.
 literature behind it, and some questions need a statistician. A thread
 never settles it quietly, and never settles it by reaching for what is
 already installed.
+
+## 2026-10-26 · Three product ideas from an outside review, recorded not adopted
+
+**Where they came from.** A catalogue of psychology power analyses the
+maintainer commissioned from a language model (26 October 2026). Most of it
+restates what [`coverage-roadmap.md`](coverage-roadmap.md) already holds,
+and its frequency figures ("70% of studies use ten tests") and
+effect-size benchmarks ("median d of 0.36 to 0.40") are unsourced, so
+nothing numerical from it is used. The test names it mentions that the
+roadmap misses are listed there. Three product ideas are worth keeping:
+
+1. **A safeguard-power adjuster.** When a user takes an effect size from a
+   pilot or a single published study, offer the lower confidence bound of
+   that estimate instead of the point estimate (the method is attributed to
+   Perugini and colleagues; **to read before use**). This fits what
+   powerkit already does — it asks where an effect size came from and
+   whether the reasoning still applies — and would answer the commonest way
+   a power analysis goes wrong: a noisy pilot estimate taken at face value.
+2. **A power curve with three lines.** The expected effect, plus an
+   optimistic and a conservative one either side, so the user sees how
+   sensitive the sample size is to being wrong about the effect. powerkit
+   draws one curve today.
+3. **A downloadable synthetic data set** beside the R script, for
+   registered reports: analysis code can be written and pre-registered
+   against simulated data before real participants are recruited. Cheap for
+   the simulated designs, because the engine already generates one large
+   data set per run for its check run. **Caveats to settle first:** it
+   would carry powerkit's data-generating assumptions, which are thinner
+   than real data (no missingness beyond attrition, no floor or ceiling
+   effects unless asked for), so it must be labelled as simulated in the
+   file itself, and it must not read as a substitute for the real analysis
+   plan.
+
+**Not adopted from the review.** Its technical recommendation — implement
+the closed-form distributions in the browser in TypeScript or Rust — is the
+opposite of how powerkit works and of why its numbers are defensible:
+powerkit never writes the statistics itself, and every result names the
+validated R package that produced it (`CLAUDE.md`). Its advice to ban
+post-hoc observed power also runs against the maintainer's decision of
+22 October 2026 (allowed, with a warning), though its reasoning — that
+observed power is a transformation of the p-value and adds nothing — is the
+argument the warning already makes.
