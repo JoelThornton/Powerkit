@@ -61,6 +61,8 @@ on:
           - logistic
           - poisson
           - contrast
+          - two_correlations
+          - generic
 
 permissions:
   contents: read

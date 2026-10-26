@@ -96,6 +96,18 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Candidates recorded (25 October 2026):** three of the five roadmap rows
+  with no ready-made tool now name one (powerMediation for B14,
+  semPower for B17, DescTools for B27's test). All three are marked
+  **not checked** against their own help files, because CRAN wasn't
+  reachable from the build environment; nothing is built on them.
+- **G\*Power checks (25 October 2026, in review):** of the eight rows
+  marked "wired, not yet checked against G\*Power", the manual settles
+  two, and both reproduce it: two independent correlations (A6, section
+  27) and the generic t test (A47, section 25). The other six have no
+  section in the manual (ANCOVA, goodness of fit, the generic F,
+  chi-square and z tests) or an empty Examples subsection (Fisher's exact
+  test), so they need G\*Power itself.
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the
