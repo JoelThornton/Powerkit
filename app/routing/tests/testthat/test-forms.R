@@ -251,15 +251,16 @@ test_that("effect sizes start empty (decided 22 October 2026), shown as a decisi
 
 # Screen A (the new design, docs/decisions.md, 18 October 2026) -------------
 
-test_that("screen A asks the situation, aim and claim, with the first option preselected", {
+test_that("the start screen asks only how to start; the aim follows on its own screen", {
   html <- as.character(start_ui(tree))
-  for (q in tree$start_questions) {
-    expect_match(html, q$question, fixed = TRUE, info = q$id)
-    for (o in q$options) expect_match(html, htmltools::htmlEscape(o$label), fixed = TRUE, info = o$label)
-  }
-  expect_match(html, "Several claims, each standing on its own", fixed = TRUE)
-  expect_match(html, "Your claim is about the set, not each test", fixed = TRUE)
-  expect_equal(start_answers(tree, list()), list(situation = "choose", aim = "predict", claim = "one"))
+  expect_match(html, tree$routes$question, fixed = TRUE)
+  for (r in tree$routes$options) expect_match(html, paste0("route:", r$id), fixed = TRUE, info = r$id)
+  expect_no_match(html, "Your claim", fixed = TRUE)
+  expect_no_match(html, "Your sample size", fixed = TRUE)
+  aim <- as.character(aim_ui(tree))
+  q <- Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
+  expect_match(aim, q$question, fixed = TRUE)
+  for (k in names(q$options)) expect_match(aim, paste0("aim:", k), fixed = TRUE, info = k)
 })
 
 test_that("estimation and equivalence go to their cards; testing a prediction goes on to the design finder", {
@@ -275,24 +276,31 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   expect_equal(goal("E9", list(situation = "fixed"))$default, "sensitivity")
   expect_equal(goal("E10", list(situation = "fixed"))$default, "power")
   for (ep in paste0("E", 1:6)) expect_true("sensitivity" %in% names(goal(ep, list())$choices), info = ep)
+  # Whether the sample size is fixed is asked with the goals that take one.
+  situation <- function(start) Filter(function(f) f$id == "situation", form_fields(form_groups(forms, "E2", start = start)))[[1]]
+  expect_equal(situation(list())$default, "choose")
+  expect_equal(situation(list(situation = "fixed"))$default, "fixed")
+  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity"))
 })
 
-test_that("the claim adds a note, and 'any of several' divides alpha between the tests", {
-  groups <- function(claim) form_groups(forms, "E2", start = list(claim = claim))
-  titles <- function(claim) vapply(groups(claim), function(g) g$input %||% g$title, "")
-  expect_false("Your claim" %in% titles("one"))
-  for (claim in c("each", "any", "all")) expect_true("Your claim" %in% titles(claim), info = claim)
-  expect_true("n_tests" %in% vapply(form_fields(groups("any")), `[[`, "", "id"))
-  expect_true("n_tests" %in% vapply(form_fields(groups("all")), `[[`, "", "id"))
-  expect_match(as.character(form_ui(tree, forms, "E2", groups("all"))), "raises this test's target power", fixed = TRUE)
-  expect_match(as.character(form_ui(tree, forms, "E2", groups("each"))), "error-statistical view", fixed = TRUE)
-
+test_that("the claim is asked under Settings, starts at one test, and notes each other claim", {
+  groups <- function(claim = NULL) form_groups(forms, "E2", start = list(claim = claim))
+  claim_field <- function(claim = NULL) Filter(function(f) f$id == "claim", form_fields(groups(claim)))[[1]]
+  expect_equal(claim_field()$default, "one")
+  for (claim in c("each", "any", "all")) expect_equal(claim_field(claim)$default, claim, info = claim)
+  expect_equal(form_section(Filter(function(g) identical(g$title, "Your claim"), groups())[[1]]), "settings")
+  expect_true("n_tests" %in% vapply(form_fields(groups()), `[[`, "", "id"))
+  html <- as.character(form_ui(tree, forms, "E2", groups()))
+  expect_match(html, "raises this test's target power", fixed = TRUE)
+  expect_match(html, "error-statistical view", fixed = TRUE)
+  expect_match(html, "input.f_claim == &#39;any&#39;|input.f_claim == 'any'")
   fields <- form_fields(groups("any"))
-  values <- c(form_examples[["E2"]], list(n_tests = "4"))
+  values <- c(form_examples[["E2"]], list(claim = "any", n_tests = "4"))
   expect_length(form_problems(fields, values), 0)
   expect_equal(build_spec(forms, "E2", fields, values)$target_test$alpha, 0.05 / 4)
-  expect_match(form_problems(fields, form_examples[["E2"]]), "Number of tests in the set", fixed = TRUE, all = FALSE)
-  values$claim <- "any"
+  expect_match(form_problems(fields, c(form_examples[["E2"]], list(claim = "any"))), "Number of tests", fixed = TRUE, all = FALSE)
+  # Back to one test: a number typed earlier is ignored.
+  expect_equal(build_spec(forms, "E2", fields, modifyList(values, list(claim = "one")))$target_test$alpha, 0.05)
   expect_match(claim_result_note(values, 0.0125), "0.05 divided by 4 (Bonferroni): 0.0125", fixed = TRUE)
 })
 
@@ -519,11 +527,12 @@ test_that("the input screen asks the goal first, keeps the effect size with its 
     expect_true("goal" %in% ids_in("goal"), label = ep)
     expect_true("just_type" %in% ids_in("effect"), label = ep)
     # Every effect size is in the effect section; nothing without a default
-    # (that isn't optional) is folded away.
+    # (that isn't optional) is folded away, except a field that appears only
+    # when a setting is changed (the number of tests, for a claim about a set).
     effect_ids <- vapply(Filter(function(f) isTRUE(f$effect), form_fields(groups)), `[[`, "", "id")
     expect_true(all(effect_ids %in% ids_in("effect")), label = ep)
     for (f in unlist(lapply(groups[section == "settings"], `[[`, "fields"), recursive = FALSE)) {
-      expect_true(!is.null(f[["default"]]) || isTRUE(f$optional), label = paste(ep, f$id))
+      expect_true(!is.null(f[["default"]]) || isTRUE(f$optional) || !is.null(f$applies_if_claim), label = paste(ep, f$id))
     }
     html <- as.character(form_ui(tree, forms, ep, groups))
     headings <- regmatches(html, gregexpr("form-section-title\">[^<]+", html))[[1]]
