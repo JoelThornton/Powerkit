@@ -2776,3 +2776,33 @@ the engine. Letting them run in CI is a one-line change to the workflow
 and would have caught the stale "not wired" statuses a week earlier. It
 lengthens the job, so it is the maintainer's call rather than something to
 slip into a test PR.
+
+## 2026-10-26 · Every design is reachable from the design finder
+
+**What.** The rule written into
+[`adding-a-test.md`](adding-a-test.md) when the process page was first
+drafted — common designs in the design finder, rare ones listed only
+under "I know my analysis" — is wrong and has been replaced. Every design
+powerkit can run is reachable from the finder. The only exception is a
+design that cannot be identified from a description of a study, but only
+by name: the generic tests (E50), where the researcher must already know
+they have a noncentrality parameter.
+
+**Why (the maintainer, 26 October 2026).** Letting users find only the
+obvious designs through the finder is poor scientific practice. The
+researcher who needs a multilevel model and doesn't know it cannot look it
+up by name, so a finder that leads only to familiar designs would send
+exactly that person to a t-test — the failure powerkit exists to prevent.
+Rarity is not the test; identifiability is.
+
+**It also matched the app badly.** The four screening questions already
+lead to clustered data (E34), counts (E28), ordered categories (E29),
+survival (E43), pairs (E44), many stimuli per person (E33), equivalence
+(E36) and planning for precision (E46). The rule as first written would
+have contradicted the tree that is already built.
+
+**What keeps a simple design simple** is where the questions sit, not
+which designs exist: four screening questions for everyone, and anything a
+rare design needs asked only of people whose earlier answers imply it.
+Someone comparing two groups on a score is never asked about nesting or
+exposure time.

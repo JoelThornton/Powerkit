@@ -135,8 +135,14 @@ engine_templates <- function() {
   found <- character()
   walk <- function(node) {
     if (is.list(node)) {
-      enum <- node$properties$template$enum
-      if (!is.null(enum)) found <<- c(found, unlist(enum))
+      # A design lists its templates as an enum; a design with only one
+      # could use a const instead, and the branch that selects each
+      # template's definition always does. Collect both, or a design could
+      # be added that this test never sees.
+      template <- node$properties$template
+      if (!is.null(template)) {
+        found <<- c(found, unlist(template$enum), unlist(template$const))
+      }
       lapply(node, walk)
     }
     invisible(NULL)

@@ -10,6 +10,13 @@ exists.** Engine code alone is not an added test. Everything in "What
 'added' means" below happens in the same pull request, so the app is never
 behind the engine.
 
+`CLAUDE.md` also asks for one design per PR and a few hundred lines where
+possible. If a batch is too big, **split it by design, never by layer**:
+two complete designs in two PRs, not one PR of engine code and another of
+cards. Splitting by layer is what left five designs in the engine with no
+way to reach them. Where the two rules pull against each other,
+completeness wins and the PR is a little longer.
+
 "Run it" does not always mean "in the browser". For a design whose power
 has to be simulated, the honest answer is often a short R script the
 researcher runs on their own computer, and the app should encourage that
@@ -36,7 +43,10 @@ Every box ticked, in one PR:
 5. It has an input screen in `app/routing/forms.yaml`, so the result
    screen, the write-up, the R script and the saved project all work.
 6. A plain-words entry is in `app/routing/whats-new.yaml` — no internal
-   codes, name the analysis (*test:* `test-whats-new.R`).
+   codes, name the analysis. `test-whats-new.R` checks the shape of
+   entries (date, title, text, newest first, no codes) but **cannot tell
+   that you wrote one**: that box is on the author, so say in the PR
+   description which entry you added.
 7. The version in `engine/DESCRIPTION` is bumped and `engine/NEWS.md` has
    its entry (*test:* the version agreement test).
 8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
@@ -51,6 +61,10 @@ on a statistician — then it does not get merged half-built and silently.
 Its card says what is true: that powerkit can compute it but not yet on
 this screen, and how to reach it meanwhile. A test refuses a design the
 engine can run whose card claims powerkit cannot.
+
+This page is the *how*. [`build-guide.md`](build-guide.md) section 8 is
+the *when*: which phase of the build a group of designs belongs to. Where
+they disagree about process, this page is current.
 
 ## 1. Pick the batch
 
@@ -100,7 +114,7 @@ variance tests (PR #109) are a recent, complete example to copy.
 | `engine/R/backend-*.R` | the adapter: the arguments the package takes, the check run that recovers the population values from generated data, and the packages recorded in the provenance |
 | `engine/R/spec-checks.R` | plain-English refusals: a zero effect, the minimum n, group splits, which `method` and `alternative` it allows |
 | `engine/R/recruitment.R` | the group split, so attrition gives the right number to recruit |
-| `engine/R/export-script.R` (and `-pwrss.R`) | the design's one-line description, inputs, arguments and derived lines in the exported script |
+| `engine/R/export-script.R`, `engine/R/export-script-pwrss.R` | the design's one-line description, inputs, arguments and derived lines in the exported script |
 | `engine/R/export-citations.R` | a package only this design calls, cited from its own `citation()` |
 | `engine/inst/specs/<template>.json` | a complete, realistic example spec |
 | `engine/tests/testthat/test-backend-*.R` | translation, the check run, refusals, and the exported script reproducing the run |
@@ -127,19 +141,39 @@ time per test) and to the workflow's chunk list;
 
 **The card** (`app/routing/tree.yaml`): plain name, the document name, its
 status, what the user would enter, the packages behind it, and its
-validation note. Add the matching rows to
+validation note. A design whose published values are still
+`TODO_PUBLISHED_VALUE` takes the status
+`runs_validation_in_progress`, never `runs_validated`: the card must not
+claim a check the maintainer hasn't made. Say in the validation note what
+has been checked (agreement with the package called directly, Type I
+error) and what hasn't. Add the matching rows to
 [`decision-tree.md`](decision-tree.md) (table 2.3) and
 [`card-sources.md`](card-sources.md), or the docs tests fail.
 
-**Where it sits in the routing** is the question that keeps powerkit
-usable:
+**Where it sits in the routing.** The default is that **every design is
+reachable from the design finder**, and a rare design more urgently than a
+common one: someone who needs a multilevel model and doesn't know it
+cannot look it up by name, and a finder that only leads to familiar
+designs would send exactly that person to a t-test. The tree is already
+built this way — the four screening questions alone lead to clustered
+data (E34), counts (E28), ordered categories (E29), survival (E43), pairs
+(E44), many stimuli per person (E33), equivalence (E36) and planning for
+precision (E46).
 
-- A design most researchers will want gets a place in the design finder,
-  so the questions lead to it.
-- A rare or specialist design is listed in "I know my analysis" and left
-  out of the finder, as the generic tests (E50) are. It is fully usable;
-  it just doesn't lengthen the common path.
-- Either way it is in the list, because the list is every card.
+What keeps a simple design simple is not leaving rare ones out; it is
+where the questions sit. The screening asks four questions of everyone,
+and anything a rare design needs to know is asked only of people whose
+earlier answers imply it. Someone comparing two groups on a score should
+never be asked about nesting or exposure time.
+
+The one exception is a design that **cannot be identified from a
+description of a study, only by name**: the generic tests (E50), where a
+researcher has to know already that they have a noncentrality parameter.
+Those are listed in "I know my analysis" and left out of the finder,
+because no honest question about a study would lead to them. Rarity is not
+the test; identifiability is.
+
+Either way the design is in the list, because the list is every card.
 
 **The input screen** (`app/routing/forms.yaml`): the fields, their help,
 the goal types it supports, and — for a simulated design — the preview and
@@ -154,8 +188,8 @@ result screen and the methods paragraph say so.
 
 - `app/routing/whats-new.yaml`: one entry, newest first, in the words a
   psychologist would use. No E-numbers, no "Departure 6".
-- `engine/DESCRIPTION`: bump the version (see below), and
-  `engine/CITATION.cff` with it.
+- `engine/DESCRIPTION`: bump the version (see below), and `CITATION.cff`
+  (at the repository root, not in `engine/`) with it.
 - `engine/NEWS.md`: the developer-facing entry.
 - [`status.md`](status.md): where the project now is, replacing the old
   entry rather than adding to it.
@@ -190,8 +224,12 @@ ships; say the number in the "What's new" entry if it helps.
 ## The queue: what to add next
 
 **Batch 1 (now): finish the five designs the engine already computes.**
-Each needs only its app side, and three of them have cards that currently
-tell users powerkit cannot do what it can.
+Boxes 1 to 3 are done for all five — engine, example specs, unit tests,
+validation files with placeholders and their chunks are all in. Each needs
+boxes 4 to 8: a card, an input screen, the "What's new" entry, the version
+bump and the status update. Three of them have cards that currently tell
+users powerkit cannot do what it can, and their entry in `engine_only`
+has to go when they land.
 
 | Design | End point | What it needs |
 | --- | --- | --- |

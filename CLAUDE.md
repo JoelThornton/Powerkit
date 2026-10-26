@@ -15,6 +15,15 @@ status update all land together. For a design whose power must be simulated,
 "run it" can mean the R script the app hands them to run themselves (as E10-E14
 do) — say which route they are on. Never leave a design the engine can compute
 with a card that says powerkit cannot.
+Split a big batch by design, never by layer: splitting by layer is what left
+five designs in the engine that no researcher could reach.
+Every design is reachable from the design finder, rare ones most of all (a
+researcher who needs a multilevel model can't look it up by name); only a design
+that can't be identified from a description of a study, such as the generic
+tests, is listed in "I know my analysis" alone.
+app/routing/tests/testthat/test-repo-consistency.R refuses an engine template
+that is neither named by a card nor listed in forms.yaml's engine_only, so an
+engine-side change alone will fail the app suite.
 
 ## Non-negotiables
 - Never write new statistical maths when a backend package already does it; adapt the spec.
@@ -35,7 +44,7 @@ with a card that says powerkit cannot.
 - engine/DESCRIPTION's Version is powerkit's version, shown to users and in
   every export: 0.x.y while it is a prototype (the minor number counts shipped
   batches of user-visible work), 1.0.0 at release. Bump it with the batch, and
-  keep engine/CITATION.cff and engine/NEWS.md in step.
+  keep CITATION.cff (repository root) and engine/NEWS.md in step.
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.
@@ -73,6 +82,10 @@ to read small.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
+- Run the app's suite too when anything outside engine/ changed:
+  testthat::test_dir("tests/testthat") in app/routing/. The cross-checks that
+  tie the engine, the docs and the app together live there, so an engine-only
+  run will not see them.
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
   app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.
