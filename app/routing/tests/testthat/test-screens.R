@@ -77,6 +77,51 @@ test_that("every question screen renders with a back button", {
   }
 })
 
+test_that("'I know my analysis' can skip the screening; the other routes can't", {
+  skip <- tree$routes$skip_screening
+  screening <- names(Filter(function(n) n$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1"), tree$nodes))
+  expect_gte(length(screening), 4)
+  for (id in screening) {
+    known <- as.character(node_ui(tree, id, list(), list(), "known"))
+    expect_match(known, "&#39;skip_screening&#39;", fixed = TRUE, label = id)
+    expect_match(known, htmltools::htmlEscape(skip$label), fixed = TRUE, label = id)
+    # The design finder and the guided plan need the answers to route at
+    # all, so neither offers the skip.
+    for (route in c("choose", "guided")) {
+      expect_no_match(as.character(node_ui(tree, id, list(), list(), route)),
+        "skip_screening", fixed = TRUE, label = paste(id, route))
+    }
+  }
+  # A question that isn't screening doesn't offer it either.
+  expect_no_match(as.character(node_ui(tree, "q1", list(), list(), "known")),
+    "skip_screening", fixed = TRUE)
+})
+
+test_that("the skipped list holds every analysis and offers the questions as a filter", {
+  all_of_them <- as.character(known_ui(tree, list(), NULL))
+  for (id in names(tree$endpoints)) {
+    expect_match(all_of_them, sprintf("&#39;ep:%s&#39;", id), fixed = TRUE, label = id)
+  }
+  # It says how many, and that nothing was screened out.
+  expect_match(all_of_them, sprintf(tree$routes$skip_screening$note, length(tree$endpoints)), fixed = TRUE)
+  expect_no_match(all_of_them, "that fit your screening answers", fixed = TRUE)
+  # And it offers the screening questions instead.
+  expect_match(all_of_them, "&#39;screen_me&#39;", fixed = TRUE)
+  expect_match(all_of_them, htmltools::htmlEscape(tree$routes$skip_screening$filter_label), fixed = TRUE)
+
+  # With screening answers the list is filtered, and says so.
+  ctx <- list(outcome = "score", times = "once")
+  filtered <- as.character(known_ui(tree, list(), ctx))
+  fits <- length(endpoints_for_context(tree, ctx))
+  expect_lt(fits, length(tree$endpoints))
+  expect_match(filtered, sprintf("Showing the %d of %d analyses", fits, length(tree$endpoints)), fixed = TRUE)
+  expect_no_match(filtered, "screen_me", fixed = TRUE)
+})
+
+test_that("the skip is part of 'where you are', so Back and Forward restore it", {
+  expect_true("skip_screening" %in% nav_fields)
+})
+
 test_that("undecided settings show a labelled placeholder; decided ones show the decision", {
   s <- setting_by_key(tree, "simple_effects_target")
   expect_null(s$value)

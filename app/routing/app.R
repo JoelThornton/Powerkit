@@ -243,6 +243,7 @@ server <- function(input, output, session) {
     route = "choose",        # the route chosen on the start screen
     node = NULL,             # current question id (screening or "Help me choose")
     ctx = list(),            # screening answers later questions depend on
+    skip_screening = FALSE,  # "I know my analysis": the list is unfiltered
     history = list(),        # list(node, answer, ctx) for each answer given
     endpoint = NULL,         # end point shown on the card screen
     came_from = NULL,        # "known" or "node", for the card's back button
@@ -319,11 +320,13 @@ server <- function(input, output, session) {
     }
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
+      state$skip_screening <- FALSE
       state$from_labs <- FALSE; state$labs_seed <- NULL
     } else if (kind == "route") {
       # Screen A first: estimation and equivalence go to their cards.
       state$start <- start_answers(tree, input)
       state$route <- value; state$history <- list(); state$ctx <- list()
+      state$skip_screening <- FALSE
       exit <- start_exit(tree, state$start)
       if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
@@ -331,6 +334,18 @@ server <- function(input, output, session) {
         # Every route starts with the screening questions.
         go_to(resolve_target(tree, start_node(tree), state$ctx, value))
       }
+    } else if (pick == "skip_screening") {
+      # The whole list, with no screening answers to filter it by. The
+      # answers given so far are dropped, so the trail doesn't show
+      # answers that aren't being applied.
+      state$skip_screening <- TRUE
+      state$history <- list(); state$ctx <- list(); state$node <- NULL
+      state$screen <- "known"
+    } else if (pick == "screen_me") {
+      # From the unfiltered list back to the screening questions.
+      state$skip_screening <- FALSE
+      state$history <- list(); state$ctx <- list()
+      go_to(resolve_target(tree, start_node(tree), state$ctx, "known"))
     } else if (kind == "opt") {
       option <- visible_options(tree, tree$nodes[[state$node]], state$ctx)[[as.integer(value)]]
       state$history <- c(state$history, list(list(node = state$node, answer = option$label, ctx = state$ctx)))
@@ -782,8 +797,8 @@ server <- function(input, output, session) {
       state$screen,
       start = tagList(start_ui(tree, isolate(state$start)), open_project_ui(), check_project_ui()),
       check = plan_check_ui(tree, forms, state$checked_project),
-      known = known_ui(tree, state$history, state$ctx),
-      node = node_ui(tree, state$node, state$history, state$ctx),
+      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx),
+      node = node_ui(tree, state$node, state$history, state$ctx, state$route),
       card = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(),
         trail_ui(state$history),

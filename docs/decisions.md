@@ -2776,3 +2776,43 @@ the engine. Letting them run in CI is a one-line change to the workflow
 and would have caught the stale "not wired" statuses a week earlier. It
 lengthens the job, so it is the maintainer's call rather than something to
 slip into a test PR.
+
+## 2026-10-26 · "I know my analysis" can skip the screening
+
+**What.** The "I know my analysis" route now offers, on every screening
+question, a button that skips the four questions and lists every end point
+powerkit knows about (53 today, against the 31 that a score measured once
+leaves). The questions are then offered on the list itself, as a filter to
+apply if the user wants one. "Help me choose" and "Plan my whole study"
+are unchanged: they need the screening answers to route at all, so they
+don't offer the skip.
+
+**Why.** The route's own help text already describes it as a menu, "as in
+G\*Power's or PAMLj's menus", and someone who knows their test — a
+supervisor checking a student's number, or anyone re-running a
+calculation — answered four questions to reach a list they could have
+read straight away.
+
+**What it costs.** The screening questions are not ceremony: they route
+clustered data away from an independent t-test, counts away from a linear
+model, a single ordered rating to its own card, and equivalence questions
+away from power for detecting an effect. Someone who skips them can pick
+a test that gives a confident sample size for a design where it is the
+wrong analysis. Three things stand in for the questions on that path:
+
+- the list says nothing was screened out, and that some analyses won't
+  suit the design;
+- every card still states what its test assumes and what it needs;
+- the filter is one button away on the list.
+
+**Not done:** a separate tab. The list, the cards and the input screens
+are the same ones the guided routes use, so a second route to them would
+have duplicated the list, the departures and the write-up plumbing for the
+same benefit. The skip is one option in `tree.yaml` and one branch in the
+server.
+
+**Tests.** `app/routing/tests/testthat/test-screens.R`: the skip appears on
+every screening question of this route and on no question of the others;
+the skipped list holds every end point, says how many, and offers the
+filter; the filtered list still says how many fit; and the skip is part of
+the state the browser's Back and Forward buttons restore.

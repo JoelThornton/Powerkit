@@ -5,6 +5,15 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-26"
+    title: "Straight to the list of analyses"
+    text: >-
+      If you already know which analysis you want, "I know my analysis" no
+      longer makes you answer the four screening questions first: one
+      button shows every analysis powerkit knows about, as a menu. Some of
+      them won't suit your design and nothing checks that for you, so each
+      analysis's card still says what its test assumes; the four questions
+      are there on the list if you would rather have it narrowed down.
   - date: "2026-10-22"
     title: "The browser's Back button works"
     text: >-
