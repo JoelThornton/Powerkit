@@ -251,7 +251,7 @@ test_that("the note on other defensible analyses is off until the maintainer tur
     expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
     expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
   }
-  expect_no_match(as.character(card_ui(t2, "E28")), "Other defensible analyses exist", fixed = TRUE)
+  expect_no_match(as.character(card_ui(t2, "E29")), "Other defensible analyses exist", fixed = TRUE)
 })
 
 test_that("the safety-net card says what to write down for a statistician, using the screening answers", {

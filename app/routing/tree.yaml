@@ -327,7 +327,7 @@ nodes:
     options:
       - {label: "A score or scale", next: s2, sets: {outcome: score}, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
       - {label: "Yes/no, or one of several categories", next: s2, sets: {outcome: yesno}, help: "e.g. passed or failed; chose option A, B or C."}
-      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
+      - {label: "A count", next: s2, sets: {outcome: count}, help: "How many times something happened, with no fixed maximum."}
       - {label: "Ordered categories (e.g. a single rating item)", next: o5a, help: "e.g. one item rated from 'strongly disagree' to 'strongly agree'."}
       - {label: "The time until something happens", next: E43, help: "e.g. days until relapse, or whether and when people drop out."}
   o5a:
@@ -386,7 +386,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: f1, yesno: q3_cat}
+    routes: {score: f1, yesno: q3_cat, count: q3_count}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
@@ -500,12 +500,20 @@ nodes:
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
+  # A count outcome: Poisson regression (E28) when each person is measured
+  # once; repeated counts need a mixed model powerkit doesn't have.
+  q3_count:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E28, twice: E-unsure, many_conditions: E-unsure}
+
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_rel, yesno: q2_rel_cat}
+    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count}
   q2_rel_cat:
     doc_id: Q2
     text: "Which kind of categorical outcome?"
@@ -531,7 +539,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_mod, yesno: E32}
+    routes: {score: q3_mod, yesno: E32, count: E32}
   q3_mod:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -570,7 +578,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_med, yesno: E32}
+    routes: {score: q3_med, yesno: E32, count: E32}
   q3_med:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -629,7 +637,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_modmed, yesno: E32}
+    routes: {score: q3_modmed, yesno: E32, count: E32}
   q3_modmed:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -1396,7 +1404,8 @@ guided:
         - {when: {outcome: categories, x: score}, endpoint: E-unsure}
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
-        - {when: {outcome: count}, endpoint: E28}
+        - {when: {outcome: count, times: once}, endpoint: E28}
+        - {when: {outcome: count}, endpoint: E-unsure}
         - {when: {outcome: ordinal}, endpoint: E29}
         - when: {x: cond2, covariate: baseline}
           ask:
