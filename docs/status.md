@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -140,7 +140,7 @@ fully validated. Validation runs are recorded in
   that path by design, so the list says nothing was screened out and each
   card still states what its test assumes
   ([`decisions.md`](decisions.md), 26 October 2026).
-- **Variance tests (engine only, 25 October 2026):** the two tests
+- **Variance tests (25 October 2026):** the two tests
   G\*Power computes in its sections 26 and 15 — one group's variance
   against a fixed value (chi-square) and two groups' variances (F) — run
   through Spower's `p_var.test()`. They are simulated, because no package
@@ -151,8 +151,9 @@ fully validated. Validation runs are recorded in
   ([`upstream-questions.md`](upstream-questions.md), which also reports
   two more faults found in `p_var.test()`). Not wired into the app, and
   the published values in the validation file are still to be
-  transcribed; whether these two reach the app is part of the open scope
-  question G1 ([`judgement-calls.md`](judgement-calls.md)).
+  transcribed. Cards (E52, E53), input screens and a design-finder route
+  (a hypothesis about how much scores vary) are in review (26 October
+  2026).
 - **Fix (25 October 2026):** the nightly validation job runs again. It had
   failed on every run since it was set up on 12 October (13 runs), before
   a single test ran: testthat's JUnit reporter needs xml2, which

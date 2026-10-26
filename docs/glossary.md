@@ -48,6 +48,7 @@ only partly supported, and the details are listed there.
 | rate ratio | How many times higher the average count is in one group than in another; 1 means no difference. | E28 |
 | product terms | Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction. | E31 |
 | fixed effects | The effects you're testing (for example, of a condition), taken to be the same for everyone. | E33 |
+| variance | How spread out the scores are: the SD squared. | E52, E53 |
 | variance components | How much scores vary because some participants, and some stimuli, score higher or lower than others overall. | E33 |
 | intraclass correlation (ICC) | How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1. | E34 |
 | cluster size | How many people there are in each group (for example, pupils per class). | E34 |

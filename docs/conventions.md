@@ -744,12 +744,12 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the two published examples (values to transcribe) and the direct-call and
   Type I error checks; `test-backend-spower.R` checks the translation and
   that no exact method is offered.
-- **Shown to users:** not yet. These two templates are engine-only; the
-  entry goes into `app/routing/forms.yaml` (`known_differences`) when they
-  are wired into the app.
-- **Methods paragraph:** to do with the write-up: a sentence that power for
-  this test was estimated by simulation, so it carries Monte Carlo error,
-  whereas G\*Power computes it exactly.
+- **Shown to users:** on the result screens for one variance (E52) and two
+  variances (E53), under "Where other established tools give a different
+  answer" (26 October 2026; `app/routing/forms.yaml`, `known_differences`).
+- **Methods paragraph:** "Power was estimated by simulation, so it carries
+  Monte Carlo error, whereas G\*Power computes this test exactly."
+  (`known_differences_methods`, key "4").
 
 ## Not departures, but worth stating
 

@@ -1,3 +1,19 @@
+# powerkit 0.5.0
+
+Batch 1: the five designs the engine already computed become reachable in
+the app (docs/next.md).
+
+* App: the two variance tests get cards (E52, one variance against a fixed
+  value; E53, two independent groups) and calculate in the app, by
+  Spower's simulation. The design finder reaches them from a new answer to
+  "What do you want your study to show?" (scores more spread out or more
+  consistent; offered for a score measured once) and a new question, V1,
+  "Whose spread of scores are you comparing?". The input screens ask for
+  variances (the SD squared), with the direction question; the two-group
+  test has equal groups only. Known difference 4 (simulated, where
+  G*Power is exact) is on the result screen and in the methods paragraph.
+  Both templates leave `engine_only`.
+
 # powerkit 0.4.0
 
 powerkit has a version number from here on: 0.x.y while it is a prototype,

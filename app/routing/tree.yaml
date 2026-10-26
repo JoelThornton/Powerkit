@@ -378,6 +378,8 @@ nodes:
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
+         when: {outcome: score, times: once}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "That an effect is absent, or too small to matter", next: E36}
       - {label: "That a model fits: a questionnaire structure, or a model with latent variables (SEM)", next: E37}
 
@@ -499,6 +501,14 @@ nodes:
       - {label: "One group, outcome in several categories, compared with expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
+
+  # How much scores vary -----------------------------------------------------
+  v1:
+    doc_id: V1
+    text: "Whose spread of scores are you comparing?"
+    options:
+      - {label: "One group's, against a fixed value (for example, a published norm)", next: E52}
+      - {label: "Two groups', with different people in each", next: E53}
 
   # A relationship ----------------------------------------------------------
   q2_rel:
@@ -678,7 +688,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50, E52, E53]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18]
@@ -1321,6 +1331,35 @@ endpoints:
     inputs: ["The test statistic", "The noncentrality parameter and the degrees of freedom"]
     tier: v2
     alternatives: ["the card for your design, which starts from an effect size and a sample size"]
+  E52:
+    doc_name: "One variance against a fixed value"
+    plain_name: "Is one group's spread of scores different from a fixed value?"
+    template: "basic_test / one_variance"
+    backend: "Spower: p_var.test() (the chi-square test of one variance, by simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
+      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+    inputs: ["Your outcome's name", "The expected variance and the fixed value"]
+    tier: v2
+    alternatives: ["the one-sample t-test, if your hypothesis is about the average rather than the spread"]
+  E53:
+    doc_name: "Two variances (independent groups)"
+    plain_name: "Do two groups differ in how spread out their scores are?"
+    template: "basic_test / two_variances"
+    backend: "Spower: p_var.test() (the F test of two variances, by simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
+      - "Groups of equal size only, for now: the package behind it can't simulate unequal groups yet."
+      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+    inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
+    tier: v2
+    alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"
@@ -1527,6 +1566,7 @@ glossary:
   - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
   - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
   - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
+  - {term: "variance", pattern: "\\bvariances?\\b(?! components)", hint: "How spread out the scores are: the SD squared."}
   - {term: "variance components", pattern: "variance components", hint: "How much scores vary because some participants, and some stimuli, score higher or lower than others overall."}
   - {term: "intraclass correlation (ICC)", pattern: "intraclass correlation|\\bICC\\b", hint: "How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1."}
   - {term: "cluster size", pattern: "cluster size", hint: "How many people there are in each group (for example, pupils per class)."}
