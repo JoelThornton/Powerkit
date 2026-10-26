@@ -35,8 +35,9 @@ fully validated. Validation runs are recorded in
     can compute. Count outcomes now pass the screening questions first:
     only a count measured once per person reaches it.
   - **Planned comparisons (contrasts)** (E19; pwrss's t test of a weighted
-    combination of one factor's means, trend tests included): engine only.
-    Superpower's emmeans route agrees with it (a unit test).
+    combination of one factor's means, trend tests included): card and
+    input screen **in review** (26 October 2026). Superpower's emmeans
+    route agrees with it (a unit test).
   - **Two dependent correlations** (one group, with or without a shared
     variable; pwrss's Steiger test, unpooled as G\*Power, Departure 12):
     engine only.

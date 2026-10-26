@@ -13,7 +13,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), paste0("E", 10:14))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E19", "E45")) {
+  for (id in c("E20", "E45")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -224,7 +224,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "power_interval",
     "write_project", "read_project"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {

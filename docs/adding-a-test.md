@@ -272,7 +272,6 @@ has to go when they land.
 
 | Design | End point | What it needs |
 | --- | --- | --- |
-| Planned comparisons (contrasts) | E19 (as above) | card status, input screen |
 | Two dependent correlations | E49's card mentions them | its own card, input screen |
 | Variance tests (one group, two groups) | no card yet | cards, input screen, and a design-finder question ([`next.md`](next.md)) |
 

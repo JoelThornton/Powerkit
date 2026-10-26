@@ -26,6 +26,14 @@ the app (docs/next.md).
   per person reaches E28, a count measured twice or more reaches the
   safety net, and moderation or mediation with a count reaches E32.
 
+* App: planned contrasts (E19) calculate in the app. The design finder
+  already sent "a specific comparison" among three or more groups to E19,
+  whose card said powerkit couldn't do it. The input screen asks for the
+  groups, the outcome, the group means, the SD and the contrast weights
+  (one per group, adding up to 0), with an example of a comparison and a
+  linear trend. Equal groups and two-sided only, as pwrss's
+  `power.t.contrasts()` offers. `oneway_contrast` leaves `engine_only`.
+
 # powerkit 0.5.1
 
 * App: the start screen asks only how to start (I know my analysis, Help

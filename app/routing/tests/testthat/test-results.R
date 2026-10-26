@@ -44,8 +44,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E23-E28 and E48-E50 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50"))
+test_that("E1-E9, E18, E19, E23-E28 and E48-E50 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -645,7 +645,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49")) {
+  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -704,6 +704,21 @@ test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes",
   # With the z test, Known difference 2 doesn't apply.
   z <- build_spec(forms, "E5", fields, form_examples$E5)
   expect_length(known_difference_keys(forms, "E5", z), 0)
+})
+
+test_that("a planned contrast runs on pwrss, and refuses weights that don't add up to 0", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E19"))
+  spec <- build_spec(forms, "E19", fields, form_examples$E19)
+  expect_equal(unlist(spec$target_test$weights), c(-3, -1, 1, 3))
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
+  expect_gt(calc$result$n_required$n, 0)
+  html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  # Weights that don't add up to 0 are refused in plain English.
+  bad <- build_spec(forms, "E19", fields, modifyList(form_examples$E19, list(weights = "-1, 0, 0, 2")))
+  expect_error(run(bad), "must add up to 0", fixed = TRUE)
 })
 
 test_that("Poisson regression runs on pwrss, with the exposure and a yes/no predictor", {

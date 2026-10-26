@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Planned comparisons among three or more groups"
+    text: >-
+      If your hypothesis is about a specific comparison, such as both kinds
+      of feedback beating no feedback, or scores rising steadily with the
+      dose, powerkit can now work out the sample size or power for that
+      comparison itself, rather than for "any difference among the
+      groups". You give the group means and a weight for each group that
+      says which comparison you mean.
+  - date: "2026-10-26"
     title: "Poisson regression: predicting a count"
     text: >-
       powerkit can now work out the sample size or power when you predict a

@@ -86,7 +86,6 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
 engine_only:
-  oneway_contrast: "planned comparisons within a factor (E19's card); batch 1"
   overlapping_correlations: "two dependent correlations sharing a variable; batch 1"
   nonoverlapping_correlations: "two dependent correlations, no shared variable; batch 1"
   one_variance: "one group's variance against a fixed value; batch 1"
@@ -97,7 +96,7 @@ engine_only:
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E27, E28, E48, E49, E50]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E48, E49, E50]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -814,6 +813,35 @@ forms:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
              default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
+
+  # Planned contrast (pwrss's t test of one weighted combination of the
+  # group means, k.covariates = 0): equal groups, two-sided only, because
+  # power.t.contrasts() has no one-sided option (docs/conventions.md).
+  E19:
+    methods_name: "a planned contrast (a t test of a weighted combination of the group means)"
+    tool: pwrss
+    directional: false
+    base: {spec_version: "0.1", design: factorial_anova, template: oneway_contrast,
+           variables: {A: {type: between_factor}, "Y": {type: continuous}},
+           target_test: {effect: contrast, method: contrast_t}}
+    groups:
+      - input: "Names of the groups and the outcome"
+        fields:
+          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The expected group means"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
+      - input: "The SD"
+        fields:
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "The contrast weights"
+        fields:
+          - {id: weights, writeup_label: "contrast weights", label: "Weights: one for each group, in the same order, adding up to 0", type: numbers, per_levels: A_levels, path: target_test.weights, required: true,
+             help: "For example, with groups None, Neutral and Praise, -2, 1, 1 compares no feedback with both kinds of feedback; with four doses, -3, -1, 1, 3 tests a straight-line trend. Only the pattern matters, not the size of the numbers."}
 
   # Generic tests (G*Power's "Generic" tests): no sample size, because the
   # noncentrality already reflects it. Goals: the power for a noncentrality,

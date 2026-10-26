@@ -235,7 +235,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B29 | Ordinal regression | ML; UCLA | E29 | Planned (phase 6: GLMs include ordinal outcomes) | Could: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
 | B30 | Negative binomial and zero-inflated counts | ML | E28 | Unknown (check whether Spower `p_glm()` accepts a negative-binomial family; zero-inflated: no candidate found) | — | MKpower `power.nb.test()` (negative binomial; not a foundation tool) | Check | — |
 | B31 | Partial correlation | ML | none: reaches E4 or E24 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` (one coefficient with covariates); pwr `pwr.f2.test(u = 1)`. That this is the same test as a partial correlation is inferred | — | [D7][] |
-| B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Planned (more tests by formula: engine built, not wired; checked against G\*Power's manual, values to transcribe) | Engine: PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders), then a card for E19 | [B7][] |
+| B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders) | [B7][] |
 
 ### Experimental structure
 
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 15 | 0 | 0 | 15 |
+| Wired (validation not finished) | 15 | 1 | 0 | 16 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 5 | 26 | 2 | 33 |
+| Planned | 5 | 25 | 2 | 32 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
