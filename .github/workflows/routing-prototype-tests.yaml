@@ -19,6 +19,11 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
+      # The tests that run a calculation (the app's result equals the
+      # engine's, the downloaded script reproduces it) call skip_on_cran().
+      # setup-r sets NOT_CRAN already; it is set here too so the tests keep
+      # running if the job stops using setup-r.
+      NOT_CRAN: "true"
     steps:
       - uses: actions/checkout@v4
 

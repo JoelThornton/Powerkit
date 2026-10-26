@@ -2777,6 +2777,12 @@ and would have caught the stale "not wired" statuses a week earlier. It
 lengthens the job, so it is the maintainer's call rather than something to
 slip into a test PR.
 
+**Correction (26 October 2026):** the six tests were already running in
+CI. `r-lib/actions/setup-r` sets `NOT_CRAN=true` for every later step
+unless it is already set, and the app job's test summary reports no
+skipped tests (`SKIP 0`). Both test workflows now set `NOT_CRAN`
+themselves, so the tests keep running if a job stops using setup-r.
+
 ## 2026-10-26 · Every design is reachable from the design finder
 
 **What.** The rule written into

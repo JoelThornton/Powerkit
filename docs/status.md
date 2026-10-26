@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -115,6 +115,12 @@ fully validated. Validation runs are recorded in
   full-validation workflow, every test conventions.md names existing, and
   coverage-roadmap.md's summary counts matching its rows
   (`app/routing/tests/testthat/test-repo-consistency.R`).
+- **The app's calculation tests run in CI (26 October 2026, in review):**
+  the six app tests that check a result against the engine and the
+  downloaded script against the result were thought to skip in CI. They
+  don't: setup-r sets `NOT_CRAN`. Both test workflows now set it
+  themselves, so the tests can't be lost if the jobs change how R is
+  installed.
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the

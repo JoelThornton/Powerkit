@@ -22,6 +22,9 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Runs the engine tests that call skip_on_cran(). setup-r sets it
+      # already; it is set here so they don't depend on that.
+      NOT_CRAN: "true"
     steps:
       - uses: actions/checkout@v4
 
