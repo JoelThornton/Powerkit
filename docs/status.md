@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -30,8 +30,8 @@ fully validated. Validation runs are recorded in
   version) and one-way ANCOVA (E23) are in the app; chi-square goodness of
   fit (E48, its own card) and two independent correlations (E49) are in
   the app. None is checked against G\*Power yet. Two dependent
-  correlations (one group, with or without a shared variable) are in the
-  engine only, in review (25 October 2026): pwrss's Steiger test,
+  correlations (one group, with or without a shared variable) have their
+  own card (E51) and input screen, in review (26 October 2026): pwrss's Steiger test,
   unpooled as G\*Power (Departure 12, decided 25 October 2026),
   with validation placeholders for the G\*Power manual's examples 28.3.1
   and 28.3.2.

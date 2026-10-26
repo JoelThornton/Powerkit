@@ -523,6 +523,7 @@ nodes:
     options:
       - {label: "A score or scale", next: E4}
       - {label: "A score, and the question is whether the relationship differs between two separate groups", next: E49}
+      - {label: "Scores, and the question is whether one correlation is stronger than another in the same people", next: E51}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
       - {label: "Several predictors at once, or controlling for other variables", next: E24}
 
@@ -678,7 +679,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50, E51]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18]
@@ -1302,7 +1303,7 @@ endpoints:
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
     card_points:
       - "Both groups measure the same two variables; the test compares the correlation between them in one group with that in the other."
-      - "For two correlations in the same people (for example, X with Y and X with Z), powerkit doesn't calculate it yet."
+      - "For two correlations in the same people (for example, X with Y and X with Z), use the card for two dependent correlations."
     inputs: ["Names of the two groups and the two variables", "The expected correlation in each group", "The size of group 2 relative to group 1"]
     tier: v2
     alternatives: ["a moderated regression with the group as moderator"]
@@ -1321,6 +1322,20 @@ endpoints:
     inputs: ["The test statistic", "The noncentrality parameter and the degrees of freedom"]
     tier: v2
     alternatives: ["the card for your design, which starts from an effect size and a sample size"]
+  E51:
+    doc_name: "Two dependent correlations"
+    plain_name: "Compare two correlations in the same people"
+    template: "basic_test / overlapping_correlations, nonoverlapping_correlations"
+    backend: "pwrss: power.z.twocors.steiger() (Steiger's z test, unpooled as in G*Power, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and reproduces the sample sizes of the G*Power manual's two examples (test-backend-formula-tests.R). Not yet in the validation run, where the published values are still to be transcribed."}
+    card_points:
+      - "Compares two correlations measured in the same people: either sharing a variable (is X more strongly related to Y or to Z?) or with no variable in common (is the link between stress and sleep stronger at 16 than at 14?)."
+      - "Because the same people give both correlations, you also give the correlations between the other pairs of variables: they decide how much the two compared correlations move together."
+    inputs: ["Which two correlations, and the variables' names", "The two correlations you are comparing", "The correlations between the other pairs of variables"]
+    tier: v2
+    alternatives: ["two independent correlations, if each correlation comes from a different group of people"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"

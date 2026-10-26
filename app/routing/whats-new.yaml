@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Comparing two correlations in the same people"
+    text: >-
+      powerkit can now work out the sample size or power for comparing two
+      correlations measured in the same people: for example, whether
+      wellbeing is more strongly related to self-control than to grit, or
+      whether the link between stress and sleep is stronger at 16 than at
+      14. Find it under "A relationship between two things you measure".
+  - date: "2026-10-26"
     title: "powerkit has a version number"
     text: >-
       The About page now says which version of powerkit you are using, and

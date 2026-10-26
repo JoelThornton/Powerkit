@@ -1,3 +1,19 @@
+# powerkit 0.5.0
+
+Batch 1: the five designs the engine already computed become reachable in
+the app (docs/next.md).
+
+* App: two dependent correlations get their own card (E51) and calculate
+  in the app. The design finder reaches it from the relationship path
+  ("one correlation stronger than another in the same people"), next to
+  two independent correlations (E49), whose card now points to it. The
+  input screen asks which kind (sharing a variable, or none in common),
+  the variables' names, the two compared correlations and the
+  correlations among the other pairs, with the direction question. The
+  result screen and methods paragraph state Departure 12 (G*Power's
+  unpooled Steiger test, not pwrss's pooled default). Both templates
+  leave `engine_only`.
+
 # powerkit 0.4.0
 
 powerkit has a version number from here on: 0.x.y while it is a prototype,

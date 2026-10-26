@@ -598,8 +598,9 @@ kept so later departures keep theirs.
 - **Test:** `test-backend-formula-tests.R`, "departure: dependent
   correlations use G\*Power's unpooled test, not pwrss's pooled default
   (Departure 12)".
-- **Shown to users / in the methods paragraph:** to do, when the test is
-  wired into the app (a card and the result screen's departures).
+- **Shown to users:** on the result screen for two dependent correlations
+  (E51) and in its methods paragraph (26 October 2026;
+  `app/routing/forms.yaml`, `departures`, key "12").
 
 ## Known differences
 

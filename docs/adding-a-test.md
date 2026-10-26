@@ -273,7 +273,6 @@ has to go when they land.
 | Logistic regression, one predictor | E27 (card exists, finder routes to it) | card status, input screen |
 | Poisson regression, one predictor | E28 (as above) | card status, input screen |
 | Planned comparisons (contrasts) | E19 (as above) | card status, input screen |
-| Two dependent correlations | E49's card mentions them | its own card, input screen |
 | Variance tests (one group, two groups) | no card yet | cards listed in "I know my analysis" only, input screen |
 
 **Then, with the maintainer:** pick from the roadmap
