@@ -1,6 +1,13 @@
 # Conventions: what the established tools do, and what powerkit does
 
 powerkit follows the established tools' conventions by default (CLAUDE.md).
+That is a rule against diverging *silently*, not a claim that the usual tools
+are right: G\*Power is criticised in the methods literature, and the packages
+powerkit calls have their own faults
+([`upstream-questions.md`](upstream-questions.md)). Where a better method
+exists, powerkit uses it and the difference is recorded below, shown on the
+result screen and stated in the methods paragraph — which is how powerkit can
+be both more defensible than the familiar tool and honest about it.
 This file records, design by design, what each tool does by default (the test,
 how the effect size is defined, and settings that change the answer) and what
 powerkit does. **Every departure from an established tool is listed in

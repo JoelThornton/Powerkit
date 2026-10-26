@@ -505,6 +505,47 @@ mixedpower isn't on CRAN (0.1.0 read from GitHub, DejanDraschkow/mixedpower,
 commit 69680b3). They are added to rows B34, B36 and B41 as candidates;
 their missing-data options are under C3.
 
+**Tests named by an outside review that these rows don't cover (26 October
+2026).** From a catalogue of psychology power analyses the maintainer
+commissioned from a language model. Its frequency claims and effect-size
+benchmarks are unsourced and are not used here; these are only the test
+names worth checking, each **unverified** — no package, method or claim
+below has been read against its documentation yet, so none is a batch
+until it goes through
+[`adding-a-test.md`](adding-a-test.md) section 2.
+
+- **Pitman–Morgan test**: variances compared in a paired design. The
+  natural sibling of A43 and A44, which powerkit now computes.
+- **Barnard's unconditional exact test** for a 2x2 table: an alternative
+  to Fisher's exact test (E5's test version), said to be more powerful.
+- **Cochran–Armitage trend test**: a linear trend in proportions across
+  ordered groups (dose, age band).
+- **Jonckheere–Terpstra trend test**: the rank-based equivalent for
+  ordered alternatives across k groups.
+- **Spearman's rho and Kendall's tau**: power for rank correlations, where
+  the roadmap has only Pearson's r and the rank *location* tests.
+- **Cronbach's alpha against a benchmark** (Bonett and Wright's formula):
+  scale-development studies planning for a minimum internal consistency.
+  B50 covers ICC and kappa but not alpha.
+- **Multinomial logistic regression**, and **generalised estimating
+  equations (GEE)** as an alternative to the mixed-model rows.
+- **Stepped-wedge cluster trials** (Hussey and Hughes): clusters crossing
+  over in stages, alongside B39's parallel cluster trial.
+- **Competing risks (Fine–Gray)** beside the survival rows.
+- **Comparing two ROC curves** (DeLong's test), where the ROC row covers
+  one curve against a benchmark.
+- **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F.
+- **Average power under FDR control** (Jung; Liu and Hwang): the sample
+  size at which a stated share of truly active channels or voxels is
+  detected at q = .05. Different in kind from the per-test corrections in
+  C7, and the honest way to plan a mass-univariate EEG or fMRI study.
+
+Three product ideas from the same review, recorded in
+[`decisions.md`](decisions.md) (26 October 2026) rather than here: a
+safeguard-power adjuster for effect sizes taken from a pilot, a power
+curve showing an optimistic and a conservative effect either side of the
+expected one, and a downloadable synthetic data set for pre-registration.
+
 **Flagged while writing this page:**
 
 - Spower 0.7's `p_var.test()` (A43, A44): `two.tailed = FALSE` means

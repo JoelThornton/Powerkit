@@ -71,11 +71,26 @@ about_endpoint_lines <- function(tree, forms) {
   )
 }
 
+# powerkit's version, from the engine package, so the About page, the
+# exported scripts and every result's provenance all quote the same number
+# (docs/adding-a-test.md, "Version numbers").
+powerkit_version <- function() {
+  version <- tryCatch(as.character(utils::packageVersion("powerkit")), error = function(e) NULL)
+  if (is.null(version)) NULL else version
+}
+
 about_ui <- function(tree, forms) {
   n_endpoints <- length(tree$endpoints)
+  version <- powerkit_version()
   div(
     class = "about",
     h2("About this prototype"),
+    if (!is.null(version)) {
+      p(class = "text-muted",
+        sprintf("powerkit %s. ", version),
+        "Every result and every R script you download says this version, so a number you quote can be traced back to it. ",
+        "Version 1.0 will be the first release.")
+    },
     div(class = "alert alert-warning",
       tags$strong("This is a prototype. "),
       "Its results are not yet fully validated, and screens, wording and defaults will change. ",

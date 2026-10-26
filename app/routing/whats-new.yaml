@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-26"
+    title: "powerkit has a version number"
+    text: >-
+      The About page now says which version of powerkit you are using, and
+      so does every result and every R script you download, so a sample
+      size you quote in a paper can be traced back to the version that
+      worked it out. This is 0.4; version 1.0 will be the first proper
+      release, once the numbers are fully checked.
   - date: "2026-10-22"
     title: "The browser's Back button works"
     text: >-
