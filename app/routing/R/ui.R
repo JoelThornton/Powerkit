@@ -117,7 +117,7 @@ progress_ui <- function(current) {
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
   "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
-  "plan_id", "checked_project")
+  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project")
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.
@@ -534,7 +534,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
 
 guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
                            history = list(), route_label = "Plan my whole study", raw_answers = answers,
-                           forms = NULL) {
+                           forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
   cards <- lapply(ticked, function(id) {
@@ -547,7 +547,9 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
         # The analysis's input screen, opened from the plan: the same one
         # the other routes reach from the card.
         if (!is.null(forms) && has_form(forms, res$endpoint)) div(class = "plan-actions",
-          pick_button("Enter your values", paste0("gform:", id), class = "btn btn-primary")),
+          plan_result_line(plan_result(results, id, res$endpoint)),
+          pick_button(if (is.null(plan_result(results, id, res$endpoint))) "Enter your values" else "Change your values",
+            paste0("gform:", id), class = "btn btn-primary")),
         mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
           extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label))))
       )
@@ -559,7 +561,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     }
     div(class = "plan-item", head, body)
   })
-  shared <- shared_relationships(tree, ticked)
+  shared_rel <- shared_relationships(tree, ticked)
   labels <- vapply(g$analyses, function(a) a$label, character(1))
   names(labels) <- vapply(g$analyses, function(a) a$id, character(1))
   tagList(
@@ -567,16 +569,112 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
     h3(class = "h4 mt-4", "Combined sample size"),
     if (length(intersect(ticked, primary)) >= 2) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
-    coming_soon_ui(g$placeholders$combined_n),
+    combined_n_ui(tree, ticked, primary, asks, answers, forms, results),
     h3(class = "h4 mt-4", "Consistency between analyses"),
-    if (length(shared) == 0) p("No shared relationships among the ticked analyses.") else tags$ul(lapply(shared, function(s) {
-      tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
-    })),
+    shared_values_ui(tree, ticked, answers, asks, shared),
+    if (length(shared_rel)) tagList(
+      p("These relationships appear in more than one analysis but are asked for in different ways, so check by eye that your numbers describe the same study:"),
+      tags$ul(lapply(shared_rel, function(s) {
+        tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
+      }))),
     coming_soon_ui(g$placeholders$consistency),
     placeholders_at(tree, "plan"),
     div(class = "nav-buttons",
       pick_button("Back to the analyses", "guided:analyses", class = "btn btn-secondary"),
       pick_button("Start again", "home", class = "btn btn-link"))
+  )
+}
+
+# The last calculation made for an analysis from the plan, if it is for
+# the end point the analysis leads to now (a changed follow-up answer can
+# send it elsewhere).
+plan_result <- function(results, id, endpoint) {
+  r <- results[[id]]
+  if (is.null(r) || !identical(r$endpoint, endpoint)) return(NULL)
+  r
+}
+
+plan_result_line <- function(r) {
+  if (is.null(r)) return(NULL)
+  p(class = "plan-result", if (identical(r$goal, "sample_size")) {
+    HTML(sprintf("Your calculation: <strong>N = %s</strong>.", whole(r$n)))
+  } else {
+    "You calculated something other than the sample size. To count this analysis in the combined sample size, calculate the sample size."
+  })
+}
+
+# Values entered once (open question 12, decided 26 October 2026): each
+# shared value that two or more ticked analyses ask for, with its value and
+# the analysis it was entered in.
+shared_values_ui <- function(tree, ticked, answers, asks, shared) {
+  eps <- vapply(ticked, function(id) resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])$endpoint %||% "", "")
+  rows <- list()
+  for (v in tree$guided$shared_values) {
+    users <- ticked[eps %in% names(v$fields)]
+    if (length(users) < 2) next
+    s <- shared[[v$id]]
+    rows[[length(rows) + 1]] <- tags$li(tags$strong(v$label), ": ",
+      if (is.null(s)) "not entered yet" else sprintf("%s (entered for %s)", s$value, analysis_by_id(tree, s$from)$label),
+      tags$span(class = "text-muted", sprintf(" Used by: %s.", paste(vapply(users, function(id) analysis_by_id(tree, id)$label, ""), collapse = "; "))))
+  }
+  if (length(rows) == 0) return(NULL)
+  tagList(
+    p("Enter these once: a value you type on one analysis's input screen fills in the others when you open them, so they describe the same study. You can still change it on any of them, and the latest value is used from then on."),
+    tags$ul(class = "shared-values", rows)
+  )
+}
+
+# The note on an input screen opened from the plan, naming the values
+# filled in from other analyses.
+carried_note_ui <- function(tree, filled) {
+  if (length(filled) == 0) return(NULL)
+  items <- lapply(names(filled), function(sid) {
+    v <- Filter(function(x) identical(x$id, sid), tree$guided$shared_values)[[1]]
+    tags$li(v$label, tags$span(class = "text-muted", sprintf(" (from %s)", analysis_by_id(tree, filled[[sid]])$label)))
+  })
+  div(class = "alert alert-info carried-note", role = "note",
+    p(tags$strong("Filled in from your plan. "), "These values were entered for another analysis on your plan, so both describe the same study. Change them here if they should differ; the plan then uses the new value."),
+    tags$ul(items))
+}
+
+# The combined sample size for the main analyses: the largest N any of them
+# needs, with that analysis named (docs/decisions.md, 22 October 2026). It
+# uses only the calculations the user has run from the plan, and says
+# which main analyses are still missing.
+combined_n_ui <- function(tree, ticked, primary, asks, answers, forms, results) {
+  mains <- intersect(ticked, primary)
+  if (length(mains) == 0) return(p("Mark at least one analysis as a main analysis: the sample size is worked out for the main analyses."))
+  label <- function(id) analysis_by_id(tree, id)$label
+  n <- list(); to_do <- character(); elsewhere <- character()
+  for (id in mains) {
+    res <- resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])
+    r <- if (!is.null(res$endpoint)) plan_result(results, id, res$endpoint)
+    if (!is.null(r) && identical(r$goal, "sample_size")) {
+      n[[id]] <- r$n
+    } else if (!is.null(res$endpoint) && !is.null(forms) && has_form(forms, res$endpoint)) {
+      to_do <- c(to_do, id)
+    } else {
+      elsewhere <- c(elsewhere, id)
+    }
+  }
+  largest <- if (length(n)) names(n)[which.max(unlist(n))]
+  complete <- length(to_do) == 0 && length(elsewhere) == 0
+  # One string per paragraph, so no stray spaces appear around the bold N.
+  esc <- function(x) htmltools::htmlEscape(x)
+  names_of <- function(ids) esc(paste(vapply(ids, label, ""), collapse = "; "))
+  big_n <- if (!is.null(largest)) sprintf("<strong>N = %s</strong>", whole(n[[largest]]))
+  div(class = "combined-n",
+    if (!is.null(largest) && complete) p(class = "lead", HTML(sprintf(
+      "Your study needs %s: the most any of your main analyses needs (%s). With that many, every main analysis reaches the power you asked for.",
+      big_n, esc(label(largest)))))
+    else if (!is.null(largest)) p(HTML(sprintf(
+      "Largest so far: %s (%s). This is not the study's sample size until every main analysis is counted.", big_n, esc(label(largest)))))
+    else p("Calculate the sample size for each main analysis (\u201cEnter your values\u201d above). The plan then shows the largest, which is the sample size the study needs."),
+    if (length(to_do)) p(HTML(sprintf("Still to calculate: %s.", names_of(to_do)))),
+    if (length(elsewhere)) p(HTML(sprintf(
+      "powerkit can't calculate these yet, so work out their sample size elsewhere and use the largest number overall: %s.", names_of(elsewhere)))),
+    if (length(mains) >= 2) p(class = "text-muted",
+      "Each main analysis's input screen already takes your claim into account, so these numbers can be compared directly.")
   )
 }
 

@@ -286,6 +286,42 @@ shared_relationships <- function(tree, ticked) {
   out
 }
 
+#' The shared values (`guided$shared_values`) an end point's input screen
+#' asks for, as a named vector: shared value id = field id.
+shared_fields_for <- function(tree, ep_id) {
+  out <- character()
+  for (v in tree$guided$shared_values) if (!is.null(v$fields[[ep_id]])) out[[v$id]] <- v$fields[[ep_id]]
+  out
+}
+
+#' The values an input screen opened from the plan starts with: what the
+#' user last entered for this analysis, with every shared value replaced by
+#' its latest value from any analysis (`shared`: id = list(value, from)).
+#' Returns the values and the shared ones it filled in.
+plan_form_values <- function(tree, ep_id, own = list(), shared = list()) {
+  values <- own %||% list()
+  filled <- character()
+  for (sid in names(shared_fields_for(tree, ep_id))) {
+    s <- shared[[sid]]
+    if (is.null(s) || !nzchar(s$value %||% "")) next
+    field <- shared_fields_for(tree, ep_id)[[sid]]
+    values[[field]] <- s$value
+    filled[[sid]] <- s$from
+  }
+  list(values = values, filled = filled)
+}
+
+#' The shared values a calculation's input screen gives the plan: each
+#' non-empty one, with the analysis it came from.
+harvest_shared <- function(tree, ep_id, values, from, shared = list()) {
+  fields <- shared_fields_for(tree, ep_id)
+  for (sid in names(fields)) {
+    v <- values[[fields[[sid]]]]
+    if (!is.null(v) && length(v) == 1 && nzchar(as.character(v))) shared[[sid]] <- list(value = as.character(v), from = from)
+  }
+  shared
+}
+
 analysis_by_id <- function(tree, id) {
   Filter(function(a) identical(a$id, id), tree$guided$analyses)[[1]]
 }

@@ -1,3 +1,27 @@
+# powerkit 0.5.0
+
+* App: "Plan my whole study" works out the combined sample size. Each
+  sample size calculated from the plan is kept, shown under its analysis,
+  and the plan reports the largest N among the main analyses, naming the
+  analysis that sets it (the rule recorded on 22 October 2026). Until
+  every main analysis has one, the plan shows the largest so far and
+  lists the main analyses still to calculate, and those powerkit can't
+  calculate yet. Extra analyses don't count. A calculation for an end
+  point the analysis no longer leads to (after a changed follow-up
+  answer) is ignored.
+* App: "Plan my whole study" asks for shared values once (open question
+  12, decided 26 October 2026). An input that two analyses on the plan
+  both ask for, under the same name (the correlation of X with the
+  outcome or with the moderator, and the X -> M, M -> Y and direct
+  X -> Y paths of mediation and moderated mediation), is filled in on
+  the second analysis's input screen from the first, with a note naming
+  where it came from; it stays editable, and the latest value is used
+  from then on. The plan lists these values and which analyses use
+  them. Inputs asked for in different ways (Cohen's d against cell
+  means, a total effect against a direct path) are not converted; the
+  plan still lists them for checking by eye. Each analysis also keeps
+  the values last entered for it, so "Change your values" reopens them.
+
 # powerkit 0.4.1
 
 * App: in "Plan my whole study", each analysis on the plan that powerkit

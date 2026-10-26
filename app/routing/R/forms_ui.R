@@ -83,7 +83,7 @@ group_ui <- function(tree, g, values, index) {
 
 # The whole screen. `values` keeps what the user typed when the screen is
 # redrawn (e.g. after changing the number of mediators).
-form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE) {
+form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE, carried = NULL) {
   ep <- tree$endpoints[[ep_id]]
   tagList(
     trail_ui(history),
@@ -92,6 +92,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     p(class = "lead", "Fill in the values for your study, then choose \u201cCheck my answers\u201d."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
+    carried,
     p("Everything is needed unless it says optional. Effect sizes, SDs and correlations start empty: enter the values you expect, and say where they come from."),
     placeholders_at(tree, "form"),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),

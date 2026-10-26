@@ -101,11 +101,12 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
-- **Whole-study plan, still to build (26 October 2026):** the combined
-  sample size and the consistency check, labelled "Coming soon" on the
-  plan, are now in the queue ([`next.md`](next.md), items 9 to 11).
-  Open question 12 is decided: shared values are entered once on the
-  plan now, and whole-study simulation follows later as a checked option.
+- **Whole-study plan (in review, 26 October 2026, 0.5.0):** the plan
+  gives the combined sample size (the largest N among the main
+  analyses, named, from the calculations made from the plan) and asks
+  for shared values once: an input two analyses both ask for fills the
+  second's input screen. Whole-study simulation is queued
+  ([`next.md`](next.md), item 9) and needs a statistician's check.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
   with no ready-made tool now name one (powerMediation for B14,
   semPower for B17, DescTools for B27's test). All three are marked

@@ -1477,8 +1477,7 @@ guided:
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
   placeholders:
-    combined_n: "The combined sample size for your main analyses: the largest N any of them needs, with that analysis named. For now, work out each analysis's N from its card and use the largest."
-    consistency: "A check that the values you give for a shared relationship match across your analyses."
+    consistency: "A check across inputs asked for in different ways (for example, Cohen's d in one analysis and cell means in another, or a total effect against a direct path) needs a sourced conversion, so it comes with whole-study simulation, later."
   # Relationships that several analyses share, for the consistency check
   # (decision-tree.md 4.2). The plan lists the ticked analyses that share each.
   shared_relationships:
@@ -1489,6 +1488,29 @@ guided:
     - id: x_m
       label: "the effect of X on the mediator"
       in: [mediation, modmed]
+  # Values entered once on the plan (open question 12, decided 26 October
+  # 2026: docs/decisions.md). Each is the same input, under the same name,
+  # on the input screens listed (end point: field id). A value typed on one
+  # analysis's input screen fills the others' when they are opened from the
+  # plan; it stays editable there. Only identical inputs are listed: an
+  # effect that one form asks for in another way (Cohen's d against cell
+  # means, a total effect against a direct path) is not converted.
+  shared_values:
+    - id: r_x_y
+      label: "Correlation of X with the outcome"
+      fields: {E4: r, E9: r_X_Y}
+    - id: r_x_w
+      label: "Correlation of X with the moderator"
+      fields: {E9: r_X_W, E13: c_X_W, E14: c_X_W}
+    - id: p_x_m
+      label: "Path X -> M"
+      fields: {E10: p_X_M, E13: p_X_M, E14: p_X_M}
+    - id: p_m_y
+      label: "Path M -> Y"
+      fields: {E10: p_M_Y, E13: p_M_Y, E14: p_M_Y}
+    - id: p_x_y
+      label: "Path X -> Y (direct)"
+      fields: {E10: p_X_Y, E13: p_X_Y, E14: p_X_Y}
 
 # ---------------------------------------------------------------------------
 # Glossary: a one-line plain-English hint for each technical term in the
