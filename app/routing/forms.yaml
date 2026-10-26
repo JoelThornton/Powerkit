@@ -79,10 +79,6 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
   choices: {exact: "Formula (pwr; base R or pwrss for two proportions): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
   default: exact, default_source: "powerkit's default for basic tests (docs/decisions.md, 17 October 2026)"}
 
-# End points whose calculation runs on the input screen (phase 5). E1-E8
-# run in seconds on one core (measured 17 October 2026 with the example
-# values and 1,000 replications: 1 to 19 seconds, the longest a
-# correlation's sample size). E9 runs in the background with a progress bar
 # Designs the engine can compute that the app can't reach yet: a missing
 # card and input screen, not a missing calculation. The queue to clear them
 # is in docs/adding-a-test.md. test-repo-consistency.R refuses an engine
@@ -90,7 +86,6 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
 engine_only:
-  single_predictor: "logistic regression, one predictor (E27's card); batch 1"
   single_predictor_count: "Poisson regression, one predictor (E28's card); batch 1"
   oneway_contrast: "planned comparisons within a factor (E19's card); batch 1"
   overlapping_correlations: "two dependent correlations sharing a variable; batch 1"
@@ -98,8 +93,12 @@ engine_only:
   one_variance: "one group's variance against a fixed value; batch 1"
   two_variances: "two groups' variances compared; batch 1"
 
+# End points whose calculation runs on the input screen (phase 5). E1-E8
+# run in seconds on one core (measured 17 October 2026 with the example
+# values and 1,000 replications: 1 to 19 seconds, the longest a
+# correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E49, E50]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E27, E48, E49, E50]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -175,6 +174,7 @@ known_differences:
   "1": "Regression interactions: powerkit simulates power, drawing the predictors afresh in each sample (InteractionPoweR's power_interaction()). Fixed-model calculations, such as G*Power's and InteractionPoweR's power_interaction_r2(), give slightly higher power: up to about 1.4 points, so the N here may be about 3% larger than G*Power's."
   "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, power_interaction_r2(), as G*Power's would, not from simulation. Fixed-model power is slightly higher than simulated power (up to about 1.4 points), so the smallest effect you could detect may be slightly larger than shown. Sample size and power for this design are simulated."
   "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
+  "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -182,6 +182,7 @@ known_differences_methods:
   "1": "Power was estimated by simulation, with the predictors drawn afresh in each simulated sample; fixed-model calculations such as G*Power's, which treat the predictors as fixed, give slightly higher power for interactions, so this sample size may be a few participants larger than G*Power's."
   "1 sensitivity": "The smallest detectable effect was found with a fixed-model formula, which treats the predictors as fixed; for interactions this gives slightly higher power than simulation with the predictors drawn afresh in each sample, so the smallest detectable effect may be slightly larger than reported."
   "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power, as in G*Power; pwrss's own sample-size answer can be slightly larger."
+  "3": "The predictor's overlap with the other predictors was allowed for through its R-squared with them; for this case the G*Power manual's example reports a sample size a few per cent larger than this method gives, a difference that has not yet been resolved."
 
 forms:
   E1:
@@ -735,6 +736,45 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
+
+  # Logistic regression, one predictor (pwrss's Wald z test): a score X is
+  # taken as standardised, so its odds ratio is per SD; a yes/no X compares
+  # its second group with the first. Other predictors enter only through
+  # X's R-squared with them (docs/conventions.md, Known difference 3).
+  E27:
+    methods_name: "a logistic regression (the Wald z test of one predictor)"
+    tool: pwrss
+    directional: true
+    known_differences: ["3"]
+    known_differences_if_above_zero: {"3": r2_other_predictors}
+    base: {spec_version: "0.1", design: logistic_regression, template: single_predictor,
+           variables: {X: {}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: odds_ratio},
+           target_test: {effect: odds_ratio, method: wald_z}}
+    groups:
+      - input: "Your outcome, your predictor and what kind of predictor it is"
+        fields:
+          - {id: Y_label, label: "Yes/no outcome (for example, sought help)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
+          - {id: X_type, label: "What kind of predictor", type: select, path: variables.X.type, required: true,
+             choices: {continuous: "A score (for example, a questionnaire total)", binary: "A yes/no group (for example, treatment or control)"}}
+          - {id: X_level1, label: "First group (the comparison group)", type: text, path: variables.X.levels.1, required: true,
+             shown_if: {field: X_type, is: binary}}
+          - {id: X_level2, label: "Second group", type: text, path: variables.X.levels.2, required: true,
+             shown_if: {field: X_type, is: binary}}
+      - input: "The odds ratio and the proportion of 'yes' at the starting point"
+        fields:
+          - {id: odds_ratio, writeup_label: "odds ratio", label: "Odds ratio", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
+             help: "For a score: how many times the odds of 'yes' change for each standard deviation higher on the predictor. For a group: the odds of 'yes' in the second group divided by the odds in the first. 1 means no effect."}
+          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group."}
+          - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
+             shown_if: {field: X_type, is: binary}}
+      - input: "How much the other predictors overlap with this one"
+        fields:
+          - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
+             default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
+             help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
 
   # Generic tests (G*Power's "Generic" tests): no sample size, because the
   # noncentrality already reflects it. Goals: the power for a noncentrality,

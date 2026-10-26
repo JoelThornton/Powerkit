@@ -1,3 +1,19 @@
+# powerkit 0.6.0
+
+Batch 1: the five designs the engine already computed become reachable in
+the app (docs/next.md).
+
+* App: logistic regression with one predictor (E27) calculates in the app.
+  Its card now says what powerkit does instead of "not in powerkit"; the
+  input screen asks for the outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the odds ratio, the proportion of "yes" at the starting point, and the
+  predictor's R-squared with any other predictors. The direction question
+  is asked, as for the other tests with a direction. When that R-squared is
+  above 0, the result screen and the methods paragraph state Known
+  difference 3 (forms.yaml, `known_differences_if_above_zero`, a new key).
+  `single_predictor` leaves `engine_only`.
+
 # powerkit 0.5.1
 
 * App: the start screen asks only how to start (I know my analysis, Help

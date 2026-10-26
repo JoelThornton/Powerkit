@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Logistic regression: predicting a yes/no outcome"
+    text: >-
+      powerkit can now work out the sample size or power for a logistic
+      regression, where one predictor (a score, or a yes/no group) predicts
+      a yes/no outcome such as whether someone seeks help. You enter the
+      odds ratio and how common "yes" is to start with; if your model has
+      other predictors, you say how much they overlap with this one. Until
+      today this card said powerkit couldn't do it.
+  - date: "2026-10-26"
     title: "A simpler first screen"
     text: >-
       The first screen now asks just one thing: how you want to start. The
