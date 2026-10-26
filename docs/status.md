@@ -121,7 +121,7 @@ fully validated. Validation runs are recorded in
   summary counts are recounted from the rows, and a test now holds the
   page to forms.yaml's record of what calculates. No code changed: there
   was nothing to wire.
-- **How tests get added (26 October 2026, in review):**
+- **How tests get added (26 October 2026):**
   [`adding-a-test.md`](adding-a-test.md) is now the one page for it: what
   "added" means (engine, validation placeholders, card, input screen,
   "What's new" entry, version bump, status, all in one PR), how a backend
@@ -132,7 +132,7 @@ fully validated. Validation runs are recorded in
   can't reach** (logistic and Poisson regression, planned contrasts, two
   dependent correlations, the two variance tests); three of them have
   cards that tell users powerkit can't do what it can.
-- **Straight to the list (26 October 2026, in review):** "I know my
+- **Straight to the list (26 October 2026):** "I know my
   analysis" can skip the four screening questions and show every end point,
   as G\*Power's menu does; the questions are offered on the list as a
   filter instead. The other two routes still screen first, because they

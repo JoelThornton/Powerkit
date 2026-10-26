@@ -70,7 +70,6 @@ reference has to go through `refs.bib` before it is quoted anywhere.
 
 ## Waiting on the maintainer, not a PR
 
-- **Approving the two open PRs:** the screening skip and this process work.
 - **Published values** (`TODO_PUBLISHED_VALUE`) for every validation file,
   and the full validation run on your own machine.
 - **Six roadmap rows that need G\*Power itself** (A22, A38, A42, A46, A48,
