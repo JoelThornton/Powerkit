@@ -80,6 +80,11 @@ fully validated. Validation runs are recorded in
   does and doesn't do, where the numbers come from and how far along it
   is; a "What's new" tab lists dated changes in plain words, from
   `app/routing/whats-new.yaml` (both in review).
+- **In review (26 October 2026, 0.4.1):** each analysis on the guided
+  plan ("Plan my whole study") opens its input screen, carrying the
+  plan's claim and number of main analyses; before, the plan showed
+  cards with no way to calculate. The combined N and consistency check
+  are still "Coming soon".
 - **Merged 22 October 2026:** a Feedback tab whose Send button stores
   the message in the `powerkit_feedback` table of the goal-machine
   Supabase project (read it in Supabase's table editor), with a GitHub

@@ -1,3 +1,15 @@
+# powerkit 0.4.1
+
+* App: in "Plan my whole study", each analysis on the plan that powerkit
+  can calculate now has an "Enter your values" button that opens its
+  input screen, as the card does on the other routes. Before, the plan
+  showed the analyses' cards with no way to calculate any of them. When
+  two or more analyses are main analyses, the input screen takes its
+  claim from the plan's answer to "What does your study's claim need?"
+  (each on its own, every one significant, or any one significant), with
+  the number of main analyses as the number of tests; an extra analysis
+  is powered on its own. "Back to my plan" returns to the plan.
+
 # powerkit 0.4.0
 
 powerkit has a version number from here on: 0.x.y while it is a prototype,
