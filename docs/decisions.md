@@ -2153,6 +2153,444 @@ Next, not yet built: entering the difference and SD in raw units for the
 t-tests (a spec option, as the 2 x 2 designs have), and worked examples
 that open separately so their numbers can't be carried into a plan.
 
+## 2026-10-25 · Two dependent correlations: engine
+
+**What.** Two dependent correlations in one group, in the engine only
+(not in the app): G\*Power's "Correlations: Two dependent Pearson r's",
+common index and no common index (coverage-roadmap rows A4, A5). Like the
+other tests by formula (18 October 2026), each is one pwrss call:
+`power.z.twocors.steiger()`, Steiger's (1980) z test.
+
+- Template `overlapping_correlations`: X with Y against X with Z (the two
+  correlations share X); population `r_X_Y`, `r_X_Z`, `r_Y_Z`.
+- Template `nonoverlapping_correlations`: X1 with Y1 against X2 with Y2,
+  for example the same two measures at two ages; population `r_X1_Y1`,
+  `r_X2_Y2` and the four other correlations.
+- Effect `correlation_difference`, method `steiger_z`; "greater" means the
+  second compared correlation is larger, and a one-sided test must point
+  that way (pwrss's one-sided test runs in the direction of the specified
+  difference, as for two independent correlations).
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. Correlations that can't hold together
+  (a correlation matrix no population could have) are refused in plain
+  English, and so is a two-sided power goal with equal compared
+  correlations, which pwrss can't compute (a one-sided test gives the
+  Type I error check: power .05 at alpha .05).
+
+**Pooled or unpooled: unpooled, as G\*Power (the maintainer's decision,
+25 October 2026).** pwrss's default, `pooled = TRUE`,
+uses the average of the two compared correlations for their covariance
+under the null; `pooled = FALSE` uses the specified values. With
+`pooled = FALSE`, pwrss gives G\*Power's required N for both of the
+manual's examples as Spower's `gpower_examples` vignette reports them
+(144 and 886; pooled: 139 and 875). Decided: unpooled, as G\*Power
+(Departure 12), because G\*Power is the tool psychologists check
+against, following the precedent of Departure 5 (G\*Power's choice over a
+backend's default). The difference is 1 to 4% in N.
+
+**Confirmed against the manual** (supplied by the maintainer on
+25 October 2026; section 28, pp. 66-69). The decision now rests on the
+formula, not only on the two N's matching:
+
+- The manual's implementation notes (28.5.3, p. 69) say that under H0
+  G\*Power sets the H1 correlation equal to the H0 one, ρ_ac = ρ_ab (or
+  ρ_cd = ρ_ab), when it computes their covariance. pwrss's
+  `pooled = FALSE` branch makes exactly that substitution (its
+  `# rho12 = rho13` comment); `pooled = TRUE` averages the two instead.
+- Its examples 28.3.1 and 28.3.2 (p. 67) are the source of 886 and 144,
+  so the unit test for Departure 12 now cites the manual rather than
+  Spower's vignette at second hand.
+- powerkit's power at those N matches the manual's "actual power" to six
+  decimal places for the common-index example (0.801161) and to about
+  6e-5 for the other (0.800156 against 0.800093). The second gap is well
+  inside the validation check's tolerance; it is noted in the test.
+- G\*Power names the inputs "H0 Corr rho_ab" and "H1 corr rho_ac" (or
+  "rho_cd"), which confirms the direction powerkit uses: the one-sided
+  test runs from the first compared correlation to the second.
+
+**Validation.** Two published tests in `test-validation-basic-tests.R`
+(section 5), for the G\*Power manual's examples 28.3.2 (common index) and
+28.3.1 (no common index), with `TODO_PUBLISHED_VALUE` placeholders for the
+maintainer to transcribe from the manual itself; they run in the `basic`
+chunk. The unit tests check powerkit against pwrss called directly, the
+required N against the power at N - 1, the refusals, the exported R
+script, and the size of Departure 12.
+
+**Next.** A card (the app's E49 card says dependent correlations aren't
+calculated yet) and the result screen's departure line, in a separate
+PR.
+## 2026-10-25 · Logistic regression: engine
+
+**What.** Logistic regression in the engine only (not in the app):
+G\*Power's "z tests: Logistic regression" (coverage-roadmap row A14,
+decision-tree end point E27). Like the other tests by formula (18 October
+2026), it is one pwrss call: `power.z.logistic()`, the Wald z test of one
+coefficient, with pwrss's default method, Demidenko (2007) with variance
+correction. Design `logistic_regression`, template `single_predictor`.
+
+- Variables: a yes/no outcome Y and a predictor X that is a score or a
+  yes/no group.
+- Population: `odds_ratio`, `base_prob`, and optionally `x_prob` (yes/no X)
+  and `r2_other_predictors` (X's R-squared with the other predictors; their
+  own effects aren't needed, as in G\*Power and pwrss).
+- Effect `odds_ratio`, method `wald_z`; one-sided tests must point the way
+  of the odds ratio ("greater" means above 1), as pwrss's one-sided test
+  runs in the direction of the effect.
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. An odds ratio of 1 at a fixed N gives
+  power .05 at alpha .05 (Type I check).
+
+**Judgement call: what the odds ratio of a score X is per.** pwrss takes
+the odds ratio for a one-unit increase in X and the base probability at
+X = 0, with X normal (mean 0, SD 1 by default). **Recommendation: take a
+score X as standardised**, so the odds ratio is per SD of X and the base
+probability is at X's mean, because then no mean or SD has to be asked
+and the base probability is at a value of X that occurs. Studies that
+report an odds ratio per raw unit would need converting (OR per SD = OR
+per unit ^ SD), which the input screen can help with later. Not a
+departure: it is pwrss's own default distribution.
+
+**Checked against the manual** (the maintainer supplied the G\*Power 3.1
+manual, edition of 1 June 2023, on 25 October 2026; section 29,
+pp. 70-74). Both questions above are settled, and one new one is open.
+
+- *"Pr(Y=1|X=1) H0" is powerkit's base probability.* The manual defines it
+  as p1, the probability of an event under H0, where beta1 = 0 and so Y
+  doesn't depend on X (29.1, p. 70). That is pwrss's `base.prob`.
+- *The procedure powerkit uses is the one the manual recommends.* G\*Power
+  offers an enumeration procedure (Lyles et al., 2007) and two
+  large-sample approximations; the manual recommends Demidenko (2007) "as
+  standard procedure" and its Monte Carlo study found Demidenko with
+  variance correction the most accurate (29.2, p. 70; Table 1, p. 74).
+  That is pwrss's default, so powerkit needs no option. Its variance
+  correction factors (0.75 lognormal, 0.85 binomial, 1 otherwise;
+  29.6.2, p. 72) are pwrss's exactly.
+- *"R² other X" is `r2_other_predictors`*, the Hsieh et al. (1998)
+  correction N' = N / (1 - R²) (29.1, p. 70).
+- *The manual's printed examples select Hsieh et al., not Demidenko*, so
+  their N is not powerkit's. The validation placeholders say to set
+  Options > Procedure to Demidenko with variance correction before
+  transcribing.
+
+**Checks run against the manual's examples** (pwrss 1.3.3 called with
+powerkit's arguments; no published value was transcribed into a test):
+
+| Example (29.4) | Manual | powerkit |
+| --- | --- | --- |
+| Normal X, OR 1.5, p1 .5, two-sided, alpha .05, power .95: Demidenko with variance correction | 337 | 337 |
+| the same, without variance correction | 355 | 355 |
+| the same, Hsieh et al. | 317 | 317 |
+| Binary X (pi .5), p1 .05, p2 .10, power .95: Demidenko with variance correction | 1437 | 1437 |
+| Normal X as above with "R² other X" 0.1, said to be Demidenko with variance correction | 395 | **375** |
+
+**Open question for the maintainer: "R² other X" above 0.** Everything
+agrees at R² = 0. At R² = 0.1 the manual reports 395 where powerkit gives
+375 = 337 / 0.9; 395 is exactly 355 / 0.9, powerkit's answer with the
+variance correction switched off. The manual's own formulas (14) and (15)
+(29.6.2, p. 72) put R² in the mean of the H1 distribution only, which is
+what powerkit does and implies 375, and its validation notes record a
+deviation from PASS for this case too (29.7, p. 73). So the manual's 395
+may come from a run with the correction off, or G\*Power may drop it once
+R² is above 0. Nothing was changed in the engine on this evidence: the
+maintainer has G\*Power and can settle it. Recorded as "Known
+differences", 3 in conventions.md; the validation placeholders prefer an
+example with "R² other X" = 0 meanwhile.
+
+**Validation.** `test-validation-logistic-regression.R`, a new chunk
+(`logistic`) in `scripts/run-validation.R` and the full-validation
+workflow: two published tests for the G\*Power manual's examples (normal
+X, yes/no X), with `TODO_PUBLISHED_VALUE` placeholders. The unit tests
+check powerkit against pwrss called directly (score and yes/no X, with and
+without other predictors, one- and two-sided), the required N against
+N - 1, the refusals, and the exported R script.
+
+**Next.** Poisson regression (pwrss's `power.z.poisson()`) in its own PR;
+then a card for E27.
+
+
+## 2026-10-25 · Poisson regression: engine
+
+**What.** Poisson regression in the engine only (not in the app):
+G\*Power's "z tests: Poisson regression" (coverage-roadmap row A15,
+decision-tree end point E28). As with logistic regression, it is one pwrss
+call: `power.z.poisson()`, the Wald z test of one coefficient, with
+pwrss's default method, Demidenko (2007) with variance correction. Design
+`poisson_regression`, template `single_predictor_count`.
+
+- Variables: a count outcome Y and a predictor X that is a score or a
+  yes/no group.
+- Population: `rate_ratio`, `base_rate`, and optionally `mean_exposure`
+  (1 if omitted), `x_prob` (yes/no X) and `r2_other_predictors`.
+- Effect `rate_ratio`, method `wald_z`; one-sided tests must point the way
+  of the rate ratio ("greater" means above 1), as for logistic regression.
+- Goals: power at a fixed N and the required N. No simulation option and
+  no smallest detectable effect yet. A rate ratio of 1 at a fixed N gives
+  power .05 at alpha .05 (Type I check).
+- A score X is taken as standardised, so the rate ratio is per SD and the
+  base rate is at X's mean: the same judgement as for logistic regression
+  (above), for the same reasons.
+
+**Three small decisions, not worth holding the PR for.**
+
+- *A `count` variable type.* A Poisson outcome is neither a score nor a
+  yes/no, so `variable.type` gains `count`. Additive: every other design
+  pins Y by `$ref` to the continuous or binary variable, so none of them
+  accepts it.
+- *The template is `single_predictor_count`, not `single_predictor`.* The
+  backend, the check run and the script export all switch on the template
+  alone, so a template name has to be unique across designs. If those
+  switches are ever keyed on design and template together, the two
+  designs could share the name `single_predictor`.
+- *`mean_exposure` defaults to 1*, as in pwrss and G\*Power, so the base
+  rate is the expected count per person unless an exposure is given.
+
+**Checked against the manual** (G\*Power 3.1 manual, edition of 1 June
+2023, section 30, pp. 75-80).
+
+- *The procedure powerkit uses is the one the manual recommends.* It
+  recommends Demidenko (2007) "as the standard procedure" and says
+  Signorini's (1991) "is problematic and should not be used; it is only
+  included to allow checks of published results referring to this
+  widespread procedure" (30.2, p. 76). pwrss's default is Demidenko with
+  variance correction, so powerkit needs no option.
+- *The variance correction factor is 0.75 for a lognormal X and 1
+  otherwise* (30.5.2, p. 77), which is what pwrss uses for this test; the
+  0.85 it applies to a binary X in logistic regression is commented out in
+  its Poisson function. So a yes/no X is corrected differently in the two
+  designs, in both tools, deliberately.
+- *"Mean exposure" is `mean_exposure`*, the exposure time t in the
+  manual's equations (16) to (18) (30.5.2, p. 77), and pwrss's
+  `mean.exposure`.
+- *The manual's printed example selects Signorini*, so its output block is
+  not powerkit's answer; the sample sizes for the other procedures are in
+  the text that follows it. The validation placeholders say so.
+
+**Checks run against the manual's examples** (pwrss 1.3.3 called with
+powerkit's arguments; no published value was transcribed into a test).
+Rows marked with another procedure are pwrss's other methods, not
+powerkit's, and are there to show the whole example reproduces.
+
+| Example (section 30) | Manual | powerkit |
+| --- | --- | --- |
+| Swimmers (30.3, pp. 76-77; Signorini, 1991, p. 449), one-sided, Exp(beta1) 1.3, base rate .85, exposure 1, X binomial pi .5, alpha .05, power .95: Demidenko with variance correction | 649 | 649 |
+| the same, without variance correction | 655 | 655 (pwrss's `"demidenko"`) |
+| the same, Signorini's procedure | 697 | 697 (pwrss's `"signorini"`) |
+| the same with "R² other X" 0.1, Signorini's procedure | 774 | 774 (pwrss's `"signorini"`) |
+| Table 2 (30.4, p. 78), X normal, beta1 -0.10, -0.15, -0.20; two-sided, N 200, beta0 .5, alpha .05: "Demi(c)" column | .445, .782, .956 | .444591, .782076, .956209 |
+| Table 2, X binomial pi .2, beta1 -0.20, -0.40: "Demi(c)" column | .254, .716 | .254388, .716318 |
+
+The binomial rows matter: an X that is not symmetric about its mean is
+where the variance correction changes the answer, and the manual's "Demi"
+and "Demi(c)" columns differ there (.268 and .254 for beta1 -0.20). The
+engine lands on the corrected value, which is also the closer of the two
+to the manual's own simulation.
+
+**This bears on the open logistic question.** The R-squared correction
+sits in the same place in both tests' formulas, and for Poisson the
+manual's figure for R² above 0 does match: 774 is Signorini's own R² = 0
+answer (697) with the correction applied inside that procedure's formula,
+which is what powerkit does. So G\*Power appears to apply R² within
+whichever procedure produced the R² = 0 answer, and the logistic manual's
+395 (said to be Demidenko with variance correction, but exactly 355 / 0.9,
+the uncorrected answer) looks more like a run with the correction off than
+a different rule. Still the maintainer's to settle with G\*Power
+("Known differences", 3 in conventions.md); nothing was changed in the
+engine on this evidence, and the Poisson validation placeholders note that
+an example with "R² other X" above 0 is usable for this test.
+
+**Validation.** `test-validation-poisson-regression.R`, a new chunk
+(`poisson`) in `scripts/run-validation.R` and the full-validation
+workflow: three published tests with `TODO_PUBLISHED_VALUE` placeholders
+(the swimmers example's required N, and one Table 2 row each for a score
+and a yes/no X). The unit tests check powerkit against pwrss called
+directly (score and yes/no X, a non-default exposure, with and without
+other predictors, one- and two-sided), the required N against N - 1, the
+refusals, and the exported R script.
+
+**Next.** A pass over the entries still marked "to check" in
+conventions.md, now that the manual is to hand; cards for E27 and E28
+later.
+
+## 2026-10-25 · Conventions: the G\*Power entries filled in from the manual
+
+**What.** The maintainer supplied the G\*Power 3.1 manual (edition of
+1 June 2023), so the entries in conventions.md still marked "to check" for
+G\*Power were worked through: sections 3 to 6 (the exact correlation and
+proportion tests), 10 and 11 (fixed-effects ANOVA), 13 and 14 (multiple
+regression) and 19 to 21 (the t-tests). Sections 29 and 30 were covered by
+the logistic and Poisson regression PRs. Docs only; no code, no test and
+no expected value changed.
+
+**Settled.**
+
+- *The independent t-test is Student's, with equal variances assumed.*
+  The manual states it outright ("The t-test assumes the variances in both
+  populations to be equal", 21.1, p. 52), which confirms the premise of
+  maintainer's decision D7 in design-finder.md. Its noncentrality is
+  d sqrt(n1 n2 / (n1 + n2)) on t(N - 2); the one-sample and matched-pairs
+  tests use d sqrt(N) on t(N - 1) (19.5, 20.5, 21.5). All three "have no
+  options".
+- *"Total sample size" for the matched-pairs t-test is the number of
+  pairs*, not of people: the manual's worked example enters 50 for 50
+  IQ-matched pairs, that is 100 pupils (19.3, p. 48). For the repeated
+  measures powerkit's `paired_t` covers, pairs and participants are the
+  same number, so nothing changes.
+- *Factorial ANOVA* (11, pp. 26-30): lambda = f^2 N on F(df1, N - k),
+  where k is the total number of cells in the design, and f = sigma_m /
+  sigma with sigma_m a root mean square over all of the tested effect's
+  residuals rather than over its df. No options. Its worked example
+  reproduces SPSS's observed power exactly. One-way ANOVA (10, p. 25) is
+  the same, with df1 = k - 1.
+- *Multiple regression, R² increase* (14, pp. 36-38): the fixed model is
+  explicit (Y = X beta + e with "fixed and known predictor variables"),
+  lambda = f^2 N on F(q, N - m - 1) with q tested of m predictors. This
+  confirms what "Known differences", 1 had assumed about G\*Power
+  treating the predictors as fixed.
+- *Effect sizes and settings* for the exact correlation (3) and
+  proportion tests (4 one proportion, 5 McNemar, 6 Fisher), including the
+  alpha-balancing options for the two discrete tests ("Assign alpha/2 to
+  both sides" by default) and that McNemar's N is also a number of pairs.
+  G\*Power parametrises McNemar by the odds ratio pi12 / pi21 plus the
+  proportion of discordant pairs; powerkit's two discordant proportions
+  determine both, so the parametrisations are equivalent.
+
+**What the manual cannot settle.** It says of itself that it "is not yet
+complete", and it has no section on repeated-measures ANOVA, the
+two-independent-proportions z test, the chi-square test of independence,
+ANCOVA or mediation. Two open items therefore stay open, and both are now
+recorded in conventions.md as needing G\*Power itself rather than the
+manual:
+
+- which "Effect size specification" setting produced the within-between
+  values the Superpower vignette attributes to G\*Power (Departure 2);
+- whether G\*Power's two-proportions z test applies a continuity
+  correction (maintainer's decision 6, Departure 5). The manual's only
+  documented pooled z test for two proportions is the large-sample
+  approximation to Fisher's exact test, and that one *is* continuity
+  corrected (6.6.2, p. 17). It is a different test, so this is a caution,
+  not evidence against the decision.
+
+**The correlation test: nothing new, and a correction.** An earlier draft
+of this entry presented G\*Power's exact correlation test as a new
+judgement call for the maintainer. That was wrong, and the claim is
+withdrawn. It was settled on 17 October 2026 and is already written up as
+Known difference 10 in conventions.md, which cites the same manual section
+(3, pp. 9-10) and its "Use exact distribution if N <" option, records that
+pwrss's `power.exact.onecor()` reproduces both of the manual's examples
+(N = 1928, and power 0.4829271 against the printed 0.482927), gives the
+size of the difference for r = .3 to .5 and N = 20 to 100 (at most 0.0038
+two-sided, 0.0047 one-sided, and at most one participant in the required
+N), names the test that holds it there
+(`test-backend-pwr.R`, "departure: correlation by Fisher's z, not
+G\*Power's exact method"), and is shown to users on E4's card and the
+result screen. Section 3 therefore confirmed what was already recorded and
+added nothing. One detail is worth keeping in mind for anyone revisiting
+it: the manual's largest gap (0.482927 against 0.422599) is at rho0 = .8,
+a null correlation other than zero, which powerkit's template cannot
+express, so it is outside what powerkit computes.
+
+**One smaller open point.** For Fisher's exact test the manual says the
+test "has no options" (6.3) but then describes three asymptotically
+equivalent two-sided statistics without saying which is used (6.6.1).
+powerkit calls `pwrss::power.exact.fisher(method = "exact")`. Recorded in
+the table; nothing to do unless a published value disagrees.
+
+**Next.** The pwrss column, which is still mostly "to check" and can be
+filled from the installed sources: in particular whether pwrss's two-sided
+exact tests balance alpha the way G\*Power does by default.
+## 2026-10-25 · Planned comparisons (contrasts): engine
+
+**What.** A planned comparison between the levels of one
+between-participants factor, in the engine only (coverage-roadmap row B32,
+decision-tree end point E19). Design `factorial_anova`, template
+`oneway_contrast`: the means, the within-group SD and one weight per level.
+Like the other tests by formula it is one pwrss call,
+`power.t.contrasts()`, which is a t test of the weighted combination of
+means (t squared is G\*Power's F with numerator df 1, so it is the same
+test). Trend tests are contrasts with the matching weights.
+
+- The weights live in `target_test > weights`, not in `population`,
+  because they say which effect is being tested rather than what the
+  population is like: the same place as `target_test > path` for
+  mediation.
+- Refused in plain English: the wrong number of weights, weights that
+  don't add up to 0, weights that are all 0, weights on a template that
+  isn't a contrast, unequal groups, and a one-sided test.
+- The weights' scale doesn't matter: (-3, -1, 1, 3) and
+  (-1.5, -0.5, 0.5, 1.5) are the same contrast, which a unit test checks.
+
+**Judgement call: which tool computes it.** The roadmap named Superpower's
+`emmeans_power()` for this row, and the decision tree also named pwranova's
+`pwrcontrast()`. **Recommendation, taken: pwrss.** Three reasons, and the
+risk turned out to be low:
+
+- pwrss takes an arbitrary weight vector. Superpower's `contrast_type` is
+  an emmeans family (`"poly"`, `"pairwise"`), which covers trends but not
+  a comparison like "the first two levels against the last two" that the
+  manual's own example uses.
+- It is a formula, so it needs no data generation and no seed, which is
+  the pattern for every other test by formula.
+- Superpower's emmeans route computes the same contrast on one exact data
+  set and **agrees** with it, so the choice doesn't trade accuracy for
+  convenience. That agreement is now a unit test, which also confirms the
+  weights mean to powerkit what they would mean to the ANOVA backend.
+
+pwranova is not a powerkit dependency and was not checked.
+
+**Judgement call: adjusting alpha for several contrasts.** pwrss's
+`adjust.alpha` offers Tukey, Bonferroni, Holm, Hochberg, Hommel, BH, BY
+and fdr for a matrix of several contrasts. **Recommendation: one contrast
+at a time, with no adjustment** (pwrss's own default), because powerkit
+already treats corrections for multiple tests as an inference question of
+its own (`docs/inference-question-design.md`), and applying one inside the
+power calculation as well would count it twice. A user planning several
+contrasts can run each one. The maintainer can overrule this; offering a
+contrast *family* with its adjustment is the natural follow-up, and
+Superpower's emmeans route would be the better tool for it.
+
+**A trap worth recording.** pwrss's `k.covariates` defaults to **1**,
+which spends a denominator degree of freedom a plain one-way design does
+not have. powerkit passes 0 explicitly. With the default, the manual's
+example comes out at 0.426971 and 0.487157 instead of 0.451898 and
+0.514737 — wrong by about .03, with no warning. The check run reports the
+value pwrss used.
+
+**Checks run against the manual's example** (G\*Power 3.1 manual, 11.3.3,
+p. 29: four levels, means 1.5, 2, 3, 4, five per group, SD 2; pwrss and
+Superpower called with powerkit's arguments; no published value was
+transcribed into a test):
+
+| Contrast (weights) | Manual | powerkit (pwrss) | Superpower (emmeans) |
+| --- | --- | --- | --- |
+| 1,2 vs 3,4 (-0.5, -0.5, 0.5, 0.5) | 0.451898 | 0.451898 | — (not an emmeans family) |
+| linear trend (-3, -1, 1, 3) | 0.514736 | 0.514737 | 0.514737 |
+| quadratic trend (1, -1, -1, 1) | 0.057970 | 0.057970 | 0.0579695 |
+
+The quadratic row is the useful one for the arithmetic: its power is close
+to alpha, so a sign or weighting mistake shows up plainly.
+
+**Not a departure.** Every pwrss argument is its own default except
+`k.covariates`, which is 0 because the design has no covariates. Recorded
+in conventions.md under "Planned comparisons (contrasts)" rather than
+under "Departures".
+
+**Two-sided only.** pwrss's contrast function has no one-sided option, and
+the schema refuses a direction for this template. G\*Power's contrast is
+an F test, which is two-sided in the same way.
+
+**Validation.** `test-validation-anova-contrast.R`, a new chunk
+(`contrast`) in `scripts/run-validation.R` and the full-validation
+workflow: three published tests, one per contrast in the manual's table,
+with `TODO_PUBLISHED_VALUE` placeholders. The source comment explains that
+G\*Power has no contrast screen (a contrast is entered as an f with
+numerator df 1), so what is transcribed is the power, and that the
+manual's printed block says "A priori" while supplying a sample size and
+reporting power, which is a post hoc analysis.
+
+**Next.** The exact one-sample correlation test (closing the open question
+from 25 October 2026), then the two rows the manual can still settle (A6
+two independent correlations, A47 the generic t test), then wiring the six
+validated-but-unwired designs into the app.
 ## 2026-10-25 · The roadmap said six designs weren't wired; they were
 
 **What happened.** Looking for the next piece of work, coverage-roadmap.md

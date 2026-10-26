@@ -75,6 +75,26 @@ chi-square goodness-of-fit test (\code{power.chisq.gof()}, with Cohen's w from
 \code{probs.to.w()}), two independent correlations (\code{power.z.twocors()}) and
 one-way ANCOVA (\code{power.f.ancova.shieh()}). None has a simulation option;
 Fisher's exact test is an exact test of counts too.
+Two dependent correlations in one group (engine only), by Steiger's z
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
+templates \code{overlapping_correlations} (X with Y against X with Z) and
+\code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
+Logistic regression (design \code{logistic_regression}, engine only): the Wald z
+test of one predictor, a score (odds ratio per SD) or a yes/no group,
+optionally adjusted for other predictors through their R-squared with
+it, by pwrss's \code{power.z.logistic()} (Demidenko's method with variance
+correction).
+Poisson regression (design \code{poisson_regression}, engine only): the Wald z
+test of one predictor of a count outcome, a score (rate ratio per SD) or
+a yes/no group, over a mean exposure, optionally adjusted for other
+predictors through their R-squared with it, by pwrss's
+\code{power.z.poisson()} (Demidenko's method with variance correction).
+Planned comparisons (design \code{factorial_anova}, template
+\code{oneway_contrast}, engine only): the t test of a weighted combination of
+one factor's group means, by pwrss's \code{power.t.contrasts()}. The weights
+go in \code{target_test > weights}, one per level, adding up to 0; a trend
+test is the contrast with the matching weights. Two-sided only, equal
+groups, one contrast at a time.
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.
