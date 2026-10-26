@@ -1528,7 +1528,6 @@ glossary:
   - {term: "R-squared change", pattern: "R-squared change", hint: "How much R-squared goes up when the predictor or predictors of interest are added."}
   - {term: "discordant proportions", pattern: "discordant", hint: "Among people measured twice, the share who change from yes to no and the share who change from no to yes."}
   - {term: "odds ratio", pattern: "odds ratio", hint: "How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference."}
-  - {term: "regression coefficients", pattern: "regression coefficients", hint: "How much the outcome is expected to change for a one-unit change in a predictor."}
   - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
   - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
   - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}

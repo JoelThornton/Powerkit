@@ -22,7 +22,7 @@ fully validated. Validation runs are recorded in
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
-  ([`next.md`](next.md), items 1 to 5; version 0.5.0). Each runs by
+  ([`next.md`](next.md), batch 1; version 0.5.0). Each runs by
   formula through pwrss unless stated, has validation placeholders for the
   G\*Power manual's examples, and reaches the app in its own PR:
   - **Logistic regression** (E27; pwrss's Wald z test of one predictor, a
@@ -77,7 +77,7 @@ fully validated. Validation runs are recorded in
     one-sided test asks for a reason, which goes into the write-up;
   - help with the effect size (honest routes to a defensible number and an
     "I don't know" button; entering the difference in raw units is
-    [`next.md`](next.md) item 9);
+    queued in [`next.md`](next.md));
   - "I know my analysis" can skip the four screening questions and show
     every end point, as G\*Power's menu does, with the questions offered as
     a filter ([`decisions.md`](decisions.md), 26 October 2026);
