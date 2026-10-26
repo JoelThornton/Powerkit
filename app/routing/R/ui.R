@@ -298,6 +298,15 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
 
 # End-point card ------------------------------------------------------------
 
+# The validation note and links for a validated design, inside the card's
+# "More about this analysis".
+validated_line_ui <- function(tree, ep) {
+  if (!identical(ep$status, "runs_validated")) return(NULL)
+  p(class = "validated-line", tags$strong("Validated: "), ep$validation$note, " ",
+    tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
+    tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
+}
+
 status_ui <- function(tree, ep) {
   links <- tree$links
   validation_links <- function() tagList(
@@ -313,10 +322,10 @@ status_ui <- function(tree, ep) {
   }
   switch(
     ep$status,
-    runs_validated = div(
-      class = "status status-runs",
-      tags$strong("Runs in powerkit."), " Validated: ", ep$validation$note, " ", validation_links()
-    ),
+    # A design that runs and is validated needs no box saying so (26
+    # October 2026); its validation note is under "More about this
+    # analysis" (validated_line_ui()).
+    runs_validated = NULL,
     runs_validation_in_progress = div(
       class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"),
@@ -448,6 +457,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
           input,
           hints_ui(tree, input)
         )))),
+        validated_line_ui(tree, ep),
         if (runs) tagList(
           p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
           hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))

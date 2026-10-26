@@ -34,8 +34,8 @@ field_ui <- function(f, value, described_by = character()) {
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
     if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
-    if (!is.null(f$default_source)) div(id = source_id, class = "default-source",
-      if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], f$default_source) else paste0(f$default_source, ".")
+    if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
+      if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
   # Labs' one way in: a line under the effect size's source, for people
@@ -57,6 +57,19 @@ field_ui <- function(f, value, described_by = character()) {
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
   conditionalPanel(paste(condition, collapse = " && "), field)
+}
+
+# Where a default comes from, without the function calls and version
+# numbers in brackets: "pwr's default (pwr.t.test(sig.level = 0.05), pwr
+# 1.3-0)" reads "pwr's default". The full text is the line's tooltip, and
+# the R script, write-up and project file keep it.
+short_source <- function(text) {
+  repeat {
+    shorter <- gsub("\\s*\\([^()]*\\)", "", text)
+    if (identical(shorter, text)) break
+    text <- shorter
+  }
+  trimws(text)
 }
 
 # A group of fields: a fieldset whose legend is the card's "What you would

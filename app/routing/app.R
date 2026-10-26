@@ -142,10 +142,11 @@ app_css <- "
   .lead { font-size: 1.05rem; color: #44505e; }
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
   .topbar-inner { max-width: 1100px; margin: 0 auto; }
-  .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; }
-  .prototype-banner { font-size: 0.8rem; color: #cfd8e6; margin: 0.15rem 0 0 0; text-align: left; line-height: 1.35; }
+  .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
+  .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
+  .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
   .badge-proto { display: inline-block; background: #f2b84b; color: #2b1d00; border-radius: 1rem; padding: 0.02rem 0.55rem;
-                 font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.25rem; }
+                 font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
   .app-main { max-width: 1100px; margin: 0 auto 6rem auto; }
   .app-main > .tabbable > .nav-tabs { border-bottom: 1px solid var(--pk-line); margin-top: 0.5rem; gap: 0.25rem; }
   .app-main > .tabbable > .nav-tabs .nav-link { border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #44505e; font-weight: 500; padding: 0.7rem 0.9rem; }
@@ -192,6 +193,13 @@ app_css <- "
   .form-section-title { color: var(--pk-navy); font-weight: 650; }
   .trail-title { font-size: 0.8rem; }
   .chip { background: #fff; border-color: var(--pk-line); }
+  .result-panel { margin-top: 1.5rem; }
+  .result-card { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .result-card h3, .result-card h4 { color: var(--pk-navy); font-weight: 650; }
+  .result-main { border-top: 5px solid var(--pk-blue); }
+  .result-main .result-headline { font-size: 1.4rem; font-weight: 600; color: var(--pk-navy); line-height: 1.35; }
+  .result-more { margin: 0.75rem 0 0 0; }
+  .result-more > summary { cursor: pointer; color: var(--pk-blue); min-height: 44px; display: flex; align-items: center; }
   /* The screen's next step, pinned to the bottom of the window. */
   .action-bar { position: sticky; bottom: 0; z-index: 10; justify-content: flex-end; background: rgba(255,255,255,.96);
                 backdrop-filter: blur(6px); border-top: 1px solid var(--pk-line); margin: 1.5rem 0 0 0; padding: 0.75rem 1rem;
@@ -276,17 +284,19 @@ ui <- function(req) fluidPage(
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
   tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
+  # The name, and that it is a prototype with its version; what the
+  # prototype can do is on the About tab (prototype_banner()).
   tags$header(class = "topbar",
     div(class = "topbar-inner",
-      h1(class = "brand", "powerkit", tags$span(class = "visually-hidden", " (prototype)"))),
-    div(class = "topbar-inner", prototype_banner(tree))
+      h1(class = "brand", "powerkit",
+        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))))
   ),
   tags$main(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About this prototype", div(class = "pt-3", about_tab)),
+      tabPanel("About", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
