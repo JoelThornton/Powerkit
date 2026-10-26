@@ -35,7 +35,6 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
 })
 
 test_that("answers other than the simple ones leave at an honest end point", {
-  expect_all_routes("A count", "E28")
   expect_all_routes(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29")
   expect_all_routes("The time until something happens", "E43")
   expect_all_routes(c("A score or scale", "People within groups"), "E34")
@@ -44,7 +43,7 @@ test_that("answers other than the simple ones leave at an honest end point", {
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   expect_all_routes(c(screen_score, "Once", "Show there's no meaningful effect"), "E36")
   expect_all_routes(c(screen_score, "Once", "Estimate an effect precisely"), "E46")
-  for (id in c("E28", "E29", "E33", "E34", "E35", "E36", "E43", "E44", "E45", "E46")) {
+  for (id in c("E29", "E33", "E34", "E35", "E36", "E43", "E44", "E45", "E46")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
 })
@@ -202,7 +201,29 @@ test_that("a yes/no outcome with two or more factors reaches its own card, not t
 
 test_that("counts no longer reach the correlation through the relationship path", {
   # On main: rel offered no count answer, so a count went in as a score > E4.
-  expect_all_routes("A count", "E28")
+  # Since Poisson regression runs, a count is screened first like any
+  # other outcome, so nested or repeated counts don't reach it.
+  once <- c("A count", "Independent people", "Once", "Detect an effect")
+  expect_identical(follow_answers(tree, "A count"), "s2")
+  expect_identical(follow_answers(tree, c(once, "A relationship between two things you measure")), "E28")
+  expect_identical(follow_answers(tree, c(once, "A difference between groups or conditions")), "E28")
+  expect_identical(follow_answers(tree, c("A count", "Independent people", "Twice", "Detect an effect", "A difference between groups or conditions")), "E-unsure")
+  expect_identical(follow_answers(tree, c("A count", "People within groups")), "E34")
+})
+
+test_that("two correlations in the same people reach their own card, not the independent-groups test", {
+  base <- c("A score or scale", "Independent people", "Once", "Detect an effect", "A relationship between two things you measure")
+  expect_identical(follow_answers(tree, c(base, "Scores, and the question is whether one correlation is stronger than another in the same people")), "E51")
+  expect_identical(follow_answers(tree, c(base, "A score, and the question is whether the relationship differs between two separate groups")), "E49")
+})
+
+test_that("a hypothesis about how much scores vary reaches the variance tests, and only for a score measured once", {
+  base <- c("A score or scale", "Independent people", "Once", "Detect an effect",
+    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
+  expect_identical(follow_answers(tree, c(base, "One group's, against a fixed value (for example, a published norm)")), "E52")
+  expect_identical(follow_answers(tree, c(base, "Two groups', with different people in each")), "E53")
+  q1 <- vapply(visible_options(tree, tree$nodes$q1, list(outcome = "score", times = "twice")), `[[`, "", "label")
+  expect_false(any(grepl("spread out", q1, fixed = TRUE)))
 })
 
 test_that("the analyses in the UCLA OARC test-selection table reach the end points recorded in docs/routing-audit.md", {

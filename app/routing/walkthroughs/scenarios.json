@@ -299,17 +299,36 @@
   "design": "Count outcome",
   "example": "We will count how many times children interrupt during a 20-minute task, comparing children with and without an ADHD diagnosis. Most children interrupt only a few times, and many not at all.",
   "choose": [
-   "A count"
+   "A count",
+   "Independent people",
+   "Once",
+   "Detect an effect",
+   "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
-    "A count"
-   ]
+    "A count",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "pick": "An outcome that counts how often something happened"
   },
   "guided": {
    "answers": [
-    "A count"
-   ]
+    "A count",
+    "Independent people",
+    "Once",
+    "Detect an effect"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "count",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
   },
   "reaches": {
    "choose": "E28",

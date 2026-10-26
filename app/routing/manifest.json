@@ -4132,7 +4132,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.5.1",
+        "Version": "0.6.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome).",
         "License": "GPL (>= 3)",
@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "bcb9aceb538a410162ed5f45d6cc8c648e8f0859",
-        "RemoteSha": "bcb9aceb538a410162ed5f45d6cc8c648e8f0859",
+        "RemoteRef": "7962e749d34e5f3615fb3277ca9f5c25235f7842",
+        "RemoteSha": "7962e749d34e5f3615fb3277ca9f5c25235f7842",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "bcb9aceb538a410162ed5f45d6cc8c648e8f0859",
-        "GithubSHA1": "bcb9aceb538a410162ed5f45d6cc8c648e8f0859",
+        "GithubRef": "7962e749d34e5f3615fb3277ca9f5c25235f7842",
+        "GithubSHA1": "7962e749d34e5f3615fb3277ca9f5c25235f7842",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-26 22:00:43 UTC; runner",
+        "Packaged": "2026-10-26 23:26:04 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-26 22:00:50 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-26 23:26:10 UTC; unix"
       }
     },
     "praise": {
@@ -5764,7 +5764,7 @@
       "checksum": "129e51d71acb4b5cdd4ff972812e1a3e"
     },
     "forms.yaml": {
-      "checksum": "b49c692f9175c5c6ec5093f494796b30"
+      "checksum": "20c8cbb65c6aa2116afb7f7c106b76da"
     },
     "R/about.R": {
       "checksum": "46c243d5f43e33e43e54175ad3656f0f"
@@ -5785,7 +5785,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "e38cf70f171e4292813439cadb5ec3a3"
+      "checksum": "19fc110ce6119d336cb8faffebfb556f"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5803,10 +5803,10 @@
       "checksum": "3d9842b2a978788150823956f93ba0bd"
     },
     "tests/testthat/helper-docs.R": {
-      "checksum": "9e4dd1da8e6f3ec688c102529b038aef"
+      "checksum": "a6959ab167d1679d12e4b79915334fc5"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "2933085117f4c33b955b68bef6ee9e0a"
+      "checksum": "32177461b7af25864a8ec3adc93b459a"
     },
     "tests/testthat/setup.R": {
       "checksum": "876fbc7654d63f5b88516f7b1e0f82d4"
@@ -5821,7 +5821,7 @@
       "checksum": "0a2094597b96e8ba723d6ba83d571efa"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "9ded87437bbb22470c543be862ceb89f"
+      "checksum": "a6bb6b6559b8606b0cdb426719b4f84e"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "5d30d83bd5c4c1f553d3e1642bb2dd82"
@@ -5830,7 +5830,7 @@
       "checksum": "e862675a287e15864b0d6db2857dc75d"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "580526cc66c503af195c0b64d16361f9"
+      "checksum": "8c5fc6eb2a313800dc6ba43c5dce53da"
     },
     "tests/testthat/test-project.R": {
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
@@ -5839,10 +5839,10 @@
       "checksum": "2f349c483f06a47e36aafc5ea92814d5"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "41e5f70765d159d0e5810cb9a233917c"
+      "checksum": "9960eb4b7cd22557d49377faedf97511"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "08a4fd8c462ccb5cefef60d18d504449"
+      "checksum": "9fc6a40fc4e9e5f07027b76c3b2766da"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "add0982ce3e26f26efdf680492a0bc95"
@@ -5857,13 +5857,13 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "0488f93ecf9ca07479b08a4e0a9db815"
+      "checksum": "f5281b3a4e9b000aae39e2021a27a227"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "8e047af7587d77728019e0f63b34e3bd"
     },
     "walkthroughs/scenarios.json": {
-      "checksum": "f730e6fc5c863b0b9d4c94da50c3347d"
+      "checksum": "28aa45ce7fd33adde0c049c895dcdaca"
     },
     "walkthroughs/screenshots.js": {
       "checksum": "802c48435b6593e32184e35aea1c38b0"
@@ -5872,7 +5872,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "07342a2755f0760c6f8d7e6e3b203855"
+      "checksum": "4095fd719a742a83c774d3960648cbad"
     }
   },
   "users": null

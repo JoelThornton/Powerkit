@@ -21,6 +21,51 @@ entries:
       you open the other analysis, so both describe the same study. You can
       still change it there.
   - date: "2026-10-26"
+    title: "Hypotheses about how much scores vary"
+    text: >-
+      Some hypotheses are about spread, not averages: that reaction times
+      become more consistent with practice, say, or that one group's
+      answers vary more than another's. powerkit can now plan for these,
+      for one group against a fixed value or for two groups. Choose "That
+      scores are more spread out (or more consistent)" on the first
+      question. Power for these tests is simulated, so the answer can
+      differ from G*Power's by a participant or two.
+  - date: "2026-10-26"
+    title: "Comparing two correlations in the same people"
+    text: >-
+      powerkit can now work out the sample size or power for comparing two
+      correlations measured in the same people: for example, whether
+      wellbeing is more strongly related to self-control than to grit, or
+      whether the link between stress and sleep is stronger at 16 than at
+      14. Find it under "A relationship between two things you measure".
+  - date: "2026-10-26"
+    title: "Planned comparisons among three or more groups"
+    text: >-
+      If your hypothesis is about a specific comparison, such as both kinds
+      of feedback beating no feedback, or scores rising steadily with the
+      dose, powerkit can now work out the sample size or power for that
+      comparison itself, rather than for "any difference among the
+      groups". You give the group means and a weight for each group that
+      says which comparison you mean.
+  - date: "2026-10-26"
+    title: "Poisson regression: predicting a count"
+    text: >-
+      powerkit can now work out the sample size or power when you predict a
+      count, such as how many times someone visits a clinic in a year, from
+      a score or a yes/no group. You enter the rate ratio, the starting
+      rate and how long people are followed. It assumes the counts vary as
+      much as their average; counts that vary more need a negative binomial
+      model, which powerkit doesn't do yet.
+  - date: "2026-10-26"
+    title: "Logistic regression: predicting a yes/no outcome"
+    text: >-
+      powerkit can now work out the sample size or power for a logistic
+      regression, where one predictor (a score, or a yes/no group) predicts
+      a yes/no outcome such as whether someone seeks help. You enter the
+      odds ratio and how common "yes" is to start with; if your model has
+      other predictors, you say how much they overlap with this one. Until
+      today this card said powerkit couldn't do it.
+  - date: "2026-10-26"
     title: "A simpler first screen"
     text: >-
       The first screen now asks just one thing: how you want to start. The

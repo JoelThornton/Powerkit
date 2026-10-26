@@ -317,7 +317,7 @@ nodes:
     options:
       - {label: "A score or scale", next: s2, sets: {outcome: score}, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
       - {label: "Yes/no, or one of several categories", next: s2, sets: {outcome: yesno}, help: "e.g. passed or failed; chose option A, B or C."}
-      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
+      - {label: "A count", next: s2, sets: {outcome: count}, help: "How many times something happened, with no fixed maximum."}
       - {label: "Ordered categories (e.g. a single rating item)", next: o5a, help: "e.g. one item rated from 'strongly disagree' to 'strongly agree'."}
       - {label: "The time until something happens", next: E43, help: "e.g. days until relapse, or whether and when people drop out."}
   o5a:
@@ -368,6 +368,8 @@ nodes:
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
+      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
+         when: {outcome: score, times: once}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "That an effect is absent, or too small to matter", next: E36}
       - {label: "That a model fits: a questionnaire structure, or a model with latent variables (SEM)", next: E37}
 
@@ -376,7 +378,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: f1, yesno: q3_cat}
+    routes: {score: f1, yesno: q3_cat, count: q3_count}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
@@ -490,12 +492,28 @@ nodes:
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
+  # How much scores vary -----------------------------------------------------
+  v1:
+    doc_id: V1
+    text: "Whose spread of scores are you comparing?"
+    options:
+      - {label: "One group's, against a fixed value (for example, a published norm)", next: E52}
+      - {label: "Two groups', with different people in each", next: E53}
+
+  # A count outcome: Poisson regression (E28) when each person is measured
+  # once; repeated counts need a mixed model powerkit doesn't have.
+  q3_count:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E28, twice: E-unsure, many_conditions: E-unsure}
+
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_rel, yesno: q2_rel_cat}
+    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count}
   q2_rel_cat:
     doc_id: Q2
     text: "Which kind of categorical outcome?"
@@ -513,6 +531,7 @@ nodes:
     options:
       - {label: "A score or scale", next: E4}
       - {label: "A score, and the question is whether the relationship differs between two separate groups", next: E49}
+      - {label: "Scores, and the question is whether one correlation is stronger than another in the same people", next: E51}
       - {label: "Groups or categories (that makes it a difference between groups)", next: f1}
       - {label: "Several predictors at once, or controlling for other variables", next: E24}
 
@@ -521,7 +540,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_mod, yesno: E32}
+    routes: {score: q3_mod, yesno: E32, count: E32}
   q3_mod:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -560,7 +579,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_med, yesno: E32}
+    routes: {score: q3_med, yesno: E32, count: E32}
   q3_med:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -619,7 +638,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_modmed, yesno: E32}
+    routes: {score: q3_modmed, yesno: E32, count: E32}
   q3_modmed:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -668,7 +687,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E49, E50, E51, E52, E53]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18]
@@ -982,12 +1001,18 @@ endpoints:
   E19:
     doc_name: "Planned contrast"
     plain_name: "A specific comparison among three or more groups"
-    status: not_in_powerkit
-    inputs: ["Contrast weights", "The expected group means and SD"]
-    packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Power for emmeans contrasts (pairwise, custom, simple effects) in factorial designs."}
-      - {name: pwranova, url: "https://cran.r-project.org/package=pwranova", what: "Analytic power for planned contrasts in between- or within-factor ANOVA (pwrcontrast())."}
+    template: "factorial_anova / oneway_contrast"
+    backend: "pwrss: power.t.contrasts() (the t test of one planned contrast, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and Superpower's emmeans contrasts agree with it (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one planned comparison: a weighted combination of the group means, such as both feedback conditions against no feedback, or a linear trend across doses."
+      - "The weights say which comparison: one per group, adding up to 0. Groups with negative weights are compared with groups with positive weights; a group weighted 0 is left out."
+      - "Groups of equal size and a two-sided test only, as the package behind it offers. Testing several contrasts means a power analysis for each."
+    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The contrast weights"]
     tier: v2
+    alternatives: ["the overall F test of any difference among the groups (one-way ANOVA)"]
   E20:
     doc_name: "2 x 2 within-participants ANOVA"
     plain_name: "Two factors crossed, everyone in all four conditions"
@@ -1067,21 +1092,32 @@ endpoints:
   E27:
     doc_name: "Logistic regression (yes/no outcome)"
     plain_name: "Predict a yes/no outcome"
-    status: not_in_powerkit
-    inputs: ["Odds ratio or regression coefficients"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for generalised linear models with fixed predictors, including logistic (p_glm(family = binomial()))."}
-      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for logistic regression."}
+    template: "logistic_regression / single_predictor"
+    backend: "pwrss: power.z.logistic() (the Wald z test of one predictor, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one predictor of a yes/no outcome: a score, or a yes/no group. The odds ratio is per standard deviation for a score, or the second group against the first."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The odds ratio and the proportion of 'yes' at the starting point", "How much the other predictors overlap with this one"]
     tier: v2
+    alternatives: ["Fisher's exact test or the z test of two proportions, for a yes/no group with no other predictors"]
   E28:
     doc_name: "Count outcome (Poisson or negative binomial)"
     plain_name: "An outcome that counts how often something happened"
-    status: not_in_powerkit
-    inputs: ["The expected rate ratio"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for Poisson regression (p_glm(family = poisson()))."}
-      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for Poisson regression."}
+    template: "poisson_regression / single_predictor_count"
+    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
+      - "Poisson regression only: it assumes the counts vary as much as their average (a Poisson outcome). For counts that vary more than that, a negative binomial model is needed, and powerkit doesn't calculate it yet."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "How much the other predictors overlap with this one"]
     tier: v2
+    alternatives: ["a negative binomial regression, for counts that vary more than their average (not in powerkit yet)"]
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
@@ -1292,7 +1328,7 @@ endpoints:
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
     card_points:
       - "Both groups measure the same two variables; the test compares the correlation between them in one group with that in the other."
-      - "For two correlations in the same people (for example, X with Y and X with Z), powerkit doesn't calculate it yet."
+      - "For two correlations in the same people (for example, X with Y and X with Z), use the card for two dependent correlations."
     inputs: ["Names of the two groups and the two variables", "The expected correlation in each group", "The size of group 2 relative to group 1"]
     tier: v2
     alternatives: ["a moderated regression with the group as moderator"]
@@ -1311,6 +1347,49 @@ endpoints:
     inputs: ["The test statistic", "The noncentrality parameter and the degrees of freedom"]
     tier: v2
     alternatives: ["the card for your design, which starts from an effect size and a sample size"]
+  E51:
+    doc_name: "Two dependent correlations"
+    plain_name: "Compare two correlations in the same people"
+    template: "basic_test / overlapping_correlations, nonoverlapping_correlations"
+    backend: "pwrss: power.z.twocors.steiger() (Steiger's z test, unpooled as in G*Power, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and reproduces the sample sizes of the G*Power manual's two examples (test-backend-formula-tests.R). Not yet in the full validation run."}
+    card_points:
+      - "Compares two correlations measured in the same people: either sharing a variable (is X more strongly related to Y or to Z?) or with no variable in common (is the link between stress and sleep stronger at 16 than at 14?)."
+      - "Because the same people give both correlations, you also give the correlations between the other pairs of variables: they decide how much the two compared correlations move together."
+    inputs: ["Which two correlations, and the variables' names", "The two correlations you are comparing", "The correlations between the other pairs of variables"]
+    tier: v2
+    alternatives: ["two independent correlations, if each correlation comes from a different group of people"]
+  E52:
+    doc_name: "One variance against a fixed value"
+    plain_name: "Is one group's spread of scores different from a fixed value?"
+    template: "basic_test / one_variance"
+    backend: "Spower: p_var.test() (the chi-square test of one variance, by simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
+      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+    inputs: ["Your outcome's name", "The expected variance and the fixed value"]
+    tier: v2
+    alternatives: ["the one-sample t-test, if your hypothesis is about the average rather than the spread"]
+  E53:
+    doc_name: "Two variances (independent groups)"
+    plain_name: "Do two groups differ in how spread out their scores are?"
+    template: "basic_test / two_variances"
+    backend: "Spower: p_var.test() (the F test of two variances, by simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
+      - "Groups of equal size only, for now: the package behind it can't simulate unequal groups yet."
+      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+    inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
+    tier: v2
+    alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"
@@ -1380,7 +1459,8 @@ guided:
         - {when: {outcome: categories, x: score}, endpoint: E-unsure}
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
-        - {when: {outcome: count}, endpoint: E28}
+        - {when: {outcome: count, times: once}, endpoint: E28}
+        - {when: {outcome: count}, endpoint: E-unsure}
         - {when: {outcome: ordinal}, endpoint: E29}
         - when: {x: cond2, covariate: baseline}
           ask:
@@ -1535,10 +1615,10 @@ glossary:
   - {term: "R-squared change", pattern: "R-squared change", hint: "How much R-squared goes up when the predictor or predictors of interest are added."}
   - {term: "discordant proportions", pattern: "discordant", hint: "Among people measured twice, the share who change from yes to no and the share who change from no to yes."}
   - {term: "odds ratio", pattern: "odds ratio", hint: "How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference."}
-  - {term: "regression coefficients", pattern: "regression coefficients", hint: "How much the outcome is expected to change for a one-unit change in a predictor."}
   - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
   - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
   - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
+  - {term: "variance", pattern: "\\bvariances?\\b(?! components)", hint: "How spread out the scores are: the SD squared."}
   - {term: "variance components", pattern: "variance components", hint: "How much scores vary because some participants, and some stimuli, score higher or lower than others overall."}
   - {term: "intraclass correlation (ICC)", pattern: "intraclass correlation|\\bICC\\b", hint: "How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1."}
   - {term: "cluster size", pattern: "cluster size", hint: "How many people there are in each group (for example, pupils per class)."}

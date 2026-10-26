@@ -44,8 +44,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E23-E26 and E48-E50 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E48", "E49", "E50"))
+test_that("E1-E9, E18, E19, E23-E28 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51", "E52", "E53"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -645,7 +645,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E23", "E24", "E25", "E26", "E48", "E49")) {
+  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E51", "E52", "E53")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -704,6 +704,101 @@ test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes",
   # With the z test, Known difference 2 doesn't apply.
   z <- build_spec(forms, "E5", fields, form_examples$E5)
   expect_length(known_difference_keys(forms, "E5", z), 0)
+})
+
+test_that("two dependent correlations run on pwrss's unpooled Steiger test, with Departure 12, for either kind", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E51"))
+  spec <- build_spec(forms, "E51", fields, form_examples$E51)
+  expect_identical(spec$template, "overlapping_correlations")
+  expect_identical(spec$variables$Z$type, "continuous")
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.twocors.steiger")
+  html <- as.character(result_panel_ui(tree, forms, "E51", fields, form_examples$E51, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "139 and 875", fixed = TRUE)                          # Departure 12
+  # The G*Power manual's example without a shared variable (28.3.1): 886.
+  values <- c(list(comparison = "nonoverlapping_correlations", X1_label = "Stress at 14", Y1_label = "Sleep at 14",
+    X2_label = "Stress at 16", Y2_label = "Sleep at 16", r_X1_Y1 = "0.1", r_X2_Y2 = "0.2", r_X1_X2 = "0.5",
+    r_X1_Y2 = "0.4", r_Y1_X2 = "-0.4", r_Y1_Y2 = "0.8", alternative = "greater"), closing_ok)
+  spec <- build_spec(forms, "E51", fields, values)
+  expect_null(spec$variables$Z)
+  expect_equal(run_calculation(spec, run, seed = 1L)$result$n_required$n, 886)
+})
+
+test_that("a planned contrast runs on pwrss, and refuses weights that don't add up to 0", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E19"))
+  spec <- build_spec(forms, "E19", fields, form_examples$E19)
+  expect_equal(unlist(spec$target_test$weights), c(-3, -1, 1, 3))
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
+  expect_gt(calc$result$n_required$n, 0)
+  html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  # Weights that don't add up to 0 are refused in plain English.
+  bad <- build_spec(forms, "E19", fields, modifyList(form_examples$E19, list(weights = "-1, 0, 0, 2")))
+  expect_error(run(bad), "must add up to 0", fixed = TRUE)
+})
+
+test_that("Poisson regression runs on pwrss, with the exposure and a yes/no predictor", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E28"))
+  calc <- run_calculation(build_spec(forms, "E28", fields, form_examples$E28), run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.poisson")
+  n_one_year <- calc$result$n_required$n
+  expect_gt(n_one_year, 0)
+  html <- as.character(result_panel_ui(tree, forms, "E28", fields, form_examples$E28, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  # Following people for longer means more events, so fewer people.
+  values <- modifyList(form_examples$E28, list(mean_exposure = "2"))
+  calc <- run_calculation(build_spec(forms, "E28", fields, values), run, seed = 1L)
+  expect_lt(calc$result$n_required$n, n_one_year)
+  values <- modifyList(form_examples$E28, list(X_type = "binary", X_label = "Condition", X_level1 = "Control",
+    X_level2 = "Peer support", x_prob = "0.5"))
+  spec <- build_spec(forms, "E28", fields, values)
+  expect_identical(spec$variables$X$type, "binary")
+  expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.z.poisson")
+})
+
+test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E27"))
+  calc <- run_calculation(build_spec(forms, "E27", fields, form_examples$E27), run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.logistic")
+  expect_gt(calc$result$n_required$n, 0)
+  expect_length(known_difference_keys(forms, "E27", calc$spec), 0)
+  html <- as.character(result_panel_ui(tree, forms, "E27", fields, form_examples$E27, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_no_match(html, "395 against 375", fixed = TRUE)
+  # With R-squared above 0, the result screen and the write-up say so.
+  values <- modifyList(form_examples$E27, list(r2_other = "0.1", just_source = "A pilot study."))
+  calc <- run_calculation(build_spec(forms, "E27", fields, values), run, seed = 1L)
+  expect_identical(known_difference_keys(forms, "E27", calc$spec), "3")
+  html <- as.character(result_panel_ui(tree, forms, "E27", fields, values, calc))
+  expect_match(html, "395 against 375", fixed = TRUE)
+  w <- writeup_text(forms$forms$E27, calc$spec, calc$result, fields, values,
+    known_methods = forms$known_differences_methods[["3"]])
+  expect_match(w[["short"]], "not yet been resolved", fixed = TRUE)
+  # A yes/no predictor names its groups and gives the split.
+  values <- modifyList(form_examples$E27, list(X_type = "binary", X_label = "Condition", X_level1 = "Control",
+    X_level2 = "Reminder", x_prob = "0.5"))
+  spec <- build_spec(forms, "E27", fields, values)
+  expect_identical(spec$variables$X$type, "binary")
+  expect_equal(spec$population$x_prob, 0.5)
+  expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.z.logistic")
+})
+
+test_that("the variance tests run on Spower, with Known difference 4", {
+  skip_without_run()
+  for (ep in c("E52", "E53")) {
+    calc <- run_calculation(light_spec(ep), run, seed = 1L)
+    expect_match(calc$result$provenance$backend_function, "Spower::p_var.test(", fixed = TRUE, label = ep)
+    fields <- form_fields(form_groups(forms, ep))
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
+    expect_match(html, "Validation in progress. ", fixed = TRUE, label = ep)
+    expect_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
+  }
 })
 
 test_that("goodness of fit and two correlations run on pwrss, with their notes", {

@@ -1,6 +1,6 @@
 # Handover
 
-*Updated 18 October 2026, for whoever picks the project up next.
+*Updated 26 October 2026, for whoever picks the project up next.
 [`status.md`](status.md) is the current state and the priorities; this
 page is the working rules and where things live. [`README.md`](README.md)
 maps every document.*
@@ -32,7 +32,7 @@ and the write-up all need the user's reasoning.
 
 ## What to work on next
 
-[`next.md`](next.md) is the ordered queue, twenty items deep, each marked
+[`next.md`](next.md) is the ordered queue, about twenty items deep, each marked
 Ready or needing a decision, with what is waiting on the maintainer at the
 bottom. It is the one place to look.
 
