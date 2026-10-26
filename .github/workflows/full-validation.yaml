@@ -17,8 +17,8 @@
 # uploaded (the summary lists unfinished tests as NOT RUN). Estimates on
 # 4 cores, from one-core timings on the maintainer's laptop (1,000 Monte
 # Carlo draws; a runner core may be slower, so allow up to about twice
-# these; the first run also spends about 10 minutes installing packages,
-# later runs reuse a cache):
+# these; the job runs in the CI image (ci-image.yaml), so no time goes on
+# installing packages):
 #   basic, interactions   minutes
 #   anova                 about 1 hour (8 simulated tests of about 9
 #                         minutes each, 4 at a time)
@@ -69,13 +69,29 @@ permissions:
   contents: read
 
 jobs:
+  image:
+    uses: ./.github/workflows/ci-image.yaml
+    permissions:
+      contents: read
+      packages: write
+
   validation:
     name: validation (${{ inputs.chunk }})
+    needs: image
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       CHUNK: ${{ inputs.chunk }}
+      RENV_ACTIVATE_PROJECT: "FALSE"
       # Cores per test, set here for the whole job so every step has it:
       # 4 for the mediation chunks (process_*); 2 for the parallel and
       # serial cross-checks (2 tests each, so both run at once); 1 for the
@@ -83,29 +99,6 @@ jobs:
       PER_TEST: ${{ startsWith(inputs.chunk, 'process_') && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
     steps:
       - uses: actions/checkout@v4
-
-      # System libraries the R packages in renv.lock need on Linux and the
-      # runner lacks. renv's restore (unlike r-lib/actions/setup-r-
-      # dependencies, which the other workflows use) doesn't install them.
-      # libglpk: igraph's binary links to it (igraph is needed by
-      # manymome, which power4mome needs). Every other package in
-      # renv.lock with Linux system requirements loads on the runner as it
-      # is (checked against a failed run's log, 15 October 2026). If a
-      # restore fails with "cannot open shared object file: libX.so", add
-      # the Ubuntu package that provides libX here.
-      - name: Install system libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libglpk-dev
-
-      # The R version recorded in renv.lock.
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: renv
-          use-public-rspm: true
-
-      # Restores the package versions in renv.lock (cached between runs).
-      - uses: r-lib/actions/setup-renv@v2
 
       # Stops here, before the long run, if a package doesn't load.
       - name: Check that the packages load

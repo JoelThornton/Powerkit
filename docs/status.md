@@ -86,6 +86,9 @@ fully validated. Validation runs are recorded in
     every end point, as G\*Power's menu does, with the questions offered as
     a filter ([`decisions.md`](decisions.md), 26 October 2026);
   - browser Back and Forward move between screens;
+  - a card-based layout: Back and Start again at the top of each screen,
+    the next step pinned to the bottom of the window, choices and results
+    as cards (26 October 2026);
   - About and "What's new" tabs (`app/routing/whats-new.yaml`); a Feedback
     tab whose Send button stores the message in the `powerkit_feedback`
     table of the goal-machine Supabase project (read it in Supabase's table
@@ -110,6 +113,14 @@ fully validated. Validation runs are recorded in
   semPower for B17 and DescTools for B27's test, all **not checked**
   against their own help files (CRAN wasn't reachable when they were
   recorded); nothing is built on them.
+- **CI (26 October 2026):** the test workflows run in a prebuilt image
+  with R and the locked packages installed (rebuilt only when `renv.lock`
+  changes), and set `NOT_CRAN` themselves, so the app's calculation tests
+  run in CI ([`decisions.md`](decisions.md)).
+- **Whole-study plan, still to build:** the combined sample size, shared
+  values entered once on the plan (open question 12, decided 26 October
+  2026), and whole-study simulation later as a checked option; all queued
+  in [`next.md`](next.md).
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation

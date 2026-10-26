@@ -683,7 +683,7 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
 
 validation_ui <- function(ep) {
   if (identical(ep$status, "runs_validated")) {
-    div(class = "status status-runs", tags$strong("Validated. "), ep$validation$note)
+    p(class = "result-validation small text-muted", tags$strong("Validated. "), ep$validation$note)
   } else {
     div(class = "status status-in-progress", tags$strong("Validation in progress. "), ep$validation$note %||% "")
   }
@@ -719,8 +719,13 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  # In cards (26 October 2026): the answer first, then exploring it, then
+  # where powerkit differs and how it was calculated, then saving and the
+  # write-up. The details a reader rarely needs (the values used, the seed,
+  # what power can't tell you) are folded under "More about this result".
   div(
     class = "result-panel", role = "status", tabindex = "-1",
+    div(class = "result-card result-main",
     h3(class = "h4", "Your result"),
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
@@ -732,24 +737,18 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
-    p(class = "result-detail", words[["detail"]]),
-    if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
-    explore_ui(spec),
+    p(class = "result-detail", words[["detail"]])),
+    if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
+    div(class = "result-card result-explore", explore_ui(spec)),
+    div(class = "result-card result-how",
+    h4(class = "h5", "How it was calculated"),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
-    p(class = "result-seed small",
-      sprintf("Seed: %s. ", p_$seed),
-      if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
-        "Nothing was simulated, so the seed doesn't change this result in practice."),
-    p(class = "result-observed small", not_observed_power),
-    p(class = "result-limits small", power_limits),
-    validation_ui(ep),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
       if (p_$backend %in% c("pwr", "stats", "pwrss")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations below."),
-    h4(class = "h6", "What this result used"),
-    tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
+    validation_ui(ep),
     if (length(departures)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
@@ -759,6 +758,18 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
     ),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
+    tags$details(class = "result-more",
+      tags$summary("More about this result: the values it used, the seed, and what power can't tell you"),
+      h4(class = "h6", "What this result used"),
+      tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
+      p(class = "result-seed small",
+        sprintf("Seed: %s. ", p_$seed),
+        if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
+          "Nothing was simulated, so the seed doesn't change this result in practice."),
+      p(class = "result-observed small", not_observed_power),
+      p(class = "result-limits small", power_limits))),
+    div(class = "result-card result-save",
+    h4(class = "h5", "Save and share"),
     if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
@@ -771,7 +782,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     placeholders_at(tree, "result"),
     tags$details(tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
-    tags$details(tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
+    tags$details(tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
 }
 
