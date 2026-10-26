@@ -103,7 +103,7 @@ coming_soon_ui <- function(text) {
 progress_steps <- c(study = "Your study", design = "Find your design", numbers = "Your numbers", result = "Result")
 
 screen_step <- function(screen, has_result = FALSE) {
-  if (screen %in% c("start", "check")) return("study")
+  if (screen %in% c("start", "aim", "check")) return("study")
   if (identical(screen, "form")) return(if (isTRUE(has_result)) "result" else "numbers")
   "design"
 }
@@ -152,49 +152,40 @@ nav_js <- "
 
 # Start screen ---------------------------------------------------------------
 
-# Screen A's three questions (tree.yaml, start_questions), each a set of
-# radio buttons with its first option preselected and a line of help under
-# each option.
-start_questions_ui <- function(tree, start = list()) {
-  lapply(tree$start_questions, function(q) {
-    keys <- names(q$options)
-    choice_names <- lapply(keys, function(k) {
+# The aim (tree.yaml, start_questions), on its own screen after the route
+# is chosen: one card per answer. Estimation and equivalence go to their
+# cards (start_exit()); testing a prediction goes on to the screening.
+aim_question <- function(tree) Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
+
+aim_ui <- function(tree) {
+  q <- aim_question(tree)
+  tagList(
+    screen_nav_ui(),
+    h2(q$question),
+    div(class = "choices", lapply(names(q$options), function(k) {
       o <- q$options[[k]]
-      tags$span(tags$strong(o$label), tags$span(class = "option-help small text-muted", o$help))
-    })
-    div(class = "start-question",
-      radioButtons(paste0("start_", q$id), tags$span(class = "h5", q$question),
-        choiceNames = choice_names, choiceValues = keys,
-        selected = start[[q$id]] %||% keys[[1]], width = "100%"))
-  })
+      pick_button(o$label, paste0("aim:", k), o$help)
+    })),
+    p(class = "text-muted small", tree$routes$screening_note)
+  )
 }
 
-# The answers to screen A, from the inputs (first options where unanswered).
-start_answers <- function(tree, input) {
-  out <- lapply(tree$start_questions, function(q) input[[paste0("start_", q$id)]] %||% names(q$options)[[1]])
-  stats::setNames(out, vapply(tree$start_questions, `[[`, "", "id"))
-}
-
-# Where screen A's aim sends the user before the design finder: a card for
-# aims powerkit doesn't support yet, or NULL.
+# Where the aim sends the user before the design finder: a card for aims
+# powerkit doesn't support yet, or NULL.
 start_exit <- function(tree, start) {
-  aim <- Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
-  aim$options[[start$aim %||% "predict"]]$`next`
+  aim_question(tree)$options[[start$aim %||% "predict"]]$`next`
 }
 
-# Screen A, as cards (26 October 2026): the three questions side by side,
-# each option's help shown under the chosen option only, then the three
-# ways to start as large cards.
+# The start screen (26 October 2026): only the three ways to start. The
+# aim follows on its own screen; whether the sample size is fixed and how
+# several tests are handled are asked on the input screen, where they are
+# used.
 start_ui <- function(tree, start = list()) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
   tagList(
-    h2("Before you start"),
-    p(class = "lead", "Three questions about your study. They decide what powerkit works out for you and how several tests are handled."),
-    div(class = "start-grid", start_questions_ui(tree, start)),
-    h2(class = "mt-4", tree$routes$question),
+    h2(tree$routes$question),
     div(class = "choices route-choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
-    p(class = "text-muted small", tree$routes$screening_note),
     placeholders_at(tree, "start")
   )
 }
