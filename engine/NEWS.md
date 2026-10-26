@@ -1,7 +1,7 @@
 # powerkit 0.5.0
 
 Batch 1: the five designs the engine already computed become reachable in
-the app (docs/next.md, items 1 to 5).
+the app (docs/next.md).
 
 * App: logistic regression with one predictor (E27) calculates in the app.
   Its card now says what powerkit does instead of "not in powerkit"; the
@@ -21,7 +21,10 @@ the app (docs/next.md, items 1 to 5).
   predictor is a score or a yes/no group (with the group names and split),
   the rate ratio, the starting rate, the mean exposure and the predictor's
   R-squared with any other predictors, with the direction question.
-  `single_predictor_count` leaves `engine_only`.
+  `single_predictor_count` leaves `engine_only`. Count outcomes now go
+  through the screening questions like the others: a count measured once
+  per person reaches E28, a count measured twice or more reaches the
+  safety net, and moderation or mediation with a count reaches E32.
 
 # powerkit 0.4.1
 
