@@ -103,7 +103,7 @@ fully validated. Validation runs are recorded in
   cards, and two parallel mediators only.
 - **Whole-study plan, still to build (26 October 2026):** the combined
   sample size and the consistency check, labelled "Coming soon" on the
-  plan, are now in the queue ([`next.md`](next.md), items 9 to 11).
+  plan, are now in the queue ([`next.md`](next.md)).
   Open question 12 is decided: shared values are entered once on the
   plan now, and whole-study simulation follows later as a checked option.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
@@ -125,6 +125,17 @@ fully validated. Validation runs are recorded in
   full-validation workflow, every test conventions.md names existing, and
   coverage-roadmap.md's summary counts matching its rows
   (`app/routing/tests/testthat/test-repo-consistency.R`).
+- **The app's calculation tests run in CI (26 October 2026, in review):**
+  the six app tests that check a result against the engine and the
+  downloaded script against the result were thought to skip in CI. They
+  don't: setup-r sets `NOT_CRAN`. Both test workflows now set it
+  themselves, so the tests can't be lost if the jobs change how R is
+  installed.
+- **CI in a prebuilt image (26 October 2026, in review):** the test
+  workflows run in an image with R and the locked packages already
+  installed, rebuilt only when `renv.lock` changes, so a check no longer
+  spends most of its time, or fails, downloading R and system libraries
+  (docs/decisions.md).
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the
