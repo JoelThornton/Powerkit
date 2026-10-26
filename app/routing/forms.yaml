@@ -85,16 +85,14 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # template that is neither named by a card nor listed here, so a design
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
-engine_only:
-  one_variance: "one group's variance against a fixed value; batch 1"
-  two_variances: "two groups' variances compared; batch 1"
+engine_only: {}  # none waiting at the moment
 
 # End points whose calculation runs on the input screen (phase 5). E1-E8
 # run in seconds on one core (measured 17 October 2026 with the example
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E48, E49, E50, E51]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E48, E49, E50, E51, E52, E53]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -172,6 +170,7 @@ known_differences:
   "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, power_interaction_r2(), as G*Power's would, not from simulation. Fixed-model power is slightly higher than simulated power (up to about 1.4 points), so the smallest effect you could detect may be slightly larger than shown. Sample size and power for this design are simulated."
   "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
   "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
+  "4": "Variance tests: powerkit simulates power (Spower's p_var.test()), because no package it builds on has a formula for these tests; G*Power computes them exactly. The simulated answer carries a little random error: about 0.013 in power at 1,000 replications and about 0.004 at 10,000, so the sample size can differ from G*Power's by a participant or two."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -180,6 +179,7 @@ known_differences_methods:
   "1 sensitivity": "The smallest detectable effect was found with a fixed-model formula, which treats the predictors as fixed; for interactions this gives slightly higher power than simulation with the predictors drawn afresh in each sample, so the smallest detectable effect may be slightly larger than reported."
   "2": "Because power for an exact test of counts goes up and down as N grows, the sample size reported is the smallest N that reaches the target power, as in G*Power; pwrss's own sample-size answer can be slightly larger."
   "3": "The predictor's overlap with the other predictors was allowed for through its R-squared with them; for this case the G*Power manual's example reports a sample size a few per cent larger than this method gives, a difference that has not yet been resolved."
+  "4": "Power was estimated by simulation, so it carries Monte Carlo error, whereas G*Power computes this test exactly."
 
 forms:
   E1:
@@ -733,6 +733,50 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
+
+  # Variance tests (Spower's p_var.test(), simulated: Known difference 4).
+  # Variances, not SDs, because the spec holds variances; the help says how
+  # to get one from an SD. Two groups are equal in size: Spower can't draw
+  # unequal groups yet (docs/upstream-questions.md).
+  E52:
+    methods_name: "a chi-square test of one variance"
+    tool: Spower
+    directional: true
+    known_differences: ["4"]
+    base: {spec_version: "0.1", design: basic_test, template: one_variance,
+           variables: {"Y": {type: continuous}}, population: {metric: variance},
+           target_test: {effect: variance_ratio, method: chi_square_var}}
+    groups:
+      - input: "Your outcome's name"
+        fields:
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The expected variance and the fixed value"
+        fields:
+          - {id: var, writeup_label: "expected variance", label: "Expected variance (the SD squared)", type: number, path: population.var, effect: true, min_exclusive: 0,
+             help: "For example, an SD of 1.2 is a variance of 1.44."}
+          - {id: var0, label: "The fixed variance you compare it with", type: number, path: population.var0, required: true, min_exclusive: 0,
+             help: "For example, the variance of a published norm. A one-sided test predicting 'positive' says your group's variance is the larger."}
+
+  E53:
+    methods_name: "an F test of two variances"
+    tool: Spower
+    directional: true
+    known_differences: ["4"]
+    base: {spec_version: "0.1", design: basic_test, template: two_variances,
+           variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: variance},
+           target_test: {effect: variance_ratio, method: f_var}}
+    groups:
+      - input: "Names of the two groups and the outcome"
+        fields:
+          - {id: G_label, label: "What the groups are (for example, training)", type: text, path: variables.G.label, required: true}
+          - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
+          - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The expected variance in each group"
+        fields:
+          - {id: var1, writeup_label: "variance in group 1", label: "Variance in group 1 (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
+             help: "For example, an SD of 1.2 is a variance of 1.44. A one-sided test predicting 'positive' says group 1's variance is the larger."}
+          - {id: var2, writeup_label: "variance in group 2", label: "Variance in group 2 (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
 
   # Logistic regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its odds ratio is per SD; a yes/no X compares

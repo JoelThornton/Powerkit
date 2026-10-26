@@ -44,8 +44,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E19, E23-E28 and E48-E51 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51"))
+test_that("E1-E9, E18, E19, E23-E28 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51", "E52", "E53"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -645,7 +645,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E51")) {
+  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E51", "E52", "E53")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -787,6 +787,18 @@ test_that("logistic regression runs on pwrss, with Known difference 3 only when 
   expect_identical(spec$variables$X$type, "binary")
   expect_equal(spec$population$x_prob, 0.5)
   expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.z.logistic")
+})
+
+test_that("the variance tests run on Spower, with Known difference 4", {
+  skip_without_run()
+  for (ep in c("E52", "E53")) {
+    calc <- run_calculation(light_spec(ep), run, seed = 1L)
+    expect_match(calc$result$provenance$backend_function, "Spower::p_var.test(", fixed = TRUE, label = ep)
+    fields <- form_fields(form_groups(forms, ep))
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
+    expect_match(html, "Validation in progress. ", fixed = TRUE, label = ep)
+    expect_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
+  }
 })
 
 test_that("goodness of fit and two correlations run on pwrss, with their notes", {

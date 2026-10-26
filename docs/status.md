@@ -45,7 +45,9 @@ fully validated. Validation runs are recorded in
     groups' variances; simulated with Spower's `p_var.test()`, Known
     difference 4; an allocation ratio is refused while Spower can't draw
     unequal groups, [`upstream-questions.md`](upstream-questions.md)):
-    engine only.
+    their own cards (E52, E53), input screens and a design-finder
+    question ("Whose spread of scores are you comparing?") **in review**
+    (26 October 2026).
 - **More tests by formula already in the app** (pwrss): Fisher's exact
   test (E5's test version), one-way ANCOVA (E23), chi-square goodness of
   fit (E48, its own card), two independent correlations (E49) and the

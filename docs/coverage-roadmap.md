@@ -159,8 +159,8 @@ Departure 10 in [`conventions.md`](conventions.md).
 
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A43 | Variances: one group | GP | none: engine only (template `one_variance`) | Planned (engine groundwork, draft PR; not wired) | Now: AP, PN (simulated). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars, sigma2)`**, which runs `EnvStats::varTest()`, the chi-square test of G\*Power's section 26 | Transcribe the published values (Example 26.3); then the app, if G1 says so | [G1][] |
-| A44 | Variances: two groups | GP | none: engine only (template `two_variances`) | Planned (engine groundwork, draft PR; not wired) | Now: AP, PN (simulated, equal groups only). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars = c(v1, v2))`**. Answered (25 October 2026): for two groups it runs `stats::var.test()`, the F test of G\*Power's section 15, whatever `test` says (Levene, Bartlett and Fligner are for three groups or more); `test = "Fligner"` is the one exception. Unequal groups fail in `gen_var.test()`, so an allocation ratio is refused (`upstream-questions.md`) | Transcribe the published values (Example 15.3); then the app, if G1 says so | [G1][] |
+| A43 | Variances: one group | GP | E52 | Wired (in the app, simulated: Known difference 4; values to transcribe) | Now: AP, PN (simulated). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars, sigma2)`**, which runs `EnvStats::varTest()`, the chi-square test of G\*Power's section 26 | Transcribe the published values (Example 26.3) | [G1][] |
+| A44 | Variances: two groups | GP | E53 | Wired (in the app, simulated, equal groups only: Known difference 4; values to transcribe) | Now: AP, PN (simulated, equal groups only). Could: AP, PN, S, Co, Cr | **Engine: Spower `p_var.test(vars = c(v1, v2))`**. Answered (25 October 2026): for two groups it runs `stats::var.test()`, the F test of G\*Power's section 15, whatever `test` says (Levene, Bartlett and Fligner are for three groups or more); `test = "Fligner"` is the one exception. Unequal groups fail in `gen_var.test()`, so an allocation ratio is refused (`upstream-questions.md`) | Transcribe the published values (Example 15.3) | [G1][] |
 
 ### Generic
 
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 17 | 1 | 0 | 18 |
+| Wired (validation not finished) | 19 | 1 | 0 | 20 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 3 | 25 | 2 | 30 |
+| Planned | 1 | 25 | 2 | 28 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

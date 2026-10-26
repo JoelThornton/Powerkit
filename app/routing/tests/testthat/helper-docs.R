@@ -47,7 +47,7 @@ doc_question_ids <- function() {
       range <- regmatches(part, regexec("^([A-Z]+)([0-9]+)–[A-Z]+([0-9]+)$", part))[[1]]
       if (length(range) == 4) {
         ids <- c(ids, paste0(range[2], seq(as.integer(range[3]), as.integer(range[4]))))
-      } else if (grepl("^(S[0-9]+|Q[0-9]+|O5a|F[0-9]+[a-z]?|R[0-9]+|T[0-9]+|MO[0-9]+|ME[0-9]+|MM[0-9]+|PP[0-9]+|Q-[a-z]+)$", part)) {
+      } else if (grepl("^(S[0-9]+|Q[0-9]+|O5a|F[0-9]+[a-z]?|R[0-9]+|T[0-9]+|MO[0-9]+|ME[0-9]+|MM[0-9]+|PP[0-9]+|V[0-9]+|Q-[a-z]+)$", part)) {
         ids <- c(ids, part)
       }
     }

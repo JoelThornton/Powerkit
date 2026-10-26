@@ -217,6 +217,15 @@ test_that("two correlations in the same people reach their own card, not the ind
   expect_identical(follow_answers(tree, c(base, "A score, and the question is whether the relationship differs between two separate groups")), "E49")
 })
 
+test_that("a hypothesis about how much scores vary reaches the variance tests, and only for a score measured once", {
+  base <- c("A score or scale", "Independent people", "Once", "Detect an effect",
+    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
+  expect_identical(follow_answers(tree, c(base, "One group's, against a fixed value (for example, a published norm)")), "E52")
+  expect_identical(follow_answers(tree, c(base, "Two groups', with different people in each")), "E53")
+  q1 <- vapply(visible_options(tree, tree$nodes$q1, list(outcome = "score", times = "twice")), `[[`, "", "label")
+  expect_false(any(grepl("spread out", q1, fixed = TRUE)))
+})
+
 test_that("the analyses in the UCLA OARC test-selection table reach the end points recorded in docs/routing-audit.md", {
   once <- function(outcome) c(outcome, "Independent people", "Once", "Detect an effect")
   twice <- function(outcome) c(outcome, "Independent people", "Twice", "Detect an effect")

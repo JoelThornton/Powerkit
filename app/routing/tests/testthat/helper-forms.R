@@ -55,6 +55,9 @@ form_examples <- list(
           modifyList(closing_ok, list(goal = "power"))),
   E51 = c(list(comparison = "overlapping_correlations", X_label = "Wellbeing", Y_label = "Self-control", Z_label = "Grit",
                r_X_Y = "0.4", r_X_Z = "0.2", r_Y_Z = "0.5", alternative = "two_sided"), closing_ok),
+  E52 = c(list(Y_label = "Reaction time", var = "1", var0 = "1.5", alternative = "less"), closing_ok),
+  E53 = c(list(G_label = "Group", G_level1 = "Trained", G_level2 = "Untrained", Y_label = "Reaction time",
+               var1 = "1.5", var2 = "1", alternative = "two_sided"), closing_ok),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)

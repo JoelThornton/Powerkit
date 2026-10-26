@@ -521,10 +521,11 @@ engine can use the answer today.
 | T1 | What are the repeated measurements? (after S3 "many times") | The same people in three or more conditions / over time, to see whether a trend changes at a known point / over time, to see how people change | — | Three or more conditions: routing only, the route continues (E18–E21 and E26 are reached later). A trend that changes → E45, how people change → E35: **no (flag)** |
 | S4 | What's your goal? (screening) | Detect an effect / show there's no meaningful effect / estimate an effect precisely | `goal` (detect only) | Detect: yes, the route continues. No meaningful effect → E36, estimate precisely → E46: **no (flag)** |
 | Every question | None of these fit / I'm not sure | (safety net, on every question in every route and on the shortcut list) | — | Leads to E-unsure: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." |
-| Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
+| Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; scores more spread out (or more consistent) in one group than another or than a fixed value (a score measured once only); an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
 | Q2 | What is your outcome like? | Answered by S1 and not asked again. In the relationship path, a categorical outcome asks which kind: yes/no (E27) or one of several categories (E6) | `variables.Y.type` | As S1 |
 | O5a | How will you analyse this rating? (after S1 "ordered categories", every route) | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes, the route continues as a score. Ordered: **no (flag)** → E29. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
 | Q3 | Who gives the data? | Answered by S2 and S3 and not asked again, except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E47, factorial logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
+| V1 | Whose spread of scores are you comparing? | One group's, against a fixed value (E52); two groups', different people in each (E53) | `template` (`one_variance`, `two_variances`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
@@ -587,8 +588,8 @@ that table's "Engine can use it?" column:
   `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square, and for
   one proportion, McNemar's test and two correlations (E25, E26, E49,
-  E51),
-  logistic regression (E27), Poisson regression (E28), and the generic t and z tests (E50);
+  E51), logistic regression (E27), Poisson regression (E28), the variance
+  tests (E52, E53), and the generic t and z tests (E50);
 - participants expected to be lost (Q-attr) on every card but the generic
   tests (E50), which have no sample size;
 - a test version (Q-test) only where there is a choice: Student's or
@@ -632,6 +633,8 @@ the two in step.
 | E49 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E50 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
 | E51 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E52 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E53 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -701,6 +704,8 @@ taken from coverage.md, where they are proposals.
 | E49 | Two independent correlations | `basic_test / two_correlations` | `pwrss::power.z.twocors()` (Fisher's z test). Reached from R1 (a relationship between scores that differs between two separate groups) | Formula (no simulation) | r in each group; allocation ratio | No: matches pwrss called directly in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
 | E50 | Generic t, F, chi-square and z tests (from a noncentrality parameter) | `generic_test / t, f, chi_square or z` | `pwrss::power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`. Reached only from "I know my analysis" | Formula (no simulation) | Noncentrality parameter; degrees of freedom. No sample size | No: matches pwrss called directly and base R's noncentral distributions in `test-backend-generic.R` (G\*Power and published value TODO) | v2 | Runs |
 | E51 | Two dependent correlations | `basic_test / overlapping_correlations, nonoverlapping_correlations` | `pwrss::power.z.twocors.steiger(pooled = FALSE)` (Steiger's z test, unpooled as in G\*Power: Departure 12). Reached from R1 (scores, and whether one correlation is stronger than another in the same people) | Formula (no simulation) | The two compared correlations and the correlations among the other pairs | No: matches pwrss called directly and reproduces the G\*Power manual's required N in `test-backend-formula-tests.R` (published value TODO) | v2 | Runs |
+| E52 | One variance against a fixed value | `basic_test / one_variance` | `Spower::p_var.test()` (the chi-square test of one variance, simulated: Known difference 4). Reached from Q1 (scores more spread out or more consistent) and V1 | Simulation | The expected variance and the fixed value | No: the translation, check run and Type I error in `test-backend-spower.R` (G\*Power and published value TODO) | v2 | Runs |
+| E53 | Two variances (independent groups) | `basic_test / two_variances` | `Spower::p_var.test()` (the F test of two variances, simulated, equal groups only: Known difference 4). Reached from Q1 and V1 | Simulation | The expected variance in each group | No: the translation, check run and Type I error in `test-backend-spower.R` (G\*Power and published value TODO) | v2 | Runs |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 

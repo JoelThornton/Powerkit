@@ -45,6 +45,17 @@ the app (docs/next.md).
   unpooled Steiger test, not pwrss's pooled default). Both templates
   leave `engine_only`.
 
+* App: the two variance tests get cards (E52, one variance against a fixed
+  value; E53, two independent groups) and calculate in the app, by
+  Spower's simulation. The design finder reaches them from a new answer to
+  "What do you want your study to show?" (scores more spread out or more
+  consistent; offered for a score measured once) and a new question, V1,
+  "Whose spread of scores are you comparing?". The input screens ask for
+  variances (the SD squared), with the direction question; the two-group
+  test has equal groups only. Known difference 4 (simulated, where
+  G*Power is exact) is on the result screen and in the methods paragraph.
+  Both templates leave `engine_only`.
+
 # powerkit 0.5.1
 
 * App: the start screen asks only how to start (I know my analysis, Help

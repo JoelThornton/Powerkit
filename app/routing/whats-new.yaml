@@ -6,6 +6,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Hypotheses about how much scores vary"
+    text: >-
+      Some hypotheses are about spread, not averages: that reaction times
+      become more consistent with practice, say, or that one group's
+      answers vary more than another's. powerkit can now plan for these,
+      for one group against a fixed value or for two groups. Choose "That
+      scores are more spread out (or more consistent)" on the first
+      question. Power for these tests is simulated, so the answer can
+      differ from G*Power's by a participant or two.
+  - date: "2026-10-26"
     title: "Comparing two correlations in the same people"
     text: >-
       powerkit can now work out the sample size or power for comparing two
