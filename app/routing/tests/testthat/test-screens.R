@@ -13,7 +13,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), paste0("E", 10:14))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E19", "E45")) {
+  for (id in c("E20", "E45")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -183,6 +183,33 @@ test_that("the plan screen labels the combined N and the consistency check 'Comi
   expect_match(html, "E16", fixed = TRUE)
 })
 
+test_that("the plan opens each analysis's input screen, where powerkit has one", {
+  answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline", times = "once")
+  ticked <- c("compare", "moderation", "mediation")
+  asks <- list(compare = "ANCOVA: the outcome adjusting for the baseline")
+  html <- as.character(guided_plan_ui(tree, answers, ticked, c("compare", "mediation"), asks, "any", forms = forms))
+  # ANCOVA (E23) and the condition x score interaction (E15) have input
+  # screens; mediation with a two-group X (E16) doesn't yet.
+  for (id in ticked) {
+    ep <- resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])$endpoint
+    expect_identical(grepl(sprintf("gform:%s&#39;", id), html, fixed = TRUE), has_form(forms, ep), label = id)
+  }
+  expect_match(html, "gform:compare&#39;", fixed = TRUE)
+  # Two main analyses and "any one": the claim and the number of tests go to
+  # the input screen. An extra analysis, or a lone main one, stands alone.
+  expect_identical(plan_form_start(list(aim = "predict"), "compare", c("compare", "mediation"), "any")[c("claim", "n_tests")],
+    list(claim = "any", n_tests = 2L))
+  expect_identical(plan_form_start(list(), "compare", c("compare", "mediation"), "each")$claim, "each")
+  expect_null(plan_form_start(list(), "compare", c("compare", "mediation"), "each")$n_tests)
+  expect_identical(plan_form_start(list(claim = "all"), "moderation", c("compare", "mediation"), "all")$claim, "one")
+  expect_identical(plan_form_start(list(claim = "all"), "compare", "compare", "all")$claim, "one")
+  # The input screen's back button returns to the plan.
+  expect_match(as.character(form_ui(tree, forms, "E23", form_groups(forms, "E23"), from_plan = TRUE)), "Back to my plan", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'kind == "gform"', fixed = TRUE)
+  expect_match(code, 'if (identical(state$came_from, "plan")) "g_plan" else "card"', fixed = TRUE)
+})
+
 test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec() and exports", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
@@ -197,7 +224,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "power_interval",
     "write_project", "read_project"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E23", "E24", "E25", "E26", "E48", "E49", "E50", "E52", "E53"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51", "E52", "E53"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {
@@ -251,7 +278,7 @@ test_that("the note on other defensible analyses is off until the maintainer tur
     expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
     expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
   }
-  expect_no_match(as.character(card_ui(t2, "E28")), "Other defensible analyses exist", fixed = TRUE)
+  expect_no_match(as.character(card_ui(t2, "E29")), "Other defensible analyses exist", fixed = TRUE)
 })
 
 test_that("the safety-net card says what to write down for a statistician, using the screening answers", {

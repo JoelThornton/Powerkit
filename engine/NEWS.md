@@ -3,6 +3,48 @@
 Batch 1: the five designs the engine already computed become reachable in
 the app (docs/next.md).
 
+* App: logistic regression with one predictor (E27) calculates in the app.
+  Its card now says what powerkit does instead of "not in powerkit"; the
+  input screen asks for the outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the odds ratio, the proportion of "yes" at the starting point, and the
+  predictor's R-squared with any other predictors. The direction question
+  is asked, as for the other tests with a direction. When that R-squared is
+  above 0, the result screen and the methods paragraph state Known
+  difference 3 (forms.yaml, `known_differences_if_above_zero`, a new key).
+  `single_predictor` leaves `engine_only`.
+
+* App: Poisson regression with one predictor (E28) calculates in the app.
+  Its card now says what powerkit does, and that negative binomial
+  regression (for overdispersed counts) is still not covered; the input
+  screen asks for the count outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the rate ratio, the starting rate, the mean exposure and the predictor's
+  R-squared with any other predictors, with the direction question.
+  `single_predictor_count` leaves `engine_only`. Count outcomes now go
+  through the screening questions like the others: a count measured once
+  per person reaches E28, a count measured twice or more reaches the
+  safety net, and moderation or mediation with a count reaches E32.
+
+* App: planned contrasts (E19) calculate in the app. The design finder
+  already sent "a specific comparison" among three or more groups to E19,
+  whose card said powerkit couldn't do it. The input screen asks for the
+  groups, the outcome, the group means, the SD and the contrast weights
+  (one per group, adding up to 0), with an example of a comparison and a
+  linear trend. Equal groups and two-sided only, as pwrss's
+  `power.t.contrasts()` offers. `oneway_contrast` leaves `engine_only`.
+
+* App: two dependent correlations get their own card (E51) and calculate
+  in the app. The design finder reaches it from the relationship path
+  ("one correlation stronger than another in the same people"), next to
+  two independent correlations (E49), whose card now points to it. The
+  input screen asks which kind (sharing a variable, or none in common),
+  the variables' names, the two compared correlations and the
+  correlations among the other pairs, with the direction question. The
+  result screen and methods paragraph state Departure 12 (G*Power's
+  unpooled Steiger test, not pwrss's pooled default). Both templates
+  leave `engine_only`.
+
 * App: the two variance tests get cards (E52, one variance against a fixed
   value; E53, two independent groups) and calculate in the app, by
   Spower's simulation. The design finder reaches them from a new answer to
@@ -13,6 +55,18 @@ the app (docs/next.md).
   test has equal groups only. Known difference 4 (simulated, where
   G*Power is exact) is on the result screen and in the methods paragraph.
   Both templates leave `engine_only`.
+
+# powerkit 0.4.1
+
+* App: in "Plan my whole study", each analysis on the plan that powerkit
+  can calculate now has an "Enter your values" button that opens its
+  input screen, as the card does on the other routes. Before, the plan
+  showed the analyses' cards with no way to calculate any of them. When
+  two or more analyses are main analyses, the input screen takes its
+  claim from the plan's answer to "What does your study's claim need?"
+  (each on its own, every one significant, or any one significant), with
+  the number of main analyses as the number of tests; an extra analysis
+  is powered on its own. "Back to my plan" returns to the plan.
 
 # powerkit 0.4.0
 

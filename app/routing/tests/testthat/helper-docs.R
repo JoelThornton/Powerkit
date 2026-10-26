@@ -90,7 +90,9 @@ roadmap_rows <- function() {
     endpoint = vapply(rows, function(r) {
       sub("^(E[0-9]+)\\b.*", "\\1", first_match(r[-1], "^E[0-9]+\\b"))
     }, ""),
-    status = vapply(rows, function(r) first_match(r[-1], statuses), ""),
+    # The status is searched for after the name, which can itself start
+    # with a status word ("Planned contrasts ...").
+    status = vapply(rows, function(r) first_match(r[-(1:2)], statuses), ""),
     stringsAsFactors = FALSE
   )
 }

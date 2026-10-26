@@ -44,7 +44,6 @@ only partly supported, and the details are listed there.
 | R-squared change | How much R-squared goes up when the predictor or predictors of interest are added. | E24 |
 | discordant proportions | Among people measured twice, the share who change from yes to no and the share who change from no to yes. | E26 |
 | odds ratio | How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference. | E27, E29 |
-| regression coefficients | How much the outcome is expected to change for a one-unit change in a predictor. | E27 |
 | rate ratio | How many times higher the average count is in one group than in another; 1 means no difference. | E28 |
 | product terms | Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction. | E31 |
 | fixed effects | The effects you're testing (for example, of a condition), taken to be the same for everyone. | E33 |

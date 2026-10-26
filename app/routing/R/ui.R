@@ -117,7 +117,7 @@ progress_ui <- function(current) {
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
   "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
-  "checked_project")
+  "plan_id", "checked_project")
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.
@@ -533,7 +533,8 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
 }
 
 guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
-                           history = list(), route_label = "Plan my whole study", raw_answers = answers) {
+                           history = list(), route_label = "Plan my whole study", raw_answers = answers,
+                           forms = NULL) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
   cards <- lapply(ticked, function(id) {
@@ -543,6 +544,10 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     body <- if (!is.null(res$endpoint)) {
       tagList(
         card_ui(tree, res$endpoint, compact = TRUE),
+        # The analysis's input screen, opened from the plan: the same one
+        # the other routes reach from the card.
+        if (!is.null(forms) && has_form(forms, res$endpoint)) div(class = "plan-actions",
+          pick_button("Enter your values", paste0("gform:", id), class = "btn btn-primary")),
         mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
           extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label))))
       )
@@ -573,6 +578,19 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
       pick_button("Back to the analyses", "guided:analyses", class = "btn btn-secondary"),
       pick_button("Start again", "home", class = "btn btn-link"))
   )
+}
+
+# Screen A's answers as the input screen should see them when it is opened
+# from the plan. A main analysis among two or more takes its claim from the
+# plan's answer to "What does your study's claim need?" (the rule ids are
+# the claim ids), with the number of main analyses as the number of tests.
+# An extra analysis, or a single main one, is powered on its own.
+plan_form_start <- function(start, id, primary, rule) {
+  start <- start %||% list()
+  several <- id %in% primary && length(primary) >= 2
+  start$claim <- if (several) rule %||% "each" else "one"
+  start$n_tests <- if (several && start$claim %in% c("any", "all")) length(primary)
+  start
 }
 
 # For the maintainer -------------------------------------------------------------
