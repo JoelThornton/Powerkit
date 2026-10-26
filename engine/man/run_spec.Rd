@@ -84,6 +84,11 @@ test of one predictor, a score (odds ratio per SD) or a yes/no group,
 optionally adjusted for other predictors through their R-squared with
 it, by pwrss's \code{power.z.logistic()} (Demidenko's method with variance
 correction).
+Poisson regression (design \code{poisson_regression}, engine only): the Wald z
+test of one predictor of a count outcome, a score (rate ratio per SD) or
+a yes/no group, over a mean exposure, optionally adjusted for other
+predictors through their R-squared with it, by pwrss's
+\code{power.z.poisson()} (Demidenko's method with variance correction).
 Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.

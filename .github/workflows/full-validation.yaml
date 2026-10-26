@@ -59,6 +59,7 @@ on:
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial
           - logistic
+          - poisson
 
 permissions:
   contents: read

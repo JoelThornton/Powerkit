@@ -9,7 +9,8 @@ population_problems <- function(spec) {
     basic_test = check_basic_test,
     factorial_anova = check_factorial_anova,
     multiple_regression = check_multiple_regression,
-    logistic_regression = check_logistic_regression,
+    logistic_regression = check_single_predictor_x,
+    poisson_regression = check_single_predictor_x,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model,
@@ -88,8 +89,8 @@ uses_simulation <- function(spec) {
 # Designs with an exact method: factorial ANOVA (Superpower's
 # ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
 # (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
-# fit, two correlations, ANCOVA, logistic regression, and Welch's t-test on
-# request).
+# fit, two correlations, ANCOVA, logistic and Poisson regression, and
+# Welch's t-test on request).
 exact_available <- function(spec) {
   spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
     pwr_covers(spec) ||
@@ -105,7 +106,7 @@ simulation_available <- function(spec) {
 
 # Tests powerkit computes with pwrss's formulas only.
 pwrss_only <- function(spec) {
-  identical(spec$design, "logistic_regression") ||
+  spec$design %in% c("logistic_regression", "poisson_regression") ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations", "oneway_ancova") ||
     spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
@@ -189,14 +190,15 @@ check_proportions_formula_allowed <- function(spec) {
 }
 
 # pwrss's one-sided tests (one proportion, McNemar, Fisher's exact test,
-# two correlations, dependent correlations, logistic regression, Welch's
-# t-test by formula) run in the direction of the specified effect, so a
-# one-sided test pointing the
+# two correlations, dependent correlations, logistic and Poisson
+# regression, Welch's t-test by formula) run in the direction of the
+# specified effect, so a one-sided test pointing the
 # other way can't be computed with them.
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
-                 dependent_correlation_templates(), "single_predictor", "t", "z")
+                 dependent_correlation_templates(), "single_predictor",
+                 "single_predictor_count", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -217,6 +219,8 @@ check_direction_allowed <- function(spec) {
     nonoverlapping_correlations = dependent_correlation_difference(spec),
     # "greater" means the odds go up with X (odds ratio above 1).
     single_predictor = log(pop$odds_ratio),
+    # "greater" means the event rate goes up with X (rate ratio above 1).
+    single_predictor_count = log(pop$rate_ratio),
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -234,11 +238,11 @@ check_direction_allowed <- function(spec) {
   )
 }
 
-# Logistic regression ----------------------------------------------------------
+# Logistic and Poisson regression ----------------------------------------------
 
 # 'x_prob' (the proportion in X's second level) only means something for a
 # yes/no X.
-check_logistic_regression <- function(spec) {
+check_single_predictor_x <- function(spec) {
   if (!is.null(spec$population$x_prob) && !identical(spec$variables$X$type, "binary")) {
     return(sprintf(
       "'population > x_prob' is the proportion in the second group of a yes/no X, but %s is a score; remove 'x_prob', or make X binary.",
@@ -916,7 +920,8 @@ minimum_n <- function(spec) {
     multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
     # pwrss's own search for n starts at 2; at least the intercept and X's
     # coefficient, plus one.
-    logistic_regression = 3,
+    logistic_regression = ,
+    poisson_regression = 3,
     regression_interaction = 6,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -975,6 +980,7 @@ target_effect_is_zero <- function(spec) {
     factorial_anova = anova_contrast(spec),
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     logistic_regression = log(pop$odds_ratio),
+    poisson_regression = log(pop$rate_ratio),
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

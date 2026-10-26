@@ -28,6 +28,10 @@
 #   regression         test of one predictor, pwrss::power.z.logistic()
 #                      (Demidenko's 2007 method with its variance
 #                      correction, pwrss's default)
+#   Poisson            poisson_regression/single_predictor_count: the Wald
+#   regression         z test of one predictor, pwrss::power.z.poisson()
+#                      (Demidenko's method with its variance correction,
+#                      as for logistic regression)
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -40,7 +44,8 @@ pwrss_covers <- function(spec) {
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
              "factorial_anova/oneway_ancova",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase",
-             "logistic_regression/single_predictor") ||
+             "logistic_regression/single_predictor",
+             "poisson_regression/single_predictor_count") ||
     (identical(key, "basic_test/two_proportions") &&
       identical(spec$target_test$method, "fisher_exact")) ||
     (identical(key, "basic_test/independent_t") &&
@@ -214,12 +219,26 @@ pwrss_inputs <- function(spec) {
       )
     },
     single_predictor = {
-      distribution <- logistic_predictor_distribution(spec)
+      distribution <- pwrss_predictor_distribution(spec)
       list(
         fun = "power.z.logistic",
         distribution = distribution,
         args = function(n) list(
           base.prob = pop$base_prob, odds.ratio = pop$odds_ratio, n = n,
+          r.squared.predictor = pop$r2_other_predictors %||% 0,
+          alpha = alpha, alternative = alternative, method = "demidenko(vc)",
+          distribution = distribution, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
+    single_predictor_count = {
+      distribution <- pwrss_predictor_distribution(spec)
+      list(
+        fun = "power.z.poisson",
+        distribution = distribution,
+        args = function(n) list(
+          base.rate = pop$base_rate, rate.ratio = pop$rate_ratio, n = n,
+          mean.exposure = pop$mean_exposure %||% 1,
           r.squared.predictor = pop$r2_other_predictors %||% 0,
           alpha = alpha, alternative = alternative, method = "demidenko(vc)",
           distribution = distribution, ceil.n = FALSE, verbose = 0
@@ -244,11 +263,11 @@ pwrss_inputs <- function(spec) {
   call
 }
 
-# The predictor's distribution for pwrss's logistic regression: a
-# standardised score (normal, mean 0, SD 1), so the odds ratio is per SD and
-# the base probability is at X's mean; or a yes/no group (Bernoulli, with
-# the proportion in X's second level).
-logistic_predictor_distribution <- function(spec) {
+# The predictor's distribution for pwrss's logistic and Poisson regression:
+# a standardised score (normal, mean 0, SD 1), so the odds or rate ratio is
+# per SD and the base probability or rate is at X's mean; or a yes/no group
+# (Bernoulli, with the proportion in X's second level).
+pwrss_predictor_distribution <- function(spec) {
   if (identical(spec$variables$X$type, "binary")) {
     list(dist = "bernoulli", prob = spec$population$x_prob %||% 0.5)
   } else {
@@ -328,6 +347,17 @@ pwrss_check_run <- function(spec, inputs) {
     single_predictor = rbind(
       row("odds ratio passed to pwrss (odds.ratio)", pop$odds_ratio, args$odds.ratio),
       row("base probability passed to pwrss (base.prob)", pop$base_prob, args$base.prob),
+      row("R-squared of X on the other predictors (r.squared.predictor)", pop$r2_other_predictors %||% 0, args$r.squared.predictor),
+      if (identical(args$distribution$dist, "bernoulli")) {
+        row("proportion in X's second level (distribution prob)", pop$x_prob %||% 0.5, args$distribution$prob)
+      } else {
+        row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
+      }
+    ),
+    single_predictor_count = rbind(
+      row("rate ratio passed to pwrss (rate.ratio)", pop$rate_ratio, args$rate.ratio),
+      row("base rate passed to pwrss (base.rate)", pop$base_rate, args$base.rate),
+      row("mean exposure passed to pwrss (mean.exposure)", pop$mean_exposure %||% 1, args$mean.exposure),
       row("R-squared of X on the other predictors (r.squared.predictor)", pop$r2_other_predictors %||% 0, args$r.squared.predictor),
       if (identical(args$distribution$dist, "bernoulli")) {
         row("proportion in X's second level (distribution prob)", pop$x_prob %||% 0.5, args$distribution$prob)
