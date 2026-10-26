@@ -251,31 +251,21 @@ settings:
 # the route's `after_screening`: a node id, "list" (the end-point list) or
 # "guided" (the guided route's variables screen).
 # ---------------------------------------------------------------------------
-# Screen A: three questions before the design finder (the new design,
-# docs/decisions.md, 18 October 2026). Their answers set the goal on the
-# input screen (situation), send estimation and equivalence to their cards
-# (aim), and set how several tests are handled (claim). Each option's first
-# choice is preselected.
+# Screen A: the aim, asked after "How do you want to start?" and before the
+# screening (the new design, docs/decisions.md, 18 October 2026; one
+# question per screen since 26 October 2026). Estimation and equivalence go
+# to their cards. The other two questions screen A asked are on the input
+# screen, where they are used: whether the sample size is fixed (shown with
+# the goals that take a sample size) and how several tests are handled
+# (the claim, under Settings; R/forms.R).
 # ---------------------------------------------------------------------------
 start_questions:
-  - id: situation
-    question: "Your sample size"
-    options:
-      choose: {label: "I can choose my sample size", help: "powerkit works out the sample size you need."}
-      fixed: {label: "My sample size is fixed", help: "For example a participant pool, a budget or a rare group. powerkit works out the smallest effect you could detect."}
   - id: aim
-    question: "Your aim"
+    question: "What is your study trying to do?"
     options:
-      predict: {label: "Testing a prediction", help: "For example, that a training improves memory scores."}
-      estimate: {label: "Estimating how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
-      equivalence: {label: "Showing there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set. powerkit doesn't do this yet; the next screen points to tools that do.", next: E36}
-  - id: claim
-    question: "Your claim"
-    options:
-      one: {label: "One test", help: "Your conclusion rests on a single test. Example: the training group remembers more words than the control group."}
-      each: {label: "Several claims, each standing on its own", help: "Each test supports its own conclusion, so each is powered separately, with no correction. Example: anxiety predicts sleep quality, and separately, anxiety predicts concentration. Not everyone agrees that no correction is needed; it depends on your view of significance testing."}
-      any: {label: "Any of several tests", help: "Your claim is about the set, not each test: it is supported if at least one test is significant. Example: the intervention works if it improves mood, sleep or energy. The significance level is divided between the tests (Bonferroni)."}
-      all: {label: "All of several tests", help: "Your claim needs every test to be significant. Example: the manipulation check works and the manipulation changes behaviour. The chance that all succeed is lower than any one test's power, so powerkit raises each test's target power to make up for it."}
+      predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
+      estimate: {label: "Estimate how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
+      equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set. powerkit doesn't do this yet; the next screen points to tools that do.", next: E36}
 
 routes:
   doc_id: S0
