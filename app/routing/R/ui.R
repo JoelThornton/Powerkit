@@ -13,8 +13,22 @@ pick_button <- function(label, value, help = NULL, class = "btn btn-outline-prim
   )
 }
 
+# Where you are and where to go (26 October 2026): "Back" and "Start
+# again" sit at the top of every screen, above its heading, so they are
+# found without scrolling; the screen's next step sits in a bar pinned to
+# the bottom of the window (action_bar()), so it is always in view.
+screen_nav_ui <- function(back = "back", back_label = "Back", restart = TRUE) {
+  div(class = "screen-nav",
+    if (!is.null(back)) pick_button(paste0("\u2190 ", back_label), back, class = "btn btn-link back-link"),
+    if (restart) pick_button("Start again", "home", class = "btn btn-link restart-link"))
+}
+
+action_bar <- function(...) div(class = "nav-buttons action-bar", ...)
+
+# What the prototype can do, as one quiet line under the top bar (it was a
+# large warning box above everything).
 prototype_banner <- function(tree) {
-  div(class = "alert alert-warning prototype-banner", role = "alert", tags$strong(tree$banner))
+  div(class = "prototype-banner", role = "note", tree$banner)
 }
 
 # Placeholders for undecided settings ---------------------------------------
@@ -146,7 +160,7 @@ start_questions_ui <- function(tree, start = list()) {
     keys <- names(q$options)
     choice_names <- lapply(keys, function(k) {
       o <- q$options[[k]]
-      tags$span(tags$strong(o$label), tags$br(), tags$span(class = "small text-muted", o$help))
+      tags$span(tags$strong(o$label), tags$span(class = "option-help small text-muted", o$help))
     })
     div(class = "start-question",
       radioButtons(paste0("start_", q$id), tags$span(class = "h5", q$question),
@@ -168,16 +182,19 @@ start_exit <- function(tree, start) {
   aim$options[[start$aim %||% "predict"]]$`next`
 }
 
+# Screen A, as cards (26 October 2026): the three questions side by side,
+# each option's help shown under the chosen option only, then the three
+# ways to start as large cards.
 start_ui <- function(tree, start = list()) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
   tagList(
     h2("Before you start"),
-    p("Three questions about your study. They decide what powerkit works out for you and how several tests are handled."),
-    start_questions_ui(tree, start),
-    h2(tree$routes$question),
-    div(class = "choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
-    p(class = "text-muted", tree$routes$screening_note),
+    p(class = "lead", "Three questions about your study. They decide what powerkit works out for you and how several tests are handled."),
+    div(class = "start-grid", start_questions_ui(tree, start)),
+    h2(class = "mt-4", tree$routes$question),
+    div(class = "choices route-choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
+    p(class = "text-muted small", tree$routes$screening_note),
     placeholders_at(tree, "start")
   )
 }
@@ -214,6 +231,7 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
   skip <- tree$routes$skip_screening
   may_skip <- screening && identical(route, "known")
   tagList(
+    screen_nav_ui(),
     trail_ui(history),
     # The question ID stays in the page source (for tests and reviewers) but
     # isn't shown to users or read out by screen readers.
@@ -231,8 +249,7 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
         pick_button(skip$label, "skip_screening", skip$help,
           class = "btn btn-outline-secondary choice choice-safety"))
     },
-    placeholders_at(tree, node_id),
-    div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
+    placeholders_at(tree, node_id)
   )
 }
 
@@ -251,6 +268,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
   total <- length(eps)
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
   tagList(
+    screen_nav_ui(),
     trail_ui(history),
     h2("Which analysis do you want?"),
     p(class = "lead", "Pick it by name. Each one opens its card."),
@@ -274,8 +292,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
         }))
       )
     }),
-    div(class = "choices list mt-4", pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety")),
-    div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
+    div(class = "choices list mt-4", pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"))
   )
 }
 
@@ -406,14 +423,16 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
     class = paste("card endpoint-card", if (compact) "compact"),
     div(
       class = "card-body",
-      div(class = "card-eid", ep_id),
+      # The end point's ID and engine template are for reviewers: kept in
+      # the page source, shown only in the maintainer's view.
+      div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
       (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
-      p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template)) tagList(" · ", tags$code(ep$template))),
+      p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       hints_ui(tree, ep$doc_name),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!compact && !isTRUE(ep$generic)) tagList(
+      if (!compact && !isTRUE(ep$generic)) div(class = "card-effect",
         section_heading("Where your effect size comes from"),
         p(jp$text),
         tags$ul(lapply(unname(jp$types), tags$li))
@@ -461,17 +480,16 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   g <- tree$guided
   if (identical(ctx$times, "many_conditions")) {
     return(tagList(
+      screen_nav_ui(),
       trail_ui(history),
       h2("Plan my whole study: your variables"),
       div(class = "status status-soon", g$many_conditions_note),
       placeholders_at(tree, "guided_variables"),
-      div(class = "nav-buttons",
-        pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"),
-        pick_button("Back", "back", class = "btn btn-secondary"),
-        pick_button("Start again", "home", class = "btn btn-link"))
+      action_bar(pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"))
     ))
   }
   tagList(
+    screen_nav_ui(back = NULL),
     trail_ui(history),
     h2("Plan my whole study: your variables"),
     p(class = "lead", g$intro),
@@ -483,7 +501,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
       if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
       radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%")
     }),
-    div(class = "nav-buttons", pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"), pick_button("Start again", "home", class = "btn btn-link"))
+    action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))
   )
 }
 
@@ -507,6 +525,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   role_inputs <- vapply(apps, function(a) sprintf("input['role_%s']", a$id), character(1))
   several_main <- sprintf("[%s].filter(function(v) { return v === 'main'; }).length >= 2", paste(role_inputs, collapse = ", "))
   tagList(
+    screen_nav_ui("guided:variables", "Back to the variables"),
     h2("Plan my whole study: your analyses"),
     p(class = "lead", "For each analysis, say whether you plan it, and whether it is a main analysis. The sample size is worked out for the main analyses."),
     lapply(apps, function(a) {
@@ -526,9 +545,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
         selected = rule %||% "each", width = "100%"
       )
     ),
-    div(class = "nav-buttons",
-      pick_button("Back to the variables", "guided:variables", class = "btn btn-secondary"),
-      pick_button("Show my plan", "guided:plan", class = "btn btn-primary"))
+    action_bar(pick_button("Show my plan", "guided:plan", class = "btn btn-primary"))
   )
 }
 
@@ -558,6 +575,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
   labels <- vapply(g$analyses, function(a) a$label, character(1))
   names(labels) <- vapply(g$analyses, function(a) a$id, character(1))
   tagList(
+    screen_nav_ui("guided:analyses", "Back to the analyses"),
     h2("Your plan"),
     if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
     h3(class = "h4 mt-4", "Combined sample size"),
@@ -568,10 +586,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
       tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
     })),
     coming_soon_ui(g$placeholders$consistency),
-    placeholders_at(tree, "plan"),
-    div(class = "nav-buttons",
-      pick_button("Back to the analyses", "guided:analyses", class = "btn btn-secondary"),
-      pick_button("Start again", "home", class = "btn btn-link"))
+    placeholders_at(tree, "plan")
   )
 }
 

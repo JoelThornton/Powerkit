@@ -68,7 +68,10 @@ fully validated. Validation runs are recorded in
   as a project file and reopened. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud>; the
   run-it-yourself guide ([`run-it-yourself.md`](run-it-yourself.md)) is
-  for running it on one's own computer. In "Plan my whole study",
+  for running it on one's own computer. A cleaner, card-based layout is
+  in review (26 October 2026): Back and Start again at the top of each
+  screen, the next step pinned to the bottom of the window, and choices
+  as cards. In "Plan my whole study",
   each analysis is marked as not planned, main or extra; the sample size
   will be set by the main ones (the combined N is still a placeholder).
   Changing alpha or choosing a one-sided test asks for a reason, which

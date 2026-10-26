@@ -86,20 +86,18 @@ group_ui <- function(tree, g, values, index) {
 form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list()) {
   ep <- tree$endpoints[[ep_id]]
   tagList(
+    screen_nav_ui("form_back", "Back to the card"),
     trail_ui(history),
-    div(class = "card-eid", ep_id),
+    div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
-    p(class = "lead", "Fill in the values for your study, then choose \u201cCheck my answers\u201d."),
+    p(class = "lead", "Everything is needed unless it says optional. Effect sizes start empty: enter the value you expect, and say where it comes from."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
-    p("Everything is needed unless it says optional. Effect sizes, SDs and correlations start empty: enter the values you expect, and say where they come from."),
     placeholders_at(tree, "form"),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
-    div(class = "nav-buttons",
-      actionButton("form_check", "Check my answers", class = "btn btn-primary"),
+    action_bar(
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
-      pick_button("Back to the card", "form_back", class = "btn btn-secondary"),
-      pick_button("Start again", "home", class = "btn btn-link")
+      actionButton("form_check", "Check my answers", class = "btn btn-primary")
     ),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
@@ -134,13 +132,12 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
   )
 }
 
-# The buttons under a card: "Enter your values" where the end point has an
-# input screen, then Back and Start again.
+# The card's next step, pinned to the bottom of the window: "Enter your
+# values" where the end point has an input screen (Back and Start again are
+# at the top of the screen, screen_nav_ui()).
 card_nav_ui <- function(forms, ep_id) {
-  div(class = "nav-buttons",
-    if (has_form(forms, ep_id)) pick_button("Enter your values", "form", class = "btn btn-primary"),
-    pick_button("Back", "back", class = "btn btn-secondary"),
-    pick_button("Start again", "home", class = "btn btn-link"))
+  if (!has_form(forms, ep_id)) return(NULL)
+  action_bar(pick_button("Enter your values \u2192", "form", class = "btn btn-primary btn-lg"))
 }
 
 # Observed power (judgement call 3.1, decided 22 October 2026: warn and

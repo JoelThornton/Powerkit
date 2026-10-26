@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "A cleaner, simpler look"
+    text: >-
+      The app has a new look. "Back" and "Start again" are now at the top of
+      every screen, and the next step (such as "Enter your values" or "Check
+      my answers") stays in view at the bottom of the window, so you no
+      longer scroll to find it. Choices sit side by side as cards, the three
+      starting questions fit on one screen, and each option's explanation
+      shows only once you pick it.
+  - date: "2026-10-26"
     title: "powerkit has a version number"
     text: >-
       The About page now says which version of powerkit you are using, and
