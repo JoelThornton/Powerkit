@@ -132,6 +132,14 @@ fully validated. Validation runs are recorded in
   can't reach** (logistic and Poisson regression, planned contrasts, two
   dependent correlations, the two variance tests); three of them have
   cards that tell users powerkit can't do what it can.
+- **Straight to the list (26 October 2026, in review):** "I know my
+  analysis" can skip the four screening questions and show every end point,
+  as G\*Power's menu does; the questions are offered on the list as a
+  filter instead. The other two routes still screen first, because they
+  need the answers to route at all. The screening's protection is lost on
+  that path by design, so the list says nothing was screened out and each
+  card still states what its test assumes
+  ([`decisions.md`](decisions.md), 26 October 2026).
 - **Variance tests (engine only, 25 October 2026):** the two tests
   G\*Power computes in its sections 26 and 15 — one group's variance
   against a fixed value (chi-square) and two groups' variances (F) — run

@@ -282,6 +282,13 @@ routes:
   question: "How do you want to start?"
   screening_start: s1
   screening_note: "First, four questions check that your design is one powerkit can advise on. No test is suggested until then."
+  # "I know my analysis" can skip the screening and see every analysis. The
+  # questions then become a filter the user can apply afterwards.
+  skip_screening:
+    label: "Skip the questions and show every analysis"
+    help: "You get the whole list, as in G*Power's menu. Some analyses won't suit your design, and nothing checks that: each card still says what its test assumes."
+    note: "Showing all %d analyses, with nothing screened out. Some won't suit your design; each card says what its test assumes and what it needs."
+    filter_label: "Answer the four screening questions instead, to see only what fits"
   options:
     - id: known
       label: "I know my analysis"

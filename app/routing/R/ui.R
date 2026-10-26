@@ -115,6 +115,7 @@ progress_ui <- function(current) {
 # The parts of the app's state that make up "where you are", saved with
 # each history entry. Not the calculation itself: it is run again.
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
+  "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
   "checked_project")
 
@@ -202,11 +203,16 @@ trail_ui <- function(history) {
 
 # `ctx` holds the screening answers so far; options are filtered by it and
 # the safety net comes last. "opt:i" refers to the i-th option shown.
-node_ui <- function(tree, node_id, history, ctx = list()) {
+node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
   node <- tree$nodes[[node_id]]
   label <- node$sub_id %||% node$doc_id
   opts <- visible_options(tree, node, ctx)
   screening <- node$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1")
+  # "I know my analysis" is a menu: someone who knows their test can go
+  # straight to the list. The other routes need the screening answers to
+  # route at all, so the skip isn't offered there.
+  skip <- tree$routes$skip_screening
+  may_skip <- screening && identical(route, "known")
   tagList(
     trail_ui(history),
     # The question ID stays in the page source (for tests and reviewers) but
@@ -220,6 +226,11 @@ node_ui <- function(tree, node_id, history, ctx = list()) {
       pick_button(o$label, paste0("opt:", i), o$help,
         class = if (isTRUE(o$safety)) "btn btn-outline-secondary choice choice-safety" else "btn btn-outline-primary choice")
     })),
+    if (may_skip) {
+      div(class = "choices list mt-4",
+        pick_button(skip$label, "skip_screening", skip$help,
+          class = "btn btn-outline-secondary choice choice-safety"))
+    },
     placeholders_at(tree, node_id),
     div(class = "nav-buttons", pick_button("Back", "back", class = "btn btn-secondary"), pick_button("Start again", "home", class = "btn btn-link"))
   )
@@ -243,7 +254,16 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
     trail_ui(history),
     h2("Which analysis do you want?"),
     p(class = "lead", "Pick it by name. Each one opens its card."),
-    if (!is.null(ctx)) p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.", length(eps), total)),
+    if (!is.null(ctx)) {
+      p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.", length(eps), total))
+    } else {
+      tagList(
+        p(class = "text-muted", sprintf(tree$routes$skip_screening$note, total)),
+        div(class = "choices list",
+          pick_button(tree$routes$skip_screening$filter_label, "screen_me",
+            class = "btn btn-outline-secondary choice choice-safety"))
+      )
+    },
     lapply(names(groups), function(g) {
       ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
       if (length(ids) == 0) return(NULL)
