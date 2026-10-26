@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E23", "E24", "E25", "E26", "E48", "E49", "E50", "E51"))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {
@@ -236,7 +236,7 @@ test_that("'Copy my answers' gives the route, the end point and the values as te
 
 test_that("cards with an input screen offer it; others don't", {
   expect_match(as.character(card_nav_ui(forms, "E2")), "Enter your values", fixed = TRUE)
-  expect_no_match(as.character(card_nav_ui(forms, "E19")), "Enter your values", fixed = TRUE)
+  expect_no_match(as.character(card_nav_ui(forms, "E20")), "Enter your values", fixed = TRUE)
 })
 
 test_that("effect sizes start empty (decided 22 October 2026), shown as a decision in the maintainer's view", {

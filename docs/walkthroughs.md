@@ -311,9 +311,9 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A count*
-- **I know my analysis:** *A count*
-- **Plan my whole study:** *A count*
+- **Help me choose:** *A count* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions*
+- **I know my analysis:** *A count* → *Independent people* → *Once* → *Detect an effect* → list: *An outcome that counts how often something happened*
+- **Plan my whole study:** *A count* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A count; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
 **End point:** E28 (An outcome that counts how often something happened) in all three routes.
 

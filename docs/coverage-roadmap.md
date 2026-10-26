@@ -103,8 +103,8 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | As A10 | **Engine: pwrss `power.f.regression()`, passed the partial R² (R²full − R²reduced) / (1 − R²reduced), so f² = ΔR² / (1 − R²full)**. Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` (its noncentrality f² × (u + v + 1) differs) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
 | A13 | Linear multiple regression: random model | GP | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_lm.R2(fixed = FALSE)` (Example 7.3) | — | [G1][] |
-| A14 | Logistic regression | GP; UCLA | E27 | Planned (more tests by formula: engine built, not wired; not yet checked against G\*Power's manual) | Engine: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders), then a card | — |
-| A15 | Poisson regression | GP | E28 | Planned (more tests by formula: engine built, not wired; checked against G\*Power's manual, values to transcribe) | Engine: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders), then a card | — |
+| A14 | Logistic regression | GP; UCLA | E27 | Wired (in the app; the G\*Power manual's examples reproduce when "R² other X" is 0, see conventions.md, Known difference 3, above it; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders); settle Known difference 3 with G\*Power | — |
+| A15 | Poisson regression | GP | E28 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders) | — |
 
 **Note 1 (A1, the method for correlations).** The maintainer reports that
 G\*Power uses the exact distribution of r below N = 10,000 by default and
@@ -235,7 +235,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B29 | Ordinal regression | ML; UCLA | E29 | Planned (phase 6: GLMs include ordinal outcomes) | Could: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
 | B30 | Negative binomial and zero-inflated counts | ML | E28 | Unknown (check whether Spower `p_glm()` accepts a negative-binomial family; zero-inflated: no candidate found) | — | MKpower `power.nb.test()` (negative binomial; not a foundation tool) | Check | — |
 | B31 | Partial correlation | ML | none: reaches E4 or E24 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` (one coefficient with covariates); pwr `pwr.f2.test(u = 1)`. That this is the same test as a partial correlation is inferred | — | [D7][] |
-| B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Planned (more tests by formula: engine built, not wired; checked against G\*Power's manual, values to transcribe) | Engine: PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders), then a card for E19 | [B7][] |
+| B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders) | [B7][] |
 
 ### Experimental structure
 
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 15 | 0 | 0 | 15 |
+| Wired (validation not finished) | 17 | 1 | 0 | 18 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 5 | 26 | 2 | 33 |
+| Planned | 3 | 25 | 2 | 30 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
