@@ -50,5 +50,5 @@ RUN Rscript -e 'install.packages(c("rcmdcheck", "xml2"), repos = Sys.getenv("REN
 # Stops the build if any locked package doesn't load, or isn't the locked
 # version, rather than letting a job find out.
 RUN Rscript -e 'lock <- jsonlite::fromJSON("renv.lock", simplifyVector = FALSE)$Packages' \
-            -e 'for (p in names(lock)) { loadNamespace(p); v <- format(packageVersion(p)); if (v != lock[[p]]$Version) stop(p, " is ", v, ", renv.lock has ", lock[[p]]$Version) }' \
+            -e 'for (p in names(lock)) { loadNamespace(p); v <- packageVersion(p); if (v != package_version(lock[[p]]$Version)) stop(p, " is ", v, ", renv.lock has ", lock[[p]]$Version) }' \
             -e 'cat(length(lock), "packages load at their locked versions\n")'
