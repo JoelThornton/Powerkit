@@ -43,6 +43,8 @@ form_examples <- list(
                p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
   E48 = c(list(Y_label = "Preferred study method", Y_levels = "Rereading, Highlighting, Practice testing",
                probabilities = "0.25, 0.3, 0.45"), closing_ok),
+  E27 = c(list(Y_label = "Seeks help", X_label = "Loneliness", X_type = "continuous",
+               odds_ratio = "1.5", base_prob = "0.3", r2_other = "0", alternative = "two_sided"), closing_ok),
   E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
                Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E50 = c(list(generic_test = "t", ncp = "2.5", df = "30", alternative = "two_sided"),

@@ -20,8 +20,7 @@ project is, this says what to do.*
 
 | # | What | Why it matters | Size | State |
 | --- | --- | --- | --- | --- |
-| 1 | **Logistic regression in the app** (E27): card status and input screen | The engine computes it and the card tells users it can't. Yes/no outcomes are everywhere in psychology | S | Ready |
-| 2 | **Poisson regression in the app** (E28): card status and input screen | As above, and E28 is already routed to from the screening questions | S | Ready |
+| 2 | **Poisson regression in the app** (E28): card status and input screen | The engine computes it and the card tells users it can't; E28 is already routed to from the screening questions | S | Ready |
 | 3 | **Planned contrasts in the app** (E19): card status and input screen | The engine computes it; the card says it can't. A contrast is how most ANOVA hypotheses are actually tested | S | Ready |
 | 4 | **Two dependent correlations in the app**: its own card and input screen | Comparing two correlations in one sample is common and G\*Power's version is hard to drive | M | Ready |
 | 5 | **The two variance tests in the app**: cards, input screen, and a finder question ("is your hypothesis about how much scores vary?") | Last of the five designs the engine can run but nobody can reach. Needs a route in the finder, not just a listing | M | Ready |
