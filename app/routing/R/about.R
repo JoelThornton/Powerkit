@@ -1,4 +1,4 @@
-# "About this prototype": what powerkit does, that it's a prototype, which
+# The "About" tab: what powerkit does, that it's a prototype, which
 # end points calculate, how to report problems, and credits for the tools
 # it is built on. The lists come from tree.yaml and forms.yaml, so they stay
 # in step with the app; credits come from each package's own citation()
@@ -84,7 +84,8 @@ about_ui <- function(tree, forms) {
   version <- powerkit_version()
   div(
     class = "about",
-    h2("About this prototype"),
+    h2("About powerkit"),
+    prototype_banner(tree),
     if (!is.null(version)) {
       p(class = "text-muted",
         sprintf("powerkit %s. ", version),

@@ -92,8 +92,8 @@ take about an hour and a few minutes.) If a chunk reaches the limit, the run sto
 5 h 30 m, the tests that finished are still in the artifact, and the
 summary lists the rest as NOT RUN; run those on your own machine (copy
 the downloaded `.rds` files into `validation-results/` first, and the
-script carries on from them). The first run also spends about 10 minutes
-installing packages; later runs reuse them.
+script carries on from them). The packages are already installed in the
+CI image, so the run starts straight away.
 
 **Versions.** The run uses R and the package versions in `renv.lock`, as
 on your machine, so its results can be compared with local ones.

@@ -1,7 +1,7 @@
 # powerkit 0.5.0
 
 Batch 1: the five designs the engine already computed become reachable in
-the app (docs/next.md, items 1 to 5).
+the app (docs/next.md).
 
 * App: logistic regression with one predictor (E27) calculates in the app.
   Its card now says what powerkit does instead of "not in powerkit"; the
@@ -13,6 +13,26 @@ the app (docs/next.md, items 1 to 5).
   above 0, the result screen and the methods paragraph state Known
   difference 3 (forms.yaml, `known_differences_if_above_zero`, a new key).
   `single_predictor` leaves `engine_only`.
+
+* App: a cleaner, card-based layout. Back and Start again sit at the top
+  of every screen, and the screen's next step ("Enter your values",
+  "Check my answers", the whole-study route's Next and Show my plan) is in
+  a bar pinned to the bottom of the window, so neither needs scrolling to
+  find. Choices are cards, two to a row on wide screens; the start
+  screen's three questions sit side by side, with each option's
+  explanation shown under the chosen option only. The header is a slim
+  bar with the name, "Prototype" and the version; what the prototype can
+  do moves to the About tab (renamed from "About this prototype").
+  Validated designs no longer show a "Runs in powerkit" box (their
+  validation note is under "More about this analysis"), and cards no
+  longer show the internal design ID and engine template outside the
+  maintainer's view. Results are in cards (the answer; exploring it; how
+  it was calculated, with departures from the tools' defaults still in
+  view; saving and sharing), with the values used, the seed and the
+  limits of power folded under "More about this result". Input screens
+  give a default's source without the function calls in brackets; the
+  full source is the line's tooltip and stays in every export. No
+  calculation or routing changes.
 
 # powerkit 0.4.1
 

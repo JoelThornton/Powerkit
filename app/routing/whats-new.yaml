@@ -15,6 +15,15 @@ entries:
       other predictors, you say how much they overlap with this one. Until
       today this card said powerkit couldn't do it.
   - date: "2026-10-26"
+    title: "A cleaner, simpler look"
+    text: >-
+      The app has a new look. "Back" and "Start again" are at the top of
+      every screen, and the next step (such as "Enter your values" or "Check
+      my answers") stays in view at the bottom of the window. Choices are
+      cards, the starting questions fit on one screen, results come in
+      clear sections with the details folded away, and there is less
+      technical text to wade through.
+  - date: "2026-10-26"
     title: "Calculate from your whole-study plan"
     text: >-
       In "Plan my whole study", each analysis on your plan that powerkit can
