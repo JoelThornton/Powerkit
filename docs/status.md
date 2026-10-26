@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -96,6 +96,10 @@ fully validated. Validation runs are recorded in
   observed power allowed with a warning (a new spec type,
   `own_study_result`), the rank-test label, named tools on "not covered"
   cards, and two parallel mediators only.
+- **Whole-study plan, still to build (26 October 2026):** the combined
+  sample size and the consistency check, labelled "Coming soon" on the
+  plan, are now in the queue ([`next.md`](next.md), items 9 and 10); the
+  consistency check waits on open question 12.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
   with no ready-made tool now name one (powerMediation for B14,
   semPower for B17, DescTools for B27's test). All three are marked
