@@ -68,7 +68,9 @@
 # mediation_crosscheck (simple mediation against pwrss and simsem, two
 # tools written independently of power4mome; both are in Suggests and
 # renv.lock), mediation_crosscheck_parallel and mediation_crosscheck_serial
-# (parallel and serial mediation, joint test, against simsem).
+# (parallel and serial mediation, joint test, against simsem), logistic
+# and poisson (logistic and Poisson regression by formula; published values
+# to transcribe).
 #
 # On demand only (not part of "everything", and never run by
 # devtools::test()): interaction_grid, which compares InteractionPoweR's
@@ -94,6 +96,9 @@ validation_chunks <- function() {
     mediation_crosscheck = "test-validation-mediation-crosscheck.R",
     mediation_crosscheck_parallel = "test-validation-mediation-crosscheck-parallel.R",
     mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R",
+    logistic = "test-validation-logistic-regression.R",
+    poisson = "test-validation-poisson-regression.R",
+    contrast = "test-validation-anova-contrast.R",
     two_correlations = "test-validation-two-correlations.R",
     generic = "test-validation-generic-tests.R"
   )
@@ -106,7 +111,8 @@ validation_minutes <- function() {
   c(basic = 0.3, anova = 15, interactions = 1.5, process_4 = 60,
     process_6 = 60, process_7 = 120, process_14 = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
-    mediation_crosscheck_serial = 40, two_correlations = 0.3, generic = 0.3)
+    mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3,
+    contrast = 0.3, two_correlations = 0.3, generic = 0.3)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

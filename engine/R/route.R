@@ -28,12 +28,17 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/2x2_mixed" = ,
     "factorial_anova/oneway_between" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,
+    "factorial_anova/oneway_contrast" = ,
     "basic_test/one_proportion" = ,
     "basic_test/mcnemar" = ,
     "basic_test/chi_square_gof" = ,
     "basic_test/two_correlations" = ,
+    "basic_test/overlapping_correlations" = ,
+    "basic_test/nonoverlapping_correlations" = ,
     "multiple_regression/r2_zero" = ,
-    "multiple_regression/r2_increase" = pwrss_backend(spec, seed),
+    "multiple_regression/r2_increase" = ,
+    "logistic_regression/single_predictor" = ,
+    "poisson_regression/single_predictor_count" = pwrss_backend(spec, seed),
     "basic_test/independent_t" = if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
