@@ -9,12 +9,15 @@
 # The route part of a project, from the app's state (a list or
 # reactiveValues read with isolate()).
 project_route <- function(state, form_values) {
+  # From the plan, the claim the input screen used is saved as screen A's,
+  # and the project reopens like any other (the plan itself isn't saved).
+  from_plan <- identical(state$came_from, "plan")
   list(
     app = "routing-prototype",
     route = state$route,
-    start = state$start,
+    start = if (from_plan) utils::modifyList(plan_form_start(state$start, state$plan_id, state$primary, state$rule), list(n_tests = NULL)) else state$start,
     endpoint = state$endpoint,
-    came_from = state$came_from,
+    came_from = if (from_plan) "node" else state$came_from,
     ctx = state$ctx,
     history = lapply(state$history, function(h) list(node = h$node, answer = h$answer, ctx = h$ctx)),
     form_k = state$form_k,

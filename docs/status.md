@@ -87,6 +87,11 @@ fully validated. Validation runs are recorded in
     table of the goal-machine Supabase project (read it in Supabase's table
     editor), with a GitHub issue and copying as alternatives; undecided settings only in the maintainer's
     view (`?view=maintainer`);
+  - in "Plan my whole study", each analysis on the plan that powerkit
+    calculates opens its input screen, carrying the plan's claim and its
+    number of main analyses; the combined sample size and the consistency
+    check between analyses are still "Coming soon" and queued in
+    [`next.md`](next.md);
   - Labs (experimental): a list of tools, and pre-replication notes that
     can feed a plan without losing work;
   - at most two long calculations at once across all visitors

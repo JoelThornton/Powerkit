@@ -15,6 +15,13 @@ entries:
       other predictors, you say how much they overlap with this one. Until
       today this card said powerkit couldn't do it.
   - date: "2026-10-26"
+    title: "Calculate from your whole-study plan"
+    text: >-
+      In "Plan my whole study", each analysis on your plan that powerkit can
+      calculate now has an "Enter your values" button. If you have several
+      main analyses, the input screen already knows how they combine and how
+      many there are, and "Back to my plan" takes you back to the plan.
+  - date: "2026-10-26"
     title: "powerkit has a version number"
     text: >-
       The About page now says which version of powerkit you are using, and
