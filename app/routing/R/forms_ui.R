@@ -101,7 +101,7 @@ group_ui <- function(tree, g, values, index) {
 
 # The whole screen. `values` keeps what the user typed when the screen is
 # redrawn (e.g. after changing the number of mediators).
-form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE) {
+form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(), from_plan = FALSE, carried = NULL) {
   ep <- tree$endpoints[[ep_id]]
   tagList(
     screen_nav_ui("form_back", if (from_plan) "Back to my plan" else "Back to the card"),
@@ -111,6 +111,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     p(class = "lead", "Everything is needed unless it says optional. Effect sizes start empty: enter the value you expect, and say where it comes from."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
+    carried,
     placeholders_at(tree, "form"),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
     action_bar(

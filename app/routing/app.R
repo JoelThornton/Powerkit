@@ -123,6 +123,7 @@ app_css <- "
   .about-endpoints li, .about-credit { margin-bottom: 0.4rem; }
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
   .whats-new li { margin-bottom: 0.6rem; }
+  .plan-result { margin: 0.5rem 0; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
   .labs-notice { border-left: 4px solid #b26b00; background: #fff6e5; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
   .labs-sde { margin-top: 0.75rem; }
@@ -326,7 +327,11 @@ server <- function(input, output, session) {
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
     ticked = character(), primary = character(), asks = list(), rule = "each",
-    plan_id = NULL           # guided route: the analysis whose input screen is open
+    plan_id = NULL,          # guided route: the analysis whose input screen is open
+    plan_results = list(),   # guided route: the last calculation for each analysis, by analysis id
+    plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
+    plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
+    plan_filled = character() # guided route: shared values filled in on the open input screen
   )
 
   # Keep the guided route's inputs in state as they change.
@@ -460,6 +465,7 @@ server <- function(input, output, session) {
       state$screen <- "form"
     } else if (pick == "form_back") {
       state$form_values <- current_form_values()
+      if (identical(state$came_from, "plan")) keep_plan_values(state$form_values)
       state$screen <- if (identical(state$came_from, "plan")) "g_plan" else "card"
     } else if (kind == "gform") {
       # An analysis's input screen, opened from the plan.
@@ -467,8 +473,11 @@ server <- function(input, output, session) {
       res <- resolve_analysis(tree, a, routed_answers(), state$asks[[value]])
       if (!is.null(res$endpoint) && has_form(forms, res$endpoint)) {
         state$endpoint <- res$endpoint; state$came_from <- "plan"; state$plan_id <- value
+        start <- plan_form_values(tree, res$endpoint, state$plan_values[[value]], state$plan_shared)
         n <- plan_form_start(state$start, value, state$primary, state$rule)$n_tests
-        state$form_values <- if (!is.null(n)) list(n_tests = as.character(n)) else list()
+        if (!is.null(n)) start$values$n_tests <- as.character(n)
+        state$form_values <- start$values
+        state$plan_filled <- start$filled
         state$form_k <- 2L; state$calc <- NULL
         state$screen <- "form"
       }
@@ -480,6 +489,25 @@ server <- function(input, output, session) {
       state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan")
     }
   })
+
+  # Values entered on an input screen opened from the plan: kept for that
+  # analysis, and the shared ones for the plan's other analyses.
+  keep_plan_values <- function(values) {
+    if (is.null(state$plan_id)) return(invisible())
+    state$plan_values[[state$plan_id]] <- values
+    state$plan_shared <- harvest_shared(tree, state$endpoint, values, state$plan_id, state$plan_shared)
+  }
+  # A calculation made from the plan is kept for the plan's combined
+  # sample size (combined_n_ui()).
+  observeEvent(state$calc, {
+    calc <- state$calc
+    if (identical(state$came_from, "plan") && !is.null(state$plan_id) && identical(calc$status, "ok")) {
+      goal <- calc$result$goal_type
+      state$plan_results[[state$plan_id]] <- list(endpoint = state$endpoint, goal = goal,
+        n = if (identical(goal, "sample_size")) calc$result$n_required$n)
+      keep_plan_values(isolate(current_form_values()))
+    }
+  }, ignoreNULL = TRUE)
 
   # Re-render the analyses screen when a follow-up question appears or is
   # answered (ticking doesn't need a re-render).
@@ -914,11 +942,13 @@ server <- function(input, output, session) {
       form = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
         form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, form_start()), isolate(state$form_values), state$history,
-          from_plan = identical(state$came_from, "plan"))),
+          from_plan = identical(state$came_from, "plan"),
+          carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
-        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms)
+        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
+        results = state$plan_results, shared = state$plan_shared)
     )
   })
 }

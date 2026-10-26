@@ -120,10 +120,12 @@ fully validated. Validation runs are recorded in
   with R and the locked packages installed (rebuilt only when `renv.lock`
   changes), and set `NOT_CRAN` themselves, so the app's calculation tests
   run in CI ([`decisions.md`](decisions.md)).
-- **Whole-study plan, still to build:** the combined sample size, shared
-  values entered once on the plan (open question 12, decided 26 October
-  2026), and whole-study simulation later as a checked option; all queued
-  in [`next.md`](next.md).
+- **Whole-study plan (26 October 2026, 0.7.0):** the plan gives the
+  combined sample size (the largest N among the main analyses, named,
+  from the calculations made from the plan) and asks for shared values
+  once: an input two analyses both ask for fills the second's input
+  screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
+  and needs a statistician's check.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation

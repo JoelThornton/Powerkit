@@ -6,6 +6,21 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-26"
+    title: "Your whole study's sample size"
+    text: >-
+      In "Plan my whole study", each sample size you work out from the plan
+      now appears on it, and the plan gives the sample size your study
+      needs: the largest of your main analyses, with that analysis named.
+      Until you have done them all, it shows the largest so far and which
+      are still to do.
+  - date: "2026-10-26"
+    title: "Type shared numbers once"
+    text: >-
+      When two analyses on your plan ask for the same number, such as the
+      path from X to the mediator, you type it once: it is filled in when
+      you open the other analysis, so both describe the same study. You can
+      still change it there.
+  - date: "2026-10-26"
     title: "Hypotheses about how much scores vary"
     text: >-
       Some hypotheses are about spread, not averages: that reaction times

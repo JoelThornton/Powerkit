@@ -169,12 +169,13 @@ test_that("deciding against the guided route hides it, with no code change", {
   expect_false(grepl("Plan my whole study", as.character(start_ui(t2)), fixed = TRUE))
 })
 
-test_that("the plan screen labels the combined N and the consistency check 'Coming soon', and shows no numbers", {
+test_that("the plan screen labels the consistency check 'Coming soon', and shows no numbers before any calculation", {
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline")
   html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation", "mediation"), c("compare", "moderation", "mediation"),
     list(compare = "ANCOVA: the outcome adjusting for the baseline"), "any"))
-  expect_identical(lengths(regmatches(html, gregexpr("<span class=\"badge-soon\">Coming soon</span>", html, fixed = TRUE))), 2L)
-  expect_match(html, "the largest N any of them needs", fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr("<span class=\"badge-soon\">Coming soon</span>", html, fixed = TRUE))), 1L)
+  expect_match(html, "The plan then shows the largest", fixed = TRUE)
+  expect_false(grepl("N = ", html, fixed = TRUE))
   expect_false(grepl("once the engine is connected", html, fixed = TRUE))
   expect_match(html, "The effect of x on the outcome appears in", ignore.case = TRUE)
   expect_match(html, "needs an alpha correction", fixed = TRUE)
@@ -208,6 +209,86 @@ test_that("the plan opens each analysis's input screen, where powerkit has one",
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, 'kind == "gform"', fixed = TRUE)
   expect_match(code, 'if (identical(state$came_from, "plan")) "g_plan" else "card"', fixed = TRUE)
+})
+
+test_that("the plan's combined sample size is the largest N among the main analyses, named", {
+  # A score X with one mediator and a score moderator: the comparison is a
+  # correlation (E4) and the moderation is E9, both with input screens.
+  answers <- list(x = "score", outcome = "score", mediators = "none", moderator = "score", covariate = "none", times = "once")
+  ticked <- c("compare", "moderation")
+  ep <- function(id) resolve_analysis(tree, analysis_by_id(tree, id), answers)$endpoint
+  expect_true(has_form(forms, ep("compare")) && has_form(forms, ep("moderation")))
+  plan <- function(results, primary = ticked) as.character(guided_plan_ui(tree, answers, ticked, primary, list(), "all", forms = forms, results = results))
+  one <- list(compare = list(endpoint = ep("compare"), goal = "sample_size", n = 84))
+  html <- plan(one)
+  expect_match(html, "Largest so far: <strong>N = 84</strong>", fixed = TRUE)
+  expect_match(html, "Still to calculate: Whether the effect of X depends on the moderator", fixed = TRUE)
+  expect_match(html, "Change your values", fixed = TRUE)
+  both <- c(one, list(moderation = list(endpoint = ep("moderation"), goal = "sample_size", n = 1200)))
+  html <- plan(both)
+  expect_match(html, "Your study needs <strong>N = 1,200</strong>", fixed = TRUE)
+  expect_match(html, "(Whether the effect of X depends on the moderator (X x W))", fixed = TRUE)
+  expect_false(grepl("Still to calculate", html, fixed = TRUE))
+  # An extra analysis doesn't count, however large its N.
+  html <- plan(both, primary = "compare")
+  expect_match(html, "Your study needs <strong>N = 84</strong>", fixed = TRUE)
+  # Power instead of N: not counted, and the plan says why.
+  html <- plan(list(compare = list(endpoint = ep("compare"), goal = "power", n = NULL)))
+  expect_match(html, "calculate the sample size", fixed = TRUE)
+  expect_false(grepl("<strong>N = ", html, fixed = TRUE))
+  # A result for an end point the analysis no longer leads to is ignored.
+  html <- plan(list(compare = list(endpoint = "E2", goal = "sample_size", n = 50)))
+  expect_false(grepl("N = 50", html, fixed = TRUE))
+  # A main analysis powerkit can't calculate is named as one to work out elsewhere.
+  med <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "none", covariate = "none", times = "once")
+  html <- as.character(guided_plan_ui(tree, med, c("compare", "mediation"), c("compare", "mediation"), list(), "each", forms = forms,
+    results = list(compare = list(endpoint = "E2", goal = "sample_size", n = 128))))
+  expect_match(html, "work out their sample size elsewhere", fixed = TRUE)
+  expect_match(html, "Largest so far", fixed = TRUE)
+  # The calculations are kept from the input screen and restored with Back.
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "state$plan_results[[state$plan_id]] <-", fixed = TRUE)
+  expect_true("plan_results" %in% nav_fields)
+})
+
+test_that("a value two analyses on the plan share is entered once and fills the other's input screen", {
+  # Every shared value names a real field on each input screen it lists.
+  for (v in tree$guided$shared_values) for (ep in names(v$fields)) {
+    ids <- vapply(form_fields(form_groups(forms, ep)), `[[`, "", "id")
+    expect_true(v$fields[[ep]] %in% ids, label = paste(v$id, ep))
+  }
+  # Mediation (E10) and moderated mediation (E13) share the X -> M path.
+  shared <- harvest_shared(tree, "E10", list(p_X_M = "0.3", p_M_Y = "0.25", p_X_Y = "", n = "200"), "mediation")
+  expect_identical(shared$p_x_m, list(value = "0.3", from = "mediation"))
+  expect_null(shared$p_x_y)  # empty values aren't shared
+  start <- plan_form_values(tree, "E13", own = list(p_X_M = "0.1", p_W_M = "0.2"), shared = shared)
+  expect_identical(start$values$p_X_M, "0.3")   # the latest shared value wins
+  expect_identical(start$values$p_W_M, "0.2")   # the analysis's own values stay
+  expect_identical(start$values$p_M_Y, "0.25")
+  expect_setequal(names(start$filled), c("p_x_m", "p_m_y"))
+  note <- as.character(carried_note_ui(tree, start$filled))
+  expect_match(note, "Filled in from your plan", fixed = TRUE)
+  expect_match(note, "Path X -&gt; M", fixed = TRUE)
+  expect_match(note, "from Whether X affects the outcome through the mediator(s)", fixed = TRUE)
+  expect_null(carried_note_ui(tree, character()))
+  # An end point that asks for none of them gets nothing.
+  expect_identical(plan_form_values(tree, "E2", list(d = "0.5"), shared)$values, list(d = "0.5"))
+  # On the plan: a score X and moderator, with the comparison (E4) and the
+  # moderation (E9) ticked, share the correlation of X with the outcome.
+  answers <- list(x = "score", outcome = "score", mediators = "none", moderator = "score", covariate = "none", times = "once")
+  html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation"), "compare", list(), "each", forms = forms,
+    shared = list(r_x_y = list(value = "0.3", from = "compare"))))
+  expect_match(html, "Enter these once", fixed = TRUE)
+  expect_match(html, "<strong>Correlation of X with the outcome</strong>", fixed = TRUE)
+  expect_match(html, "0.3 (entered for The effect of X on the outcome)", fixed = TRUE)
+  # The correlation of X with the moderator is asked by E9 only here.
+  expect_false(grepl("Correlation of X with the moderator", html, fixed = TRUE))
+  # The input screen shows the note when values were carried.
+  expect_match(as.character(form_ui(tree, forms, "E13", form_groups(forms, "E13"), from_plan = TRUE, carried = carried_note_ui(tree, start$filled))),
+    "Filled in from your plan", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "plan_form_values(tree, res$endpoint, state$plan_values[[value]], state$plan_shared)", fixed = TRUE)
+  expect_true(all(c("plan_values", "plan_shared", "plan_filled") %in% nav_fields))
 })
 
 test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec() and exports", {
