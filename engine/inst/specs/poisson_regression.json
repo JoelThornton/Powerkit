@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1",
+  "design": "poisson_regression",
+  "template": "single_predictor_count",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Social support"
+    },
+    "Y": {
+      "type": "count",
+      "label": "Clinic visits in a year"
+    }
+  },
+  "population": {
+    "metric": "rate_ratio",
+    "rate_ratio": 0.8,
+    "base_rate": 3,
+    "mean_exposure": 1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a fifth fewer clinic visits per SD of social support, from 3 visits a year at average support, is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "rate_ratio",
+    "method": "wald_z",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

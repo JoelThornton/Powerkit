@@ -89,7 +89,7 @@ and from each package's own GitHub repository for the development version.
 | Pearson correlation against 0 | Spower `p_r()` [Sp]; G\*Power exact test, bivariate normal model [GP via Sp] | done | MVP *(build guide)* | Yes: `test-validation-basic-tests.R` | |
 | Correlation against a constant other than 0 | Spower `p_r(rho = )` [Sp]; G\*Power Example 3.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Two independent correlations | Spower `p_2r()` [Sp]; G\*Power Example 27.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
-| Two dependent correlations (common index or none) | Spower `p_2r()` [Sp]; G\*Power Examples 28.3.1, 28.3.2 [GP via Sp] | planned | later *(proposal)* | No | |
+| Two dependent correlations (common index or none) | pwrss `power.z.twocors.steiger()` (engine, by formula; unpooled as G\*Power, Departure 12) [powerkit]; Spower `p_2r()` [Sp]; G\*Power Examples 28.3.1, 28.3.2 [GP via Sp] | engine only (templates `overlapping_correlations`, `nonoverlapping_correlations`; not in the app) | later *(proposal)* | No | |
 | Point-biserial correlation | G\*Power Example 16.3, reproduced in Spower's vignette [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Tetrachoric, polychoric and polyserial correlation | Spower `p_r.cat()` [Sp]; G\*Power Example 31.3 (tetrachoric) [GP via Sp] | planned | later *(proposal)* | No | |
 | One proportion against a constant (binomial or exact) | Spower `p_prop.test()` (`binom.test()`) [Sp]; G\*Power exact test, proportion: difference from constant (Example 4.3) [GP via Sp] | planned | v2 *(proposal)* | No | |
@@ -118,8 +118,9 @@ and from each package's own GitHub repository for the development version.
 | Simple linear regression slope | Spower `p_slr()` [Sp]; G\*Power Example 12.3 [GP via Sp] | planned | v2 *(proposal)* | No | |
 | Regression for two groups (slopes or intercepts) | G\*Power Examples 17.3, 18.3, reproduced in Spower's vignette [GP via Sp] | planned | later *(proposal)* | No | Check in the manual |
 | Any linear hypothesis in a linear or generalised linear model with fixed predictors | Spower `p_glm(formula, X, betas, test)`, tested with `car::lht()` [Sp] | not planned as a form | later *(proposal)* | No | A candidate backend for the full-model builder |
-| Logistic regression | Spower `p_glm(family = binomial())` [Sp]; G\*Power z test, logistic regression [GP, search] | planned | v2 *(build guide)* | No | |
-| Poisson regression | Spower `p_glm(family = poisson())` [Sp]; G\*Power z test, Poisson regression [GP, search] | planned | v2 *(build guide)* | No | |
+| Planned contrasts and trend analysis within ANOVA | pwrss `power.t.contrasts()` (engine, by formula; one contrast, equal groups) [powerkit]; Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE)` [SP-src]; G\*Power through the factorial ANOVA test with numerator df 1 [GP-man, 11.3.3] | engine only (template `oneway_contrast`; not in the app) | v2 *(proposal)* | No | |
+| Logistic regression | pwrss `power.z.logistic()` (engine, by formula; one predictor, a score or a yes/no group) [powerkit]; Spower `p_glm(family = binomial())` [Sp]; G\*Power z test, logistic regression [GP, search] | engine only (design `logistic_regression`; not in the app) | v2 *(build guide)* | No | |
+| Poisson regression | pwrss `power.z.poisson()` (engine, by formula; one predictor, a score or a yes/no group) [powerkit]; Spower `p_glm(family = poisson())` [Sp]; G\*Power z test, Poisson regression [GP, search] | engine only (design `poisson_regression`; not in the app) | v2 *(build guide)* | No | |
 
 ## Factorial ANOVA
 

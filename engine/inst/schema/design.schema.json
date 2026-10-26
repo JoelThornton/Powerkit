@@ -30,6 +30,8 @@
         "mediation",
         "moderated_mediation",
         "multiple_regression",
+        "logistic_regression",
+        "poisson_regression",
         "generic_test"
       ]
     },
@@ -79,6 +81,12 @@
     },
     {
       "$ref": "#/definitions/design_multiple_regression"
+    },
+    {
+      "$ref": "#/definitions/design_logistic_regression"
+    },
+    {
+      "$ref": "#/definitions/design_poisson_regression"
     },
     {
       "$ref": "#/definitions/design_generic_test"
@@ -136,10 +144,11 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "description": "continuous = a score or scale; binary = two groups or yes/no; categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
+          "description": "continuous = a score or scale; binary = two groups or yes/no; count = a number of events (0, 1, 2, ...); categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
           "enum": [
             "continuous",
             "binary",
+            "count",
             "categorical",
             "between_factor",
             "within_factor"
@@ -281,6 +290,14 @@
         "path": {
           "description": "Mediation only: the indirect path being tested, e.g. 'X->M1->M2->Y'.",
           "type": "string"
+        },
+        "weights": {
+          "description": "Contrasts only: one weight per level of the factor, in the order of its levels. The weights must add up to 0, and at least one must not be 0. Their scale doesn't matter: (-3, -1, 1, 3) and (-1.5, -0.5, 0.5, 1.5) give the same power.",
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "number"
+          }
         },
         "alpha": {
           "description": "Significance level (two-sided unless 'alternative' says otherwise).",
@@ -515,6 +532,13 @@
         }
       }
     },
+    "variable_count": {
+      "properties": {
+        "type": {
+          "const": "count"
+        }
+      }
+    },
     "variable_categorical": {
       "properties": {
         "type": {
@@ -573,7 +597,9 @@
               "one_proportion",
               "mcnemar",
               "chi_square_gof",
-              "two_correlations"
+              "two_correlations",
+              "overlapping_correlations",
+              "nonoverlapping_correlations"
             ]
           },
           "target_test": {
@@ -731,6 +757,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_correlations"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "overlapping_correlations"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_overlapping_correlations"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "nonoverlapping_correlations"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_nonoverlapping_correlations"
             }
           }
         ]
@@ -1054,7 +1110,8 @@
               "2x2_between",
               "2x2_mixed",
               "oneway_between",
-              "oneway_ancova"
+              "oneway_ancova",
+              "oneway_contrast"
             ]
           },
           "target_test": {
@@ -1069,13 +1126,15 @@
                     "enum": [
                       "main_effect_A",
                       "main_effect_B",
-                      "interaction"
+                      "interaction",
+                      "contrast"
                     ]
                   },
                   "method": {
                     "enum": [
                       "anova_f",
-                      "ancova_f"
+                      "ancova_f",
+                      "contrast_t"
                     ]
                   }
                 }
@@ -1142,6 +1201,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_oneway_ancova"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "oneway_contrast"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_oneway_contrast"
             }
           }
         ]
@@ -1780,6 +1854,75 @@
         }
       }
     },
+    "template_oneway_contrast": {
+      "description": "A planned comparison (contrast) between the levels of one between-participants factor: a weighted combination of the group means, tested against 0. Trend tests (linear, quadratic) are contrasts with the matching weights. Group sizes are equal.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected mean of each group, in the order of the factor's levels.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd": {
+              "description": "Standard deviation within each group (the same in every group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "required": [
+            "weights"
+          ],
+          "properties": {
+            "effect": {
+              "const": "contrast"
+            },
+            "method": {
+              "const": "contrast_t"
+            }
+          }
+        }
+      }
+    },
     "design_multiple_regression": {
       "if": {
         "required": [
@@ -1855,6 +1998,128 @@
             },
             "then": {
               "$ref": "#/definitions/template_r2_increase"
+            }
+          }
+        ]
+      }
+    },
+    "design_logistic_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "logistic_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "single_predictor"
+            ]
+          },
+          "variables": {
+            "required": [
+              "X",
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "X": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "Y": {
+                "$ref": "#/definitions/variable_binary"
+              }
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "method": {
+                "const": "wald_z"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "single_predictor"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_single_predictor"
+            }
+          }
+        ]
+      }
+    },
+    "design_poisson_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "poisson_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "single_predictor_count"
+            ]
+          },
+          "variables": {
+            "required": [
+              "X",
+              "Y"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "X": {
+                "$ref": "#/definitions/variable_continuous_or_binary"
+              },
+              "Y": {
+                "$ref": "#/definitions/variable_count"
+              }
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "method": {
+                "const": "wald_z"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "single_predictor_count"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_single_predictor_count"
             }
           }
         ]
@@ -2361,6 +2626,145 @@
         }
       }
     },
+    "template_overlapping_correlations": {
+      "description": "One group: two correlations that share a variable, X with Y and X with Z, compared (Steiger's z test for dependent, overlapping correlations; G*Power's 'two dependent Pearson r's, common index').",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y",
+            "Z"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Z": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X_Y",
+            "r_X_Z",
+            "r_Y_Z"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X_Y": {
+              "description": "Correlation of X with Y: the first of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X_Z": {
+              "description": "Correlation of X with Z: the second of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y_Z": {
+              "description": "Correlation of Y with Z. Not tested, but it sets how strongly the two compared correlations depend on each other.",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation_difference"
+            },
+            "method": {
+              "const": "steiger_z"
+            }
+          }
+        }
+      }
+    },
+    "template_nonoverlapping_correlations": {
+      "description": "One group: two correlations with no variable in common, X1 with Y1 and X2 with Y2, compared (Steiger's z test for dependent, non-overlapping correlations; G*Power's 'two dependent Pearson r's, no common index'), for example the same two measures at two time points.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X1",
+            "Y1",
+            "X2",
+            "Y2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X1": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y1": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "X2": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y2": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X1_Y1",
+            "r_X2_Y2",
+            "r_X1_X2",
+            "r_X1_Y2",
+            "r_Y1_X2",
+            "r_Y1_Y2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X1_Y1": {
+              "description": "Correlation of X1 with Y1: the first of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X2_Y2": {
+              "description": "Correlation of X2 with Y2: the second of the two correlations compared.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X1_X2": {
+              "description": "Correlation of X1 with X2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X1_Y2": {
+              "description": "Correlation of X1 with Y2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y1_X2": {
+              "description": "Correlation of Y1 with X2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Y1_Y2": {
+              "description": "Correlation of Y1 with Y2 (not tested).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation_difference"
+            },
+            "method": {
+              "const": "steiger_z"
+            }
+          }
+        }
+      }
+    },
     "template_oneway_ancova": {
       "description": "One between-participants factor with two or more levels, adjusting for one or more covariates (one-way ANCOVA, omnibus F test; Shieh's method, covariates treated as random). Group sizes are equal.",
       "properties": {
@@ -2435,6 +2839,100 @@
             },
             "method": {
               "const": "ancova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_single_predictor": {
+      "description": "Logistic regression of a yes/no outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "odds_ratio",
+            "base_prob"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "odds_ratio"
+            },
+            "odds_ratio": {
+              "description": "Odds ratio for X: per standard deviation of X for a score (X is taken as standardised), or the second level of X against the first for a yes/no group. 1 (no effect) is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_prob": {
+              "description": "Proportion with Y = yes (Y's second level) when X is at its mean (a score) or in X's first level (a yes/no group).",
+              "$ref": "#/definitions/proportion"
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level. 0.5 (equal groups) if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_other_predictors": {
+              "description": "R-squared of X on the other predictors in the model (0 if omitted, or if X is the only predictor). The other predictors' own effects aren't needed.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "odds_ratio"
+            }
+          }
+        }
+      }
+    },
+    "template_single_predictor_count": {
+      "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "rate_ratio",
+            "base_rate"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "rate_ratio"
+            },
+            "rate_ratio": {
+              "description": "Rate ratio for X: the multiple of the event rate per standard deviation of X for a score (X is taken as standardised), or for the second level of X against the first for a yes/no group. 1 (no effect) is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_rate": {
+              "description": "Expected number of events per unit of exposure when X is at its mean (a score) or in X's first level (a yes/no group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mean_exposure": {
+              "description": "Mean exposure per person: the time, distance or number of opportunities over which the events are counted. 1 if omitted, so the base rate is the expected count per person.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level. 0.5 (equal groups) if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_other_predictors": {
+              "description": "R-squared of X on the other predictors in the model (0 if omitted, or if X is the only predictor). The other predictors' own effects aren't needed.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "rate_ratio"
             }
           }
         }

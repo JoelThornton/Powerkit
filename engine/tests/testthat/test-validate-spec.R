@@ -25,6 +25,13 @@ test_that("there is an example for every template", {
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
     # More tests by formula (engine only).
     "chi_square_gof", "two_correlations", "oneway_ancova",
+    "overlapping_correlations", "nonoverlapping_correlations",
+    # Logistic regression (engine only).
+    "single_predictor",
+    # Poisson regression (engine only).
+    "single_predictor_count",
+    # Planned comparisons (engine only).
+    "oneway_contrast",
     # Generic tests (engine only).
     "t", "f", "chi_square", "z"
   ))
