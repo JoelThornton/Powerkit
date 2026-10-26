@@ -597,7 +597,7 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   expect_match(w[["short"]], "target power of 80%, chosen because the usual convention in our field,", fixed = TRUE)
   expect_match(w[["short"]], sprintf("%s participants are needed in total (%s per group)", n, n / 2), fixed = TRUE)
   expect_match(w[["short"]], sprintf("pwr (version %s", calc$result$provenance$packages[["pwr"]]), fixed = TRUE)
-  expect_match(w[["short"]], "described in the supplement", fixed = TRUE)
+  expect_no_match(w[["short"]], "supplement|depart", ignore.case = TRUE)
   expect_match(w[["full"]], "Departures from the established tools' defaults: Calculated with a formula", fixed = TRUE)
   expect_match(w[["full"]], calc$result$provenance$spec_hash, fixed = TRUE)
   expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
