@@ -186,6 +186,10 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
+**The ordered queue is [`next.md`](next.md)** — twenty items, Ready ones
+first. What follows is the direction those items serve.
+
+
 In priority order (agreed direction, 18 October 2026: a working web app
 first; 19 October 2026: optional features that help testing can come in
 any time, and user testing is the maintainer's to run):

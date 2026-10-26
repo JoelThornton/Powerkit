@@ -178,3 +178,26 @@ test_that("every design the engine computes is named by a card or listed as wait
     expect_match(forms$engine_only[[name]], "batch", fixed = TRUE, label = name)
   }
 })
+
+# The queue (docs/next.md) ---------------------------------------------------
+#
+# "Work on the next thing" only works if every item says whether it can be
+# started. This checks the shape of the queue, not its contents.
+
+test_that("every item in the queue says whether it is ready to start", {
+  lines <- strsplit(read_doc("next.md"), "\n", fixed = TRUE)[[1]]
+  items <- grep("^\\| [0-9]+ \\|", lines, value = TRUE)
+  expect_gte(length(items), 10)
+  states <- vapply(strsplit(items, "|", fixed = TRUE), function(cells) {
+    trimws(cells[[length(cells)]])
+  }, "")
+  allowed <- "^(Ready|Ready \\(|Needs a decision:|Needs the maintainer:|Blocked by [0-9]+)"
+  expect_true(all(grepl(allowed, states)), info = paste(
+    "an item's state must start with Ready, 'Needs a decision:',",
+    "'Needs the maintainer:' or 'Blocked by <n>'; found:",
+    paste(unique(states[!grepl(allowed, states)]), collapse = " / ")
+  ))
+  # The numbers are in order, so "the first Ready item" is unambiguous.
+  numbers <- as.integer(sub("^\\| ([0-9]+) \\|.*", "\\1", items))
+  expect_equal(numbers, seq_along(numbers))
+})

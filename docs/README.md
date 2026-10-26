@@ -6,8 +6,9 @@ reasoning and are not current instructions.
 
 ## Start here
 
-- [`status.md`](status.md): where the project is and what comes next, in
-  priority order. Current state only.
+- [`next.md`](next.md): the ordered queue — the answer to "work on the
+  next thing". Take the first item marked Ready.
+- [`status.md`](status.md): where the project is now. Current state only.
 - [`adding-a-test.md`](adding-a-test.md): the one page to follow when
   powerkit gains a power analysis it couldn't do before — what "added"
   means, how the backend package is chosen, every file it touches, and

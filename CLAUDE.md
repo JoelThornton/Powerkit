@@ -7,6 +7,13 @@ with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
 
+## What to work on
+docs/next.md is the ordered queue: take the first item marked Ready, one item
+per PR, and delete its row when it lands. An item marked "Needs a decision" is
+not yours to start — say what the decision is and move on, or ask. Check the
+top item still makes sense before starting: the page is dated, and the
+maintainer's priorities beat it.
+
 ## Adding a power analysis
 Follow docs/adding-a-test.md, start to finish, in one PR. A test is added when a
 researcher can run it and see that it exists: engine, validation placeholders,

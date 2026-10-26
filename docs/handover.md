@@ -34,6 +34,12 @@ maps every document.*
   branches pile up until the maintainer deletes them; the one to keep is
   `claude/project-thread-uqcark-webr-spike` (never merged).
 
+## What to work on next
+
+[`next.md`](next.md) is the ordered queue, twenty items deep, each marked
+Ready or needing a decision, with what is waiting on the maintainer at the
+bottom. It is the one place to look.
+
 ## Adding a power analysis
 
 [`adding-a-test.md`](adding-a-test.md) is the process, start to finish, and
