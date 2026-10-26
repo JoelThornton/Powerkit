@@ -1,12 +1,51 @@
 # powerkit 0.0.0.9000
 
+* Engine (not yet in the app): two dependent correlations in one group,
+  by Steiger's z test with pwrss's `power.z.twocors.steiger()`. Template
+  `overlapping_correlations` compares X with Y against X with Z;
+  `nonoverlapping_correlations` compares X1 with Y1 against X2 with Y2
+  (for example, the same two measures at two ages). Power at a fixed N or
+  the required N, by formula; one-sided tests run in the direction of the
+  specified difference. powerkit uses the unpooled test, as G*Power, not
+  pwrss's pooled default (Departure 12); the required N is 1 to 4% larger
+  than with pwrss's default. Correlations that can't hold together are refused with a
+  plain-English message.
+* Engine (not yet in the app): Poisson regression, the Wald z test of one
+  predictor of a count outcome, by pwrss's `power.z.poisson()`
+  (Demidenko's method with its variance correction, pwrss's default).
+  Design `poisson_regression`, template `single_predictor_count`: a count
+  outcome Y and a predictor X that is a score (rate ratio per SD, base
+  rate at X's mean) or a yes/no group (rate ratio of the second group
+  against the first, and the proportion in the second group), counted over
+  a mean exposure, optionally adjusted for other predictors through X's
+  R-squared with them. Power at a fixed N or the required N; one-sided
+  tests run in the direction of the rate ratio. `variables` accepts a new
+  type, `count`.
+
+* Engine (not yet in the app): logistic regression, the Wald z test of one
+  predictor, by pwrss's `power.z.logistic()` (Demidenko's method with its
+  variance correction, pwrss's default). Design `logistic_regression`,
+  template `single_predictor`: a yes/no outcome Y and a predictor X that is
+  a score (odds ratio per SD, base probability at X's mean) or a yes/no
+  group (odds ratio of the second group against the first, and the
+  proportion in the second group), optionally adjusted for other
+  predictors through X's R-squared with them. Power at a fixed N or the
+  required N; one-sided tests run in the direction of the odds ratio.
+* Engine (not yet in the app): planned comparisons (contrasts) between the
+  levels of one between-participants factor, by pwrss's
+  `power.t.contrasts()`. Template `oneway_contrast` of design
+  `factorial_anova`: the group means, the within-group SD, and one weight
+  per level in `target_test > weights`, adding up to 0. Trend tests are
+  contrasts with the matching weights, and the weights' scale doesn't
+  matter. Power at a fixed N or the required N; one contrast at a time,
+  equal groups, two-sided.
 * Engine: two variance tests, the ones G*Power computes in its sections 26
   and 15 (templates `one_variance` and `two_variances` of the basic-test
   design). One group's variance is compared with a fixed value by the
   chi-square test; two groups' variances by the F test. Both run through
   Spower's `p_var.test()` and are simulated, because no package powerkit
   builds on has a formula for them (`docs/conventions.md`, Known
-  difference 3), so `options > method` can only be `"simulation"`. An
+  difference 4), so `options > method` can only be `"simulation"`. An
   allocation ratio is refused for the two-group test: Spower's generator
   cannot draw unequal groups (`docs/upstream-questions.md`). Not wired
   into the app.

@@ -1,0 +1,49 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "nonoverlapping_correlations",
+  "variables": {
+    "X1": {
+      "type": "continuous",
+      "label": "Stress at age 14"
+    },
+    "Y1": {
+      "type": "continuous",
+      "label": "Sleep at age 14"
+    },
+    "X2": {
+      "type": "continuous",
+      "label": "Stress at age 16"
+    },
+    "Y2": {
+      "type": "continuous",
+      "label": "Sleep at age 16"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r_X1_Y1": 0.2,
+    "r_X2_Y2": 0.4,
+    "r_X1_X2": 0.5,
+    "r_X1_Y2": 0.1,
+    "r_Y1_X2": 0.1,
+    "r_Y1_Y2": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the correlation of stress with sleep rising from .20 at 14 to .40 at 16 is the smallest change of interest."
+  },
+  "target_test": {
+    "effect": "correlation_difference",
+    "method": "steiger_z",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}

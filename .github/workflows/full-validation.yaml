@@ -59,6 +59,11 @@ on:
           - mediation_crosscheck
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial
+          - logistic
+          - poisson
+          - contrast
+          - two_correlations
+          - generic
 
 permissions:
   contents: read

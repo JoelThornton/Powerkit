@@ -24,6 +24,7 @@ analysed_groups <- function(spec, n) {
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
     oneway_between = ,
+    oneway_contrast = ,
     oneway_ancova = {
       k <- length(spec$variables$A$levels)
       rep(n / k, k)
@@ -43,6 +44,7 @@ group_unit <- function(spec) {
     "2x2_between" = "cell",
     "2x2_mixed" = ,
     oneway_between = ,
+    oneway_contrast = ,
     oneway_ancova = "group",
     NA_character_
   )

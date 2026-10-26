@@ -188,6 +188,14 @@ design_description <- function(spec) {
       "comparison of two correlations (Fisher's z test): %s with %s, between the groups of %s (%s)",
       label("X"), label("Y"), label("G"), levels("G")
     ),
+    "basic_test/overlapping_correlations" = sprintf(
+      "comparison of two dependent correlations (Steiger's z test), same people: %s with %s against %s with %s",
+      label("X"), label("Y"), label("X"), label("Z")
+    ),
+    "basic_test/nonoverlapping_correlations" = sprintf(
+      "comparison of two dependent correlations (Steiger's z test), same people: %s with %s against %s with %s",
+      label("X1"), label("Y1"), label("X2"), label("Y2")
+    ),
     "basic_test/chi_square_gof" = sprintf(
       "chi-square goodness-of-fit test of %s (%s) against %s proportions",
       label("Y"), levels("Y"), if (is.null(spec$population$null_probabilities)) "equal" else "fixed"
@@ -196,6 +204,11 @@ design_description <- function(spec) {
       "one-way ANCOVA of %s across the %d groups of %s (%s), adjusting for %s covariate%s; omnibus F test",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       spec$population$covariates, if (spec$population$covariates == 1) "" else "s"
+    ),
+    "factorial_anova/oneway_contrast" = sprintf(
+      "planned comparison of %s across the %d groups of %s (%s), with weights %s; t test of the contrast",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      paste(format_number(as.numeric(unlist(spec$target_test$weights))), collapse = ", ")
     ),
     "basic_test/one_variance" = sprintf(
       "chi-square test of one variance: is the variance of %s different from a fixed value?",
@@ -216,6 +229,18 @@ design_description <- function(spec) {
     "factorial_anova/oneway_between" = sprintf(
       "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
+    "logistic_regression/single_predictor" = sprintf(
+      "logistic regression of %s (%s) on %s%s: Wald z test of %s",
+      label("Y"), levels("Y"), label("X"),
+      if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
+    ),
+    "poisson_regression/single_predictor_count" = sprintf(
+      "Poisson regression of %s (a count) on %s%s: Wald z test of %s",
+      label("Y"), label("X"),
+      if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
     "multiple_regression/r2_zero" = sprintf(
       "multiple regression of %s on %s predictors: is R-squared greater than 0? (F test)",
@@ -467,6 +492,7 @@ add_recruitment_section <- function(lines, spec, result) {
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,
+    oneway_contrast = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),

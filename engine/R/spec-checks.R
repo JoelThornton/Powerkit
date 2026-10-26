@@ -9,6 +9,8 @@ population_problems <- function(spec) {
     basic_test = check_basic_test,
     factorial_anova = check_factorial_anova,
     multiple_regression = check_multiple_regression,
+    logistic_regression = check_single_predictor_x,
+    poisson_regression = check_single_predictor_x,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model,
@@ -22,6 +24,7 @@ population_problems <- function(spec) {
     check_method_allowed(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
+    check_weights_allowed(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -87,7 +90,8 @@ uses_simulation <- function(spec) {
 # Designs with an exact method: factorial ANOVA (Superpower's
 # ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
 # (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
-# fit, two correlations, ANCOVA, and Welch's t-test on request).
+# fit, two correlations, ANCOVA, contrasts, logistic and Poisson
+# regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
     pwr_covers(spec) ||
@@ -111,7 +115,10 @@ spower_only <- function(spec) {
 
 # Tests powerkit computes with pwrss's formulas only.
 pwrss_only <- function(spec) {
-  spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations", "oneway_ancova") ||
+  spec$design %in% c("logistic_regression", "poisson_regression") ||
+    spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
+                         "oneway_ancova", "oneway_contrast") ||
+    spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
 }
 
@@ -212,12 +219,16 @@ check_proportions_formula_allowed <- function(spec) {
 }
 
 # pwrss's one-sided tests (one proportion, McNemar, Fisher's exact test,
-# two correlations, Welch's t-test by formula) run in the direction of the specified effect, so a one-sided
-# test pointing the other way can't be computed with them.
+# two correlations, dependent correlations, logistic and Poisson
+# regression, Welch's t-test by formula) run in the direction of the
+# specified effect, so a one-sided test pointing the
+# other way can't be computed with them.
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
-  one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions",
-                 "two_correlations", "one_variance", "two_variances", "t", "z")
+  one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
+                 dependent_correlation_templates(), "single_predictor",
+                 "single_predictor_count", "one_variance", "two_variances",
+                 "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -234,6 +245,12 @@ check_direction_allowed <- function(spec) {
     one_proportion = pop$p - pop$p0,
     mcnemar = pop$p_second_only - pop$p_first_only,
     two_correlations = pop$r2 - pop$r1,
+    overlapping_correlations = ,
+    nonoverlapping_correlations = dependent_correlation_difference(spec),
+    # "greater" means the odds go up with X (odds ratio above 1).
+    single_predictor = log(pop$odds_ratio),
+    # "greater" means the event rate goes up with X (rate ratio above 1).
+    single_predictor_count = log(pop$rate_ratio),
     # "greater" means the variance is the larger one: Y's against the fixed
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
@@ -255,6 +272,20 @@ check_direction_allowed <- function(spec) {
   )
 }
 
+# Logistic and Poisson regression ----------------------------------------------
+
+# 'x_prob' (the proportion in X's second level) only means something for a
+# yes/no X.
+check_single_predictor_x <- function(spec) {
+  if (!is.null(spec$population$x_prob) && !identical(spec$variables$X$type, "binary")) {
+    return(sprintf(
+      "'population > x_prob' is the proportion in the second group of a yes/no X, but %s is a score; remove 'x_prob', or make X binary.",
+      var_label(spec, "X")
+    ))
+  }
+  character()
+}
+
 # Basic tests ----------------------------------------------------------------
 
 check_basic_test <- function(spec) {
@@ -263,8 +294,67 @@ check_basic_test <- function(spec) {
     chi_square_independence = check_probability_table(spec),
     chi_square_gof = check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
+    overlapping_correlations = ,
+    nonoverlapping_correlations = check_dependent_correlations(spec),
     character()
   )
+}
+
+# Dependent correlations (one group): X with Y against X with Z
+# (overlapping), or X1 with Y1 against X2 with Y2 (non-overlapping).
+dependent_correlation_templates <- function() {
+  c("overlapping_correlations", "nonoverlapping_correlations")
+}
+
+# The correlation matrix of the variables, in pwrss's order (X, Y, Z; or
+# X1, Y1, X2, Y2).
+dependent_correlation_matrix <- function(spec) {
+  pop <- spec$population
+  if (spec$template == "overlapping_correlations") {
+    r <- matrix(c(
+      1, pop$r_X_Y, pop$r_X_Z,
+      pop$r_X_Y, 1, pop$r_Y_Z,
+      pop$r_X_Z, pop$r_Y_Z, 1
+    ), nrow = 3)
+    dimnames(r) <- list(c("X", "Y", "Z"), c("X", "Y", "Z"))
+    return(r)
+  }
+  r <- matrix(c(
+    1, pop$r_X1_Y1, pop$r_X1_X2, pop$r_X1_Y2,
+    pop$r_X1_Y1, 1, pop$r_Y1_X2, pop$r_Y1_Y2,
+    pop$r_X1_X2, pop$r_Y1_X2, 1, pop$r_X2_Y2,
+    pop$r_X1_Y2, pop$r_Y1_Y2, pop$r_X2_Y2, 1
+  ), nrow = 4)
+  dimnames(r) <- list(c("X1", "Y1", "X2", "Y2"), c("X1", "Y1", "X2", "Y2"))
+  r
+}
+
+# The second compared correlation minus the first: r_X_Z - r_X_Y, or
+# r_X2_Y2 - r_X1_Y1 ("greater" means the second is larger).
+dependent_correlation_difference <- function(spec) {
+  pop <- spec$population
+  if (spec$template == "overlapping_correlations") pop$r_X_Z - pop$r_X_Y else pop$r_X2_Y2 - pop$r_X1_Y1
+}
+
+check_dependent_correlations <- function(spec) {
+  r <- dependent_correlation_matrix(spec)
+  if (min(eigen(r, symmetric = TRUE, only.values = TRUE)$values) <= 1e-8) {
+    return(paste0(
+      "These correlations are impossible together: no population could have all of them at once. ",
+      "Change one or more of them (the correlations that aren't compared are often the ones to check)."
+    ))
+  }
+  # pwrss's Steiger test has no power for two equal correlations with a
+  # two-sided test (there is no difference to detect).
+  if (identical(spec$goal$type, "power") && abs(dependent_correlation_difference(spec)) < 1e-12 &&
+    identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
+    compared <- if (spec$template == "overlapping_correlations") "r_X_Y and r_X_Z" else "r_X1_Y1 and r_X2_Y2"
+    return(sprintf(
+      "The two correlations compared (%s) are equal, so a two-sided test has no difference to detect and its power can't be calculated. Give them different values (for a Type I error check, use a one-sided test).",
+      compared
+    ))
+  }
+  character()
 }
 
 # The two discordant proportions are parts of one population, so together
@@ -351,7 +441,7 @@ check_factorial_anova <- function(spec) {
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
     ))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     if (length(pop$means) != k) {
       return(sprintf(
@@ -360,10 +450,53 @@ check_factorial_anova <- function(spec) {
       ))
     }
   }
+  if (identical(spec$template, "oneway_contrast")) {
+    return(check_contrast_weights(spec))
+  }
+  character()
+}
+
+# 'weights' say which combination of means a contrast tests, so they mean
+# nothing for any other test.
+check_weights_allowed <- function(spec) {
+  if (is.null(spec$target_test$weights) || identical(spec$template, "oneway_contrast")) {
+    return(character())
+  }
+  "'target_test > weights' are the weights of a planned comparison, which only the 'oneway_contrast' template tests. Remove them, or use that template."
+}
+
+# A contrast's weights: one per level, adding up to 0, and not all 0. The
+# scale doesn't matter, so (-3, -1, 1, 3) and (-1.5, -0.5, 0.5, 1.5) are the
+# same contrast.
+check_contrast_weights <- function(spec) {
+  weights <- as.numeric(unlist(spec$target_test$weights))
+  k <- length(spec$variables$A$levels)
+  if (length(weights) != k) {
+    return(sprintf(
+      "'target_test > weights' has %d values, but %s has %d levels. Give one weight for each level, in the same order.",
+      length(weights), var_label(spec, "A"), k
+    ))
+  }
+  if (all(weights == 0)) {
+    return("'target_test > weights' are all 0, so they don't compare anything. Give negative weights to the levels on one side of the comparison and positive weights to the other.")
+  }
+  # The same tolerance as the whole-number checks elsewhere in this file.
+  if (abs(sum(weights)) > 1e-9) {
+    return(sprintf(
+      "'target_test > weights' add up to %s, but a contrast's weights must add up to 0. For example, to compare the first two levels with the last two, use -0.5, -0.5, 0.5, 0.5.",
+      format_number(sum(weights))
+    ))
+  }
   character()
 }
 
 anova_contrast <- function(spec) {
+  if (identical(spec$template, "oneway_contrast")) {
+    # The contrast itself: zero when the weighted means cancel out, which
+    # includes every mean being equal.
+    weights <- as.numeric(unlist(spec$target_test$weights))
+    return(sum(weights * as.numeric(unlist(spec$population$means))))
+  }
   if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
@@ -844,6 +977,10 @@ minimum_n <- function(spec) {
       # Fisher's z needs more than 3 people in each group (its SE is
       # 1 / sqrt(n - 3)).
       two_correlations = 10,
+      # Steiger's z, on Fisher's z scale too, needs more than 3 people;
+      # pwrss's own search for n starts at 5.
+      overlapping_correlations = ,
+      nonoverlapping_correlations = 5,
       # One degree of freedom for the chi-square test of one variance; two
       # people per group for the F test of two.
       one_variance = 2,
@@ -856,12 +993,17 @@ minimum_n <- function(spec) {
       "2x2_mixed" = 4,
       # Two participants per group, so the error df is at least the number
       # of groups.
-      oneway_between = 2 * length(spec$variables$A$levels),
+      oneway_between = ,
+      oneway_contrast = 2 * length(spec$variables$A$levels),
       # Two per group, plus one error df for each covariate.
       oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates
     ),
     # The intercept, every predictor, and at least one residual df.
     multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
+    # pwrss's own search for n starts at 2; at least the intercept and X's
+    # coefficient, plus one.
+    logistic_regression = ,
+    poisson_regression = 3,
     regression_interaction = 6,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -876,7 +1018,7 @@ group_split <- function(spec) {
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
@@ -905,6 +1047,8 @@ target_effect_is_zero <- function(spec) {
       correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
       two_correlations = pop$r1 - pop$r2,
+      overlapping_correlations = ,
+      nonoverlapping_correlations = dependent_correlation_difference(spec),
       one_variance = pop$var - pop$var0,
       two_variances = pop$var1 - pop$var2,
       chi_square_gof = {
@@ -919,6 +1063,8 @@ target_effect_is_zero <- function(spec) {
     ),
     factorial_anova = anova_contrast(spec),
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
+    logistic_regression = log(pop$odds_ratio),
+    poisson_regression = log(pop$rate_ratio),
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

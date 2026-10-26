@@ -1,0 +1,42 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "overlapping_correlations",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Wellbeing"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Self-control"
+    },
+    "Z": {
+      "type": "continuous",
+      "label": "Grit"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r_X_Y": 0.4,
+    "r_X_Z": 0.2,
+    "r_Y_Z": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: wellbeing correlating .40 with self-control and .20 with grit is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "correlation_difference",
+    "method": "steiger_z",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261025
+  }
+}
