@@ -85,7 +85,7 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # template that is neither named by a card nor listed here, so a design
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
-engine_only:
+engine_only: {}  # none waiting at the moment
 
 # End points whose calculation runs on the input screen (phase 5). E1-E8
 # run in seconds on one core (measured 17 October 2026 with the example

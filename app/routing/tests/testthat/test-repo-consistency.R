@@ -158,7 +158,7 @@ test_that("every design the engine computes is named by a card or listed as wait
   # one_sample_t" or "generic_test / t, f, chi_square or z".
   named <- unlist(lapply(tree$endpoints, function(e) e$template))
   tokens <- unlist(regmatches(named, gregexpr("[a-z0-9_]+", named)))
-  waiting <- names(forms$engine_only %||% list())
+  waiting <- as.character(names(forms$engine_only))
 
   unreachable <- setdiff(templates, c(tokens, waiting))
   expect_equal(unreachable, character(), info = paste(
