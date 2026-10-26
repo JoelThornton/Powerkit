@@ -86,3 +86,89 @@ test_that("coverage-roadmap.md's summary counts match the rows", {
     )
   }
 })
+
+# powerkit's version (docs/adding-a-test.md, "Version numbers") -------------
+#
+# engine/DESCRIPTION is the single source. The About page, CITATION.cff and
+# NEWS.md all have to agree with it, or a user quoting a version can't
+# trace what produced their number.
+
+test_that("the version in DESCRIPTION, CITATION.cff and the About page agree", {
+  description <- read.dcf(file.path(repo_dir, "engine", "DESCRIPTION"))
+  version <- unname(description[1, "Version"])
+  # 0.x.y while powerkit is a prototype; 1.0.0 is the release.
+  expect_match(version, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+
+  cff <- readLines(file.path(repo_dir, "CITATION.cff"), warn = FALSE)
+  expect_true(paste("version:", version) %in% cff)
+
+  # The About page quotes the installed engine's version, so it can only be
+  # checked where the engine is installed.
+  skip_if_not(nzchar(system.file(package = "powerkit")), "powerkit isn't installed")
+  expect_equal(powerkit_version(), version)
+  expect_match(as.character(about_ui(tree, forms)), paste("powerkit", version), fixed = TRUE)
+})
+
+test_that("every analysis the app calculates is listed on the About page", {
+  html <- as.character(about_ui(tree, forms))
+  calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints %||% list()))
+  expect_gte(length(calculates), 20)
+  for (id in calculates) {
+    expect_match(html, sprintf("<strong>%s</strong>", id), fixed = TRUE, label = id)
+    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
+  }
+})
+
+# The engine and the app can't drift apart (docs/adding-a-test.md) ----------
+#
+# Five designs once ran in the engine with no way to reach them in the app,
+# and three of them had cards saying powerkit couldn't do what it could.
+# This test makes that state declared rather than accidental: every design
+# the engine accepts is either named by a card or listed in forms.yaml's
+# `engine_only`, with the batch that will finish it.
+
+engine_templates <- function() {
+  schema <- jsonlite::fromJSON(
+    file.path(repo_dir, "engine", "inst", "schema", "design.schema.json"),
+    simplifyVector = FALSE
+  )
+  found <- character()
+  walk <- function(node) {
+    if (is.list(node)) {
+      enum <- node$properties$template$enum
+      if (!is.null(enum)) found <<- c(found, unlist(enum))
+      lapply(node, walk)
+    }
+    invisible(NULL)
+  }
+  walk(schema)
+  sort(unique(found))
+}
+
+test_that("every design the engine computes is named by a card or listed as waiting", {
+  templates <- engine_templates()
+  expect_gte(length(templates), 30)
+  # Cards name their engine design and template, e.g. "basic_test /
+  # one_sample_t" or "generic_test / t, f, chi_square or z".
+  named <- unlist(lapply(tree$endpoints, function(e) e$template))
+  tokens <- unlist(regmatches(named, gregexpr("[a-z0-9_]+", named)))
+  waiting <- names(forms$engine_only %||% list())
+
+  unreachable <- setdiff(templates, c(tokens, waiting))
+  expect_equal(unreachable, character(), info = paste(
+    "these designs run in the engine but no card names them and forms.yaml's",
+    "engine_only doesn't list them:", paste(unreachable, collapse = ", ")
+  ))
+
+  # The register is for designs that really are missing from the app: once a
+  # card names a template, its entry has to go, or the register lies.
+  stale <- intersect(waiting, tokens)
+  expect_equal(stale, character(), info = paste(
+    "forms.yaml's engine_only lists designs a card already names:",
+    paste(stale, collapse = ", ")
+  ))
+  # Every entry says which design it is and which batch will finish it.
+  for (name in waiting) {
+    expect_match(forms$engine_only[[name]], "batch", fixed = TRUE, label = name)
+  }
+})

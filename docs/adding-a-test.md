@@ -1,0 +1,222 @@
+# Adding a test to powerkit
+
+*26 October 2026. The one page to follow when powerkit gains a power
+analysis it couldn't do before. It replaces working it out from
+[`build-guide.md`](build-guide.md), [`conventions.md`](conventions.md) and
+the git history each time.*
+
+**The rule: a test is added when a researcher can run it and see that it
+exists.** Engine code alone is not an added test. Everything in "What
+'added' means" below happens in the same pull request, so the app is never
+behind the engine.
+
+"Run it" does not always mean "in the browser". For a design whose power
+has to be simulated, the honest answer is often a short R script the
+researcher runs on their own computer, and the app should encourage that
+rather than hide it: E10–E14 (mediation) work this way today — a quick
+preview on the screen, then the full analysis as a one-line script to
+download, or in the background where it is quick enough. A design is
+finished when the researcher gets their answer by whichever of those
+routes suits it, and the card and input screen say which route they are
+on.
+
+## What "added" means
+
+Every box ticked, in one PR:
+
+1. The engine computes it, routed to a validated backend package.
+2. Its example spec is in `engine/inst/specs/` and its unit tests pass.
+3. A validation file exists, with `TODO_PUBLISHED_VALUE` placeholders for
+   the maintainer, and a chunk in `scripts/run-validation.R` and in
+   `.github/workflows/full-validation.yaml`.
+4. It has a card in `app/routing/tree.yaml`, and a row in
+   [`decision-tree.md`](decision-tree.md) and
+   [`card-sources.md`](card-sources.md) — *tests check these two*
+   (`test-docs-match.R`).
+5. It has an input screen in `app/routing/forms.yaml`, so the result
+   screen, the write-up, the R script and the saved project all work.
+6. A plain-words entry is in `app/routing/whats-new.yaml` — no internal
+   codes, name the analysis (*test:* `test-whats-new.R`).
+7. The version in `engine/DESCRIPTION` is bumped and `engine/NEWS.md` has
+   its entry (*test:* the version agreement test).
+8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
+   say where it now stands (*test:* `test-repo-consistency.R` keeps the
+   roadmap's summary counts honest).
+
+The About page needs nothing: it lists whatever the app calculates
+(`about_endpoint_lines()` reads `forms.yaml`).
+
+**If a design truly cannot be finished** — it is waiting on a decision, or
+on a statistician — then it does not get merged half-built and silently.
+Its card says what is true: that powerkit can compute it but not yet on
+this screen, and how to reach it meanwhile. A test refuses a design the
+engine can run whose card claims powerkit cannot.
+
+## 1. Pick the batch
+
+The queue is at the end of this page. Take the top batch unless the
+maintainer says otherwise.
+
+Within a batch, the lens is **what researchers realistically need**:
+
+- A design psychologists actually run beats one that only appears in
+  textbooks.
+- A design they would otherwise give up on, or do badly in another tool,
+  is worth more than one G\*Power already does well. Complex and rare
+  designs are the point of powerkit, not a side quest.
+- A design whose power no established package computes waits for the
+  maintainer and a statistician. Never write the maths in powerkit
+  (`CLAUDE.md`).
+
+## 2. Agree the backend package
+
+powerkit never computes power itself: it translates a spec and calls a
+package. Before writing any engine code, bring the maintainer a short
+shortlist — this is a decision for them, not for the thread:
+
+| What to bring | Why |
+| --- | --- |
+| Which function in which package, and what it computes | The design must match, not merely sound similar |
+| Its version, licence and whether it is on CRAN | Anything not installable is not a candidate |
+| What G\*Power (or the published source) does for the same test | Differences become a departure or a known difference |
+| A second package or a published example to check it against | Agreement is what makes it trustworthy |
+| What it cannot do | The spec checks must refuse those cases plainly |
+
+The five foundation packages (Spower, power4mome, Superpower,
+InteractionPoweR, pwr) and pwrss cover most of the queue; a new package is
+a bigger decision, so say plainly what it adds. Record the choice in
+[`decisions.md`](decisions.md) and the package's own conventions in
+[`conventions.md`](conventions.md), with any departure or known difference.
+
+## 3. The engine
+
+The files a design touches, in the order it is easiest to work in. The two
+variance tests (PR #109) are a recent, complete example to copy.
+
+| File | What it gains |
+| --- | --- |
+| `engine/inst/schema/design.schema.json` | the template: its variables, population fields and target test, and the `allOf` branch that selects it |
+| `engine/R/route.R` | the `design/template` key routed to its backend |
+| `engine/R/backend-*.R` | the adapter: the arguments the package takes, the check run that recovers the population values from generated data, and the packages recorded in the provenance |
+| `engine/R/spec-checks.R` | plain-English refusals: a zero effect, the minimum n, group splits, which `method` and `alternative` it allows |
+| `engine/R/recruitment.R` | the group split, so attrition gives the right number to recruit |
+| `engine/R/export-script.R` (and `-pwrss.R`) | the design's one-line description, inputs, arguments and derived lines in the exported script |
+| `engine/R/export-citations.R` | a package only this design calls, cited from its own `citation()` |
+| `engine/inst/specs/<template>.json` | a complete, realistic example spec |
+| `engine/tests/testthat/test-backend-*.R` | translation, the check run, refusals, and the exported script reproducing the run |
+
+Then `devtools::document()` if any roxygen comment changed.
+
+## 4. Validation
+
+Write `engine/tests/testthat/test-validation-<design>.R` with:
+
+- the published example(s), every input and output as
+  `TODO_PUBLISHED_VALUE` with a comment naming the field in the source,
+  and the source's section and page;
+- a direct call to the backend package with the arguments written out by
+  hand, to check powerkit's translation;
+- a Type I error check (no effect, so power should sit near alpha).
+
+Never fill in a published value: the maintainer transcribes them
+(`CLAUDE.md`). Add the chunk to `scripts/run-validation.R` (with a rough
+time per test) and to the workflow's chunk list;
+`test-repo-consistency.R` fails if you forget either.
+
+## 5. The app
+
+**The card** (`app/routing/tree.yaml`): plain name, the document name, its
+status, what the user would enter, the packages behind it, and its
+validation note. Add the matching rows to
+[`decision-tree.md`](decision-tree.md) (table 2.3) and
+[`card-sources.md`](card-sources.md), or the docs tests fail.
+
+**Where it sits in the routing** is the question that keeps powerkit
+usable:
+
+- A design most researchers will want gets a place in the design finder,
+  so the questions lead to it.
+- A rare or specialist design is listed in "I know my analysis" and left
+  out of the finder, as the generic tests (E50) are. It is fully usable;
+  it just doesn't lengthen the common path.
+- Either way it is in the list, because the list is every card.
+
+**The input screen** (`app/routing/forms.yaml`): the fields, their help,
+the goal types it supports, and — for a simulated design — the preview and
+full-run or script route (`simulations > endpoints`). Add it to
+`calculates` only when the app really computes it.
+
+**The result screen**: if the design has a departure or known difference,
+give its key in the card's `departures` or `known_differences` so the
+result screen and the methods paragraph say so.
+
+## 6. Tell the user
+
+- `app/routing/whats-new.yaml`: one entry, newest first, in the words a
+  psychologist would use. No E-numbers, no "Departure 6".
+- `engine/DESCRIPTION`: bump the version (see below), and
+  `engine/CITATION.cff` with it.
+- `engine/NEWS.md`: the developer-facing entry.
+- [`status.md`](status.md): where the project now is, replacing the old
+  entry rather than adding to it.
+
+## 7. Before you finish
+
+- `devtools::test()` and `devtools::check()` in `engine/`: both clean.
+- The app's suite: `testthat::test_dir("tests/testthat")` in
+  `app/routing/`.
+- Read the eight boxes again. The tests catch a missed card, a missed
+  "What's new" entry, a stale roadmap count and a version out of step —
+  but not a card that says the wrong thing.
+
+## Version numbers
+
+`engine/DESCRIPTION`'s `Version` is the single source. It shows on the
+About page, in exported R scripts and in every result's provenance, so a
+number somebody quotes can be traced.
+
+- **0.x.y while powerkit is a prototype.** The minor number counts
+  batches of user-visible work that have shipped; the patch number is for
+  fixes. Shipped so far: 0.1.0 the first working prototype (17 October),
+  0.2.0 the four-screen design and the app going online (18 October),
+  0.3.0 the tests by formula (18–20 October), 0.4.0 the shorter input
+  screen, Labs, feedback and browser history (22 October).
+- **1.0.0 is the release**: validated, published values transcribed, and
+  the designs the maintainer wants in it.
+
+Bump the minor number when a batch of tests or a user-visible feature
+ships; say the number in the "What's new" entry if it helps.
+
+## The queue: what to add next
+
+**Batch 1 (now): finish the five designs the engine already computes.**
+Each needs only its app side, and three of them have cards that currently
+tell users powerkit cannot do what it can.
+
+| Design | End point | What it needs |
+| --- | --- | --- |
+| Logistic regression, one predictor | E27 (card exists, finder routes to it) | card status, input screen |
+| Poisson regression, one predictor | E28 (as above) | card status, input screen |
+| Planned comparisons (contrasts) | E19 (as above) | card status, input screen |
+| Two dependent correlations | E49's card mentions them | its own card, input screen |
+| Variance tests (one group, two groups) | no card yet | cards listed in "I know my analysis" only, input screen |
+
+**Then, with the maintainer:** pick from the roadmap
+([`coverage-roadmap.md`](coverage-roadmap.md)), where every row has a
+status and a candidate package. The rows worth weighing first:
+
+- **Repeated measures** (A25–A30: between factors, within factors and
+  within-between interactions, each by the ANOVA and the MANOVA
+  approach): common in psychology, and Superpower already returns the
+  MANOVA results for a design with a within factor.
+- **Equivalence and non-inferiority** (B54 TOST, B55): researchers ask
+  for these and G\*Power does not cover them.
+- **Clustered and multilevel designs** (B36 multilevel/nested, B39
+  cluster-randomised, B38 mixed models with binary outcomes): powerkit's
+  differentiator, and where psychologists most often give up and guess.
+  Needs a package decision and a statistician's eye.
+- **SEM, CFA and measurement invariance** (B45–B47): semPower is the
+  named candidate; again a package decision.
+
+Rows marked "no ready-made tool" or "unknown" are not batches: they are
+questions for the maintainer first.

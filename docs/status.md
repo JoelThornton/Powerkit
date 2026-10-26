@@ -121,6 +121,17 @@ fully validated. Validation runs are recorded in
   summary counts are recounted from the rows, and a test now holds the
   page to forms.yaml's record of what calculates. No code changed: there
   was nothing to wire.
+- **How tests get added (26 October 2026, in review):**
+  [`adding-a-test.md`](adding-a-test.md) is now the one page for it: what
+  "added" means (engine, validation placeholders, card, input screen,
+  "What's new" entry, version bump, status, all in one PR), how a backend
+  package is chosen with the maintainer, every file a design touches, and
+  the queue of what to add next. powerkit has a version number too:
+  `engine/DESCRIPTION`, 0.x.y while it is a prototype, 1.0.0 at release.
+  **Batch 1 is the five designs the engine already computes but the app
+  can't reach** (logistic and Poisson regression, planned contrasts, two
+  dependent correlations, the two variance tests); three of them have
+  cards that tell users powerkit can't do what it can.
 - **Variance tests (engine only, 25 October 2026):** the two tests
   G\*Power computes in its sections 26 and 15 — one group's variance
   against a fixed value (chi-square) and two groups' variances (F) — run

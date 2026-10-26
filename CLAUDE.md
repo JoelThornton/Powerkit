@@ -7,6 +7,15 @@ with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
 
+## Adding a power analysis
+Follow docs/adding-a-test.md, start to finish, in one PR. A test is added when a
+researcher can run it and see that it exists: engine, validation placeholders,
+card, input screen, a plain-words "What's new" entry, a version bump and the
+status update all land together. For a design whose power must be simulated,
+"run it" can mean the R script the app hands them to run themselves (as E10-E14
+do) — say which route they are on. Never leave a design the engine can compute
+with a card that says powerkit cannot.
+
 ## Non-negotiables
 - Never write new statistical maths when a backend package already does it; adapt the spec.
 - Never edit expected values in tests/testthat/test-validation-*. They are transcribed
@@ -23,6 +32,10 @@ Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present
   showing the size of the difference.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
   a phase and summarise what was done, what's untested, and open questions.
+- engine/DESCRIPTION's Version is powerkit's version, shown to users and in
+  every export: 0.x.y while it is a prototype (the minor number counts shipped
+  batches of user-visible work), 1.0.0 at release. Bump it with the batch, and
+  keep engine/CITATION.cff and engine/NEWS.md in step.
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.

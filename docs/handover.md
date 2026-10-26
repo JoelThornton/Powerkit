@@ -34,6 +34,14 @@ maps every document.*
   branches pile up until the maintainer deletes them; the one to keep is
   `claude/project-thread-uqcark-webr-spike` (never merged).
 
+## Adding a power analysis
+
+[`adding-a-test.md`](adding-a-test.md) is the process, start to finish, and
+holds the queue of what to add next. The short version: a test is added
+when a researcher can run it and see that it exists, so the engine, the
+card, the input screen, the "What's new" entry and the version bump land
+together.
+
 ## Rules
 
 - **Priorities and process (18 October 2026):** usefulness for

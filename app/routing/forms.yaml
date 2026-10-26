@@ -83,6 +83,21 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # run in seconds on one core (measured 17 October 2026 with the example
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
+# Designs the engine can compute that the app can't reach yet: a missing
+# card and input screen, not a missing calculation. The queue to clear them
+# is in docs/adding-a-test.md. test-repo-consistency.R refuses an engine
+# template that is neither named by a card nor listed here, so a design
+# can't go quietly unreachable again; delete an entry when its card and
+# input screen land.
+engine_only:
+  single_predictor: "logistic regression, one predictor (E27's card); batch 1"
+  single_predictor_count: "Poisson regression, one predictor (E28's card); batch 1"
+  oneway_contrast: "planned comparisons within a factor (E19's card); batch 1"
+  overlapping_correlations: "two dependent correlations sharing a variable; batch 1"
+  nonoverlapping_correlations: "two dependent correlations, no shared variable; batch 1"
+  one_variance: "one group's variance against a fixed value; batch 1"
+  two_variances: "two groups' variances compared; batch 1"
+
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
 calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E23, E24, E25, E26, E48, E49, E50]
 
