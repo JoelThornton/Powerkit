@@ -194,6 +194,14 @@ closing_groups <- function(forms, ep_id, start = list()) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
   }
+  # Whether the sample size is fixed (asked on the start screen until 26
+  # October 2026): with the goals that take a sample size, for the
+  # write-up ("fixed by resource constraints").
+  situation <- list(id = "situation", label = "Is this number of participants fixed?", type = "select",
+    choices = list(choose = "No: I'm seeing what power a sample this size gives",
+      fixed = "Yes: a participant pool, a budget or a rare group sets it"),
+    default = if (identical(start$situation, "fixed")) "fixed" else "choose",
+    shown_for_goals = c("power", "sensitivity"), optional = TRUE)
   test <- list(
     goal,
     list(id = "power", label = "Target power", help = "As a proportion, for example 0.9.",
@@ -205,6 +213,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
     list(id = "n_max", label = "The largest number of participants you could analyse",
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
+    situation,
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]]),
     # Shown only when alpha is changed from its default (decided 18 October
@@ -215,7 +224,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
-    claim_groups(start$claim),
+    claim_groups(start$claim, start$n_tests),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
@@ -258,36 +267,46 @@ guess_note <- paste(
   "it isn't part of the plan, the R script or the write-up."
 )
 
-# The claim from screen A, on the input screen: a note for every claim but
-# "one test", and the number of tests for "any of several" (which divides
-# alpha between them: Bonferroni; docs/decisions.md, 18 October 2026) and
-# for "all of several" (which raises each test's target power so that all
-# succeed together with the target power; docs/decisions.md, 19 October
-# 2026).
-claim_groups <- function(claim) {
+# The claim, on the input screen (on the start screen until 26 October
+# 2026): one test unless the user says otherwise, with a note for each of
+# the other claims, and the number of tests for "any of several" (which
+# divides alpha between them: Bonferroni; docs/decisions.md, 18 October
+# 2026) and for "all of several" (which raises each test's target power so
+# that all succeed together with the target power; docs/decisions.md, 19
+# October 2026). From a plan or an older project, it starts at the claim
+# given then. It sits with the settings: most studies have one test.
+claim_choices <- list(
+  one = "One test: my conclusion rests on this test alone",
+  each = "Several claims, each standing on its own",
+  any = "Any of several tests: the claim holds if at least one is significant",
+  all = "All of several tests: the claim needs every one to be significant"
+)
+
+claim_notes <- function() list(
+  each = paste(
+    "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
+    "No correction for several tests is needed, because no single conclusion rests on more than one test (Rubin, 2021).",
+    philosophy_note
+  ),
+  any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
+  all = paste(
+    "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
+    "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
+    "So powerkit raises this test's target power so that all the tests together reach your target power, if each test is planned the same way."
+  )
+)
+
+claim_groups <- function(claim = "one", n_tests = NULL) {
   claim <- claim %||% "one"
-  if (identical(claim, "one")) return(list())
-  note <- switch(
-    claim,
-    each = paste(
-      "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
-      "No correction for several tests is needed, because no single conclusion rests on more than one test (Rubin, 2021).",
-      philosophy_note
-    ),
-    any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
-    all = paste(
-      "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
-      "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
-      "So powerkit raises this test's target power so that all the tests together reach your target power, if each test is planned the same way."
-    )
+  if (!claim %in% names(claim_choices)) claim <- "one"
+  fields <- list(
+    list(id = "claim", label = "Your claim: how many tests does your conclusion rest on?", type = "select",
+         choices = claim_choices, default = claim, choice_notes = claim_notes()),
+    list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
+         default = n_tests, applies_if_claim = c("any", "all"),
+         shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each")))
   )
-  fields <- switch(
-    claim,
-    any = list(list(id = "n_tests", label = "Number of tests in the set", type = "number", required = TRUE, min = 2, integer = TRUE)),
-    all = list(list(id = "n_tests", label = "Number of tests that must all be significant", type = "number", required = TRUE, min = 2, integer = TRUE)),
-    list()
-  )
-  list(list(input = NULL, title = "Your claim", note = note, fields = fields))
+  list(list(input = NULL, title = "Your claim", fields = fields))
 }
 
 # Whether separate claims need a correction depends on one's philosophy of
@@ -299,6 +318,9 @@ philosophy_note <- paste(
 )
 
 claim_tests <- function(values) {
+  # One test, or claims standing on their own: no set of tests, whatever
+  # number was typed before the claim was changed back.
+  if (isTRUE(values$claim %in% c("one", "each"))) return(NA)
   k <- parse_number(values$n_tests)
   if (length(k) != 1 || is.na(k) || k < 2) NA else k
 }
@@ -383,6 +405,9 @@ parse_table <- function(x) {
 # `is_not`, a given value; an empty choice counts as no value; a list of
 # such conditions must all hold).
 field_applies <- function(field, values) {
+  # The number of tests: only for a claim about a set (an empty claim is
+  # one test).
+  if (!is.null(field$applies_if_claim)) return(isTRUE(values$claim %in% field$applies_if_claim))
   for (cond in shown_if_conditions(field)) {
     current <- values[[cond$field]]
     current <- if (blank(current)) "" else as.character(current)

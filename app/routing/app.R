@@ -309,10 +309,10 @@ server <- function(input, output, session) {
   # Placeholders for undecided settings show only in the maintainer's view.
   session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
   state <- reactiveValues(
-    screen = "start",        # start | known | node | card | form | g_vars | g_analyses | g_plan
+    screen = "start",        # start | aim | known | node | card | form | g_vars | g_analyses | g_plan
     from_labs = FALSE,       # planning a replication from the pre-replication notes (Labs)
     labs_seed = NULL,        # the notes' words for "Why this effect size?" (labs_seed_reasoning())
-    start = list(),          # screen A: situation, aim and claim
+    start = list(),          # the aim (and, from a plan or an older project, the claim and situation)
     route = "choose",        # the route chosen on the start screen
     node = NULL,             # current question id (screening or "Help me choose")
     ctx = list(),            # screening answers later questions depend on
@@ -367,7 +367,9 @@ server <- function(input, output, session) {
   # Return to the question answered last, with the context as it was then.
   step_back <- function() {
     if (length(state$history) == 0) {
-      state$screen <- "start"
+      # Before the first screening question is the aim; before the aim,
+      # the start screen.
+      state$screen <- if (identical(state$screen, "aim") || is.null(state$start$aim)) "start" else "aim"
       return(invisible())
     }
     last <- state$history[[length(state$history)]]
@@ -398,20 +400,25 @@ server <- function(input, output, session) {
       return()
     }
     if (pick == "home") {
-      state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list()
+      state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
       state$from_labs <- FALSE; state$labs_seed <- NULL
     } else if (kind == "route") {
-      # Screen A first: estimation and equivalence go to their cards.
-      state$start <- start_answers(tree, input)
+      # The aim comes next, on its own screen.
+      state$start <- list()
       state$route <- value; state$history <- list(); state$ctx <- list()
       state$skip_screening <- FALSE
+      state$screen <- "aim"
+    } else if (kind == "aim") {
+      # Estimation and equivalence go to their cards.
+      state$start <- list(aim = value)
+      state$history <- list(); state$ctx <- list()
       exit <- start_exit(tree, state$start)
       if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
       } else {
         # Every route starts with the screening questions.
-        go_to(resolve_target(tree, start_node(tree), state$ctx, value))
+        go_to(resolve_target(tree, start_node(tree), state$ctx, state$route))
       }
     } else if (pick == "skip_screening") {
       # The whole list, with no screening answers to filter it by. The
@@ -502,8 +509,11 @@ server <- function(input, output, session) {
     fields <- current_form_fields()
     values <- current_form_values()
     start <- form_start()
-    values$claim <- start$claim %||% "one" # screen A's claim (or the plan's), for the result's note
-    values$situation <- start$situation %||% "choose" # for the write-up
+    # The claim and whether the sample size is fixed are fields on the
+    # input screen (from a plan or an older project, they start at what
+    # was given then: form_groups()).
+    values$claim <- values$claim %||% start$claim %||% "one" # for the result's note
+    values$situation <- if (identical(values$situation, "fixed") && isTRUE(values$goal %in% c("power", "sensitivity", "sensitivity_curve"))) "fixed" else "choose" # for the write-up
     src <- source_check(source_record(), state$endpoint, fields, values)
     source_record(src$record)
     values$source_stale <- src$stale
@@ -885,6 +895,7 @@ server <- function(input, output, session) {
   output$screen <- renderUI({
     switch(
       state$screen,
+      aim = aim_ui(tree),
       start = tagList(start_ui(tree, isolate(state$start)),
         tags$details(class = "saved-projects",
           tags$summary("Have a saved project, or one someone shared with you?"),
