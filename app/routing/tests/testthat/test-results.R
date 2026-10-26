@@ -544,7 +544,7 @@ test_that("no output template uses a verdict word", {
     plain_reading(0.8), power_limits, not_observed_power,
     source_note(list(just_type = "prior_study")),
     unlist(lapply(c("each", "any", "all"), function(cl) claim_result_note(list(claim = cl, n_tests = "3"), 0.05 / 3))),
-    unlist(lapply(c("each", "any", "all"), function(cl) claim_groups(cl)[[1]]$note)),
+    unlist(claim_notes()),
     unlist(forms$departures), unlist(forms$known_differences),
     vapply(c("smallest_effect_of_interest", "meta_analysis", "prior_study", "pilot_study", "none"),
       function(t) reasoning_line(list(just_type = t)), ""),

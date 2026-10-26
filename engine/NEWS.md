@@ -1,4 +1,4 @@
-# powerkit 0.5.0
+# powerkit 0.6.0
 
 Batch 1: the five designs the engine already computed become reachable in
 the app (docs/next.md).
@@ -55,6 +55,22 @@ the app (docs/next.md).
   test has equal groups only. Known difference 4 (simulated, where
   G*Power is exact) is on the result screen and in the methods paragraph.
   Both templates leave `engine_only`.
+
+# powerkit 0.5.1
+
+* App: the start screen asks only how to start (I know my analysis, Help
+  me choose, Plan my whole study). The aim ("What is your study trying to
+  do?") follows on its own screen, before the screening questions;
+  estimation and equivalence still go to their cards. Whether the sample
+  size is fixed is asked on the input screen with the goals that take a
+  sample size, and still sets the write-up's wording. The claim (one test,
+  several standing alone, any of several, all of several) is a setting on
+  the input screen that starts at one test, with its note under the chosen
+  claim; from a whole-study plan or an older project it starts at the
+  claim given then. A number of tests typed before the claim is set back
+  to one test is ignored. No calculation changes.
+
+# powerkit 0.5.0
 
 * App: a cleaner, card-based layout. Back and Start again sit at the top
   of every screen, and the screen's next step ("Enter your values",
