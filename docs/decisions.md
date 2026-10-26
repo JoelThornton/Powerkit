@@ -2627,3 +2627,59 @@ the next person than silence, and it costs nothing to verify later.
 **Not changed.** B43 already named powRICLPM and semPower, so nothing was
 added there. The five rows stay "no ready-made tool" and their cards stay
 honest until a candidate is verified and a published method exists.
+## 2026-10-25 · Two of the eight unchecked rows checked against the manual
+
+**What.** Of the eight rows marked "wired, not yet checked against
+G\*Power", the manual can settle two. Both were checked, and both
+reproduce it. Docs and validation placeholders only; no engine change.
+
+| Row | Example | Manual | powerkit |
+| --- | --- | --- | --- |
+| A6, two independent correlations (E49) | 27.3, p. 65: r1 .75 against r2 .88, two-sided, alpha .05, n1 51 and n2 260 | 0.726352 | 0.7263517 |
+| A6, the same example's a priori half | 27.3: the same correlations at that power with equal groups | 84 per group | 168 total |
+| A47, generic t test (E50) | 25.3, p. 63: the one-sample t test as a generic t, delta -1.25, df 24, two-sided | 0.224525 | 0.2245240 |
+
+The generic t agrees to five decimal places and differs in the sixth
+(about 1e-6), which `expect_power_exact()` allows (0.0005) but which is
+outside the manual's last printed digit. The validation placeholder says
+so, so nobody spends time on it.
+
+**The other six can't be checked from the manual.** It has no section on
+ANCOVA (A22), the chi-square goodness-of-fit test (A42), or the generic F,
+chi-square and z tests (A46, A48, A49), and its Fisher's exact test
+section (A38) has an empty Examples subsection. Each row now says it needs
+G\*Power itself rather than the manual, as the maintainer's earlier
+screenshots did for the basic tests.
+
+**Two things worth keeping from the reading.**
+
+- *pwrss's `n.ratio` is n1 / n2*, the inverse of powerkit's
+  `allocation_ratio` (n2 / n1). The adapter already inverts it, and a
+  direct call written the other way round gives 0.99999 where the right
+  answer is 0.726352, so the inversion is doing real work. The unit test
+  for the published example goes through powerkit for that reason.
+- *The manual's printed Output block for 27.3 is garbled by its own
+  two-column layout*: its lines are interleaved with section 26's, so
+  "Critical z: 60.391478" is the chi-square test's critical value and the
+  line labelled "Upper critical chi-square" holds this test's critical z.
+  The power on the last line is this test's. The placeholder warns about
+  it.
+
+**Validation.** Two new files, `test-validation-two-correlations.R` (two
+published tests: the post hoc power and the a priori N) and
+`test-validation-generic-tests.R` (one test per generic statistic, the t
+one citing the manual and the other three saying they need the program),
+with new `two_correlations` and `generic` chunks in
+`scripts/run-validation.R` and the full-validation workflow. Every value
+is a `TODO_PUBLISHED_VALUE`.
+
+**A wrinkle in the shared validation helper.** `validation_spec()` always
+adds a replication count and a sample-size goal, and
+`skip_if_no_backend()` probes `route_spec()`. A generic test has no sample
+size, refuses `nrep`, and isn't routed through the backend router at all
+(`run_spec()` computes it from the noncentrality), so the generic file
+builds its specs itself and reads the single row of the curve. The comment
+in it explains why, so the next person doesn't "fix" it back.
+
+**Next.** Wiring the six validated-but-unwired designs into the app, one
+design per PR.
