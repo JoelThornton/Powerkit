@@ -108,6 +108,13 @@ fully validated. Validation runs are recorded in
   section in the manual (ANCOVA, goodness of fit, the generic F,
   chi-square and z tests) or an empty Examples subsection (Fisher's exact
   test), so they need G\*Power itself.
+- **Consistency tests (25 October 2026, in review):** four tests for
+  places where a document, a script and a workflow have to agree and
+  nothing checked it: every validation file in a chunk of
+  run-validation.R, every chunk with a time estimate and a place in the
+  full-validation workflow, every test conventions.md names existing, and
+  coverage-roadmap.md's summary counts matching its rows
+  (`app/routing/tests/testthat/test-repo-consistency.R`).
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the
