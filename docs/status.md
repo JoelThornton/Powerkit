@@ -121,6 +121,11 @@ fully validated. Validation runs are recorded in
   don't: setup-r sets `NOT_CRAN`. Both test workflows now set it
   themselves, so the tests can't be lost if the jobs change how R is
   installed.
+- **CI in a prebuilt image (26 October 2026, in review):** the test
+  workflows run in an image with R and the locked packages already
+  installed, rebuilt only when `renv.lock` changes, so a check no longer
+  spends most of its time, or fails, downloading R and system libraries
+  (docs/decisions.md).
 - **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
   E14) weren't wired into the app. They were, and five more rows (E18,
   E24, E25, E26) were stale the same way. The statuses are corrected, the

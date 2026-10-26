@@ -2931,3 +2931,32 @@ every screening question of this route and on no question of the others;
 the skipped list holds every end point, says how many, and offers the
 filter; the filtered list still says how many fit; and the skip is part of
 the state the browser's Back and Forward buttons restore.
+
+## 2026-10-26 · CI runs in a prebuilt image
+
+**What.** The four test workflows (R CMD check, the app's tests, the
+nightly and the full validation) run inside a Docker image that already
+holds R at `renv.lock`'s version, the system libraries, and every package
+in `renv.lock` at its locked version (`.github/ci/Dockerfile`).
+`.github/workflows/ci-image.yaml`, the first job of each workflow, tags
+the image with a hash of `renv.lock` and the Dockerfile and builds it in
+GitHub's container registry only when that tag is missing.
+
+**Why.** Each job used to install R (`r-lib/actions/setup-r`) and apt
+packages before any code ran. On a good day that took two minutes; on
+26 October the apt step took up to 12 minutes and setup-r up to 21, so a
+check that runs in 10 minutes took 45, and several runs failed when a
+download timed out. The renv package cache was never the slow part.
+
+**What stays the same.** The 17 October decision holds: CI uses exactly
+the versions in `renv.lock`, and a new backend release changes results
+only through a PR that updates it. The build stops if the base image's R
+differs from the lockfile's, or if any locked package fails to load or
+isn't its locked version. A lockfile change rebuilds the image once (about
+three minutes); every other run pulls it. `NOT_CRAN` is set in each job,
+since setup-r, which used to set it, is no longer used.
+
+**Not changed.** `online-app-manifest.yaml` (it writes the manifest from
+an activated renv project) and `run-it-yourself.yaml` (it exists to test
+a clean install on each operating system).
+
