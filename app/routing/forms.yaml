@@ -86,8 +86,6 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
 engine_only:
-  overlapping_correlations: "two dependent correlations sharing a variable; batch 1"
-  nonoverlapping_correlations: "two dependent correlations, no shared variable; batch 1"
   one_variance: "one group's variance against a fixed value; batch 1"
   two_variances: "two groups' variances compared; batch 1"
 
@@ -96,7 +94,7 @@ engine_only:
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E48, E49, E50]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E48, E49, E50, E51]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -159,6 +157,7 @@ departures:
   "9": "Calculated with a formula (pwr's, or base R's power.prop.test() for two proportions), not Spower's simulation (powerkit's earlier default): exact for the t-tests and the chi-square test, and approximate for a correlation (Fisher's z) and two proportions (a normal approximation), with no simulation noise. In the examples checked, the two differ by less than 0.01 in power, within the simulation's own noise."
   "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
+  "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
   "6": "Mediation is fitted with lavaan (maximum likelihood), as power4mome does, not by PROCESS's ordinary least squares. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
   "7": "Parallel mediators: powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
@@ -842,6 +841,57 @@ forms:
         fields:
           - {id: weights, writeup_label: "contrast weights", label: "Weights: one for each group, in the same order, adding up to 0", type: numbers, per_levels: A_levels, path: target_test.weights, required: true,
              help: "For example, with groups None, Neutral and Praise, -2, 1, 1 compares no feedback with both kinds of feedback; with four doses, -3, -1, 1, 3 tests a straight-line trend. Only the pattern matters, not the size of the numbers."}
+
+  # Two dependent correlations (pwrss's Steiger z test, unpooled as in
+  # G*Power: Departure 12). The first choice picks the template; the
+  # variables' types follow from it (`sets`). A one-sided test runs in the
+  # direction of the second correlation minus the first.
+  E51:
+    methods_name: "Steiger's z test of two dependent correlations"
+    tool: pwrss
+    directional: true
+    departures: ["12"]
+    base: {spec_version: "0.1", design: basic_test, population: {metric: correlation},
+           target_test: {effect: correlation_difference, method: steiger_z}}
+    groups:
+      - input: "Which two correlations, and the variables' names"
+        fields:
+          - {id: comparison, label: "Which two correlations", type: select, path: template, required: true,
+             choices: {overlapping_correlations: "Two that share a variable: X with Y, against X with Z",
+                       nonoverlapping_correlations: "Two with no variable in common: X1 with Y1, against X2 with Y2 (for example, the same two measures at two ages)"},
+             sets: {overlapping_correlations: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: variables.Z.type, value: continuous}],
+                    nonoverlapping_correlations: [{path: variables.X1.type, value: continuous}, {path: variables.Y1.type, value: continuous},
+                                                  {path: variables.X2.type, value: continuous}, {path: variables.Y2.type, value: continuous}]}}
+          - {id: X_label, label: "X, the shared variable", type: text, path: variables.X.label, required: true, shown_if: {field: comparison, is: overlapping_correlations}}
+          - {id: Y_label, label: "Y", type: text, path: variables.Y.label, required: true, shown_if: {field: comparison, is: overlapping_correlations}}
+          - {id: Z_label, label: "Z", type: text, path: variables.Z.label, required: true, shown_if: {field: comparison, is: overlapping_correlations}}
+          - {id: X1_label, label: "X1", type: text, path: variables.X1.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: Y1_label, label: "Y1", type: text, path: variables.Y1.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: X2_label, label: "X2", type: text, path: variables.X2.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: Y2_label, label: "Y2", type: text, path: variables.Y2.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
+      - input: "The two correlations you are comparing"
+        fields:
+          - {id: r_X_Y, writeup_label: "first correlation (X with Y)", label: "First: X with Y", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: overlapping_correlations}}
+          - {id: r_X_Z, writeup_label: "second correlation (X with Z)", label: "Second: X with Z", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: overlapping_correlations}}
+          - {id: r_X1_Y1, writeup_label: "first correlation (X1 with Y1)", label: "First: X1 with Y1", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: r_X2_Y2, writeup_label: "second correlation (X2 with Y2)", label: "Second: X2 with Y2", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
+      - input: "The correlations between the other pairs of variables"
+        fields:
+          - {id: r_Y_Z, writeup_label: "correlation of Y with Z", label: "Y with Z", type: number, path: population.r_Y_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: overlapping_correlations},
+             help: "The higher this is, the more the two compared correlations move together, and the fewer people you need."}
+          - {id: r_X1_X2, writeup_label: "correlation of X1 with X2", label: "X1 with X2", type: number, path: population.r_X1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: r_Y1_Y2, writeup_label: "correlation of Y1 with Y2", label: "Y1 with Y2", type: number, path: population.r_Y1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: r_X1_Y2, writeup_label: "correlation of X1 with Y2", label: "X1 with Y2", type: number, path: population.r_X1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
+          - {id: r_Y1_X2, writeup_label: "correlation of Y1 with X2", label: "Y1 with X2", type: number, path: population.r_Y1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: comparison, is: nonoverlapping_correlations}}
 
   # Generic tests (G*Power's "Generic" tests): no sample size, because the
   # noncentrality already reflects it. Goals: the power for a noncentrality,

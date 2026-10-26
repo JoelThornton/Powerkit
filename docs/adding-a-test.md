@@ -272,8 +272,6 @@ has to go when they land.
 
 | Design | End point | What it needs |
 | --- | --- | --- |
-| Two dependent correlations | E49's card mentions them | its own card, input screen |
-| Variance tests (one group, two groups) | no card yet | cards, input screen, and a design-finder question ([`next.md`](next.md)) |
 
 **Then, with the maintainer:** pick from the roadmap
 ([`coverage-roadmap.md`](coverage-roadmap.md)), where every row has a

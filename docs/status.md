@@ -40,7 +40,7 @@ fully validated. Validation runs are recorded in
     route agrees with it (a unit test).
   - **Two dependent correlations** (one group, with or without a shared
     variable; pwrss's Steiger test, unpooled as G\*Power, Departure 12):
-    engine only.
+    their own card (E51) and input screen **in review** (26 October 2026).
   - **The two variance tests** (one group's variance against a value, two
     groups' variances; simulated with Spower's `p_var.test()`, Known
     difference 4; an allocation ratio is refused while Spower can't draw

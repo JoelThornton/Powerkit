@@ -211,6 +211,12 @@ test_that("counts no longer reach the correlation through the relationship path"
   expect_identical(follow_answers(tree, c("A count", "People within groups")), "E34")
 })
 
+test_that("two correlations in the same people reach their own card, not the independent-groups test", {
+  base <- c("A score or scale", "Independent people", "Once", "Detect an effect", "A relationship between two things you measure")
+  expect_identical(follow_answers(tree, c(base, "Scores, and the question is whether one correlation is stronger than another in the same people")), "E51")
+  expect_identical(follow_answers(tree, c(base, "A score, and the question is whether the relationship differs between two separate groups")), "E49")
+})
+
 test_that("the analyses in the UCLA OARC test-selection table reach the end points recorded in docs/routing-audit.md", {
   once <- function(outcome) c(outcome, "Independent people", "Once", "Detect an effect")
   twice <- function(outcome) c(outcome, "Independent people", "Twice", "Detect an effect")

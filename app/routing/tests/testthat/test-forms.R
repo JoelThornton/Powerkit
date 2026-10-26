@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50"))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {
@@ -54,8 +54,8 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    # E24's effect sizes appear once its question is chosen.
-    start <- if (identical(ep, "E24")) list(question = "r2_increase") else list()
+    # E24's and E51's effect sizes appear once their first question is chosen.
+    start <- switch(ep, E24 = list(question = "r2_increase"), E51 = list(comparison = "overlapping_correlations"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
