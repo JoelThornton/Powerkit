@@ -992,12 +992,18 @@ endpoints:
   E19:
     doc_name: "Planned contrast"
     plain_name: "A specific comparison among three or more groups"
-    status: not_in_powerkit
-    inputs: ["Contrast weights", "The expected group means and SD"]
-    packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Power for emmeans contrasts (pairwise, custom, simple effects) in factorial designs."}
-      - {name: pwranova, url: "https://cran.r-project.org/package=pwranova", what: "Analytic power for planned contrasts in between- or within-factor ANOVA (pwrcontrast())."}
+    template: "factorial_anova / oneway_contrast"
+    backend: "pwrss: power.t.contrasts() (the t test of one planned contrast, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and Superpower's emmeans contrasts agree with it (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one planned comparison: a weighted combination of the group means, such as both feedback conditions against no feedback, or a linear trend across doses."
+      - "The weights say which comparison: one per group, adding up to 0. Groups with negative weights are compared with groups with positive weights; a group weighted 0 is left out."
+      - "Groups of equal size and a two-sided test only, as the package behind it offers. Testing several contrasts means a power analysis for each."
+    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The contrast weights"]
     tier: v2
+    alternatives: ["the overall F test of any difference among the groups (one-way ANOVA)"]
   E20:
     doc_name: "2 x 2 within-participants ANOVA"
     plain_name: "Two factors crossed, everyone in all four conditions"

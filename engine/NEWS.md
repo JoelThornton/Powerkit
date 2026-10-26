@@ -1,3 +1,16 @@
+# powerkit 0.5.0
+
+Batch 1: the five designs the engine already computed become reachable in
+the app (docs/next.md).
+
+* App: planned contrasts (E19) calculate in the app. The design finder
+  already sent "a specific comparison" among three or more groups to E19,
+  whose card said powerkit couldn't do it. The input screen asks for the
+  groups, the outcome, the group means, the SD and the contrast weights
+  (one per group, adding up to 0), with an example of a comparison and a
+  linear trend. Equal groups and two-sided only, as pwrss's
+  `power.t.contrasts()` offers. `oneway_contrast` leaves `engine_only`.
+
 # powerkit 0.4.0
 
 powerkit has a version number from here on: 0.x.y while it is a prototype,

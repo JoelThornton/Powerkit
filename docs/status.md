@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 25 October 2026. This page says where the project is now
+*Last updated: 26 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -21,9 +21,9 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
-- **Planned comparisons (contrasts)** (pwrss's t test of a weighted
+- **Planned comparisons (contrasts)** (E19; pwrss's t test of a weighted
   combination of one factor's means, with trend tests as a special case):
-  in the engine only, in review (25 October 2026), with validation
+  card and input screen in review (26 October 2026); engine merged, with validation
   placeholders for the G\*Power manual's three contrasts. Superpower's
   emmeans route agrees with it, which is a unit test.
 - **More tests by formula** (pwrss): Fisher's exact test (E5's test

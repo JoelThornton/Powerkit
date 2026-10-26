@@ -22,7 +22,6 @@ project is, this says what to do.*
 | --- | --- | --- | --- | --- |
 | 1 | **Logistic regression in the app** (E27): card status and input screen | The engine computes it and the card tells users it can't. Yes/no outcomes are everywhere in psychology | S | Ready |
 | 2 | **Poisson regression in the app** (E28): card status and input screen | As above, and E28 is already routed to from the screening questions | S | Ready |
-| 3 | **Planned contrasts in the app** (E19): card status and input screen | The engine computes it; the card says it can't. A contrast is how most ANOVA hypotheses are actually tested | S | Ready |
 | 4 | **Two dependent correlations in the app**: its own card and input screen | Comparing two correlations in one sample is common and G\*Power's version is hard to drive | M | Ready |
 | 5 | **The two variance tests in the app**: cards, input screen, and a finder question ("is your hypothesis about how much scores vary?") | Last of the five designs the engine can run but nobody can reach. Needs a route in the finder, not just a listing | M | Ready |
 | 6 | **Let the app's own checks run in CI**: set `NOT_CRAN: true` in `routing-prototype-tests.yaml` and fix what it catches | Six tests skip in CI today, including the one that checks the app's result equals the engine's and that the downloaded script reproduces it. The most valuable test in the suite has never run | S | Ready |
