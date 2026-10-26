@@ -108,6 +108,12 @@ fully validated. Validation runs are recorded in
   section in the manual (ANCOVA, goodness of fit, the generic F,
   chi-square and z tests) or an empty Examples subsection (Fisher's exact
   test), so they need G\*Power itself.
+- **Fix (25 October 2026):** coverage-roadmap.md said six designs (E9 to
+  E14) weren't wired into the app. They were, and five more rows (E18,
+  E24, E25, E26) were stale the same way. The statuses are corrected, the
+  summary counts are recounted from the rows, and a test now holds the
+  page to forms.yaml's record of what calculates. No code changed: there
+  was nothing to wire.
 - **Fix (25 October 2026):** the nightly validation job runs again. It had
   failed on every run since it was set up on 12 October (13 runs), before
   a single test ran: testthat's JUnit reporter needs xml2, which

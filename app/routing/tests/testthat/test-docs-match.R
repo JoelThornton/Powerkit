@@ -115,3 +115,16 @@ test_that("docs/judgement-calls.md covers every placeholder setting and open que
   for (j in sprintf("3.%d", 1:9)) expect_match(doc, paste0("judgement call ", j), fixed = TRUE, label = j)
   expect_match(doc, "(phase-3b-questions.md)", fixed = TRUE)
 })
+
+test_that("coverage-roadmap.md doesn't call an end point unwired when the app wires it", {
+  # The roadmap said E9 to E14 were "Validated, not wired" for a week after
+  # they had been wired, which sent a later reader looking for work that
+  # was already done. forms.yaml is the record of what calculates (its
+  # `calculates` list, plus the preview-and-full-run end points under
+  # `simulations`), so the page has to agree with it.
+  rows <- roadmap_rows()
+  rows <- rows[!is.na(rows$endpoint) & !is.na(rows$status) & rows$endpoint %in% tree$calculates, ]
+  expect_gt(nrow(rows), 0)
+  wrong <- grepl("not wired", rows$status, ignore.case = TRUE)
+  expect_identical(paste(rows$id[wrong], rows$endpoint[wrong]), character(0))
+})

@@ -2683,3 +2683,57 @@ in it explains why, so the next person doesn't "fix" it back.
 
 **Next.** Wiring the six validated-but-unwired designs into the app, one
 design per PR.
+## 2026-10-25 · The roadmap said six designs weren't wired; they were
+
+**What happened.** Looking for the next piece of work, coverage-roadmap.md
+said B1, B8, B9, B10, B18 and B19 (end points E9 to E14) were "Validated,
+not wired", and its definition paragraph said "E9-E14 run in the engine
+but the app shows guidance only". Both were written on 17 October 2026 and
+overtaken soon after. All six run in the app today:
+
+- **E9** is in `forms.yaml`'s `calculates` list, with a background run for
+  power, a required N and a smallest detectable effect, and an optional
+  group on its input screen for the reliabilities of X, W and Y.
+- **E10 to E14** are under `forms.yaml`'s `simulations > endpoints`: a
+  rough preview for power, then the full run in the app for E10 to E12,
+  and an R script for E13, E14 and every required N. `setup.R` builds the
+  app's own list of what calculates as `calculates` plus those, with the
+  comment "As in app.R", and `test-results.R` has a test named
+  "E1-E9, E18, E23-E26 and E48-E50 calculate; E10-E14 preview first, then
+  a full run or an R script".
+
+Nothing needed building. The statuses are now corrected, with the
+per-end-point detail, because "not wired" was sending a reader to work
+that was already done.
+
+**Five more rows were stale the same way.** A10, A11 (E24), A23 (E18),
+A35 (E25) and A37 (E26) still read "Planned (wave 2: engine groundwork,
+draft PR; not wired)". Those four end points are in `calculates` and are
+described as calculating in status.md. They now read "Wired", with the
+qualifier that each matches G\*Power in the engine's tests
+(`test-backend-wave2.R`) but is not in the full validation run, where its
+published value is still a placeholder. C5 (measurement unreliability) and
+C11 (power curves and sensitivity) were stale too: E9's screen does ask
+for the three reliabilities, and the result screen does draw power against
+N (`explore_curve()`), with a sensitivity goal on E1 to E9.
+
+**A test now holds the page to the app** (`test-docs-match.R`, beside the
+tests that hold tree.yaml to decision-tree.md): for every roadmap row
+whose end-point cell names one the app calculates, the status may not say
+"not wired". Run against the page as it was, it names all twelve stale
+rows. It only reaches rows whose end-point cell starts with an end-point
+id, so C11, whose cell starts with prose, is outside it.
+
+**The summary table was drifting too.** Three statuses the rows use
+("Wired", "No ready-made tool", "Partly working") were missing from it, so
+its lines covered 125 of the 130 rows, and four of the others were out by
+a few. Every line is now counted from the rows, and the vocabulary at the
+top lists what the rows use. Recounting by hand is the sort of thing that
+rots again; a test for it would be a reasonable follow-up.
+
+**Worth saying plainly:** this page is the one I kept consulting to decide
+what to build, and it was wrong twice in a day (here, and on the
+correlation question that turned out to have been settled on 17 October).
+status.md and forms.yaml were both right. The lesson for the next session
+is to check `forms.yaml` and status.md before trusting a roadmap status,
+which the new test now enforces for the "wired" claim at least.

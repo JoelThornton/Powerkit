@@ -66,3 +66,31 @@ coverage_mvp_capabilities <- function() {
   }
   caps
 }
+
+# coverage-roadmap.md, Parts A to C: one row per design, with the end point
+# it reaches and its status. The columns are in different positions in the
+# three parts, so the cells are found by what they look like instead.
+roadmap_rows <- function() {
+  lines <- strsplit(read_doc("coverage-roadmap.md"), "\n", fixed = TRUE)[[1]]
+  rows <- lapply(lines[grepl("^\\| [ABC][0-9]+ \\|", lines)], split_row)
+  ids <- vapply(rows, `[`, "", 1)
+  rows <- rows[!duplicated(ids)]
+  statuses <- paste0(
+    "^(Done|Validated|Planned|Wired|Unknown|Foundation tool|",
+    "G\\\\\\*Power covers|No ready-made tool|Partly working|Out of scope)"
+  )
+  first_match <- function(cells, pattern) {
+    cell <- Find(function(x) grepl(pattern, x), cells)
+    if (is.null(cell)) NA_character_ else cell
+  }
+  data.frame(
+    id = ids[!duplicated(ids)],
+    # "E9" and "E50 (only from ...)" both give the end point; cells like
+    # "none: reaches E4" don't start with an id and are left out.
+    endpoint = vapply(rows, function(r) {
+      sub("^(E[0-9]+)\\b.*", "\\1", first_match(r[-1], "^E[0-9]+\\b"))
+    }, ""),
+    status = vapply(rows, function(r) first_match(r[-1], statuses), ""),
+    stringsAsFactors = FALSE
+  )
+}
