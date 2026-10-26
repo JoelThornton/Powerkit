@@ -806,3 +806,29 @@ other "not covered" card.
 - **Knock-on effects:** a validation run with three or more mediators is
   in `status.md`, "What's next".
 - **Recorded in:** open question 10; setting `parallel_mediators_max`.
+
+### D6. Consistency between hypotheses (open question 12)
+
+**Decided 26 October 2026** (`decisions.md`): both, in two steps. First,
+values a shared relationship needs are entered once on the plan and fill
+each analysis's input screen, so each analysis keeps its own backend's
+method. Whole-study simulation from one model follows later as an option,
+recorded as a departure and checked by a statistician before it is
+offered. Setting `consistency_approach`: `both`. The entry is kept below
+as the record of the options.
+
+
+- **Question:** per-hypothesis forms with a consistency check,
+  whole-study simulation from one model, or both?
+- **Options:**
+  - per hypothesis;
+  - whole-study simulation;
+  - both.
+- **What tools and sources do:** `decision-tree.md` 4.2 sets out both
+  (opened). Whether either is a departure from established tools is part
+  of the question.
+- **Who might disagree, and why:**
+  - Per hypothesis follows each backend exactly.
+  - Whole-study simulation is more coherent, but new.
+- **Knock-on effects:** may need a record in `conventions.md`.
+- **Recorded in:** open question 12; setting `consistency_approach`.

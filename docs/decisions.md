@@ -2932,6 +2932,37 @@ the skipped list holds every end point, says how many, and offers the
 filter; the filtered list still says how many fit; and the skip is part of
 the state the browser's Back and Forward buttons restore.
 
+## 2026-10-26 · Consistency between analyses in the whole-study plan (open question 12)
+
+**Decision.** Both approaches, in two steps.
+
+1. **Enter once (build now).** On "Plan my whole study", a relationship
+   that several analyses share (for example, the effect of X on the
+   outcome, which is the total effect in a mediation with the same X) is
+   entered once on the plan, and each analysis's input screen starts from
+   those values. Each analysis is still calculated by its own backend,
+   with that backend's established method, so nothing departs from the
+   tools researchers compare against.
+2. **Whole-study simulation (later, optional).** One data-generating
+   model for the whole study, simulated by an existing package (a
+   candidate is power4mome, whose models are written in lavaan syntax;
+   its coverage of every combination the plan allows is not yet checked),
+   giving power for every main analysis from the same simulated data sets
+   and one sample size. No established tool plans a whole study this way,
+   so before it is offered it is recorded in `conventions.md`, shown on the
+   results screen, stated in the methods paragraph, covered by a test of
+   the size of the difference, and checked by a statistician.
+
+**Why.** Separately entered values can contradict each other, and a plan's
+sample size is then right for no single study (`decision-tree.md` 4.2).
+Entering shared values once removes the contradiction at the source, with
+no new method. Whole-study simulation is more coherent still, and handles
+"every result must be significant" exactly rather than by raising each
+test's power, but it is new and slower, so it waits for checking.
+
+**Recorded in:** setting `consistency_approach` (`both`); `next.md`;
+`archive/judgement-calls-decided.md` (D6).
+
 ## 2026-10-26 · CI runs in a prebuilt image
 
 **What.** The four test workflows (R CMD check, the app's tests, the
@@ -2959,4 +2990,3 @@ since setup-r, which used to set it, is no longer used.
 **Not changed.** `online-app-manifest.yaml` (it writes the manifest from
 an activated renv project) and `run-it-yourself.yaml` (it exists to test
 a clean install on each operating system).
-

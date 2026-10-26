@@ -103,8 +103,9 @@ fully validated. Validation runs are recorded in
   cards, and two parallel mediators only.
 - **Whole-study plan, still to build (26 October 2026):** the combined
   sample size and the consistency check, labelled "Coming soon" on the
-  plan, are now in the queue ([`next.md`](next.md)); the
-  consistency check waits on open question 12.
+  plan, are now in the queue ([`next.md`](next.md)).
+  Open question 12 is decided: shared values are entered once on the
+  plan now, and whole-study simulation follows later as a checked option.
 - **Candidates recorded (25 October 2026):** three of the five roadmap rows
   with no ready-made tool now name one (powerMediation for B14,
   semPower for B17, DescTools for B27's test). All three are marked
