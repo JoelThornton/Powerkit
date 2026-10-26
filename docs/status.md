@@ -169,7 +169,8 @@ fully validated. Validation runs are recorded in
   worked examples.
 - **Browser Back and Forward** (in review, 22 October 2026): each screen
   or tab change is a browser history entry.
-- **Open PRs:** see [`handover.md`](handover.md).
+- **Open PRs:** GitHub is the list; this page doesn't duplicate it.
+  What to work on is [`next.md`](next.md).
 
 ## Priorities (the maintainer, 18 October 2026)
 

@@ -7,29 +7,25 @@ maps every document.*
 
 ## Current state
 
-- **Engine** (`engine/`): every design E1–E14 runs through `run_spec()`
-  and has passed its full validation run. Published values are still to
-  be transcribed by the maintainer (`TODO_PUBLISHED_VALUE` placeholders).
-  The basic tests (E1–E6) use pwr's or base R's formula by default
-  (Departure 9) and can find the smallest detectable effect at a fixed N.
-  Wave 2 (one-way ANOVA, R², one proportion, McNemar, Welch by formula)
-  runs in the engine but isn't in the app yet.
-- **App** (`app/routing/`): the new four-screen design
-  ([`decisions.md`](decisions.md), "2026-10-18 · The new design"):
-  - screen A, start questions (situation, aim, claim);
-  - screen B, the question tree and end-point cards;
-  - screen C, inputs with the effect-size source and the user's
-    reasoning, and "I can't justify an effect size" (E1–E4);
-  - screen D, the result with a plain reading, 80% and 95% side by side,
-    the reasoning, what power can't tell you, an explore panel (E1–E4),
-    and the departures and known differences.
+Two statements of it, so this page doesn't drift into a third:
 
-  E1–E9 calculate on the input screen (E9 in the background); E10–E14
-  give a preview, then a full run or an R script. Plans save as project
-  files. Saving, the R script and the write-up need the reasoning.
-- **Open PRs, next steps and what the maintainer still owes:** in
-  [`status.md`](status.md). Pull requests and git history hold everything
-  merged before that.
+- [`status.md`](status.md) is where the project is now — what calculates,
+  what is in review, what is engine-only.
+- [`next.md`](next.md) is what to do about it, in order.
+
+What this page still holds: the working rules below, where things live,
+and the shape of the app. The app is the four-screen design
+([`decisions.md`](decisions.md), "2026-10-18 · The new design"): start
+questions; the question tree and end-point cards; inputs centred on the
+effect size and the user's reasoning; and the result, with a plain
+reading, 80% and 95% side by side, what power can't tell you, and the
+departures and known differences. Mediation gives a preview and then a
+full run or an R script; plans save as project files; saving, the script
+and the write-up all need the user's reasoning.
+
+- **What to work on, and what the maintainer owes:** in
+  [`next.md`](next.md). Open pull requests are on GitHub; git history
+  holds everything merged.
 - **Branches:** sessions can't delete remote branches (403), so merged
   branches pile up until the maintainer deletes them; the one to keep is
   `claude/project-thread-uqcark-webr-spike` (never merged).
