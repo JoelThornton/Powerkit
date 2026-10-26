@@ -664,6 +664,10 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   keys <- unlist(form$known_differences)
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  # Some apply only when a population value is above 0 (E27's Known
+  # difference 3, logistic regression with other predictors).
+  above <- form$known_differences_if_above_zero
+  keys <- Filter(function(k) is.null(above[[k]]) || isTRUE((spec$population[[above[[k]]]] %||% 0) > 0), keys)
   # A known difference may have its own wording for the smallest detectable
   # effect (key "1 sensitivity": E9's comes from the fixed-model formula).
   if (identical(spec$goal$type, "sensitivity")) {

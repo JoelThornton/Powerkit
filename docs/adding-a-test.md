@@ -261,6 +261,8 @@ ships; say the number in the "What's new" entry if it helps.
 ## The queue: what to add next
 
 **Batch 1 (now): finish the five designs the engine already computes.**
+Logistic regression is in review (26 October 2026); the four below
+remain.
 Boxes 1 to 3 are done for all five — engine, example specs, unit tests,
 validation files with placeholders and their chunks are all in. Each needs
 boxes 4 to 8: a card, an input screen, the "What's new" entry, the version
@@ -270,10 +272,8 @@ has to go when they land.
 
 | Design | End point | What it needs |
 | --- | --- | --- |
-| Logistic regression, one predictor | E27 (card exists, finder routes to it) | card status, input screen |
-| Poisson regression, one predictor | E28 (as above) | card status, input screen |
 | Two dependent correlations | E49's card mentions them | its own card, input screen |
-| Variance tests (one group, two groups) | no card yet | cards listed in "I know my analysis" only, input screen |
+| Variance tests (one group, two groups) | no card yet | cards, input screen, and a design-finder question ([`next.md`](next.md)) |
 
 **Then, with the maintainer:** pick from the roadmap
 ([`coverage-roadmap.md`](coverage-roadmap.md)), where every row has a

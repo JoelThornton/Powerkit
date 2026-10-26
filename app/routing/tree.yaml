@@ -327,7 +327,7 @@ nodes:
     options:
       - {label: "A score or scale", next: s2, sets: {outcome: score}, help: "e.g. a questionnaire mean, a reaction time, words recalled."}
       - {label: "Yes/no, or one of several categories", next: s2, sets: {outcome: yesno}, help: "e.g. passed or failed; chose option A, B or C."}
-      - {label: "A count", next: E28, help: "How many times something happened, with no fixed maximum."}
+      - {label: "A count", next: s2, sets: {outcome: count}, help: "How many times something happened, with no fixed maximum."}
       - {label: "Ordered categories (e.g. a single rating item)", next: o5a, help: "e.g. one item rated from 'strongly disagree' to 'strongly agree'."}
       - {label: "The time until something happens", next: E43, help: "e.g. days until relapse, or whether and when people drop out."}
   o5a:
@@ -386,7 +386,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: f1, yesno: q3_cat}
+    routes: {score: f1, yesno: q3_cat, count: q3_count}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
@@ -500,12 +500,20 @@ nodes:
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
+  # A count outcome: Poisson regression (E28) when each person is measured
+  # once; repeated counts need a mixed model powerkit doesn't have.
+  q3_count:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E28, twice: E-unsure, many_conditions: E-unsure}
+
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_rel, yesno: q2_rel_cat}
+    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count}
   q2_rel_cat:
     doc_id: Q2
     text: "Which kind of categorical outcome?"
@@ -531,7 +539,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_mod, yesno: E32}
+    routes: {score: q3_mod, yesno: E32, count: E32}
   q3_mod:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -570,7 +578,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_med, yesno: E32}
+    routes: {score: q3_med, yesno: E32, count: E32}
   q3_med:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -629,7 +637,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_modmed, yesno: E32}
+    routes: {score: q3_modmed, yesno: E32, count: E32}
   q3_modmed:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -678,7 +686,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E49, E50]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E49, E50]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18]
@@ -1083,21 +1091,32 @@ endpoints:
   E27:
     doc_name: "Logistic regression (yes/no outcome)"
     plain_name: "Predict a yes/no outcome"
-    status: not_in_powerkit
-    inputs: ["Odds ratio or regression coefficients"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for generalised linear models with fixed predictors, including logistic (p_glm(family = binomial()))."}
-      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for logistic regression."}
+    template: "logistic_regression / single_predictor"
+    backend: "pwrss: power.z.logistic() (the Wald z test of one predictor, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one predictor of a yes/no outcome: a score, or a yes/no group. The odds ratio is per standard deviation for a score, or the second group against the first."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The odds ratio and the proportion of 'yes' at the starting point", "How much the other predictors overlap with this one"]
     tier: v2
+    alternatives: ["Fisher's exact test or the z test of two proportions, for a yes/no group with no other predictors"]
   E28:
     doc_name: "Count outcome (Poisson or negative binomial)"
     plain_name: "An outcome that counts how often something happened"
-    status: not_in_powerkit
-    inputs: ["The expected rate ratio"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "Simulation power for Poisson regression (p_glm(family = poisson()))."}
-      - {name: pwrss, url: "https://cran.r-project.org/package=pwrss", what: "Analytic power for Poisson regression."}
+    template: "poisson_regression / single_predictor_count"
+    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    card_points:
+      - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
+      - "Poisson regression only: it assumes the counts vary as much as their average (a Poisson outcome). For counts that vary more than that, a negative binomial model is needed, and powerkit doesn't calculate it yet."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "How much the other predictors overlap with this one"]
     tier: v2
+    alternatives: ["a negative binomial regression, for counts that vary more than their average (not in powerkit yet)"]
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
@@ -1396,7 +1415,8 @@ guided:
         - {when: {outcome: categories, x: score}, endpoint: E-unsure}
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
-        - {when: {outcome: count}, endpoint: E28}
+        - {when: {outcome: count, times: once}, endpoint: E28}
+        - {when: {outcome: count}, endpoint: E-unsure}
         - {when: {outcome: ordinal}, endpoint: E29}
         - when: {x: cond2, covariate: baseline}
           ask:
@@ -1529,7 +1549,6 @@ glossary:
   - {term: "R-squared change", pattern: "R-squared change", hint: "How much R-squared goes up when the predictor or predictors of interest are added."}
   - {term: "discordant proportions", pattern: "discordant", hint: "Among people measured twice, the share who change from yes to no and the share who change from no to yes."}
   - {term: "odds ratio", pattern: "odds ratio", hint: "How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference."}
-  - {term: "regression coefficients", pattern: "regression coefficients", hint: "How much the outcome is expected to change for a one-unit change in a predictor."}
   - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
   - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
   - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
