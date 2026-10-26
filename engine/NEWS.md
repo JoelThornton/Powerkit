@@ -31,6 +31,14 @@
   proportion in the second group), optionally adjusted for other
   predictors through X's R-squared with them. Power at a fixed N or the
   required N; one-sided tests run in the direction of the odds ratio.
+* Engine (not yet in the app): planned comparisons (contrasts) between the
+  levels of one between-participants factor, by pwrss's
+  `power.t.contrasts()`. Template `oneway_contrast` of design
+  `factorial_anova`: the group means, the within-group SD, and one weight
+  per level in `target_test > weights`, adding up to 0. Trend tests are
+  contrasts with the matching weights, and the weights' scale doesn't
+  matter. Power at a fixed N or the required N; one contrast at a time,
+  equal groups, two-sided.
 
 * App: the browser's Back and Forward buttons move between powerkit's
   screens and tabs. Before, the app changed screens without the browser

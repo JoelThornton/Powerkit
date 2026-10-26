@@ -97,7 +97,8 @@ validation_chunks <- function() {
     mediation_crosscheck_parallel = "test-validation-mediation-crosscheck-parallel.R",
     mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R",
     logistic = "test-validation-logistic-regression.R",
-    poisson = "test-validation-poisson-regression.R"
+    poisson = "test-validation-poisson-regression.R",
+    contrast = "test-validation-anova-contrast.R"
   )
 }
 
@@ -108,7 +109,8 @@ validation_minutes <- function() {
   c(basic = 0.3, anova = 15, interactions = 1.5, process_4 = 60,
     process_6 = 60, process_7 = 120, process_14 = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
-    mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3)
+    mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3,
+    contrast = 0.3)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

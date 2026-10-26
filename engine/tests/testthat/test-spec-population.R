@@ -275,7 +275,10 @@ zero_effect_cases <- list(
   },
   logistic_regression = function(s) within(s, population$odds_ratio <- 1),
   poisson_regression = function(s) within(s, population$rate_ratio <- 1),
-  anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18))
+  anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
+  anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
+  # Equal means make every contrast zero, whatever its weights.
+  anova_oneway_contrast = function(s) within(s, population$means <- list(2, 2, 2, 2))
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

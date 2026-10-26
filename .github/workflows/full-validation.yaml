@@ -60,6 +60,7 @@ on:
           - mediation_crosscheck_serial
           - logistic
           - poisson
+          - contrast
 
 permissions:
   contents: read

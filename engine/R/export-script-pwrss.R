@@ -106,6 +106,14 @@ pwrss_script_inputs <- function(spec) {
         if (is.null(pop$null_probabilities)) "" else ", null.prob.matrix = null_probabilities"
       )
     ),
+    oneway_contrast = c(
+      sprintf("means <- %s # expected mean of each group: %s",
+        r_code(as.numeric(unlist(pop$means))), paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
+      sprintf("sd <- %s # SD of the outcome within each group", r_code(pop$sd)),
+      sprintf("weights <- %s # the comparison being tested, one weight per group",
+        r_code(as.numeric(unlist(spec$target_test$weights)))),
+      sprintf("groups <- %s", r_code(length(unlist(v$A$levels))))
+    ),
     oneway_ancova = c(
       sprintf("means <- %s # expected adjusted mean of each group: %s",
         r_code(as.numeric(unlist(pop$means))), paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
@@ -234,6 +242,13 @@ pwrss_script_call_lines <- function(spec, inputs) {
     ),
     chi_square_gof = list(head = "power.chisq.gof( # chi-square goodness-of-fit test", args = c(
       "w = effect$w", "df = effect$df", "n = n_total", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
+    )),
+    oneway_contrast = list(head = "power.t.contrasts( # t test of a planned comparison", args = c(
+      "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
+      "n.vector = rep(n_total / groups, groups) # equal groups",
+      "contrast.matrix = matrix(weights, nrow = 1)",
+      "r.squared = 0", "k.covariates = 0 # no covariates (pwrss defaults this to 1)",
+      "alpha = alpha", "adjust.alpha = \"none\"", "ceil.n = FALSE", "verbose = 0"
     )),
     oneway_ancova = list(head = "power.f.ancova.shieh( # one-way ANCOVA, Shieh's method", args = c(
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",

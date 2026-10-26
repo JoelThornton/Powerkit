@@ -30,6 +30,8 @@ test_that("there is an example for every template", {
     "single_predictor",
     # Poisson regression (engine only).
     "single_predictor_count",
+    # Planned comparisons (engine only).
+    "oneway_contrast",
     # Generic tests (engine only).
     "t", "f", "chi_square", "z"
   ))

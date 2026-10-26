@@ -121,6 +121,15 @@ different answer, the difference is listed in "Known differences".
 | Spower | to check | to check | to check |
 | **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Superpower and unequal group sizes" below). |
 
+### Planned comparisons (contrasts)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G*Power | No contrast screen of its own: a contrast is entered into "F test: Fixed effects ANOVA - special, main effects and interactions" as an effect size f with "Numerator df" 1 and "Number of groups" the number of levels [GP-man, 11.3.3, p. 29] | f = sigma_m / sigma, where sigma_m = \|C\| / sqrt(N * sum(c_i^2 / n_i)) for the contrast C = sum(c_i * mu_i); the manual tabulates sigma_m, f and eta-squared for three contrasts of one example [GP-man, 11.3.3] | Weights are entered only through f, so G\*Power never sees them. Validated against GPower 2.0 [GP-man, 11.6] |
+| Superpower | `ANOVA_exact(emm = TRUE, contrast_type = )` and `emmeans_power()`: the contrast is computed by emmeans on one exact data set [SP-src] | emmeans contrast families (`"poly"` for trends, `"pairwise"`, ...), not arbitrary weights | Power is returned as a percentage. Agrees with pwrss and with the manual: for the manual's example its "poly" contrasts give 0.514737 (linear) and 0.0579695 (quadratic) [powerkit, `test-backend-formula-tests.R`] |
+| pwrss | `power.t.contrasts()`: a t test of each row of a contrast matrix (t^2 = F with numerator df 1, so the same test G\*Power computes) | `mu.vector`, `sd.vector`, `n.vector` and `contrast.matrix` | `k.covariates` **defaults to 1**, which spends a denominator degree of freedom a plain one-way design doesn't have; `adjust.alpha` offers none (the default), Tukey, Bonferroni, Holm, Hochberg, Hommel, BH, BY and fdr. No one-sided option |
+| **powerkit** | pwrss's `power.t.contrasts()` by formula, with `k.covariates = 0` and `r.squared = 0`; no simulation option yet (engine only, not in the app) [powerkit] | The means, the within-group SD and `target_test > weights`, one per level, adding up to 0. The weights' scale doesn't matter, which a unit test checks | **One contrast at a time**, `adjust.alpha = "none"` (pwrss's own default), equal groups, and two-sided only because pwrss's function has no one-sided option. Not a departure: the arguments are pwrss's defaults except `k.covariates`, which is 0 because the design has no covariates |
+
 ### Superpower and unequal group sizes (2 x 2 between and mixed)
 
 Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].

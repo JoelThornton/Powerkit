@@ -291,6 +291,14 @@
           "description": "Mediation only: the indirect path being tested, e.g. 'X->M1->M2->Y'.",
           "type": "string"
         },
+        "weights": {
+          "description": "Contrasts only: one weight per level of the factor, in the order of its levels. The weights must add up to 0, and at least one must not be 0. Their scale doesn't matter: (-3, -1, 1, 3) and (-1.5, -0.5, 0.5, 1.5) give the same power.",
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "number"
+          }
+        },
         "alpha": {
           "description": "Significance level (two-sided unless 'alternative' says otherwise).",
           "type": "number",
@@ -1102,7 +1110,8 @@
               "2x2_between",
               "2x2_mixed",
               "oneway_between",
-              "oneway_ancova"
+              "oneway_ancova",
+              "oneway_contrast"
             ]
           },
           "target_test": {
@@ -1117,13 +1126,15 @@
                     "enum": [
                       "main_effect_A",
                       "main_effect_B",
-                      "interaction"
+                      "interaction",
+                      "contrast"
                     ]
                   },
                   "method": {
                     "enum": [
                       "anova_f",
-                      "ancova_f"
+                      "ancova_f",
+                      "contrast_t"
                     ]
                   }
                 }
@@ -1190,6 +1201,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_oneway_ancova"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "oneway_contrast"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_oneway_contrast"
             }
           }
         ]
@@ -1823,6 +1849,75 @@
             },
             "method": {
               "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_oneway_contrast": {
+      "description": "A planned comparison (contrast) between the levels of one between-participants factor: a weighted combination of the group means, tested against 0. Trend tests (linear, quadratic) are contrasts with the matching weights. Group sizes are equal.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected mean of each group, in the order of the factor's levels.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd": {
+              "description": "Standard deviation within each group (the same in every group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "required": [
+            "weights"
+          ],
+          "properties": {
+            "effect": {
+              "const": "contrast"
+            },
+            "method": {
+              "const": "contrast_t"
             }
           }
         }

@@ -32,6 +32,10 @@
 #   regression         z test of one predictor, pwrss::power.z.poisson()
 #                      (Demidenko's method with its variance correction,
 #                      as for logistic regression)
+#   contrast           factorial_anova/oneway_contrast: a planned
+#                      comparison between the levels of one factor, the t
+#                      test of a weighted combination of the group means,
+#                      pwrss::power.t.contrasts()
 # Each is one pwrss call, as a user would make it, at the total sample
 # size n. Functions and arguments were checked in pwrss 1.3.3's help pages
 # and sources (docs/coverage-roadmap.md, wave 2).
@@ -42,7 +46,7 @@ pwrss_covers <- function(spec) {
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
-             "factorial_anova/oneway_ancova",
+             "factorial_anova/oneway_ancova", "factorial_anova/oneway_contrast",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase",
              "logistic_regression/single_predictor",
              "poisson_regression/single_predictor_count") ||
@@ -245,6 +249,24 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
+    oneway_contrast = {
+      k <- length(spec$variables$A$levels)
+      weights <- as.numeric(unlist(spec$target_test$weights))
+      list(
+        fun = "power.t.contrasts",
+        weights = weights,
+        args = function(n) list(
+          mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k),
+          n.vector = rep(n / k, k),
+          contrast.matrix = matrix(weights, nrow = 1, dimnames = list("contrast", NULL)),
+          # No covariates, and nothing else explaining the outcome: pwrss
+          # defaults k.covariates to 1, which would spend a denominator
+          # degree of freedom this design doesn't have.
+          r.squared = 0, k.covariates = 0,
+          alpha = alpha, adjust.alpha = "none", ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
     r2_zero = ,
     r2_increase = {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
@@ -364,6 +386,11 @@ pwrss_check_run <- function(spec, inputs) {
       } else {
         row("X standardised: mean and SD passed to pwrss", c(0, 1), c(args$distribution$mean, args$distribution$sd))
       }
+    ),
+    oneway_contrast = rbind(
+      row("means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
+      row("contrast weights passed to pwrss (contrast.matrix)", inputs$weights, as.numeric(args$contrast.matrix)),
+      row("covariates pwrss used (k.covariates)", 0, args$k.covariates)
     ),
     r2_zero = ,
     r2_increase = {

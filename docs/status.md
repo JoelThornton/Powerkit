@@ -21,6 +21,11 @@ fully validated. Validation runs are recorded in
   transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
+- **Planned comparisons (contrasts)** (pwrss's t test of a weighted
+  combination of one factor's means, with trend tests as a special case):
+  in the engine only, in review (25 October 2026), with validation
+  placeholders for the G\*Power manual's three contrasts. Superpower's
+  emmeans route agrees with it, which is a unit test.
 - **More tests by formula** (pwrss): Fisher's exact test (E5's test
   version) and one-way ANCOVA (E23) are in the app; chi-square goodness of
   fit (E48, its own card) and two independent correlations (E49) are in
@@ -165,10 +170,10 @@ any time, and user testing is the maintainer's to run):
    design-upgrade comparator, wait for a statistician.
 7. More tests by formula from the packages powerkit already uses (the
    maintainer's direction, 18 October 2026): all are in the app or in
-   review. Dependent correlations and logistic and Poisson regression:
-   engine in review (25 October 2026). Left for later: Wilcoxon and other
-   rank tests (need a statistician's view), and contrasts. Validation
-   later.
+   review. Dependent correlations, logistic and Poisson regression and
+   contrasts: engine in review (25 October 2026). Left for later:
+   Wilcoxon and other rank tests (need a statistician's view).
+   Validation later.
 8. Before release: published values, independent
    checks for moderated mediation and the Monte Carlo interval with two or
    more mediators, phase 3b (binary X and W), and the methodologist

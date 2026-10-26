@@ -1,7 +1,7 @@
 # More tests by formula (the maintainer's direction, 18 October 2026):
 # Fisher's exact test, chi-square goodness of fit, two independent
-# correlations, two dependent correlations and one-way ANCOVA, each one
-# pwrss call. Each is checked
+# correlations, two dependent correlations, one-way ANCOVA, logistic and
+# Poisson regression and planned comparisons, each one pwrss call. Each is checked
 # against its backend called directly, from inputs written out by hand,
 # and against a second package where one does the same test. No G*Power
 # or published values yet: validation comes later.
@@ -35,6 +35,7 @@ test_that("each formula test runs on pwrss, exactly, and passes its check run", 
   cases <- c(
     fisher_exact = "pwrss::power.exact.fisher",
     chi_square_gof = "pwrss::power.chisq.gof",
+    anova_oneway_contrast = "pwrss::power.t.contrasts",
     two_correlations = "pwrss::power.z.twocors",
     overlapping_correlations = "pwrss::power.z.twocors.steiger",
     nonoverlapping_correlations = "pwrss::power.z.twocors.steiger",
@@ -157,7 +158,9 @@ test_that("exported scripts for the formula tests reproduce powerkit's results",
     formula_spec("logistic_regression", list(type = "sample_size", power = 0.8)),
     logistic_binary_x(formula_spec("logistic_regression", list(type = "power", n = 200), options = list(seed = 7, attrition = 0.1))),
     formula_spec("poisson_regression", list(type = "sample_size", power = 0.8)),
-    poisson_binary_x(formula_spec("poisson_regression", list(type = "power", n = 200), options = list(seed = 7, attrition = 0.1)))
+    poisson_binary_x(formula_spec("poisson_regression", list(type = "power", n = 200), options = list(seed = 7, attrition = 0.1))),
+    formula_spec("anova_oneway_contrast", list(type = "sample_size", power = 0.8)),
+    formula_spec("anova_oneway_contrast", list(type = "power", n = 40), options = list(seed = 7, attrition = 0.1))
   )
   for (spec in specs) {
     result <- run_spec(spec)
@@ -422,5 +425,88 @@ test_that("Poisson regression specs that can't be right are refused", {
   expect_error(validate_spec(spec), class = "powerkit_spec_error")
   spec <- formula_spec("poisson_regression", list(type = "power", n = 200))
   spec$variables$Y$type <- "continuous"
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+})
+
+# Planned comparisons (contrasts) ------------------------------------------------
+
+test_that("a contrast equals pwrss::power.t.contrasts(), and Superpower's emmeans contrast", {
+  # Example: means 1.5, 2, 3, 4 in four groups of 5, SD 2, linear trend.
+  spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+  power <- run_spec(spec)$curve$power
+  direct <- pwrss::power.t.contrasts(
+    mu.vector = c(1.5, 2, 3, 4), sd.vector = rep(2, 4), n.vector = rep(5, 4),
+    contrast.matrix = matrix(c(-3, -1, 1, 3), nrow = 1),
+    r.squared = 0, k.covariates = 0, alpha = 0.05, adjust.alpha = "none",
+    ceil.n = FALSE, verbose = 0
+  )
+  expect_equal(power, as.numeric(direct$power))
+
+  # Superpower computes the same contrast through emmeans, from one exact
+  # data set rather than a formula: a check that powerkit's weights mean
+  # what the ANOVA backend would take them to mean.
+  skip_if_not_installed("Superpower")
+  skip_if_not_installed("emmeans")
+  design <- Superpower::ANOVA_design(design = "4b", n = 5, mu = c(1.5, 2, 3, 4), sd = 2, plot = FALSE)
+  other <- Superpower::ANOVA_exact(
+    design, alpha_level = 0.05, verbose = FALSE, emm = TRUE, contrast_type = "poly"
+  )$emm_results
+  linear <- other$power[other$contrast == "linear"]
+  expect_equal(power, linear / 100, tolerance = 1e-6)
+})
+
+test_that("a contrast's weights can be on any scale", {
+  at <- function(weights) {
+    spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+    spec$target_test$weights <- as.list(weights)
+    run_spec(spec)$curve$power
+  }
+  # The same comparison, scaled up and down, and reversed.
+  expect_equal(at(c(-3, -1, 1, 3)), at(c(-1.5, -0.5, 0.5, 1.5)))
+  expect_equal(at(c(-3, -1, 1, 3)), at(c(-30, -10, 10, 30)))
+  expect_equal(at(c(-3, -1, 1, 3)), at(c(3, 1, -1, -3)))
+})
+
+test_that("a contrast: the required n is the smallest that reaches the target", {
+  spec <- validate_spec(formula_spec("anova_oneway_contrast", list(type = "sample_size", power = 0.8)))
+  n <- run_spec(spec)$n_required$n
+  backend <- route_spec(spec)
+  # Four equal groups, so the valid sizes are multiples of 4.
+  expect_gte(backend$exact_power(n), 0.8)
+  expect_lt(backend$exact_power(n - 4), 0.8)
+})
+
+test_that("a contrast of zero gives power alpha at a fixed n", {
+  spec <- formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+  # Weights that cancel out on these means: 1.5 + 4 against 2 + 3 is not
+  # zero, so use means that are all equal instead.
+  spec$population$means <- list(2, 2, 2, 2)
+  expect_equal(run_spec(spec)$curve$power, 0.05, tolerance = 1e-6)
+})
+
+test_that("contrast specs that can't be right are refused", {
+  base <- function() formula_spec("anova_oneway_contrast", list(type = "power", n = 20))
+  spec <- base()
+  spec$target_test$weights <- list(-1, 0, 1)
+  expect_spec_problem(spec, "'target_test > weights' has 3 values")
+  spec <- base()
+  spec$target_test$weights <- list(1, 0, 0, 1)
+  expect_spec_problem(spec, "must add up to 0")
+  spec <- base()
+  spec$target_test$weights <- list(0, 0, 0, 0)
+  expect_spec_problem(spec, "don't compare anything")
+  spec <- base()
+  spec$goal$n <- 21
+  expect_spec_problem(spec, "split into 4 equal groups")
+  spec <- base()
+  spec$options$method <- "simulation"
+  expect_spec_problem(spec, "'simulation' isn't available for this test yet")
+  # Two-sided only: pwrss's contrast function has no one-sided option.
+  spec <- base()
+  spec$target_test$alternative <- "greater"
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  # The weights belong to a contrast, not to the omnibus test.
+  spec <- formula_spec("anova_oneway_between", list(type = "power", n = 30))
+  spec$target_test$weights <- list(-1, 0, 1)
   expect_error(validate_spec(spec), class = "powerkit_spec_error")
 })
