@@ -1,7 +1,18 @@
 # powerkit 0.5.0
 
 Batch 1: the five designs the engine already computed become reachable in
-the app (docs/next.md).
+the app (docs/next.md, items 1 to 5).
+
+* App: logistic regression with one predictor (E27) calculates in the app.
+  Its card now says what powerkit does instead of "not in powerkit"; the
+  input screen asks for the outcome and the predictor, whether the
+  predictor is a score or a yes/no group (with the group names and split),
+  the odds ratio, the proportion of "yes" at the starting point, and the
+  predictor's R-squared with any other predictors. The direction question
+  is asked, as for the other tests with a direction. When that R-squared is
+  above 0, the result screen and the methods paragraph state Known
+  difference 3 (forms.yaml, `known_differences_if_above_zero`, a new key).
+  `single_predictor` leaves `engine_only`.
 
 * App: Poisson regression with one predictor (E28) calculates in the app.
   Its card now says what powerkit does, and that negative binomial
@@ -11,6 +22,18 @@ the app (docs/next.md).
   the rate ratio, the starting rate, the mean exposure and the predictor's
   R-squared with any other predictors, with the direction question.
   `single_predictor_count` leaves `engine_only`.
+
+# powerkit 0.4.1
+
+* App: in "Plan my whole study", each analysis on the plan that powerkit
+  can calculate now has an "Enter your values" button that opens its
+  input screen, as the card does on the other routes. Before, the plan
+  showed the analyses' cards with no way to calculate any of them. When
+  two or more analyses are main analyses, the input screen takes its
+  claim from the plan's answer to "What does your study's claim need?"
+  (each on its own, every one significant, or any one significant), with
+  the number of main analyses as the number of tests; an extra analysis
+  is powered on its own. "Back to my plan" returns to the plan.
 
 # powerkit 0.4.0
 

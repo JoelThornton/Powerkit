@@ -103,7 +103,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | As A10 | **Engine: pwrss `power.f.regression()`, passed the partial R² (R²full − R²reduced) / (1 − R²reduced), so f² = ΔR² / (1 − R²full)**. Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` (its noncentrality f² × (u + v + 1) differs) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
 | A13 | Linear multiple regression: random model | GP | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_lm.R2(fixed = FALSE)` (Example 7.3) | — | [G1][] |
-| A14 | Logistic regression | GP; UCLA | E27 | Planned (more tests by formula: engine built, not wired; not yet checked against G\*Power's manual) | Engine: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders), then a card | — |
+| A14 | Logistic regression | GP; UCLA | E27 | Wired (in the app; the G\*Power manual's examples reproduce when "R² other X" is 0, see conventions.md, Known difference 3, above it; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders); settle Known difference 3 with G\*Power | — |
 | A15 | Poisson regression | GP | E28 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders) | — |
 
 **Note 1 (A1, the method for correlations).** The maintainer reports that
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 14 | 0 | 0 | 14 |
+| Wired (validation not finished) | 15 | 0 | 0 | 15 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 6 | 26 | 2 | 34 |
+| Planned | 5 | 26 | 2 | 33 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

@@ -208,7 +208,7 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | G\*Power | "Z test: Multiple Logistic Regression": the Wald z test of one coefficient, by an enumeration procedure (Lyles, Lin & Williamson, 2007) or one of two large-sample approximations, Demidenko (2007) with or without variance correction and Hsieh, Bloch & Larsen (1998). The manual recommends Demidenko "as standard procedure", and its simulations found Demidenko with variance correction the most accurate; its worked examples nonetheless select Hsieh [GP-man, section 29, pp. 70-74] | Odds ratio (or two probabilities); "Pr(Y=1\|X=1) H0" = p1, the probability of an event under H0; "R² other X", applied as N' = N / (1 − R²) after Hsieh et al. [GP-man, 29.1, p. 70] | X distribution: normal (with "X parm µ", "X parm σ"), binomial (with "X parm π"), and five others. Variance correction factor: 0.75 lognormal, 0.85 binomial, 1 otherwise [GP-man, 29.6.2, p. 72] |
 | pwrss | `power.z.logistic()`: Wald z test of one coefficient; `method = "demidenko(vc)"` by default (Demidenko, 2007, with variance correction: factor 0.85 for a binary X, 1 for a normal X), or `"demidenko"`, `"hsieh"`; its help says the formulas "are validated using G\*Power and tables in the PASS documentation" (pwrss 1.3.3, `R/regression.logistic.R`) | `odds.ratio` (or `prob`, `beta1`) for a one-unit increase in X; `base.prob`, the probability when X = 0 | `r.squared.predictor`; `distribution` (normal with mean 0, SD 1 by default; Bernoulli with `prob`) |
 | Spower | `p_glm(family = binomial())`, simulation [Sp] | coefficients | — |
-| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (engine only, not in the app) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. With "R² other X" = 0 powerkit reproduces all three of the manual's procedures exactly; above 0 see "Known differences", 3 |
+| **powerkit** | pwrss's `power.z.logistic(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (in the app since 26 October 2026, E27) [powerkit] | `odds_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_prob` at X's mean or in X's first level | `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the odds ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. With "R² other X" = 0 powerkit reproduces all three of the manual's procedures exactly; above 0 see "Known differences", 3 |
 
 ## Poisson regression (one predictor)
 
@@ -722,8 +722,12 @@ Wired into the app on 18 October 2026 (E25, E26).*
 - **Test:** none yet; the validation placeholders
   (`test-validation-logistic-regression.R`) say to prefer an example with
   "R² other X" = 0.
-- **Shown to users / in the methods paragraph:** to do, when the test is
-  wired into the app.
+- **Shown to users:** on logistic regression's result screen (E27) and in
+  its methods paragraph, only when "R² other X" is above 0 (26 October
+  2026; `app/routing/forms.yaml`, `known_differences` and
+  `known_differences_if_above_zero`). Test: `test-results.R`, "logistic
+  regression runs on pwrss, with Known difference 3 only when other
+  predictors overlap".
 ### 4. Variance tests: simulated, where G\*Power uses an exact formula
 
 - **What differs:** G\*Power computes both variance tests from their exact
