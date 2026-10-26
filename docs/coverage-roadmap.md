@@ -420,21 +420,17 @@ Every line below was counted from the rows themselves (26 October 2026),
 and they add up to all 130 rows. The table had been drifting: three
 statuses the rows use ("Wired", "No ready-made tool" and "Partly
 working") were missing from it altogether, so its lines covered only 125
-rows, and four of the others were out by a few.
+rows, and four of the others were out by a few. The consistency test in
+`app/routing/tests/testthat/test-repo-consistency.R` now counts the rows
+and fails if a line here disagrees.
 
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
 | Wired (validation not finished) | 13 | 0 | 0 | 13 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 5 | 26 | 2 | 33 |
-| Foundation tool can do it, not planned | 13 | 11 | 2 | 26 |
-| Done (validated and wired) | 10 | 2 | 3 | 15 |
-| Validated, not wired | 0 | 6 | 2 | 8 |
-| Planned | 11 | 25 | 3 | 39 |
-| Foundation tool can do it, not planned | 16 | 12 | 2 | 30 |
-| G\*Power covers it, powerkit doesn't | 11 | 0 | 0 | 11 |
-| Unknown | 1 | 19 | 2 | 22 |
+| Planned | 7 | 26 | 2 | 35 |
+| Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
 | G\*Power covers it, powerkit doesn't | 7 | 0 | 0 | 7 |
