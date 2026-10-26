@@ -1,6 +1,7 @@
 # Tests for the routing prototype (app/routing/), on every pull request and
-# push. Packages come from renv.lock, as in R-CMD-check.yaml, so the app is
-# tested with the versions recorded there. See docs/routing-prototype.md.
+# push. The job runs in the CI image (ci-image.yaml): R and the package
+# versions in renv.lock are already installed, so the app is tested with
+# the versions recorded there. See docs/routing-prototype.md.
 name: routing-prototype-tests
 
 on:
@@ -12,43 +13,44 @@ permissions:
   contents: read
 
 jobs:
+  image:
+    uses: ./.github/workflows/ci-image.yaml
+    permissions:
+      contents: read
+      packages: write
+
   app-tests:
+    needs: image
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
+      # The packages are in the image's site library, so the repository's
+      # .Rprofile doesn't need to activate renv.
+      RENV_ACTIVATE_PROJECT: "FALSE"
       # The tests that run a calculation (the app's result equals the
-      # engine's, the downloaded script reproduces it) call skip_on_cran().
-      # setup-r sets NOT_CRAN already; it is set here too so the tests keep
-      # running if the job stops using setup-r.
+      # engine's, the downloaded script reproduces it) call skip_on_cran();
+      # this makes them run.
       NOT_CRAN: "true"
     steps:
       - uses: actions/checkout@v4
 
-      # System libraries the packages in renv.lock need (see
-      # full-validation.yaml).
-      - name: Install system libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libglpk-dev
-
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: renv
-          use-public-rspm: true
-
-      # Restores the package versions in renv.lock (cached between runs).
-      - uses: r-lib/actions/setup-renv@v2
-
       # The input screens check specs with the engine's validate_spec()
-      # (read-only). Install the engine into the renv library so those
-      # tests run here instead of skipping.
+      # (read-only). Install the engine so those tests run here instead of
+      # skipping.
       - name: Install the engine
         run: Rscript -e 'utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1])' -e 'cat("powerkit", format(packageVersion("powerkit")), "installed\n")'
 
-      # Runs from the repository root, so its .Rprofile activates renv.
       # POWERKIT_APP_TESTS_NEED_ENGINE makes the engine tests fail, not
       # skip, if the engine can't be loaded.
       - name: Run the routing prototype's tests
