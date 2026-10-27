@@ -259,6 +259,29 @@ simulation_note <- function(result) {
 # result_wording).
 result_sentences <- function(spec, result) {
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
+  out <- goal_sentences(spec, result)
+  units <- units_sentence(result)
+  if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
+  out
+}
+
+# With the effect given in the outcome's own units: the standardised effect
+# the engine worked out from them, and for the smallest detectable effect,
+# that effect as a difference in the outcome's units (both from the
+# engine's result).
+units_sentence <- function(result) {
+  u <- result$effect_from_units
+  if (is.null(u)) return(NULL)
+  round3 <- function(x) format(round(x, 3), nsmall = 2)
+  if (!is.null(u$smallest_difference)) {
+    return(sprintf("In your outcome's own units, that is a difference of %s (%s × %s, %s).",
+      round3(u$smallest_difference), round3(result$sensitivity$effect), format(signif(u$sd, 4)), u$sd_name))
+  }
+  sprintf("From the means and SD you entered, powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
+    u$name, round3(u$value), format(signif(u$difference, 4)), u$sd_name, format(signif(u$sd, 4)))
+}
+
+goal_sentences <- function(spec, result) {
   test <- test_text(spec)
   switch(
     result$goal_type,
@@ -364,7 +387,7 @@ reasoning_line <- function(values) {
 # flagged until the user confirms it or edits it. app.R keeps the effect
 # values the reasoning was written for; these helpers compare and word them.
 effect_snapshot <- function(fields, values) {
-  ids <- vapply(Filter(function(f) isTRUE(f$effect) && field_applies(f, values), fields), `[[`, "", "id")
+  ids <- vapply(Filter(function(f) (isTRUE(f$effect) || isTRUE(f$in_effect_text)) && field_applies(f, values), fields), `[[`, "", "id")
   vapply(ids, function(id) trimws(paste(as.character(values[[id]] %||% ""), collapse = ", ")), character(1))
 }
 
@@ -443,7 +466,8 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
   ns <- explore_sizes(spec, result)
   power <- vapply(ns, function(n) {
     s <- spec
-    s$population[[e$field]] <- effect
+    # The slider is in standardised units, whatever units the plan used.
+    s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
     s$goal <- list(type = "power", n = as.integer(n))
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
@@ -451,10 +475,10 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
   data.frame(n = ns, power = power)
 }
 
-explore_ui <- function(spec) {
+explore_ui <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  planned <- spec$population[[e$field]]
+  planned <- result$effect_from_units$value %||% spec$population[[e$field]]
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
     h4(class = "h6", "Explore: what if the effect were different?"),
@@ -739,7 +763,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]])),
     if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
-    div(class = "result-card result-explore", explore_ui(spec)),
+    div(class = "result-card result-explore", explore_ui(spec, result)),
     div(class = "result-card result-how",
     h4(class = "h5", "How it was calculated"),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
@@ -808,7 +832,7 @@ writeup_source <- c(
 writeup_effect <- function(fields, values) {
   out <- character()
   for (f in fields) {
-    if (!isTRUE(f$effect) || blank(values[[f$id]]) || !field_applies(f, values)) next
+    if (!(isTRUE(f$effect) || isTRUE(f$in_effect_text)) || blank(values[[f$id]]) || !field_applies(f, values)) next
     out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, trimws(as.character(values[[f$id]]))))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
@@ -890,6 +914,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
   effect <- writeup_effect(fields, values)
+  # Means and SD: the standardised effect the engine worked out from them.
+  u <- result$effect_from_units
+  if (!is.null(effect) && !is.null(u) && !identical(result$goal_type, "sensitivity")) {
+    effect <- sprintf("%s (%s = %s)", effect, u$name, format(round(u$value, 3), nsmall = 2))
+  }
   reasoning <- writeup_quote(values$just_source)
   none <- identical(values$just_type, "none")
   basis <- if (none) {

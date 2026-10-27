@@ -1,3 +1,23 @@
+# powerkit 0.8.0
+
+* Engine and app: the one-sample, independent-samples and paired t-tests
+  accept the effect in the outcome's own units (`population > metric`
+  "raw", with `population > raw`): the expected mean, the fixed value and
+  the SD (one sample); each group's mean and one within-group SD (two
+  groups); or each condition's mean with either the SD of the differences
+  or one SD and the correlation between the two measurements (paired).
+  `validate_spec()` works out Cohen's d or d_z by the definition the schema
+  gives (for paired data from one SD and r, the SD of the differences is
+  SD * sqrt(2 * (1 - r))), so the backends and the exported R script are
+  unchanged and the result equals giving that d directly (tests in
+  test-effect-from-units.R). The result has a new `effect_from_units`
+  element: the standardised effect, the difference and the SD it was
+  divided by, and for a sensitivity goal the smallest detectable effect
+  as a difference in the outcome's units. In the app, these three input
+  screens ask how the effect will be given (Cohen's d, or the means and
+  SD); the result states the d it was worked out to, the write-up gives
+  the means and SD with d, and the explore panel starts from that d.
+
 # powerkit 0.7.0
 
 * App: "Plan my whole study" works out the combined sample size. Each

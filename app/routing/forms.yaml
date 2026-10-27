@@ -197,9 +197,19 @@ forms:
       - input: "Your outcome's name"
         fields:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "Cohen's d: (expected mean minus the fixed value) / SD"
+      - input: "The effect: Cohen's d, or the means and SD in your measure's own units"
         fields:
-          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+             choices: {standardised: "As Cohen's d: (expected mean minus the fixed value) / SD", raw: "In my measure's own units: the expected mean, the fixed value and the SD"},
+             default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
+          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
+             shown_if: {field: effect_units, is_not: raw}}
+          - {id: raw_mean, label: "Expected mean", type: number, path: population.raw.mean, effect: true, writeup_label: "expected mean",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_test_value, label: "The fixed value it is compared with", type: number, path: population.raw.test_value, required: true, in_effect_text: true, writeup_label: "fixed value",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_sd, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
+             shown_if: {field: effect_units, is: raw}}
 
   E2:
     methods_name: "an independent-samples t-test"
@@ -219,9 +229,19 @@ forms:
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "Cohen's d: (group 2 minus group 1) / pooled SD"
+      - input: "The effect: Cohen's d, or the means and SD in your measure's own units"
         fields:
-          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true}
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+             choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD"},
+             default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
+          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
+             shown_if: {field: effect_units, is_not: raw}}
+          - {id: raw_mean_1, label: "Expected mean, group 1", type: number, path: population.raw.mean_1, effect: true, writeup_label: "group 1 mean",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_mean_2, label: "Expected mean, group 2", type: number, path: population.raw.mean_2, effect: true, writeup_label: "group 2 mean",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_sd, label: "SD: how much people usually vary on the measure within a group", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
+             shown_if: {field: effect_units, is: raw}}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -257,9 +277,27 @@ forms:
           - {id: X_level1, label: "First condition", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Second condition", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "d_z: mean of the differences (second minus first) / SD of the differences"
+      - input: "The effect: d_z, or the means and SD in your measure's own units"
         fields:
-          - {id: dz, label: "d_z", type: number, path: population.dz, effect: true}
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+             choices: {standardised: "As d_z: mean of the differences (second minus first) / SD of the differences", raw: "In my measure's own units: the mean in each condition and an SD"},
+             default: standardised, default_source: "d_z, the effect size pwr.t.test() takes for a paired test (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
+          - {id: dz, label: "d_z", type: number, path: population.dz, effect: true,
+             shown_if: {field: effect_units, is_not: raw}}
+          - {id: raw_mean_1, label: "Expected mean, first condition", type: number, path: population.raw.mean_1, effect: true, writeup_label: "first-condition mean",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_mean_2, label: "Expected mean, second condition", type: number, path: population.raw.mean_2, effect: true, writeup_label: "second-condition mean",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_sd_kind, label: "Which SD you know", type: select, required: true,
+             choices: {difference: "The SD of people's changes (second minus first)", each: "The SD of the measure, and how strongly the two measurements correlate"},
+             default: each, default_source: "the values researchers usually have from earlier studies (the SD of the measure and the test-retest correlation)",
+             shown_if: {field: effect_units, is: raw}}
+          - {id: raw_sd_difference, label: "SD of people's changes (second minus first)", type: number, path: population.raw.sd_difference, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD of the differences",
+             shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is: difference}]}
+          - {id: raw_sd, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
+             shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
+          - {id: raw_r, label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
+             shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
 
   E4:
     methods_name: "a Pearson correlation"

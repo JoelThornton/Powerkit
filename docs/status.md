@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 26 October 2026. This page says where the project is now
+*Last updated: 27 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -126,6 +126,11 @@ fully validated. Validation runs are recorded in
   once: an input two analyses both ask for fills the second's input
   screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
   and needs a statistician's check.
+- **Effect in the measure's own units (27 October 2026, 0.8.0):** the
+  three t-tests take the means and SD instead of Cohen's d (or d_z); the
+  engine works out the standardised effect, the result and write-up show
+  it, and a smallest detectable effect is also given in the measure's
+  units. Next in [`next.md`](next.md): the three-line power curve.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation
