@@ -1004,8 +1004,8 @@ endpoints:
     template: "factorial_anova / oneway_contrast"
     backend: "pwrss: power.t.contrasts() (the t test of one planned contrast, by formula)"
     method: "Formula (no simulation)"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and Superpower's emmeans contrasts agree with it (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    status: runs_validated
+    validation: {file: test-backend-formula-tests.R, note: "Matches the G*Power 3.1 manual's three planned-contrast examples in the full validation run of 27 October 2026, and pwrss and Superpower in the engine's tests."}
     card_points:
       - "Tests one planned comparison: a weighted combination of the group means, such as both feedback conditions against no feedback, or a linear trend across doses."
       - "The weights say which comparison: one per group, adding up to 0. Groups with negative weights are compared with groups with positive weights; a group weighted 0 is left out."
@@ -1095,8 +1095,8 @@ endpoints:
     template: "logistic_regression / single_predictor"
     backend: "pwrss: power.z.logistic() (the Wald z test of one predictor, by formula)"
     method: "Formula (no simulation)"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    status: runs_validated
+    validation: {file: test-backend-formula-tests.R, note: "Matches the G*Power 3.1 manual's two examples, a normal and a yes/no predictor (sample size and power), in the validation tests (27 October 2026), and pwrss in the engine's tests."}
     card_points:
       - "Tests one predictor of a yes/no outcome: a score, or a yes/no group. The odds ratio is per standard deviation for a score, or the second group against the first."
       - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
@@ -1344,8 +1344,8 @@ endpoints:
     template: "generic_test / t, f, chi_square or z"
     backend: "pwrss: power.t.test(), power.f.test(), power.chisq.test() or power.z.test() (by formula)"
     method: "Formula (no simulation)"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-generic.R, note: "Matches pwrss called directly and base R's noncentral distributions in the engine's tests (test-backend-generic.R). Not yet checked against G*Power or a published example."}
+    status: runs_validated
+    validation: {file: test-backend-generic.R, note: "Matches four G*Power 3.1 examples (t, F, chi-square and z) in the full validation run of 27 October 2026, and pwrss and base R's noncentral distributions in the engine's tests."}
     card_points:
       - "For people who have worked out their test's noncentrality parameter themselves, as with G*Power's generic tests."
       - "There is no sample size: the noncentrality parameter already reflects it. powerkit gives the power for a noncentrality, or the noncentrality needed for a target power."
@@ -1359,8 +1359,8 @@ endpoints:
     template: "basic_test / overlapping_correlations, nonoverlapping_correlations"
     backend: "pwrss: power.z.twocors.steiger() (Steiger's z test, unpooled as in G*Power, by formula)"
     method: "Formula (no simulation)"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests, and reproduces the sample sizes of the G*Power manual's two examples (test-backend-formula-tests.R). Not yet in the full validation run."}
+    status: runs_validated
+    validation: {file: test-backend-formula-tests.R, note: "Matches both G*Power 3.1 manual examples (sample size and power) in the full validation run of 27 October 2026, and pwrss in the engine's tests."}
     card_points:
       - "Compares two correlations measured in the same people: either sharing a variable (is X more strongly related to Y or to Z?) or with no variable in common (is the link between stress and sleep stronger at 16 than at 14?)."
       - "Because the same people give both correlations, you also give the correlations between the other pairs of variables: they decide how much the two compared correlations move together."
@@ -1373,8 +1373,8 @@ endpoints:
     template: "basic_test / one_variance"
     backend: "Spower: p_var.test() (the chi-square test of one variance, by simulation)"
     method: "Simulation"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    status: runs_validated
+    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's one-sided and two-sided examples within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
     card_points:
       - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
       - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
@@ -1387,8 +1387,8 @@ endpoints:
     template: "basic_test / two_variances"
     backend: "Spower: p_var.test() (the F test of two variances, by simulation)"
     method: "Simulation"
-    status: runs_validation_in_progress
-    validation: {file: test-backend-spower.R, note: "Translation to Spower, its check run and the Type I error rate are checked in the engine's tests (test-backend-spower.R). Not yet checked against G*Power or a published example in the validation run."}
+    status: runs_validated
+    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's example within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
       - "Groups of equal size only, for now: the package behind it can't simulate unequal groups yet."

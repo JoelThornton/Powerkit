@@ -31,7 +31,7 @@ project is, this says what to do.*
 | 9 | **Multilevel: build the two-level clustered design** | The first design from that decision, with the intraclass correlation and cluster size asked for in plain words | L | Blocked by 8 |
 | 10 | **Download a synthetic data set with the R script** | Registered reports: write and pre-register the analysis code against simulated data before recruiting. The engine already generates one data set per run for its check run | M | Needs a decision: how it is labelled as simulated, and the wording that stops it reading as a substitute for the analysis plan |
 | 11 | **SEM, CFA and measurement invariance: the decision and the first design** | Scale development and latent models are a fifth of modern psychology and G\*Power cannot touch them | L | Needs a decision: semPower, and which of fit, invariance or a latent path comes first |
-| 12 | **Validation catch-up** | Everything added since 22 October has validation files with placeholders. Transcribe, run the full validation, update the log, and move card statuses from "validation in progress" to validated where they pass | M | Needs the maintainer: the published values and the full run are theirs |
+| 12 | **Validation catch-up, the rest** | Six cards moved to validated on 27 October 2026. Eight still say "validation in progress": the one-way ANOVA, multiple regression R², one proportion and McNemar (in the engine's tests, not yet in the full run), ANCOVA, Poisson regression, goodness of fit and two independent correlations. Each needs a published example in its validation file and a full run | M | Needs the maintainer: the published values are theirs |
 
 ## The direction behind the methods map
 
