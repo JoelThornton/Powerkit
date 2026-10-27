@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Whole-study simulation: find your sample size on your computer"
+    text: >-
+      The whole-study simulation now runs a quick look in the app, and
+      gives you an R script for the full run on your own computer. The
+      script can find the sample size you need for the power you choose,
+      for all of your main analyses together, or work out the power at
+      your N more precisely. It is still experimental.
+  - date: "2026-10-27"
     title: "A simpler whole-study plan"
     text: >-
       When powerkit can simulate your whole study, your plan now starts

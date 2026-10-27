@@ -380,14 +380,29 @@ whole_study_fit <- function(a, spec) {
 #' by the number of main analyses). All of the simulation, model fitting
 #' and testing is power4mome's [power4mome::power4test()].
 #'
+#' With the goal `sample_size`, it first searches for the smallest n whose
+#' power reaches the goal's `power`, by the same simulation search as
+#' [run_spec()] (short runs to bracket it, then `nrep` replications at
+#' several n smoothed by a probit curve), and then reports a full run at
+#' that n. What reaches the target depends on the claim: with one main
+#' analysis, its power; under "all", the chance that every main analysis is
+#' significant; under "any", that at least one is; under "each", the power
+#' of every main analysis. A search simulates every analysis at many n, so
+#' it is slow (hours, for mediation): run it on your own computer, with the
+#' script from [export_whole_study_script()].
+#'
 #' @param spec A whole-study specification (see [validate_whole_study()]).
-#' @return A `powerkit_whole_study_result`: a list with `n`, `claim`,
+#' @return A `powerkit_whole_study_result`: a list with `n` (the n found,
+#'   for a sample size search), `goal`, `claim`,
 #'   `alpha`, `analyses` (a data frame: each analysis's `id`, `label`,
 #'   `role`, `test`, the `alpha` it was tested at, `power`, `mcse`, a 95%
 #'   Clopper-Pearson interval `lower` and `upper`, and `nrep`, the
 #'   replications it could be analysed in), `joint` (`NULL` with one main
 #'   analysis; otherwise its `rule`, `power`, `mcse`, `lower`, `upper` and
-#'   `nrep`), `implied` (what the population implies for each analysis,
+#'   `nrep`), `sample_size` (`NULL` unless the goal is a sample size:
+#'   the `target`, the `rule` and `criterion` it was reached by,
+#'   `n_required` with its 95% interval `lower` and `upper`, the power
+#'   `curve` and the `simulations` behind it), `implied` (what the population implies for each analysis,
 #'   from one large simulated data set: the values its own card asks for),
 #'   `check_run` and `provenance`.
 #' @export
@@ -409,15 +424,15 @@ run_whole_study <- function(spec) {
     ))
   }
 
-  batch <- power4mome_batch_size(inputs$ci_draws)
-  chunks <- split_replications(nrep, number_of_chunks(nrep, cores, batch))
-  seeds <- offset_seed(seed, seq_along(chunks) - 1)
-  counts <- run_in_parallel(seq_along(chunks), function(i) {
-    whole_study_batch(inputs, spec$goal$n, chunks[i], seeds[i])
-  }, cores)
-  counts <- matrix(counts, ncol = length(chunks))
-  totals <- rowSums(counts)
-  names(totals) <- rownames(whole_study_batch_template(inputs))
+  search <- NULL
+  n <- spec$goal$n
+  if (identical(spec$goal$type, "sample_size")) {
+    search <- whole_study_search_n(spec, inputs, nrep, seed, cores)
+    n <- search$n_required$n
+  }
+  # The reported powers come from a full run at n (at the n found, for a
+  # sample size search), with the spec's own seed.
+  totals <- whole_study_counts(inputs, n, nrep, seed, cores)
 
   rate <- function(rejections, valid) {
     if (valid == 0) {
@@ -445,11 +460,13 @@ run_whole_study <- function(spec) {
   structure(
     list(
       kind = "whole_study",
-      n = spec$goal$n,
+      n = n,
+      goal = spec$goal,
       claim = spec$claim,
       alpha = spec$alpha,
       analyses = per_analysis,
       joint = joint,
+      sample_size = search,
       implied = whole_study_implied(spec, inputs, big),
       check_run = check,
       models = list(population = inputs$model, population_values = inputs$pop_es,
@@ -461,7 +478,7 @@ run_whole_study <- function(spec) {
         nrep = nrep,
         ci_draws = if (inputs$needs_draws) inputs$ci_draws else NA_integer_,
         cores = cores,
-        batch_size = batch,
+        batch_size = power4mome_batch_size(inputs$ci_draws),
         backend = "power4mome",
         backend_function = "power4mome::power4test (several analysis models fitted to the same simulated data sets)",
         r_version = R.version.string,
@@ -472,6 +489,67 @@ run_whole_study <- function(spec) {
     ),
     class = "powerkit_whole_study_result"
   )
+}
+
+# Every count of whole_study_batch_template(), summed over `nrep`
+# replications at n, run in batches spread over the cores. The batches and
+# their seeds depend only on nrep and the batch size, not on the cores.
+whole_study_counts <- function(inputs, n, nrep, seed, cores) {
+  batch <- power4mome_batch_size(inputs$ci_draws)
+  chunks <- split_replications(nrep, number_of_chunks(nrep, cores, batch))
+  seeds <- offset_seed(seed, seq_along(chunks) - 1)
+  counts <- run_in_parallel(seq_along(chunks), function(i) {
+    whole_study_batch(inputs, n, chunks[i], seeds[i])
+  }, cores)
+  counts <- matrix(counts, ncol = length(chunks))
+  totals <- rowSums(counts)
+  names(totals) <- rownames(whole_study_batch_template(inputs))
+  totals
+}
+
+# What the sample size search aims for, from the claim: with one main
+# analysis, its power; with several, the joint power under "all" (every
+# main result significant) or "any" (at least one), and under "each" (every
+# main result a separate claim) the power of the weakest main analysis, so
+# that each reaches the target.
+whole_study_criterion <- function(spec, inputs) {
+  mains <- inputs$mains
+  if (length(mains) == 1) {
+    label <- inputs$analyses[[match(mains, vapply(inputs$analyses, function(a) a$id, character(1)))]]$label
+    return(list(rule = "single", description = sprintf("the power of the main analysis (%s)", label),
+      counts = function(totals) totals[paste0(mains, c(":sig", ":valid"))]))
+  }
+  switch(
+    spec$claim,
+    all = list(rule = "all", description = "the chance that every main analysis is significant",
+      counts = function(totals) totals[c("joint_all:sig", "joint_all:valid")]),
+    any = list(rule = "any", description = "the chance that at least one main analysis is significant",
+      counts = function(totals) totals[c("joint_any:sig", "joint_any:valid")]),
+    each = list(rule = "each", description = "the power of each main analysis (the weakest one at each n)",
+      counts = function(totals) {
+        rates <- vapply(mains, function(id) totals[[paste0(id, ":sig")]] / max(1, totals[[paste0(id, ":valid")]]), numeric(1))
+        weakest <- mains[which.min(rates)]
+        totals[paste0(weakest, c(":sig", ":valid"))]
+      })
+  )
+}
+
+# The smallest n whose power (by the claim's criterion) reaches the target,
+# by powerkit's simulation search (search_n()): short runs bracket it, then
+# runs of `nrep` replications at several n around it are smoothed by a
+# probit curve. Each simulated n analyses every planned analysis.
+whole_study_search_n <- function(spec, inputs, nrep, seed, cores) {
+  criterion <- whole_study_criterion(spec, inputs)
+  backend <- list(
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    simulate = function(n, nrep, seed, cores) {
+      counts <- criterion$counts(whole_study_counts(inputs, n, nrep, seed, cores))
+      list(rejections = unname(counts[[1]]), nrep = unname(counts[[2]]))
+    }
+  )
+  search <- search_n(spec, backend, spec$goal$power, nrep, seed, cores)
+  c(list(target = spec$goal$power, rule = criterion$rule, criterion = criterion$description), search)
 }
 
 # The counts one batch returns, in a fixed order: for each analysis its
@@ -658,6 +736,11 @@ print.powerkit_whole_study_result <- function(x, ...) {
   if (!is.null(x$joint)) {
     cat(sprintf("Joint power (%s main analyses significant): %.3f (MC SE %.3f)\n",
       if (x$joint$rule == "all") "all" else "at least one of the", x$joint$power, x$joint$mcse))
+  }
+  if (!is.null(x$sample_size)) {
+    s <- x$sample_size
+    cat(sprintf("Sample size for %s%% power (%s): n = %s (95%% interval %s to %s)\n",
+      format(100 * s$target), s$criterion, s$n_required$n, s$n_required$lower, s$n_required$upper))
   }
   p <- x$provenance
   cat(sprintf("Check run: %s\nBackend: power4mome %s (simulation, %s replications, seed %s)\nSpec hash: %s\n",

@@ -88,14 +88,19 @@
       }
     },
     "goal": {
-      "description": "Power at a fixed total sample size n (analysed). A sample size search isn't offered yet: each candidate n is a full simulation of every analysis.",
+      "description": "power: the power at a fixed total sample size n (analysed). sample_size: the smallest n whose power reaches 'power' (with one main analysis, its power; with several, the chance that all are significant under the claim 'all', that at least one is under 'any', and the power of each under 'each'). A search simulates every analysis at many n, so it is slow: run it on your own computer (export_whole_study_script()).",
       "type": "object",
-      "required": ["type", "n"],
+      "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": {"const": "power"},
-        "n": {"type": "integer", "minimum": 20}
-      }
+        "type": {"enum": ["power", "sample_size"]},
+        "n": {"type": "integer", "minimum": 20},
+        "power": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}
+      },
+      "allOf": [
+        {"if": {"properties": {"type": {"const": "power"}}}, "then": {"required": ["n"], "properties": {"power": false}}},
+        {"if": {"properties": {"type": {"const": "sample_size"}}}, "then": {"required": ["power"], "properties": {"n": false}}}
+      ]
     },
     "options": {
       "type": "object",

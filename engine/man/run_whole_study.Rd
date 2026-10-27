@@ -10,13 +10,17 @@ run_whole_study(spec)
 \item{spec}{A whole-study specification (see \code{\link[=validate_whole_study]{validate_whole_study()}}).}
 }
 \value{
-A \code{powerkit_whole_study_result}: a list with \code{n}, \code{claim},
+A \code{powerkit_whole_study_result}: a list with \code{n} (the n found,
+for a sample size search), \code{goal}, \code{claim},
 \code{alpha}, \code{analyses} (a data frame: each analysis's \code{id}, \code{label},
 \code{role}, \code{test}, the \code{alpha} it was tested at, \code{power}, \code{mcse}, a 95\%
 Clopper-Pearson interval \code{lower} and \code{upper}, and \code{nrep}, the
 replications it could be analysed in), \code{joint} (\code{NULL} with one main
 analysis; otherwise its \code{rule}, \code{power}, \code{mcse}, \code{lower}, \code{upper} and
-\code{nrep}), \code{implied} (what the population implies for each analysis,
+\code{nrep}), \code{sample_size} (\code{NULL} unless the goal is a sample size:
+the \code{target}, the \code{rule} and \code{criterion} it was reached by,
+\code{n_required} with its 95\% interval \code{lower} and \code{upper}, the power
+\code{curve} and the \code{simulations} behind it), \code{implied} (what the population implies for each analysis,
 from one large simulated data set: the values its own card asks for),
 \code{check_run} and \code{provenance}.
 }
@@ -31,4 +35,16 @@ proportion of replications in which every main analysis is significant;
 under "any", in which at least one is (each main test at alpha divided
 by the number of main analyses). All of the simulation, model fitting
 and testing is power4mome's \code{\link[power4mome:power4test]{power4mome::power4test()}}.
+}
+\details{
+With the goal \code{sample_size}, it first searches for the smallest n whose
+power reaches the goal's \code{power}, by the same simulation search as
+\code{\link[=run_spec]{run_spec()}} (short runs to bracket it, then \code{nrep} replications at
+several n smoothed by a probit curve), and then reports a full run at
+that n. What reaches the target depends on the claim: with one main
+analysis, its power; under "all", the chance that every main analysis is
+significant; under "any", that at least one is; under "each", the power
+of every main analysis. A search simulates every analysis at many n, so
+it is slow (hours, for mediation): run it on your own computer, with the
+script from \code{\link[=export_whole_study_script]{export_whole_study_script()}}.
 }

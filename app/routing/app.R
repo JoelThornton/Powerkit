@@ -743,7 +743,12 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(preview_panel_ui(forms, shown$ep_id, calc, state$long_spec, range))
     } else if (identical(job$kind, "whole_study")) {
       state$ws_calc <- calc
-      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]]))
+      script <- if (identical(calc$status, "ok")) {
+        spec <- state$ws_spec
+        whole_study_script_ui(forms, isolate(whole_study_screen())$plan, spec$goal$n, spec$claim,
+          sum(vapply(spec$analyses, function(a) identical(a$role, "main"), logical(1))))
+      }
+      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]], script = script))
       session$sendCustomMessage("focus_result", "ws_result")
       return()
     } else {
@@ -792,7 +797,7 @@ server <- function(input, output, session) {
     req(ws$params)
     values <- whole_study_values(input, ws$params)
     state$ws_values <- values
-    built <- whole_study_spec(ws$skeleton, ws$params, values, state$rule %||% "each")
+    built <- whole_study_spec(ws$skeleton, ws$params, values, state$rule %||% "each", nrep = forms$whole_study$quick_nrep)
     problems <- built$problems %||% whole_study_check(built$spec)
     if (length(problems)) {
       output$ws_result <- renderUI(div(class = "form-problems", role = "alert", tabindex = "-1",
@@ -809,6 +814,17 @@ server <- function(input, output, session) {
     start_job("whole_study", built$spec, usual, list(), target = "ws_result")
     session$sendCustomMessage("focus_result", "ws_result")
   })
+  # The R script for the full run, or the sample size search, on the
+  # user's computer (export_whole_study_script()).
+  output$ws_download_script <- downloadHandler(
+    filename = function() if (identical(input$ws_script_goal, "power")) "powerkit-whole-study-full-run.R" else "powerkit-whole-study-sample-size.R",
+    content = function(file) {
+      export <- engine_function("export_whole_study_script")
+      goal <- input$ws_script_goal %||% "sample_size"
+      spec <- whole_study_script_spec(state$ws_spec, forms, goal, input$ws_target %||% "0.8")
+      export(spec, file = file, run_time = whole_study_script_time(forms, whole_study_screen()$plan, goal))
+    }
+  )
   output$ws_download_spec <- downloadHandler(
     filename = function() "powerkit-whole-study-spec.json",
     content = function(file) {

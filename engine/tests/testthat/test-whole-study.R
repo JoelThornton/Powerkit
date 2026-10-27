@@ -183,3 +183,74 @@ test_that("a whole-study run reports each analysis, the joint power and its prov
   expect_equal(any$analyses$alpha, c(0.025, 0.025))
   expect_gte(any$joint$power, max(any$analyses$power))
 })
+
+test_that("the goal is either the power at n or the n for a target power", {
+  spec <- regression_study()
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  expect_s3_class(validate_whole_study(spec), "powerkit_whole_study")
+  spec$goal$n <- 100
+  expect_error(validate_whole_study(spec), "'goal > n' doesn't apply", class = "powerkit_spec_error")
+  spec$goal <- list(type = "sample_size")
+  expect_error(validate_whole_study(spec), "missing 'power'", class = "powerkit_spec_error")
+  spec$goal <- list(type = "power", n = 100, power = 0.8)
+  expect_error(validate_whole_study(spec), "'goal > power' doesn't apply", class = "powerkit_spec_error")
+})
+
+test_that("the sample size search aims at the power the claim needs", {
+  totals <- c("compare:sig" = 90, "compare:valid" = 100, "moderation:sig" = 60, "moderation:valid" = 100,
+    "joint_all:sig" = 55, "joint_all:valid" = 100, "joint_any:sig" = 95, "joint_any:valid" = 100)
+  criterion <- function(claim, mains = c("main", "main")) {
+    spec <- regression_study(claim = claim)
+    for (i in 1:2) spec$analyses[[i]]$role <- mains[i]
+    spec <- validate_whole_study(spec)
+    whole_study_criterion(spec, whole_study_inputs(spec))
+  }
+  expect_equal(unname(criterion("all")$counts(totals)), c(55, 100))
+  expect_equal(unname(criterion("any")$counts(totals)), c(95, 100))
+  # Under "each", the weakest main analysis.
+  expect_equal(unname(criterion("each")$counts(totals)), c(60, 100))
+  # One main analysis: its own power, whatever the claim.
+  only <- criterion("all", c("main", "extra"))
+  expect_equal(only$rule, "single")
+  expect_equal(unname(only$counts(totals)), c(90, 100))
+})
+
+test_that("a sample size search finds an n whose power reaches the target", {
+  skip_on_cran()
+  spec <- regression_study(nrep = 200, seed = 21)
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  result <- run_whole_study(spec)
+  s <- result$sample_size
+  expect_equal(result$n, s$n_required$n)
+  expect_equal(s$rule, "all")
+  expect_lte(s$n_required$lower, s$n_required$n)
+  expect_gte(s$n_required$upper, s$n_required$n)
+  # The joint power, from a separate run at the n found, is near the target.
+  expect_lt(abs(result$joint$power - 0.8), 4 * result$joint$mcse)
+  expect_true(all(s$simulations$nrep <= 200))
+  expect_match(paste(utils::capture.output(print(result)), collapse = "\n"), "Sample size for 80% power")
+  # The citations export takes a whole-study result.
+  expect_match(export_citations(result), "power4mome")
+})
+
+test_that("the run script for a whole study holds the spec and runs run_whole_study()", {
+  spec <- regression_study()
+  spec$options$seed <- NULL
+  expect_error(export_whole_study_script(spec), "needs a seed", class = "powerkit_export_error")
+  spec$options$seed <- 7
+  spec$goal <- list(type = "sample_size", power = 0.9)
+  text <- export_whole_study_script(spec, run_time = "about 20 minutes")
+  expect_match(text, "Goal: the smallest n for 90% power, by the chance that every main analysis is significant", fixed = TRUE)
+  expect_match(text, "Expected run time: about 20 minutes.", fixed = TRUE)
+  expect_match(text, "result <- run_whole_study(spec_json)", fixed = TRUE)
+  expect_match(text, spec_hash(validate_whole_study(spec)), fixed = TRUE)
+  # The embedded spec is the same spec.
+  env <- new.env()
+  exprs <- parse(text = text)
+  assigns_spec <- vapply(exprs, function(e) is.call(e) && length(e) > 1 && identical(e[[2]], quote(spec_json)), logical(1))
+  eval(exprs[[which(assigns_spec)[1]]], env)
+  expect_equal(spec_hash(validate_whole_study(env$spec_json)), spec_hash(validate_whole_study(spec)))
+  file <- withr::local_tempfile(fileext = ".R")
+  export_whole_study_script(spec, file = file, run_time = "about 20 minutes")
+  expect_equal(paste(c(readLines(file, encoding = "UTF-8"), ""), collapse = "\n"), text)
+})
