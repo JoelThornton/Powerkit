@@ -1,3 +1,12 @@
+# powerkit 0.12.1
+
+* App: the plain reading of a target power counts out of 10 only for a
+  whole number of tenths (80%, 90%) and otherwise out of 100, so 95% power
+  reads "about 95 in 100 studies", not "10 in 10". For an equivalence
+  test it now says the studies would show the difference lies inside the
+  bounds, and that fewer would if the true difference is closer to a
+  bound (not "if the true effect is smaller").
+
 # powerkit 0.12.0
 
 * Cluster-randomised trials (design `cluster_trial`, template

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Clearer plain-words line on results"
+    text: >-
+      The plain-words line under a result no longer rounds 95% power up to
+      "10 in 10 studies"; it now says "95 in 100". For equivalence tests it
+      describes what the studies would show, and says that fewer would
+      succeed if the true difference is closer to a bound.
+  - date: "2026-10-27"
     title: "Power for studies where people are randomised within groups"
     text: >-
       The "People nested in groups" card now also covers studies where every
