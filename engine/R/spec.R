@@ -69,6 +69,11 @@ validate_spec <- function(spec) {
     problems <- schema_problems(spec)
   }
   if (length(problems) == 0) {
+    spec <- standardise_raw_effect(spec)
+  }
+  if (length(problems) == 0) {
+    # After the effect in the outcome's own units is standardised, so the
+    # safeguard starts from that standardised estimate.
     safeguard <- apply_safeguard(spec)
     spec <- safeguard$spec
     problems <- safeguard$problems
@@ -143,6 +148,51 @@ effect_definition <- function(spec) {
   sprintf(
     "Effect:    d_z = mean of (%s minus %s) / SD of those differences\n",
     levels[2], levels[1]
+  )
+}
+
+# The t-tests accept the effect in the outcome's own units (population >
+# metric "raw"). The standardised effect the backends take is worked out
+# here, by its definition in the schema, and replaces any value already
+# there, so a spec read back from a result gives the same effect:
+#   one sample:   d   = (mean - test value) / SD
+#   two groups:   d   = (mean 2 - mean 1) / SD (one SD within each group)
+#   paired:       d_z = (mean 2 - mean 1) / SD of the differences, where
+#                 the SD of the differences, from one SD and the
+#                 correlation r between the two measurements, is
+#                 SD * sqrt(2 * (1 - r)).
+standardise_raw_effect <- function(spec) {
+  pop <- spec$population
+  if (!identical(spec$design, "basic_test") || !identical(pop$metric, "raw")) {
+    return(spec)
+  }
+  raw <- pop$raw
+  switch(
+    spec$template,
+    one_sample_t = spec$population$d <- (raw$mean - raw$test_value) / raw$sd,
+    independent_t = spec$population$d <- (raw$mean_2 - raw$mean_1) / raw$sd,
+    paired_t = spec$population$dz <- (raw$mean_2 - raw$mean_1) /
+      (raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))))
+  )
+  spec
+}
+
+# The standardised effect worked out from the outcome's own units, for the
+# result: list(name, value, difference, sd), or NULL when the spec gave
+# the standardised effect itself.
+effect_from_units <- function(spec) {
+  pop <- spec$population
+  if (!identical(spec$design, "basic_test") || !identical(pop$metric, "raw")) {
+    return(NULL)
+  }
+  raw <- pop$raw
+  paired <- identical(spec$template, "paired_t")
+  list(
+    name = if (paired) "d_z" else "Cohen's d",
+    value = if (paired) pop$dz else pop$d,
+    difference = if (identical(spec$template, "one_sample_t")) raw$mean - raw$test_value else raw$mean_2 - raw$mean_1,
+    sd = if (paired) raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))) else raw$sd,
+    sd_name = if (paired) "the SD of the differences" else "the SD"
   )
 }
 

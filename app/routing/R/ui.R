@@ -139,15 +139,79 @@ nav_key <- function(screen, node, endpoint, n_answers, tab) {
   paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", sep = "|")
 }
 
+# Page addresses ---------------------------------------------------------------
+
+# Each tab has its own address (?page=labs and so on), so a page can be
+# shared by link. The plan tab is the plain address.
+page_slugs <- function() {
+  c(plan = "Plan a power analysis", about = "About", "whats-new" = "What's new",
+    labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
+}
+
+# The tab an address asks for, or NULL for the plan tab or a page that
+# isn't there (the maintainer's tab only in the maintainer's view).
+page_from_query <- function(query = "") {
+  slug <- shiny::parseQueryString(query %||% "")$page
+  if (is.null(slug)) return(NULL)
+  slug <- tolower(slug)
+  if (identical(slug, "maintainer") && !maintainer_view_requested(query)) return(NULL)
+  tab <- page_slugs()[slug]
+  if (is.na(tab)) NULL else unname(tab)
+}
+
+# The address name for a tab ("plan" is the plain address).
+page_slug <- function(tab) {
+  slug <- names(page_slugs())[match(tab %||% "", page_slugs())]
+  if (is.na(slug)) "plan" else slug
+}
+
+# The online app's public address. It runs inside Posit Connect Cloud's
+# frame, so the browser's address bar can't show which page is open; the
+# share button in the top bar (share_page_ui()) gives this address with
+# the page instead.
+public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
+
+# The top bar's button: copies a link to the page on show (and the Labs
+# tool open, as ?page=labs&tool=...).
+share_page_ui <- function() {
+  div(class = "share-page",
+    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
+    tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
+      `data-public` = public_address, "Share this page"))
+}
+
+# Each history entry carries its page in the address (?page=...); a link
+# with ?page= opens that page.
 nav_js <- "
+  window.pkPageUrl = function(page) {
+    var url = new URL(window.location.href);
+    if (page && page !== 'plan') url.searchParams.set('page', page); else url.searchParams.delete('page');
+    return url.toString();
+  };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
-    if (m.replace) history.replaceState(entry, '', window.location.href);
-    else history.pushState(entry, '', window.location.href);
+    window.pkPage = m.page;
+    var url = pkPageUrl(m.page);
+    if (m.replace) history.replaceState(entry, '', url);
+    else history.pushState(entry, '', url);
   });
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
+  // Copy a link to the page: the public address inside Connect Cloud's
+  // frame, else this address (without the maintainer's view).
+  window.pkSharePage = function(btn) {
+    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
+    var page = window.pkPage || 'plan';
+    var params = new URLSearchParams();
+    if (page !== 'plan') params.set('page', page);
+    if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
+    var link = base + (params.toString() ? '?' + params.toString() : '');
+    var status = btn.parentNode.querySelector('.share-page-status');
+    pkCopyText(link, null);
+    if (status) { status.textContent = 'Link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
+  };
 "
 
 # Start screen ---------------------------------------------------------------

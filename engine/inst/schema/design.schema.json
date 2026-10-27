@@ -903,19 +903,73 @@
         },
         "population": {
           "required": [
-            "metric",
-            "d"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
             },
             "d": {
-              "description": "Cohen's d: (population mean - test value) / SD.",
+              "description": "Cohen's d: (population mean - test value) / SD. With metric 'raw', powerkit works it out from population > raw.",
               "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: the expected mean, the fixed value it is tested against, and the SD.",
+              "type": "object",
+              "required": [
+                "mean",
+                "test_value",
+                "sd"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean": {
+                  "description": "The expected population mean.",
+                  "type": "number"
+                },
+                "test_value": {
+                  "description": "The fixed value the mean is tested against.",
+                  "type": "number"
+                },
+                "sd": {
+                  "description": "The SD of the outcome, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "d"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -949,19 +1003,73 @@
         },
         "population": {
           "required": [
-            "metric",
-            "d"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
             },
             "d": {
-              "description": "Cohen's d: (mean of group 2 - mean of group 1) / pooled SD.",
+              "description": "Cohen's d: (mean of group 2 - mean of group 1) / pooled SD. With metric 'raw', powerkit works it out from population > raw.",
               "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: each group's expected mean and the SD within a group (one SD for both groups).",
+              "type": "object",
+              "required": [
+                "mean_1",
+                "mean_2",
+                "sd"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean_1": {
+                  "description": "The expected mean of group 1 (X's first level).",
+                  "type": "number"
+                },
+                "mean_2": {
+                  "description": "The expected mean of group 2 (X's second level).",
+                  "type": "number"
+                },
+                "sd": {
+                  "description": "The SD of the outcome within a group, taken as the same in both groups, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "d"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -998,19 +1106,113 @@
         },
         "population": {
           "required": [
-            "metric",
-            "dz"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised': the effect is given as dz. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out dz from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
             },
             "dz": {
-              "description": "Cohen's d_z: mean of the within-person differences (second condition minus first, in the order of X's levels) / SD of the differences.",
+              "description": "Cohen's d_z: mean of the within-person differences (second condition minus first, in the order of X's levels) / SD of the differences. With metric 'raw', powerkit works it out from population > raw.",
               "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: the expected mean in each condition, and either the SD of the differences (second minus first) or the SD of the outcome (the same in both conditions) with the correlation between the two measurements.",
+              "type": "object",
+              "required": [
+                "mean_1",
+                "mean_2"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean_1": {
+                  "description": "The expected mean in the first condition (X's first level).",
+                  "type": "number"
+                },
+                "mean_2": {
+                  "description": "The expected mean in the second condition (X's second level).",
+                  "type": "number"
+                },
+                "sd_difference": {
+                  "description": "The SD of the within-person differences (second minus first), above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "sd": {
+                  "description": "The SD of the outcome in each condition, taken as the same in both, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "r": {
+                  "description": "The correlation between the two measurements.",
+                  "$ref": "#/definitions/correlation"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "sd_difference"
+                  ],
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "sd"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "r"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "sd",
+                    "r"
+                  ],
+                  "not": {
+                    "required": [
+                      "sd_difference"
+                    ]
+                  }
+                }
+              ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "dz"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {

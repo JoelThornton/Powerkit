@@ -1,6 +1,6 @@
 # What to work on next
 
-*26 October 2026. The ordered answer to "work on the next thing". One
+*27 October 2026. The ordered answer to "work on the next thing". One
 queue, newest decisions folded in; [`status.md`](status.md) says where the
 project is, this says what to do.*
 
@@ -20,23 +20,20 @@ project is, this says what to do.*
 
 | # | What | Why it matters | Size | State |
 | --- | --- | --- | --- | --- |
-| 1 | **Labs tool 2: a map of the method space**, generated from `tree.yaml`, grouped by the research question being asked, each node opening a page about that test with charts and its status | Psychologists can't look up a design they don't know exists, and a flat list of 52 cards doesn't show the landscape or the gaps. Generated, it can't rot; in Labs, it risks nothing on the fast path. SAGE's Methods Map is the nearest thing and is paywalled and doesn't compute anything | L | Needs a decision: the shape (grouped grid first, pan and zoom only if it earns the dependency), and whether a sourced reading list per test is wanted later |
-| 2 | **Whole-study simulation, as an option** | One model for the whole study, simulated by an existing package, gives power for every main analysis from the same data and one N, and gets "every result must be significant" exactly. New, so it is recorded as a departure and checked by a statistician before it is offered (decided 26 October 2026) | L | Needs a decision: a statistician's check of the method, and which package covers the plan's combinations (power4mome is the candidate), and a check of the method |
-| 3 | **Effect size in the measure's own units** | The last piece of the effect-size help: let a user say "4.5 against 3.8 on a 1-7 scale, SD 1.2" and have the engine convert. The commonest way a power analysis goes wrong is a number the researcher can't justify | M | Ready |
-| 4 | **A power curve with three lines**: optimistic, expected, conservative | One number hides how sensitive the answer is to being wrong about the effect; three lines show it at a glance | M | Ready |
-| 5 | **Welch's one-way ANOVA** | Three or more groups with unequal variances. powerkit has Welch's t-test but only the equal-variance F for k groups, and unequal variances are the norm | M | Needs a decision: which package, and whether it is a departure from A23's omnibus F |
-| 6 | **Pitman-Morgan test: variances in a paired design** | The sibling of the two variance tests just built; a pre-post design asking whether responses became more consistent has nowhere to go | M | Needs a decision: no foundation package covers it, so the method and package come first |
-| 7 | **Equivalence and non-inferiority (TOST)** | Psychologists cannot currently show an effect is absent, and p > .05 does not do it. G\*Power has nothing; the screening question already routes to E36, which says "not in powerkit yet" | L | Needs a decision: TOSTER or another package, and which tests first (independent, paired, one-sample, correlations) |
-| 8 | **Repeated measures, within factors with three or more levels** (A27, A28) | The standard cognitive-psychology design. E8 covers 2 x 2 mixed only | L | Needs a decision: Superpower's within-factor route, and whether to report the MANOVA approach alongside the ANOVA one |
-| 9 | **Repeated measures, within-between interactions beyond 2 x 2** (A29, A30) | The classic randomised trial test, Group x Time, with more than two timepoints | L | Needs a decision: as above, plus how the sphericity correction is asked for |
-| 10 | **Spearman's rho and Kendall's tau** | Rank correlations are used constantly for skewed or ordinal measures, and powerkit offers only Pearson's r | M | Needs a decision: method (asymptotic relative efficiency, or simulation) and package |
-| 11 | **Multilevel and clustered designs: the method decision** | Where psychologists most often give up and guess: pupils in classes, patients in clinics, trials within participants. The decision needs a statistician, so it is its own step | L | Needs a decision: closed-form design effect or simulation (simr), and who checks it |
-| 12 | **Multilevel: build the two-level clustered design** | The first design from that decision, with the intraclass correlation and cluster size asked for in plain words | L | Blocked by 12 |
-| 13 | **Download a synthetic data set with the R script** | Registered reports: write and pre-register the analysis code against simulated data before recruiting. The engine already generates one data set per run for its check run | M | Needs a decision: how it is labelled as simulated, and the wording that stops it reading as a substitute for the analysis plan |
-| 14 | **SEM, CFA and measurement invariance: the decision and the first design** | Scale development and latent models are a fifth of modern psychology and G\*Power cannot touch them | L | Needs a decision: semPower, and which of fit, invariance or a latent path comes first |
-| 15 | **Validation catch-up** | Everything added since 22 October has validation files with placeholders. Transcribe, run the full validation, update the log, and move card statuses from "validation in progress" to validated where they pass | M | Needs the maintainer: the published values and the full run are theirs |
+| 1 | **Whole-study simulation, as an option** | One model for the whole study, simulated by an existing package, gives power for every main analysis from the same data and one N, and gets "every result must be significant" exactly. New, so it is recorded as a departure and checked by a statistician before it is offered (decided 26 October 2026) | L | Needs a decision: a statistician's check of the method, and which package covers the plan's combinations (power4mome is the candidate), and a check of the method |
+| 2 | **Welch's one-way ANOVA** | Three or more groups with unequal variances. powerkit has Welch's t-test but only the equal-variance F for k groups, and unequal variances are the norm | M | Needs a decision: which package, and whether it is a departure from A23's omnibus F |
+| 3 | **Pitman-Morgan test: variances in a paired design** | The sibling of the two variance tests just built; a pre-post design asking whether responses became more consistent has nowhere to go | M | Needs a decision: no foundation package covers it, so the method and package come first |
+| 4 | **Equivalence and non-inferiority (TOST)** | Psychologists cannot currently show an effect is absent, and p > .05 does not do it. G\*Power has nothing; the screening question already routes to E36, which says "not in powerkit yet" | L | Needs a decision: TOSTER or another package, and which tests first (independent, paired, one-sample, correlations) |
+| 5 | **Repeated measures, within factors with three or more levels** (A27, A28) | The standard cognitive-psychology design. E8 covers 2 x 2 mixed only | L | Needs a decision: Superpower's within-factor route, and whether to report the MANOVA approach alongside the ANOVA one |
+| 6 | **Repeated measures, within-between interactions beyond 2 x 2** (A29, A30) | The classic randomised trial test, Group x Time, with more than two timepoints | L | Needs a decision: as above, plus how the sphericity correction is asked for |
+| 7 | **Spearman's rho and Kendall's tau** | Rank correlations are used constantly for skewed or ordinal measures, and powerkit offers only Pearson's r | M | Needs a decision: method (asymptotic relative efficiency, or simulation) and package |
+| 8 | **Multilevel and clustered designs: the method decision** | Where psychologists most often give up and guess: pupils in classes, patients in clinics, trials within participants. The decision needs a statistician, so it is its own step | L | Needs a decision: closed-form design effect or simulation (simr), and who checks it |
+| 9 | **Multilevel: build the two-level clustered design** | The first design from that decision, with the intraclass correlation and cluster size asked for in plain words | L | Blocked by 8 |
+| 10 | **Download a synthetic data set with the R script** | Registered reports: write and pre-register the analysis code against simulated data before recruiting. The engine already generates one data set per run for its check run | M | Needs a decision: how it is labelled as simulated, and the wording that stops it reading as a substitute for the analysis plan |
+| 11 | **SEM, CFA and measurement invariance: the decision and the first design** | Scale development and latent models are a fifth of modern psychology and G\*Power cannot touch them | L | Needs a decision: semPower, and which of fit, invariance or a latent path comes first |
+| 12 | **Validation catch-up** | Everything added since 22 October has validation files with placeholders. Transcribe, run the full validation, update the log, and move card statuses from "validation in progress" to validated where they pass | M | Needs the maintainer: the published values and the full run are theirs |
 
-## The direction behind item 1
+## The direction behind the methods map
 
 The map is the first step towards something larger the maintainer wants:
 showing researchers the different ways a question could be answered, not
@@ -50,6 +47,11 @@ dimensions and explicitly is not a formula — exactly the kind of framework
 powerkit could present honestly without inventing any maths. **D1 is
 therefore a question for the maintainer again, not a settled no.** Its
 reference has to go through `refs.bib` before it is quoted anywhere.
+
+The first version (a pan-and-zoom diagram, `decisions.md`, 27 October
+2026) is in Labs. Still to come there: charts on each analysis's page,
+whether to add a sourced reading list per analysis (the maintainer's
+call), and nodes for approaches powerkit doesn't compute.
 
 ## Fold into whichever PR touches the area
 

@@ -23,6 +23,7 @@ source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
+source(file.path("R", "map.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -142,7 +143,11 @@ app_css <- "
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
   .lead { font-size: 1.05rem; color: #44505e; }
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
-  .topbar-inner { max-width: 70rem; margin: 0 auto; }
+  .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .share-page { display: flex; align-items: center; gap: 0.5rem; }
+  .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
+  .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
+  .share-page-status { font-size: 0.85rem; color: #fff; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
   .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
@@ -225,10 +230,10 @@ app_css <- "
 # screen's main heading, so users don't have to tab back down from the top.
 copy_js <- "
   // Copy text in the browser (nothing is sent to the server or anywhere else).
-  window.pkCopyText = function(text, status) {
+  window.pkCopyText = function(text, status, failMsg) {
     var done = function(msg) { if (status) { status.textContent = msg; status.classList.remove('visually-hidden'); } };
     var ok = 'Copied. Paste it anywhere: an email, a document or a message to a colleague.';
-    var fail = 'Couldn\\'t copy automatically. Select the text in the box below and copy it.';
+    var fail = failMsg || 'Couldn\\'t copy automatically. Select the text in the box below and copy it.';
     // Older browsers and some settings block the clipboard API: copy from a
     // hidden text box instead.
     var fallback = function() {
@@ -315,18 +320,21 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   tags$header(class = "topbar",
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
-        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))))
+        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))),
+      share_page_ui())
   ),
   tags$main(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
+      # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
+      selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
@@ -640,6 +648,41 @@ server <- function(input, output, session) {
     text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
   })
 
+  # Three effects (conservative, the plan's, optimistic): power by N for
+  # each, and the N each needs. Reads the last calculation; never changes
+  # the plan.
+  scenario_inputs <- reactive({
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), !is.null(explore_effect(calc$spec)))
+    vals <- c(conservative = input$scenario_conservative %||% NA, optimistic = input$scenario_optimistic %||% NA)
+    req(any(!is.na(vals)))
+    list(calc = calc, vals = vals)
+  }) |> debounce(600)
+  scenario_results <- reactive({
+    x <- scenario_inputs()
+    n <- scenario_n(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], seed = forms$default_seed)
+    list(spec = x$calc$spec, n = n,
+      curves = scenario_curves(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], n = n, seed = forms$default_seed))
+  })
+  output$scenario_plot <- renderPlot({
+    df <- scenario_results()$curves
+    keys <- intersect(names(scenario_names), unique(df$scenario))
+    style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
+    par(mar = c(4.5, 4.5, 1, 1))
+    plot(NA, xlim = range(df$n), ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
+    for (k in keys) {
+      d <- df[df$scenario == k, ]
+      lines(d$n, d$power, col = style[[k]]$col, lty = style[[k]]$lty, lwd = 2.5)
+    }
+    abline(h = c(0.8, 0.95), lty = 2, col = "grey70")
+    legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
+      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 2.5, bty = "n")
+  })
+  output$scenario_n <- renderUI({
+    x <- scenario_results()
+    p(class = "small", scenario_sentence(x$spec, x$n))
+  })
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)
@@ -821,6 +864,8 @@ server <- function(input, output, session) {
     if (is.null(calc)) return(NULL)
     list(sentence = labs_sde_sentence(tree, calc, calc$spec$goal$power), provenance = labs_provenance(calc))
   }
+  # Labs map: the page of the analysis clicked on the map.
+  output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
   labs_text <- function() labs_markdown(labs_answers(), input$labs_outcome, labs_sde_notes())
   output$labs_download <- downloadHandler(
@@ -936,7 +981,7 @@ server <- function(input, output, session) {
       snap <- nav_snapshot(); snap$key <- key
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
-      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L))
+      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L, page = page_slug(input$tabs)))
     })
   })
   observeEvent(input$pk_nav_to, {

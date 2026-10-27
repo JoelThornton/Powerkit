@@ -1008,3 +1008,79 @@ test_that("safeguard power: the form asks for the earlier study's size, and the 
   plain <- build_spec(forms, "E2", fields, modifyList(values, list(sg_use = "no")))
   expect_null(plain$effect_justification$safeguard)
 })
+
+test_that("three effects side by side: conservative, the plan's and optimistic", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$options$nrep <- NULL
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  html <- as.character(scenarios_ui(calc$spec, calc$result))
+  expect_match(html, "How much does the answer depend on the effect?", fixed = TRUE)
+  expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
+  # Only the values given are drawn; the plan's effect always is.
+  n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
+  expect_named(n, c("conservative", "expected"))
+  expect_equal(n[["expected"]], calc$result$n_required$n)
+  expect_equal(n[["conservative"]], 2 * ceiling(pwr::pwr.t.test(d = 0.3, power = 0.8)$n))
+  n <- scenario_n(calc$spec, calc$result, 0.3, 0.6, seed = forms$default_seed)
+  df <- scenario_curves(calc$spec, calc$result, 0.3, 0.6, n = n, seed = forms$default_seed)
+  expect_setequal(unique(df$scenario), c("conservative", "expected", "optimistic"))
+  expect_false(anyNA(df$power))
+  # Wide enough for the conservative effect to reach the target power.
+  expect_gte(max(df$power[df$scenario == "conservative"]), 0.8)
+  # The larger effect has more power at every N.
+  expect_true(all(df$power[df$scenario == "optimistic"] >= df$power[df$scenario == "conservative"]))
+  expect_match(scenario_sentence(calc$spec, n), "For 80% power, conservative needs", fixed = TRUE)
+  # Not offered for the smallest detectable effect, or where explore isn't.
+  sens <- light_spec("E2", goal = list(type = "sensitivity", n = 100L, power = 0.8))
+  sens$target_test$method <- "student_t"
+  expect_null(scenarios_ui(sens))
+  expect_null(scenarios_ui(light_spec("E7")))
+})
+
+test_that("the t-tests take the effect in the measure's own units, and the engine works out d", {
+  units <- list(
+    E1 = list(effect_units = "raw", raw_mean = "4.5", raw_test_value = "4", raw_sd = "1.25"),
+    E2 = list(effect_units = "raw", raw_mean_1 = "3.8", raw_mean_2 = "4.5", raw_sd = "1.2", method = "student_t"),
+    E3 = list(effect_units = "raw", raw_mean_1 = "10", raw_mean_2 = "12", raw_sd_kind = "each", raw_sd = "5", raw_r = "0.5")
+  )
+  expected <- c(E1 = 0.4, E2 = 0.7 / 1.2, E3 = 0.4)
+  for (ep in names(units)) {
+    values <- modifyList(form_examples[[ep]], units[[ep]])
+    fields <- form_fields(form_groups(forms, ep))
+    expect_length(form_problems(fields, values), 0)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_equal(spec$population$metric, "raw", info = ep)
+    expect_null(spec$population$d, info = ep)
+    spec$goal <- list(type = "power", n = 60L)
+    calc <- run_calculation(spec, seed = forms$default_seed)
+    expect_equal(calc$status, "ok", info = ep)
+    expect_equal(calc$result$effect_from_units$value, expected[[ep]], info = ep)
+    expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "From the means and SD you entered, powerkit worked out", fixed = TRUE)
+    w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields,
+      modifyList(values, list(just_source = "Smallest difference that matters.")))
+    expect_match(w[["short"]], sprintf("= %s)", format(round(expected[[ep]], 3), nsmall = 2)), fixed = TRUE, info = ep)
+    expect_match(w[["short"]], "SD = ", fixed = TRUE, info = ep)
+  }
+  # The paired test: the SD of the differences instead of one SD and r.
+  values <- modifyList(form_examples$E3, list(effect_units = "raw", raw_mean_1 = "10", raw_mean_2 = "12",
+    raw_sd_kind = "difference", raw_sd_difference = "5"))
+  spec <- build_spec(forms, "E3", form_fields(form_groups(forms, "E3")), values)
+  expect_equal(spec$population$raw, list(mean_1 = 10, mean_2 = 12, sd_difference = 5))
+  # The explore panel works in standardised units, starting from that d.
+  spec <- light_spec("E2")
+  spec$target_test$method <- "student_t"
+  spec$population <- list(metric = "raw", raw = list(mean_1 = 3.8, mean_2 = 4.5, sd = 1.2))
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  expect_match(as.character(explore_ui(calc$spec, calc$result)), "value=\"0.58\"|data-from=\"0.58\"")
+  expect_false(anyNA(explore_curve(calc$spec, calc$result, 0.3, seed = forms$default_seed)$power))
+})
+
+test_that("the smallest detectable effect is also given in the measure's own units", {
+  spec <- light_spec("E2", goal = list(type = "sensitivity", n = 100L, power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$options$nrep <- NULL
+  spec$population <- list(metric = "raw", raw = list(mean_1 = 0, mean_2 = 0, sd = 1.2))
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "In your outcome's own units, that is a difference of", fixed = TRUE)
+})

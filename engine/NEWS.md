@@ -1,4 +1,39 @@
-# powerkit 0.11.0
+# powerkit 0.9.0
+
+* App: a "Share this page" button in the top bar copies a link that opens
+  the page on show (`?page=labs&tool=prereplication` opens the Labs
+  pre-replication notes directly). The online
+  app runs inside Posit Connect Cloud's frame, where the address bar can't
+  show the page, so this is how a page is shared there. No calculation
+  changes.
+
+* App: the result screen can show three effects side by side. Under the
+  explore panel, the user may enter a conservative (smaller) and an
+  optimistic (larger) effect; powerkit draws power by sample size for
+  those and the plan's own effect, and states the N each needs at the
+  plan's target power. Neither value is suggested or filled in. Offered
+  where the explore panel is (the t-tests and the correlation by
+  formula), not for a smallest-detectable-effect plan. The app only calls
+  the engine; the plan is unchanged.
+
+* App, Labs: a map of the methods (`app/routing/R/map.R`), drawn as an
+  interactive node graph. `map_graph()` turns `tree.yaml` into one node per
+  question and per analysis (an analysis reached by several routes is one
+  node) and one edge per answer, and tags each analysis with what the study
+  wants to show, the outcome and how often people are measured, from the
+  routes that reach it. The page draws it as a "cosmos" with Cytoscape.js
+  and its dagre layout (bundled in `app/routing/www/vendor`, MIT licence,
+  no new R package): each thing a study can want to show is a star, and
+  its analyses are planets on rings around it, spaced so labels don't
+  meet; an analysis that belongs to several stars orbits one and is joined
+  to the others by dashed lines. A filter panel down the side (research
+  question, outcome, measurements, whether powerkit calculates it), search
+  that flies to matches, clicking a star or planet to zoom in, a details
+  panel with the route to an analysis through "Help me choose" and a link
+  to its card, a switch between plain-words names and the tests' usual
+  names, and a second view of every question as a left-to-right
+  tree. A nested list of the same map is provided for screen readers.
+  Nothing is calculated (docs/decisions.md, 27 October 2026).
 
 * Safeguard power (Perugini, Gallucci & Costantini, 2014; refs.bib
   `Perugini2014_safeguard`). When the effect size comes from a previous
@@ -19,6 +54,36 @@
   four tests, asking for the earlier study's sample size and the protection
   wanted. The result card and the write-up say which effect size was used
   and why; the explore panel starts from it.
+
+# powerkit 0.8.0
+
+* Engine and app: the one-sample, independent-samples and paired t-tests
+  accept the effect in the outcome's own units (`population > metric`
+  "raw", with `population > raw`): the expected mean, the fixed value and
+  the SD (one sample); each group's mean and one within-group SD (two
+  groups); or each condition's mean with either the SD of the differences
+  or one SD and the correlation between the two measurements (paired).
+  `validate_spec()` works out Cohen's d or d_z by the definition the schema
+  gives (for paired data from one SD and r, the SD of the differences is
+  SD * sqrt(2 * (1 - r))), so the backends and the exported R script are
+  unchanged and the result equals giving that d directly (tests in
+  test-effect-from-units.R). The result has a new `effect_from_units`
+  element: the standardised effect, the difference and the SD it was
+  divided by, and for a sensitivity goal the smallest detectable effect
+  as a difference in the outcome's units. In the app, these three input
+  screens ask how the effect will be given (Cohen's d, or the means and
+  SD); the result states the d it was worked out to, the write-up gives
+  the means and SD with d, and the explore panel starts from that d.
+
+# powerkit 0.7.1
+
+* App: each tab has its own address (`?page=about`, `whats-new`, `labs`,
+  `feedback`; the plan tab is the plain address), so a page can be shared
+  by link. Opening an address with `?page=` shows that tab, and the
+  browser's history entries carry the page, so the address bar follows the
+  tab when the app runs on its own. The online app runs inside Posit
+  Connect Cloud's frame, where the address bar can't change, but a link
+  with `?page=` still opens that page. No calculation changes.
 
 # powerkit 0.7.0
 

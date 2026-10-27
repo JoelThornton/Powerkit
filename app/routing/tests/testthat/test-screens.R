@@ -447,6 +447,41 @@ test_that("app.R parses (the other tests read it as text)", {
   expect_no_error(parse(file.path(routing_dir, "app.R"), encoding = "UTF-8"))
 })
 
+test_that("each tab has its own address, so a page can be shared by link", {
+  expect_identical(page_from_query("?page=labs"), labs_tab_title)
+  expect_identical(page_from_query("?page=About"), "About")
+  expect_identical(page_from_query("?page=whats-new"), "What's new")
+  expect_null(page_from_query(""))
+  expect_null(page_from_query("?page=nowhere"))
+  # The maintainer's tab only opens in the maintainer's view.
+  withr::with_envvar(c(POWERKIT_MAINTAINER_VIEW = ""), {
+    expect_null(page_from_query("?page=maintainer"))
+    expect_identical(page_from_query("?view=maintainer&page=maintainer"), "For the maintainer: undecided settings")
+  })
+  # Every tab in app.R has an address, and back again.
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  for (tab in setdiff(page_slugs(), labs_tab_title)) expect_match(code, sprintf('tabPanel("%s"', tab), fixed = TRUE)
+  for (slug in names(page_slugs())) expect_identical(page_slug(page_slugs()[[slug]]), slug)
+  expect_identical(page_slug(NULL), "plan")
+  expect_match(code, "selected = page_from_query(req$QUERY_STRING)", fixed = TRUE)
+  expect_match(code, "page = page_slug(input$tabs)", fixed = TRUE)
+  expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
+})
+
+test_that("the top bar's share button copies a working link to the page", {
+  # Inside Connect Cloud's frame the address bar can't show the page, so
+  # the button builds the link from the public address.
+  expect_match(as.character(share_page_ui()), public_address, fixed = TRUE)
+  expect_match(nav_js, "window.pkSharePage", fixed = TRUE)
+  expect_match(nav_js, "window.pkLabsTool", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "share_page_ui())", fixed = TRUE)
+  # Each shared page name is one the app opens.
+  for (p in c("about", "whats-new", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
+  expect_true("prereplication" %in% vapply(labs_tools, `[[`, "", "id"))
+  expect_match(labs_js, "get('tool')", fixed = TRUE)
+})
+
 test_that("the browser's Back and Forward move between powerkit's screens", {
   # Each screen or tab change is a history entry; the key tells them apart.
   expect_false(identical(nav_key("card", NULL, "E2", 7, "Plan"), nav_key("form", NULL, "E2", 7, "Plan")))
