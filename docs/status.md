@@ -25,7 +25,10 @@ fully validated. Validation runs are recorded in
   variance tests). Two InteractionPoweR tutorial examples are complete
   and run in the interactions chunk. The rest keep
   `TODO_PUBLISHED_VALUE` placeholders, partly filled where a value is
-  still to be checked. Wave 2 (one-way
+  still to be checked. Six cards are now marked validated on the
+  strength of these runs (planned contrasts, logistic regression, the
+  generic tests, two dependent correlations and the two variance tests);
+  eight still say "validation in progress" (`next.md`, item 12). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**

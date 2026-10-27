@@ -1,3 +1,14 @@
+# powerkit 0.9.1
+
+* Six designs are now marked validated (their cards, `tree.yaml` and
+  table 2.3 of `docs/decision-tree.md`): planned contrasts, logistic
+  regression, the generic t, F, chi-square and z tests, two dependent
+  correlations, one variance against a fixed value and two variances.
+  Each now matches the G*Power 3.1 manual's published examples in the
+  validation tests (`docs/validation-log.md`, 27 October 2026); the two
+  variance tests also match direct Spower calls and keep Type I error
+  near alpha. No calculation changes.
+
 # powerkit 0.9.0
 
 * App: a "Share this page" button in the top bar copies a link that opens
