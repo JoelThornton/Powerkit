@@ -199,7 +199,7 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The effect: Cohen's d, or the means and SD in your measure's own units"
         fields:
-          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {standardised: "As Cohen's d: (expected mean minus the fixed value) / SD", raw: "In my measure's own units: the expected mean, the fixed value and the SD"},
              default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
@@ -231,7 +231,7 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The effect: Cohen's d, or the means and SD in your measure's own units"
         fields:
-          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD"},
              default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
@@ -279,7 +279,7 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The effect: d_z, or the means and SD in your measure's own units"
         fields:
-          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric, required: true,
+          - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {standardised: "As d_z: mean of the differences (second minus first) / SD of the differences", raw: "In my measure's own units: the mean in each condition and an SD"},
              default: standardised, default_source: "d_z, the effect size pwr.t.test() takes for a paired test (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
           - {id: dz, label: "d_z", type: number, path: population.dz, effect: true,
@@ -288,7 +288,7 @@ forms:
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_mean_2, label: "Expected mean, second condition", type: number, path: population.raw.mean_2, effect: true, writeup_label: "second-condition mean",
              shown_if: {field: effect_units, is: raw}}
-          - {id: raw_sd_kind, label: "Which SD you know", type: select, required: true,
+          - {id: raw_sd_kind, label: "Which SD you know", type: select,
              choices: {difference: "The SD of people's changes (second minus first)", each: "The SD of the measure, and how strongly the two measurements correlate"},
              default: each, default_source: "the values researchers usually have from earlier studies (the SD of the measure and the test-retest correlation)",
              shown_if: {field: effect_units, is: raw}}
