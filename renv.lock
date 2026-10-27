@@ -748,7 +748,7 @@
     },
     "cluster": {
       "Package": "cluster",
-      "Version": "2.1.6",
+      "Version": "2.1.8.3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -758,7 +758,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "0aaa05204035dc43ea0004b9c76611dd"
+      "Hash": "e366f7ceff2974710ca493d370307484"
     },
     "cocor": {
       "Package": "cocor",
@@ -1143,7 +1143,7 @@
     },
     "foreign": {
       "Package": "foreign",
-      "Version": "0.8-86",
+      "Version": "0.8-92",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1152,7 +1152,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "550170303dbb19d07b2bcc288068e7dc"
+      "Hash": "740f25310a3b5f726e68434c76da5b69"
     },
     "fracdiff": {
       "Package": "fracdiff",
