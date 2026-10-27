@@ -5,6 +5,12 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-27"
+    title: "Share a link to any page"
+    text: >-
+      Each page now has its own link. Press "Copy link to this page" at the
+      top right and send it to someone: it opens on the same page, such as
+      Labs or About, instead of the start.
   - date: "2026-10-26"
     title: "Easier to read on large screens, and the result comes into view"
     text: >-
