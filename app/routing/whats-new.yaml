@@ -8,10 +8,11 @@ entries:
   - date: "2026-10-27"
     title: "A map of the methods, in Labs"
     text: >-
-      Labs has a new map of every analysis powerkit knows about, arranged
-      by what a study wants to show. Click a question to see where its
-      answers lead, drag and zoom to move around, and click an analysis to
-      read about it. Colours show which ones powerkit calculates.
+      Labs has a new interactive map of every analysis powerkit knows
+      about. Filter it down the side by what your study wants to show,
+      your outcome, how often people are measured and whether powerkit
+      calculates it, search it, and drag and zoom to move around. Click
+      any analysis to see one route to it and read about it.
   - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-

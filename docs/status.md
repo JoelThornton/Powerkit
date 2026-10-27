@@ -126,9 +126,10 @@ fully validated. Validation runs are recorded in
   once: an input two analyses both ask for fills the second's input
   screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
   and needs a statistician's check.
-- **Labs map of the methods (27 October 2026, 0.10.0):** generated from
-  the design finder's questions; pan, zoom, questions that open on a
-  click, and each analysis's card. Charts on each analysis's page and a
+- **Labs map of the methods (27 October 2026, 0.10.0):** an interactive
+  node graph generated from the design finder's questions (Cytoscape.js,
+  bundled), with filters, search, three arrangements and each analysis's
+  card. Charts on each analysis's page and a
   sourced reading list are not built yet.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of

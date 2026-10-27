@@ -2991,20 +2991,24 @@ since setup-r, which used to set it, is no longer used.
 an activated renv project) and `run-it-yourself.yaml` (it exists to test
 a clean install on each operating system).
 
-## 2026-10-27 · The Labs methods map: a pan-and-zoom diagram
+## 2026-10-27 · The Labs methods map: an interactive node graph
 
-**Decision (maintainer, 27 October 2026).** The first version of the map of
-the methods (`next.md`, Labs tool 2) is a diagram the user can pan and
-zoom, rather than a grid of grouped lists. Whether each analysis's page
-later gets a sourced reading list is still open.
+**Decision (maintainer, 27 October 2026).** The map of the methods
+(`next.md`, Labs tool 2) is an interactive node graph with filters down
+the side, rather than a grid of grouped lists or a static diagram.
+Whether each analysis's page later gets a sourced reading list is still
+open.
 
 **How it is built.** The map is generated from `tree.yaml`, the design
 finder's own questions (`app/routing/R/map.R`), so it cannot drift from
-them: the research questions, the questions that narrow them down, and
-every analysis, coloured by whether powerkit calculates it; a second group
-holds the designs the screening questions route elsewhere. Questions open
-and close on a click, so the first view shows only the research questions.
-It is drawn as an SVG with a small amount of the app's own JavaScript for
-panning and zooming, so no new package is needed. A plain nested list of
-the same map is offered for screen readers and keyboard use. Clicking an
-analysis opens its card, as the design finder shows it.
+them. `map_graph()` makes one node per question and per analysis and one
+edge per answer; each answer to the first question is a hub. Each
+analysis is tagged with the research questions, outcomes and numbers of
+measurements on the routes that reach it ("not fixed by the questions"
+where a route doesn't set one), and the filters use those tags. The page
+draws the graph with Cytoscape.js 3.30.2, dagre 0.8.5 and cytoscape-dagre
+2.5.0, bundled in `app/routing/www/vendor` (all MIT; licences in
+`LICENSES.txt` there), so no R package is added and the app works offline.
+A plain nested list of the same map is offered
+for screen readers and keyboard use. Clicking an analysis shows one route
+to it and a link to its card, as the design finder shows it.

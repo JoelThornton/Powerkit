@@ -348,7 +348,7 @@ labs_js <- "
     });
     // The map can only measure itself once it is on screen.
     $(document).on('shown.bs.tab shiny:conditional', function() {
-      var v = document.getElementById('map-viewport');
+      var v = document.getElementById('map-canvas');
       if (v && v.offsetParent && window.pkMapShown) window.pkMapShown();
     });
     Shiny.addCustomMessageHandler('labs_open', function(tool) { window.pkLabsOpen(tool); });

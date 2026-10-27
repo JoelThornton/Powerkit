@@ -1,14 +1,19 @@
 # powerkit 0.10.0
 
-* App, Labs: a map of the methods (`app/routing/R/map.R`). Generated from
-  `tree.yaml`, it shows the research questions, the questions that narrow
-  them down and every analysis, coloured by status (calculates, coming,
-  not in powerkit), plus the designs the screening questions route
-  elsewhere. Questions open and close on a click; the map pans (drag) and
-  zooms (wheel and buttons) with the app's own JavaScript, and "Find an
-  analysis" opens the path to one and centres it. Clicking an analysis
-  shows its card. A nested list of the same map is provided for screen
-  readers. Nothing is calculated (docs/decisions.md, 27 October 2026).
+* App, Labs: a map of the methods (`app/routing/R/map.R`), drawn as an
+  interactive node graph. `map_graph()` turns `tree.yaml` into one node per
+  question and per analysis (an analysis reached by several routes is one
+  node) and one edge per answer, and tags each analysis with what the study
+  wants to show, the outcome and how often people are measured, from the
+  routes that reach it. The page draws the graph with Cytoscape.js and its
+  dagre layout (bundled in `app/routing/www/vendor`, MIT licence, no new R
+  package): pan, zoom and drag; a filter panel down the side (research
+  question, outcome, measurements, whether powerkit calculates it); search
+  that highlights and zooms to matches; a switch for the questions in
+  between; three arrangements (a web, a left-to-right tree, rings); and a
+  details panel with the route to an analysis and a link to its card. A
+  nested list of the same map is provided for screen readers. Nothing is
+  calculated (docs/decisions.md, 27 October 2026).
 
 # powerkit 0.7.0
 
