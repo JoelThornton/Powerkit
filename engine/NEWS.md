@@ -1,4 +1,4 @@
-# powerkit 0.8.1
+# powerkit 0.9.0
 
 * App: a "Share this page" button in the top bar copies a link that opens
   the page on show (`?page=labs&tool=prereplication` opens the Labs
