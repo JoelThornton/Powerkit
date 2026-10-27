@@ -17,8 +17,8 @@ maintainer's priorities beat it.
 ## Adding a power analysis
 Follow docs/adding-a-test.md, start to finish, in one PR. A test is added when a
 researcher can run it and see that it exists: engine, validation placeholders,
-card, input screen, a plain-words "What's new" entry, a version bump and the
-status update all land together. For a design whose power must be simulated,
+card, input screen, a plain-words "What's new" entry, the version (see
+Non-negotiables) and the status update all land together. For a design whose power must be simulated,
 "run it" can mean the R script the app hands them to run themselves (as E10-E14
 do) — say which route they are on. Never leave a design the engine can compute
 with a card that says powerkit cannot.
@@ -57,9 +57,16 @@ engine-side change alone will fail the app suite.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
   a phase and summarise what was done, what's untested, and open questions.
 - engine/DESCRIPTION's Version is powerkit's version, shown to users and in
-  every export: 0.x.y while it is a prototype (the minor number counts shipped
-  batches of user-visible work), 1.0.0 at release. Bump it with the batch, and
-  keep CITATION.cff (repository root) and engine/NEWS.md in step.
+  every export, as major.minor.patch. Patch (last): bug fixes and very small
+  changes. Minor (middle): one batch of new features, the work merged
+  together from one thread or round, so a batch raises it by one however
+  many PRs it holds (0.9 is followed by 0.10). Major (first): a big shift,
+  such as leaving prototype (1.0.0) or changing what the site runs on; the
+  maintainer's call. The first PR of a batch sets the next number; the rest
+  of the batch keep it and add under the same NEWS.md heading. Never claim
+  a number for a PR that isn't in the current batch. Keep CITATION.cff
+  (repository root) and engine/NEWS.md in step. Rules and history:
+  docs/adding-a-test.md, "Version numbers".
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.

@@ -164,8 +164,9 @@ fully validated. Validation runs are recorded in
   page: what "added" means (engine, validation placeholders, card, input
   screen, "What's new" entry, version bump, status, in one PR), how a
   backend package is chosen with the maintainer, and every file a design
-  touches. powerkit's version is `engine/DESCRIPTION`'s: 0.x.y while it is
-  a prototype, 1.0.0 at release.
+  touches. powerkit's version is `engine/DESCRIPTION`'s, major.minor.patch:
+  fixes raise the last number, each batch of features the middle one (by
+  one, however many pull requests), a big shift the first.
 - **Nightly validation:** fixed on 25 October 2026 (testthat's JUnit
   reporter needed xml2, missing from `renv.lock`, and the report's path
   was relative); it had failed on every run since 12 October.
