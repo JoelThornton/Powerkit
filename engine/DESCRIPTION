@@ -25,6 +25,7 @@ Imports:
     jsonlite,
     jsonvalidate (>= 1.3.0),
     parallel,
+    psych,
     power4mome,
     pwr,
     pwrss,

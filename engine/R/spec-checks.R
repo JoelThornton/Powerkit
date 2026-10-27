@@ -35,7 +35,7 @@ population_problems <- function(spec) {
 # as warnings by validate_spec().
 spec_advice <- function(spec) {
   advice <- character()
-  if (identical(spec$effect_justification$type, "pilot_study")) {
+  if (identical(spec$effect_justification$type, "pilot_study") && is.null(spec$effect_justification$safeguard)) {
     advice <- c(advice, paste0(
       "The effect size comes from a pilot study. Pilot estimates are very ",
       "imprecise, so a sample size based on one can be far too small or too ",

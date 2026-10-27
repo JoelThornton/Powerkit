@@ -94,6 +94,9 @@
 #'     applied to the specified pattern, the scaled cell `means` and the
 #'     `cohen_f`; for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
 #'     `r`, `w` or `p2`);
+#'   * `safeguard`: `NULL` unless the effect justification uses safeguard
+#'     power; otherwise [safeguard_effect()]'s list for the earlier study's
+#'     estimate, with `lower` the effect size the calculation used.
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -196,6 +199,7 @@ run_spec <- function(spec) {
       curve = outcome$curve,
       n_required = outcome$n_required,
       sensitivity = outcome$sensitivity,
+      safeguard = safeguard_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       check_run = check,
       provenance = list(
@@ -209,7 +213,8 @@ run_spec <- function(spec) {
         backend = backend$name,
         backend_function = backend$functions[[method]],
         r_version = R.version.string,
-        packages = package_versions(c("powerkit", backend$packages)),
+        packages = package_versions(c("powerkit", backend$packages,
+          if (!is.null(spec$effect_justification$safeguard)) "psych")),
         started = format(started, "%Y-%m-%d %H:%M:%S %Z"),
         run_time_seconds = as.numeric(difftime(Sys.time(), started, units = "secs"))
       )
