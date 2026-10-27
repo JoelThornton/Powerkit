@@ -3002,7 +3002,12 @@ open.
 **How it is built.** The map is generated from `tree.yaml`, the design
 finder's own questions (`app/routing/R/map.R`), so it cannot drift from
 them. `map_graph()` makes one node per question and per analysis and one
-edge per answer; each answer to the first question is a hub. Each
+edge per answer; each answer to the first question is a hub. The default
+view is a "cosmos": hubs as stars spread wide apart, their analyses as
+planets on rings around them, with ring spacing chosen so labels never
+meet (an analysis under several hubs orbits the first and is joined to
+the others by dashed lines); a second view shows every question as a
+left-to-right tree. Each
 analysis is tagged with the research questions, outcomes and numbers of
 measurements on the routes that reach it ("not fixed by the questions"
 where a route doesn't set one), and the filters use those tags. The page

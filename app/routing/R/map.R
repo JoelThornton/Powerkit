@@ -197,7 +197,7 @@ map_list_ui <- function(node) {
 }
 
 map_checks <- function(group, values, title) {
-  tags$details(class = "map-filter", open = NA,
+  tags$details(class = "map-filter",
     tags$summary(class = "h6", title),
     lapply(seq_along(values), function(i) {
       id <- paste0("mapf_", group, "_", i)
@@ -219,34 +219,29 @@ map_ui <- function(tree) {
     tags$script(src = "vendor/cytoscape-dagre.js"),
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree))),
     h3("A map of the methods"),
-    p("Every analysis powerkit knows about, and the questions that lead to each, drawn from the same questions as “Help me choose”. Filter it down the side, drag and zoom to move around, and click anything to read about it."),
-    div(class = "map-layout",
-      div(class = "map-sidebar",
+    p("Every analysis powerkit knows about, drawn from the same questions as “Help me choose”. Each thing a study can want to show is a star; its analyses are the planets around it. Drag to fly about, scroll to zoom, search or filter on the left, and click a planet to read about it."),
+    div(class = "map-stage",
+      div(id = "map-canvas", class = "map-canvas", role = "img",
+        `aria-label` = "A map of powerkit's analyses, grouped around what a study wants to show. The same map is available as a list below it."),
+      tags$button(type = "button", class = "map-panel-toggle", onclick = "pkMapPanel()", `aria-controls` = "map-sidebar",
+        `aria-expanded` = "true", "Filters"),
+      div(class = "map-sidebar", id = "map-sidebar",
         tags$label(`for` = "map_search", class = "h6", "Search"),
         tags$input(id = "map_search", type = "search", class = "form-control form-control-sm",
           placeholder = "e.g. mediation, paired, proportion", oninput = "pkMapFilter()"),
+        tags$label(`for` = "map_layout", class = "h6", "View"),
+        tags$select(id = "map_layout", class = "form-select form-select-sm", onchange = "pkMapFilter()",
+          tags$option(value = "cosmos", "The cosmos: analyses around what they show"),
+          tags$option(value = "tree", "The questions: every route, left to right")),
         map_checks("rq", rq, "What the study wants to show"),
         map_checks("outcome", map_filters$outcome, "The outcome"),
         map_checks("times", map_filters$times, "How often each person is measured"),
         map_checks("status", map_filters$status, "In powerkit"),
-        tags$fieldset(class = "map-filter",
-          tags$legend(class = "h6", "View"),
-          div(class = "form-check form-switch",
-            tags$input(class = "form-check-input", type = "checkbox", id = "map_questions", onchange = "pkMapFilter()"),
-            tags$label(class = "form-check-label", `for` = "map_questions", "Show the questions in between")),
-          tags$label(`for` = "map_layout", class = "small mt-2", "Arrangement"),
-          tags$select(id = "map_layout", class = "form-select form-select-sm", onchange = "pkMapLayout()",
-            tags$option(value = "web", "As a web"),
-            tags$option(value = "tree", "As a tree, left to right"),
-            tags$option(value = "rings", "In rings, from the centre"))),
         div(class = "nav-buttons mt-2",
-          tags$button(type = "button", class = "btn btn-outline-primary btn-sm", onclick = "pkMapFit()", "Fit to the window"),
-          tags$button(type = "button", class = "btn btn-link btn-sm", onclick = "pkMapReset()", "Clear filters")),
-        p(class = "small text-muted map-count", id = "map-count", `aria-live` = "polite")),
-      div(class = "map-stage",
-        div(id = "map-canvas", class = "map-canvas", role = "img",
-          `aria-label` = "A graph of powerkit's questions and analyses. The same map is available as a list below it."),
-        div(id = "map-details", class = "map-details", hidden = NA))),
+          tags$button(type = "button", class = "btn btn-light btn-sm", onclick = "pkMapFit()", "See everything"),
+          tags$button(type = "button", class = "btn btn-link btn-sm map-clear", onclick = "pkMapReset()", "Clear filters")),
+        p(class = "small map-count", id = "map-count", `aria-live` = "polite")),
+      div(id = "map-details", class = "map-details", hidden = NA)),
     uiOutput("map_page"),
     tags$details(class = "map-as-list",
       tags$summary("The map as a list"),
@@ -264,57 +259,78 @@ map_page_ui <- function(tree, ep_id) {
 }
 
 map_css <- "
-  .map-layout { display: grid; grid-template-columns: 17rem 1fr; gap: 1rem; align-items: start; }
-  @media (max-width: 800px) { .map-layout { grid-template-columns: 1fr; } }
-  .map-sidebar { background: #fff; border: 1px solid var(--pk-line, #d8dee6); border-radius: 12px; padding: 0.9rem 1rem;
-                 max-height: 82vh; overflow-y: auto; }
-  .map-sidebar .h6 { font-weight: 650; color: var(--pk-navy, #14284B); margin: 0.7rem 0 0.3rem 0; font-size: 0.85rem; }
+  .map-stage { position: relative; height: 88vh; min-height: 520px; border-radius: 16px; overflow: hidden;
+               background: radial-gradient(ellipse at 30% 20%, #23336b 0%, #0f1736 45%, #070b1f 100%); }
+  .map-canvas { position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1.2px 1.2px at 20px 30px, #ffffffcc, transparent), radial-gradient(1px 1px at 120px 80px, #ffffff99, transparent),
+      radial-gradient(1.5px 1.5px at 200px 160px, #cfe3ffcc, transparent), radial-gradient(1px 1px at 60px 190px, #ffffff88, transparent),
+      radial-gradient(1px 1px at 260px 40px, #ffe9c499, transparent), radial-gradient(1.3px 1.3px at 160px 240px, #ffffffaa, transparent),
+      radial-gradient(1px 1px at 300px 220px, #ffffff77, transparent), radial-gradient(2px 2px at 90px 120px, #9fc3ff66, transparent);
+    background-size: 320px 280px; }
+  .map-sidebar { position: absolute; top: 0.75rem; left: 0.75rem; max-height: calc(100% - 1.5rem); width: 17.5rem; overflow-y: auto; padding: 2.4rem 1rem 0.9rem 1rem;
+                 background: rgba(10, 16, 40, 0.72); backdrop-filter: blur(8px); border: 1px solid rgba(160, 190, 255, 0.18);
+                 border-radius: 14px; color: #dfe7ff; }
+  .map-sidebar.closed { display: none; }
+  .map-panel-toggle { position: absolute; top: 1.1rem; left: 1.1rem; z-index: 3; border: 1px solid rgba(160, 190, 255, 0.35);
+                      background: rgba(20, 30, 70, 0.85); color: #fff; border-radius: 999px; padding: 0.15rem 0.8rem; font-size: 0.8rem; }
+  .map-sidebar .h6 { display: block; font-weight: 650; color: #ffffff; margin: 0.8rem 0 0.35rem 0; font-size: 0.82rem; letter-spacing: 0.02em; }
+  .map-sidebar .form-control, .map-sidebar .form-select { background-color: rgba(255, 255, 255, 0.08); color: #fff; border-color: rgba(160, 190, 255, 0.3); }
+  .map-sidebar .form-control::placeholder { color: #a9b6d8; }
+  .map-sidebar .form-select option { color: #000; }
   .map-filter { margin: 0; }
-  .map-filter > summary { cursor: pointer; }
-  .map-filter .form-check { display: flex; gap: 0.45rem; align-items: flex-start; padding-left: 0; margin-bottom: 0.15rem; }
-  .map-filter .form-check-input { float: none; flex: none; margin: 0.2rem 0 0 0; }
-  .map-filter .form-switch .form-check-input { width: 2em; }
-  .map-filter .form-check-label { font-size: 0.85rem; line-height: 1.3; }
-  .map-stage { position: relative; }
-  .map-canvas { height: 82vh; min-height: 460px; border: 1px solid var(--pk-line, #d8dee6); border-radius: 12px;
-                background: radial-gradient(circle at 25% 15%, #ffffff 0%, #eef3f8 75%); }
-  .map-details { position: absolute; top: 0.75rem; right: 0.75rem; width: 19rem; max-width: calc(100% - 1.5rem); background: #fff;
-                 border: 1px solid var(--pk-line, #d8dee6); border-radius: 12px; box-shadow: 0 8px 24px rgba(20, 40, 75, 0.15);
-                 padding: 0.9rem 1rem; max-height: calc(100% - 1.5rem); overflow-y: auto; }
-  .map-details h4 { font-size: 1rem; color: var(--pk-navy, #14284B); margin: 0 1.5rem 0.35rem 0; }
-  .map-details .map-close { position: absolute; top: 0.4rem; right: 0.6rem; border: 0; background: none; font-size: 1.3rem; line-height: 1; }
+  .map-filter > summary { cursor: pointer; display: list-item; }
+  .map-filter[open] > summary { margin-bottom: 0.3rem; }
+  .map-filter .form-check { display: flex; gap: 0.45rem; align-items: flex-start; padding-left: 0; margin-bottom: 0.2rem; }
+  .map-filter .form-check-input { float: none; flex: none; margin: 0.2rem 0 0 0; background-color: rgba(255, 255, 255, 0.12); border-color: rgba(200, 215, 255, 0.5); }
+  .map-filter .form-check-input:checked { background-color: #5cc8ff; border-color: #5cc8ff; }
+  .map-filter .form-check-label { font-size: 0.82rem; line-height: 1.3; color: #dfe7ff; }
+  .map-count { color: #a9b6d8; margin-top: 0.5rem; }
+  .map-clear { color: #9fd4ff; }
+  .map-details { position: absolute; top: 0.75rem; right: 0.75rem; width: 20rem; max-width: calc(100% - 1.5rem); max-height: calc(100% - 1.5rem); overflow-y: auto;
+                 background: rgba(10, 16, 40, 0.82); backdrop-filter: blur(8px); color: #e8eefc; border: 1px solid rgba(160, 190, 255, 0.25);
+                 border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45); padding: 1rem 1.1rem; }
+  .map-details h4 { font-size: 1.05rem; color: #fff; margin: 0 1.5rem 0.4rem 0; }
+  .map-details .map-close { position: absolute; top: 0.4rem; right: 0.6rem; border: 0; background: none; color: #fff; font-size: 1.3rem; line-height: 1; }
   .map-details ol { padding-left: 1.1rem; font-size: 0.85rem; }
+  .map-details p { color: #cdd7f3; }
   .map-badge { display: inline-block; border-radius: 1rem; padding: 0.05rem 0.6rem; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-  .map-badge.runs { background: #e3eff8; color: #0A5A8C; }
-  .map-badge.soon { background: #fff1d6; color: #8a4a00; }
-  .map-badge.not { background: #eef0f2; color: #4b5563; }
+  .map-badge.runs { background: rgba(92, 200, 255, 0.18); color: #8fdcff; }
+  .map-badge.soon { background: rgba(255, 179, 71, 0.2); color: #ffc978; }
+  .map-badge.not { background: rgba(170, 180, 210, 0.18); color: #c3cbe2; }
   .map-key::before { content: ''; display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; margin-right: 0.35em; vertical-align: -0.05em; }
-  .map-key.map-runs::before { background: #0A5A8C; }
-  .map-key.map-soon::before { background: #d97706; }
-  .map-key.map-not::before { background: #9aa3ad; }
+  .map-key.map-runs::before { background: #5cc8ff; box-shadow: 0 0 6px #5cc8ff; }
+  .map-key.map-soon::before { background: #ffb347; box-shadow: 0 0 6px #ffb347; }
+  .map-key.map-not::before { background: #9aa7c7; }
   .map-page { margin-top: 1rem; }
   .map-as-list { margin-top: 1rem; }
+  @media (max-width: 800px) { .map-sidebar { width: calc(100% - 1.5rem); } }
 "
 
-# The page side: draws the graph, filters it and shows a node's details.
+# The page side: lays out the cosmos (or the tree of questions), filters
+# it and shows a planet's details.
 map_js <- "
   (function() {
     var cy = null, data = null, started = false, running = null;
+    var hues = ['#7c9cff', '#ff7eb6', '#4fe0b6', '#ffd166', '#c792ea', '#5cc8ff', '#ff9f68', '#9be15d', '#f78fb3', '#b0c4de'];
+    var glow = { runs: '#5cc8ff', soon: '#ffb347', not: '#9aa7c7' };
     function load() {
       if (data) return data;
       var d = document.getElementById('map-data'); if (!d) return null;
       data = JSON.parse(d.textContent); return data;
     }
     function elements() {
-      var d = load(), els = [], hubs = {};
+      var d = load(), els = [], hubs = {}, h = 0;
       els.push({ data: { id: 'root', label: 'Your study', kind: 'root' } });
       d.nodes.forEach(function(n) {
-        els.push({ data: Object.assign({}, n) });
-        if (n.kind === 'hub') { hubs[n.rq] = n.id; els.push({ data: { id: 'root-' + n.id, source: 'root', target: n.id, label: '' } }); }
+        var x = Object.assign({}, n);
+        if (n.kind === 'hub') { x.hue = hues[h++ % hues.length]; hubs[n.rq] = n.id; }
+        if (n.kind === 'endpoint') x.glow = glow[n.status];
+        els.push({ data: x });
+        if (n.kind === 'hub') els.push({ data: { id: 'root-' + n.id, source: 'root', target: n.id, label: '' } });
       });
       d.edges.forEach(function(e) { els.push({ data: Object.assign({}, e) }); });
-      // Shortcuts for the view without the questions in between: each
-      // research question straight to its analyses.
+      // In the cosmos each analysis is joined straight to what it shows.
       d.nodes.forEach(function(n) {
         if (n.kind !== 'endpoint') return;
         n.rq.forEach(function(rq) {
@@ -325,67 +341,129 @@ map_js <- "
     }
     function style() {
       return [
-        { selector: 'node', style: { 'label': 'data(label)', 'text-wrap': 'wrap', 'text-max-width': 170, 'font-size': 11,
-            'font-family': 'Inter, system-ui, sans-serif', 'text-valign': 'center', 'text-halign': 'right', 'text-margin-x': 6,
-            'color': '#1f2933', 'background-color': '#c9d2dc', 'width': 14, 'height': 14, 'min-zoomed-font-size': 7 } },
-        { selector: 'node[kind = \"root\"], node[kind = \"hub\"]', style: { 'shape': 'round-rectangle', 'background-color': '#14284B',
-            'color': '#fff', 'text-halign': 'center', 'text-margin-x': 0, 'width': 'label', 'height': 'label', 'padding': 12,
-            'font-size': 13, 'font-weight': 700, 'text-max-width': 190 } },
-        { selector: 'node[kind = \"hub\"]', style: { 'background-color': '#0A5A8C', 'font-size': 13, 'text-max-width': 170 } },
-        { selector: 'node[kind = \"root\"], node[kind = \"hub\"], node.hover, node.hit, node:selected', style: { 'min-zoomed-font-size': 0 } },
-        { selector: 'node[kind = \"endpoint\"].hover', style: { 'font-size': 14, 'z-index': 20, 'text-background-color': '#fff', 'text-background-opacity': 0.9,
-            'text-background-padding': 3 } },
-        { selector: 'node[kind = \"question\"]', style: { 'shape': 'round-rectangle', 'background-color': '#ffffff', 'border-width': 1.5,
-            'border-color': '#9fb3c8', 'text-halign': 'center', 'text-margin-x': 0, 'width': 'label', 'height': 'label', 'padding': 8,
-            'text-max-width': 170, 'font-size': 11, 'color': '#14284B' } },
-        { selector: 'node[kind = \"endpoint\"]', style: { 'width': 18, 'height': 18, 'font-weight': 600, 'border-width': 3, 'border-color': '#fff' } },
-        { selector: 'node[status = \"runs\"]', style: { 'background-color': '#0A5A8C', 'width': 22, 'height': 22 } },
-        { selector: 'node[status = \"soon\"]', style: { 'background-color': '#d97706' } },
-        { selector: 'node[status = \"not\"]', style: { 'background-color': '#9aa3ad' } },
-        { selector: 'edge', style: { 'width': 1.4, 'line-color': '#c3ccd6', 'curve-style': 'bezier', 'target-arrow-shape': 'triangle',
-            'target-arrow-color': '#c3ccd6', 'arrow-scale': 0.7 } },
+        { selector: 'node', style: { 'label': 'data(label)', 'text-wrap': 'wrap', 'text-max-width': 170, 'font-size': 13,
+            'font-family': 'Inter, system-ui, sans-serif', 'color': '#e8eefc', 'text-outline-color': '#0a1030', 'text-outline-width': 2,
+            'text-valign': 'bottom', 'text-margin-y': 7, 'min-zoomed-font-size': 6, 'z-index': 10 } },
+        { selector: 'node[kind = \"endpoint\"]', style: { 'width': 26, 'height': 26, 'background-color': 'data(glow)',
+            'underlay-color': 'data(glow)', 'underlay-opacity': 0.28, 'underlay-padding': 9, 'underlay-shape': 'ellipse',
+            'border-width': 2, 'border-color': '#ffffff', 'border-opacity': 0.55 } },
+        { selector: 'node[status = \"runs\"]', style: { 'width': 32, 'height': 32 } },
+        { selector: 'node[kind = \"hub\"]', style: { 'width': 96, 'height': 96, 'background-color': 'data(hue)',
+            'border-width': 6, 'border-color': '#ffffff', 'border-opacity': 0.35,
+            'underlay-color': 'data(hue)', 'underlay-opacity': 0.35, 'underlay-padding': 26, 'underlay-shape': 'ellipse',
+            'font-size': 24, 'font-weight': 700, 'text-max-width': 300, 'text-margin-y': 14, 'color': '#ffffff', 'text-outline-width': 3,
+            'min-zoomed-font-size': 0 } },
+        { selector: 'node[kind = \"root\"]', style: { 'shape': 'round-rectangle', 'width': 'label', 'height': 'label', 'padding': 12,
+            'background-color': '#14284B', 'text-valign': 'center', 'text-margin-y': 0, 'font-weight': 700 } },
+        { selector: 'node[kind = \"question\"]', style: { 'shape': 'round-rectangle', 'width': 'label', 'height': 'label', 'padding': 9,
+            'background-color': '#16224d', 'border-width': 1, 'border-color': '#6f86c9', 'text-valign': 'center', 'text-margin-y': 0,
+            'font-size': 12, 'text-outline-width': 0, 'color': '#dfe7ff' } },
+        { selector: 'node[kind = \"orbit\"]', style: { 'shape': 'ellipse', 'width': 'data(size)', 'height': 'data(size)',
+            'background-opacity': 0, 'border-width': 1.2, 'border-color': 'data(hue)', 'border-opacity': 0.22, 'border-style': 'dashed',
+            'label': '', 'events': 'no', 'z-index': 0 } },
+        { selector: 'edge', style: { 'width': 1, 'line-color': '#8ea6e8', 'opacity': 0.35, 'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle', 'target-arrow-color': '#8ea6e8', 'arrow-scale': 0.6, 'z-index': 1 } },
+        { selector: 'edge[shortcut]', style: { 'target-arrow-shape': 'none', 'opacity': 0.12, 'width': 1, 'curve-style': 'straight' } },
+        { selector: 'edge.far', style: { 'line-style': 'dashed', 'opacity': 0.08 } },
         { selector: '.dim', style: { 'opacity': 0.12 } },
-        { selector: 'node.hit', style: { 'border-color': '#f2b84b', 'border-width': 5 } },
-        { selector: 'node:selected', style: { 'border-color': '#f2b84b', 'border-width': 5 } },
-        { selector: 'edge.path', style: { 'line-color': '#0A5A8C', 'target-arrow-color': '#0A5A8C', 'width': 3, 'label': 'data(label)',
-            'font-size': 10, 'text-wrap': 'wrap', 'text-max-width': 140, 'text-background-color': '#fff', 'text-background-opacity': 0.9,
-            'text-background-padding': 2, 'color': '#0A5A8C', 'z-index': 10 } }
+        { selector: 'node.hover', style: { 'font-size': 17, 'z-index': 30, 'min-zoomed-font-size': 0 } },
+        { selector: 'node.hit, node:selected', style: { 'border-color': '#ffe08a', 'border-width': 4, 'border-opacity': 1,
+            'underlay-opacity': 0.6, 'min-zoomed-font-size': 0, 'z-index': 30 } },
+        { selector: 'edge.path', style: { 'line-color': '#ffe08a', 'target-arrow-color': '#ffe08a', 'opacity': 0.9, 'width': 3 } }
       ];
     }
-    function layoutOptions(which) {
-      if (which === 'web') return { name: 'cose', animate: true, animationDuration: 500, nodeRepulsion: function() { return 400000; },
-        idealEdgeLength: function() { return 130; }, nodeOverlap: 40, gravity: 0.3, nodeDimensionsIncludeLabels: true,
-        boundingBox: { x1: 0, y1: 0, w: cy.width(), h: cy.height() }, numIter: 2000, padding: 30, randomize: true };
-      if (which === 'rings') return { name: 'breadthfirst', circle: true, roots: '#root', spacingFactor: 0.9, animate: true,
-        animationDuration: 500, padding: 30 };
-      return { name: 'dagre', rankDir: 'LR', nodeSep: 6, rankSep: 60, animate: true, animationDuration: 500, padding: 30 };
-    }
-    // Lay out what is shown; with a search, zoom to the matches and the
-    // routes to them.
-    window.pkMapLayout = function() {
-      if (!cy) return;
-      var which = (document.getElementById('map_layout') || {}).value || 'web';
-      if (running) running.stop();
-      var layout = running = cy.elements(':visible').layout(layoutOptions(which));
-      layout.one('layoutstop', function() {
-        var hits = cy.nodes('.hit');
-        if (hits.length) cy.animate({ fit: { eles: hits.union(hits.predecessors(':visible')), padding: 60 } }, { duration: 400 });
-      });
-      layout.run();
-    };
-    window.pkMapFit = function() { if (cy) cy.animate({ fit: { eles: cy.elements(':visible'), padding: 30 } }, { duration: 300 }); };
+    function view() { return (document.getElementById('map_layout') || {}).value || 'cosmos'; }
     function checked(group) {
       return Array.prototype.map.call(document.querySelectorAll('.map-sidebar input[data-group=\"' + group + '\"]:checked'),
         function(i) { return i.value; });
     }
+    // The cosmos: each star's analyses on rings around it, far enough
+    // apart that no two labels meet, and the stars spread on a wide
+    // circle with room between their systems.
+    var R0 = 250, GAP = 150, STEP = 230;
+    function cosmos() {
+      cy.remove('node[kind = \"orbit\"]');
+      var hubs = cy.nodes('[kind = \"hub\"]').filter(function(h) { return h.style('display') !== 'none'; });
+      var placed = {}, systems = [];
+      hubs.forEach(function(h) {
+        var planets = h.outgoers('edge[shortcut]').targets().filter(function(n) { return n.style('display') !== 'none' && !placed[n.id()]; });
+        planets.forEach(function(n) { placed[n.id()] = h.id(); });
+        var rings = [], left = planets.length, r = R0;
+        while (left > 0) { var cap = Math.max(5, Math.floor(2 * Math.PI * r / STEP)); rings.push({ r: r, k: Math.min(cap, left) }); left -= cap; r += GAP; }
+        var outer = rings.length ? rings[rings.length - 1].r : R0;
+        systems.push({ hub: h, planets: planets, rings: rings, size: outer + 420 });
+      });
+      var total = systems.reduce(function(a, s) { return a + 2 * s.size; }, 0);
+      var R = systems.length > 1 ? total / (2 * Math.PI) : 0, at = 0;
+      var pos = {};
+      systems.forEach(function(s, i) {
+        var angle = systems.length > 1 ? (at + s.size) / R : 0;
+        at += 2 * s.size;
+        var cx = R * Math.cos(angle), cy0 = R * Math.sin(angle);
+        pos[s.hub.id()] = { x: cx, y: cy0 };
+        var j = 0, offset = i * 0.7;
+        s.rings.forEach(function(ring, k) {
+          cy.add({ group: 'nodes', data: { id: 'orbit-' + s.hub.id() + '-' + k, kind: 'orbit', size: 2 * ring.r, hue: s.hub.data('hue') },
+            position: { x: cx, y: cy0 } });
+          for (var m = 0; m < ring.k; m++) {
+            var a = offset + k * 0.4 + 2 * Math.PI * m / ring.k;
+            pos[s.planets[j].id()] = { x: cx + ring.r * Math.cos(a), y: cy0 + ring.r * Math.sin(a) };
+            j++;
+          }
+        });
+      });
+      cy.edges('[shortcut]').forEach(function(e) { e.toggleClass('far', placed[e.target().id()] !== e.source().id()); });
+      cy.nodes('[kind = \"orbit\"]').lock();
+      var shown = cy.nodes().filter(function(n) { return pos[n.id()]; });
+      if (running) running.stop();
+      running = shown.layout({ name: 'preset', positions: function(n) { return pos[n.id()]; }, animate: true, animationDuration: 700,
+        fit: false });
+      running.one('layoutstop', focus);
+      running.run();
+    }
+    function tree() {
+      cy.remove('node[kind = \"orbit\"]');
+      if (running) running.stop();
+      running = cy.elements(':visible').layout({ name: 'dagre', rankDir: 'LR', nodeSep: 18, rankSep: 140, animate: true,
+        animationDuration: 600, fit: false });
+      running.one('layoutstop', focus);
+      running.run();
+    }
+    // After a layout: fly to the search matches, or show everything.
+    function focus() {
+      var hits = cy.nodes('.hit');
+      if (hits.length) fitTo(hits, 1.1);
+      else pkMapFit();
+    }
+    // Fit some nodes into the part of the map the filters panel leaves
+    // free.
+    function fitTo(eles, zoomCap) {
+      var side = document.getElementById('map-sidebar');
+      var left = side && !side.classList.contains('closed') ? side.offsetWidth + 24 : 0;
+      var w = cy.width() - left - 160, h = cy.height() - 160, bb = eles.boundingBox({ includeLabels: false, includeUnderlays: false });
+      var z = Math.min(w / Math.max(bb.w, 1), h / Math.max(bb.h, 1), zoomCap || 1.2);
+      z = Math.max(z, cy.minZoom());
+      cy.animate({ zoom: z, pan: { x: left + 80 + w / 2 - z * (bb.x1 + bb.w / 2), y: 70 + h / 2 - z * (bb.y1 + bb.h / 2) } }, { duration: 650 });
+    }
+    window.pkMapFit = function() {
+      if (!cy) return;
+      fitTo(cy.nodes(':visible').not('[kind = \"orbit\"]'));
+    };
+    // Star names stay readable from far away.
+    function scaleNames() {
+      var z = cy.zoom();
+      var f = Math.min(90, Math.max(24, 15 / z));
+      cy.nodes('[kind = \"hub\"]').style({ 'font-size': f, 'text-max-width': 12 * f });
+    }
     function overlaps(a, b) { return a.some(function(x) { return b.indexOf(x) >= 0; }); }
-    // An analysis shows when it matches every filter; a question shows
-    // when an analysis it leads to shows.
+    // An analysis shows when it matches every filter. In the cosmos the
+    // questions are hidden; in the tree a question shows when an analysis
+    // it leads to shows.
     window.pkMapFilter = function() {
       if (!cy) return;
       var rq = checked('rq'), outcome = checked('outcome'), times = checked('times'), status = checked('status');
       var q = ((document.getElementById('map_search') || {}).value || '').trim().toLowerCase();
-      var between = (document.getElementById('map_questions') || {}).checked !== false;
+      var isTree = view() === 'tree';
       var shown = cy.collection();
       cy.batch(function() {
         cy.elements().removeClass('dim hit path');
@@ -396,36 +474,50 @@ map_js <- "
           if (ok) shown = shown.union(n);
           if (ok && q && (d.label + ' ' + d.standard).toLowerCase().indexOf(q) >= 0) n.addClass('hit');
         });
-        cy.nodes('[kind = \"question\"]').forEach(function(n) {
-          var leads = between && n.successors('node[kind = \"endpoint\"]').intersection(shown).length > 0;
+        cy.nodes('[kind = \"hub\"]').forEach(function(n) {
+          var has = n.outgoers('edge[shortcut]').targets().intersection(shown).length > 0;
+          n.style('display', !isTree && rq.indexOf(n.data('rq')) >= 0 && has ? 'element' : 'none');
+        });
+        cy.nodes('[kind = \"question\"], [kind = \"root\"]').forEach(function(n) {
+          var leads = isTree && (n.data('kind') === 'root' || n.successors('node[kind = \"endpoint\"]').intersection(shown).length > 0);
           n.style('display', leads ? 'element' : 'none');
         });
-        cy.nodes('[kind = \"hub\"]').forEach(function(n) { n.style('display', rq.indexOf(n.data('rq')) >= 0 ? 'element' : 'none'); });
-        cy.edges().forEach(function(e) { e.style('display', (e.data('shortcut') ? !between : between || e.source().data('kind') === 'root') ? 'element' : 'none'); });
+        if (isTree) cy.nodes('[kind = \"hub\"]').forEach(function(n) {
+          if (rq.indexOf(n.data('rq')) >= 0 && n.successors('node[kind = \"endpoint\"]').intersection(shown).length) n.style('display', 'element');
+        });
+        cy.edges().forEach(function(e) { e.style('display', (e.data('shortcut') ? !isTree : isTree) ? 'element' : 'none'); });
         if (q) {
           var hits = cy.nodes('.hit');
-          cy.elements().addClass('dim');
+          cy.elements().not('[kind = \"orbit\"]').addClass('dim');
           hits.removeClass('dim');
-          hits.predecessors().removeClass('dim');
+          hits.connectedEdges().removeClass('dim');
+          hits.incomers('node').removeClass('dim');
+          if (isTree) hits.predecessors().removeClass('dim');
         }
       });
       var count = document.getElementById('map-count');
       if (count) count.textContent = shown.length + ' of ' + cy.nodes('[kind = \"endpoint\"]').length + ' analyses shown' +
         (q ? '; ' + cy.nodes('.hit').length + ' match “' + q + '”' : '') + '.';
-      pkMapLayout();
+      if (isTree) tree(); else cosmos();
     };
+    window.pkMapLayout = window.pkMapFilter;
     window.pkMapReset = function() {
       document.querySelectorAll('.map-sidebar input[type=checkbox]').forEach(function(i) { i.checked = true; });
       var s = document.getElementById('map_search'); if (s) s.value = '';
       pkMapClose();
       pkMapFilter();
     };
+    window.pkMapPanel = function() {
+      var p = document.getElementById('map-sidebar'), b = document.querySelector('.map-panel-toggle');
+      var closed = p.classList.toggle('closed');
+      if (b) b.setAttribute('aria-expanded', closed ? 'false' : 'true');
+    };
     function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-    // The answers on the shortest route to a node from the start,
-    // highlighted on the graph.
+    // The answers on the shortest route to an analysis through the
+    // design finder's questions (whichever view is showing).
     function route(n) {
-      var paths = cy.elements(':visible').dijkstra({ root: cy.$id('root'), directed: true });
-      var path = paths.pathTo(n), steps = [];
+      var graph = cy.elements().not('edge[shortcut]').not('[kind = \"orbit\"]');
+      var path = graph.dijkstra({ root: cy.$id('root'), directed: true }).pathTo(n), steps = [];
       path.forEach(function(x) {
         if (x.isEdge()) { x.addClass('path'); if (x.data('label')) steps.push(x.data('label')); }
         else if (x.data('kind') === 'hub') steps.push(x.data('label'));
@@ -438,15 +530,24 @@ map_js <- "
       var d = n.data(), html = '<button type=\"button\" class=\"map-close\" aria-label=\"Close\" onclick=\"pkMapClose()\">×</button>';
       if (d.kind === 'endpoint') {
         var steps = route(n);
+        n.connectedEdges('[shortcut]').addClass('path');
         html += '<h4>' + esc(d.label) + '</h4><span class=\"map-badge ' + d.status + '\">' + esc(d.statusText) + '</span>' +
           (d.standard ? '<p class=\"small mb-1\">Usual name: <strong>' + esc(d.standard) + '</strong></p>' : '') +
-          (steps.length ? '<p class=\"small mb-1\">One way to get here:</p><ol>' +
+          (steps.length ? '<p class=\"small mb-1\">One way to get here in “Help me choose”:</p><ol>' +
             steps.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' : '') +
-          '<button type=\"button\" class=\"btn btn-primary btn-sm\" data-id=\"' + esc(d.id) + '\" onclick=\"pkMapOpen(this.dataset.id)\">Read about this analysis</button>';
+          '<button type=\"button\" class=\"btn btn-info btn-sm\" data-id=\"' + esc(d.id) + '\" onclick=\"pkMapOpen(this.dataset.id)\">Read about this analysis</button>';
+        cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1) }, { duration: 500 });
+      } else if (d.kind === 'hub') {
+        var planets = n.outgoers('edge[shortcut]').targets().filter(function(x) { return x.style('display') !== 'none'; });
+        var near = n.outgoers('edge[shortcut]').not('.far').targets().filter(function(x) { return x.style('display') !== 'none'; });
+        html += '<h4>' + esc(d.label) + '</h4><p class=\"small mb-0\">' + planets.length + ' analyses shown for this' +
+          (planets.length > near.length ? ' (' + (planets.length - near.length) + ' of them orbit another star too; the dashed lines lead to them)' : '') +
+          '. Click one to read about it.</p>';
+        fitTo(n.union(near));
       } else {
         var under = n.successors('node[kind = \"endpoint\"]').filter(function(x) { return x.style('display') !== 'none'; });
         route(n);
-        html += '<h4>' + esc(d.label) + '</h4><p class=\"small mb-0\">' + under.length + ' of the analyses shown lie beyond this point.</p>';
+        html += '<h4>' + esc(d.label) + '</h4><p class=\"small mb-0\">' + under.length + ' of the analyses shown lie beyond this question.</p>';
       }
       box.innerHTML = html;
       box.hidden = false;
@@ -465,14 +566,17 @@ map_js <- "
     function start() {
       var box = document.getElementById('map-canvas');
       if (!box || !window.cytoscape || !load()) return false;
-      cy = cytoscape({ container: box, elements: elements(), style: style(), wheelSensitivity: 0.3, minZoom: 0.08, maxZoom: 3,
+      cy = cytoscape({ container: box, elements: elements(), style: style(), wheelSensitivity: 0.3, minZoom: 0.04, maxZoom: 2.5,
         layout: { name: 'preset' } });
       window.pkMapGraph = cy;
       cy.on('tap', 'node', function(e) { details(e.target); });
-      cy.on('mouseover', 'node', function(e) { e.target.addClass('hover'); box.style.cursor = 'pointer'; });
-      cy.on('mouseout', 'node', function(e) { e.target.removeClass('hover'); box.style.cursor = ''; });
       cy.on('tap', function(e) { if (e.target === cy) pkMapClose(); });
       cy.on('dbltap', 'node[kind = \"endpoint\"]', function(e) { pkMapOpen(e.target.id()); });
+      cy.on('mouseover', 'node', function(e) { e.target.addClass('hover'); box.style.cursor = 'pointer'; });
+      cy.on('mouseout', 'node', function(e) { e.target.removeClass('hover'); box.style.cursor = ''; });
+      // The stars drift a little as the map moves.
+      cy.on('viewport', function() { var p = cy.pan(); box.style.backgroundPosition = (p.x * 0.15) + 'px ' + (p.y * 0.15) + 'px'; });
+      cy.on('zoom', scaleNames);
       pkMapFilter();
       return true;
     }
@@ -483,4 +587,3 @@ map_js <- "
     };
   })();
 "
-map_js <- paste0("var MAP_ELSEWHERE = ", jsonlite::toJSON(map_elsewhere, auto_unbox = TRUE), ";\n", map_js)

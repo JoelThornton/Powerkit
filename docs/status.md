@@ -127,7 +127,7 @@ fully validated. Validation runs are recorded in
   screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
   and needs a statistician's check.
 - **Labs map of the methods (27 October 2026, 0.10.0):** an interactive
-  node graph generated from the design finder's questions (Cytoscape.js,
+  "cosmos" (stars for research questions, planets for analyses) generated from the design finder's questions (Cytoscape.js,
   bundled), with filters, search, three arrangements and each analysis's
   card. Charts on each analysis's page and a
   sourced reading list are not built yet.

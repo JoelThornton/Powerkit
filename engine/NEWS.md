@@ -5,15 +5,18 @@
   question and per analysis (an analysis reached by several routes is one
   node) and one edge per answer, and tags each analysis with what the study
   wants to show, the outcome and how often people are measured, from the
-  routes that reach it. The page draws the graph with Cytoscape.js and its
-  dagre layout (bundled in `app/routing/www/vendor`, MIT licence, no new R
-  package): pan, zoom and drag; a filter panel down the side (research
-  question, outcome, measurements, whether powerkit calculates it); search
-  that highlights and zooms to matches; a switch for the questions in
-  between; three arrangements (a web, a left-to-right tree, rings); and a
-  details panel with the route to an analysis and a link to its card. A
-  nested list of the same map is provided for screen readers. Nothing is
-  calculated (docs/decisions.md, 27 October 2026).
+  routes that reach it. The page draws it as a "cosmos" with Cytoscape.js
+  and its dagre layout (bundled in `app/routing/www/vendor`, MIT licence,
+  no new R package): each thing a study can want to show is a star, and
+  its analyses are planets on rings around it, spaced so labels don't
+  meet; an analysis that belongs to several stars orbits one and is joined
+  to the others by dashed lines. A filter panel down the side (research
+  question, outcome, measurements, whether powerkit calculates it), search
+  that flies to matches, clicking a star or planet to zoom in, a details
+  panel with the route to an analysis through "Help me choose" and a link
+  to its card, and a second view of every question as a left-to-right
+  tree. A nested list of the same map is provided for screen readers.
+  Nothing is   calculated (docs/decisions.md, 27 October 2026).
 
 # powerkit 0.7.0
 
