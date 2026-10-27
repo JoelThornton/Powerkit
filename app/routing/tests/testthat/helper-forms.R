@@ -43,6 +43,8 @@ form_examples <- list(
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
                p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
+  E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",
+               effect_units = "standardised", bound = "0.5", d = "0", allocation_ratio = "1"), closing_ok),
   E48 = c(list(Y_label = "Preferred study method", Y_levels = "Rereading, Highlighting, Practice testing",
                probabilities = "0.25, 0.3, 0.45"), closing_ok),
   E27 = c(list(Y_label = "Seeks help", X_label = "Loneliness", X_type = "continuous",

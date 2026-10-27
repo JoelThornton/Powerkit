@@ -57,12 +57,17 @@ field_ui <- function(f, value, described_by = character()) {
   if (is.null(f$shown_if)) return(field)
   # Shown or hidden in the browser as the other choices change; the server
   # ignores a hidden field's value (field_applies()).
-  condition <- vapply(shown_if_conditions(f), function(cond) {
+  conditionalPanel(shown_if_js(f), field)
+}
+
+# A field's or a group's `shown_if` as a condition for the browser.
+shown_if_js <- function(item) {
+  condition <- vapply(shown_if_conditions(item), function(cond) {
     other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
     if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s) >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
-  conditionalPanel(paste(condition, collapse = " && "), field)
+  paste(condition, collapse = " && ")
 }
 
 # Where a default comes from, without the function calls and version
@@ -87,7 +92,9 @@ group_ui <- function(tree, g, values, index) {
   # Short name fields sit two to a row on wider screens; a legend that
   # repeats its section's title is kept for screen readers only.
   names_only <- length(g$fields) > 1 && all(vapply(g$fields, function(f) identical(f$type, "text") && grepl("_(label|level[0-9]*|levels)$", f$id), logical(1)))
-  tags$fieldset(
+  # A group that only some choices need (`shown_if`, as on a field; its
+  # fields carry the same condition, so the server ignores them too).
+  box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6", legend),
     # Definitions open on request; notes that change what's needed stay in
@@ -98,6 +105,7 @@ group_ui <- function(tree, g, values, index) {
     else if (!is.null(g$note)) p(class = "group-note", g$note),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
+  if (is.null(g$shown_if)) box else conditionalPanel(shown_if_js(g), box)
 }
 
 # The whole screen. `values` keeps what the user typed when the screen is

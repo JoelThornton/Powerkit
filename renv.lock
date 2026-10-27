@@ -348,6 +348,27 @@
       ],
       "Hash": "bdcf89da574763f6a6916cea06b518b9"
     },
+    "TOSTER": {
+      "Package": "TOSTER",
+      "Version": "0.8.6",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "cowplot",
+        "distributional",
+        "ggdist",
+        "ggplot2",
+        "graphics",
+        "jmvcore",
+        "lifecycle",
+        "stats",
+        "tidyr",
+        "utils"
+      ],
+      "Hash": "c2bacd1702b791482dc06d88c0f6ec10"
+    },
     "V8": {
       "Package": "V8",
       "Version": "8.2.0",
@@ -825,6 +846,24 @@
       ],
       "Hash": "d18028e978a88b2b16ef8d400cb49adf"
     },
+    "distributional": {
+      "Package": "distributional",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "generics",
+        "lifecycle",
+        "numDeriv",
+        "pillar",
+        "rlang",
+        "stats",
+        "utils",
+        "vctrs"
+      ],
+      "Hash": "c67c45d783b9efb7bcd1f07e8bb507ab"
+    },
     "doBy": {
       "Package": "doBy",
       "Version": "4.7.2",
@@ -1101,6 +1140,30 @@
       ],
       "Hash": "d10c05637cf3619f3f7001fc99c1b1a6"
     },
+    "ggdist": {
+      "Package": "ggdist",
+      "Version": "3.3.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "cli",
+        "distributional",
+        "ggplot2",
+        "glue",
+        "grid",
+        "gtable",
+        "numDeriv",
+        "quadprog",
+        "rlang",
+        "scales",
+        "tibble",
+        "vctrs",
+        "withr"
+      ],
+      "Hash": "997ab23a7565f43091b12825e9892704"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "4.0.3",
@@ -1334,6 +1397,20 @@
         "utils"
       ],
       "Hash": "8954069286b4b2b0d023d1b288dce978"
+    },
+    "jmvcore": {
+      "Package": "jmvcore",
+      "Version": "28.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "base64enc",
+        "jsonlite",
+        "rlang"
+      ],
+      "Hash": "f364790868722bae95f8c2c347a7efb4"
     },
     "jomo": {
       "Package": "jomo",

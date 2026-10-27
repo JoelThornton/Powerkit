@@ -286,8 +286,10 @@ zero_effect_cases <- list(
 
 test_that("a zero target effect can't be the basis of a sample size search", {
   # Generic tests have no sample-size goal (their noncentrality already
-  # reflects the sample size), so they aren't in this list.
-  expect_setequal(names(zero_effect_cases), grep("^generic_", example_spec_names(), value = TRUE, invert = TRUE))
+  # reflects the sample size), and an equivalence test expects no
+  # difference by design (what it needs is a bound above 0, which the
+  # schema requires), so they aren't in this list.
+  expect_setequal(names(zero_effect_cases), grep("^(generic|tost)_", example_spec_names(), value = TRUE, invert = TRUE))
   for (name in names(zero_effect_cases)) {
     spec <- zero_effect_cases[[name]](example_spec(name))
     spec$goal <- list(type = "sample_size", power = 0.8)

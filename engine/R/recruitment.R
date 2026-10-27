@@ -16,7 +16,8 @@ analysed_groups <- function(spec, n) {
     independent_t = ,
     two_proportions = ,
     two_correlations = ,
-    two_variances = {
+    two_variances = ,
+    tost_independent = {
       ratio <- spec$options$allocation_ratio %||% 1
       n1 <- round(n / (1 + ratio))
       c(n1, n - n1)
@@ -40,7 +41,8 @@ group_unit <- function(spec) {
     independent_t = ,
     two_proportions = ,
     two_correlations = ,
-    two_variances = "group",
+    two_variances = ,
+    tost_independent = "group",
     "2x2_between" = "cell",
     "2x2_mixed" = ,
     oneway_between = ,

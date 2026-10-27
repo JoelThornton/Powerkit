@@ -56,6 +56,9 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
+    "equivalence_test/tost_independent" = ,
+    "equivalence_test/tost_paired" = ,
+    "equivalence_test/tost_one_sample" = toster_backend(spec, seed),
     "basic_test/one_variance" = ,
     "basic_test/two_variances" = spower_backend(spec, seed),
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {

@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "tost_one_sample",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Change in mood score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0.1,
+    "bound": 0.4
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the smallest difference that would matter, so anything smaller counts as no meaningful difference."
+  },
+  "target_test": {
+    "effect": "mean",
+    "method": "tost",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 120
+  },
+  "options": {
+    "attrition": 0.1,
+    "seed": 20261027
+  }
+}

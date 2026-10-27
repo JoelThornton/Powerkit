@@ -1,0 +1,45 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "tost_paired",
+  "variables": {
+    "X": {
+      "type": "within_factor",
+      "label": "Session",
+      "levels": [
+        "Morning",
+        "Evening"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time (ms)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "raw": {
+      "mean_1": 450,
+      "mean_2": 455,
+      "sd_difference": 60,
+      "bound": 25
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the smallest difference that would matter, so anything smaller counts as no meaningful difference."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "tost",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.9
+  },
+  "options": {
+    "attrition": 0.1,
+    "seed": 20261027
+  }
+}

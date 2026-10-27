@@ -35,7 +35,9 @@ test_that("there is an example for every template", {
     # Variance tests, simulated (engine only).
     "one_variance", "two_variances",
     # Generic tests (engine only).
-    "t", "f", "chi_square", "z"
+    "t", "f", "chi_square", "z",
+    # Equivalence tests (TOST).
+    "tost_independent", "tost_paired", "tost_one_sample"
   ))
 })
 

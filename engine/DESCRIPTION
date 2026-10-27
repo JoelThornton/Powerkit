@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Psychology Designs
-Version: 0.9.1
+Version: 0.10.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
@@ -32,6 +32,7 @@ Imports:
     Spower (>= 0.7),
     stats,
     Superpower,
+    TOSTER,
     utils
 Suggests:
     lavaan,

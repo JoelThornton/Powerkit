@@ -1,3 +1,30 @@
+# powerkit 0.10.0
+
+* Equivalence tests (design `equivalence_test`, card E36): the two
+  one-sided tests (TOST) for two independent groups (`tost_independent`),
+  paired data (`tost_paired`) and one sample (`tost_one_sample`), by
+  TOSTER's exact `power_t_TOST()`. The spec gives a symmetric equivalence
+  bound (`population$bound`) and the expected true difference (`d`, or
+  `dz` for paired data), as standardised values or in the outcome's own
+  units (`population$raw$bound` with the means and SD; the bound is
+  divided by the same SD as the difference). Each one-sided test is at
+  level alpha, as TOST is defined. Goals: sample size and power; no
+  smallest detectable effect (the bound, not the effect, is what a user
+  would solve for, and TOSTER has no such function). An expected
+  difference at or beyond the bound is refused in plain words. Checked
+  against TOSTER called directly (including raw units), a large-sample
+  approximation in base R, and Type I error at the bound; published
+  examples are placeholders (`test-validation-equivalence-tests.R`, a new
+  `equivalence` chunk in the full validation run). TOSTER (with jmvcore,
+  ggdist and distributional) is added to `renv.lock`.
+
+* App: the equivalence card now calculates, with one input screen for the
+  three comparisons ("What you are comparing"). The result, write-up and
+  ethics-board text say what is being shown (that the difference lies
+  inside the bounds) and give the bounds. Form groups can now be shown
+  only for some choices (`shown_if` on a group), used for the group-size
+  question, which only two groups need.
+
 # powerkit 0.9.1
 
 * Six designs are now marked validated (their cards, `tree.yaml` and

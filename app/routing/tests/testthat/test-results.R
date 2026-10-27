@@ -24,7 +24,7 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   # The generic tests (E50) have no sample size and nothing to simulate.
   if (ep == "E50") return(spec)
   spec$goal <- goal
-  if (!ep %in% c("E7", "E8")) spec$options$nrep <- 100L
+  if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
   spec
 }
 
@@ -44,8 +44,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E19, E23-E28 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E50", "E51", "E52", "E53"))
+test_that("E1-E9, E18, E19, E23-E28, E36 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -645,7 +645,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E48", "E49", "E51", "E52", "E53")) {
+  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E51", "E52", "E53")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -724,6 +724,55 @@ test_that("two dependent correlations run on pwrss's unpooled Steiger test, with
   spec <- build_spec(forms, "E51", fields, values)
   expect_null(spec$variables$Z)
   expect_equal(run_calculation(spec, run, seed = 1L)$result$n_required$n, 886)
+})
+
+test_that("equivalence tests run on TOSTER for each comparison, with their own wording", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E36"))
+  values <- modifyList(form_examples$E36, list(just_source = "The smallest difference teachers would act on."))
+  spec <- build_spec(forms, "E36", fields, values)
+  expect_identical(spec$template, "tost_independent")
+  expect_identical(spec$variables$X$type, "binary")
+  expect_null(spec$target_test$alternative)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "TOSTER::power_t_TOST")
+  # TOSTER's own answer: 69.2 per group, rounded up to 70 (test-backend-toster.R).
+  expect_equal(calc$result$n_required$n, 140)
+  s <- result_sentences(calc$spec, calc$result)
+  expect_match(s[["headline"]], "(70 per group)", fixed = TRUE)
+  expect_match(s[["headline"]], "inside the equivalence bounds", fixed = TRUE)
+  expect_match(s[["headline"]], "d = \u00b10.5", fixed = TRUE)
+  expect_match(s[["detail"]], "TOSTER's formula, TOSTER::power_t_TOST(), no simulation", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E36", fields, values, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "an equivalence test (two one-sided tests, TOST) of two independent groups (each one-sided test at \u03b1 = .05)", fixed = TRUE)
+  expect_match(w[["short"]], "equivalence bound (\u00b1) = 0.5", fixed = TRUE)
+  expect_no_match(w[["short"]], "two-sided", fixed = TRUE)
+  expect_match(w[["ethics"]], "too small to matter", fixed = TRUE)
+  # The same people measured twice, in the outcome's own units: the bound
+  # is divided by the SD of the differences, as the effect is.
+  paired <- modifyList(values, list(comparison = "tost_paired", effect_units = "raw", raw_bound = "25",
+    raw_mean_1 = "450", raw_mean_2 = "455", raw_sd_kind = "difference", raw_sd_difference = "60", goal = "power", n = "80"))
+  spec <- build_spec(forms, "E36", fields, paired)
+  expect_identical(spec$template, "tost_paired")
+  expect_identical(spec$variables$X$type, "within_factor")
+  expect_null(spec$options$allocation_ratio)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_equal(calc$result$curve$power, TOSTER::power_t_TOST(n = 80, delta = 5, sd = 60, eqb = c(-25, 25), alpha = 0.05, type = "paired")$power)
+  s <- result_sentences(calc$spec, calc$result)
+  expect_match(s[["headline"]], "\u00b125 in your outcome's units (d_z = \u00b10.417)", fixed = TRUE)
+  expect_match(s[["detail"]], "The equivalence bound of 25 is 0.417 in the same units.", fixed = TRUE)
+  # One mean against a fixed value: no grouping variable.
+  one <- modifyList(values, list(comparison = "tost_one_sample", d = "0.1", bound = "0.4", goal = "power", n = "120"))
+  spec <- build_spec(forms, "E36", fields, one)
+  expect_null(spec$variables$X)
+  expect_identical(spec$target_test$effect, "mean")
+  expect_equal(run_calculation(spec, run, seed = 1L)$result$curve$power,
+    TOSTER::power_t_TOST(n = 120, delta = 0.1, sd = 1, eqb = c(-0.4, 0.4), alpha = 0.05, type = "one.sample")$power)
+  # A difference outside the bounds is refused in plain words.
+  outside <- build_spec(forms, "E36", fields, modifyList(values, list(d = "0.6")))
+  expect_match(run_calculation(outside, run, seed = 1L)$message, "has to lie inside the bounds", fixed = TRUE)
 })
 
 test_that("a planned contrast runs on pwrss, and refuses weights that don't add up to 0", {

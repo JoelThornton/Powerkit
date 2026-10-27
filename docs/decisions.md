@@ -3074,3 +3074,29 @@ keep it and add under the same `engine/NEWS.md` heading
 ([`adding-a-test.md`](adding-a-test.md), "Version numbers"). The batch
 merged on 27 October 2026 (methods map, three-effect curves, safeguard
 power, share button) is 0.9.0.
+
+## 2026-10-27 · Equivalence tests: TOSTER's exact power, three comparisons first
+
+**Decision (maintainer, 27 October 2026).** Equivalence tests (E36) come
+next, through TOSTER, starting with the two one-sided t tests for two
+independent groups, paired data and one sample, in one pull request.
+Correlations, proportions and non-inferiority follow (`next.md`, item 4).
+
+**Shortlist** ([`adding-a-test.md`](adding-a-test.md), section 2).
+TOSTER's `power_t_TOST()` gives the exact power of TOST for the three
+comparisons (TOSTER 0.8.6 help). PowerTOST, which TOSTER's help points to
+for more options, is aimed at bioequivalence designs (crossover and
+log-scale ratios) rather than the raw or standardised differences
+psychologists use. Spower can simulate TOST with a user-written
+experiment (its vignette "Equivalence testing", `coverage-roadmap.md`,
+row B54); simulation adds Monte Carlo error where an exact formula exists.
+TOSTER is also the package most psychologists know for running the test
+itself.
+
+**How it works.** The user gives one bound (used as minus and plus) and
+the expected true difference, as Cohen's d (d_z for paired data) or in
+the measure's own units. The expected difference is asked for directly,
+with a note that 0 is the most optimistic case. An expected difference
+at or beyond the bound is refused, since equivalence could then not be
+shown. There is no smallest-detectable-effect goal. Published examples
+for the validation file are for the maintainer to choose.

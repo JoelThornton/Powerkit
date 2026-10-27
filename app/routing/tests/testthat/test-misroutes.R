@@ -43,7 +43,7 @@ test_that("answers other than the simple ones leave at an honest end point", {
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   expect_all_routes(c(screen_score, "Once", "Show there's no meaningful effect"), "E36")
   expect_all_routes(c(screen_score, "Once", "Estimate an effect precisely"), "E46")
-  for (id in c("E29", "E33", "E34", "E35", "E36", "E43", "E44", "E45", "E46")) {
+  for (id in c("E29", "E33", "E34", "E35", "E43", "E44", "E45", "E46")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
 })

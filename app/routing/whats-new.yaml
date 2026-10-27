@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Show that a difference is too small to matter"
+    text: >-
+      You can now plan an equivalence test: the two one-sided tests (TOST)
+      that show a difference lies inside bounds you set, rather than just
+      failing to find it. It works for two groups, the same people measured
+      twice, or one mean against a fixed value, with the bound and the
+      expected difference as Cohen's d or in your measure's own units.
+  - date: "2026-10-27"
     title: "Six more analyses checked against published examples"
     text: >-
       Planned contrasts, logistic regression, the tests from a
