@@ -4132,7 +4132,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.7.1",
+        "Version": "0.8.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome).",
         "License": "GPL (>= 3)",
@@ -4147,19 +4147,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "8e863f3dd8270b29b78de5a7088a99d06d1e06c3",
-        "RemoteSha": "8e863f3dd8270b29b78de5a7088a99d06d1e06c3",
+        "RemoteRef": "c9f5db4a3ab732e1674433838b1419261c67d1d0",
+        "RemoteSha": "c9f5db4a3ab732e1674433838b1419261c67d1d0",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "8e863f3dd8270b29b78de5a7088a99d06d1e06c3",
-        "GithubSHA1": "8e863f3dd8270b29b78de5a7088a99d06d1e06c3",
+        "GithubRef": "c9f5db4a3ab732e1674433838b1419261c67d1d0",
+        "GithubSHA1": "c9f5db4a3ab732e1674433838b1419261c67d1d0",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-27 10:38:07 UTC; runner",
+        "Packaged": "2026-10-27 10:45:05 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-27 10:38:13 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-27 10:45:11 UTC; unix"
       }
     },
     "praise": {
@@ -5764,7 +5764,7 @@
       "checksum": "ccf51def85d45867704c4b33569a738a"
     },
     "forms.yaml": {
-      "checksum": "705cce187e1d1c7ec35b984f88212f36"
+      "checksum": "cb7f430fc6a76b3eb14c5502f8023515"
     },
     "R/about.R": {
       "checksum": "46c243d5f43e33e43e54175ad3656f0f"
@@ -5773,7 +5773,7 @@
       "checksum": "42102805122e9bfd028022d0751264d5"
     },
     "R/forms_ui.R": {
-      "checksum": "4ac04f05ebfa92426593a83db0fff4e2"
+      "checksum": "13f50c629381447316cf7288d9431c7d"
     },
     "R/forms.R": {
       "checksum": "d9a6151d0259a57072e038590bb730fe"
@@ -5785,7 +5785,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "f216a8fffa22363d0213f69174cd5917"
+      "checksum": "1209738208b23eb9e2c3ad1cf36165c9"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5839,7 +5839,7 @@
       "checksum": "d4407e05b509f35eeeb8dbb6f2956243"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "2af7b23751f0c3a19b7c7cfdce94ae5e"
+      "checksum": "f46d47b85ab8a7bbc1533a367694916e"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "dbf517a7e07a477e43d9e3c303aa6a5c"
@@ -5857,7 +5857,7 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "91fdd3cc6303461017c1c3d7ccc051b4"
+      "checksum": "7a84a79c677356a43e39c91dae27147a"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "8e047af7587d77728019e0f63b34e3bd"
@@ -5872,7 +5872,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "73d59e0c24fc762d832252c9ac567c50"
+      "checksum": "e6bcb4a93e8ca514ded3f4c2c81e32b9"
     }
   },
   "users": null
