@@ -382,6 +382,20 @@ reasoning_line <- function(values) {
   sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
 }
 
+# Safeguard power, in words beside the result: the earlier estimate, the
+# interval and the effect size the calculation used (worked out by the
+# engine, with psych).
+safeguard_sentence <- function(result) {
+  sg <- result$safeguard
+  if (is.null(sg)) return(NULL)
+  sizes <- if (!is.null(sg$n1)) sprintf("%s and %s people in its two groups", sg$n1, sg$n2) else sprintf("%s people", sg$n)
+  sprintf(paste0("Safeguard power: the earlier study's estimate was %s = %s, with %s. The calculation uses the lower end ",
+    "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small ",
+    "(a %d%% chance, if the earlier estimate is unbiased; Perugini, Gallucci & Costantini, 2014)."),
+    sg$effect_name, format(round(sg$estimate, 3)), sizes, round(100 * sg$conf_level), sg$effect_name,
+    format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+}
+
 # "Does this still apply?" (the new design, 18 October 2026): if the effect
 # size changes after the reasoning was written, the reasoning is kept but
 # flagged until the user confirms it or edits it. app.R keeps the effect
@@ -461,6 +475,15 @@ explore_sizes <- function(spec, result) {
   unique(pmax(ns, 8))
 }
 
+# A curve or scenario sets the effect itself, so no safeguard is applied
+# to it.
+without_safeguard <- function(spec) {
+  if (!is.null(spec$effect_justification$safeguard)) {
+    spec$effect_justification <- list(type = "smallest_effect_of_interest")
+  }
+  spec
+}
+
 explore_curve <- function(spec, result, effect, run = engine_function("run_spec"), seed = 1L) {
   e <- explore_effect(spec)
   ns <- explore_sizes(spec, result)
@@ -468,6 +491,7 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
     s <- spec
     # The slider is in standardised units, whatever units the plan used.
     s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
+    s <- without_safeguard(s)
     s$goal <- list(type = "power", n = as.integer(n))
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
@@ -478,7 +502,7 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
 explore_ui <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  planned <- result$effect_from_units$value %||% spec$population[[e$field]]
+  planned <- result$safeguard$lower %||% result$effect_from_units$value %||% spec$population[[e$field]]
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
     h4(class = "h6", "Explore: what if the effect were different?"),
@@ -500,7 +524,7 @@ scenario_names <- c(conservative = "Conservative", expected = "Your plan's effec
 scenario_planned <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  result$effect_from_units$value %||% spec$population[[e$field]]
+  result$safeguard$lower %||% result$effect_from_units$value %||% spec$population[[e$field]]
 }
 
 scenario_effects <- function(spec, result = NULL, conservative = NA, optimistic = NA) {
@@ -520,6 +544,7 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
     power <- vapply(ns, function(at) {
       s <- spec
       s$population <- stats::setNames(list("standardised", effects[[k]]), c("metric", e$field))
+      s <- without_safeguard(s)
       s$goal <- list(type = "power", n = as.integer(at))
       calc <- run_calculation(s, run, seed)
       if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
@@ -537,6 +562,7 @@ scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = e
   vapply(effects, function(effect) {
     s <- spec
     s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
+    s <- without_safeguard(s)
     s$goal <- list(type = "sample_size", power = power)
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA_real_
@@ -654,7 +680,7 @@ guess_gap <- function(guess, answer) {
 
 # A short warning for effect sizes taken from one earlier study.
 source_note <- function(values) {
-  if (!identical(values$just_type, "prior_study")) return(NULL)
+  if (!identical(values$just_type, "prior_study") || identical(values$sg_use, "yes")) return(NULL)
   "Your effect size comes from one earlier study. Published effects from single studies tend to be larger than the true effect, so a sample size based on one can be too small. Adjusting it (and saying how) helps; the BUCSS R package offers a bias-corrected approach."
 }
 
@@ -839,6 +865,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
+    if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
@@ -1010,7 +1037,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   basis <- if (none) {
     sprintf("No effect size was chosen in advance (no formal justification of an effect size); the reasoning: %s.", reasoning)
   } else if (!is.null(effect)) {
-    adj <- if (!blank(values$just_adjustment)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else ""
+    adj <- if (!blank(values$just_adjustment) && is.null(result$safeguard)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else ""
+    if (!is.null(sg <- result$safeguard)) {
+      adj <- sprintf(paste0(" Following the safeguard power approach (Perugini, Gallucci & Costantini, 2014), the calculation used ",
+        "the lower bound of the %d%% confidence interval around that estimate (%s, computed with the psych package's %s), %s = %s, ",
+        "giving %d%% protection against the estimate being too large."),
+        round(100 * sg$conf_level), if (!is.null(sg$n1)) sprintf("n = %s and %s", sg$n1, sg$n2) else sprintf("n = %s", sg$n),
+        sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+    }
     sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
   } else {
     sprintf("The reasoning about the effect size: %s.", reasoning)

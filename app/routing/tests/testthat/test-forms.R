@@ -592,9 +592,10 @@ test_that("long labels are short, with the detail as help linked to the field", 
   expect_match(html, 'id="f_just_source_help"', fixed = TRUE)
   expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
-  # The adjustment appears only for a previous study.
+  # The adjustment appears only for a previous study, unless safeguard
+  # power is used instead.
   adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
-  expect_identical(adj$shown_if, list(field = "just_type", is = "prior_study"))
+  expect_identical(adj$shown_if, list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
 })
 
 test_that("definitions and the direction's reason open on request; warnings and needed notes stay in view", {

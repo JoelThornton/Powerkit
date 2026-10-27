@@ -63,6 +63,11 @@ fully validated. Validation runs are recorded in
   chi-square test of independence, ANCOVA or mediation, so those need
   G\*Power itself. Next there: the pwrss column, from the installed
   sources.
+- **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
+  one previous study or pilot, the one-sample, paired and independent
+  t-tests and the correlation can plan with the lower bound of a 60% (or
+  90%) confidence interval around it, worked out by psych (Perugini,
+  Gallucci & Costantini, 2014). Not yet for other designs.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit

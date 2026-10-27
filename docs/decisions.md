@@ -3033,3 +3033,21 @@ draws the graph with Cytoscape.js 3.30.2, dagre 0.8.5 and cytoscape-dagre
 A plain nested list of the same map is offered
 for screen readers and keyboard use. Clicking an analysis shows one route
 to it and a link to its card, as the design finder shows it.
+
+## 2026-10-27 · Safeguard power: psych works out the interval
+
+**Decision (maintainer, 27 October 2026).** Safeguard power (Perugini,
+Gallucci & Costantini, 2014) takes the lower bound of its confidence
+interval from psych: `cohen.d.ci()` for d and d_z, `r.con()` for r.
+mixpower's `mp_safeguard_effect()` was the alternative; it works from a
+fitted mixed model and a Wald interval, so it suits a pilot's raw data in
+a multilevel design rather than a published d and n. Whether powerkit
+needs mixpower is part of the later decision on multilevel designs.
+
+**How it works.** The user gives the earlier study's estimate as the
+effect size and its sample size (n, or n1 and n2). The engine replaces
+the estimate with the bound nearer zero of the two-sided 60% interval
+(80% protection, the default) or 90% interval (95%), records both, and
+stops with a plain-words error when the interval includes zero. psych's
+`cohen.d.ci()` is always given the group sizes or the single sample's n:
+given only a total n, it assumes two groups.

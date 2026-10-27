@@ -70,6 +70,15 @@ validate_spec <- function(spec) {
   }
   if (length(problems) == 0) {
     spec <- standardise_raw_effect(spec)
+  }
+  if (length(problems) == 0) {
+    # After the effect in the outcome's own units is standardised, so the
+    # safeguard starts from that standardised estimate.
+    safeguard <- apply_safeguard(spec)
+    spec <- safeguard$spec
+    problems <- safeguard$problems
+  }
+  if (length(problems) == 0) {
     problems <- population_problems(spec)
   }
   if (length(problems) > 0) {

@@ -984,6 +984,31 @@ test_that("the app checks the limit before starting any background run, and says
   expect_false(grepl("Error|error|stack", html))
 })
 
+test_that("safeguard power: the form asks for the earlier study's size, and the result and write-up say what was used", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  expect_true("sg_use" %in% vapply(fields, `[[`, "", "id"))
+  expect_false("sg_use" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
+  use <- Filter(function(f) identical(f$id, "sg_use"), fields)[[1]]
+  expect_false(field_applies(use, modifyList(form_examples$E2, list(just_type = "smallest_effect_of_interest"))))
+  values <- modifyList(form_examples$E2, list(just_type = "pilot_study", just_source = "Our pilot", sg_use = "yes",
+    sg_n1 = 20, sg_n2 = 20, sg_protection = 0.8, goal = "power", n = 48))
+  expect_true(field_applies(use, values))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$effect_justification$safeguard$n1, 20)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_lt(calc$result$safeguard$lower, calc$result$safeguard$estimate)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "Safeguard power: the earlier study's estimate", fixed = TRUE)
+  expect_match(html, "60% confidence interval", fixed = TRUE)
+  text <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_match(paste(text, collapse = " "), "safeguard power approach (Perugini, Gallucci & Costantini, 2014)", fixed = TRUE)
+  # Without "yes" nothing about the safeguard reaches the spec.
+  plain <- build_spec(forms, "E2", fields, modifyList(values, list(sg_use = "no")))
+  expect_null(plain$effect_justification$safeguard)
+})
+
 test_that("three effects side by side: conservative, the plan's and optimistic", {
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$target_test$method <- "student_t"

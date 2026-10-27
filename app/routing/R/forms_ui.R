@@ -59,6 +59,7 @@ field_ui <- function(f, value, described_by = character()) {
   # ignores a hidden field's value (field_applies()).
   condition <- vapply(shown_if_conditions(f), function(cond) {
     other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
+    if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s) >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
   conditionalPanel(paste(condition, collapse = " && "), field)
