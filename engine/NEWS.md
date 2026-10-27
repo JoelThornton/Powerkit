@@ -1,3 +1,15 @@
+# powerkit 0.10.0
+
+* App, Labs: a map of the methods (`app/routing/R/map.R`). Generated from
+  `tree.yaml`, it shows the research questions, the questions that narrow
+  them down and every analysis, coloured by status (calculates, coming,
+  not in powerkit), plus the designs the screening questions route
+  elsewhere. Questions open and close on a click; the map pans (drag) and
+  zooms (wheel and buttons) with the app's own JavaScript, and "Find an
+  analysis" opens the path to one and centres it. Clicking an analysis
+  shows its card. A nested list of the same map is provided for screen
+  readers. Nothing is calculated (docs/decisions.md, 27 October 2026).
+
 # powerkit 0.7.0
 
 * App: "Plan my whole study" works out the combined sample size. Each

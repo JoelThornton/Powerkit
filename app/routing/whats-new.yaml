@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-27"
+    title: "A map of the methods, in Labs"
+    text: >-
+      Labs has a new map of every analysis powerkit knows about, arranged
+      by what a study wants to show. Click a question to see where its
+      answers lead, drag and zoom to move around, and click an analysis to
+      read about it. Colours show which ones powerkit calculates.
   - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-

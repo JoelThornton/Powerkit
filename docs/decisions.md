@@ -2990,3 +2990,21 @@ since setup-r, which used to set it, is no longer used.
 **Not changed.** `online-app-manifest.yaml` (it writes the manifest from
 an activated renv project) and `run-it-yourself.yaml` (it exists to test
 a clean install on each operating system).
+
+## 2026-10-27 · The Labs methods map: a pan-and-zoom diagram
+
+**Decision (maintainer, 27 October 2026).** The first version of the map of
+the methods (`next.md`, Labs tool 2) is a diagram the user can pan and
+zoom, rather than a grid of grouped lists. Whether each analysis's page
+later gets a sourced reading list is still open.
+
+**How it is built.** The map is generated from `tree.yaml`, the design
+finder's own questions (`app/routing/R/map.R`), so it cannot drift from
+them: the research questions, the questions that narrow them down, and
+every analysis, coloured by whether powerkit calculates it; a second group
+holds the designs the screening questions route elsewhere. Questions open
+and close on a click, so the first view shows only the research questions.
+It is drawn as an SVG with a small amount of the app's own JavaScript for
+panning and zooming, so no new package is needed. A plain nested list of
+the same map is offered for screen readers and keyboard use. Clicking an
+analysis opens its card, as the design finder shows it.

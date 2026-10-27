@@ -100,7 +100,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 1)
+  expect_length(labs_tools, 2)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 
@@ -116,4 +116,34 @@ test_that("planning from the notes carries the user's own words, never a number 
   expect_match(code, "if (plan_in_progress()) showModal(labs_replace_modal()) else labs_start_plan()", fixed = TRUE)
   expect_match(as.character(labs_replace_modal()), "Your pre-replication notes are kept either way.", fixed = TRUE)
   expect_match(as.character(labs_return_ui(TRUE, TRUE)), "Back to the notes", fixed = TRUE)
+})
+
+test_that("the methods map is drawn from the design finder and reaches every analysis it can", {
+  map <- map_tree(tree)
+  layout <- map_layout(map)
+  on_map <- unique(layout$id[layout$kind == "endpoint"])
+  # Every end point the design finder can reach from its questions is on
+  # the map (the screening ends included).
+  reached <- setdiff(reachable(tree, start_node(tree))$endpoints, tree$safety_net$endpoint)
+  expect_setequal(setdiff(reached, on_map), character())
+  # Each question is drawn once; later visits point back to it.
+  questions <- layout$id[layout$kind == "question"]
+  expect_false(any(duplicated(questions[!questions %in% c("s1", "o5a", "s2", "s3", "t1", "s4")])))
+  # Boxes in one column don't overlap.
+  for (d in unique(layout$depth)) {
+    col <- layout[layout$depth == d, ]
+    col <- col[order(col$y), ]
+    if (nrow(col) > 1) expect_true(all(utils::head(col$y + col$h, -1) <= utils::tail(col$y, -1) + 1e-6), info = d)
+  }
+  # Each analysis's status is shown in words, and opens its page.
+  html <- as.character(map_ui(tree))
+  expect_match(html, "Calculates in powerkit", fixed = TRUE)
+  expect_match(html, "Not in powerkit yet", fixed = TRUE)
+  expect_true(grepl("pkMapOpen(&#39;E2&#39;)", html, fixed = TRUE) || grepl("pkMapOpen('E2')", html, fixed = TRUE))
+  expect_match(html, "The map as a list", fixed = TRUE)
+  expect_match(as.character(map_page_ui(tree, "E2")), tree$endpoints$E2$plain_name, fixed = TRUE)
+  expect_null(map_page_ui(tree, ""))
+  # Labs lists it, and nothing on the map is calculated.
+  expect_match(as.character(labs_ui(tree)), "Open A map of the methods", fixed = TRUE)
+  expect_no_match(paste(deparse(map_ui), collapse = "\n"), "engine_function", fixed = TRUE)
 })
