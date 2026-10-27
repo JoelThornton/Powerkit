@@ -668,6 +668,35 @@
         "Built": "R 4.5.0; ; 2026-04-24 03:48:36 UTC; unix"
       }
     },
+    "TOSTER": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "TOSTER",
+        "Version": "0.8.6",
+        "Title": "Two One-Sided Tests (TOST) Equivalence Testing",
+        "Description": "Two one-sided tests (TOST) procedure to test equivalence for t-tests, correlations, differences between proportions, and meta-analyses, including power analysis for t-tests and correlations. Allows you to specify equivalence bounds in raw scale units or in terms of effect sizes. See: Lakens (2017) <doi:10.1177/1948550617697177>.",
+        "Authors@R": "c(\n           person(given = \"Daniel\",family = \"Lakens\",\n           role = c(\"aut\"),\n           email = \"D.Lakens@tue.nl\"),\n           person(given = \"Aaron\",\n           family = \"Caldwell\",\n           role = c(\"aut\", \"cre\"),\n           email = \"arcaldwell49@gmail.com\"))",
+        "Maintainer": "Aaron Caldwell <arcaldwell49@gmail.com>",
+        "URL": "https://aaroncaldwell.us/TOSTERpkg/",
+        "License": "GPL-3",
+        "Imports": "stats, graphics, jmvcore (>= 0.9.6.4), ggplot2, ggdist,\ndistributional, cowplot, tidyr, utils, R6, lifecycle",
+        "Suggests": "knitr, rmarkdown, broom, car, afex, testthat (>= 3.0.0),\nspelling",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "Config/testthat/edition": "3",
+        "Depends": "R (>= 3.5)",
+        "RoxygenNote": "7.3.2",
+        "Language": "en-US",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-08-22 19:07:03 UTC; CaldwellAaron",
+        "Author": "Daniel Lakens [aut],\n  Aaron Caldwell [aut, cre]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-08-22 19:30:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 00:49:26 UTC; unix"
+      }
+    },
     "V8": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1685,6 +1714,35 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:35 UTC; unix"
       }
     },
+    "distributional": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "distributional",
+        "Title": "Vectorised Probability Distributions",
+        "Version": "0.9.0",
+        "Authors@R": "\n    c(person(given = \"Mitchell\",\n             family = \"O'Hara-Wild\",\n             role = c(\"aut\", \"cre\"),\n             email = \"mail@mitchelloharawild.com\",\n             comment = c(ORCID = \"0000-0001-6729-7695\")),\n      person(given = \"Matthew\",\n             family = \"Kay\",\n             role = c(\"aut\"),\n             comment = c(ORCID = \"0000-0001-9446-0419\")),\n      person(given = \"Alex\",\n             family = \"Hayes\",\n             role = c(\"aut\"),\n             comment = c(ORCID = \"0000-0002-4985-5160\")),\n      person(given = \"Rob\",\n             family = \"Hyndman\",\n             role = c(\"aut\"),\n             comment = c(ORCID = \"0000-0002-2140-5352\")),\n      person(given = \"Earo\",\n             family = \"Wang\",\n             role = c(\"ctb\"),\n             comment = c(ORCID = \"0000-0001-6448-5260\")),\n      person(given = \"Vencislav\",\n             family = \"Popov\",\n             role = c(\"ctb\"),\n             comment = c(ORCID = \"0000-0002-8073-4199\")),\n      person(given = \"Stefano\",\n             family = \"Damato\",\n             role = c(\"ctb\"),\n             comment = c(ORCID = \"0009-0001-0225-3736\")))",
+        "Description": "Vectorised distribution objects with tools for manipulating, \n    visualising, and using probability distributions. Designed to allow model\n    prediction outputs to return distributions rather than their parameters, \n    allowing users to directly interact with predictive distributions in a\n    data-oriented workflow. In addition to providing generic replacements for\n    p/d/q/r functions, other useful statistics can be computed including means,\n    variances, intervals, and highest density regions.",
+        "License": "GPL-3",
+        "Depends": "R (>= 4.0.0)",
+        "Imports": "vctrs (>= 0.3.0), rlang (>= 0.4.5), generics, stats, numDeriv,\nutils, lifecycle, pillar",
+        "Suggests": "testthat (>= 2.1.0), covr, mvtnorm, actuar (>= 2.0.0), evd,\nggdist, ggplot2, gk, knitr, LaplacesDemon, pkgdown, rmarkdown,\ntweedieDistr",
+        "RdMacros": "lifecycle",
+        "URL": "https://pkg.mitchelloharawild.com/distributional/,\nhttps://github.com/mitchelloharawild/distributional",
+        "BugReports": "https://github.com/mitchelloharawild/distributional/issues",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-GB",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-09-07 21:39:32 UTC; mitchell",
+        "Author": "Mitchell O'Hara-Wild [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-6729-7695>),\n  Matthew Kay [aut] (ORCID: <https://orcid.org/0000-0001-9446-0419>),\n  Alex Hayes [aut] (ORCID: <https://orcid.org/0000-0002-4985-5160>),\n  Rob Hyndman [aut] (ORCID: <https://orcid.org/0000-0002-2140-5352>),\n  Earo Wang [ctb] (ORCID: <https://orcid.org/0000-0001-6448-5260>),\n  Vencislav Popov [ctb] (ORCID: <https://orcid.org/0000-0002-8073-4199>),\n  Stefano Damato [ctb] (ORCID: <https://orcid.org/0009-0001-0225-3736>)",
+        "Maintainer": "Mitchell O'Hara-Wild <mail@mitchelloharawild.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-08 05:20:24 UTC",
+        "Built": "R 4.5.0; ; 2026-09-09 06:51:40 UTC; unix"
+      }
+    },
     "doBy": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2227,6 +2285,39 @@
         "Built": "R 4.5.0; ; 2026-04-24 00:40:00 UTC; unix"
       }
     },
+    "ggdist": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ggdist",
+        "Title": "Visualizations of Distributions and Uncertainty",
+        "Version": "3.3.3",
+        "Date": "2025-04-20",
+        "Authors@R": "c(\n        person(\"Matthew\", \"Kay\", role = c(\"aut\", \"cre\"), email = \"mjskay@northwestern.edu\"),\n        person(\"Brenton M.\", \"Wiernik\", role = \"ctb\", email = \"brenton@wiernik.org\")\n    )",
+        "Maintainer": "Matthew Kay <mjskay@northwestern.edu>",
+        "Description": "Provides primitives for visualizing distributions using 'ggplot2' that are particularly tuned for\n    visualizing uncertainty in either a frequentist or Bayesian mode. Both analytical distributions (such as \n    frequentist confidence distributions or Bayesian priors) and distributions represented as samples (such as \n    bootstrap distributions or Bayesian posterior samples) are easily visualized. Visualization primitives include\n    but are not limited to: points with multiple uncertainty intervals, \n    eye plots (Spiegelhalter D., 1999) <https://ideas.repec.org/a/bla/jorssa/v162y1999i1p45-58.html>,\n    density plots, gradient plots, dot plots (Wilkinson L., 1999) <doi:10.1080/00031305.1999.10474474>,\n    quantile dot plots (Kay M., Kola T., Hullman J., Munson S., 2016) <doi:10.1145/2858036.2858558>,\n    complementary cumulative distribution function \n    barplots (Fernandes M., Walls L., Munson S., Hullman J., Kay M., 2018) <doi:10.1145/3173574.3173718>,\n    and fit curves with multiple uncertainty ribbons.",
+        "Depends": "R (>= 4.0.0)",
+        "Imports": "grid, ggplot2 (>= 3.5.0), scales, rlang (>= 0.3.0), cli,\ntibble, vctrs, withr, glue, gtable, distributional (>= 0.3.2),\nnumDeriv, quadprog, Rcpp",
+        "Suggests": "tidyselect, dplyr (>= 1.0.0), fda, posterior (>= 1.4.0),\nbeeswarm (>= 0.4.0), rmarkdown, knitr, testthat (>= 3.0.0),\nvdiffr (>= 1.0.0), svglite (>= 2.1.0), fontquiver, sysfonts,\nshowtext, mvtnorm, covr, broom (>= 0.5.6), patchwork, tidyr (>=\n1.0.0), ragg (>= 1.3.0), pkgdown",
+        "License": "GPL (>= 3)",
+        "Language": "en-US",
+        "BugReports": "https://github.com/mjskay/ggdist/issues",
+        "URL": "https://mjskay.github.io/ggdist/,\nhttps://github.com/mjskay/ggdist/",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.3.2",
+        "LazyData": "true",
+        "Encoding": "UTF-8",
+        "Collate": "\"ggdist-package.R\" \"util.R\" \"compat.R\" \"rd.R\" \"RcppExports.R\"\n\"abstract_geom.R\" \"abstract_stat.R\"\n\"abstract_stat_slabinterval.R\" \"auto_partial.R\"\n\"binning_methods.R\" \"bounder.R\" \"curve_interval.R\"\n\"cut_cdf_qi.R\" \"data.R\" \"density.R\" \"distributions.R\"\n\"draw_key_slabinterval.R\" \"geom.R\" \"geom_slabinterval.R\"\n\"geom_dotsinterval.R\" \"geom_blur_dots.R\" \"geom_interval.R\"\n\"geom_lineribbon.R\" \"geom_pointinterval.R\" \"geom_slab.R\"\n\"geom_spike.R\" \"geom_swarm.R\" \"guide_rampbar.R\"\n\"interval_widths.R\" \"lkjcorr_marginal.R\" \"parse_dist.R\"\n\"partial_colour_ramp.R\" \"point_interval.R\"\n\"position_dodgejust.R\" \"pr.R\" \"rd_density.R\"\n\"rd_dotsinterval.R\" \"rd_slabinterval.R\" \"rd_spike.R\"\n\"rd_lineribbon.R\" \"scale_colour_ramp.R\" \"scale_thickness.R\"\n\"scale_side_mirrored.R\" \"scale_.R\" \"smooth.R\" \"stat.R\"\n\"stat_slabinterval.R\" \"stat_dotsinterval.R\" \"stat_mcse_dots.R\"\n\"stat_pointinterval.R\" \"stat_interval.R\" \"stat_lineribbon.R\"\n\"stat_spike.R\" \"student_t.R\" \"subguide.R\" \"subscale.R\"\n\"testthat.R\" \"theme_ggdist.R\" \"thickness.R\"\n\"tidy_format_translators.R\" \"weighted_ecdf.R\" \"weighted_hist.R\"\n\"weighted_quantile.R\" \"deprecated.R\"",
+        "Config/testthat/edition": "3",
+        "LinkingTo": "Rcpp",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-04-22 23:25:44 UTC; matth",
+        "Author": "Matthew Kay [aut, cre],\n  Brenton M. Wiernik [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-04-23 00:20:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 12:36:22 UTC; unix"
+      }
+    },
     "ggplot2": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2681,6 +2772,35 @@
         "Date/Publication": "2022-02-05 00:50:08 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.5.0; ; 2026-08-12 19:40:27 UTC; unix"
+      }
+    },
+    "jmvcore": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "jmvcore",
+        "Type": "Package",
+        "Title": "Dependencies for the 'jamovi' Framework",
+        "Version": "28.3",
+        "Date": "2026-09-24",
+        "Authors@R": "c(person(\"Jonathon\", \"Love\", role=c(\"aut\", \"cre\", \"cph\"), email=\"jon@thon.cc\"))",
+        "Maintainer": "Jonathon Love <jon@thon.cc>",
+        "Description": "A framework for creating rich interactive analyses for the jamovi\n    platform (see <https://www.jamovi.org> for more information).",
+        "URL": "https://www.jamovi.org",
+        "BugReports": "https://github.com/jamovi/jamovi/issues",
+        "License": "GPL (>= 2)",
+        "ByteCompile": "yes",
+        "Depends": "R (>= 3.2)",
+        "Imports": "R6 (>= 1.0.1), rlang (>= 0.3.0.1), jsonlite, base64enc",
+        "Suggests": "testthat (>= 1.0.2), RProtoBuf, knitr, commonmark, ggplot2,\nRColorBrewer, ragg, fastmap, export, jmvReadWrite",
+        "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-09-24 01:44:49 UTC; c3113592",
+        "Author": "Jonathon Love [aut, cre, cph]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-24 07:30:02 UTC",
+        "Built": "R 4.5.0; ; 2026-09-25 04:08:45 UTC; unix"
       }
     },
     "jomo": {
@@ -4132,14 +4252,14 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.9.1",
+        "Version": "0.10.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome).",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "digest, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nparallel, psych, power4mome, pwr, pwrss, Spower (>= 0.7),\nstats, Superpower, utils",
+        "Imports": "digest, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nparallel, psych, power4mome, pwr, pwrss, Spower (>= 0.7),\nstats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "RoxygenNote": "7.3.3",
@@ -4147,19 +4267,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "d32054e077b5a7ad2352c2f806c6f636e3c16161",
-        "RemoteSha": "d32054e077b5a7ad2352c2f806c6f636e3c16161",
+        "RemoteRef": "190a85fb3f82639808e0f3d94eb9c74b8955e44d",
+        "RemoteSha": "190a85fb3f82639808e0f3d94eb9c74b8955e44d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "d32054e077b5a7ad2352c2f806c6f636e3c16161",
-        "GithubSHA1": "d32054e077b5a7ad2352c2f806c6f636e3c16161",
+        "GithubRef": "190a85fb3f82639808e0f3d94eb9c74b8955e44d",
+        "GithubSHA1": "190a85fb3f82639808e0f3d94eb9c74b8955e44d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-27 16:51:23 UTC; runner",
+        "Packaged": "2026-10-27 17:04:23 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-27 16:51:29 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-27 17:04:28 UTC; unix"
       }
     },
     "praise": {
@@ -5764,7 +5884,7 @@
       "checksum": "b7b7eee4054d252eac40009e09ce48a0"
     },
     "forms.yaml": {
-      "checksum": "cb7f430fc6a76b3eb14c5502f8023515"
+      "checksum": "db7797d2ae6bd868991ebc273953a651"
     },
     "R/about.R": {
       "checksum": "46c243d5f43e33e43e54175ad3656f0f"
@@ -5773,7 +5893,7 @@
       "checksum": "42102805122e9bfd028022d0751264d5"
     },
     "R/forms_ui.R": {
-      "checksum": "c17dc653273a41d1e5818f39abe3f780"
+      "checksum": "8acda0fabfbaa51c421a24982ff8903b"
     },
     "R/forms.R": {
       "checksum": "4cb4d2509dfec8953ee49c5b35bc41b3"
@@ -5788,7 +5908,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "4ea4e7b267688942c8c501b9f13c9018"
+      "checksum": "99ab2c8ee932543cdef2dbdd2686d75a"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -5809,7 +5929,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "9961610fe662354772285a675b1d5526"
+      "checksum": "d2eff5c740f6e6003608b775d6e52a26"
     },
     "tests/testthat/setup.R": {
       "checksum": "07358ac9f6b24ff8e5490bd0295f51d7"
@@ -5824,7 +5944,7 @@
       "checksum": "0a2094597b96e8ba723d6ba83d571efa"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "3c361917fa394ab9ff5db913a0a172a4"
+      "checksum": "1a246ad4bbf07299c52cbed73141dcca"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -5833,7 +5953,7 @@
       "checksum": "e862675a287e15864b0d6db2857dc75d"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "afeacc7c411e49a2cd05909bfe5fff24"
+      "checksum": "2dcd14752b64e99df5b45af4d4c5a7a7"
     },
     "tests/testthat/test-project.R": {
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
@@ -5842,10 +5962,10 @@
       "checksum": "d4407e05b509f35eeeb8dbb6f2956243"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "51bf0f5a3a8b3f53ee0b6a4341d5b73d"
+      "checksum": "572ad623fe87af481da2e1cc21201f5c"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "069c3b25f9b2dafbf314c19b862c97bd"
+      "checksum": "c45fd044fac98c97d412f82fd696a5aa"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "add0982ce3e26f26efdf680492a0bc95"
@@ -5860,7 +5980,7 @@
       "checksum": "7212a6ed5c9a23143a0ab50039440988"
     },
     "tree.yaml": {
-      "checksum": "1f763d662fa3655e8800cd484f5d0928"
+      "checksum": "c0a5716ece530c9b960053d661020664"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "8e047af7587d77728019e0f63b34e3bd"
@@ -5875,7 +5995,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "459218b80bd45d9c153fb00b34a2c9db"
+      "checksum": "5219e08b14c1adbfe40e4c2c3870f65b"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
