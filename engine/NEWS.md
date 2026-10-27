@@ -1,3 +1,25 @@
+# powerkit 0.11.0
+
+* Safeguard power (Perugini, Gallucci & Costantini, 2014; refs.bib
+  `Perugini2014_safeguard`). When the effect size comes from a previous
+  study or a pilot, `effect_justification > safeguard` asks the engine to
+  plan with the lower bound of a two-sided confidence interval around that
+  estimate: the 60% interval for 80% protection against the estimate being
+  too large (the default), or the 90% interval for 95%. Covers the
+  one-sample, paired and independent t-tests and the correlation. The
+  interval comes from psych: `cohen.d.ci()` (noncentral t, given the
+  earlier study's n, or n1 and n2) for d and d_z, `r.con()` (Fisher's z)
+  for r. `validate_spec()` puts the safeguard effect in the population and
+  keeps the estimate in the justification, once, so the hash is stable;
+  the result's `safeguard` element records the estimate, the interval, the
+  bound used and psych's version. New export `safeguard_effect()`. psych
+  joins Imports (it was already installed as a dependency of power4mome).
+  A previous study's effect needs an `adjustment` or a `safeguard`.
+* App: the effect-size source question offers safeguard power for those
+  four tests, asking for the earlier study's sample size and the protection
+  wanted. The result card and the write-up say which effect size was used
+  and why; the explore panel starts from it.
+
 # powerkit 0.7.0
 
 * App: on large screens the base text size rises (17 to 19 px), and the

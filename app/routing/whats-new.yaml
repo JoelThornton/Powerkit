@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-27"
+    title: "Safeguard power for an effect size from one study"
+    text: >-
+      If your effect size comes from one earlier study or a pilot, you can
+      now plan with a safer, smaller value: the lower end of a confidence
+      interval around that study's estimate. Give the earlier study's sample
+      size and powerkit works it out, so your study keeps its power if the
+      true effect is smaller. Available for the t-tests and the correlation.
   - date: "2026-10-26"
     title: "Easier to read on large screens, and the result comes into view"
     text: >-
