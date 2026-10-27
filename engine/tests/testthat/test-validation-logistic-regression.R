@@ -86,12 +86,12 @@ test_that("logistic regression, normal X: matches the G*Power 3.1 manual example
   #   analysis. Transcribe the Input and Output blocks, with Options >
   #   Procedure set to Demidenko (2007) with variance correction (see the
   #   note above: the manual's printed output selects Hsieh et al., 1998).
-  odds_ratio <- TODO_PUBLISHED_VALUE # Odds ratio
-  base_prob <- TODO_PUBLISHED_VALUE # Pr(Y=1|X=1) H0
-  r2_other <- TODO_PUBLISHED_VALUE # R² other X (0 if none)
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
+  odds_ratio <- 1.5 # Odds ratio
+  base_prob <- 0.5 # Pr(Y=1|X=1) H0
+  r2_other <- 0 # R² other X (0 if none)
+  alpha <- 0.05 # alpha err prob
+  tails <- 2 # Tail(s): 1 or 2
+  target_power <- 0.95 # Power (1-beta err prob)
   total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
   actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
   skip_if_todo(odds_ratio, base_prob, r2_other, alpha, tails, target_power, total_n, actual_power)
@@ -115,15 +115,15 @@ test_that("logistic regression, yes/no X: matches the G*Power 3.1 manual example
   #   level). Its effect size input mode there is "Two probabilities"
   #   (Pr(Y=1|X=1) H1 and H0); powerkit takes the odds ratio, which is
   #   [p2/(1 - p2)] / [p1/(1 - p1)] (29.1, p. 70).
-  odds_ratio <- TODO_PUBLISHED_VALUE # Odds ratio
-  base_prob <- TODO_PUBLISHED_VALUE # Pr(Y=1|X=1) H0
-  x_prob <- TODO_PUBLISHED_VALUE # X parm π
-  r2_other <- TODO_PUBLISHED_VALUE # R² other X (0 if none)
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  odds_ratio <- (0.1 / 0.9) / (0.05 / 0.95) # Odds ratio
+  base_prob <- 0.05 # Pr(Y=1|X=1) H0
+  x_prob <- 0.5 # X parm π
+  r2_other <- 0 # R² other X (0 if none)
+  alpha <- 0.05 # alpha err prob
+  tails <- 2 # Tail(s): 1 or 2
+  target_power <- 0.95 # Power (1-beta err prob)
+  total_n <- 1437 # Output: Total sample size
+  actual_power <- 0.950068 # Output: Actual power
   skip_if_todo(odds_ratio, base_prob, x_prob, r2_other, alpha, tails, target_power, total_n, actual_power)
 
   spec <- logistic_spec(

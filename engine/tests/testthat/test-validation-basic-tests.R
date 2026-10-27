@@ -222,12 +222,12 @@ test_that("independent t-test: matches the Faul et al. (2007) G*Power example (p
   #   inputs and the Output block.
   # Not the G*Power 3.1 manual: its Examples section for this test
   #   (section 21.3, June 2023 version) is empty.
-  d <- TODO_PUBLISHED_VALUE # Effect size d
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  allocation_ratio <- TODO_PUBLISHED_VALUE # Allocation ratio N2/N1
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  d <- 0.5 # Effect size d
+  alpha <- 0.05 # alpha err prob
+  tails <- 1 # Tail(s): 1 or 2
+  allocation_ratio <- 1 # Allocation ratio N2/N1
+  total_n <- 176 # Output: Total sample size
+  actual_power <- 0.951425 # Output: Actual power
   skip_if_todo(d, alpha, tails, allocation_ratio, total_n, actual_power)
 
   spec <- basic_spec(
@@ -246,11 +246,11 @@ test_that("paired t-test: matches G*Power 3.1 manual example (published)", {
   #   "Power (1-beta err prob)". Use the example's effect size dz (if the
   #   manual derives dz from means, SDs and a correlation, transcribe the
   #   dz it reports).
-  dz <- TODO_PUBLISHED_VALUE # Effect size dz
-  alpha <- TODO_PUBLISHED_VALUE
-  tails <- TODO_PUBLISHED_VALUE
-  total_n <- TODO_PUBLISHED_VALUE # Input: Total sample size (pairs)
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Power (1-beta err prob)
+  dz <- 0.421637 # Effect size dz
+  alpha <- 0.05
+  tails <- 2
+  total_n <- 50 # Input: Total sample size (pairs)
+  actual_power <- 0.832114 # Output: Power (1-beta err prob)
   skip_if_todo(dz, alpha, tails, total_n, actual_power)
 
   spec <- basic_spec(
@@ -273,9 +273,9 @@ test_that("correlation: matches the Faul et al. (2007) exact bivariate-normal ex
   #   string if the last one is 0 (e.g. "0.80"), so the rounding allowance
   #   (half a unit in the second decimal) is right.
   r <- TODO_PUBLISHED_VALUE # Correlation rho H1
-  alpha <- TODO_PUBLISHED_VALUE
-  tails <- TODO_PUBLISHED_VALUE
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
+  alpha <- 0.05
+  tails <- 2
+  total_n <- 57 # Output: Total sample size
   actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
   skip_if_todo(r, alpha, tails, total_n, actual_power)
 
@@ -479,14 +479,14 @@ test_that("two dependent correlations, common index: matches G*Power 3.1 manual 
   #   hypotheses: rho_ab is the correlation under H0 and rho_ac the one
   #   under H1, which is why powerkit's one-sided test runs from the first
   #   compared correlation to the second.
-  r_x_y <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
-  r_x_z <- TODO_PUBLISHED_VALUE # rho_ac (the second compared)
-  r_y_z <- TODO_PUBLISHED_VALUE # rho_bc
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  r_x_y <- 0.4 # rho_ab (the first compared)
+  r_x_z <- 0.2 # rho_ac (the second compared)
+  r_y_z <- 0.5 # rho_bc
+  alpha <- 0.05 # alpha err prob
+  tails <- 1 # Tail(s): 1 or 2
+  target_power <- 0.8 # Power (1-beta err prob)
+  total_n <- 144 # Output: Total sample size
+  actual_power <- 0.801161 # Output: Actual power
   skip_if_todo(r_x_y, r_x_z, r_y_z, alpha, tails, target_power, total_n, actual_power)
 
   population <- list(r_X_Y = r_x_y, r_X_Z = r_x_z, r_Y_Z = r_y_z)
@@ -517,17 +517,17 @@ test_that("two dependent correlations, no common index: matches G*Power 3.1 manu
   #   0.800093), well inside the tolerance of this check; the common-index
   #   example agrees to six decimal places (docs/decisions.md, 25 October
   #   2026).
-  r_x1_y1 <- TODO_PUBLISHED_VALUE # rho_ab (the first compared)
-  r_x2_y2 <- TODO_PUBLISHED_VALUE # rho_cd (the second compared)
-  r_x1_x2 <- TODO_PUBLISHED_VALUE # rho_ac
-  r_x1_y2 <- TODO_PUBLISHED_VALUE # rho_ad
-  r_y1_x2 <- TODO_PUBLISHED_VALUE # rho_bc
-  r_y1_y2 <- TODO_PUBLISHED_VALUE # rho_bd
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  r_x1_y1 <- 0.1 # rho_ab (the first compared)
+  r_x2_y2 <- 0.2 # rho_cd (the second compared)
+  r_x1_x2 <- 0.5 # rho_ac
+  r_x1_y2 <- 0.4 # rho_ad
+  r_y1_x2 <- -0.4 # rho_bc
+  r_y1_y2 <- 0.8 # rho_bd
+  alpha <- 0.05 # alpha err prob
+  tails <- 1 # Tail(s): 1 or 2
+  target_power <- 0.8 # Power (1-beta err prob)
+  total_n <- 886 # Output: Total sample size
+  actual_power <- 0.800093 # Output: Actual power
   skip_if_todo(
     r_x1_y1, r_x2_y2, r_x1_x2, r_x1_y2, r_y1_x2, r_y1_y2, alpha, tails,
     target_power, total_n, actual_power

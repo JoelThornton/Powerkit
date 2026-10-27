@@ -73,13 +73,13 @@ test_that("interaction: matches the InteractionPoweR tutorial example (published
   #   correlations (r.x1.y, r.x2.y, r.x1x2.y, r.x1.x2), N, alpha and the
   #   reported power for the interaction. If the reported power is from a
   #   simulation, also transcribe its number of iterations.
-  r_x_y <- TODO_PUBLISHED_VALUE # r.x1.y
-  r_w_y <- TODO_PUBLISHED_VALUE # r.x2.y
-  r_xw_y <- TODO_PUBLISHED_VALUE # r.x1x2.y
-  r_x_w <- TODO_PUBLISHED_VALUE # r.x1.x2
-  n <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
-  published_power <- TODO_PUBLISHED_VALUE
+  r_x_y <- 0.51 # r.x1.y
+  r_w_y <- 0.22 # r.x2.y
+  r_xw_y <- 0.09 # r.x1x2.y
+  r_x_w <- 0.09 # r.x1.x2
+  n <- 940
+  alpha <- 0.05
+  published_power <- 0.90
   reference_nrep <- TODO_PUBLISHED_VALUE # n.iter behind the published power, or NULL if analytic
   skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, n, alpha, published_power, reference_nrep)
 
@@ -136,12 +136,12 @@ test_that("interaction: required N matches the InteractionPoweR tutorial (publis
   # Checked by the maintainer: the published range 3,501 to 3,750 is
   #   consistent with InteractionPoweR 0.2.4's power_interaction_r2(),
   #   which gives 0.885 at N = 3,500 and 0.905 at N = 3,750.
-  r_x_y <- TODO_PUBLISHED_VALUE
-  r_w_y <- TODO_PUBLISHED_VALUE
-  r_xw_y <- TODO_PUBLISHED_VALUE
+  r_x_y <- 0.51
+  r_w_y <- 0.22
+  r_xw_y <- 0.09
   r_x_w <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
-  target_power <- TODO_PUBLISHED_VALUE
+  alpha <- 0.05
+  target_power <- 0.90
   published_n <- TODO_PUBLISHED_VALUE # a single N, or NULL if a range is given
   published_n_range <- TODO_PUBLISHED_VALUE # c(lower, upper), or NULL if a single N is given
   skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, alpha, target_power, published_n, published_n_range)

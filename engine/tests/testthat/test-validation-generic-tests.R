@@ -76,11 +76,11 @@ test_that("generic t test: matches the G*Power 3.1 manual example (published)", 
   #   larger. powerkit agrees with the manual to five decimal places and
   #   differs in the sixth (about 1e-6), which is inside that allowance but
   #   outside the printed digit, so don't be surprised by it.
-  ncp <- TODO_PUBLISHED_VALUE # Noncentrality parameter delta
-  df <- TODO_PUBLISHED_VALUE # Df
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  published_power <- TODO_PUBLISHED_VALUE # Output: Power (1-beta)
+  ncp <- -1.25 # Noncentrality parameter delta
+  df <- 24 # Df
+  alpha <- 0.05 # alpha err prob
+  tails <- 2 # Tail(s): 1 or 2
+  published_power <- 0.224525 # Output: Power (1-beta)
   skip_if_todo(ncp, df, alpha, tails, published_power)
 
   spec <- generic_spec("t", list(ncp = ncp, df = df), alpha, tails, seed = 601)
@@ -94,11 +94,11 @@ test_that("generic F test: matches a G*Power 3.1 example (published)", {
   #   F test, post hoc, and transcribe the noncentrality, both dfs, alpha
   #   and the power. A worked example from another source is equally good,
   #   as long as it states lambda, df1 and df2.
-  ncp <- TODO_PUBLISHED_VALUE # Noncentrality parameter lambda
-  df1 <- TODO_PUBLISHED_VALUE # Numerator df
-  df2 <- TODO_PUBLISHED_VALUE # Denominator df
-  alpha <- TODO_PUBLISHED_VALUE
-  published_power <- TODO_PUBLISHED_VALUE
+  ncp <- 30 # Noncentrality parameter lambda
+  df1 <- 10 # Numerator df
+  df2 <- 20 # Denominator df
+  alpha <- 0.05
+  published_power <- 0.8876590
   skip_if_todo(ncp, df1, df2, alpha, published_power)
 
   spec <- generic_spec("f", list(ncp = ncp, df1 = df1, df2 = df2), alpha, tails = 2, seed = 602)
@@ -110,10 +110,10 @@ test_that("generic chi-square test: matches a G*Power 3.1 example (published)", 
   # No section in the manual for the generic chi-square test, as above:
   #   run chi-square tests > Generic chi-square test in G*Power, post hoc,
   #   and transcribe the noncentrality, the df, alpha and the power.
-  ncp <- TODO_PUBLISHED_VALUE
-  df <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
-  published_power <- TODO_PUBLISHED_VALUE
+  ncp <- 20
+  df <- 5
+  alpha <- 0.05
+  published_power <- 0.9523388
   skip_if_todo(ncp, df, alpha, published_power)
 
   spec <- generic_spec("chi_square", list(ncp = ncp, df = df), alpha, tails = 2, seed = 603)
@@ -125,10 +125,10 @@ test_that("generic z test: matches a G*Power 3.1 example (published)", {
   # No section in the manual for the generic z test, as above. powerkit's
   #   generic z test has SD 1 under both hypotheses, so in G*Power set
   #   "Std dev H0" and "Std dev H1" to 1 before transcribing.
-  ncp <- TODO_PUBLISHED_VALUE # Mean H1 (the noncentrality, with SD 1)
-  alpha <- TODO_PUBLISHED_VALUE
-  tails <- TODO_PUBLISHED_VALUE
-  published_power <- TODO_PUBLISHED_VALUE
+  ncp <- 3 # Mean H1 (the noncentrality, with SD 1)
+  alpha <- 0.05
+  tails <- 1
+  published_power <- 0.9123145
   skip_if_todo(ncp, alpha, tails, published_power)
 
   spec <- generic_spec("z", list(ncp = ncp), alpha, tails, seed = 604)

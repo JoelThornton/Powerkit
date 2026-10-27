@@ -64,11 +64,11 @@ contrast_spec <- function(means, sd, weights, alpha, seed, n = NULL, target_powe
 test_that("contrast, two levels against two: matches the G*Power 3.1 manual example (published)", {
   skip_unless_full_validation()
   # Source: as above. The table's first row, "1,2 vs. 3,4".
-  means <- TODO_PUBLISHED_VALUE # the example's mean vector, in order
-  sd <- TODO_PUBLISHED_VALUE # SD within each group
-  n <- TODO_PUBLISHED_VALUE # total sample size (groups x n per group)
-  weights <- TODO_PUBLISHED_VALUE # the row's weights c, in order
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
+  means <- c(1.5, 2, 3, 4) # the example's mean vector, in order
+  sd <- 2 # SD within each group
+  n <- 20 # total sample size (groups x n per group)
+  weights <- c(-0.5, -0.5, 0.5, 0.5) # the row's weights c, in order
+  alpha <- 0.05 # alpha err prob
   published_power <- TODO_PUBLISHED_VALUE # the power reported for this contrast
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
@@ -79,11 +79,11 @@ test_that("contrast, two levels against two: matches the G*Power 3.1 manual exam
 test_that("contrast, linear trend: matches the G*Power 3.1 manual example (published)", {
   skip_unless_full_validation()
   # Source: as above. The table's second row, "lin. trend".
-  means <- TODO_PUBLISHED_VALUE
-  sd <- TODO_PUBLISHED_VALUE
-  n <- TODO_PUBLISHED_VALUE
-  weights <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
+  means <- c(1.5, 2, 3, 4)
+  sd <- 2
+  n <- 20
+  weights <- c(-3, -1, 1, 3)
+  alpha <- 0.05
   published_power <- TODO_PUBLISHED_VALUE
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
@@ -96,11 +96,11 @@ test_that("contrast, quadratic trend: matches the G*Power 3.1 manual example (pu
   # Source: as above. The table's third row, "quad. trend". This row is the
   # useful one for the engine's arithmetic: its power is close to alpha, so
   # a sign or weighting mistake shows up plainly.
-  means <- TODO_PUBLISHED_VALUE
-  sd <- TODO_PUBLISHED_VALUE
-  n <- TODO_PUBLISHED_VALUE
-  weights <- TODO_PUBLISHED_VALUE
-  alpha <- TODO_PUBLISHED_VALUE
+  means <- c(1.5, 2, 3, 4)
+  sd <- 2
+  n <- 20
+  weights <- c(1, -1, -1, 1)
+  alpha <- 0.05
   published_power <- TODO_PUBLISHED_VALUE
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
