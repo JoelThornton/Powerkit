@@ -233,6 +233,10 @@ map_ui <- function(tree) {
         tags$select(id = "map_layout", class = "form-select form-select-sm", onchange = "pkMapFilter()",
           tags$option(value = "cosmos", "The cosmos: analyses around what they show"),
           tags$option(value = "tree", "The questions: every route, left to right")),
+        tags$label(`for` = "map_names", class = "h6", "Names"),
+        tags$select(id = "map_names", class = "form-select form-select-sm", onchange = "pkMapNames()",
+          tags$option(value = "plain", "In plain words"),
+          tags$option(value = "standard", "The tests' usual names")),
         map_checks("rq", rq, "What the study wants to show"),
         map_checks("outcome", map_filters$outcome, "The outcome"),
         map_checks("times", map_filters$times, "How often each person is measured"),
@@ -325,7 +329,7 @@ map_js <- "
       d.nodes.forEach(function(n) {
         var x = Object.assign({}, n);
         if (n.kind === 'hub') { x.hue = hues[h++ % hues.length]; hubs[n.rq] = n.id; }
-        if (n.kind === 'endpoint') x.glow = glow[n.status];
+        if (n.kind === 'endpoint') { x.glow = glow[n.status]; x.plain = n.label; }
         els.push({ data: x });
         if (n.kind === 'hub') els.push({ data: { id: 'root-' + n.id, source: 'root', target: n.id, label: '' } });
       });
@@ -472,7 +476,7 @@ map_js <- "
           var ok = overlaps(d.rq, rq) && overlaps(d.outcome, outcome) && overlaps(d.times, times) && status.indexOf(d.status) >= 0;
           n.style('display', ok ? 'element' : 'none');
           if (ok) shown = shown.union(n);
-          if (ok && q && (d.label + ' ' + d.standard).toLowerCase().indexOf(q) >= 0) n.addClass('hit');
+          if (ok && q && (d.plain + ' ' + d.standard).toLowerCase().indexOf(q) >= 0) n.addClass('hit');
         });
         cy.nodes('[kind = \"hub\"]').forEach(function(n) {
           var has = n.outgoers('edge[shortcut]').targets().intersection(shown).length > 0;
@@ -501,6 +505,14 @@ map_js <- "
       if (isTree) tree(); else cosmos();
     };
     window.pkMapLayout = window.pkMapFilter;
+    // Planets named in plain words, or by the test's usual name.
+    window.pkMapNames = function() {
+      if (!cy) return;
+      var standard = ((document.getElementById('map_names') || {}).value || 'plain') === 'standard';
+      cy.nodes('[kind = \"endpoint\"]').forEach(function(n) {
+        n.data('label', standard && n.data('standard') ? n.data('standard') : n.data('plain'));
+      });
+    };
     window.pkMapReset = function() {
       document.querySelectorAll('.map-sidebar input[type=checkbox]').forEach(function(i) { i.checked = true; });
       var s = document.getElementById('map_search'); if (s) s.value = '';
@@ -532,7 +544,8 @@ map_js <- "
         var steps = route(n);
         n.connectedEdges('[shortcut]').addClass('path');
         html += '<h4>' + esc(d.label) + '</h4><span class=\"map-badge ' + d.status + '\">' + esc(d.statusText) + '</span>' +
-          (d.standard ? '<p class=\"small mb-1\">Usual name: <strong>' + esc(d.standard) + '</strong></p>' : '') +
+          (d.standard && d.standard !== d.label ? '<p class=\"small mb-1\">Usual name: <strong>' + esc(d.standard) + '</strong></p>' : '') +
+          (d.plain !== d.label ? '<p class=\"small mb-1\">In plain words: <strong>' + esc(d.plain) + '</strong></p>' : '') +
           (steps.length ? '<p class=\"small mb-1\">One way to get here in “Help me choose”:</p><ol>' +
             steps.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' : '') +
           '<button type=\"button\" class=\"btn btn-info btn-sm\" data-id=\"' + esc(d.id) + '\" onclick=\"pkMapOpen(this.dataset.id)\">Read about this analysis</button>';

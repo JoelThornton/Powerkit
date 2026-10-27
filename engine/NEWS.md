@@ -14,7 +14,8 @@
   question, outcome, measurements, whether powerkit calculates it), search
   that flies to matches, clicking a star or planet to zoom in, a details
   panel with the route to an analysis through "Help me choose" and a link
-  to its card, and a second view of every question as a left-to-right
+  to its card, a switch between plain-words names and the tests' usual
+  names, and a second view of every question as a left-to-right
   tree. A nested list of the same map is provided for screen readers.
   Nothing is   calculated (docs/decisions.md, 27 October 2026).
 

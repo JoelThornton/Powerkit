@@ -13,7 +13,8 @@ entries:
       analyses as planets around it. Fly about by dragging and zooming,
       search, filter down the side by outcome, how often people are
       measured and whether powerkit calculates it, and click a planet to
-      see how to get there and read about it.
+      see how to get there and read about it. A switch shows the tests'
+      usual names instead of plain words.
   - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-
