@@ -1,3 +1,26 @@
+# powerkit 0.11.0
+
+* Whole-study simulation (experimental): a sample size search. The goal
+  of a whole-study spec can now be `sample_size` with a target `power`:
+  `run_whole_study()` finds the smallest n by powerkit's simulation search
+  (`search_n()`: short runs to bracket it, then `nrep` replications at
+  several n smoothed by a probit curve), then reports a full run at that
+  n, with the search's curve and simulations in `sample_size`. What
+  reaches the target follows the claim: the one main analysis's power;
+  the chance that every main analysis is significant ("all"); that at
+  least one is ("any"); or, under "each", the power of the weakest main
+  analysis at each n. The runs and their seeds are split into batches
+  that don't depend on the number of cores.
+* `export_whole_study_script()`: an R script that runs a whole-study
+  spec, with its seed, on the user's own computer and saves the result
+  and the citations, as `export_run_script()` does for one analysis.
+  `export_citations()` now takes a whole-study result.
+* App: the whole-study screen runs a quick look of 200 simulated studies
+  (the choice of 1,000 is gone), and the result offers the script for the
+  full run: the sample size for a target power (80% to 95%), or the power
+  at the N entered from 1,000 simulated studies, with the expected run
+  time of each.
+
 # powerkit 0.10.1
 
 * App: on "Plan my whole study", when the whole-study simulation covers

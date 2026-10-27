@@ -65,6 +65,22 @@ and 80% together, about 89.4% each).
    model; the index of moderated mediation, by manymome), shown beside
    what the user entered on that screen.
 
+7. **Sample size search** (powerkit 0.11.0). With the goal `sample_size`,
+   the smallest n whose power reaches a target is found by powerkit's
+   existing simulation search (`search_n()`, as for its other simulated
+   designs): runs of 100 replications bracket it, then runs of `nrep`
+   replications at seven or more n around it are smoothed by a probit
+   regression of the rejections on sqrt(n), and a full run at the n found
+   gives the reported powers. The quantity that must reach the target
+   follows the claim: with one main analysis, its power; under "all", the
+   joint power (every main analysis significant); under "any", the chance
+   that at least one is; under "each", at each simulated n, the power of
+   the main analysis with the lowest power there (question 6). The app
+   runs only a quick look (200 replications); the full run and the search
+   run on the user's computer from an R script
+   (`export_whole_study_script()`), since a search simulates every
+   analysis at many sample sizes (hours, for mediation).
+
 powerkit writes no statistical computation of its own here: the data, the
 fits, the tests and the joint rates are power4mome's (and lavaan's,
 lmhelprs's and manymome's).
@@ -119,8 +135,15 @@ how InteractionPoweR generates its data compared with power4mome.
    scaling users expect when they give a standardised path for the
    interaction?
 4. **Precision.** Is 1,000 replications (Monte Carlo SE at most about
-   1.6 points) enough for a joint power, or should the default be higher,
-   with a sample size search to follow?
+   1.6 points) enough for a joint power, or should the default be higher?
+   And is 200 (about 7 points either way) a fair quick look in the app?
 5. **Scope.** Measured predictor, score outcome, no covariates. Which
-   extension matters most next: a two-group X, covariates, or a sample size
-   search?
+   extension matters most next: a two-group X, or covariates?
+6. **The sample size under "each".** At each simulated n the search takes
+   the rejections of the main analysis with the lowest power there. Where
+   two analyses have similar power, the lower of two noisy estimates is
+   biased down, so the n found is slightly larger than the largest of the
+   analyses' own required n. Is that acceptable, or should each main
+   analysis be searched on its own and the largest n taken? The probit
+   curve behind the search assumes power is close to
+   pnorm(a + b sqrt(n)); is that still a fair smoother for a joint power?

@@ -12,7 +12,8 @@
 #' screen, where the user's reasoning and the departures are known; the
 #' text export points there.
 #'
-#' @param result The `powerkit_result` returned by [run_spec()].
+#' @param result The `powerkit_result` returned by [run_spec()], or the
+#'   result of [run_whole_study()].
 #' @param format `"text"` (readable, for the results screen) or `"bibtex"`
 #'   (for a reference manager).
 #' @param file Path to write the citations to (UTF-8), or `NULL` to only
@@ -30,7 +31,7 @@
 #' }
 export_citations <- function(result, format = c("text", "bibtex"), file = NULL, refs = refs_path()) {
   format <- match.arg(format)
-  if (!inherits(result, "powerkit_result")) {
+  if (!inherits(result, c("powerkit_result", "powerkit_whole_study_result"))) {
     abort_export("'result' should be the result of run_spec() (a powerkit result).")
   }
   package <- result$provenance$backend

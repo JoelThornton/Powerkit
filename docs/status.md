@@ -89,8 +89,11 @@ fully validated. Validation runs are recorded in
   once as standardised paths; every planned analysis (correlation,
   interaction, mediation with one or two mediators, moderated mediation)
   is run on the same power4mome simulations, giving each analysis's power
-  and the joint power for the claim at a fixed N, and the values each
-  analysis's own screen would need (Departure 13). Waiting for a
+  and the joint power for the claim, and the values each analysis's own
+  screen would need (Departure 13). The app runs a quick look (200
+  simulated studies); the full run and the sample size search (0.11.0)
+  run on the user's computer from an R script
+  (`export_whole_study_script()`). Waiting for a
   statistician's check (`next.md`, item 1); the method note for it is
   `docs/whole-study-method.md`. Since 0.10.1 it is the plan's first
   step when it covers the plan, with the separate calculations folded

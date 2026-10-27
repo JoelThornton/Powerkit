@@ -996,6 +996,10 @@ check_n <- function(spec, n) {
 }
 
 minimum_n <- function(spec) {
+  # A whole study (experimental): the smallest n its schema allows.
+  if (identical(spec$kind, "whole_study")) {
+    return(20)
+  }
   switch(
     spec$design,
     basic_test = switch(

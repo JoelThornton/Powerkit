@@ -61,6 +61,9 @@ test_that("the screen asks for every value the engine says the population needs,
   expect_match(html, "value=\"180\"", fixed = TRUE)
   expect_match(html, "Experimental", fixed = TRUE)
   expect_match(html, "the claim needs every main result to be significant", fixed = TRUE)
+  # A quick look here; the full run is the script's.
+  expect_match(html, sprintf("a quick look: %s simulated studies", forms$whole_study$quick_nrep), fixed = TRUE)
+  expect_false(grepl("ws_nrep", html, fixed = TRUE))
 })
 
 test_that("the spec is built from the screen's values, and problems are named in plain words", {
@@ -100,7 +103,10 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   spec <- whole_study_spec(skeleton, params, values, "all")$spec
   calc <- run_calculation(spec, run = run)
   expect_equal(calc$status, "ok")
-  html <- as.character(whole_study_result_ui(calc, list(compare = list(r = "0.25")), departure = forms$departures[["13"]]))
+  script <- whole_study_script_ui(forms, plan, 150L, "all", 2)
+  html <- as.character(whole_study_result_ui(calc, list(compare = list(r = "0.25")), departure = forms$departures[["13"]], script = script))
+  expect_match(html, "A quick look, from 100 simulated studies", fixed = TRUE)
+  expect_match(html, "ws_download_script", fixed = TRUE)
   # The departure from the established tools is stated on the result.
   expect_match(html, "the joint chance is counted directly", fixed = TRUE)
   expect_match(html, "the chance that all of your main analyses are significant in the same study", fixed = TRUE)
@@ -113,4 +119,44 @@ test_that("the result shows each analysis, the joint power for the claim, the im
 
   failed <- whole_study_result_ui(list(status = "error", message = "Something plain."))
   expect_match(as.character(failed), "Something plain.", fixed = TRUE)
+})
+
+test_that("the script for the full run finds the sample size, or the power at N with the full number of studies", {
+  export <- engine_function("export_whole_study_script")
+  skip_if(is.null(export), "engine not available")
+  plan <- whole_study_plan(tree, ws_answers, c("compare", "moderation"), c("compare", "moderation"), list())
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list()))
+  params <- engine_function("whole_study_parameters")(skeleton)
+  values <- list("X->Y" = "0.2", "W->Y" = "-0.1", "XW->Y" = "-0.15", "X<->W" = "-0.2", n = "150", alpha = "0.05", seed = "3")
+  spec <- whole_study_spec(skeleton, params, values, "all", nrep = forms$whole_study$quick_nrep)$spec
+  expect_equal(spec$options$nrep, as.integer(forms$whole_study$quick_nrep))
+
+  search <- whole_study_script_spec(spec, forms, "sample_size", "0.9")
+  expect_equal(search$goal, list(type = "sample_size", power = 0.9))
+  expect_equal(search$options$nrep, as.integer(forms$whole_study$full_nrep))
+  expect_equal(search$options$seed, 3L)
+  text <- export(search, run_time = whole_study_script_time(forms, plan, "sample_size"))
+  expect_match(text, "the smallest n for 90% power, by the chance that every main analysis is significant", fixed = TRUE)
+  expect_match(text, "on one core.", fixed = TRUE)
+
+  full <- whole_study_script_spec(spec, forms, "power", "0.9")
+  expect_equal(full$goal, list(type = "power", n = 150L))
+  expect_match(export(full), "the power of every analysis at n = 150", fixed = TRUE)
+
+  # The choice names what the target applies to, for the claim.
+  html <- as.character(whole_study_script_ui(forms, plan, 150L, "any", 2))
+  expect_match(html, "the chance that at least one of your main analyses is significant", fixed = TRUE)
+  html <- as.character(whole_study_script_ui(forms, plan, 150L, "any", 1))
+  expect_match(html, "your main analysis reaches the target power", fixed = TRUE)
+  expect_match(html, "remotes::install_github", fixed = TRUE)
+})
+
+test_that("long waits are given in hours", {
+  expect_equal(whole_study_duration(3 * 3600), "about 3 hours")
+  expect_equal(whole_study_duration(25 * 3600), "about 25 hours")
+  expect_equal(whole_study_duration(2.8 * 3600), "about 3 hours")
+  expect_equal(whole_study_duration(100 * 60), "about 1.5 hours")
+  expect_equal(whole_study_duration(600), "about 10 minutes")
+  expect_equal(whole_study_duration_range(c(100 * 60, 2.8 * 3600)), "about 1.5 to 3 hours")
+  expect_equal(whole_study_duration_range(c(40 * 60, 2 * 3600)), "about 40 minutes to 2 hours")
 })

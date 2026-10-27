@@ -128,6 +128,17 @@ whole_study_start_n <- function(results, primary) {
   if (length(ns)) max(ns) else NULL
 }
 
+# Monte Carlo precision of a power from `nrep` replications, as the
+# half-width of a 95% interval at 50% power, in percentage points.
+whole_study_precision <- function(nrep) round(100 * 1.96 * sqrt(0.25 / nrep))
+
+# A long wait in words: hours (to the half hour) from an hour and a half.
+whole_study_duration <- function(seconds) {
+  if (seconds < 90 * 60) return(duration_text(seconds))
+  hours <- seconds / 3600
+  sprintf("about %s hours", format(if (hours < 10) round(2 * hours) / 2 else round(hours)))
+}
+
 whole_study_seconds <- function(forms, plan, nrep) {
   per <- forms$whole_study$seconds_per_replication
   tests <- vapply(plan$analyses, function(a) a$test, "")
@@ -181,11 +192,10 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     if (!is.null(n)) p(class = "text-muted small", "Filled in with the largest sample size calculated on your plan for a main analysis."),
     textInput("ws_alpha", "Significance level (alpha)", value = values$alpha %||% "0.05", width = "100%"),
-    radioButtons("ws_nrep", "How many simulated studies?",
-      choiceNames = lapply(nrep_choices, function(k) sprintf("%s (power within about ±%s percentage points; %s)", whole(k),
-        round(100 * 1.96 * sqrt(0.25 / k)), duration_text(whole_study_seconds(forms, plan, k)))),
-      choiceValues = as.character(nrep_choices),
-      selected = values$nrep %||% as.character(forms$whole_study$default_nrep), width = "100%"),
+    p(class = "text-muted", sprintf(
+      "This screen runs a quick look: %s simulated studies, so each power is within about \u00b1%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
+      whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
+      duration_text(whole_study_seconds(forms, plan, forms$whole_study$quick_nrep)))),
     textInput("ws_seed", "Random seed (the same seed gives the same result)", value = values$seed %||% as.character(forms$default_seed), width = "100%"),
     p(class = "text-muted small", "It runs in a separate process: you can cancel it, and leaving this screen stops it."),
     action_bar(actionButton("ws_run", "Run the simulation", class = "btn btn-primary")),
@@ -198,12 +208,13 @@ whole_study_values <- function(input, params) {
   keys <- c(params$paths, params$correlations)
   out <- lapply(keys, function(k) input[[whole_study_input_id(k)]] %||% "")
   names(out) <- keys
-  c(out, list(n = input$ws_n %||% "", alpha = input$ws_alpha %||% "", nrep = input$ws_nrep %||% "",
+  c(out, list(n = input$ws_n %||% "", alpha = input$ws_alpha %||% "",
     seed = input$ws_seed %||% "", path = input$ws_path))
 }
 
 # The spec from the screen's values, or the problems in plain words.
-whole_study_spec <- function(skeleton, params, values, rule) {
+# `nrep` is the quick look's number of simulated studies.
+whole_study_spec <- function(skeleton, params, values, rule, nrep = values$nrep) {
   problems <- character()
   number <- function(key, label, lower = -1, upper = 1, open = FALSE) {
     x <- suppressWarnings(as.numeric(trimws(values[[key]] %||% "")))
@@ -240,7 +251,7 @@ whole_study_spec <- function(skeleton, params, values, rule) {
   spec$claim <- rule
   spec$alpha <- alpha
   spec$goal <- list(type = "power", n = as.integer(n))
-  spec$options <- list(nrep = as.integer(values$nrep), seed = as.integer(seed))
+  spec$options <- list(nrep = as.integer(nrep), seed = as.integer(seed))
   list(spec = spec)
 }
 
@@ -272,7 +283,65 @@ whole_study_value_label <- function(key) {
   key
 }
 
-whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL) {
+# The script for the full run on the user's computer
+# (export_whole_study_script()): the power at the quick look's N with the
+# full number of simulated studies, or the smallest N for a target power.
+whole_study_script_ui <- function(forms, plan, n, rule, mains) {
+  ws <- forms$whole_study
+  r_needs <- backend_r_requirement("power4mome")
+  one_run <- whole_study_seconds(forms, plan, ws$full_nrep)
+  search <- ws$search_runs * one_run
+  target_of <- if (mains == 1) "your main analysis" else switch(rule,
+    all = "the chance that all of your main analyses are significant in the same study",
+    any = "the chance that at least one of your main analyses is significant",
+    each = "each of your main analyses")
+  div(class = "script-offer ws-script",
+    h4(class = "h5", "Run the full simulation on your computer"),
+    p("The quick look above is for exploring. The R script runs the full simulation on your computer with the same population and seed, so anyone can rerun it and get the same numbers."),
+    radioButtons("ws_script_goal", "What should the script work out?",
+      choiceNames = list(
+        sprintf("The sample size you need: the smallest N at which %s reaches the target power (%s on one core)",
+          target_of, whole_study_duration_range(search)),
+        sprintf("The power at N = %s, from %s simulated studies (within about \u00b1%s percentage points; %s on one core)",
+          whole(n), whole(ws$full_nrep), whole_study_precision(ws$full_nrep), whole_study_duration(one_run))),
+      choiceValues = list("sample_size", "power"), selected = "sample_size", width = "100%"),
+    selectInput("ws_target", "Target power (for the sample size)",
+      choices = stats::setNames(as.character(ws$target_powers), paste0(100 * unlist(ws$target_powers), "%")),
+      selected = "0.8", width = "100%"),
+    p("What you need:"),
+    tags$ul(
+      tags$li(sprintf("R%s, from cran.r-project.org.", if (is.null(r_needs)) "" else sprintf(" %s or later", r_needs))),
+      tags$li("powerkit and the packages it uses. In R, run once: ",
+        tags$code("install.packages(\"remotes\")"), " then ",
+        tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")"), "."),
+      tags$li("Then run the script. More cores finish sooner (its first lines say how) without changing the result. It saves the result and the citations.")),
+    downloadButton("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary"))
+}
+
+# The spec the script runs: the quick look's spec with the full number of
+# simulated studies and the goal chosen.
+whole_study_script_spec <- function(spec, forms, goal, target) {
+  spec$options$nrep <- as.integer(forms$whole_study$full_nrep)
+  spec$goal <- if (identical(goal, "power")) list(type = "power", n = spec$goal$n)
+    else list(type = "sample_size", power = as.numeric(target))
+  spec
+}
+
+whole_study_script_time <- function(forms, plan, goal) {
+  one_run <- whole_study_seconds(forms, plan, forms$whole_study$full_nrep)
+  if (identical(goal, "power")) return(paste(whole_study_duration(one_run), "on one core"))
+  paste(whole_study_duration_range(forms$whole_study$search_runs * one_run), "on one core")
+}
+
+# "about 1.5 to 3 hours", or "about 40 minutes to 1.5 hours".
+whole_study_duration_range <- function(seconds) {
+  words <- sub("^about ", "", vapply(seconds, whole_study_duration, ""))
+  unit <- sub("^[0-9.,]+ ", "", words)
+  if (unit[1] == unit[2]) return(sprintf("about %s to %s", sub(" .*$", "", words[1]), words[2]))
+  sprintf("about %s to %s", words[1], words[2])
+}
+
+whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The simulation didn't finish"), p(calc$message)))
@@ -285,6 +354,9 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL) 
   div(
     class = "result-panel whole-study-result", role = "status", tabindex = "-1",
     h3(class = "h4", "Result ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    if (!is.null(script)) p(class = "alert alert-info", role = "note", sprintf(
+      "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (below).",
+      whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
     if (!is.null(joint) && !identical(r$claim, "each")) p(class = "lead", HTML(sprintf(
       "With <strong>N = %s</strong>, the chance that %s in the same study is <strong>%s</strong> (95%% interval %s to %s).",
       whole(r$n), rule_text[[joint$rule]], percent(joint$power), percent(joint$lower), percent(joint$upper)))),
@@ -325,6 +397,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL) 
         pv$seed, whole(pv$nrep), if (!is.na(pv$ci_draws)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else "",
         pv$spec_hash, pv$r_version, pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]], pv$packages[["powerkit"]],
         round(pv$run_time_seconds)))),
+    script,
     downloadButton("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary")
   )
 }

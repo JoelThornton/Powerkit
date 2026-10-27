@@ -12,7 +12,8 @@ export_citations(
 )
 }
 \arguments{
-\item{result}{The \code{powerkit_result} returned by \code{\link[=run_spec]{run_spec()}}.}
+\item{result}{The \code{powerkit_result} returned by \code{\link[=run_spec]{run_spec()}}, or the
+result of \code{\link[=run_whole_study]{run_whole_study()}}.}
 
 \item{format}{\code{"text"} (readable, for the results screen) or \code{"bibtex"}
 (for a reference manager).}
