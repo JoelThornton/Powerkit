@@ -165,10 +165,22 @@ page_slug <- function(tab) {
   if (is.na(slug)) "plan" else slug
 }
 
-# Each history entry carries its page in the address (?page=...). On the
-# online app the page sits inside Posit Connect Cloud's frame, so the
-# browser's address bar can't show it there, but a link with ?page= still
-# opens that page.
+# The online app's public address. It runs inside Posit Connect Cloud's
+# frame, so the browser's address bar can't show which page is open; the
+# share button (share_page_ui()) gives this address with the page instead.
+public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
+
+# A link to this page, for the pages worth sending to someone (About,
+# What's new, a Labs tool). `tool` opens a Labs tool (?page=labs&tool=...).
+share_page_ui <- function(page, tool = NULL) {
+  div(class = "share-page",
+    tags$button(type = "button", class = "btn btn-outline-secondary btn-sm", onclick = "pkSharePage(this)",
+      `data-page` = page, `data-tool` = tool, `data-public` = public_address, "Share this page"),
+    tags$span(class = "share-page-status small text-muted", role = "status", `aria-live` = "polite"))
+}
+
+# Each history entry carries its page in the address (?page=...); a link
+# with ?page= opens that page.
 nav_js <- "
   window.pkPageUrl = function(page) {
     var url = new URL(window.location.href);
@@ -184,6 +196,18 @@ nav_js <- "
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
+  // Copy a link to the page: the public address inside Connect Cloud's
+  // frame, else this address (without the maintainer's view).
+  window.pkSharePage = function(btn) {
+    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
+    var params = new URLSearchParams();
+    params.set('page', btn.getAttribute('data-page'));
+    if (btn.getAttribute('data-tool')) params.set('tool', btn.getAttribute('data-tool'));
+    var status = btn.parentNode.querySelector('.share-page-status');
+    var link = base + '?' + params.toString();
+    pkCopyText(link, status, 'Couldn\\'t copy automatically. The link is: ' + link);
+  };
 "
 
 # Start screen ---------------------------------------------------------------

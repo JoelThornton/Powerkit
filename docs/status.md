@@ -72,8 +72,9 @@ fully validated. Validation runs are recorded in
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
   itself from main; [`run-it-yourself.md`](run-it-yourself.md) is for
   running it on one's own computer. Each tab has its own link
-  (`?page=labs` and so on; Connect Cloud's frame keeps the address bar
-  from showing it). What the app
+  (`?page=labs` and so on); Connect Cloud's frame keeps the address bar
+  from showing it, so About, What's new and the Labs pre-replication notes
+  have a "Share this page" button. What the app
   now does, all merged:
   - larger text on large screens with no sideways scrolling when zoomed,
     the page moving to the result after "Check my answers", and a result

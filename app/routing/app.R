@@ -143,6 +143,7 @@ app_css <- "
   .lead { font-size: 1.05rem; color: #44505e; }
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
   .topbar-inner { max-width: 70rem; margin: 0 auto; }
+  .share-page { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: -0.25rem 0 1rem 0; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
   .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
@@ -225,10 +226,10 @@ app_css <- "
 # screen's main heading, so users don't have to tab back down from the top.
 copy_js <- "
   // Copy text in the browser (nothing is sent to the server or anywhere else).
-  window.pkCopyText = function(text, status) {
+  window.pkCopyText = function(text, status, failMsg) {
     var done = function(msg) { if (status) { status.textContent = msg; status.classList.remove('visually-hidden'); } };
     var ok = 'Copied. Paste it anywhere: an email, a document or a message to a colleague.';
-    var fail = 'Couldn\\'t copy automatically. Select the text in the box below and copy it.';
+    var fail = failMsg || 'Couldn\\'t copy automatically. Select the text in the box below and copy it.';
     // Older browsers and some settings block the clipboard API: copy from a
     // hidden text box instead.
     var fallback = function() {

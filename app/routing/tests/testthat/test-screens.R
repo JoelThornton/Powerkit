@@ -468,6 +468,22 @@ test_that("each tab has its own address, so a page can be shared by link", {
   expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
 })
 
+test_that("pages worth sending have a share button with a working link", {
+  # Inside Connect Cloud's frame the address bar can't show the page, so
+  # the button builds the link from the public address.
+  btn <- as.character(share_page_ui("labs", tool = "prereplication"))
+  expect_match(btn, public_address, fixed = TRUE)
+  expect_match(btn, 'data-tool="prereplication"', fixed = TRUE)
+  expect_match(nav_js, "window.pkSharePage", fixed = TRUE)
+  expect_match(as.character(about_ui(tree, forms)), 'data-page="about"', fixed = TRUE)
+  expect_match(as.character(whats_new_ui(load_whats_new(file.path(routing_dir, "whats-new.yaml")))), 'data-page="whats-new"', fixed = TRUE)
+  expect_match(as.character(labs_ui(tree)), 'data-page="labs"', fixed = TRUE)
+  # Each shared page name is one the app opens.
+  for (p in c("about", "whats-new", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
+  expect_true("prereplication" %in% vapply(labs_tools, `[[`, "", "id"))
+  expect_match(labs_js, "get('tool')", fixed = TRUE)
+})
+
 test_that("the browser's Back and Forward move between powerkit's screens", {
   # Each screen or tab change is a history entry; the key tells them apart.
   expect_false(identical(nav_key("card", NULL, "E2", 7, "Plan"), nav_key("form", NULL, "E2", 7, "Plan")))
