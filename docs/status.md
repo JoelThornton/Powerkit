@@ -73,6 +73,14 @@ fully validated. Validation runs are recorded in
   chi-square test of independence, ANCOVA or mediation, so those need
   G\*Power itself. Next there: the pwrss column, from the installed
   sources.
+- **Clustered designs (27 October 2026, 0.12.0):** cluster-randomised
+  trials (whole groups assigned to two conditions, a score outcome) run by
+  formula with powertools' `crt.parallel.cont()` on the "People nested in
+  groups" card (E34), with the design effect and the effective sample
+  size on the result screen. Validation in progress (published examples
+  to choose and transcribe). Next: people randomised within groups
+  (`next.md`, item 8); simulated multilevel models wait for a package
+  decision (item 9).
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
@@ -102,7 +110,8 @@ fully validated. Validation runs are recorded in
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
-  (E48), two correlations (E49) and the generic tests (E50) calculate in
+  (E48), two correlations (E49), the generic tests (E50) and
+  cluster-randomised trials (E34) calculate in
   the app; E10–E14 give a rough preview, then a full run in the app or an
   R script. Results save as a project file and reopen. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates

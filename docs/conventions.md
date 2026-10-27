@@ -231,6 +231,14 @@ convention to follow here (`coverage-roadmap.md`, row B54, found none).
 Only symmetric bounds are offered: TOSTER takes asymmetric ones, and the
 app may add them later.
 
+## Cluster-randomised trials (whole groups assigned to two conditions)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for clustered designs | — | — |
+| powertools | `crt.parallel.cont()`: the variance of the difference between conditions is inflated by the design effect 1 + (m − 1) × ICC per condition (with covariates, a version adjusted for them), divided by a relative efficiency when group sizes vary (`re.clustsize.cont()`, an approximation the package warns can fail when sizes vary a lot); the test is a noncentral t (one-sided) or F with 1 and J − 2 − covariates degrees of freedom (two-sided), J being the total number of groups. Solves for power, groups in the first condition, the ratio of groups, group size, alpha or the difference (powertools 1.0.0, `R/crt.parallel.cont.R`, opened 27 October 2026) | `delta` / `sd`, with `sd` the outcome's total SD (between and within groups) | `m`, `m.sd`, `J1`, `J.ratio`, `icc1`, `icc2`, `ncov`, `RsqB`, `RsqW`, `alpha`, `sides` (2 by default) |
+| **powerkit** | powertools' `crt.parallel.cont()`, by formula; no simulation option (E34, from 27 October 2026) [powerkit] | `d` over the outcome's total SD, as powertools defines it. A source that standardises by the within-group SD gives a larger d for the same difference | The same number of groups in each condition (`J.ratio = 1`), one ICC for both conditions, no covariates; `cluster_size_sd` for varying group sizes (0 if omitted). The total n is a whole number of groups. A one-sided test runs in the direction of d. Not a departure: powertools' own method and defaults, and no established psychology tool computes this design for comparison. The result also reports the design effect and the effective sample size (n / design effect), from the same formula powertools uses |
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |

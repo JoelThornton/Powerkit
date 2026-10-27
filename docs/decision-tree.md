@@ -242,7 +242,7 @@ flowchart TD
   O5a -->|As a score| S2
   S1 -->|The time until<br/>something happens| E43["E43 Time-to-event"]
   S1 -->|A score, or yes/no<br/>or categories| S2{"S2 How are the<br/>data grouped?"}
-  S2 -->|People within groups| E34["E34 Multilevel or<br/>cluster design"]
+  S2 -->|People within groups, then S4: detect an effect| E34["E34 Multilevel or<br/>cluster design"]
   S2 -->|Pairs| E44["E44 Paired or<br/>dyadic data"]
   S2 -->|Many trials or<br/>stimuli per person| E33["E33 Crossed participants<br/>and stimuli"]
   S2 -->|Independent people| S3{"S3 How many times is<br/>each person measured?"}
@@ -588,7 +588,8 @@ that table's "Engine can use it?" column:
   `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square, and for
   one proportion, McNemar's test and two correlations (E25, E26, E49,
-  E51), logistic regression (E27), Poisson regression (E28), the variance
+  E51), logistic regression (E27), Poisson regression (E28), the
+  cluster-randomised trial (E34), the variance
   tests (E52, E53), and the generic t and z tests (E50);
 - participants expected to be lost (Q-attr) on every card but the generic
   tests (E50), which have no sample size;
@@ -629,6 +630,7 @@ the two in step.
 | E26 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E27 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E28 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E34 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E48 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E49 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E50 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
@@ -687,7 +689,7 @@ taken from coverage.md, where they are proposals.
 | E31 | Three-way interaction | — | Candidate: InteractionPoweR `power_interaction_3way_r2()` (analytic only) | — | Correlations among x1, x2, x3, products and y | No | v2 | Not in spec |
 | E32 | Moderation or mediation with a yes/no, count or categorical outcome | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
 | E33 | Crossed participants and stimuli | — | Candidates: simr; mixpower | — | Fixed effects and variance components | No | v2 | Not in spec |
-| E34 | Multilevel or cluster design | — | Candidates: mlmpower; PowerUpR; clusterPower; PAMLj; WebPower. A design-effect approximation is a decided option for later (decision D4) | — | ICC, cluster size, effect | No | v2 | Not in spec |
+| E34 | Multilevel or cluster design (cluster-randomised trial) | `cluster_trial / cluster_randomised` | `powertools::crt.parallel.cont()` (the design-effect approximation, design-finder P4, with degrees of freedom from the number of groups; varying group sizes through `re.clustsize.cont()`). Not yet: people randomised within groups (powertools `multisite.cont()`), yes/no outcomes (`crt.parallel.bin()`), covariates, predictors at both levels (mlmpower; simr). PowerUpR and clusterPower, earlier candidates, have been removed from CRAN | Formula (no simulation) | Cohen's d over the total SD; ICC; group size and its SD | No: matches powertools called directly, and the design-effect calculation with pwrss's generic t test, in `test-backend-powertools.R` (published values TODO) | v2 | Runs |
 | E35 | Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling) | — | Candidates: longpower; powRICLPM; semPower; PowerAnalysisIL | — | Model-specific | No | later | Not in spec |
 | E36 | Equivalence test (TOST) or minimum-effect test | `equivalence_test / tost_independent, tost_paired, tost_one_sample` | `TOSTER::power_t_TOST()` (the two one-sided tests for two independent groups, paired data or one sample; exact formula). Equivalence for correlations and proportions, non-inferiority and minimum-effect tests are not yet covered | Formula (no simulation) | The equivalence bound and the expected difference (Cohen's d, d_z or the measure's own units); group sizes for two groups | No: matches TOSTER called directly, a large-sample approximation and Type I error in the engine's tests; published examples to come | v2 | Runs |
 | E37 | CFA, SEM model fit, measurement invariance | — | Candidates: semPower; simsem; pwrSEM | — | RMSEA or model parameters | No | later | Not in spec |

@@ -37,15 +37,23 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
 test_that("answers other than the simple ones leave at an honest end point", {
   expect_all_routes(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29")
   expect_all_routes("The time until something happens", "E43")
-  expect_all_routes(c("A score or scale", "People within groups"), "E34")
+  # People within groups: the goal is asked before the cluster-randomised
+  # trial (which calculates) is suggested.
+  expect_all_routes(c("A score or scale", "People within groups"), "s4")
+  expect_all_routes(c("A score or scale", "People within groups", "Detect an effect"), "E34")
+  # Equivalence for grouped data: not the equivalence card, which assumes
+  # separate people; the grouped card says it isn't covered yet.
+  expect_all_routes(c("A score or scale", "People within groups", "Show there's no meaningful effect"), "E34")
   expect_all_routes(c("A score or scale", "Pairs"), "E44")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person"), "E33")
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   expect_all_routes(c(screen_score, "Once", "Show there's no meaningful effect"), "E36")
   expect_all_routes(c(screen_score, "Once", "Estimate an effect precisely"), "E46")
-  for (id in c("E29", "E33", "E34", "E35", "E43", "E44", "E45", "E46")) {
+  for (id in c("E29", "E33", "E35", "E43", "E44", "E45", "E46")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
+  # People within groups: the cluster-randomised trial calculates (powertools).
+  expect_identical(tree$endpoints$E34$status, "runs_validation_in_progress")
 })
 
 test_that("a rating analysed as a score continues as a score (decision D1)", {
@@ -146,12 +154,12 @@ test_that("time series reach the longitudinal card, not a count or score test", 
 
 test_that("nested data with a yes/no outcome no longer reaches the two-proportions test", {
   # On main: diff > Yes/no > Different people, two groups > E5.
-  expect_all_routes(c("Yes/no, or one of several categories", "People within groups"), "E34")
+  expect_all_routes(c("Yes/no, or one of several categories", "People within groups", "Detect an effect"), "E34")
 })
 
 test_that("cluster-randomised designs reach the multilevel card", {
   # On main: diff > score > Different people > One > Two, with different people > E2.
-  expect_all_routes(c("A score or scale", "People within groups"), "E34")
+  expect_all_routes(c("A score or scale", "People within groups", "Detect an effect"), "E34")
   expect_match(tree$nodes$s2$options[[2]]$help, "whole groups were assigned", fixed = TRUE)
 })
 
@@ -208,7 +216,7 @@ test_that("counts no longer reach the correlation through the relationship path"
   expect_identical(follow_answers(tree, c(once, "A relationship between two things you measure")), "E28")
   expect_identical(follow_answers(tree, c(once, "A difference between groups or conditions")), "E28")
   expect_identical(follow_answers(tree, c("A count", "Independent people", "Twice", "Detect an effect", "A difference between groups or conditions")), "E-unsure")
-  expect_identical(follow_answers(tree, c("A count", "People within groups")), "E34")
+  expect_identical(follow_answers(tree, c("A count", "People within groups", "Detect an effect")), "E34")
 })
 
 test_that("two correlations in the same people reach their own card, not the independent-groups test", {

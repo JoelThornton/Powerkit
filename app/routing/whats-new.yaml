@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Power for studies where whole groups get the condition"
+    text: >-
+      If whole classes, clinics or teams are assigned to a condition, the
+      card "People nested in groups" now calculates power, the number of
+      groups you need, or the smallest effect you could detect. You enter
+      how many people are in each group and how alike people in the same
+      group are, and the result shows how much the grouping costs compared
+      with a study of separate people.
+  - date: "2026-10-27"
     title: "Whole-study simulation: find your sample size on your computer"
     text: >-
       The whole-study simulation now runs a quick look in the app, and

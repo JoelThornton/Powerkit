@@ -70,6 +70,7 @@ on:
           - generic
           - equivalence
           - whole_study
+          - cluster
 
 permissions:
   contents: read

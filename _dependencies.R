@@ -13,6 +13,7 @@ library(InteractionPoweR)
 library(lavaan)
 library(manymome)  # the whole-study simulation's implied indirect effects
 library(power4mome)
+library(powertools)
 library(Spower)
 library(Superpower)
 

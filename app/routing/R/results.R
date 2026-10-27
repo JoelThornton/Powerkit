@@ -178,6 +178,10 @@ group_sizes <- function(spec, n) {
 }
 
 group_text <- function(spec, n) {
+  if (identical(spec$template, "cluster_randomised")) {
+    m <- spec$population$cluster_size
+    return(sprintf(" (%s groups of %s, %s groups in each condition)", whole(n / m), whole(m), whole(n / m / 2)))
+  }
   sizes <- group_sizes(spec, n)
   if (is.null(sizes)) return("")
   unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
@@ -280,7 +284,7 @@ equivalence_sentences <- function(spec, result) {
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER")) {
+  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools")) {
     sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   } else {
     "Superpower's exact dataset, no repeated simulation"
@@ -302,7 +306,33 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
+  clusters <- cluster_sentence(result)
+  if (!is.null(clusters)) out[["detail"]] <- paste(out[["detail"]], clusters)
   out
+}
+
+# Clustered designs: what the grouping costs, from the engine's
+# cluster_summary() (the design effect and the effective sample size).
+cluster_sentence <- function(result) {
+  s <- result$clusters
+  if (is.null(s)) return(NULL)
+  n <- s$clusters * s$cluster_size
+  varying <- if (s$relative_efficiency < 1) " (more, because the group sizes vary)" else ""
+  sprintf(paste0(
+    "People in the same group tend to be alike (intraclass correlation %s), so each group of %s counts for less than %s separate people. ",
+    "The design effect is %s%s: these %s participants carry about as much information as %s independent participants would. ",
+    "Adding groups usually raises power more than adding people to each group."),
+    format(s$icc), whole(s$cluster_size), whole(s$cluster_size),
+    format(round(s$design_effect, 2), nsmall = 2), varying, whole(n), whole(floor(s$effective_n)))
+}
+
+# The design effect for the write-up.
+cluster_writeup <- function(result) {
+  s <- result$clusters
+  if (is.null(s)) return(NULL)
+  sprintf("With an intraclass correlation of %s and %s participants per group%s, the design effect is %s.",
+    format(s$icc), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",
+    format(round(s$design_effect, 2), nsmall = 2))
 }
 
 # With the effect given in the outcome's own units: the standardised effect
@@ -938,7 +968,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      if (p_$backend %in% c("pwr", "stats", "pwrss")) "powerkit built the call from your answers and checked the effect size it passes. " else
+      if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep),
@@ -1139,6 +1169,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   )
   main <- append(main, writeup_choices(fields, values), after = 1)
+  main <- c(main, cluster_writeup(result))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))

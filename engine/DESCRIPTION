@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Psychology Designs
-Version: 0.11.0
+Version: 0.12.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
@@ -13,7 +13,8 @@ Description: Reads a single design specification (JSON) for common
     mixed ANOVA designs (via Superpower),
     two-way regression interactions (via InteractionPoweR), and simple,
     parallel and serial mediation and first- and second-stage moderated
-    mediation (PROCESS models 4, 6, 7 and 14, via power4mome).
+    mediation (PROCESS models 4, 6, 7 and 14, via power4mome), and
+    cluster-randomised trials (via 'powertools').
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -29,6 +30,7 @@ Imports:
     psych,
     power4mome,
     pwr,
+    powertools,
     pwrss,
     Spower (>= 0.7),
     stats,
@@ -40,4 +42,4 @@ Suggests:
     simsem,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.1

@@ -1,3 +1,25 @@
+# powerkit 0.12.0
+
+* Cluster-randomised trials (design `cluster_trial`, template
+  `cluster_randomised`; card E34, "People nested in groups"): whole
+  groups are assigned to one of two conditions, the same number of groups
+  in each, and a score is compared. Power, the required number of
+  participants (a whole number of groups) and the smallest detectable d,
+  by powertools' `crt.parallel.cont()` (the design effect, with degrees of
+  freedom from the number of groups, and its adjustment when group sizes
+  vary). New backend `engine/R/backend-powertools.R`; powertools 1.0.0
+  joins Imports and `renv.lock`. Every result for this design has
+  `clusters` (`cluster_summary()`): the number of groups, the design
+  effect and the effective sample size, which the result screen and the
+  write-up state. Validation placeholders in
+  `test-validation-cluster-randomised.R` (chunk `cluster`).
+
+* App: the "People nested in groups" card (E34) calculates. The design
+  finder now asks the goal (S4) after "People within groups" before
+  suggesting it, as for every card that calculates; equivalence for
+  grouped data goes to the same card, which says it isn't covered yet,
+  rather than to the equivalence card for separate people.
+
 # powerkit 0.11.0
 
 * Whole-study simulation (experimental): a sample size search. The goal

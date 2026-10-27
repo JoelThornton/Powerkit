@@ -11,6 +11,7 @@ population_problems <- function(spec) {
     multiple_regression = check_multiple_regression,
     logistic_regression = check_single_predictor_x,
     poisson_regression = check_single_predictor_x,
+    cluster_trial = check_cluster_trial,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model,
@@ -114,9 +115,10 @@ spower_only <- function(spec) {
   spec$template %in% c("one_variance", "two_variances")
 }
 
-# Tests powerkit computes with pwrss's formulas only.
+# Tests powerkit computes with pwrss's formulas only (and clustered
+# designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
-  spec$design %in% c("logistic_regression", "poisson_regression") ||
+  spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial") ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -230,7 +232,7 @@ check_direction_allowed <- function(spec) {
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor",
                  "single_predictor_count", "one_variance", "two_variances",
-                 "t", "z")
+                 "cluster_randomised", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -257,6 +259,8 @@ check_direction_allowed <- function(spec) {
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
     two_variances = pop$var1 - pop$var2,
+    # "greater" means the second condition's mean is higher.
+    cluster_randomised = pop$d,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -313,6 +317,31 @@ check_equivalence_test <- function(spec) {
     "equivalence however many people took part. Check the expected ",
     "difference and the bound: the expected difference has to lie inside the ",
     "bounds (0 means no difference)."
+  )
+}
+
+# Clustered designs --------------------------------------------------------------
+
+# Group sizes that vary: powertools' adjustment (its relative efficiency,
+# re.clustsize.cont()) is an approximation that breaks down when they vary
+# a lot, giving a value of 0 or below.
+check_cluster_trial <- function(spec) {
+  pop <- spec$population
+  m_sd <- pop$cluster_size_sd %||% 0
+  if (m_sd <= 0) {
+    return(character())
+  }
+  re <- quietly(powertools::re.clustsize.cont(m = pop$cluster_size, m.sd = m_sd, icc = pop$icc))
+  if (re > 0) {
+    return(character())
+  }
+  sprintf(
+    paste0(
+      "'population > cluster_size_sd' (%s) is too large for an average group ",
+      "size of %s: the adjustment for groups of different sizes isn't valid when ",
+      "their sizes vary this much. Check the values, or plan with a smaller spread."
+    ),
+    format_number(m_sd), format_number(pop$cluster_size)
   )
 }
 
@@ -946,7 +975,7 @@ check_goal <- function(spec, check_effect = TRUE) {
         "one_sample_t", "independent_t", "paired_t", "correlation",
         "two_proportions", "chi_square_independence"
       )
-  ) && !identical(spec$design, "generic_test")
+  ) && !identical(spec$design, "generic_test") && !identical(spec$design, "cluster_trial")
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {
@@ -1042,6 +1071,8 @@ minimum_n <- function(spec) {
     # coefficient, plus one.
     logistic_regression = ,
     poisson_regression = 3,
+    # Two groups in each condition, the fewest powertools accepts.
+    cluster_trial = 4 * spec$population$cluster_size,
     regression_interaction = 6,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -1059,6 +1090,13 @@ group_split <- function(spec) {
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
+  if (spec$template == "cluster_randomised") {
+    m <- spec$population$cluster_size
+    return(list(
+      rule = sprintf("be a whole number of groups of %s, the same number of groups in each condition", format_number(m)),
+      valid = function(n) n %% (2 * m) == 0
+    ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent")) {
     ratio <- spec$options$allocation_ratio %||% 1
@@ -1106,6 +1144,7 @@ target_effect_is_zero <- function(spec) {
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),
+    cluster_trial = pop$d,
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

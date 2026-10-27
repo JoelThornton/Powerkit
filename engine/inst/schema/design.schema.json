@@ -33,7 +33,8 @@
         "logistic_regression",
         "poisson_regression",
         "generic_test",
-        "equivalence_test"
+        "equivalence_test",
+        "cluster_trial"
       ]
     },
     "template": {
@@ -94,6 +95,9 @@
     },
     {
       "$ref": "#/definitions/design_equivalence_test"
+    },
+    {
+      "$ref": "#/definitions/design_cluster_trial"
     },
     {
       "if": {
@@ -3332,6 +3336,114 @@
           "properties": {
             "effect": {
               "const": "rate_ratio"
+            }
+          }
+        }
+      }
+    },
+    "design_cluster_trial": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "cluster_trial"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "cluster_randomised"
+            ]
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "cluster_randomised"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_cluster_randomised"
+            }
+          }
+        ]
+      }
+    },
+    "template_cluster_randomised": {
+      "description": "Cluster-randomised trial: whole groups (classes, clinics, teams) are assigned to one of two conditions, the same number of groups in each, and a score is compared between the conditions. The t test of the difference between conditions with the variance inflated by the design effect, by powertools::crt.parallel.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size, the same number of groups in each condition.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d",
+            "icc",
+            "cluster_size"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d: (mean in the second condition - mean in the first) / the outcome's total SD (between and within groups together), as powertools defines it (delta / sd). 0 is allowed, to check the Type I error rate at a fixed n, or for a sensitivity analysis.",
+              "type": "number"
+            },
+            "icc": {
+              "description": "Intraclass correlation of the outcome: the proportion of its total variance that lies between groups, the same in both conditions. 0 means people in the same group are no more alike than people in different groups.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "cluster_size": {
+              "description": "Number of participants analysed in each group (the average, if group sizes vary).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "cluster_size_sd": {
+              "description": "Standard deviation of the group sizes, if they vary (0, the default, for groups of equal size). powertools adjusts power for the loss of efficiency.",
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "const": "cluster_t"
             }
           }
         }

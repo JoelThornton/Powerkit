@@ -313,7 +313,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "power_interval",
     "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {

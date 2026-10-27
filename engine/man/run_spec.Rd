@@ -25,9 +25,19 @@ and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
 applied to the specified pattern, the scaled cell \code{means} and the
 \code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
 \code{r}, \code{w} or \code{p2});
+\item \code{effect_from_units}: \code{NULL} unless the effect was given in the
+outcome's own units (\code{population > metric} "raw", the t-tests);
+otherwise a list with the standardised effect's \code{name} ("Cohen's d"
+or "d_z") and \code{value}, the \code{difference} in the outcome's units, and
+the \code{sd} it was divided by (with its \code{sd_name}), and for a
+sensitivity goal the \code{smallest_difference} in the outcome's units;
 \item \code{safeguard}: \code{NULL} unless the effect justification uses safeguard
 power; otherwise \code{\link[=safeguard_effect]{safeguard_effect()}}'s list for the earlier study's
 estimate, with \code{lower} the effect size the calculation used.
+\item \code{clusters}: \code{NULL} unless the design is clustered (design
+\code{cluster_trial}); otherwise \code{\link[=cluster_summary]{cluster_summary()}}'s list for the n
+analysed: the number of groups, the design effect and the effective
+sample size;
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
@@ -102,6 +112,13 @@ Generic tests (design \code{generic_test}, engine only): power for a t, F,
 chi-square or z statistic's noncentrality parameter, or the
 noncentrality needed for a target power, with pwrss's generic functions.
 They have no sample size; the result's curve has one row with \code{n} \code{NA}.
+Cluster-randomised trials (design \code{cluster_trial}, template
+\code{cluster_randomised}): whole groups are assigned to one of two
+conditions and a score compared, by powertools' \code{crt.parallel.cont()}
+(the design effect with the degrees of freedom from the number of
+groups). \code{goal > n} is the total number of participants, a whole number
+of groups of \code{population > cluster_size}, the same number of groups in
+each condition.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

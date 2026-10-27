@@ -59,6 +59,7 @@ export_script <- function(spec, result, file = NULL) {
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
+    powertools = powertools_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -263,6 +264,10 @@ design_description <- function(spec) {
     "equivalence_test/tost_one_sample" = sprintf(
       "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
     ),
+    "cluster_trial/cluster_randomised" = sprintf(
+      "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; t test of the difference",
+      label("Y"), label("X"), levels("X"), spec$population$cluster_size
+    ),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -361,7 +366,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER") || p$method == "analytic") {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend
@@ -502,6 +507,10 @@ add_recruitment_section <- function(lines, spec, result) {
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
     two_variances = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    cluster_randomised = c(
+      sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),
+      "groups_analysed <- rep(cluster_size, n_analysed / cluster_size) # each group's analysed size"
+    ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,

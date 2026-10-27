@@ -59,6 +59,34 @@
       ],
       "Hash": "ed40ae27532b0b750eced499c5a76a62"
     },
+    "Hmisc": {
+      "Package": "Hmisc",
+      "Version": "5.3-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Formula",
+        "R",
+        "base64enc",
+        "cluster",
+        "colorspace",
+        "data.table",
+        "foreign",
+        "ggplot2",
+        "grid",
+        "gridExtra",
+        "gtable",
+        "htmlTable",
+        "htmltools",
+        "knitr",
+        "methods",
+        "nnet",
+        "rmarkdown",
+        "rpart",
+        "viridisLite"
+      ],
+      "Hash": "f3fdfee5b4f9cd35a8da2f89942efe8b"
+    },
     "InteractionPoweR": {
       "Package": "InteractionPoweR",
       "Version": "0.2.4",
@@ -125,6 +153,21 @@
         "stats"
       ],
       "Hash": "7b77557b453924e27e8a0c88d6798cd4"
+    },
+    "PowerTOST": {
+      "Package": "PowerTOST",
+      "Version": "1.5-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "cubature",
+        "grDevices",
+        "graphics",
+        "mvtnorm",
+        "stats",
+        "utils"
+      ],
+      "Hash": "aa80df9a628ce6979f781a33e97d250f"
     },
     "R.methodsS3": {
       "Package": "R.methodsS3",
@@ -638,6 +681,18 @@
       ],
       "Hash": "c7c7994c2f70d512b0016b6fb34c54e9"
     },
+    "checkmate": {
+      "Package": "checkmate",
+      "Version": "2.3.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "backports",
+        "utils"
+      ],
+      "Hash": "86cbe221fc19b56242f6c3eb0d4c5ab5"
+    },
     "chngpt": {
       "Package": "chngpt",
       "Version": "2024.11-15",
@@ -690,6 +745,20 @@
         "utils"
       ],
       "Hash": "cc6e507cf89f11ffc44b32519e0198da"
+    },
+    "cluster": {
+      "Package": "cluster",
+      "Version": "2.1.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Hash": "0aaa05204035dc43ea0004b9c76611dd"
     },
     "cocor": {
       "Package": "cocor",
@@ -785,6 +854,16 @@
         "lazyeval"
       ],
       "Hash": "8b008bc619e0bbebb5646b3d37efdad1"
+    },
+    "cubature": {
+      "Package": "cubature",
+      "Version": "2.1.4-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Rcpp"
+      ],
+      "Hash": "59e1f90dd605a6258a7686686d08f732"
     },
     "curl": {
       "Package": "curl",
@@ -1062,6 +1141,19 @@
       ],
       "Hash": "71233b4e8fb32f511e8a12649680d05a"
     },
+    "foreign": {
+      "Package": "foreign",
+      "Version": "0.8-86",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "550170303dbb19d07b2bcc288068e7dc"
+    },
     "fracdiff": {
       "Package": "fracdiff",
       "Version": "1.5-4",
@@ -1226,6 +1318,20 @@
       ],
       "Hash": "f8122473e9a49e00d0642f78235ca5e3"
     },
+    "gridExtra": {
+      "Package": "gridExtra",
+      "Version": "2.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "grDevices",
+        "graphics",
+        "grid",
+        "gtable",
+        "utils"
+      ],
+      "Hash": "4e172eb9a8e2e01e0494ea230b73f068"
+    },
     "gtable": {
       "Package": "gtable",
       "Version": "0.3.6",
@@ -1288,6 +1394,24 @@
         "vctrs"
       ],
       "Hash": "2799ac720626cec589478b191e48b88b"
+    },
+    "htmlTable": {
+      "Package": "htmlTable",
+      "Version": "2.5.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "checkmate",
+        "htmltools",
+        "htmlwidgets",
+        "knitr",
+        "magrittr",
+        "methods",
+        "rstudioapi",
+        "stringr"
+      ],
+      "Hash": "5cfe71c7cec41d4843ba54ac7c8b9355"
     },
     "htmltools": {
       "Package": "htmltools",
@@ -2134,6 +2258,21 @@
       ],
       "Hash": "c3efbdb9fe6aa6745bdc19c0d31e9018"
     },
+    "powertools": {
+      "Package": "powertools",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Hmisc",
+        "PowerTOST",
+        "R",
+        "knitr",
+        "mvtnorm",
+        "stats"
+      ],
+      "Hash": "1dc114e00afb855997f419560e86b6f3"
+    },
     "praise": {
       "Package": "praise",
       "Version": "1.0.0",
@@ -2464,6 +2603,13 @@
         "R"
       ],
       "Hash": "b2453de2d29aa646afe4781defdc7903"
+    },
+    "rstudioapi": {
+      "Package": "rstudioapi",
+      "Version": "0.19.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "db86914207e4e0f112b60ebbc3e1793c"
     },
     "sass": {
       "Package": "sass",
