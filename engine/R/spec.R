@@ -69,6 +69,11 @@ validate_spec <- function(spec) {
     problems <- schema_problems(spec)
   }
   if (length(problems) == 0) {
+    safeguard <- apply_safeguard(spec)
+    spec <- safeguard$spec
+    problems <- safeguard$problems
+  }
+  if (length(problems) == 0) {
     problems <- population_problems(spec)
   }
   if (length(problems) > 0) {
