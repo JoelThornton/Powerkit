@@ -282,7 +282,8 @@ zero_effect_cases <- list(
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   one_variance = function(s) within(s, population$var0 <- population$var),
   two_variances = function(s) within(s, population$var2 <- population$var1),
-  cluster_randomised = function(s) within(s, population$d <- 0)
+  cluster_randomised = function(s) within(s, population$d <- 0),
+  multisite = function(s) within(s, population$d <- 0)
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

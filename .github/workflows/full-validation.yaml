@@ -71,6 +71,7 @@ on:
           - equivalence
           - whole_study
           - cluster
+          - multisite
 
 permissions:
   contents: read

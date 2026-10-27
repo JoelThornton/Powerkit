@@ -57,7 +57,9 @@
 #' (the design effect with the degrees of freedom from the number of
 #' groups). `goal > n` is the total number of participants, a whole number
 #' of groups of `population > cluster_size`, the same number of groups in
-#' each condition.
+#' each condition. Multisite trials (template `multisite`): people are
+#' randomised to the two conditions within each group, by powertools'
+#' `multisite.cont()`; `goal > n` is a whole number of groups.
 #'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,

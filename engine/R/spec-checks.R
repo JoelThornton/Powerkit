@@ -232,7 +232,7 @@ check_direction_allowed <- function(spec) {
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor",
                  "single_predictor_count", "one_variance", "two_variances",
-                 "cluster_randomised", "t", "z")
+                 "cluster_randomised", "multisite", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -260,7 +260,8 @@ check_direction_allowed <- function(spec) {
     one_variance = pop$var - pop$var0,
     two_variances = pop$var1 - pop$var2,
     # "greater" means the second condition's mean is higher.
-    cluster_randomised = pop$d,
+    cluster_randomised = ,
+    multisite = pop$d,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -331,7 +332,9 @@ check_cluster_trial <- function(spec) {
   if (m_sd <= 0) {
     return(character())
   }
-  re <- quietly(powertools::re.clustsize.cont(m = pop$cluster_size, m.sd = m_sd, icc = pop$icc))
+  # A multisite trial's adjustment uses the ICC of the effect (icc1).
+  icc <- if (identical(spec$template, "multisite")) pop$icc_effect else pop$icc
+  re <- quietly(powertools::re.clustsize.cont(m = pop$cluster_size, m.sd = m_sd, icc = icc))
   if (re > 0) {
     return(character())
   }
@@ -1071,8 +1074,9 @@ minimum_n <- function(spec) {
     # coefficient, plus one.
     logistic_regression = ,
     poisson_regression = 3,
-    # Two groups in each condition, the fewest powertools accepts.
-    cluster_trial = 4 * spec$population$cluster_size,
+    # Two groups in each condition (cluster-randomised), or two groups
+    # (multisite): the fewest powertools accepts.
+    cluster_trial = (if (identical(spec$template, "multisite")) 2 else 4) * spec$population$cluster_size,
     regression_interaction = 6,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -1090,6 +1094,13 @@ group_split <- function(spec) {
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
+  if (spec$template == "multisite") {
+    m <- spec$population$cluster_size
+    return(list(
+      rule = sprintf("be a whole number of groups of %s", format_number(m)),
+      valid = function(n) n %% m == 0
+    ))
   }
   if (spec$template == "cluster_randomised") {
     m <- spec$population$cluster_size

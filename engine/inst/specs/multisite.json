@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "cluster_trial",
+  "template": "multisite",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Programme",
+      "levels": ["Usual lessons", "Wellbeing programme"]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0.3,
+    "icc": 0.1,
+    "icc_effect": 0.02,
+    "cluster_size": 20
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a difference of 0.3 SD between pupils given the programme and pupils with usual lessons, within the same schools, is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "multisite_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261027
+  }
+}
