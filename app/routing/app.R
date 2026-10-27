@@ -143,13 +143,22 @@ app_css <- "
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
   .lead { font-size: 1.05rem; color: #44505e; }
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
-  .topbar-inner { max-width: 1100px; margin: 0 auto; }
+  .topbar-inner { max-width: 70rem; margin: 0 auto; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
   .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
   .badge-proto { display: inline-block; background: #f2b84b; color: #2b1d00; border-radius: 1rem; padding: 0.02rem 0.55rem;
                  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-  .app-main { max-width: 1100px; margin: 0 auto 6rem auto; }
+  .app-main { max-width: 70rem; margin: 0 auto 6rem auto; overflow-wrap: break-word; }
+  /* Larger text on large screens, so the page doesn't look zoomed out there.
+     Sizes are in rem, so the whole layout scales with it, and zooming in
+     reflows the page instead of making it scroll sideways. */
+  @media (min-width: 1400px) { html { font-size: 106.25%; } }
+  @media (min-width: 1700px) { html { font-size: 112.5%; } }
+  @media (min-width: 2100px) { html { font-size: 118.75%; } }
+  /* Long unbroken text (the spec hash, web addresses) wraps instead of
+     widening the page. */
+  .result-panel li, .result-panel p, .about li, .about p { overflow-wrap: anywhere; }
   .app-main > .tabbable > .nav-tabs { border-bottom: 1px solid var(--pk-line); margin-top: 0.5rem; gap: 0.25rem; }
   .app-main > .tabbable > .nav-tabs .nav-link { border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #44505e; font-weight: 500; padding: 0.7rem 0.9rem; }
   .app-main > .tabbable > .nav-tabs .nav-link.active { background: transparent; color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
@@ -196,6 +205,7 @@ app_css <- "
   .trail-title { font-size: 0.8rem; }
   .chip { background: #fff; border-color: var(--pk-line); }
   .result-panel { margin-top: 1.5rem; }
+  #form_result [tabindex] { scroll-margin-top: 1rem; }
   .result-card { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
   .result-card h3, .result-card h4 { color: var(--pk-navy); font-weight: 650; }
   .result-main { border-top: 5px solid var(--pk-blue); }
@@ -246,9 +256,30 @@ copy_js <- "
   Shiny.addCustomMessageHandler('copy_labs', function(text) {
     pkCopyText(text, document.getElementById('labs-copy-status'));
   });
-  // Move focus to the check's result, so keyboard and screen-reader users hear it.
+  // Bring the check's result to the top of the window and move focus to it,
+  // so everyone sees it and keyboard and screen-reader users hear it. The
+  // message can arrive before or after the new result is drawn, so this
+  // waits briefly for the output's content to change, and shows it then.
+  window.pkShowResult = function(id) {
+    var el = document.querySelector('#' + id + ' [tabindex]') || document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: 'start' });
+    if (el.hasAttribute('tabindex')) el.focus({ preventScroll: true });
+  };
+  window.pkResultWatch = {};
   Shiny.addCustomMessageHandler('focus_result', function(id) {
-    setTimeout(function() { var el = document.querySelector('#' + id + ' [tabindex]'); if (el) el.focus(); }, 50);
+    var w = pkResultWatch[id];
+    if (!w) {
+      var box = document.getElementById(id);
+      if (!box) return;
+      w = pkResultWatch[id] = { until: 0, timer: null };
+      new MutationObserver(function() {
+        if (Date.now() > w.until) return;
+        clearTimeout(w.timer); w.timer = setTimeout(function() { pkShowResult(id); }, 60);
+      }).observe(box, { childList: true });
+    }
+    w.until = Date.now() + 1500;
+    clearTimeout(w.timer); w.timer = setTimeout(function() { pkShowResult(id); }, 400);
   });
   // A background calculation's estimated progress, updated in place.
   Shiny.addCustomMessageHandler('calc_progress', function(m) {
@@ -297,6 +328,8 @@ ui <- function(req) fluidPage(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
+      # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
+      selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
@@ -610,6 +643,41 @@ server <- function(input, output, session) {
     text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
   })
 
+  # Three effects (conservative, the plan's, optimistic): power by N for
+  # each, and the N each needs. Reads the last calculation; never changes
+  # the plan.
+  scenario_inputs <- reactive({
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), !is.null(explore_effect(calc$spec)))
+    vals <- c(conservative = input$scenario_conservative %||% NA, optimistic = input$scenario_optimistic %||% NA)
+    req(any(!is.na(vals)))
+    list(calc = calc, vals = vals)
+  }) |> debounce(600)
+  scenario_results <- reactive({
+    x <- scenario_inputs()
+    n <- scenario_n(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], seed = forms$default_seed)
+    list(spec = x$calc$spec, n = n,
+      curves = scenario_curves(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], n = n, seed = forms$default_seed))
+  })
+  output$scenario_plot <- renderPlot({
+    df <- scenario_results()$curves
+    keys <- intersect(names(scenario_names), unique(df$scenario))
+    style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
+    par(mar = c(4.5, 4.5, 1, 1))
+    plot(NA, xlim = range(df$n), ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
+    for (k in keys) {
+      d <- df[df$scenario == k, ]
+      lines(d$n, d$power, col = style[[k]]$col, lty = style[[k]]$lty, lwd = 2.5)
+    }
+    abline(h = c(0.8, 0.95), lty = 2, col = "grey70")
+    legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
+      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 2.5, bty = "n")
+  })
+  output$scenario_n <- renderUI({
+    x <- scenario_results()
+    p(class = "small", scenario_sentence(x$spec, x$n))
+  })
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)
@@ -908,7 +976,7 @@ server <- function(input, output, session) {
       snap <- nav_snapshot(); snap$key <- key
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
-      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L))
+      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L, page = page_slug(input$tabs)))
     })
   })
   observeEvent(input$pk_nav_to, {

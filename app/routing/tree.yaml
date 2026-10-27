@@ -789,7 +789,7 @@ endpoints:
     template: "basic_test / one_sample_t"
     backend: "pwr: pwr.t.test() (Spower simulation if you choose it)"
     method: "Formula (no simulation)"
-    inputs: ["Your outcome's name", "Cohen's d: (expected mean minus the fixed value) / SD"]
+    inputs: ["Your outcome's name", "The effect: Cohen's d, or the means and SD in your measure's own units"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -801,7 +801,7 @@ endpoints:
     template: "basic_test / independent_t"
     backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two groups and the outcome", "Cohen's d: (group 2 minus group 1) / pooled SD", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's test"]
+    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -813,7 +813,7 @@ endpoints:
     template: "basic_test / paired_t"
     backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two conditions and the outcome", "d_z: mean of the differences (second minus first) / SD of the differences"]
+    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP

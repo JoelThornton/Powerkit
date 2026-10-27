@@ -15,6 +15,38 @@ entries:
       measured and whether powerkit calculates it, and click a planet to
       see how to get there and read about it. A switch shows the tests'
       usual names instead of plain words.
+  - date: "2026-10-27"
+    title: "See how much the answer depends on the effect"
+    text: >-
+      On the result for a t-test or a correlation, you can now enter a
+      smaller and a larger effect you would still find plausible. powerkit
+      draws power for those and your plan's effect on one chart, and says
+      how many participants each would need, so you can see how much
+      rides on being right about the effect.
+  - date: "2026-10-27"
+    title: "Give your effect in your measure's own units"
+    text: >-
+      For the one-sample, two-group and paired t-tests you can now enter
+      the effect as you think of it: say 4.5 against 3.8 on a 1 to 7 scale,
+      with an SD of 1.2. powerkit works out Cohen's d for you and shows it
+      on the result. If you ask for the smallest effect you could detect,
+      it is also given in your measure's units.
+  - date: "2026-10-27"
+    title: "Share a link to any page"
+    text: >-
+      Each page now has its own link, so you can send someone straight to
+      a page such as Labs or About instead of the start: add ?page=labs
+      (or about, whats-new, feedback) to the end of the address.
+  - date: "2026-10-26"
+    title: "Easier to read on large screens, and the result comes into view"
+    text: >-
+      On large screens the text is now a little bigger, so you shouldn't
+      need to zoom in, and zooming in no longer makes the page scroll
+      sideways. After "Check my answers", the page moves to your result.
+      The result screen is reordered: your answer and notes on reading it,
+      then exploring, then saving and the write-up, with how it was
+      calculated last. The short write-up for your paper is shorter, and
+      its longer versions are folded away until you open them.
   - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-

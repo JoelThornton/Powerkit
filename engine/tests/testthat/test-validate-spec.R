@@ -99,7 +99,7 @@ test_that("misspelt fields are named, with a suggestion", {
 test_that("unexpected fields list what is allowed", {
   spec <- example_spec("independent_t")
   spec$population$sd <- 1
-  expect_spec_problem(spec, "'sd' is not a recognised field in 'population'. Allowed here: metric, d.")
+  expect_spec_problem(spec, "'sd' is not a recognised field in 'population'. Allowed here: metric, d, raw.")
 })
 
 test_that("wrong value types are described in plain words", {
