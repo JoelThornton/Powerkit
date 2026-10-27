@@ -1,3 +1,14 @@
+# powerkit 0.9.0
+
+* App: the result screen can show three effects side by side. Under the
+  explore panel, the user may enter a conservative (smaller) and an
+  optimistic (larger) effect; powerkit draws power by sample size for
+  those and the plan's own effect, and states the N each needs at the
+  plan's target power. Neither value is suggested or filled in. Offered
+  where the explore panel is (the t-tests and the correlation by
+  formula), not for a smallest-detectable-effect plan. The app only calls
+  the engine; the plan is unchanged.
+
 # powerkit 0.7.0
 
 * App: "Plan my whole study" works out the combined sample size. Each

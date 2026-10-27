@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 26 October 2026. This page says where the project is now
+*Last updated: 27 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -126,6 +126,10 @@ fully validated. Validation runs are recorded in
   once: an input two analyses both ask for fills the second's input
   screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
   and needs a statistician's check.
+- **Three effects side by side (27 October 2026, 0.9.0):** on the
+  result screen for the t-tests and the correlation, a conservative and an
+  optimistic effect the user enters are drawn with the plan's effect, with
+  the N each needs.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation

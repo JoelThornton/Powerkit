@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-27"
+    title: "See how much the answer depends on the effect"
+    text: >-
+      On the result for a t-test or a correlation, you can now enter a
+      smaller and a larger effect you would still find plausible. powerkit
+      draws power for those and your plan's effect on one chart, and says
+      how many participants each would need, so you can see how much
+      rides on being right about the effect.
   - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-

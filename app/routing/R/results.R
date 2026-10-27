@@ -464,6 +464,88 @@ explore_ui <- function(spec) {
   )
 }
 
+# Three effects side by side: the plan's effect with a smaller
+# (conservative) and a larger (optimistic) one the user gives. One number
+# hides how much the answer depends on being right about the effect; three
+# lines show it. powerkit suggests neither value. The same designs as the
+# explore panel; the app only calls the engine.
+scenario_names <- c(conservative = "Conservative", expected = "Your plan's effect", optimistic = "Optimistic")
+
+# The plan's effect, standardised (worked out by the engine where the
+# effect was given in the measure's own units).
+scenario_planned <- function(spec, result = NULL) {
+  e <- explore_effect(spec)
+  if (is.null(e)) return(NULL)
+  result$effect_from_units$value %||% spec$population[[e$field]]
+}
+
+scenario_effects <- function(spec, result = NULL, conservative = NA, optimistic = NA) {
+  planned <- scenario_planned(spec, result)
+  effects <- c(conservative = conservative, expected = if (is.null(planned)) NA else planned, optimistic = optimistic)
+  effects[!is.na(effects)]
+}
+
+scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n = NULL, run = engine_function("run_spec"), seed = 1L) {
+  e <- explore_effect(spec)
+  effects <- scenario_effects(spec, result, conservative, optimistic)
+  # Wide enough to show where every line reaches the target power.
+  top <- max(c(explore_sizes(spec, result), 1.25 * n), na.rm = TRUE)
+  step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
+  ns <- unique(pmax(8, step * round(seq(8, top, length.out = 15) / step)))
+  do.call(rbind, lapply(names(effects), function(k) {
+    power <- vapply(ns, function(at) {
+      s <- spec
+      s$population <- stats::setNames(list("standardised", effects[[k]]), c("metric", e$field))
+      s$goal <- list(type = "power", n = as.integer(at))
+      calc <- run_calculation(s, run, seed)
+      if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
+    }, numeric(1))
+    data.frame(n = ns, power = power, scenario = k)
+  }))
+}
+
+# The N each effect needs at the plan's target power (or 80% for a plan at
+# a fixed N), from the engine; NA where the engine can't give one.
+scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = engine_function("run_spec"), seed = 1L) {
+  e <- explore_effect(spec)
+  effects <- scenario_effects(spec, result, conservative, optimistic)
+  power <- spec$goal$power %||% 0.8
+  vapply(effects, function(effect) {
+    s <- spec
+    s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
+    s$goal <- list(type = "sample_size", power = power)
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$n_required$n else NA_real_
+  }, numeric(1))
+}
+
+scenario_sentence <- function(spec, n) {
+  power <- spec$goal$power %||% 0.8
+  parts <- vapply(names(n), function(k) {
+    sprintf("%s needs %s", tolower(scenario_names[[k]]), if (is.na(n[[k]])) "a number powerkit couldn't find" else whole(n[[k]]))
+  }, character(1))
+  sprintf("For %s power, %s participants in total.", percent(power), paste(parts, collapse = "; "))
+}
+
+scenarios_ui <- function(spec, result = NULL) {
+  e <- explore_effect(spec)
+  planned <- scenario_planned(spec, result)
+  # Nothing to compare with a plan for the smallest detectable effect, or
+  # with no effect.
+  if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || planned == 0) return(NULL)
+  div(class = "scenario-panel",
+    h4(class = "h6", "How much does the answer depend on the effect?"),
+    p(class = "small", sprintf(paste0(
+      "Your plan uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
+      "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them, and they don't change your plan."),
+      e$label, format(round(planned, 3)))),
+    div(class = "d-flex gap-3 flex-wrap",
+      numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
+      numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
+    plotOutput("scenario_plot", height = "300px"),
+    uiOutput("scenario_n"))
+}
+
 # "The smallest effect I could detect across a range of sample sizes": the
 # engine's smallest detectable effect at eight sample sizes up to the
 # largest one, at 80% and 95% power. The app only calls the engine.
@@ -740,6 +822,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     p(class = "result-detail", words[["detail"]])),
     if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
     div(class = "result-card result-explore", explore_ui(spec)),
+    if (!is.null(scen <- scenarios_ui(spec))) div(class = "result-card result-scenarios", scen),
     div(class = "result-card result-how",
     h4(class = "h5", "How it was calculated"),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
