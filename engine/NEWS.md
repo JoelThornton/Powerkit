@@ -1,3 +1,14 @@
+# powerkit 0.9.0
+
+* App: the result screen can show three effects side by side. Under the
+  explore panel, the user may enter a conservative (smaller) and an
+  optimistic (larger) effect; powerkit draws power by sample size for
+  those and the plan's own effect, and states the N each needs at the
+  plan's target power. Neither value is suggested or filled in. Offered
+  where the explore panel is (the t-tests and the correlation by
+  formula), not for a smallest-detectable-effect plan. The app only calls
+  the engine; the plan is unchanged.
+
 # powerkit 0.8.0
 
 * Engine and app: the one-sample, independent-samples and paired t-tests
@@ -17,6 +28,7 @@
   screens ask how the effect will be given (Cohen's d, or the means and
   SD); the result states the d it was worked out to, the write-up gives
   the means and SD with d, and the explore panel starts from that d.
+
 # powerkit 0.7.1
 
 * App: each tab has its own address (`?page=about`, `whats-new`, `labs`,

@@ -984,6 +984,35 @@ test_that("the app checks the limit before starting any background run, and says
   expect_false(grepl("Error|error|stack", html))
 })
 
+test_that("three effects side by side: conservative, the plan's and optimistic", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$options$nrep <- NULL
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  html <- as.character(scenarios_ui(calc$spec, calc$result))
+  expect_match(html, "How much does the answer depend on the effect?", fixed = TRUE)
+  expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
+  # Only the values given are drawn; the plan's effect always is.
+  n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
+  expect_named(n, c("conservative", "expected"))
+  expect_equal(n[["expected"]], calc$result$n_required$n)
+  expect_equal(n[["conservative"]], 2 * ceiling(pwr::pwr.t.test(d = 0.3, power = 0.8)$n))
+  n <- scenario_n(calc$spec, calc$result, 0.3, 0.6, seed = forms$default_seed)
+  df <- scenario_curves(calc$spec, calc$result, 0.3, 0.6, n = n, seed = forms$default_seed)
+  expect_setequal(unique(df$scenario), c("conservative", "expected", "optimistic"))
+  expect_false(anyNA(df$power))
+  # Wide enough for the conservative effect to reach the target power.
+  expect_gte(max(df$power[df$scenario == "conservative"]), 0.8)
+  # The larger effect has more power at every N.
+  expect_true(all(df$power[df$scenario == "optimistic"] >= df$power[df$scenario == "conservative"]))
+  expect_match(scenario_sentence(calc$spec, n), "For 80% power, conservative needs", fixed = TRUE)
+  # Not offered for the smallest detectable effect, or where explore isn't.
+  sens <- light_spec("E2", goal = list(type = "sensitivity", n = 100L, power = 0.8))
+  sens$target_test$method <- "student_t"
+  expect_null(scenarios_ui(sens))
+  expect_null(scenarios_ui(light_spec("E7")))
+})
+
 test_that("the t-tests take the effect in the measure's own units, and the engine works out d", {
   units <- list(
     E1 = list(effect_units = "raw", raw_mean = "4.5", raw_test_value = "4", raw_sd = "1.25"),
