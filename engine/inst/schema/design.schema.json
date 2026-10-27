@@ -243,12 +243,44 @@
           "minLength": 1
         },
         "adjustment": {
-          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study.",
+          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power is used.",
           "type": "string",
           "minLength": 1
         },
         "notes": {
           "type": "string"
+        },
+        "safeguard": {
+          "description": "Safeguard power (Perugini, Gallucci & Costantini, 2014): plan with the lower bound of a two-sided confidence interval around one earlier study's effect size. For prior_study and pilot_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the earlier estimate; validation replaces it with the safeguard effect and records the estimate here.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "n": {
+              "description": "The earlier study's number of participants (one-sample, paired, correlation).",
+              "type": "integer",
+              "minimum": 4
+            },
+            "n1": {
+              "description": "The earlier study's size of group 1 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "n2": {
+              "description": "The earlier study's size of group 2 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "protection": {
+              "description": "The chance that the true effect is at least the safeguard effect: 0.8 (the 60% interval) by default; 0.95 uses the 90% interval.",
+              "type": "number",
+              "exclusiveMinimum": 0.5,
+              "exclusiveMaximum": 1
+            },
+            "estimate": {
+              "description": "Filled in by powerkit: the earlier study's estimate, before the safeguard effect replaced it in the population.",
+              "type": "number"
+            }
+          }
         }
       },
       "allOf": [
@@ -264,9 +296,35 @@
             }
           },
           "then": {
-            "required": [
-              "adjustment"
+            "anyOf": [
+              {
+                "required": [
+                  "adjustment"
+                ]
+              },
+              {
+                "required": [
+                  "safeguard"
+                ]
+              }
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "safeguard"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "prior_study",
+                  "pilot_study"
+                ]
+              }
+            }
           }
         }
       ]

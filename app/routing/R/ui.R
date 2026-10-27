@@ -165,10 +165,23 @@ page_slug <- function(tab) {
   if (is.na(slug)) "plan" else slug
 }
 
-# Each history entry carries its page in the address (?page=...). On the
-# online app the page sits inside Posit Connect Cloud's frame, so the
-# browser's address bar can't show it there, but a link with ?page= still
-# opens that page.
+# The online app's public address. It runs inside Posit Connect Cloud's
+# frame, so the browser's address bar can't show which page is open; the
+# share button in the top bar (share_page_ui()) gives this address with
+# the page instead.
+public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
+
+# The top bar's button: copies a link to the page on show (and the Labs
+# tool open, as ?page=labs&tool=...).
+share_page_ui <- function() {
+  div(class = "share-page",
+    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
+    tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
+      `data-public` = public_address, "Share this page"))
+}
+
+# Each history entry carries its page in the address (?page=...); a link
+# with ?page= opens that page.
 nav_js <- "
   window.pkPageUrl = function(page) {
     var url = new URL(window.location.href);
@@ -177,6 +190,7 @@ nav_js <- "
   };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
+    window.pkPage = m.page;
     var url = pkPageUrl(m.page);
     if (m.replace) history.replaceState(entry, '', url);
     else history.pushState(entry, '', url);
@@ -184,6 +198,20 @@ nav_js <- "
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
+  // Copy a link to the page: the public address inside Connect Cloud's
+  // frame, else this address (without the maintainer's view).
+  window.pkSharePage = function(btn) {
+    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
+    var page = window.pkPage || 'plan';
+    var params = new URLSearchParams();
+    if (page !== 'plan') params.set('page', page);
+    if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
+    var link = base + (params.toString() ? '?' + params.toString() : '');
+    var status = btn.parentNode.querySelector('.share-page-status');
+    pkCopyText(link, null);
+    if (status) { status.textContent = 'Link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
+  };
 "
 
 # Start screen ---------------------------------------------------------------

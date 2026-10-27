@@ -1,3 +1,60 @@
+# powerkit 0.9.0
+
+* App: a "Share this page" button in the top bar copies a link that opens
+  the page on show (`?page=labs&tool=prereplication` opens the Labs
+  pre-replication notes directly). The online
+  app runs inside Posit Connect Cloud's frame, where the address bar can't
+  show the page, so this is how a page is shared there. No calculation
+  changes.
+
+* App: the result screen can show three effects side by side. Under the
+  explore panel, the user may enter a conservative (smaller) and an
+  optimistic (larger) effect; powerkit draws power by sample size for
+  those and the plan's own effect, and states the N each needs at the
+  plan's target power. Neither value is suggested or filled in. Offered
+  where the explore panel is (the t-tests and the correlation by
+  formula), not for a smallest-detectable-effect plan. The app only calls
+  the engine; the plan is unchanged.
+
+* App, Labs: a map of the methods (`app/routing/R/map.R`), drawn as an
+  interactive node graph. `map_graph()` turns `tree.yaml` into one node per
+  question and per analysis (an analysis reached by several routes is one
+  node) and one edge per answer, and tags each analysis with what the study
+  wants to show, the outcome and how often people are measured, from the
+  routes that reach it. The page draws it as a "cosmos" with Cytoscape.js
+  and its dagre layout (bundled in `app/routing/www/vendor`, MIT licence,
+  no new R package): each thing a study can want to show is a star, and
+  its analyses are planets on rings around it, spaced so labels don't
+  meet; an analysis that belongs to several stars orbits one and is joined
+  to the others by dashed lines. A filter panel down the side (research
+  question, outcome, measurements, whether powerkit calculates it), search
+  that flies to matches, clicking a star or planet to zoom in, a details
+  panel with the route to an analysis through "Help me choose" and a link
+  to its card, a switch between plain-words names and the tests' usual
+  names, and a second view of every question as a left-to-right
+  tree. A nested list of the same map is provided for screen readers.
+  Nothing is calculated (docs/decisions.md, 27 October 2026).
+
+* Safeguard power (Perugini, Gallucci & Costantini, 2014; refs.bib
+  `Perugini2014_safeguard`). When the effect size comes from a previous
+  study or a pilot, `effect_justification > safeguard` asks the engine to
+  plan with the lower bound of a two-sided confidence interval around that
+  estimate: the 60% interval for 80% protection against the estimate being
+  too large (the default), or the 90% interval for 95%. Covers the
+  one-sample, paired and independent t-tests and the correlation. The
+  interval comes from psych: `cohen.d.ci()` (noncentral t, given the
+  earlier study's n, or n1 and n2) for d and d_z, `r.con()` (Fisher's z)
+  for r. `validate_spec()` puts the safeguard effect in the population and
+  keeps the estimate in the justification, once, so the hash is stable;
+  the result's `safeguard` element records the estimate, the interval, the
+  bound used and psych's version. New export `safeguard_effect()`. psych
+  joins Imports (it was already installed as a dependency of power4mome).
+  A previous study's effect needs an `adjustment` or a `safeguard`.
+* App: the effect-size source question offers safeguard power for those
+  four tests, asking for the earlier study's sample size and the protection
+  wanted. The result card and the write-up say which effect size was used
+  and why; the explore panel starts from it.
+
 # powerkit 0.8.0
 
 * Engine and app: the one-sample, independent-samples and paired t-tests
@@ -17,6 +74,7 @@
   screens ask how the effect will be given (Cohen's d, or the means and
   SD); the result states the d it was worked out to, the write-up gives
   the means and SD with d, and the explore panel starts from that d.
+
 # powerkit 0.7.1
 
 * App: each tab has its own address (`?page=about`, `whats-new`, `labs`,

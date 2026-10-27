@@ -63,6 +63,11 @@ fully validated. Validation runs are recorded in
   chi-square test of independence, ANCOVA or mediation, so those need
   G\*Power itself. Next there: the pwrss column, from the installed
   sources.
+- **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
+  one previous study or pilot, the one-sample, paired and independent
+  t-tests and the correlation can plan with the lower bound of a 60% (or
+  90%) confidence interval around it, worked out by psych (Perugini,
+  Gallucci & Costantini, 2014). Not yet for other designs.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
@@ -72,8 +77,8 @@ fully validated. Validation runs are recorded in
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
   itself from main; [`run-it-yourself.md`](run-it-yourself.md) is for
   running it on one's own computer. Each tab has its own link
-  (`?page=labs` and so on; Connect Cloud's frame keeps the address bar
-  from showing it). What the app
+  (`?page=labs` and so on); Connect Cloud's frame keeps the address bar
+  from showing it, so the top bar has a "Share this page" button. What the app
   now does, all merged:
   - larger text on large screens with no sideways scrolling when zoomed,
     the page moving to the result after "Check my answers", and a result
@@ -131,13 +136,22 @@ fully validated. Validation runs are recorded in
   combined sample size (the largest N among the main analyses, named,
   from the calculations made from the plan) and asks for shared values
   once: an input two analyses both ask for fills the second's input
-  screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
+  screen. Whole-study simulation is queued ([`next.md`](next.md), item 1)
   and needs a statistician's check.
 - **Effect in the measure's own units (27 October 2026, 0.8.0):** the
   three t-tests take the means and SD instead of Cohen's d (or d_z); the
   engine works out the standardised effect, the result and write-up show
   it, and a smallest detectable effect is also given in the measure's
-  units. Next in [`next.md`](next.md): the three-line power curve.
+  units.
+- **Three effects side by side (27 October 2026, 0.9.0):** on the
+  result screen for the t-tests and the correlation, a conservative and an
+  optimistic effect the user enters are drawn with the plan's effect, with
+  the N each needs.
+- **Labs map of the methods (27 October 2026, 0.9.0):** an interactive
+  "cosmos" (stars for research questions, planets for analyses) generated from the design finder's questions (Cytoscape.js,
+  bundled), with filters, search, two views and each analysis's
+  card. Charts on each analysis's page and a
+  sourced reading list are not built yet.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation

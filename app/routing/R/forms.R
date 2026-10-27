@@ -226,7 +226,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(input = NULL, title = "What you want to find out", fields = test)),
     claim_groups(start$claim, start$n_tests),
     list(
-    list(input = NULL, title = "Where your effect size comes from", fields = list(
+    list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
@@ -238,8 +238,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.source", optional = TRUE),
       list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
-           shown_if = list(field = "just_type", is = "prior_study"))
-    )),
+           shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
+    ), safeguard_fields(form$base$template))),
     if (!isTRUE(form$generic)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
@@ -258,6 +258,34 @@ closing_groups <- function(forms, ep_id, start = list()) {
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
   )))
+}
+
+# Safeguard power (Perugini, Gallucci & Costantini, 2014): for an effect
+# size from one earlier study, plan with the lower end of a confidence
+# interval around it. The engine works the interval out (psych); the form
+# asks for the earlier study's sample size and the protection wanted.
+safeguard_sizes <- list(one_sample_t = "n", paired_t = "n", correlation = "n", independent_t = c("n1", "n2"))
+
+safeguard_fields <- function(template) {
+  sizes <- safeguard_sizes[[template %||% ""]]
+  if (is.null(sizes)) return(list())
+  from_one_study <- list(field = "just_type", is_one_of = c("prior_study", "pilot_study"))
+  using <- list(from_one_study, list(field = "sg_use", is = "yes"))
+  size_field <- function(id, label, min) list(id = paste0("sg_", id), label = label, type = "number", integer = TRUE, min = min,
+    required = TRUE, path = paste0("effect_justification.safeguard.", id), shown_if = using)
+  c(list(
+    list(id = "sg_use", label = "Plan with the safeguard effect size?", type = "select", default = "no",
+         help = paste("One study's estimate is uncertain, and may be too large. Safeguard power plans with the lower end of a",
+                      "confidence interval around it instead, so the study is protected if the true effect is smaller (Perugini, Gallucci & Costantini, 2014).",
+                      "Enter the earlier study's effect size above as it was reported."),
+         choices = list(no = "No: plan with the effect size as it is", yes = "Yes: use the safeguard effect size"),
+         shown_if = from_one_study)),
+    if (identical(sizes, "n")) list(size_field("n", "How many people the earlier study had", 4))
+    else list(size_field("n1", "People in group 1 of the earlier study", 2), size_field("n2", "People in group 2 of the earlier study", 2)),
+    list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
+         help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
+         path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
+         default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
 
 guess_note <- paste(
@@ -413,6 +441,7 @@ field_applies <- function(field, values) {
     current <- if (blank(current)) "" else as.character(current)
     if (!is.null(cond[["is"]]) && !identical(current, cond[["is"]])) return(FALSE)
     if (!is.null(cond[["is_not"]]) && identical(current, cond[["is_not"]])) return(FALSE)
+    if (!is.null(cond[["is_one_of"]]) && !current %in% cond[["is_one_of"]]) return(FALSE)
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$shown_for_goals)) return(isTRUE(values$goal %in% field$shown_for_goals))

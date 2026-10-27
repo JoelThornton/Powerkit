@@ -984,6 +984,60 @@ test_that("the app checks the limit before starting any background run, and says
   expect_false(grepl("Error|error|stack", html))
 })
 
+test_that("safeguard power: the form asks for the earlier study's size, and the result and write-up say what was used", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  expect_true("sg_use" %in% vapply(fields, `[[`, "", "id"))
+  expect_false("sg_use" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
+  use <- Filter(function(f) identical(f$id, "sg_use"), fields)[[1]]
+  expect_false(field_applies(use, modifyList(form_examples$E2, list(just_type = "smallest_effect_of_interest"))))
+  values <- modifyList(form_examples$E2, list(just_type = "pilot_study", just_source = "Our pilot", sg_use = "yes",
+    sg_n1 = 20, sg_n2 = 20, sg_protection = 0.8, goal = "power", n = 48))
+  expect_true(field_applies(use, values))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$effect_justification$safeguard$n1, 20)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_lt(calc$result$safeguard$lower, calc$result$safeguard$estimate)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "Safeguard power: the earlier study's estimate", fixed = TRUE)
+  expect_match(html, "60% confidence interval", fixed = TRUE)
+  text <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)
+  expect_match(paste(text, collapse = " "), "safeguard power approach (Perugini, Gallucci & Costantini, 2014)", fixed = TRUE)
+  # Without "yes" nothing about the safeguard reaches the spec.
+  plain <- build_spec(forms, "E2", fields, modifyList(values, list(sg_use = "no")))
+  expect_null(plain$effect_justification$safeguard)
+})
+
+test_that("three effects side by side: conservative, the plan's and optimistic", {
+  spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  spec$target_test$method <- "student_t"
+  spec$options$nrep <- NULL
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  html <- as.character(scenarios_ui(calc$spec, calc$result))
+  expect_match(html, "How much does the answer depend on the effect?", fixed = TRUE)
+  expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
+  # Only the values given are drawn; the plan's effect always is.
+  n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
+  expect_named(n, c("conservative", "expected"))
+  expect_equal(n[["expected"]], calc$result$n_required$n)
+  expect_equal(n[["conservative"]], 2 * ceiling(pwr::pwr.t.test(d = 0.3, power = 0.8)$n))
+  n <- scenario_n(calc$spec, calc$result, 0.3, 0.6, seed = forms$default_seed)
+  df <- scenario_curves(calc$spec, calc$result, 0.3, 0.6, n = n, seed = forms$default_seed)
+  expect_setequal(unique(df$scenario), c("conservative", "expected", "optimistic"))
+  expect_false(anyNA(df$power))
+  # Wide enough for the conservative effect to reach the target power.
+  expect_gte(max(df$power[df$scenario == "conservative"]), 0.8)
+  # The larger effect has more power at every N.
+  expect_true(all(df$power[df$scenario == "optimistic"] >= df$power[df$scenario == "conservative"]))
+  expect_match(scenario_sentence(calc$spec, n), "For 80% power, conservative needs", fixed = TRUE)
+  # Not offered for the smallest detectable effect, or where explore isn't.
+  sens <- light_spec("E2", goal = list(type = "sensitivity", n = 100L, power = 0.8))
+  sens$target_test$method <- "student_t"
+  expect_null(scenarios_ui(sens))
+  expect_null(scenarios_ui(light_spec("E7")))
+})
+
 test_that("the t-tests take the effect in the measure's own units, and the engine works out d", {
   units <- list(
     E1 = list(effect_units = "raw", raw_mean = "4.5", raw_test_value = "4", raw_sd = "1.25"),
