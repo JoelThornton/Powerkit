@@ -80,7 +80,7 @@ test_that("interaction: matches the InteractionPoweR tutorial example (published
   n <- 940
   alpha <- 0.05
   published_power <- 0.90
-  reference_nrep <- TODO_PUBLISHED_VALUE # n.iter behind the published power, or NULL if analytic
+  reference_nrep <- NULL # n.iter behind the published power, or NULL if analytic
   skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, n, alpha, published_power, reference_nrep)
 
   spec <- interaction_spec(r_x_y, r_w_y, r_xw_y, r_x_w, n = n, seed = 201, alpha = alpha)
@@ -138,12 +138,12 @@ test_that("interaction: required N matches the InteractionPoweR tutorial (publis
   #   which gives 0.885 at N = 3,500 and 0.905 at N = 3,750.
   r_x_y <- 0.51
   r_w_y <- 0.22
-  r_xw_y <- 0.09
-  r_x_w <- TODO_PUBLISHED_VALUE
+  r_xw_y <- 0.045
+  r_x_w <- 0.09
   alpha <- 0.05
   target_power <- 0.90
-  published_n <- TODO_PUBLISHED_VALUE # a single N, or NULL if a range is given
-  published_n_range <- TODO_PUBLISHED_VALUE # c(lower, upper), or NULL if a single N is given
+  published_n <- NULL # a single N, or NULL if a range is given
+  published_n_range <- c(3501, 3750) # c(lower, upper), or NULL if a single N is given
   skip_if_todo(r_x_y, r_w_y, r_xw_y, r_x_w, alpha, target_power, published_n, published_n_range)
 
   spec <- interaction_spec(

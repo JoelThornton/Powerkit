@@ -69,7 +69,7 @@ test_that("contrast, two levels against two: matches the G*Power 3.1 manual exam
   n <- 20 # total sample size (groups x n per group)
   weights <- c(-0.5, -0.5, 0.5, 0.5) # the row's weights c, in order
   alpha <- 0.05 # alpha err prob
-  published_power <- TODO_PUBLISHED_VALUE # the power reported for this contrast
+  published_power <- 0.451898 # the power reported for this contrast
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
   spec <- contrast_spec(means, sd, weights, alpha, seed = 201, n = n)
@@ -84,7 +84,7 @@ test_that("contrast, linear trend: matches the G*Power 3.1 manual example (publi
   n <- 20
   weights <- c(-3, -1, 1, 3)
   alpha <- 0.05
-  published_power <- TODO_PUBLISHED_VALUE
+  published_power <- 0.514736
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
   spec <- contrast_spec(means, sd, weights, alpha, seed = 202, n = n)
@@ -101,7 +101,7 @@ test_that("contrast, quadratic trend: matches the G*Power 3.1 manual example (pu
   n <- 20
   weights <- c(1, -1, -1, 1)
   alpha <- 0.05
-  published_power <- TODO_PUBLISHED_VALUE
+  published_power <- 0.057970
   skip_if_todo(means, sd, n, weights, alpha, published_power)
 
   spec <- contrast_spec(means, sd, weights, alpha, seed = 203, n = n)
