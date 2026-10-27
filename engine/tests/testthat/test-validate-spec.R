@@ -30,6 +30,8 @@ test_that("there is an example for every template", {
     "single_predictor",
     # Poisson regression (engine only).
     "single_predictor_count",
+    # Cluster-randomised trial (powertools).
+    "cluster_randomised",
     # Planned comparisons (engine only).
     "oneway_contrast",
     # Variance tests, simulated (engine only).

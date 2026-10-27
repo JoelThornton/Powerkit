@@ -134,9 +134,9 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *People within groups*
-- **I know my analysis:** *A score or scale* → *People within groups*
-- **Plan my whole study:** *A score or scale* → *People within groups*
+- **Help me choose:** *A score or scale* → *People within groups* → *Detect an effect*
+- **I know my analysis:** *A score or scale* → *People within groups* → *Detect an effect*
+- **Plan my whole study:** *A score or scale* → *People within groups* → *Detect an effect*
 
 **End point:** E34 (People nested in groups (classes, teams, clinics)) in all three routes.
 
@@ -172,9 +172,9 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *People within groups*
-- **I know my analysis:** *A score or scale* → *People within groups*
-- **Plan my whole study:** *A score or scale* → *People within groups*
+- **Help me choose:** *A score or scale* → *People within groups* → *Detect an effect*
+- **I know my analysis:** *A score or scale* → *People within groups* → *Detect an effect*
+- **Plan my whole study:** *A score or scale* → *People within groups* → *Detect an effect*
 
 **End point:** E34 (People nested in groups (classes, teams, clinics)) in all three routes.
 

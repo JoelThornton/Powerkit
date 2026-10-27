@@ -259,12 +259,13 @@ figures inside circles)*
 Not sure? Participants come in clusters that share something, so people in
 the same cluster tend to be more alike. Example: *pupils in 20 classrooms,
 with whole classrooms assigned to the intervention.*
-→ **Coming later (not in spec):** multilevel models (decision D4). The
-final card explains that ignoring clustering overstates power. A
-design-effect approximation (inflating a single-level sample size by
-1 + (m − 1) × ICC, where m is the cluster size and ICC the intraclass
-correlation) is a legitimate option that may be added later, clearly
-labelled as an approximation.
+→ **E34.** Cluster-randomised trials (whole groups assigned to two
+conditions) run by the design-effect approximation (the variance inflated
+by 1 + (m − 1) × ICC, where m is the cluster size and ICC the intraclass
+correlation), with powertools' `crt.parallel.cont()` (27 October 2026,
+`decisions.md`); the card labels it a formula and says what it doesn't
+cover. Other multilevel models (decision D4) are still to come. The card
+explains that ignoring clustering overstates power.
 
 **P5. The same people measured over time** *(picture: one figure on a
 timeline)*

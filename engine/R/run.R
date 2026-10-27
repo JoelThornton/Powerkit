@@ -51,6 +51,13 @@
 #' chi-square or z statistic's noncentrality parameter, or the
 #' noncentrality needed for a target power, with pwrss's generic functions.
 #' They have no sample size; the result's curve has one row with `n` `NA`.
+#' Cluster-randomised trials (design `cluster_trial`, template
+#' `cluster_randomised`): whole groups are assigned to one of two
+#' conditions and a score compared, by powertools' `crt.parallel.cont()`
+#' (the design effect with the degrees of freedom from the number of
+#' groups). `goal > n` is the total number of participants, a whole number
+#' of groups of `population > cluster_size`, the same number of groups in
+#' each condition.
 #'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
@@ -103,6 +110,10 @@
 #'   * `safeguard`: `NULL` unless the effect justification uses safeguard
 #'     power; otherwise [safeguard_effect()]'s list for the earlier study's
 #'     estimate, with `lower` the effect size the calculation used.
+#'   * `clusters`: `NULL` unless the design is clustered (design
+#'     `cluster_trial`); otherwise [cluster_summary()]'s list for the n
+#'     analysed: the number of groups, the design effect and the effective
+#'     sample size;
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -215,6 +226,7 @@ run_spec <- function(spec) {
       effect_from_units = units,
       safeguard = safeguard_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
+      clusters = cluster_summary(spec, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),

@@ -30,6 +30,8 @@ analysed_groups <- function(spec, n) {
       k <- length(spec$variables$A$levels)
       rep(n / k, k)
     },
+    # Attrition within each group: every group's analysed size is divided.
+    cluster_randomised = rep(spec$population$cluster_size, n / spec$population$cluster_size),
     n
   )
 }
@@ -48,6 +50,7 @@ group_unit <- function(spec) {
     oneway_between = ,
     oneway_contrast = ,
     oneway_ancova = "group",
+    cluster_randomised = "cluster",
     NA_character_
   )
 }

@@ -23,6 +23,8 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   spec <- build_spec(forms, ep, fields, v)
   # The generic tests (E50) have no sample size and nothing to simulate.
   if (ep == "E50") return(spec)
+  # A cluster-randomised trial's size is a whole number of groups.
+  if (ep == "E34" && !is.null(goal$n)) goal$n <- 80L
   spec$goal <- goal
   if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
   spec
@@ -44,8 +46,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E19, E23-E28, E36 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
+test_that("E1-E9, E18, E19, E23-E28, E34, E36 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -645,7 +647,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E51", "E52", "E53")) {
+  for (ep in c("E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E51", "E52", "E53")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -808,6 +810,30 @@ test_that("Poisson regression runs on pwrss, with the exposure and a yes/no pred
   spec <- build_spec(forms, "E28", fields, values)
   expect_identical(spec$variables$X$type, "binary")
   expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.z.poisson")
+})
+
+test_that("a cluster-randomised trial runs on powertools, with the groups and the design effect", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E34"))
+  spec <- build_spec(forms, "E34", fields, form_examples$E34)
+  expect_identical(spec$template, "cluster_randomised")
+  expect_identical(spec$population$cluster_size, 20)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "powertools::crt.parallel.cont")
+  n <- calc$result$n_required$n
+  expect_equal(n %% 40, 0)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("(%s groups of 20, %s groups in each condition)", n / 20, n / 40), fixed = TRUE)
+  expect_match(words[["detail"]], "The design effect is 1.95", fixed = TRUE)
+  expect_match(words[["detail"]], "intraclass correlation 0.05", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E34", fields, form_examples$E34, calc))
+  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  values <- modifyList(form_examples$E34, list(just_source = "A pilot study."))
+  w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "the design effect is 1.95", fixed = TRUE)
+  # A total that isn't a whole number of groups is refused in plain words.
+  bad <- build_spec(forms, "E34", fields, modifyList(form_examples$E34, list(goal = "power", n = "410")))
+  expect_error(run(bad), "whole number of groups of 20", fixed = TRUE)
 })
 
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {

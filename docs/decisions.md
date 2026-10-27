@@ -3137,3 +3137,36 @@ screens do) or a less conservative correction; how product terms are
 scaled in the population (power4mome's convention, products of
 standardised variables); and whether the default of 1,000 replications
 is precise enough for the joint power.
+
+## 2026-10-27 · Clustered designs: formulas first (powertools), simulation later
+
+**Decision (maintainer, 27 October 2026).** powerkit's first clustered
+designs are computed by formula with powertools 1.0.0 (MIT; the companion
+package to Crespi, 2025): the cluster-randomised trial
+(`crt.parallel.cont()`, whole groups assigned to two conditions) first,
+then the multisite trial (`multisite.cont()`, people randomised within
+each group). Designs that need a model fitted to simulated data
+(predictors measured at both levels, cross-level interactions, many
+trials per participant with items as random effects) come later, by
+simulation with mlmpower, simr or mixpower, after a statistician has
+checked the approach.
+
+**Why.** The design-finder plan already named the design-effect
+approach as a legitimate first option for clustered designs, clearly
+labelled as an approximation ([`design-finder.md`](design-finder.md),
+P4). powertools implements it in
+maintained code, with degrees of freedom from the number of groups, an
+adjustment for varying group sizes and a solver for each unknown, so
+powerkit writes no maths of its own. It answers instantly, as the other
+formula tests do, and asks only for values a psychologist can give
+(groups, group size, ICC, Cohen's d). G\*Power has no clustered designs.
+Two packages listed earlier as candidates, PowerUpR and clusterPower, have
+been removed from CRAN, so they cannot be used.
+
+**How.** Design `cluster_trial`, template `cluster_randomised`: the total
+n is a whole number of groups, the same number in each condition;
+`cluster_summary()` reports the groups, the design effect and the
+effective sample size with every result. Equal numbers of groups per
+condition, one ICC and no covariates for now. Validation placeholders in
+`test-validation-cluster-randomised.R`; published examples to be chosen
+and transcribed by the maintainer.
