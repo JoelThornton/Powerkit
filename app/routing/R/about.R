@@ -85,7 +85,6 @@ about_ui <- function(tree, forms) {
   div(
     class = "about",
     h2("About powerkit"),
-    share_page_ui("about"),
     prototype_banner(tree),
     if (!is.null(version)) {
       p(class = "text-muted",
@@ -160,7 +159,6 @@ whats_new_ui <- function(entries) {
   div(
     class = "about",
     h2("What's new"),
-    share_page_ui("whats-new"),
     p("Changes to powerkit you would notice, newest first. ",
       "The online app updates itself each time a change is approved."),
     lapply(days, function(day) {

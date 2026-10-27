@@ -266,9 +266,9 @@ Each tab has its own address: `?page=about`, `?page=whats-new`,
 `?page=labs` or `?page=feedback` at the end of the app's address (the plan
 tab is the plain address; `?view=maintainer&page=maintainer` opens the
 maintainer's tab). The online app runs inside Posit Connect Cloud's frame,
-which keeps the browser's address bar from changing, so About, What's
-new and the Labs pre-replication notes have a "Share this page" button
-that copies the public address with the page (`?page=labs&tool=prereplication`
+which keeps the browser's address bar from changing, so the top bar has a
+"Share this page" button that copies the public address with the page on
+show (`?page=labs&tool=prereplication`
 opens the notes directly). Run on one's own computer, the address bar
 follows the tab.
 

@@ -142,8 +142,11 @@ app_css <- "
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
   .lead { font-size: 1.05rem; color: #44505e; }
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
-  .topbar-inner { max-width: 70rem; margin: 0 auto; }
-  .share-page { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: -0.25rem 0 1rem 0; }
+  .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .share-page { display: flex; align-items: center; gap: 0.5rem; }
+  .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
+  .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
+  .share-page-status { font-size: 0.85rem; color: #fff; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
   .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }
@@ -322,7 +325,8 @@ ui <- function(req) fluidPage(
   tags$header(class = "topbar",
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
-        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))))
+        tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))),
+      share_page_ui())
   ),
   tags$main(
     class = "app-main",

@@ -167,16 +167,17 @@ page_slug <- function(tab) {
 
 # The online app's public address. It runs inside Posit Connect Cloud's
 # frame, so the browser's address bar can't show which page is open; the
-# share button (share_page_ui()) gives this address with the page instead.
+# share button in the top bar (share_page_ui()) gives this address with
+# the page instead.
 public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
 
-# A link to this page, for the pages worth sending to someone (About,
-# What's new, a Labs tool). `tool` opens a Labs tool (?page=labs&tool=...).
-share_page_ui <- function(page, tool = NULL) {
+# The top bar's button: copies a link to the page on show (and the Labs
+# tool open, as ?page=labs&tool=...).
+share_page_ui <- function() {
   div(class = "share-page",
-    tags$button(type = "button", class = "btn btn-outline-secondary btn-sm", onclick = "pkSharePage(this)",
-      `data-page` = page, `data-tool` = tool, `data-public` = public_address, "Share this page"),
-    tags$span(class = "share-page-status small text-muted", role = "status", `aria-live` = "polite"))
+    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
+    tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
+      `data-public` = public_address, "Share this page"))
 }
 
 # Each history entry carries its page in the address (?page=...); a link
@@ -189,6 +190,7 @@ nav_js <- "
   };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
+    window.pkPage = m.page;
     var url = pkPageUrl(m.page);
     if (m.replace) history.replaceState(entry, '', url);
     else history.pushState(entry, '', url);
@@ -201,12 +203,14 @@ nav_js <- "
   window.pkSharePage = function(btn) {
     var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
     var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
+    var page = window.pkPage || 'plan';
     var params = new URLSearchParams();
-    params.set('page', btn.getAttribute('data-page'));
-    if (btn.getAttribute('data-tool')) params.set('tool', btn.getAttribute('data-tool'));
+    if (page !== 'plan') params.set('page', page);
+    if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
+    var link = base + (params.toString() ? '?' + params.toString() : '');
     var status = btn.parentNode.querySelector('.share-page-status');
-    var link = base + '?' + params.toString();
-    pkCopyText(link, status, 'Couldn\\'t copy automatically. The link is: ' + link);
+    pkCopyText(link, null);
+    if (status) { status.textContent = 'Link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
   };
 "
 

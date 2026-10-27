@@ -188,7 +188,6 @@ labs_ui <- function(tree) {
       tags$strong("Experimental and not validated. "),
       "Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
     h3("Pre-replication notes"),
-    share_page_ui("labs", tool = "prereplication"),
     p("Before replicating a finding, answer three questions in your own words. They come from Karhulahti, Martončik and Adamkovič (2025), who describe the purpose as “to make researchers critically reflect on their work before having started it”. Write as much or as little as you like."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "The paper asks you to replicate findings, not studies: name the finding you care about, not only the paper it came from."),
@@ -332,6 +331,7 @@ labs_js <- "
     // Which Labs tool is open, kept for the tab like the notes.
     window.pkLabsOpen = function(tool) {
       Shiny.setInputValue('labs_tool', tool || '');
+      window.pkLabsTool = tool || '';
       var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
       var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
     };
@@ -340,7 +340,7 @@ labs_js <- "
       // A shared link (?page=labs&tool=...) opens that tool.
       var linked = new URLSearchParams(window.location.search).get('tool');
       if (linked && /^[a-z]+$/.test(linked)) t = linked;
-      if (t) Shiny.setInputValue('labs_tool', t);
+      if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; }
     });
     Shiny.addCustomMessageHandler('labs_open', function(tool) { window.pkLabsOpen(tool); });
     window.pkLabsHideHint = function() {

@@ -468,16 +468,14 @@ test_that("each tab has its own address, so a page can be shared by link", {
   expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
 })
 
-test_that("pages worth sending have a share button with a working link", {
+test_that("the top bar's share button copies a working link to the page", {
   # Inside Connect Cloud's frame the address bar can't show the page, so
   # the button builds the link from the public address.
-  btn <- as.character(share_page_ui("labs", tool = "prereplication"))
-  expect_match(btn, public_address, fixed = TRUE)
-  expect_match(btn, 'data-tool="prereplication"', fixed = TRUE)
+  expect_match(as.character(share_page_ui()), public_address, fixed = TRUE)
   expect_match(nav_js, "window.pkSharePage", fixed = TRUE)
-  expect_match(as.character(about_ui(tree, forms)), 'data-page="about"', fixed = TRUE)
-  expect_match(as.character(whats_new_ui(load_whats_new(file.path(routing_dir, "whats-new.yaml")))), 'data-page="whats-new"', fixed = TRUE)
-  expect_match(as.character(labs_ui(tree)), 'data-page="labs"', fixed = TRUE)
+  expect_match(nav_js, "window.pkLabsTool", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "share_page_ui())", fixed = TRUE)
   # Each shared page name is one the app opens.
   for (p in c("about", "whats-new", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
   expect_true("prereplication" %in% vapply(labs_tools, `[[`, "", "id"))
