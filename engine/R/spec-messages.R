@@ -5,8 +5,8 @@
 # parameters. These helpers rewrite each one as a sentence that names the
 # field in the user's terms and, where possible, suggests a fix.
 
-schema_problems <- function(spec) {
-  result <- spec_validator()(spec_to_json(spec), verbose = TRUE, greedy = TRUE)
+schema_problems <- function(spec, validator = spec_validator()) {
+  result <- validator(spec_to_json(spec), verbose = TRUE, greedy = TRUE)
   if (isTRUE(result)) {
     return(character())
   }

@@ -50,11 +50,13 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # run_calculation(), passed in, so it's the same code as the in-session run.
 background_worker <- function(spec, seed, engine_dir, cores, run_calculation) {
   options(powerkit.cores = cores)
+  # A whole-study simulation (experimental) runs run_whole_study().
+  fun <- if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
   run <- if (requireNamespace("powerkit", quietly = TRUE)) {
-    getExportedValue("powerkit", "run_spec")
+    getExportedValue("powerkit", fun)
   } else {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
-    get("run_spec", envir = asNamespace("powerkit"))
+    get(fun, envir = asNamespace("powerkit"))
   }
   run_calculation(spec, run, seed)
 }

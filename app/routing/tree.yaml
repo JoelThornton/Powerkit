@@ -1553,8 +1553,6 @@ guided:
     - id: any
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
-  placeholders:
-    consistency: "A check across inputs asked for in different ways (for example, Cohen's d in one analysis and cell means in another, or a total effect against a direct path) needs a sourced conversion, so it comes with whole-study simulation, later."
   # Relationships that several analyses share, for the consistency check
   # (decision-tree.md 4.2). The plan lists the ticked analyses that share each.
   shared_relationships:

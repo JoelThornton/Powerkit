@@ -20,6 +20,7 @@ source(file.path("R", "forms_ui.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
+source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
@@ -370,7 +371,10 @@ server <- function(input, output, session) {
     plan_results = list(),   # guided route: the last calculation for each analysis, by analysis id
     plan_values = list(),    # guided route: the values last entered for each analysis, by analysis id
     plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
-    plan_filled = character() # guided route: shared values filled in on the open input screen
+    plan_filled = character(), # guided route: shared values filled in on the open input screen
+    ws_values = list(),      # whole-study simulation: the values typed on its screen
+    ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
+    ws_spec = NULL           # whole-study simulation: the spec of the last run, for its download
   )
 
   # Keep the guided route's inputs in state as they change.
@@ -525,7 +529,9 @@ server <- function(input, output, session) {
     } else if (kind == "guided") {
       if (state$screen == "g_vars") save_guided_variables()
       if (state$screen == "g_analyses") save_guided_analyses()
-      state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan")
+      if (state$screen == "g_sim") save_whole_study_values()
+      if (identical(value, "simulate")) state$ws_calc <- NULL
+      state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan", simulate = "g_sim")
     }
   })
 
@@ -694,13 +700,17 @@ server <- function(input, output, session) {
   # kind: "calc" (E9, or E10-E12's full run) shows the result; "preview"
   # shows the preview panel.
   # Nothing starts while the server is at its limit (background_limit()).
-  start_job <- function(kind, spec, usual, shown) {
+  # `target`: the output the run's result is shown in (the input screen's,
+  # or the whole-study simulation's).
+  start_job <- function(kind, spec, usual, shown, target = "form_result") {
     if (background_running() >= background_limit(forms)) {
-      output$form_result <- renderUI(busy_ui())
-      session$sendCustomMessage("focus_result", "form_result")
+      output[[target]] <- renderUI(busy_ui())
+      session$sendCustomMessage("focus_result", target)
       return(invisible(FALSE))
     }
     job$kind <- kind
+    job$target <- target
+    job$screen <- isolate(state$screen)
     job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed))
     job$started <- Sys.time()
     job$usual <- usual
@@ -727,6 +737,11 @@ server <- function(input, output, session) {
       # Not a result: nothing to download from it.
       range <- if (identical(calc$status, "ok")) preview_range(calc$result)
       output$form_result <- renderUI(preview_panel_ui(forms, shown$ep_id, calc, state$long_spec, range))
+    } else if (identical(job$kind, "whole_study")) {
+      state$ws_calc <- calc
+      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]]))
+      session$sendCustomMessage("focus_result", "ws_result")
+      return()
     } else {
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
@@ -744,12 +759,58 @@ server <- function(input, output, session) {
     session$sendCustomMessage("focus_result", "form_result")
   })
   observeEvent(input$calc_cancel, {
+    target <- job$target %||% "form_result"
     cancel_job()
-    output$form_result <- renderUI(cancelled_ui())
-    session$sendCustomMessage("focus_result", "form_result")
+    output[[target]] <- renderUI(cancelled_ui())
+    session$sendCustomMessage("focus_result", target)
   })
-  # Leaving the input screen stops a run in progress.
-  observeEvent(state$screen, if (!identical(state$screen, "form")) cancel_job(), ignoreInit = TRUE)
+  # Leaving the screen a run was started from stops it.
+  observeEvent(state$screen, if (!identical(state$screen, job$screen %||% "form")) cancel_job(), ignoreInit = TRUE)
+
+  # Whole-study simulation (experimental; R/whole-study.R). The plan, the
+  # values the engine says the population needs, and the run.
+  whole_study_screen <- reactive({
+    answers <- routed_answers()
+    plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks)
+    if (!isTRUE(plan$ok)) return(list(plan = plan))
+    labels <- whole_study_labels(plan$roles, state$plan_values)
+    skeleton <- whole_study_skeleton(plan, labels)
+    parameters <- engine_function("whole_study_parameters")
+    params <- if (is.null(parameters)) NULL else tryCatch(parameters(skeleton), error = function(e) NULL)
+    list(plan = plan, labels = labels, skeleton = skeleton, params = params)
+  })
+  save_whole_study_values <- function() {
+    ws <- whole_study_screen()
+    if (!is.null(ws$params)) state$ws_values <- whole_study_values(input, ws$params)
+  }
+  observeEvent(input$ws_run, {
+    ws <- whole_study_screen()
+    req(ws$params)
+    values <- whole_study_values(input, ws$params)
+    state$ws_values <- values
+    built <- whole_study_spec(ws$skeleton, ws$params, values, state$rule %||% "each")
+    problems <- built$problems %||% whole_study_check(built$spec)
+    if (length(problems)) {
+      output$ws_result <- renderUI(div(class = "form-problems", role = "alert", tabindex = "-1",
+        h3(class = "h5", "Please check"), tags$ul(lapply(problems, tags$li))))
+      session$sendCustomMessage("focus_result", "ws_result")
+      return()
+    }
+    cancel_job()
+    state$ws_calc <- NULL
+    state$ws_spec <- built$spec
+    usual <- whole_study_seconds(forms, ws$plan, built$spec$options$nrep)
+    output$ws_result <- renderUI(calculating_background_ui(usual,
+      sprintf("Simulating the whole study (%s simulated studies)\u2026", whole(built$spec$options$nrep))))
+    start_job("whole_study", built$spec, usual, list(), target = "ws_result")
+    session$sendCustomMessage("focus_result", "ws_result")
+  })
+  output$ws_download_spec <- downloadHandler(
+    filename = function() "powerkit-whole-study-spec.json",
+    content = function(file) {
+      jsonlite::write_json(state$ws_spec, file, auto_unbox = TRUE, pretty = TRUE, digits = NA)
+    }
+  )
 
   # The engine's own exports, for the last result.
   output$download_script <- downloadHandler(
@@ -1024,7 +1085,19 @@ server <- function(input, output, session) {
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
         history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
-        results = state$plan_results, shared = state$plan_shared)
+        results = state$plan_results, shared = state$plan_shared),
+      g_sim = {
+        ws <- whole_study_screen()
+        if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {
+          tagList(screen_nav_ui("guided:plan", "Back to your plan"), h2("Simulate the whole study"),
+            if (!isTRUE(ws$plan$ok)) whole_study_entry_ui(ws$plan)
+            else p("The simulation needs powerkit's engine, which isn't installed where this prototype is running."))
+        } else {
+          isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared),
+            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",
+            values = state$ws_values, path = state$ws_values$path))
+        }
+      }
     )
   })
 }

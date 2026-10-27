@@ -70,7 +70,8 @@
 # renv.lock), mediation_crosscheck_parallel and mediation_crosscheck_serial
 # (parallel and serial mediation, joint test, against simsem), logistic
 # and poisson (logistic and Poisson regression by formula; published values
-# to transcribe).
+# to transcribe), whole_study (the experimental whole-study simulation
+# against powerkit's separate calculations, and Type I error).
 #
 # On demand only (not part of "everything", and never run by
 # devtools::test()): interaction_grid, which compares InteractionPoweR's
@@ -102,7 +103,8 @@ validation_chunks <- function() {
     contrast = "test-validation-anova-contrast.R",
     two_correlations = "test-validation-two-correlations.R",
     generic = "test-validation-generic-tests.R",
-    equivalence = "test-validation-equivalence-tests.R"
+    equivalence = "test-validation-equivalence-tests.R",
+    whole_study = "test-validation-whole-study-crosscheck.R"
   )
 }
 
@@ -114,7 +116,8 @@ validation_minutes <- function() {
     process_6 = 60, process_7 = 120, process_14 = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3,
-    contrast = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3)
+    contrast = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3,
+    whole_study = 90)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
