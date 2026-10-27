@@ -47,8 +47,8 @@ Every box ticked, in one PR:
    entries (date, title, text, newest first, no codes) but **cannot tell
    that you wrote one**: that box is on the author, so say in the PR
    description which entry you added.
-7. The version in `engine/DESCRIPTION` is bumped and `engine/NEWS.md` has
-   its entry (*test:* the version agreement test).
+7. `engine/DESCRIPTION` has the batch's version ("Version numbers" below)
+   and `engine/NEWS.md` has its entry (*test:* the version agreement test).
 8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
    say where it now stands (*test:* `test-repo-consistency.R` keeps the
    roadmap's summary counts honest).
@@ -225,8 +225,9 @@ result screen and the methods paragraph say so.
 
 - `app/routing/whats-new.yaml`: one entry, newest first, in the words a
   psychologist would use. No E-numbers, no "Departure 6".
-- `engine/DESCRIPTION`: bump the version (see below), and `CITATION.cff`
-  (at the repository root, not in `engine/`) with it.
+- `engine/DESCRIPTION`: the batch's version (see below: the first pull
+  request of a batch raises it, the rest keep it), and `CITATION.cff` (at
+  the repository root, not in `engine/`) with it.
 - `engine/NEWS.md`: the developer-facing entry.
 - [`status.md`](status.md): where the project now is, replacing the old
   entry rather than adding to it.
@@ -246,17 +247,35 @@ result screen and the methods paragraph say so.
 About page, in exported R scripts and in every result's provenance, so a
 number somebody quotes can be traced.
 
-- **0.x.y while powerkit is a prototype.** The minor number counts
-  batches of user-visible work that have shipped; the patch number is for
-  fixes. Shipped so far: 0.1.0 the first working prototype (17 October),
-  0.2.0 the four-screen design and the app going online (18 October),
-  0.3.0 the tests by formula (18–20 October), 0.4.0 the shorter input
-  screen, Labs, feedback and browser history (22 October).
-- **1.0.0 is the release**: validated, published values transcribed, and
-  the designs the maintainer wants in it.
+The number is major.minor.patch, and each part means something:
 
-Bump the minor number when a batch of tests or a user-visible feature
-ships; say the number in the "What's new" entry if it helps.
+- **Patch (last number): bug fixes and very small changes**, such as a
+  wording fix or a corrected default. 0.9.0 becomes 0.9.1.
+- **Minor (middle number): one batch of new features.** A batch is the
+  work built and merged together, usually by one thread or in one round of
+  the queue, and it raises the number by one however many pull requests it
+  holds. 0.9 is followed by 0.10, so a high middle number does not mean
+  powerkit is nearly finished.
+- **Major (first number): a big shift**, such as leaving prototype (1.0.0,
+  the release: validated, published values transcribed, and the designs
+  the maintainer wants in it) or changing what the site runs on. This is
+  the maintainer's call.
+
+In practice: the first pull request of a batch sets the next number in
+`engine/DESCRIPTION`, `CITATION.cff` and a new `engine/NEWS.md` heading;
+the rest of the batch keep that number and add their entries under the
+same heading. Never reserve a number ahead for a pull request that isn't
+in the current batch: parallel pull requests that each took their own
+number are how 0.4.0 became 0.8.0 in about a day. The "What's new" tab is
+dated rather than numbered, so users still see each change as it lands.
+
+Shipped so far: 0.1.0 the first working prototype (17 October 2026),
+0.2.0 the four-screen design and the app going online (18 October), 0.3.0
+the tests by formula (18 to 20 October), 0.4.0 the shorter input screen,
+Labs, feedback and browser history (22 October). 0.5.0 to 0.8.0 (26 to 27
+October) were raised once per feature under the earlier rule. 0.9.0 is the
+methods map, the three-effect curves, safeguard power and the share
+button (27 October).
 
 ## The queue: what to add next
 

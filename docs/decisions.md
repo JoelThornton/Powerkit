@@ -3006,3 +3006,27 @@ design's own sentence. The full version (for a supplement or
 preregistration) still states each departure, and the results screen
 still lists them under "How it was calculated", with a pointer from the
 result card.
+
+## 2026-10-27 · What each part of the version number means
+
+**Decision (maintainer, 27 October 2026).** powerkit's version is
+major.minor.patch and each part has a fixed meaning. The patch number is
+for bug fixes and very small changes. The minor number goes up by one for
+each batch of new features, the work built and merged together, however
+many pull requests the batch holds. The major number is for a big shift,
+such as leaving prototype or changing what the site runs on.
+
+**Why.** Under the earlier rule ("bump the minor number when a batch of
+tests or a user-visible feature ships") each feature pull request raised
+the number, and pull requests built in parallel each reserved their own,
+so the version went from 0.4.0 to 0.8.0 in about a day. A version shows
+on the About page, in exported R scripts and in every result's
+provenance; a number that moves with every merge says little about what
+changed. The "What's new" tab is dated, so each change is still visible
+to users as it lands.
+
+**How.** The first pull request of a batch sets the next number; the rest
+keep it and add under the same `engine/NEWS.md` heading
+([`adding-a-test.md`](adding-a-test.md), "Version numbers"). The batch
+merged on 27 October 2026 (methods map, three-effect curves, safeguard
+power, share button) is 0.9.0.

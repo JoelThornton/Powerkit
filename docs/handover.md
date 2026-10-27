@@ -41,8 +41,8 @@ bottom. It is the one place to look.
 [`adding-a-test.md`](adding-a-test.md) is the process, start to finish, and
 holds the queue of what to add next. The short version: a test is added
 when a researcher can run it and see that it exists, so the engine, the
-card, the input screen, the "What's new" entry and the version bump land
-together.
+card, the input screen, the "What's new" entry and the batch's version
+land together (one batch of features raises the middle number by one).
 
 ## Rules
 
