@@ -229,7 +229,7 @@ forms:
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "The effect: Cohen's d, or the means and SD in your measure's own units"
+      - input: "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units"
         fields:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD"},
