@@ -14,7 +14,8 @@ population_problems <- function(spec) {
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model,
-    generic_test = function(spec) character()
+    generic_test = function(spec) character(),
+    equivalence_test = check_equivalence_test
   )
   design_problems <- design_check(spec)
   c(
@@ -93,7 +94,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  spec$design %in% c("factorial_anova", "multiple_regression", "generic_test") ||
+  spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
     pwr_covers(spec) ||
     pwrss_only(spec) ||
     identical(spec$target_test$method, "welch_t")
@@ -102,7 +103,7 @@ exact_available <- function(spec) {
 # Tests with no simulation in powerkit yet: they are computed by formula
 # only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design %in% c("multiple_regression", "generic_test") || pwrss_only(spec))
+  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec))
 }
 
 # Basic tests powerkit computes by simulation only: neither pwr nor pwrss
@@ -168,12 +169,13 @@ check_allocation_allowed <- function(spec) {
       "size. Remove it, or plan for two equal groups."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent")) {
     return(character())
   }
   paste0(
     "'options > allocation_ratio' only applies to two-group designs ",
-    "(independent t-test, two proportions, two correlations); remove it."
+    "(independent t-test, two proportions, two correlations, equivalence of ",
+    "two groups); remove it."
   )
 }
 
@@ -284,6 +286,34 @@ check_single_predictor_x <- function(spec) {
     ))
   }
   character()
+}
+
+# Equivalence tests -------------------------------------------------------------
+
+# An equivalence test shows that the true difference lies between -bound
+# and +bound. If the expected difference is beyond the bound, TOSTER
+# doesn't calculate power (power_t_TOST(): "True mean difference greater
+# than bounds"), and it would be below alpha anyway. At the bound itself
+# power is about alpha, however many people take part, so no sample size
+# reaches a target power.
+check_equivalence_test <- function(spec) {
+  pop <- spec$population
+  effect <- if (identical(spec$template, "tost_paired")) pop$dz else pop$d
+  if (is.null(effect) || is.null(pop$bound)) {
+    return(character())
+  }
+  outside <- abs(effect) > pop$bound + 1e-12
+  at_bound <- abs(effect) >= pop$bound - 1e-12
+  if (!outside && !(at_bound && identical(spec$goal$type, "sample_size"))) {
+    return(character())
+  }
+  paste0(
+    "The difference you expect is ", if (outside) "larger than" else "as large as",
+    " the equivalence bound, so the study would be unlikely to show ",
+    "equivalence however many people took part. Check the expected ",
+    "difference and the bound: the expected difference has to lie inside the ",
+    "bounds (0 means no difference)."
+  )
 }
 
 # Basic tests ----------------------------------------------------------------
@@ -987,6 +1017,10 @@ minimum_n <- function(spec) {
       two_variances = 4,
       4
     ),
+    # TOSTER's power_t_TOST() needs two people per group (one in a
+    # one-sample or paired design); powerkit asks for one more, as for the
+    # t-tests.
+    equivalence_test = if (identical(spec$template, "tost_independent")) 4 else 3,
     factorial_anova = switch(
       spec$template,
       "2x2_between" = 8,
@@ -1022,7 +1056,7 @@ group_split <- function(spec) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent")) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
@@ -1062,6 +1096,9 @@ target_effect_is_zero <- function(spec) {
       }
     ),
     factorial_anova = anova_contrast(spec),
+    # An equivalence test has something to show whenever the bound is above
+    # 0 (the schema requires it), whatever the expected difference.
+    equivalence_test = pop$bound,
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),

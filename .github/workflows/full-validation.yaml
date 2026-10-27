@@ -64,6 +64,7 @@ on:
           - contrast
           - two_correlations
           - generic
+          - equivalence
 
 permissions:
   contents: read

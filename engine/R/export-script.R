@@ -58,6 +58,7 @@ export_script <- function(spec, result, file = NULL) {
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = power4mome_script(spec, result),
+    TOSTER = toster_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -251,6 +252,17 @@ design_description <- function(spec) {
       label("Y"), spec$population$predictors_tested,
       spec$population$predictors_total - spec$population$predictors_tested
     ),
+    "equivalence_test/tost_independent" = sprintf(
+      "equivalence test (two one-sided t-tests, TOST) of %s between the groups of %s (%s)",
+      label("Y"), label("X"), levels("X")
+    ),
+    "equivalence_test/tost_paired" = sprintf(
+      "equivalence test (two one-sided paired t-tests, TOST) of %s between %s (%s)",
+      label("Y"), label("X"), levels("X")
+    ),
+    "equivalence_test/tost_one_sample" = sprintf(
+      "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
+    ),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -349,7 +361,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss") || p$method == "analytic") {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend
@@ -484,7 +496,8 @@ add_recruitment_section <- function(lines, spec, result) {
     spec$template,
     independent_t = ,
     two_proportions = ,
-    two_correlations = c(
+    two_correlations = ,
+    tost_independent = c(
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),

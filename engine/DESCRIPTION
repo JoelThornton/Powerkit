@@ -32,6 +32,7 @@ Imports:
     Spower (>= 0.7),
     stats,
     Superpower,
+    TOSTER,
     utils
 Suggests:
     lavaan,

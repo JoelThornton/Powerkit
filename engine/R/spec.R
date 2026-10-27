@@ -163,17 +163,25 @@ effect_definition <- function(spec) {
 #                 SD * sqrt(2 * (1 - r)).
 standardise_raw_effect <- function(spec) {
   pop <- spec$population
-  if (!identical(spec$design, "basic_test") || !identical(pop$metric, "raw")) {
+  if (!spec$design %in% c("basic_test", "equivalence_test") || !identical(pop$metric, "raw")) {
     return(spec)
   }
   raw <- pop$raw
+  paired_sd <- function() raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r)))
   switch(
     spec$template,
-    one_sample_t = spec$population$d <- (raw$mean - raw$test_value) / raw$sd,
-    independent_t = spec$population$d <- (raw$mean_2 - raw$mean_1) / raw$sd,
-    paired_t = spec$population$dz <- (raw$mean_2 - raw$mean_1) /
-      (raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))))
+    one_sample_t = ,
+    tost_one_sample = spec$population$d <- (raw$mean - raw$test_value) / raw$sd,
+    independent_t = ,
+    tost_independent = spec$population$d <- (raw$mean_2 - raw$mean_1) / raw$sd,
+    paired_t = ,
+    tost_paired = spec$population$dz <- (raw$mean_2 - raw$mean_1) / paired_sd()
   )
+  # Equivalence tests: the bound, in the same SD units as the effect.
+  if (identical(spec$design, "equivalence_test")) {
+    sd <- if (identical(spec$template, "tost_paired")) paired_sd() else raw$sd
+    spec$population$bound <- raw$bound / sd
+  }
   spec
 }
 
@@ -182,17 +190,20 @@ standardise_raw_effect <- function(spec) {
 # the standardised effect itself.
 effect_from_units <- function(spec) {
   pop <- spec$population
-  if (!identical(spec$design, "basic_test") || !identical(pop$metric, "raw")) {
+  if (!spec$design %in% c("basic_test", "equivalence_test") || !identical(pop$metric, "raw")) {
     return(NULL)
   }
   raw <- pop$raw
-  paired <- identical(spec$template, "paired_t")
+  paired <- spec$template %in% c("paired_t", "tost_paired")
   list(
     name = if (paired) "d_z" else "Cohen's d",
     value = if (paired) pop$dz else pop$d,
-    difference = if (identical(spec$template, "one_sample_t")) raw$mean - raw$test_value else raw$mean_2 - raw$mean_1,
+    difference = if (spec$template %in% c("one_sample_t", "tost_one_sample")) raw$mean - raw$test_value else raw$mean_2 - raw$mean_1,
     sd = if (paired) raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))) else raw$sd,
-    sd_name = if (paired) "the SD of the differences" else "the SD"
+    sd_name = if (paired) "the SD of the differences" else "the SD",
+    # Equivalence tests: the bound in the outcome's units and in SD units.
+    bound = raw$bound,
+    bound_value = pop$bound
   )
 }
 

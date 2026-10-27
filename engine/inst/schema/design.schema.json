@@ -32,7 +32,8 @@
         "multiple_regression",
         "logistic_regression",
         "poisson_regression",
-        "generic_test"
+        "generic_test",
+        "equivalence_test"
       ]
     },
     "template": {
@@ -90,6 +91,9 @@
     },
     {
       "$ref": "#/definitions/design_generic_test"
+    },
+    {
+      "$ref": "#/definitions/design_equivalence_test"
     },
     {
       "if": {
@@ -3331,6 +3335,477 @@
             }
           }
         }
+      }
+    },
+    "template_tost_independent": {
+      "description": "Equivalence (TOST) for two independent groups: is the difference in means between -bound and +bound?",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
+            },
+            "d": {
+              "description": "The expected true difference, as Cohen's d: (mean of group 2 - mean of group 1) / pooled SD. 0 if no difference is expected, which is the most favourable case. With metric 'raw', powerkit works it out from population > raw.",
+              "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: each group's expected mean and the SD within a group (one SD for both groups), and the equivalence bound in the same units.",
+              "type": "object",
+              "required": [
+                "mean_1",
+                "mean_2",
+                "sd",
+                "bound"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean_1": {
+                  "description": "The expected mean of group 1 (X's first level).",
+                  "type": "number"
+                },
+                "mean_2": {
+                  "description": "The expected mean of group 2 (X's second level).",
+                  "type": "number"
+                },
+                "sd": {
+                  "description": "The SD of the outcome within a group, taken as the same in both groups, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "bound": {
+                  "description": "The equivalence bound in the outcome's own units: the effect is equivalent to none when the difference lies between -bound and +bound. Above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "bound": {
+              "description": "The equivalence bound, in the same standardised units as the expected effect: the effect is equivalent to none when it lies between -bound and +bound. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "d",
+                  "bound"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "const": "tost"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_tost_paired": {
+      "description": "Equivalence (TOST) for the same participants in two conditions: is the mean within-person difference between -bound and +bound?",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'standardised': the effect is given as dz. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out dz from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
+            },
+            "dz": {
+              "description": "The expected true mean difference, as Cohen's d_z: mean of the within-person differences (second condition minus first) / SD of the differences. 0 if no difference is expected, which is the most favourable case. With metric 'raw', powerkit works it out from population > raw.",
+              "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: the expected mean in each condition, and either the SD of the differences (second minus first) or the SD of the outcome (the same in both conditions) with the correlation between the two measurements, and the equivalence bound in the same units.",
+              "type": "object",
+              "required": [
+                "mean_1",
+                "mean_2",
+                "bound"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean_1": {
+                  "description": "The expected mean in the first condition (X's first level).",
+                  "type": "number"
+                },
+                "mean_2": {
+                  "description": "The expected mean in the second condition (X's second level).",
+                  "type": "number"
+                },
+                "sd_difference": {
+                  "description": "The SD of the within-person differences (second minus first), above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "sd": {
+                  "description": "The SD of the outcome in each condition, taken as the same in both, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "r": {
+                  "description": "The correlation between the two measurements.",
+                  "$ref": "#/definitions/correlation"
+                },
+                "bound": {
+                  "description": "The equivalence bound in the outcome's own units: the effect is equivalent to none when the difference lies between -bound and +bound. Above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "sd_difference"
+                  ],
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "sd"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "r"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "sd",
+                    "r"
+                  ],
+                  "not": {
+                    "required": [
+                      "sd_difference"
+                    ]
+                  }
+                }
+              ]
+            },
+            "bound": {
+              "description": "The equivalence bound, in the same standardised units as the expected effect: the effect is equivalent to none when it lies between -bound and +bound. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "dz",
+                  "bound"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "const": "tost"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_tost_one_sample": {
+      "description": "Equivalence (TOST) for one mean: is the difference between the mean and a fixed value between -bound and +bound?",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them.",
+              "enum": [
+                "standardised",
+                "raw"
+              ]
+            },
+            "d": {
+              "description": "The expected true difference, as Cohen's d: (population mean - test value) / SD. 0 if no difference is expected, which is the most favourable case. With metric 'raw', powerkit works it out from population > raw.",
+              "type": "number"
+            },
+            "raw": {
+              "description": "The effect in the outcome's own units: the expected mean, the fixed value it is tested against, and the SD, and the equivalence bound in the same units.",
+              "type": "object",
+              "required": [
+                "mean",
+                "test_value",
+                "sd",
+                "bound"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mean": {
+                  "description": "The expected population mean.",
+                  "type": "number"
+                },
+                "test_value": {
+                  "description": "The fixed value the mean is tested against.",
+                  "type": "number"
+                },
+                "sd": {
+                  "description": "The SD of the outcome, above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "bound": {
+                  "description": "The equivalence bound in the outcome's own units: the effect is equivalent to none when the difference lies between -bound and +bound. Above 0.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "bound": {
+              "description": "The equivalence bound, in the same standardised units as the expected effect: the effect is equivalent to none when it lies between -bound and +bound. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "raw"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "raw"
+                ]
+              },
+              "else": {
+                "required": [
+                  "d",
+                  "bound"
+                ],
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean"
+            },
+            "method": {
+              "const": "tost"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "design_equivalence_test": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "equivalence_test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "tost_independent",
+              "tost_paired",
+              "tost_one_sample"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "sample_size",
+                  "power"
+                ]
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "tost_independent"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_tost_independent"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "tost_paired"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_tost_paired"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "tost_one_sample"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_tost_one_sample"
+            }
+          }
+        ]
       }
     }
   }
