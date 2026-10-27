@@ -25,6 +25,9 @@ and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
 applied to the specified pattern, the scaled cell \code{means} and the
 \code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
 \code{r}, \code{w} or \code{p2});
+item \code{safeguard}: \code{NULL} unless the effect justification uses safeguard
+power; otherwise \code{\link[=safeguard_effect]{safeguard_effect()}}'s list for the earlier study's
+estimate, with \code{lower} the effect size the calculation used.
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
