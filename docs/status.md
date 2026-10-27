@@ -17,7 +17,7 @@ fully validated. Validation runs are recorded in
   validation so far is mostly agreement with the package each one calls,
   plus Type I error; independent checks exist for the basic tests (the
   maintainer's G\*Power screenshots) and simple, parallel and serial
-  mediation (pwrss and simsem). Published values (27 October 2026): 16
+  mediation (pwrss and simsem). Published values (27 October 2026): 13
   published examples are transcribed in full and pass locally (the
   independent and paired t-tests, both dependent-correlation tests, the
   four generic tests, logistic regression with a yes/no predictor, the
