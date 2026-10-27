@@ -1195,6 +1195,7 @@ endpoints:
       - "Not yet in powerkit: equivalence for correlations or proportions, non-inferiority (a bound on one side only) and minimum-effect tests. TOSTER (https://cran.r-project.org/package=TOSTER) covers equivalence for correlations and proportions."
     inputs: ["What you are comparing, and the names", "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units", "For two groups: the size of group 2 relative to group 1 (1 = equal)"]
     tier: v2
+    alternatives: ["a Bayesian region of practical equivalence (ROPE)", "planning for the precision of the difference (the width of its confidence interval)"]
   E37:
     doc_name: "CFA, SEM model fit, measurement invariance"
     plain_name: "Check that a model or questionnaire structure fits"
@@ -1628,7 +1629,7 @@ glossary:
   - {term: "variance components", pattern: "variance components", hint: "How much scores vary because some participants, and some stimuli, score higher or lower than others overall."}
   - {term: "intraclass correlation (ICC)", pattern: "intraclass correlation|\\bICC\\b", hint: "How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1."}
   - {term: "cluster size", pattern: "cluster size", hint: "How many people there are in each group (for example, pupils per class)."}
-  - {term: "equivalence bounds", pattern: "equivalence bounds", hint: "The smallest difference you would care about, in each direction; a difference inside them counts as negligible."}
+  - {term: "equivalence bounds", pattern: "equivalence bounds?", hint: "The smallest difference you would care about, in each direction; a difference inside them counts as negligible."}
   - {term: "RMSEA", pattern: "\\bRMSEA\\b", hint: "A number summarising how far a model's predictions are from the data, allowing for the model's complexity; smaller means a closer fit."}
   - {term: "relative indirect effects", pattern: "relative indirect effects", hint: "With three or more groups, the indirect effect for each group compared with one chosen reference group."}
   - {term: "breakpoint", pattern: "breakpoint", hint: "The point in time at which the trend may change (for example, when an intervention started)."}

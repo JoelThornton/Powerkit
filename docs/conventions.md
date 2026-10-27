@@ -219,6 +219,18 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
 | Spower | `p_glm(family = poisson())`, simulation [Sp] | coefficients | — |
 | **powerkit** | pwrss's `power.z.poisson(method = "demidenko(vc)")`, its default, by formula; no simulation option yet (in the app since 26 October 2026, E28) [powerkit] | `rate_ratio`: per SD for a score X (X standardised: pwrss's normal distribution with mean 0, SD 1), or the second level against the first for a yes/no X; `base_rate` at X's mean or in X's first level, per unit of exposure | `mean_exposure` (1 if omitted); `x_prob` (yes/no X; 0.5 if omitted); `r2_other_predictors` (0 if omitted). A one-sided test runs in the direction of the rate ratio. Not a departure: pwrss's own default throughout, and the same procedure the manual recommends. powerkit's procedure gives the manual's N for its worked example (649), and pwrss's other two methods give the manual's other two (655, 697) [GP-man, 30.3, p. 77]; powerkit also reproduces, to the three decimals printed, all five rows of the manual's Table 2 whose X distribution it has (three normal, two binomial) [GP-man, 30.4, p. 78]. The manual's only "R² other X" above 0 figure for this test is for Signorini's procedure, which pwrss reproduces as well (774) |
 
+## Equivalence tests (two one-sided tests, TOST)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| TOSTER | `power_t_TOST()`: the exact power of the two one-sided t tests for one, two and paired samples, by Owen's Q function or direct integration of the bivariate noncentral t distribution, "inspired by the PowerTOST package"; its help cites Phillips (1990) and Diletti, Hauschke and Steinijans (1991), and notes that the function "is limited" and points to PowerTOST for more options (TOSTER 0.8.6 help) | `delta`, the true difference in means (0 by default), and `sd` (for paired samples, the SD of the differences); `eqb`, one bound (taken as minus and plus) or two | `alpha` has no default in `power_t_TOST()`; `t_TOST()`, the test itself, defaults to 0.05 for each one-sided test. `n` is per group, or a vector of the two group sizes |
+| **powerkit** | TOSTER's `power_t_TOST()` by formula, no simulation option (in the app since 27 October 2026, E36) [powerkit] | `d` (or `dz` for paired data) with `sd = 1`, and `bound`, the same on each side, in the same SD units; or the means, SD and bound in the outcome's own units, divided by the same SD (the SD of the differences for paired data) | alpha for each one-sided test, 0.05 by default as in `t_TOST()`; the two tests together are the 1 − 2α confidence interval lying inside the bounds. Group sizes in the ratio the user gives. Not a departure: TOSTER's own calculation throughout |
+
+G\*Power 3.1 has no equivalence test for means, so there is no G\*Power
+convention to follow here (`coverage-roadmap.md`, row B54, found none).
+Only symmetric bounds are offered: TOSTER takes asymmetric ones, and the
+app may add them later.
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |

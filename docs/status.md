@@ -78,6 +78,12 @@ fully validated. Validation runs are recorded in
   t-tests and the correlation can plan with the lower bound of a 60% (or
   90%) confidence interval around it, worked out by psych (Perugini,
   Gallucci & Costantini, 2014). Not yet for other designs.
+- **Equivalence tests (27 October 2026, 0.10.0):** the two one-sided
+  tests (TOST) for two groups, paired data and one sample run in the app
+  through TOSTER's exact `power_t_TOST()` (E36), with the bound and the
+  expected difference as Cohen's d or in the measure's own units.
+  Validation in progress: published examples are placeholders.
+  Correlations, proportions and non-inferiority are `next.md`, item 4.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit

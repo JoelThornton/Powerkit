@@ -277,7 +277,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Goal | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Planned (phase 6: equivalence) | Could: AP, PN, S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
+| B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; correlations and proportions to come; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
 | B55 | Non-inferiority | ML; Audit | E36 | Planned (phase 6: equivalence) | Could: AP, PN | candidate: a one-sided test against the margin (Spower `p_t.test(mu = )`, inferred); powertools `prop.2samp(margin = )` (coverage.md) | Phase 6 | — |
 | B56 | Precision (CI width) | ML; BG; Audit | E46 | Planned (phase 6: AIPE) | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
 | B57 | Group-sequential designs with interim analyses | ML; BG; Audit | none: not reachable | Planned (later in the build guide; no phase) | — | rpact `getDesignGroupSequential()`, `getSampleSizeMeans()`, `getPowerMeans()`; gsDesign `gsDesign()`; POSSA `sim()`, `pow()` | — | [C13][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 19 | 1 | 0 | 20 |
+| Wired (validation not finished) | 19 | 2 | 0 | 21 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 25 | 2 | 28 |
+| Planned | 1 | 24 | 2 | 27 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
