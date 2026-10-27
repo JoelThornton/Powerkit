@@ -1,3 +1,13 @@
+# powerkit 0.7.1
+
+* App: each tab has its own address (`?page=about`, `whats-new`, `labs`,
+  `feedback`; the plan tab is the plain address), so a page can be shared
+  by link. Opening an address with `?page=` shows that tab, and the
+  browser's history entries carry the page, so the address bar follows the
+  tab when the app runs on its own. The online app runs inside Posit
+  Connect Cloud's frame, where the address bar can't change, but a link
+  with `?page=` still opens that page. No calculation changes.
+
 # powerkit 0.7.0
 
 * App: on large screens the base text size rises (17 to 19 px), and the
