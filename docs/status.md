@@ -92,7 +92,10 @@ fully validated. Validation runs are recorded in
   and the joint power for the claim at a fixed N, and the values each
   analysis's own screen would need (Departure 13). Waiting for a
   statistician's check (`next.md`, item 1); the method note for it is
-  `docs/whole-study-method.md`.
+  `docs/whole-study-method.md`. Since 0.10.1 it is the plan's first
+  step when it covers the plan, with the separate calculations folded
+  below. Next: a quick run in the app, an R script for the full run, and
+  a search for the sample size.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit

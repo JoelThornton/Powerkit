@@ -173,10 +173,15 @@ test_that("the plan screen offers the experimental whole-study simulation only w
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline")
   html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation", "mediation"), c("compare", "moderation", "mediation"),
     list(compare = "ANCOVA: the outcome adjusting for the baseline"), "any"))
-  expect_match(html, "Simulate the whole study", fixed = TRUE)
-  expect_match(html, "Experimental", fixed = TRUE)
-  expect_match(html, "Not available for this plan yet", fixed = TRUE)
+  expect_match(html, "Simulating the whole study at once \\(experimental\\) isn.{1,5}t available for this plan")
   expect_false(grepl("guided:simulate", html, fixed = TRUE))
+  # The plan the simulation covers leads with it, and folds the separate
+  # calculations below.
+  covered <- list(x = "score", outcome = "score", mediators = "one", moderator = "none", covariate = "none", times = "once")
+  html2 <- as.character(guided_plan_ui(tree, covered, c("compare", "mediation"), c("compare", "mediation"), list(), "all", forms = forms))
+  expect_match(html2, "Your whole study in one go", fixed = TRUE)
+  expect_match(html2, "guided:simulate", fixed = TRUE)
+  expect_lt(regexpr("Your whole study in one go", html2, fixed = TRUE), regexpr("Or calculate each analysis on its own", html2, fixed = TRUE))
   expect_match(html, "The plan then shows the largest", fixed = TRUE)
   expect_false(grepl("N = ", html, fixed = TRUE))
   expect_false(grepl("once the engine is connected", html, fixed = TRUE))

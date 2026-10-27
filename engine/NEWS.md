@@ -1,3 +1,17 @@
+# powerkit 0.10.1
+
+* App: on "Plan my whole study", when the whole-study simulation covers
+  the plan it is now the plan's first step ("Your whole study in one
+  go"), with the analyses it will run; the separate calculations are
+  folded below it. Each analysis on the plan is one line with its button,
+  its full card folded behind "More about this analysis", and the note on
+  the claim and the consistency check folded too. Where the simulation
+  doesn't cover the plan, one folded line says what it would need.
+
+* App: cards no longer lead with a PROCESS model number. The standard
+  name is the analysis's own (for example "Simple mediation"), and a
+  second line says which PROCESS model number Hayes's tool gives it.
+
 # powerkit 0.10.0
 
 * Equivalence tests (design `equivalence_test`, card E36): the two
