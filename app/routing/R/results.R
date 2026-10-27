@@ -743,10 +743,11 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
-  # In cards (26 October 2026): the answer first, then exploring it, then
-  # where powerkit differs and how it was calculated, then saving and the
-  # write-up. The details a reader rarely needs (the values used, the seed,
-  # what power can't tell you) are folded under "More about this result".
+  # In cards: the answer first, with notes on reading it; then exploring
+  # it; then saving and the write-up; then how it was calculated, where
+  # powerkit differs from the usual tools, and the technical records. The
+  # details a reader rarely needs (the values used, the seed, what power
+  # can't tell you) are folded under "More about this result".
   div(
     class = "result-panel", role = "status", tabindex = "-1",
     div(class = "result-card result-main",
@@ -761,37 +762,12 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
-    p(class = "result-detail", words[["detail"]])),
+    p(class = "result-detail", words[["detail"]]),
+    if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
+    if (length(known)) p(class = "result-differs-pointer small",
+      "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
     if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
     div(class = "result-card result-explore", explore_ui(spec, result)),
-    div(class = "result-card result-how",
-    h4(class = "h5", "How it was calculated"),
-    if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
-    p(class = "result-credit",
-      "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      if (p_$backend %in% c("pwr", "stats", "pwrss")) "powerkit built the call from your answers and checked the effect size it passes. " else
-        "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
-      "Cite the package: see Citations below."),
-    validation_ui(ep),
-    if (length(departures)) tagList(
-      h4(class = "h6", "Where powerkit differs from the tool's defaults"),
-      tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
-    ),
-    if (length(known)) tagList(
-      h4(class = "h6", "Where other established tools give a different answer"),
-      tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
-    ),
-    if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(notes, tags$li))),
-    tags$details(class = "result-more",
-      tags$summary("More about this result: the values it used, the seed, and what power can't tell you"),
-      h4(class = "h6", "What this result used"),
-      tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
-      p(class = "result-seed small",
-        sprintf("Seed: %s. ", p_$seed),
-        if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
-          "Nothing was simulated, so the seed doesn't change this result in practice."),
-      p(class = "result-observed small", not_observed_power),
-      p(class = "result-limits small", power_limits))),
     div(class = "result-card result-save",
     h4(class = "h5", "Save and share"),
     if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
@@ -803,10 +779,37 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
-      vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
+      vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known))),
+    div(class = "result-card result-how",
+    h4(class = "h5", "How it was calculated"),
+    if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
+    p(class = "result-credit",
+      "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
+      if (p_$backend %in% c("pwr", "stats", "pwrss")) "powerkit built the call from your answers and checked the effect size it passes. " else
+        "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
+      "Cite the package: see Citations above."),
+    validation_ui(ep),
+    if (length(departures)) tagList(
+      h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+      tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
+    ),
+    if (length(known)) tagList(
+      h4(class = "h6", "Where other established tools give a different answer"),
+      tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
+    ),
+    tags$details(class = "result-more",
+      tags$summary("More about this result: the values it used, the seed, and what power can't tell you"),
+      h4(class = "h6", "What this result used"),
+      tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
+      p(class = "result-seed small",
+        sprintf("Seed: %s. ", p_$seed),
+        if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
+          "Nothing was simulated, so the seed doesn't change this result in practice."),
+      p(class = "result-observed small", not_observed_power),
+      p(class = "result-limits small", power_limits)),
     placeholders_at(tree, "result"),
-    tags$details(tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
-    tags$details(tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+    tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
+    tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
 }
 
@@ -973,8 +976,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
   claim <- writeup_claim(values, spec)
-  short_departures <- if (length(departures)) "Where this analysis departs from the established tools' defaults is described in the supplement."
-  short <- paste(c(main, recruit_line, claim, writeup_software(result), unname(known_methods), short_departures), collapse = " ")
+  # The short version names only the differences that change the answer
+  # (known_methods); departures from a tool's defaults are listed in the
+  # full version, to keep the paper's paragraph short.
+  short <- paste(c(main, recruit_line, claim, writeup_software(result), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
@@ -1038,15 +1043,20 @@ ethics_text <- function(spec, result, fields, values) {
 
 writeup_ui <- function(text) {
   if (is.null(text)) return(NULL)
+  # The short version is open; the longer ones are a click away, so the
+  # card stays short.
   div(class = "result-writeup",
     h4(class = "h6", "Write-up"),
-    p(class = "small", "Edit as you like before you copy it. The short version is for your paper; the full version is for a supplement or preregistration; the plain-words version is for an ethics application."),
+    p(class = "small", "Edit as you like before you copy it."),
     tags$label(`for` = "writeup_short", "Short version (for the paper)"),
     tags$textarea(id = "writeup_short", class = "form-control writeup", rows = 6, text[["short"]]),
-    tags$label(`for` = "writeup_full", "Full version (for a supplement or preregistration)"),
-    tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]]),
-    if (!is.na(text["ethics"])) tagList(
-      tags$label(`for` = "writeup_ethics", "Plain-words version (for an ethics application)"),
+    tags$details(class = "result-more",
+      tags$summary("Full version (for a supplement or preregistration)"),
+      tags$label(`for` = "writeup_full", class = "visually-hidden", "Full version (for a supplement or preregistration)"),
+      tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]])),
+    if (!is.na(text["ethics"])) tags$details(class = "result-more",
+      tags$summary("Plain-words version (for an ethics application)"),
+      tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"),
       p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
       tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
 }

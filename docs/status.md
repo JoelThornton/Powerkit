@@ -72,6 +72,10 @@ fully validated. Validation runs are recorded in
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
   itself from main; [`run-it-yourself.md`](run-it-yourself.md) is for
   running it on one's own computer. What the app now does, all merged:
+  - larger text on large screens with no sideways scrolling when zoomed,
+    the page moving to the result after "Check my answers", and a result
+    screen ordered answer, exploring, save and share, then how it was
+    calculated, with a shorter write-up for the paper;
   - the input screen in sections (goal first, fields only for the goals
     that need them, default settings folded into one line), four progress
     steps, shorter cards and labels, and problems shown next to their

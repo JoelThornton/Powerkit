@@ -14,6 +14,16 @@ entries:
       on the result. If you ask for the smallest effect you could detect,
       it is also given in your measure's units.
   - date: "2026-10-26"
+    title: "Easier to read on large screens, and the result comes into view"
+    text: >-
+      On large screens the text is now a little bigger, so you shouldn't
+      need to zoom in, and zooming in no longer makes the page scroll
+      sideways. After "Check my answers", the page moves to your result.
+      The result screen is reordered: your answer and notes on reading it,
+      then exploring, then saving and the write-up, with how it was
+      calculated last. The short write-up for your paper is shorter, and
+      its longer versions are folded away until you open them.
+  - date: "2026-10-26"
     title: "Your whole study's sample size"
     text: >-
       In "Plan my whole study", each sample size you work out from the plan

@@ -20,6 +20,20 @@
 
 # powerkit 0.7.0
 
+* App: on large screens the base text size rises (17 to 19 px), and the
+  page's width is set in rem, so the layout scales with it; long unbroken
+  text (the spec hash, web addresses) wraps instead of widening the page.
+  After "Check my answers" the result is scrolled to the top of the window
+  and focused, once it has been drawn (the message used to arrive before
+  the result, so the page scrolled only part way). The result screen's
+  cards are reordered: the result with its notes, exploring, save and
+  share with the write-up, then how it was calculated (departures, known
+  differences, the reproducibility record and the spec). The result card
+  points to the known differences when there are any. The short write-up
+  no longer ends with the sentence pointing to departures in the
+  supplement (docs/decisions.md); the full and plain-words versions are
+  folded. No calculation changes.
+
 * App: "Plan my whole study" works out the combined sample size. Each
   sample size calculated from the plan is kept, shown under its analysis,
   and the plan reports the largest N among the main analyses, naming the
