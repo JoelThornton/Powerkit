@@ -52,12 +52,12 @@ test_that("one variance, one-sided: matches G*Power 3.1 manual example (publishe
   #   var1/var0; the example's effect size drawer uses variance V0 = 1.5
   #   (the value tested against) and variance V1 = 1 (the variance assumed
   #   in H1), so `var` is V1 and `var0` is V0.
-  var <- TODO_PUBLISHED_VALUE # Effect size drawer: variance V1
-  var0 <- TODO_PUBLISHED_VALUE # Effect size drawer: variance V0
-  alpha <- TODO_PUBLISHED_VALUE
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  var <- 1 # Effect size drawer: variance V1
+  var0 <- 1.5 # Effect size drawer: variance V0
+  alpha <- 0.05
+  tails <- 1 # Tail(s): 1 or 2
+  total_n <- 81 # Output: Total sample size
+  actual_power <- 0.803686 # Output: Actual power
   skip_if_todo(var, var0, alpha, tails, total_n, actual_power)
 
   spec <- variance_spec(
@@ -73,11 +73,11 @@ test_that("one variance, two-sided: matches the required N in the G*Power 3.1 ma
   # Source: as the test above (manual section 26.3, p. 64), the closing
   #   paragraph: the same example with "Tail(s) = Two" requires N = 103.
   #   Only the sample size is given there, so this is a required-N test.
-  var <- TODO_PUBLISHED_VALUE # Effect size drawer: variance V1
-  var0 <- TODO_PUBLISHED_VALUE # Effect size drawer: variance V0
-  alpha <- TODO_PUBLISHED_VALUE
-  target_power <- TODO_PUBLISHED_VALUE # Input: Power (1-beta err prob)
-  published_n <- TODO_PUBLISHED_VALUE # Text: total sample size for two tails
+  var <- 1 # Effect size drawer: variance V1
+  var0 <- 1.5 # Effect size drawer: variance V0
+  alpha <- 0.05
+  target_power <- 0.80 # Input: Power (1-beta err prob)
+  published_n <- 103 # Text: total sample size for two tails
   skip_if_todo(var, var0, alpha, target_power, published_n)
 
   spec <- variance_spec(
@@ -103,11 +103,11 @@ test_that("two variances: matches G*Power 3.1 manual example (published)", {
   #   two variances. Power depends on the ratio alone (the F statistic is
   #   scale-free), so the spec uses var1 = ratio and var2 = 1: group 1
   #   carries the numerator variance var1, as in G*Power.
-  variance_ratio <- TODO_PUBLISHED_VALUE # Input: Ratio var1/var0
-  alpha <- TODO_PUBLISHED_VALUE
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  total_n <- TODO_PUBLISHED_VALUE # Output: group 1 + group 2 sample sizes
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  variance_ratio <- 1.5 # Input: Ratio var1/var0
+  alpha <- 0.05
+  tails <- 2 # Tail(s): 1 or 2
+  total_n <- 386 # Output: group 1 + group 2 sample sizes
+  actual_power <- 0.800105 # Output: Actual power
   skip_if_todo(variance_ratio, alpha, tails, total_n, actual_power)
 
   spec <- variance_spec(

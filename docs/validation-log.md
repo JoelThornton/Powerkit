@@ -979,3 +979,43 @@ tests.
   280, as G\*Power.
 - Every other result is unchanged from run 39073022227 (exact results
   identical; Type I error rates .048 to .052).
+
+## 2026-10-27 · seven chunks (GitHub Actions; published values transcribed)
+
+The maintainer transcribed published values for 16 examples (G\*Power
+3.1 manual, Faul et al. 2007, Baranger et al. 2023). Each chunk that
+holds one was rerun to check them.
+
+- **Runs:** [17 generic](https://github.com/JoelThornton/Powerkit/actions/runs/40501450758),
+  [18 variances](https://github.com/JoelThornton/Powerkit/actions/runs/40501454715),
+  [19 logistic](https://github.com/JoelThornton/Powerkit/actions/runs/40501458557),
+  [20 poisson](https://github.com/JoelThornton/Powerkit/actions/runs/40501462143),
+  [21 basic](https://github.com/JoelThornton/Powerkit/actions/runs/40501466220)
+  on commit 612c22e; [22 contrast](https://github.com/JoelThornton/Powerkit/actions/runs/40505685163)
+  and [23 interactions](https://github.com/JoelThornton/Powerkit/actions/runs/40505689700)
+  on commit b8cae0f (branch `claude/project-thread-7fzt31-validation`,
+  PR #134). Artifacts: validation-results-<chunk>-run-<n>.
+- **Platform:** GitHub's Ubuntu runner, R 4.5.3, packages from
+  `renv.lock` (powerkit 0.9.0, Spower 0.7, Superpower 0.2.4.1,
+  InteractionPoweR 0.2.4, power4mome 0.2.1, testthat 3.3.2).
+- **No failures or errors in any chunk.**
+
+| Chunk | Pass | Fail | Skip | Published values checked |
+|---|---|---|---|---|
+| generic | 4 | 0 | 0 | t 0.224525 (powerkit 0.224524), F 0.887659, chi-square 0.952339, z 0.912315 |
+| variances | 8 | 0 | 0 | one variance, one-sided 0.8037 in [0.7853, 0.8117]; two-sided N 103 in [103, 104]; two variances 0.8001 in [0.7860, 0.8124] |
+| logistic | 1 | 0 | 1 | yes/no X: N 1437 exact, power 0.950068 (powerkit 0.950104) |
+| poisson | 1 | 0 | 2 | yes/no X: N 649 exact |
+| basic | 27 | 0 | 2 | Faul et al. t 0.951425; paired 0.832114; dependent correlations, common index N 144 and power 0.801161; no common index N 886 and power 0.800093 (powerkit 0.800156) |
+| contrast | 3 | 0 | 0 | 0.451898, 0.514736 (powerkit 0.514737), 0.057970 |
+| interactions | 7 | 0 | 1 | Baranger et al. Fig. 2: 0.90 in [0.8496, 0.9686] (estimate 0.9091); Fig. 3: N range [3501, 3750] overlaps [3649, 3710] (estimate 3679) |
+
+- **Skips** are published-value tests that still have
+  `TODO_PUBLISHED_VALUE`: logistic regression with a normal X (the
+  manual's N of 317 comes from a different procedure than the one
+  powerkit uses, so it awaits the matching G\*Power value), the two
+  Poisson power comparisons, the Faul et al. bivariate-normal
+  correlation, a two-proportions published example, and the
+  measurement-error interaction example.
+- Every direct backend comparison and Type I error check in these chunks
+  passed (basic: rates .048 to .052; variances: .049 to .054).

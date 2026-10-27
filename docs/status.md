@@ -17,8 +17,15 @@ fully validated. Validation runs are recorded in
   validation so far is mostly agreement with the package each one calls,
   plus Type I error; independent checks exist for the basic tests (the
   maintainer's G\*Power screenshots) and simple, parallel and serial
-  mediation (pwrss and simsem). Published values are still to be
-  transcribed (`TODO_PUBLISHED_VALUE` placeholders). Wave 2 (one-way
+  mediation (pwrss and simsem). Published values (27 October 2026): 16
+  published examples are transcribed in full and pass locally (the
+  independent and paired t-tests, both dependent-correlation tests, the
+  three planned contrasts, the four generic tests, logistic regression
+  with a yes/no predictor, the Poisson swimmers example and the three
+  variance tests). Two InteractionPoweR tutorial examples are complete
+  and run in the interactions chunk. The rest keep
+  `TODO_PUBLISHED_VALUE` placeholders, partly filled where a value is
+  still to be checked. Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**

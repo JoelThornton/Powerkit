@@ -84,15 +84,15 @@ test_that("Poisson regression, yes/no X: required N matches the G*Power 3.1 manu
   #   block is Signorini's procedure, so neither its "Total sample size"
   #   nor its "Actual power" belongs here, and no actual power is published
   #   for the Demidenko sample size: this test checks the required N only.
-  rate_ratio <- TODO_PUBLISHED_VALUE # Exp(beta1)
-  base_rate <- TODO_PUBLISHED_VALUE # Base rate exp(beta0)
-  mean_exposure <- TODO_PUBLISHED_VALUE # Mean exposure
-  x_prob <- TODO_PUBLISHED_VALUE # X parm pi
-  r2_other <- TODO_PUBLISHED_VALUE # R2 other X (0 if none)
-  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
-  tails <- TODO_PUBLISHED_VALUE # Tail(s): 1 or 2
-  target_power <- TODO_PUBLISHED_VALUE # Power (1-beta err prob)
-  total_n <- TODO_PUBLISHED_VALUE # N for Demidenko (2007) with variance correction
+  rate_ratio <- 1.3 # Exp(beta1)
+  base_rate <- 0.85 # Base rate exp(beta0)
+  mean_exposure <- 1 # Mean exposure
+  x_prob <- 0.5 # X parm pi
+  r2_other <- 0 # R2 other X (0 if none)
+  alpha <- 0.05 # alpha err prob
+  tails <- 1 # Tail(s): 1 or 2
+  target_power <- 0.95 # Power (1-beta err prob)
+  total_n <- 649 # N for Demidenko (2007) with variance correction
   skip_if_todo(rate_ratio, base_rate, mean_exposure, x_prob, r2_other, alpha, tails, target_power, total_n)
 
   spec <- poisson_spec(
