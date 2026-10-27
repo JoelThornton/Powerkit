@@ -1,5 +1,12 @@
 # powerkit 0.9.0
 
+* App: a "Share this page" button in the top bar copies a link that opens
+  the page on show (`?page=labs&tool=prereplication` opens the Labs
+  pre-replication notes directly). The online
+  app runs inside Posit Connect Cloud's frame, where the address bar can't
+  show the page, so this is how a page is shared there. No calculation
+  changes.
+
 * App: the result screen can show three effects side by side. Under the
   explore panel, the user may enter a conservative (smaller) and an
   optimistic (larger) effect; powerkit draws power by sample size for

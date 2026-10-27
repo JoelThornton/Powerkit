@@ -16,6 +16,12 @@ entries:
       see how to get there and read about it. A switch shows the tests'
       usual names instead of plain words.
   - date: "2026-10-27"
+    title: "Share a page by link"
+    text: >-
+      Press "Share this page" at the top right to copy a link that opens
+      straight on the page you're looking at, such as the pre-replication
+      notes in Labs, ready to paste into an email or message.
+  - date: "2026-10-27"
     title: "See how much the answer depends on the effect"
     text: >-
       On the result for a t-test or a correlation, you can now enter a
@@ -31,12 +37,6 @@ entries:
       with an SD of 1.2. powerkit works out Cohen's d for you and shows it
       on the result. If you ask for the smallest effect you could detect,
       it is also given in your measure's units.
-  - date: "2026-10-27"
-    title: "Share a link to any page"
-    text: >-
-      Each page now has its own link, so you can send someone straight to
-      a page such as Labs or About instead of the start: add ?page=labs
-      (or about, whats-new, feedback) to the end of the address.
   - date: "2026-10-26"
     title: "Easier to read on large screens, and the result comes into view"
     text: >-
