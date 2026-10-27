@@ -265,7 +265,7 @@ start_questions:
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
       estimate: {label: "Estimate how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
-      equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set. powerkit doesn't do this yet; the next screen points to tools that do.", next: E36}
+      equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set. powerkit calculates this for comparing two means or one mean against a fixed value.", next: E36}
 
 routes:
   doc_id: S0
@@ -1184,10 +1184,16 @@ endpoints:
   E36:
     doc_name: "Equivalence test (TOST) or minimum-effect test"
     plain_name: "Show that an effect is absent or too small to matter (equivalence, or non-inferiority)"
-    status: not_in_powerkit
-    inputs: ["Equivalence bounds", "The expected effect"]
-    packages:
-      - {name: TOSTER, url: "https://cran.r-project.org/package=TOSTER", what: "Power for equivalence tests (TOST) for t-tests, correlations, proportions and F tests."}
+    template: "equivalence_test / tost_independent, tost_paired, tost_one_sample"
+    backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-toster.R, note: "Matches TOSTER called directly in the engine's tests, agrees with a large-sample approximation written out in base R, and keeps the chance of wrongly claiming equivalence at or below alpha. Not yet checked against a published example."}
+    card_points:
+      - "Two one-sided tests (TOST): powerkit works out the chance of showing that the true difference lies inside the equivalence bounds, minus and plus the smallest difference that would matter."
+      - "powerkit calculates this for two groups of different people, the same people measured twice, or one mean against a fixed value, with the same bound on each side."
+      - "Not yet in powerkit: equivalence for correlations or proportions, non-inferiority (a bound on one side only) and minimum-effect tests. TOSTER (https://cran.r-project.org/package=TOSTER) covers equivalence for correlations and proportions."
+    inputs: ["What you are comparing, and the names", "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units", "For two groups: the size of group 2 relative to group 1 (1 = equal)"]
     tier: v2
   E37:
     doc_name: "CFA, SEM model fit, measurement invariance"

@@ -157,6 +157,7 @@ group_sizes <- function(spec, n) {
   switch(
     spec$template,
     independent_t = ,
+    tost_independent = ,
     two_proportions = ,
     two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
@@ -236,11 +237,48 @@ generic_sentences <- function(spec, result) {
   }
 }
 
+# Equivalence tests (E36): the two one-sided tests, each at alpha, and the
+# bounds (in the outcome's own units too, when given that way).
+equivalence_bound <- function(spec, result) {
+  name <- if (identical(spec$template, "tost_paired")) "d_z" else "d"
+  u <- result$effect_from_units
+  std <- sprintf("%s = \u00b1%s", name, format(round(u$bound_value %||% spec$population$bound, 3)))
+  if (is.null(u$bound)) std else sprintf("\u00b1%s in your outcome's units (%s)", format(signif(u$bound, 4)), std)
+}
+
+equivalence_test_text <- function(spec, result) {
+  sprintf("two one-sided tests (TOST), each at alpha = %s, and equivalence bounds of %s",
+    alpha_text(spec$target_test$alpha), equivalence_bound(spec, result))
+}
+
+equivalence_sentences <- function(spec, result) {
+  test <- equivalence_test_text(spec, result)
+  shown <- "show that the true difference lies inside the equivalence bounds (both one-sided tests significant)"
+  closer <- "An expected difference of 0 is the most optimistic case: the closer the true difference is to a bound, the lower the power."
+  source <- sprintf("calculated for the difference you entered (%s).", exact_source(result))
+  if (identical(result$goal_type, "sample_size")) {
+    est <- result$n_required
+    c(
+      headline = sprintf("You need %s participants in total%s for %s power to %s, if the true difference is the one you entered, with %s.",
+        whole(est$n), group_text(spec, est$n), percent(spec$goal$power), shown, test),
+      detail = paste("This N is", source, closer),
+      reading = plain_reading(spec$goal$power)
+    )
+  } else {
+    row <- result$curve[1, ]
+    c(
+      headline = sprintf("With %s participants in total%s, the study has %s power: if the true difference is the one you entered, about %d in 100 studies like this would %s, with %s.",
+        whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), shown, test),
+      detail = paste("This power is", source, closer)
+    )
+  }
+}
+
 # How an exact result was computed, for the detail sentence.
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (result$provenance$backend %in% c("pwr", "pwrss")) {
+  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER")) {
     sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   } else {
     "Superpower's exact dataset, no repeated simulation"
@@ -259,7 +297,7 @@ simulation_note <- function(result) {
 # result_wording).
 result_sentences <- function(spec, result) {
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
-  out <- goal_sentences(spec, result)
+  out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   out
@@ -277,8 +315,11 @@ units_sentence <- function(result) {
     return(sprintf("In your outcome's own units, that is a difference of %s (%s × %s, %s).",
       round3(u$smallest_difference), round3(result$sensitivity$effect), format(signif(u$sd, 4)), u$sd_name))
   }
-  sprintf("From the means and SD you entered, powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
+  out <- sprintf("From the means and SD you entered, powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
     u$name, round3(u$value), format(signif(u$difference, 4)), u$sd_name, format(signif(u$sd, 4)))
+  # Equivalence tests: the bound, divided by the same SD.
+  if (!is.null(u$bound)) out <- paste(out, sprintf("The equivalence bound of %s is %s in the same units.", format(signif(u$bound, 4)), round3(u$bound_value)))
+  out
 }
 
 goal_sentences <- function(spec, result) {
@@ -1017,6 +1058,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  equivalence <- identical(spec$design, "equivalence_test")
+  if (equivalence) {
+    name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
+      tost_paired = "of two paired measurements", tost_one_sample = "of one mean against a fixed value"))
+  }
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
   generic <- identical(spec$design, "generic_test")
@@ -1026,6 +1072,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sides <- if (spec$template %in% c("t", "z")) writeup_sides(spec)
   }
   test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
+  if (equivalence) test <- sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
+  power_line <- if (equivalence) "Power to show equivalence (the difference lying inside the bounds), if the true difference is as expected, is %.1f%%." else "Power to detect this effect is %.1f%%."
   effect <- writeup_effect(fields, values)
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units
@@ -1072,7 +1120,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       row <- result$curve[1, ]
       c(sprintf("A power analysis was conducted for %s at a %ssample size of %s participants in total%s.",
           test, if (fixed) "fixed " else "", whole(row$n), group_text(spec, row$n)),
-        basis, sprintf("Power to detect this effect is %.1f%%.", 100 * row$power))
+        basis, sprintf(power_line, 100 * row$power))
     },
     sensitivity = {
       s <- result$sensitivity
@@ -1130,6 +1178,11 @@ ethics_text <- function(spec, result, fields, values) {
   n <- switch(result$goal_type, sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
   chance <- function(p) sprintf(
     "If that effect is real, the chance that a study of this size finds it (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If the real effect is smaller, the chance of missing it is higher.",
+    alpha, percent(p), percent(1 - p))
+  # Equivalence tests: the aim is to show the difference is too small to
+  # matter.
+  if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
+    "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
     alpha, percent(p), percent(1 - p))
   include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
   recruit <- result$recruitment
