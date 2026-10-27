@@ -71,7 +71,10 @@ fully validated. Validation runs are recorded in
   R script. Results save as a project file and reopen. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
   itself from main; [`run-it-yourself.md`](run-it-yourself.md) is for
-  running it on one's own computer. What the app now does, all merged:
+  running it on one's own computer. Each tab has its own link
+  (`?page=labs` and so on; Connect Cloud's frame keeps the address bar
+  from showing it). What the app
+  now does, all merged:
   - larger text on large screens with no sideways scrolling when zoomed,
     the page moving to the result after "Check my answers", and a result
     screen ordered answer, exploring, save and share, then how it was

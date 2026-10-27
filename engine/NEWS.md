@@ -17,6 +17,15 @@
   screens ask how the effect will be given (Cohen's d, or the means and
   SD); the result states the d it was worked out to, the write-up gives
   the means and SD with d, and the explore panel starts from that d.
+# powerkit 0.7.1
+
+* App: each tab has its own address (`?page=about`, `whats-new`, `labs`,
+  `feedback`; the plan tab is the plain address), so a page can be shared
+  by link. Opening an address with `?page=` shows that tab, and the
+  browser's history entries carry the page, so the address bar follows the
+  tab when the app runs on its own. The online app runs inside Posit
+  Connect Cloud's frame, where the address bar can't change, but a link
+  with `?page=` still opens that page. No calculation changes.
 
 # powerkit 0.7.0
 

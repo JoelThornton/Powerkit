@@ -327,6 +327,8 @@ ui <- function(req) fluidPage(
     class = "app-main",
     tabsetPanel(
       id = "tabs",
+      # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
+      selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About", div(class = "pt-3", about_tab)),
       tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
@@ -936,7 +938,7 @@ server <- function(input, output, session) {
       snap <- nav_snapshot(); snap$key <- key
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
-      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L))
+      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L, page = page_slug(input$tabs)))
     })
   })
   observeEvent(input$pk_nav_to, {
