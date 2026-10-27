@@ -11,6 +11,14 @@ entries:
       Press "Share this page" at the top right to copy a link that opens
       straight on the page you're looking at, such as the pre-replication
       notes in Labs, ready to paste into an email or message.
+  - date: "2026-10-27"
+    title: "Give your effect in your measure's own units"
+    text: >-
+      For the one-sample, two-group and paired t-tests you can now enter
+      the effect as you think of it: say 4.5 against 3.8 on a 1 to 7 scale,
+      with an SD of 1.2. powerkit works out Cohen's d for you and shows it
+      on the result. If you ask for the smallest effect you could detect,
+      it is also given in your measure's units.
   - date: "2026-10-26"
     title: "Easier to read on large screens, and the result comes into view"
     text: >-

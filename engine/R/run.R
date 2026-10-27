@@ -94,6 +94,12 @@
 #'     applied to the specified pattern, the scaled cell `means` and the
 #'     `cohen_f`; for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
 #'     `r`, `w` or `p2`);
+#'   * `effect_from_units`: `NULL` unless the effect was given in the
+#'     outcome's own units (`population > metric` "raw", the t-tests);
+#'     otherwise a list with the standardised effect's `name` ("Cohen's d"
+#'     or "d_z") and `value`, the `difference` in the outcome's units, and
+#'     the `sd` it was divided by (with its `sd_name`), and for a
+#'     sensitivity goal the `smallest_difference` in the outcome's units;
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -188,6 +194,13 @@ run_spec <- function(spec) {
     }
   )
 
+  # In the outcome's own units, the smallest detectable effect is also
+  # given as a difference: the standardised effect times the SD.
+  units <- effect_from_units(spec)
+  if (!is.null(units) && is.list(outcome$sensitivity)) {
+    units$smallest_difference <- outcome$sensitivity$effect * units$sd
+  }
+
   n_analysed <- if (identical(goal$type, "sample_size")) outcome$n_required$n else goal$n
 
   structure(
@@ -196,6 +209,7 @@ run_spec <- function(spec) {
       curve = outcome$curve,
       n_required = outcome$n_required,
       sensitivity = outcome$sensitivity,
+      effect_from_units = units,
       recruitment = recruitment_target(spec, n_analysed),
       check_run = check,
       provenance = list(
