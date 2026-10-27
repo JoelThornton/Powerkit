@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "A simpler whole-study plan"
+    text: >-
+      When powerkit can simulate your whole study, your plan now starts
+      with it: describe the study once and see every analysis's power. The
+      separate calculations are still there, folded underneath, and the
+      plan page is shorter. Mediation cards now lead with the analysis's
+      own name; the PROCESS model number is a note for people who use
+      PROCESS.
+  - date: "2026-10-27"
     title: "Experimental: simulate your whole study at once"
     text: >-
       On "Plan my whole study", you can now describe your study once and

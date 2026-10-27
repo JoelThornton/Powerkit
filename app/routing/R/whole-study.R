@@ -134,14 +134,21 @@ whole_study_seconds <- function(forms, plan, nrep) {
   sum(unlist(per[tests])) * nrep + (forms$whole_study$overhead_seconds %||% 15)
 }
 
-# The entry on the plan screen (replacing the "coming soon" note).
-whole_study_entry_ui <- function(plan) {
-  div(class = "whole-study-entry status",
-    h3(class = "h4 mt-4", "Simulate the whole study ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
-    p("One model of your whole study, entered once as standardised paths. powerkit simulates many studies from it and runs every planned analysis on each, so you get each analysis's power and the chance that all your main analyses succeed together, from one sample size. It also shows the values each analysis's own input screen would need for the same study, so you can check that your numbers fit together."),
-    p(class = "text-muted", "Experimental: the method is new in powerkit and hasn't been checked by a statistician yet. Use it to explore, not to report."),
-    if (isTRUE(plan$ok)) action_bar(pick_button("Simulate the whole study", "guided:simulate", class = "btn btn-primary"))
-    else tagList(p("Not available for this plan yet. It covers studies where:"), tags$ul(lapply(plan$reasons, tags$li)))
+# On the plan screen. When the simulation covers the plan, it is the plan's
+# first step: a short description, the analyses it will run, and the
+# button. Otherwise one folded note says what it would need.
+whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NULL) {
+  if (!isTRUE(plan$ok)) {
+    return(tags$details(class = "plan-more whole-study-entry",
+      tags$summary("Simulating the whole study at once (experimental) isn't available for this plan"),
+      p("It covers studies where:"), tags$ul(lapply(plan$reasons, tags$li))))
+  }
+  div(class = "whole-study-entry whole-study-lead",
+    h3(class = "h4", "Your whole study in one go ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    p(class = "lead", "Describe your study once. powerkit simulates it many times and runs every analysis below on each simulated study, so you see the power of each one, and the chance that your claim succeeds, from one model."),
+    if (length(ticked)) tags$ul(class = "whole-study-analyses", lapply(ticked, function(id) tags$li(labels[[id]], if (!is.null(badge)) badge(id)))),
+    p(class = "text-muted small", "Experimental: the method is new in powerkit and hasn't been checked by a statistician yet. Use it to explore, not to report."),
+    pick_button("Describe your study", "guided:simulate", class = "btn btn-primary")
   )
 }
 

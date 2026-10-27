@@ -91,6 +91,19 @@ placeholders_at <- function(tree, where) {
 }
 
 
+# A standard name without its PROCESS model number, which is shown on its
+# own line: the number is the label Hayes's PROCESS tool gives the shape of
+# model, not part of the analysis's name (other software fits the
+# same model without it).
+standard_name <- function(doc_name) {
+  pattern <- "\\s*\\((PROCESS models? [0-9][0-9, ]*)\\)"
+  found <- regmatches(doc_name, regexpr(pattern, doc_name, perl = TRUE))
+  if (length(found) == 0) return(list(name = doc_name, also = NULL))
+  model <- sub(pattern, "\\1", found, perl = TRUE)
+  list(name = sub(pattern, "", doc_name, perl = TRUE),
+    also = sprintf("In Hayes's PROCESS tool this is %s; other software fits the same model without giving it a number.", model))
+}
+
 # Progress -------------------------------------------------------------------
 
 # The app's four steps (the new design, 18 October 2026). Steps, not a
@@ -487,8 +500,9 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       # the page source, shown only in the maintainer's view.
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
       (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
-      p(class = "standard-name", "Standard name: ", tags$strong(ep$doc_name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
-      hints_ui(tree, ep$doc_name),
+      p(class = "standard-name", "Standard name: ", tags$strong(standard_name(ep$doc_name)$name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
+      if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
+      hints_ui(tree, standard_name(ep$doc_name)$name),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
@@ -615,21 +629,27 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
                            forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
-  cards <- lapply(ticked, function(id) {
+  role_badge <- function(id) if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Main analysis") else tags$span(class = "badge bg-secondary ms-2", "Extra analysis")
+  # One row per analysis: its name, its role, what powerkit calls it and
+  # the button to its input screen; the full card is folded away.
+  rows <- lapply(ticked, function(id) {
     a <- analysis_by_id(tree, id)
     res <- resolve_analysis(tree, a, answers, asks[[id]])
-    head <- div(class = "plan-head", tags$strong(a$label), if (id %in% primary) tags$span(class = "badge bg-primary ms-2", "Main analysis") else tags$span(class = "badge bg-secondary ms-2", "Extra analysis"))
+    head <- div(class = "plan-head", tags$strong(a$label), role_badge(id))
     body <- if (!is.null(res$endpoint)) {
+      ep <- tree$endpoints[[res$endpoint]]
       tagList(
-        card_ui(tree, res$endpoint, compact = TRUE),
+        p(class = "plan-design", ep$plain_name),
         # The analysis's input screen, opened from the plan: the same one
         # the other routes reach from the card.
         if (!is.null(forms) && has_form(forms, res$endpoint)) div(class = "plan-actions",
           plan_result_line(plan_result(results, id, res$endpoint)),
           pick_button(if (is.null(plan_result(results, id, res$endpoint))) "Enter your values" else "Change your values",
             paste0("gform:", id), class = "btn btn-primary")),
-        mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
-          extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label))))
+        tags$details(class = "plan-more", tags$summary("More about this analysis"),
+          card_ui(tree, res$endpoint, compact = TRUE),
+          mismatch_ui(paste0("mismatch-", id), path_text(tree, route_label, history, res$endpoint,
+            extra = c(guided_lines(tree, raw_answers), paste0("- Analysis: ", a$label)))))
       )
     } else if (!is.null(res$ask)) {
       div(class = "status status-soon", "Answer the follow-up question on the previous screen: ", res$ask$text)
@@ -642,21 +662,36 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
   shared_rel <- shared_relationships(tree, ticked)
   labels <- vapply(g$analyses, function(a) a$label, character(1))
   names(labels) <- vapply(g$analyses, function(a) a$id, character(1))
+  several_main <- length(intersect(ticked, primary)) >= 2
+  separate <- tagList(
+    if (length(ticked) == 0) p("No analyses ticked yet.") else rows,
+    h3(class = "h4 mt-4", "Combined sample size"),
+    if (several_main) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ".")),
+    combined_n_ui(tree, ticked, primary, asks, answers, forms, results),
+    if (several_main) tags$details(class = "plan-more", tags$summary("About your claim and significance levels"), p(rule_def$note)),
+    if (length(shared_rel) || length(ticked) >= 2) tags$details(class = "plan-more",
+      tags$summary("Check that your numbers describe the same study"),
+      shared_values_ui(tree, ticked, answers, asks, shared),
+      if (length(shared_rel)) tagList(
+        p("These relationships appear in more than one analysis but are asked for in different ways, so check by eye that your numbers describe the same study:"),
+        tags$ul(lapply(shared_rel, function(s) {
+          tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
+        }))))
+  )
+  # When the whole-study simulation covers the plan, it comes first: one
+  # description of the study, every analysis run on the same simulated
+  # studies. The separate calculations are folded below it.
+  sim <- whole_study_plan(tree, answers, ticked, primary, asks)
   tagList(
     screen_nav_ui("guided:analyses", "Back to the analyses"),
     h2("Your plan"),
-    if (length(ticked) == 0) p("No analyses ticked yet.") else cards,
-    h3(class = "h4 mt-4", "Combined sample size"),
-    if (length(intersect(ticked, primary)) >= 2) p(tags$strong("Your claim:"), paste0(" ", rule_def$label, ". ", rule_def$note)),
-    combined_n_ui(tree, ticked, primary, asks, answers, forms, results),
-    h3(class = "h4 mt-4", "Consistency between analyses"),
-    shared_values_ui(tree, ticked, answers, asks, shared),
-    if (length(shared_rel)) tagList(
-      p("These relationships appear in more than one analysis but are asked for in different ways, so check by eye that your numbers describe the same study:"),
-      tags$ul(lapply(shared_rel, function(s) {
-        tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
-      }))),
-    whole_study_entry_ui(whole_study_plan(tree, answers, ticked, primary, asks)),
+    if (isTRUE(sim$ok)) tagList(
+      whole_study_entry_ui(sim, ticked = ticked, labels = labels, badge = role_badge),
+      tags$details(class = "plan-separate", tags$summary(class = "h4", "Or calculate each analysis on its own"), separate)
+    ) else tagList(
+      separate,
+      whole_study_entry_ui(sim)
+    ),
     placeholders_at(tree, "plan")
   )
 }

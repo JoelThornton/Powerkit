@@ -126,6 +126,10 @@ app_css <- "
   .about-citation { color: #3d4852; margin-top: 0.15rem; }
   .whats-new li { margin-bottom: 0.6rem; }
   .plan-result { margin: 0.5rem 0; }
+  .whole-study-lead { background: #fff; border: 2px solid #0A5A8C; border-radius: 0.6rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+  .plan-separate > summary { cursor: pointer; margin: 1rem 0; }
+  .plan-more > summary { cursor: pointer; color: #0A5A8C; margin: 0.5rem 0; }
+  .plan-design { margin: 0.25rem 0 0.5rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
   .labs-notice { border-left: 4px solid #b26b00; background: #fff6e5; padding: 0.6rem 0.9rem; margin-bottom: 1rem; }
   .labs-sde { margin-top: 0.75rem; }
