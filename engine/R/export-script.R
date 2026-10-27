@@ -268,6 +268,10 @@ design_description <- function(spec) {
       "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; t test of the difference",
       label("Y"), label("X"), levels("X"), spec$population$cluster_size
     ),
+    "cluster_trial/multisite" = sprintf(
+      "multisite trial: %s compared between the conditions of %s (%s), people randomised within each group of %s; t test of the average difference",
+      label("Y"), label("X"), levels("X"), spec$population$cluster_size
+    ),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -507,7 +511,8 @@ add_recruitment_section <- function(lines, spec, result) {
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
     two_variances = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    cluster_randomised = c(
+    cluster_randomised = ,
+    multisite = c(
       sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),
       "groups_analysed <- rep(cluster_size, n_analysed / cluster_size) # each group's analysed size"
     ),

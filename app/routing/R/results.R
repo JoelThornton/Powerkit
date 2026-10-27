@@ -182,6 +182,10 @@ group_text <- function(spec, n) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s groups of %s, %s groups in each condition)", whole(n / m), whole(m), whole(n / m / 2)))
   }
+  if (identical(spec$template, "multisite")) {
+    m <- spec$population$cluster_size
+    return(sprintf(" (%s groups of %s, half of each group in each condition)", whole(n / m), whole(m)))
+  }
   sizes <- group_sizes(spec, n)
   if (is.null(sizes)) return("")
   unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
@@ -318,6 +322,15 @@ cluster_sentence <- function(result) {
   if (is.null(s)) return(NULL)
   n <- s$clusters * s$cluster_size
   varying <- if (s$relative_efficiency < 1) " (more, because the group sizes vary)" else ""
+  if (identical(s$assignment, "people")) {
+    return(sprintf(paste0(
+      "Every group has people in both conditions, so differences between the groups' averages (intraclass correlation %s) cancel out of the comparison; ",
+      "what costs power is the effect varying between groups (%s of the outcome's variation). ",
+      "The design effect is %s%s: these %s participants carry about as much information as %s participants randomised one by one would. ",
+      "Adding groups usually raises power more than adding people to each group."),
+      format(s$icc), format(s$icc_effect),
+      format(round(s$design_effect, 2), nsmall = 2), varying, whole(n), whole(floor(s$effective_n))))
+  }
   sprintf(paste0(
     "People in the same group tend to be alike (intraclass correlation %s), so each group of %s counts for less than %s separate people. ",
     "The design effect is %s%s: these %s participants carry about as much information as %s independent participants would. ",
@@ -330,6 +343,11 @@ cluster_sentence <- function(result) {
 cluster_writeup <- function(result) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
+  if (identical(s$assignment, "people")) {
+    return(sprintf("Participants were randomised within each group; with an intraclass correlation of %s, %s of the outcome's variance from the effect varying between groups and %s participants per group%s, the design effect is %s.",
+      format(s$icc), format(s$icc_effect), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",
+      format(round(s$design_effect, 2), nsmall = 2)))
+  }
   sprintf("With an intraclass correlation of %s and %s participants per group%s, the design effect is %s.",
     format(s$icc), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",
     format(round(s$design_effect, 2), nsmall = 2))

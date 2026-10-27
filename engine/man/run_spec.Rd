@@ -118,7 +118,9 @@ conditions and a score compared, by powertools' \code{crt.parallel.cont()}
 (the design effect with the degrees of freedom from the number of
 groups). \code{goal > n} is the total number of participants, a whole number
 of groups of \code{population > cluster_size}, the same number of groups in
-each condition.
+each condition. Multisite trials (template \code{multisite}): people are
+randomised to the two conditions within each group, by powertools'
+\code{multisite.cont()}; \code{goal > n} is a whole number of groups.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

@@ -12,18 +12,26 @@ cluster_summary(spec, n)
 \item{n}{Total number of participants analysed.}
 }
 \value{
-\code{NULL} for other designs; otherwise a list with \code{cluster_size},
-\code{clusters} (in all), \code{clusters_per_condition}, \code{icc},
+\code{NULL} for other designs; otherwise a list with \code{assignment}
+("groups" for a cluster-randomised trial, "people" for a multisite
+trial), \code{cluster_size}, \code{clusters} (in all), \code{clusters_per_condition}
+(\code{NA} for a multisite trial, whose groups have both conditions), \code{icc},
+\code{icc_effect} (\code{NA} for a cluster-randomised trial),
 \code{relative_efficiency} (1 for groups of equal size), \code{design_effect}
 and \code{effective_n}.
 }
 \description{
-For a cluster-randomised trial (design \code{cluster_trial}), the numbers of
-groups at a total of \code{n} participants, and how many independent
-participants they are worth. The design effect is
+For a clustered design (design \code{cluster_trial}), the numbers of groups
+at a total of \code{n} participants, and how many independent participants
+they are worth. For a cluster-randomised trial the design effect is
 1 + (group size - 1) * ICC, the factor by which powertools'
 \code{crt.parallel.cont()} inflates the variance of the difference between
-conditions when there are no covariates; when group sizes vary it is
-divided by powertools' relative efficiency, \code{re.clustsize.cont()}.
-The effective sample size is \code{n} divided by the design effect.
+conditions when there are no covariates. For a multisite trial it is
+1 - ICC + (group size - 1) * ICC of the effect, the same factor in
+powertools' \code{multisite.cont()} with half of each group in each
+condition: below 1 when the effect is the same in every group, because
+differences between the groups' averages cancel out. When group sizes
+vary, either is divided by powertools' relative efficiency,
+\code{re.clustsize.cont()} (with the ICC of the effect, for a multisite
+trial). The effective sample size is \code{n} divided by the design effect.
 }

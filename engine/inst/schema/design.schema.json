@@ -3356,7 +3356,8 @@
         "properties": {
           "template": {
             "enum": [
-              "cluster_randomised"
+              "cluster_randomised",
+              "multisite"
             ]
           },
           "target_test": {
@@ -3380,6 +3381,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_cluster_randomised"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "multisite"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_multisite"
             }
           }
         ]
@@ -3444,6 +3460,77 @@
             },
             "method": {
               "const": "cluster_t"
+            }
+          }
+        }
+      }
+    },
+    "template_multisite": {
+      "description": "Multisite trial: within each group (school, clinic, team), people are randomised to one of two conditions, half to each, and a score is compared between the conditions. The t test of the average difference between conditions, with degrees of freedom from the number of groups, by powertools::multisite.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d",
+            "icc",
+            "icc_effect",
+            "cluster_size"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d: (mean in the second condition - mean in the first) / the outcome's total SD (between and within groups together), as powertools defines it (delta / sd). 0 is allowed, to check the Type I error rate at a fixed n, or for a sensitivity analysis.",
+              "type": "number"
+            },
+            "icc": {
+              "description": "Intraclass correlation of the outcome: the proportion of its total variance that lies between the groups' averages (powertools' icc0). 0 means people in the same group are no more alike than people in different groups.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "icc_effect": {
+              "description": "The proportion of the outcome's total variance that comes from the difference between conditions varying from group to group (powertools' icc1). 0 means the effect is the same in every group.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "cluster_size": {
+              "description": "Number of participants analysed in each group, both conditions together, half in each (the average, if group sizes vary).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "cluster_size_sd": {
+              "description": "Standard deviation of the group sizes, if they vary (0, the default, for groups of equal size). powertools adjusts power for the loss of efficiency.",
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_difference"
+            },
+            "method": {
+              "const": "multisite_t"
             }
           }
         }

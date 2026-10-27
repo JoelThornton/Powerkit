@@ -1165,18 +1165,18 @@ endpoints:
       - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for linear and generalised linear mixed models (newer, released 2026)."}
     tier: v2
   E34:
-    doc_name: "Multilevel or cluster design (cluster-randomised trial)"
+    doc_name: "Multilevel or cluster design (cluster-randomised or multisite trial)"
     plain_name: "People nested in groups (classes, teams, clinics)"
-    template: "cluster_trial / cluster_randomised"
-    backend: "powertools: crt.parallel.cont() (the t test of a cluster-randomised trial, by formula, with the design effect)"
+    template: "cluster_trial / cluster_randomised, multisite"
+    backend: "powertools: crt.parallel.cont() and multisite.cont() (the t test of the difference between conditions, by formula, with the design effect)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests (test-backend-powertools.R). Not yet checked against a published worked example in the validation run."}
+    validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests (test-backend-powertools.R), for both designs. Not yet checked against a published worked example in the validation run (test-validation-cluster-randomised.R, test-validation-multisite.R)."}
     card_points:
-      - "Calculates a cluster-randomised trial: whole groups (for example, classes or clinics) are assigned to one of two conditions, the same number of groups in each, and a score is compared between the conditions."
-      - "People in the same group tend to be alike, so each person adds less information than in a study of separate people. The intraclass correlation (ICC) says how alike they are, and the result shows how much the grouping costs. powerkit works this out with the standard design-effect formula, an approximation, not by fitting a multilevel model."
-      - "Not calculated here yet: people randomised within each group (a multisite trial), a yes/no or count outcome, an equivalence test, covariates, and models with predictors measured at both levels (for those, mlmpower or simr)."
-    inputs: ["The two conditions and the outcome", "The effect: Cohen's d (the difference between conditions, over the outcome's total SD)", "How alike people in the same group are (the intraclass correlation)", "How many people in each group (the cluster size), and how much that varies"]
+      - "Calculates two designs where a score is compared between two conditions. In a cluster-randomised trial, whole groups (for example, classes or clinics) are assigned to a condition, the same number of groups in each. In a multisite trial, people are assigned within each group, half to each condition."
+      - "People in the same group tend to be alike, so each person adds less information than in a study of separate people. The intraclass correlation (ICC) says how alike they are, and the result shows how much the grouping costs (or, in a multisite trial, often saves). powerkit works this out with the standard design-effect formula, an approximation, not by fitting a multilevel model."
+      - "Not calculated here yet: groups of unequal numbers in each condition, a yes/no or count outcome, an equivalence test, covariates, and models with predictors measured at both levels (for those, mlmpower or simr)."
+    inputs: ["How the conditions are assigned, the two conditions and the outcome", "The effect: Cohen's d (the difference between conditions, over the outcome's total SD)", "How alike people in the same group are (the intraclass correlation), and how much the effect varies between groups", "How many people in each group (the cluster size), and how much that varies"]
     tier: v2
     alternatives: ["a multilevel (mixed) model with the group as a random effect", "an analysis of the group means"]
   E35:

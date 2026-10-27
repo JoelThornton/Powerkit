@@ -998,17 +998,24 @@ forms:
   # outcome's total SD; one ICC for both conditions; no covariates. The
   # total N is a whole number of groups (forms.R checks it via the engine).
   E34:
-    methods_name: "a cluster-randomised trial (the t test of the difference between conditions, with the design effect)"
+    # Two clustered designs on one screen; how the conditions are assigned
+    # sets the template (powertools' crt.parallel.cont() or multisite.cont()).
+    methods_name: "a clustered design (the t test of the difference between conditions, with the design effect)"
     tool: powertools
     sensitivity: true
     sensitivity_without_effect: true
     directional: true
-    base: {spec_version: "0.1", design: cluster_trial, template: cluster_randomised,
+    base: {spec_version: "0.1", design: cluster_trial,
            variables: {X: {type: binary}, "Y": {type: continuous}}, population: {metric: standardised},
-           target_test: {effect: mean_difference, method: cluster_t}}
+           target_test: {effect: mean_difference}}
     groups:
-      - input: "The two conditions and the outcome"
+      - input: "How the conditions are assigned, the two conditions and the outcome"
         fields:
+          - {id: assignment, label: "Who is assigned to the conditions", type: select, path: template, required: true,
+             choices: {cluster_randomised: "Whole groups: everyone in a group gets the same condition (a cluster-randomised trial)",
+                       multisite: "People within each group: every group has people in both conditions, half in each (a multisite trial)"},
+             sets: {cluster_randomised: [{path: target_test.method, value: cluster_t}],
+                    multisite: [{path: target_test.method, value: multisite_t}]}}
           - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Condition 1 (for example, usual lessons)", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Condition 2 (for example, the new programme)", type: text, path: variables.X.levels.2, required: true}
@@ -1017,16 +1024,19 @@ forms:
         fields:
           - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true,
              help: "The total SD is how much people vary on the outcome across everyone, not only within one group."}
-      - input: "How alike people in the same group are (the intraclass correlation)"
+      - input: "How alike people in the same group are (the intraclass correlation), and how much the effect varies between groups"
         fields:
           - {id: icc, writeup_label: "intraclass correlation", label: "Intraclass correlation (ICC, 0 to 1)", type: number, path: population.icc, effect: true, min: 0, max_exclusive: 1,
              help: "The share of the outcome's variation that lies between groups rather than within them. 0 means people in the same group are no more alike than strangers. Take it from earlier studies with similar groups and outcomes, and try a higher value too: the answer depends on it a lot."}
+          - {id: icc_effect, writeup_label: "intraclass correlation of the effect", label: "How much the effect varies between groups, as a share of the outcome's variation (0 to 1)", type: number, path: population.icc_effect, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: assignment, is: multisite},
+             help: "0 means the conditions differ by the same amount in every group. Larger values mean the effect is bigger in some groups than others, which costs power. It is usually much smaller than the ICC above; if you have no estimate, try 0 and a small value such as 0.01."}
       - input: "How many people in each group (the cluster size), and how much that varies"
         fields:
-          - {id: cluster_size, writeup_label: "participants per group", label: "People analysed in each group (the average, if sizes vary)", type: number, path: population.cluster_size, required: true, min: 2,
-             help: "For example, pupils per class. The total number of participants is then a whole number of groups, the same number of groups in each condition."}
+          - {id: cluster_size, writeup_label: "participants per group", label: "People analysed in each group, both conditions together (the average, if sizes vary)", type: number, path: population.cluster_size, required: true, min: 2,
+             help: "For example, pupils per class. The total number of participants is then a whole number of groups (with whole groups assigned, the same number of groups in each condition)."}
           - {id: cluster_size_sd, label: "How much group sizes vary: their SD (0 if all the same size)", type: number, path: population.cluster_size_sd, required: true, min: 0,
-             default: 0, default_source: "groups of equal size, powertools' default (crt.parallel.cont(m.sd = 0), powertools 1.0.0)"}
+             default: 0, default_source: "groups of equal size, powertools' default (crt.parallel.cont(m.sd = 0) and multisite.cont(m.sd = 0), powertools 1.0.0)"}
 
   # Planned contrast (pwrss's t test of one weighted combination of the
   # group means, k.covariates = 0): equal groups, two-sided only, because

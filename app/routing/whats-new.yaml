@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Power for studies where people are randomised within groups"
+    text: >-
+      The "People nested in groups" card now also covers studies where every
+      class, clinic or team has people in both conditions, such as pupils
+      randomised within each school. You say how much the effect is likely
+      to vary from group to group, and the result shows how the grouping
+      changes the number of people you need.
+  - date: "2026-10-27"
     title: "Power for studies where whole groups get the condition"
     text: >-
       If whole classes, clinics or teams are assigned to a condition, the

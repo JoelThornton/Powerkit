@@ -14,7 +14,21 @@
   write-up state. Validation placeholders in
   `test-validation-cluster-randomised.R` (chunk `cluster`).
 
-* App: the "People nested in groups" card (E34) calculates. The design
+* Multisite trials (template `multisite`, design `cluster_trial`): people
+  are randomised to two conditions within each group, half to each, by
+  powertools' `multisite.cont()` (degrees of freedom from the number of
+  groups, J - 1). The spec adds `population$icc_effect`, the share of the
+  outcome's variance from the effect varying between groups (powertools'
+  `icc1`); `icc` is the ICC of the group means (`icc0`). Valid sizes are a
+  whole number of groups. `cluster_summary()` gains `assignment` and
+  `icc_effect`; its design effect for a multisite trial is relative to an
+  individually randomised trial, so it can be below 1. Validation
+  placeholders in `test-validation-multisite.R` (chunk `multisite`).
+
+* App: the "People nested in groups" card (E34) calculates, for whole
+  groups assigned or for people randomised within groups (a first
+  question on its input screen; the effect's variation between groups is
+  asked for only in the second case). The design
   finder now asks the goal (S4) after "People within groups" before
   suggesting it, as for every card that calculates; equivalence for
   grouped data goes to the same card, which says it isn't covered yet,

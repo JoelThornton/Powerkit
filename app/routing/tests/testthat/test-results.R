@@ -836,6 +836,27 @@ test_that("a cluster-randomised trial runs on powertools, with the groups and th
   expect_error(run(bad), "whole number of groups of 20", fixed = TRUE)
 })
 
+test_that("a multisite trial runs on powertools from the same screen, with the effect's variation asked for", {
+  skip_without_run()
+  values <- modifyList(form_examples$E34, list(assignment = "multisite", icc = "0.1", icc_effect = "0.02"))
+  fields <- form_fields(form_groups(forms, "E34"))
+  spec <- build_spec(forms, "E34", fields, values)
+  expect_identical(spec$template, "multisite")
+  expect_identical(spec$target_test$method, "multisite_t")
+  expect_identical(spec$population$icc_effect, 0.02)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "powertools::multisite.cont")
+  n <- calc$result$n_required$n
+  expect_equal(n %% 20, 0)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("(%s groups of 20, half of each group in each condition)", n / 20), fixed = TRUE)
+  expect_match(words[["detail"]], "The design effect is 1.28", fixed = TRUE)
+  w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, modifyList(values, list(just_source = "A pilot study.")))
+  expect_match(w[["short"]], "randomised within each group", fixed = TRUE)
+  # The effect's variation is asked for only when people are randomised within groups.
+  expect_null(build_spec(forms, "E34", fields, form_examples$E34)$population$icc_effect)
+})
+
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E27"))

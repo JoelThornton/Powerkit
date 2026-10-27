@@ -153,3 +153,103 @@ test_that("the exported script reproduces each goal with powertools alone", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
   }
 })
+
+# Multisite trials (powertools' multisite.cont()): people are randomised
+# within each group, half to each condition.
+
+multisite_spec <- function(goal, ...) {
+  spec <- example_spec("multisite")
+  spec$options <- list(seed = 7)
+  spec$goal <- goal
+  changes <- list(...)
+  for (name in names(changes)) spec$population[[name]] <- changes[[name]]
+  spec
+}
+
+test_that("a multisite trial runs on powertools' multisite.cont(), and passes its check run", {
+  result <- run_spec(multisite_spec(list(type = "power", n = 400)))
+  expect_equal(result$provenance$backend_function, "powertools::multisite.cont")
+  expect_true(all(result$check_run$ok))
+})
+
+test_that("multisite power equals powertools::multisite.cont() called directly", {
+  # 400 pupils: 20 schools of 20, 10 in each condition within each school.
+  direct <- powertools::multisite.cont(
+    m = 20, m.sd = 0, alloc.ratio = 1, J = 20, delta = 0.3, sd = 1,
+    icc0 = 0.1, icc1 = 0.02, alpha = 0.05, sides = 2
+  )
+  expect_equal(run_spec(multisite_spec(list(type = "power", n = 400)))$curve$power, direct)
+  direct_sd <- powertools::multisite.cont(
+    m = 20, m.sd = 5, J = 20, delta = 0.3, icc0 = 0.1, icc1 = 0.02, sides = 2
+  )
+  expect_equal(run_spec(multisite_spec(list(type = "power", n = 400), cluster_size_sd = 5))$curve$power, direct_sd)
+  spec <- multisite_spec(list(type = "power", n = 400), d = -0.3)
+  spec$target_test$alternative <- "less"
+  direct_one <- powertools::multisite.cont(m = 20, J = 20, delta = 0.3, icc0 = 0.1, icc1 = 0.02, sides = 1)
+  expect_equal(run_spec(spec)$curve$power, direct_one)
+})
+
+test_that("multisite power agrees with the textbook variance and J - 1 degrees of freedom (pwrss)", {
+  # Half of each group in each condition, no covariates, equal group
+  # sizes: the variance of the average difference is
+  # 4 * (1 - icc0 + (m - 1) * icc1) / N, and the t test has J - 1 df.
+  m <- 20; icc0 <- 0.1; icc1 <- 0.02; d <- 0.3; groups <- 20
+  ncp <- d / sqrt(4 * (1 - icc0 + (m - 1) * icc1) / (m * groups))
+  expected <- pwrss::power.t.test(ncp = ncp, df = groups - 1, alpha = 0.05,
+                                  alternative = "two.sided", plot = FALSE, verbose = 0)$power
+  expect_equal(run_spec(multisite_spec(list(type = "power", n = m * groups)))$curve$power, expected, tolerance = 1e-8)
+  # With no effect, power is alpha.
+  expect_equal(run_spec(multisite_spec(list(type = "power", n = 400), d = 0))$curve$power, 0.05, tolerance = 1e-10)
+})
+
+test_that("a multisite trial needs fewer people than a cluster-randomised one with the same ICC", {
+  multi <- run_spec(multisite_spec(list(type = "sample_size", power = 0.8)))
+  cluster <- run_spec(cluster_spec(list(type = "sample_size", power = 0.8), icc = 0.1))
+  expect_lt(multi$n_required$n, cluster$n_required$n)
+})
+
+test_that("the multisite n is a whole number of groups, and matches powertools' number of groups", {
+  result <- run_spec(multisite_spec(list(type = "sample_size", power = 0.8)))
+  n <- result$n_required$n
+  expect_equal(n %% 20, 0)
+  j <- powertools::multisite.cont(m = 20, J = NULL, delta = 0.3, icc0 = 0.1, icc1 = 0.02, power = 0.8)
+  expect_equal(n, ceiling(j) * 20)
+  s <- result$clusters
+  expect_identical(s$assignment, "people")
+  expect_true(is.na(s$clusters_per_condition))
+  expect_equal(s$icc_effect, 0.02)
+  expect_equal(s$design_effect, 1 - 0.1 + 19 * 0.02)
+  expect_equal(s$effective_n, n / s$design_effect)
+  expect_identical(run_spec(cluster_spec(list(type = "power", n = 400)))$clusters$assignment, "groups")
+})
+
+test_that("the multisite smallest detectable effect equals powertools' own answer", {
+  result <- run_spec(multisite_spec(list(type = "sensitivity", n = 400, power = 0.8)))
+  direct <- powertools::multisite.cont(m = 20, J = 20, delta = NULL, icc0 = 0.1, icc1 = 0.02, power = 0.8)
+  expect_equal(result$sensitivity$effect, direct)
+})
+
+test_that("multisite spec checks", {
+  expect_spec_problem(multisite_spec(list(type = "power", n = 410)), "whole number of groups of 20")
+  expect_spec_problem(multisite_spec(list(type = "power", n = 20)), "at least 40 participants")
+  spec <- multisite_spec(list(type = "power", n = 400))
+  spec$population$icc_effect <- NULL
+  expect_spec_problem(spec, "icc_effect")
+  spec <- cluster_spec(list(type = "power", n = 400))
+  spec$population$icc_effect <- 0.02
+  expect_spec_problem(spec, "icc_effect")
+})
+
+test_that("the exported multisite script reproduces each goal with powertools alone", {
+  specs <- list(
+    multisite_spec(list(type = "power", n = 400)),
+    multisite_spec(list(type = "sample_size", power = 0.8), cluster_size_sd = 4),
+    multisite_spec(list(type = "sensitivity", n = 400, power = 0.9))
+  )
+  specs[[2]]$options$attrition <- 0.1
+  for (spec in specs) {
+    result <- run_spec(spec)
+    out <- run_exported_script(spec, result)
+    expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
+  }
+})
