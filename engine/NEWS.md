@@ -9,7 +9,51 @@
   formula), not for a smallest-detectable-effect plan. The app only calls
   the engine; the plan is unchanged.
 
+# powerkit 0.8.0
+
+* Engine and app: the one-sample, independent-samples and paired t-tests
+  accept the effect in the outcome's own units (`population > metric`
+  "raw", with `population > raw`): the expected mean, the fixed value and
+  the SD (one sample); each group's mean and one within-group SD (two
+  groups); or each condition's mean with either the SD of the differences
+  or one SD and the correlation between the two measurements (paired).
+  `validate_spec()` works out Cohen's d or d_z by the definition the schema
+  gives (for paired data from one SD and r, the SD of the differences is
+  SD * sqrt(2 * (1 - r))), so the backends and the exported R script are
+  unchanged and the result equals giving that d directly (tests in
+  test-effect-from-units.R). The result has a new `effect_from_units`
+  element: the standardised effect, the difference and the SD it was
+  divided by, and for a sensitivity goal the smallest detectable effect
+  as a difference in the outcome's units. In the app, these three input
+  screens ask how the effect will be given (Cohen's d, or the means and
+  SD); the result states the d it was worked out to, the write-up gives
+  the means and SD with d, and the explore panel starts from that d.
+
+# powerkit 0.7.1
+
+* App: each tab has its own address (`?page=about`, `whats-new`, `labs`,
+  `feedback`; the plan tab is the plain address), so a page can be shared
+  by link. Opening an address with `?page=` shows that tab, and the
+  browser's history entries carry the page, so the address bar follows the
+  tab when the app runs on its own. The online app runs inside Posit
+  Connect Cloud's frame, where the address bar can't change, but a link
+  with `?page=` still opens that page. No calculation changes.
+
 # powerkit 0.7.0
+
+* App: on large screens the base text size rises (17 to 19 px), and the
+  page's width is set in rem, so the layout scales with it; long unbroken
+  text (the spec hash, web addresses) wraps instead of widening the page.
+  After "Check my answers" the result is scrolled to the top of the window
+  and focused, once it has been drawn (the message used to arrive before
+  the result, so the page scrolled only part way). The result screen's
+  cards are reordered: the result with its notes, exploring, save and
+  share with the write-up, then how it was calculated (departures, known
+  differences, the reproducibility record and the spec). The result card
+  points to the known differences when there are any. The short write-up
+  no longer ends with the sentence pointing to departures in the
+  supplement (docs/decisions.md); the full and plain-words versions are
+  folded. No calculation changes.
 
 * App: "Plan my whole study" works out the combined sample size. Each
   sample size calculated from the plan is kept, shown under its analysis,

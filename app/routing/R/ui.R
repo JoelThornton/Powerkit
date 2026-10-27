@@ -139,11 +139,47 @@ nav_key <- function(screen, node, endpoint, n_answers, tab) {
   paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", sep = "|")
 }
 
+# Page addresses ---------------------------------------------------------------
+
+# Each tab has its own address (?page=labs and so on), so a page can be
+# shared by link. The plan tab is the plain address.
+page_slugs <- function() {
+  c(plan = "Plan a power analysis", about = "About", "whats-new" = "What's new",
+    labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
+}
+
+# The tab an address asks for, or NULL for the plan tab or a page that
+# isn't there (the maintainer's tab only in the maintainer's view).
+page_from_query <- function(query = "") {
+  slug <- shiny::parseQueryString(query %||% "")$page
+  if (is.null(slug)) return(NULL)
+  slug <- tolower(slug)
+  if (identical(slug, "maintainer") && !maintainer_view_requested(query)) return(NULL)
+  tab <- page_slugs()[slug]
+  if (is.na(tab)) NULL else unname(tab)
+}
+
+# The address name for a tab ("plan" is the plain address).
+page_slug <- function(tab) {
+  slug <- names(page_slugs())[match(tab %||% "", page_slugs())]
+  if (is.na(slug)) "plan" else slug
+}
+
+# Each history entry carries its page in the address (?page=...). On the
+# online app the page sits inside Posit Connect Cloud's frame, so the
+# browser's address bar can't show it there, but a link with ?page= still
+# opens that page.
 nav_js <- "
+  window.pkPageUrl = function(page) {
+    var url = new URL(window.location.href);
+    if (page && page !== 'plan') url.searchParams.set('page', page); else url.searchParams.delete('page');
+    return url.toString();
+  };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
-    if (m.replace) history.replaceState(entry, '', window.location.href);
-    else history.pushState(entry, '', window.location.href);
+    var url = pkPageUrl(m.page);
+    if (m.replace) history.replaceState(entry, '', url);
+    else history.pushState(entry, '', url);
   });
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });

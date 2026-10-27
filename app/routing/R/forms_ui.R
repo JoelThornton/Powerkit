@@ -316,6 +316,11 @@ effect_help_ui <- function(form, groups) {
   } else if ("dz" %in% ids) {
     "To turn it into d_z, divide it by how much people's changes usually vary (the SD of the differences, second minus first)."
   }
+  # The t-tests can take the means and SD and let powerkit's engine work
+  # out the standardised effect.
+  if ("effect_units" %in% ids) {
+    convert <- paste(convert, "Or choose \u201cIn my measure's own units\u201d and enter the means and SD: powerkit works it out for you and shows the result.")
+  }
   unsure <- if (isTRUE(form$sensitivity_without_effect)) {
     "Choose \u201cI can't justify an effect size\u201d as the source (or use the button above): powerkit shows the smallest effect your sample could detect."
   } else if (isTRUE(form$sensitivity)) {

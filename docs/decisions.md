@@ -1927,7 +1927,8 @@ result exactly.
 
 **Two versions.** A short one for the paper and a full one for a supplement
 or preregistration. The short version says that departures are described
-in the supplement; the full version states each one, plus the spec hash,
+in the supplement (no longer: see "2026-10-26 · The short write-up leaves
+out the departures pointer"); the full version states each one, plus the spec hash,
 the seed and the check run. Regression interactions carry the methods
 sentence for Known difference 1 (`conventions.md`) in both. Both are
 editable text on the result screen and, like saving, need the reasoning.
@@ -2990,3 +2991,18 @@ since setup-r, which used to set it, is no longer used.
 **Not changed.** `online-app-manifest.yaml` (it writes the manifest from
 an activated renv project) and `run-it-yourself.yaml` (it exists to test
 a clean install on each operating system).
+
+## 2026-10-26 · The short write-up leaves out the departures pointer
+
+**Decision (maintainer, 26 October 2026).** The short write-up (for the
+paper) no longer ends with "Where this analysis departs from the
+established tools' defaults is described in the supplement." Most designs
+carry a departure that doesn't change the answer (for example, that power
+is calculated with a formula), so the sentence appeared on nearly every
+write-up and lengthened a paragraph that journals keep short. Where
+powerkit's answer does differ from an established tool's (the known
+differences in `conventions.md`), the short version still carries that
+design's own sentence. The full version (for a supplement or
+preregistration) still states each departure, and the results screen
+still lists them under "How it was calculated", with a pointer from the
+result card.

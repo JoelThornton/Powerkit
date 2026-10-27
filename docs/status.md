@@ -71,7 +71,14 @@ fully validated. Validation runs are recorded in
   R script. Results save as a project file and reopen. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
   itself from main; [`run-it-yourself.md`](run-it-yourself.md) is for
-  running it on one's own computer. What the app now does, all merged:
+  running it on one's own computer. Each tab has its own link
+  (`?page=labs` and so on; Connect Cloud's frame keeps the address bar
+  from showing it). What the app
+  now does, all merged:
+  - larger text on large screens with no sideways scrolling when zoomed,
+    the page moving to the result after "Check my answers", and a result
+    screen ordered answer, exploring, save and share, then how it was
+    calculated, with a shorter write-up for the paper;
   - the input screen in sections (goal first, fields only for the goals
     that need them, default settings folded into one line), four progress
     steps, shorter cards and labels, and problems shown next to their
@@ -126,6 +133,11 @@ fully validated. Validation runs are recorded in
   once: an input two analyses both ask for fills the second's input
   screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
   and needs a statistician's check.
+- **Effect in the measure's own units (27 October 2026, 0.8.0):** the
+  three t-tests take the means and SD instead of Cohen's d (or d_z); the
+  engine works out the standardised effect, the result and write-up show
+  it, and a smallest detectable effect is also given in the measure's
+  units.
 - **Three effects side by side (27 October 2026, 0.9.0):** on the
   result screen for the t-tests and the correlation, a conservative and an
   optimistic effect the user enters are drawn with the plan's effect, with
