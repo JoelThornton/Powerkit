@@ -92,8 +92,8 @@ test_that("logistic regression, normal X: matches the G*Power 3.1 manual example
   alpha <- 0.05 # alpha err prob
   tails <- 2 # Tail(s): 1 or 2
   target_power <- 0.95 # Power (1-beta err prob)
-  total_n <- TODO_PUBLISHED_VALUE # Output: Total sample size
-  actual_power <- TODO_PUBLISHED_VALUE # Output: Actual power
+  total_n <- 337 # Output: Total sample size
+  actual_power <- 0.9500770 # Output: Actual power
   skip_if_todo(odds_ratio, base_prob, r2_other, alpha, tails, target_power, total_n, actual_power)
 
   spec <- logistic_spec(odds_ratio, base_prob, alpha, tails, seed = 201, r2_other = r2_other, target_power = target_power)
