@@ -11,6 +11,7 @@ library(jsonvalidate)
 # Backends
 library(InteractionPoweR)
 library(lavaan)
+library(manymome)  # the whole-study simulation's implied indirect effects
 library(power4mome)
 library(Spower)
 library(Superpower)

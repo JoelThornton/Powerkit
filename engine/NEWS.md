@@ -18,6 +18,38 @@
   `equivalence` chunk in the full validation run). TOSTER (with jmvcore,
   ggdist and distributional) is added to `renv.lock`.
 
+* Whole-study simulation (experimental, not yet checked by a
+  statistician; `docs/conventions.md`, Departure 13). A new kind of spec
+  (`kind: "whole_study"`, `inst/schema/whole-study.schema.json`) gives one
+  population model for a whole study as standardised paths, and the
+  planned analyses: the regression of Y on X (`x_y`), a two-way
+  interaction (`interaction`), an indirect effect through one mediator or
+  two (parallel or serial; `indirect`) and moderated mediation (PROCESS
+  models 7 and 14; `index_of_mome`). `run_whole_study()` simulates the
+  data with power4mome and fits each analysis to every simulated data set
+  with its own model (`power4test()` with several fitted models), so each
+  analysis's power and the joint power of the main analyses (all
+  significant, or at least one at a Bonferroni-corrected alpha) come from
+  the same replications. It runs a check run on 100,000 cases, reports a
+  Clopper-Pearson interval for each rate, and gives the values the
+  population implies for each analysis's own input screen.
+  `validate_whole_study()` checks a spec in plain words (missing or extra
+  paths, impossible R-squared); `whole_study_parameters()` lists the
+  values a study's population needs. Power at a fixed N only. Tests:
+  `test-whole-study.R` (exact bookkeeping of the joint power) and
+  `test-validation-whole-study-crosscheck.R` (each analysis against
+  powerkit's own calculation of it, and the size of the departure).
+
+* App: the guided plan ("Plan my whole study") can simulate the whole
+  study, as an experimental option, when every planned analysis is one
+  the simulation covers. Its screen asks for each path once (values from
+  the plan's input screens are filled in where they mean the same thing),
+  runs in the background with a progress bar and Cancel, and shows each
+  analysis's power, the chance the claim succeeds, the implied values
+  beside what was entered on each analysis's screen, a draft methods
+  paragraph and the run's details. This replaces the "coming soon" note
+  on the plan.
+
 * App: the equivalence card now calculates, with one input screen for the
   three comparisons ("What you are comparing"). The result, write-up and
   ethics-board text say what is being shown (that the difference lies

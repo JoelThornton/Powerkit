@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-27"
+    title: "Experimental: simulate your whole study at once"
+    text: >-
+      On "Plan my whole study", you can now describe your study once and
+      have every planned analysis run on the same simulated studies. You
+      see each analysis's power, the chance that all of your main analyses
+      succeed together, and whether the numbers you entered for separate
+      analyses describe the same study. It is experimental and waiting for
+      a statistician's check, so use it to explore, not to report.
+  - date: "2026-10-27"
     title: "Show that a difference is too small to matter"
     text: >-
       You can now plan an equivalence test: the two one-sided tests (TOST)

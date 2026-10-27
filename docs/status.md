@@ -84,6 +84,15 @@ fully validated. Validation runs are recorded in
   expected difference as Cohen's d or in the measure's own units.
   Validation in progress: published examples are placeholders.
   Correlations, proportions and non-inferiority are `next.md`, item 4.
+- **Whole-study simulation (27 October 2026, 0.10.0, experimental):** on
+  the guided plan, one population model for the whole study, entered
+  once as standardised paths; every planned analysis (correlation,
+  interaction, mediation with one or two mediators, moderated mediation)
+  is run on the same power4mome simulations, giving each analysis's power
+  and the joint power for the claim at a fixed N, and the values each
+  analysis's own screen would need (Departure 13). Waiting for a
+  statistician's check (`next.md`, item 1); the method note for it is
+  `docs/whole-study-method.md`.
 - **App** (`app/routing/`): the question tree, cards and input screens for
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit

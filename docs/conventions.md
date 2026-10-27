@@ -614,6 +614,46 @@ kept so later departures keep theirs.
   (E51) and in its methods paragraph (26 October 2026;
   `app/routing/forms.yaml`, `departures`, key "12").
 
+### 13. Whole-study simulation (experimental): one population for every analysis, and joint power counted directly
+
+**The maintainer's decision, 27 October 2026** (`docs/decisions.md`): built
+as an experimental option, for a statistician's check
+([`whole-study-method.md`](whole-study-method.md)).
+
+- **Established convention:** each analysis is calculated on its own (G\*Power,
+  pwr, InteractionPoweR, power4mome's templates), from inputs given in its
+  own form, and the chance that several analyses all succeed is worked out
+  from their separate powers as if they were unrelated (the guided plan's
+  rule of thumb: about 89.4% each for two tests and 80% together).
+- **powerkit (whole-study simulation only):** one population model,
+  given as standardised paths, generates every simulated data set
+  (power4mome); each planned analysis is fitted to the same data sets with
+  its own model, and the joint power is the proportion of replications in
+  which every main analysis (or, for "any", at least one) is significant.
+  The separate input screens are unchanged.
+- **Size:** each analysis's own power agrees with its separate calculation
+  from the values the population implies, within simulation error (local
+  runs of 2,000 to 4,000 replications: the correlation 48.4% against pwr's
+  47.7%, simple mediation 71.8% against powerkit's own E10 run, 72.0%; the
+  interaction 47.5% against InteractionPoweR's 49.2%, and a correlation
+  whose outcome also depends on an interaction 76.5% against 77.6%; the
+  last two are about 1.5 Monte Carlo standard errors apart and are a
+  question for the statistician). The joint power differs where the
+  analyses are related: for the correlation and simple mediation (a = b =
+  .3, c' = .1, N = 100), both significant in 38.1% of replications against
+  34.8% from the product of the separate powers, 3.3 points higher. For
+  the correlation and an interaction they were unrelated (36.5% against
+  36.4%).
+- **Test:** `test-validation-whole-study-crosscheck.R` (full validation,
+  chunk `whole_study`): each analysis against its separate calculation,
+  the joint power above the product of the separate powers for related
+  analyses, and Type I error with every path 0; `test-whole-study.R`: the
+  joint counts' exact bookkeeping.
+- **Shown to users:** on the whole-study result screen ("How this differs
+  from calculating each analysis separately"; `app/routing/forms.yaml`,
+  `departures`, key "13") and in its methods paragraph, which says the
+  whole study was simulated.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

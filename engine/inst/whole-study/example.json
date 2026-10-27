@@ -1,0 +1,24 @@
+{
+  "spec_version": "0.1",
+  "kind": "whole_study",
+  "variables": {
+    "X": {"type": "continuous", "label": "Workload"},
+    "W": {"type": "continuous", "label": "Social support"},
+    "M": {"type": "continuous", "label": "Exhaustion"},
+    "Y": {"type": "continuous", "label": "Turnover intention"}
+  },
+  "population": {
+    "paths": {"X->M": 0.3, "M->Y": 0.3, "X->Y": 0.1, "W->Y": -0.1, "XW->Y": -0.15},
+    "correlations": {"X<->W": -0.2}
+  },
+  "analyses": [
+    {"id": "compare", "label": "The effect of workload on turnover intention", "test": "x_y", "role": "main"},
+    {"id": "mediation", "label": "Whether workload affects turnover intention through exhaustion", "test": "indirect", "path": "X->M->Y", "role": "main"},
+    {"id": "moderation", "label": "Whether the effect of workload depends on social support", "test": "interaction", "role": "extra"}
+  ],
+  "claim": "all",
+  "alpha": 0.05,
+  "effect_justification": {"type": "smallest_effect_of_interest", "source": "powerkit example (not a real study)"},
+  "goal": {"type": "power", "n": 200},
+  "options": {"nrep": 200, "ci_draws": 1000, "seed": 20261027}
+}

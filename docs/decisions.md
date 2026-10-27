@@ -3100,3 +3100,40 @@ with a note that 0 is the most optimistic case. An expected difference
 at or beyond the bound is refused, since equivalence could then not be
 shown. There is no smallest-detectable-effect goal. Published examples
 for the validation file are for the maintainer to choose.
+
+## 2026-10-27 · Whole-study simulation: built as an experimental option, for a statistician's check
+
+**Decision (maintainer, 27 October 2026).** Build the whole-study
+simulation (`next.md`, item 1) and put it in the app as an experimental
+option to try, then go through the method with a statistician before it
+is offered as more than that.
+
+**Package.** power4mome 0.2.1, already powerkit's backend for mediation
+and moderated mediation. Its `power4test()` fits several models to the
+same simulated data sets (`fit_model_args` with one entry per model, the
+first named `fit`), tests each with its own test function (`fit_name`
+names the model), and `rejection_rates(merge_all_tests = TRUE)` gives the
+rate at which all tests (`collapse = "all_sig"`) or at least one
+(`"at_least_one_sig"`) are significant in the same replication (power4mome
+help: `power4test`, `rejection_rates`, `test_parameters`,
+`test_moderation`, `test_indirect_effect`, `test_index_of_mome`). powerkit
+writes no statistics of its own: it writes the models, checks the
+population and reports.
+
+**What it covers.** The plans the guided route sends to correlation
+(E4), regression interaction (E9), mediation with one or two mediators
+(E10-E12) and moderated mediation (E13, E14): a measured predictor, a
+score outcome, people measured once, no covariates. The population model
+is the union of the analyses' models; each analysis is fitted with its
+own model, as it would be analysed on its own. Power at a fixed N only:
+a sample size search would repeat the whole simulation at each candidate
+N.
+
+**Questions for the statistician** (also in the method note for the
+check). Whether the analyses' own models should omit the terms other
+analyses add (they do now, as a researcher would fit them); whether
+joint power under "any" should use Bonferroni (as the plan's input
+screens do) or a less conservative correction; how product terms are
+scaled in the population (power4mome's convention, products of
+standardised variables); and whether the default of 1,000 replications
+is precise enough for the joint power.

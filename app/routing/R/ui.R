@@ -90,11 +90,6 @@ placeholders_at <- function(tree, where) {
   div(class = "placeholders", lapply(shown, placeholder_ui))
 }
 
-# A feature that isn't built yet, labelled as such (the guided plan's
-# combined N and consistency check).
-coming_soon_ui <- function(text) {
-  div(class = "status status-soon coming-soon", tags$span(class = "badge-soon", "Coming soon"), text)
-}
 
 # Progress -------------------------------------------------------------------
 
@@ -105,6 +100,7 @@ progress_steps <- c(study = "Your study", design = "Find your design", numbers =
 screen_step <- function(screen, has_result = FALSE) {
   if (screen %in% c("start", "aim", "check")) return("study")
   if (identical(screen, "form")) return(if (isTRUE(has_result)) "result" else "numbers")
+  if (identical(screen, "g_sim")) return("numbers")
   "design"
 }
 
@@ -660,7 +656,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
       tags$ul(lapply(shared_rel, function(s) {
         tags$li(sprintf("%s%s appears in: %s.", toupper(substr(s$label, 1, 1)), substr(s$label, 2, nchar(s$label)), paste(labels[s$sharing], collapse = "; ")), if (!is.null(s$note)) tags$span(class = "text-muted", paste0(" ", s$note)))
       }))),
-    coming_soon_ui(g$placeholders$consistency),
+    whole_study_entry_ui(whole_study_plan(tree, answers, ticked, primary, asks)),
     placeholders_at(tree, "plan")
   )
 }

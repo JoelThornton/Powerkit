@@ -169,11 +169,14 @@ test_that("deciding against the guided route hides it, with no code change", {
   expect_false(grepl("Plan my whole study", as.character(start_ui(t2)), fixed = TRUE))
 })
 
-test_that("the plan screen labels the consistency check 'Coming soon', and shows no numbers before any calculation", {
+test_that("the plan screen offers the experimental whole-study simulation only where it applies, and shows no numbers before any calculation", {
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline")
   html <- as.character(guided_plan_ui(tree, answers, c("compare", "moderation", "mediation"), c("compare", "moderation", "mediation"),
     list(compare = "ANCOVA: the outcome adjusting for the baseline"), "any"))
-  expect_identical(lengths(regmatches(html, gregexpr("<span class=\"badge-soon\">Coming soon</span>", html, fixed = TRUE))), 1L)
+  expect_match(html, "Simulate the whole study", fixed = TRUE)
+  expect_match(html, "Experimental", fixed = TRUE)
+  expect_match(html, "Not available for this plan yet", fixed = TRUE)
+  expect_false(grepl("guided:simulate", html, fixed = TRUE))
   expect_match(html, "The plan then shows the largest", fixed = TRUE)
   expect_false(grepl("N = ", html, fixed = TRUE))
   expect_false(grepl("once the engine is connected", html, fixed = TRUE))
@@ -291,7 +294,7 @@ test_that("a value two analyses on the plan share is entered once and fills the 
   expect_true(all(c("plan_values", "plan_shared", "plan_filled") %in% nav_fields))
 })
 
-test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec() and exports", {
+test_that("the app never computes power itself: it only calls the engine's run_spec(), validate_spec(), exports and whole-study checks", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
   # No backend package, power formula or engine internals are called directly.
@@ -303,7 +306,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "power_interval",
-    "write_project", "read_project"))
+    "write_project", "read_project", "validate_whole_study", "whole_study_parameters"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
 })

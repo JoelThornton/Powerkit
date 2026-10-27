@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/JoelThornton/Powerkit/blob/main/engine/inst/schema/whole-study.schema.json",
+  "title": "powerkit whole-study simulation specification",
+  "description": "Experimental. One population model for a whole study, from which every planned analysis is simulated on the same data sets (run_whole_study()). Each analysis is fitted with its own model, as it would be analysed on its own. The schema checks structure; validate_whole_study() in R checks that the analyses, variables and paths fit together and that the population is possible.",
+  "$comment": "spec_version 0.1. Keep old versions readable when the format changes.",
+  "type": "object",
+  "required": ["spec_version", "kind", "variables", "population", "analyses", "claim", "alpha", "effect_justification", "goal"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {"const": "0.1"},
+    "kind": {"const": "whole_study"},
+    "variables": {
+      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), and M, or M1 and M2, for the mediators. All are scores (continuous) in this version.",
+      "type": "object",
+      "required": ["X", "Y"],
+      "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2"]},
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "label"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {"const": "continuous"},
+          "label": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "mediators": {
+      "description": "With two mediators (M1, M2): side by side (parallel, PROCESS model 4) or in a chain (serial, PROCESS model 6).",
+      "enum": ["parallel", "serial"]
+    },
+    "population": {
+      "type": "object",
+      "required": ["paths"],
+      "additionalProperties": false,
+      "properties": {
+        "paths": {
+          "description": "Standardised path coefficients of the population model, keyed 'From->To'; product terms join the two variables ('XW->Y', 'XW->M', 'MW->Y'). Every path of the model the analyses imply must be given; use 0 for no effect.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}
+        },
+        "correlations": {
+          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals.",
+          "type": "object",
+          "propertyNames": {"enum": ["X<->W", "M1<->M2"]},
+          "additionalProperties": {"type": "number", "exclusiveMinimum": -1, "exclusiveMaximum": 1}
+        }
+      }
+    },
+    "analyses": {
+      "description": "The planned analyses, each fitted to every simulated data set with its own model. x_y: the regression of Y on X alone (the test of the correlation). interaction: Y on X, W and X x W, testing X x W. indirect: the mediation model, testing the indirect effect along 'path' by a Monte Carlo confidence interval. index_of_mome: moderated mediation (PROCESS model 7 if W moderates X -> M, model 14 if W moderates M -> Y), testing the index of moderated mediation by a Monte Carlo confidence interval.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "test", "role"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "label": {"type": "string", "minLength": 1},
+          "test": {"enum": ["x_y", "interaction", "indirect", "index_of_mome"]},
+          "role": {"enum": ["main", "extra"]},
+          "path": {"type": "string", "pattern": "^X->(M|M1|M2)(->M2)?->Y$"},
+          "moderated_link": {"enum": ["x_m", "m_y"]}
+        },
+        "allOf": [
+          {"if": {"properties": {"test": {"const": "indirect"}}}, "then": {"required": ["path"], "properties": {"moderated_link": false}}},
+          {"if": {"properties": {"test": {"const": "index_of_mome"}}}, "then": {"required": ["moderated_link"], "properties": {"path": false}}},
+          {"if": {"properties": {"test": {"enum": ["x_y", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}}
+        ]
+      }
+    },
+    "claim": {
+      "description": "How the main analyses support the study's claim. each: every main result is a separate claim, each tested at alpha. all: the claim needs every main result to be significant, each tested at alpha (joint power is the chance that all are). any: any one significant main result supports the claim, each main test at alpha divided by the number of main analyses (Bonferroni; joint power is the chance that at least one is).",
+      "enum": ["each", "all", "any"]
+    },
+    "alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "effect_justification": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"enum": ["smallest_effect_of_interest", "meta_analysis", "prior_study", "pilot_study", "own_study_result", "none"]},
+        "source": {"type": "string", "minLength": 1},
+        "adjustment": {"type": "string", "minLength": 1},
+        "notes": {"type": "string"}
+      }
+    },
+    "goal": {
+      "description": "Power at a fixed total sample size n (analysed). A sample size search isn't offered yet: each candidate n is a full simulation of every analysis.",
+      "type": "object",
+      "required": ["type", "n"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"const": "power"},
+        "n": {"type": "integer", "minimum": 20}
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nrep": {"type": "integer", "minimum": 100, "maximum": 1000000},
+        "ci_draws": {"type": "integer", "minimum": 100, "maximum": 100000},
+        "seed": {"type": "integer", "minimum": 1, "maximum": 2147483647}
+      }
+    }
+  }
+}
