@@ -331,12 +331,16 @@ labs_js <- "
     // Which Labs tool is open, kept for the tab like the notes.
     window.pkLabsOpen = function(tool) {
       Shiny.setInputValue('labs_tool', tool || '');
+      window.pkLabsTool = tool || '';
       var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
       var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
     };
     $(document).on('shiny:connected', function() {
       var s = store(); var t = null; if (s) { try { t = s.getItem('powerkit-labs-tool'); } catch (e) {} }
-      if (t) Shiny.setInputValue('labs_tool', t);
+      // A shared link (?page=labs&tool=...) opens that tool.
+      var linked = new URLSearchParams(window.location.search).get('tool');
+      if (linked && /^[a-z]+$/.test(linked)) t = linked;
+      if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; }
     });
     Shiny.addCustomMessageHandler('labs_open', function(tool) { window.pkLabsOpen(tool); });
     window.pkLabsHideHint = function() {
