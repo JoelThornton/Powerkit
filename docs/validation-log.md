@@ -1019,3 +1019,15 @@ holds one was rerun to check them.
   measurement-error interaction example.
 - Every direct backend comparison and Type I error check in these chunks
   passed (basic: rates .048 to .052; variances: .049 to .054).
+
+## 2026-10-27 · logistic, normal X (local)
+
+The maintainer transcribed G\*Power's output for the manual's normal-X
+example (section 29.4) with the procedure powerkit uses, Demidenko (2007)
+with variance correction: total N 337, actual power 0.9500770.
+
+- **Run:** `test-validation-logistic-regression.R` with
+  `POWERKIT_FULL_VALIDATION=true`, R 4.5.3 on Linux, packages from
+  `renv.lock`.
+- **Result:** both tests pass, 0 fail, 0 skip. The normal-X test's
+  required N is 337 and its power at N = 337 matches to 3 decimal places.
