@@ -13,6 +13,8 @@ labs_tab_title <- "Labs (experimental)"
 # The tools on Labs' first screen; each opens on its own (22 October 2026),
 # so that more can be added.
 labs_tools <- list(
+  list(id = "map", title = "A map of the methods",
+       text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
   list(id = "prereplication", title = "Pre-replication notes",
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.")
 )
@@ -182,6 +184,11 @@ labs_ui <- function(tree) {
         h3(class = "h5", t$title), p(t$text),
         tags$button(type = "button", class = "btn btn-primary", onclick = sprintf("pkLabsOpen('%s')", t$id), paste("Open", t$title))))),
       p(class = "small text-muted", "More tools will be added here.")),
+    conditionalPanel("input.labs_tool == 'map'",
+      tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
+      div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
+        "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
+      map_ui(tree)),
     conditionalPanel("input.labs_tool == 'prereplication'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note",
@@ -334,6 +341,7 @@ labs_js <- "
       window.pkLabsTool = tool || '';
       var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
       var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
+      if (tool === 'map' && window.pkMapShown) setTimeout(window.pkMapShown, 100);
     };
     $(document).on('shiny:connected', function() {
       var s = store(); var t = null; if (s) { try { t = s.getItem('powerkit-labs-tool'); } catch (e) {} }
@@ -341,6 +349,11 @@ labs_js <- "
       var linked = new URLSearchParams(window.location.search).get('tool');
       if (linked && /^[a-z]+$/.test(linked)) t = linked;
       if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; }
+    });
+    // The map can only measure itself once it is on screen.
+    $(document).on('shown.bs.tab shiny:conditional', function() {
+      var v = document.getElementById('map-canvas');
+      if (v && v.offsetParent && window.pkMapShown) window.pkMapShown();
     });
     Shiny.addCustomMessageHandler('labs_open', function(tool) { window.pkLabsOpen(tool); });
     window.pkLabsHideHint = function() {

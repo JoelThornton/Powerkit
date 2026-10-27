@@ -131,7 +131,7 @@ fully validated. Validation runs are recorded in
   combined sample size (the largest N among the main analyses, named,
   from the calculations made from the plan) and asks for shared values
   once: an input two analyses both ask for fills the second's input
-  screen. Whole-study simulation is queued ([`next.md`](next.md), item 2)
+  screen. Whole-study simulation is queued ([`next.md`](next.md), item 1)
   and needs a statistician's check.
 - **Effect in the measure's own units (27 October 2026, 0.8.0):** the
   three t-tests take the means and SD instead of Cohen's d (or d_z); the
@@ -142,6 +142,11 @@ fully validated. Validation runs are recorded in
   result screen for the t-tests and the correlation, a conservative and an
   optimistic effect the user enters are drawn with the plan's effect, with
   the N each needs.
+- **Labs map of the methods (27 October 2026, 0.9.0):** an interactive
+  "cosmos" (stars for research questions, planets for analyses) generated from the design finder's questions (Cytoscape.js,
+  bundled), with filters, search, two views and each analysis's
+  card. Charts on each analysis's page and a
+  sourced reading list are not built yet.
 - **Repository checks:** `test-repo-consistency.R` holds the docs, scripts
   and workflows together: every validation file in a chunk of
   run-validation.R with a time estimate and a place in the full-validation

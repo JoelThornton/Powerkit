@@ -3006,3 +3006,30 @@ design's own sentence. The full version (for a supplement or
 preregistration) still states each departure, and the results screen
 still lists them under "How it was calculated", with a pointer from the
 result card.
+
+## 2026-10-27 · The Labs methods map: an interactive node graph
+
+**Decision (maintainer, 27 October 2026).** The map of the methods
+(`next.md`, Labs tool 2) is an interactive node graph with filters down
+the side, rather than a grid of grouped lists or a static diagram.
+Whether each analysis's page later gets a sourced reading list is still
+open.
+
+**How it is built.** The map is generated from `tree.yaml`, the design
+finder's own questions (`app/routing/R/map.R`), so it cannot drift from
+them. `map_graph()` makes one node per question and per analysis and one
+edge per answer; each answer to the first question is a hub. The default
+view is a "cosmos": hubs as stars spread wide apart, their analyses as
+planets on rings around them, with ring spacing chosen so labels never
+meet (an analysis under several hubs orbits the first and is joined to
+the others by dashed lines); a second view shows every question as a
+left-to-right tree. Each
+analysis is tagged with the research questions, outcomes and numbers of
+measurements on the routes that reach it ("not fixed by the questions"
+where a route doesn't set one), and the filters use those tags. The page
+draws the graph with Cytoscape.js 3.30.2, dagre 0.8.5 and cytoscape-dagre
+2.5.0, bundled in `app/routing/www/vendor` (all MIT; licences in
+`LICENSES.txt` there), so no R package is added and the app works offline.
+A plain nested list of the same map is offered
+for screen readers and keyboard use. Clicking an analysis shows one route
+to it and a link to its card, as the design finder shows it.
