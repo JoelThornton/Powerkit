@@ -266,9 +266,9 @@ Each tab has its own address: `?page=about`, `?page=whats-new`,
 `?page=labs` or `?page=feedback` at the end of the app's address (the plan
 tab is the plain address; `?view=maintainer&page=maintainer` opens the
 maintainer's tab). The online app runs inside Posit Connect Cloud's frame,
-which keeps the browser's address bar from changing, so the top bar has a
-"Copy link to this page" button that copies the public address with the
-page on show. Run on one's own computer, the address bar follows the tab.
+which keeps the browser's address bar from changing, but a link with
+`?page=` still opens that tab. Run on one's own computer, the address bar
+follows the tab.
 
 Each is a setting in `app/routing/tree.yaml` (the `settings:` section). To
 record a decision, change its `value:` from `null` to one of its option

@@ -3,10 +3,10 @@
 * App: each tab has its own address (`?page=about`, `whats-new`, `labs`,
   `feedback`; the plan tab is the plain address), so a page can be shared
   by link. Opening an address with `?page=` shows that tab, and the
-  browser's history entries carry the page. Because the online app runs
-  inside Posit Connect Cloud's frame, the browser's address bar can't
-  change there, so the top bar has a "Copy link to this page" button that
-  copies the public address with the page. No calculation changes.
+  browser's history entries carry the page, so the address bar follows the
+  tab when the app runs on its own. The online app runs inside Posit
+  Connect Cloud's frame, where the address bar can't change, but a link
+  with `?page=` still opens that page. No calculation changes.
 
 # powerkit 0.7.0
 

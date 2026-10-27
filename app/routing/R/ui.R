@@ -143,8 +143,6 @@ nav_key <- function(screen, node, endpoint, n_answers, tab) {
 
 # Each tab has its own address (?page=labs and so on), so a page can be
 # shared by link. The plan tab is the plain address.
-public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
-
 page_slugs <- function() {
   c(plan = "Plan a power analysis", about = "About", "whats-new" = "What's new",
     labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
@@ -167,18 +165,10 @@ page_slug <- function(tab) {
   if (is.na(slug)) "plan" else slug
 }
 
-# A small button in the top bar that copies a link to the page on show.
-share_page_ui <- function() {
-  div(class = "share-page",
-    tags$button(type = "button", class = "btn btn-sm share-page-btn", `data-public` = public_address,
-      onclick = "pkCopyPageLink(this)", "Copy link to this page"),
-    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"))
-}
-
 # Each history entry carries its page in the address (?page=...). On the
 # online app the page sits inside Posit Connect Cloud's frame, so the
-# browser's address bar can't show it; the "Copy link to this page" button
-# gives the public address with the page instead.
+# browser's address bar can't show it there, but a link with ?page= still
+# opens that page.
 nav_js <- "
   window.pkPageUrl = function(page) {
     var url = new URL(window.location.href);
@@ -187,7 +177,6 @@ nav_js <- "
   };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
-    window.pkPage = m.page;
     var url = pkPageUrl(m.page);
     if (m.replace) history.replaceState(entry, '', url);
     else history.pushState(entry, '', url);
@@ -195,21 +184,6 @@ nav_js <- "
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
-  window.pkCopyPageLink = function(btn) {
-    var page = window.pkPage || 'plan';
-    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
-    var link;
-    if (framed) {
-      link = btn.getAttribute('data-public') + (page === 'plan' ? '' : '/?page=' + encodeURIComponent(page));
-    } else {
-      var url = new URL(pkPageUrl(page));
-      url.searchParams.delete('view');
-      link = url.toString();
-    }
-    var status = btn.parentNode.querySelector('.share-page-status');
-    pkCopyText(link, null);
-    if (status) { status.textContent = 'Link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
-  };
 "
 
 # Start screen ---------------------------------------------------------------

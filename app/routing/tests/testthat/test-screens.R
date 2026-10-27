@@ -465,9 +465,7 @@ test_that("each tab has its own address, so a page can be shared by link", {
   expect_identical(page_slug(NULL), "plan")
   expect_match(code, "selected = page_from_query(req$QUERY_STRING)", fixed = TRUE)
   expect_match(code, "page = page_slug(input$tabs)", fixed = TRUE)
-  expect_match(code, "share_page_ui()", fixed = TRUE)
   expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
-  expect_match(as.character(share_page_ui()), public_address, fixed = TRUE)
 })
 
 test_that("the browser's Back and Forward move between powerkit's screens", {
