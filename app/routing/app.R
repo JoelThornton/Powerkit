@@ -647,6 +647,41 @@ server <- function(input, output, session) {
     text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
   })
 
+  # Three effects (conservative, the plan's, optimistic): power by N for
+  # each, and the N each needs. Reads the last calculation; never changes
+  # the plan.
+  scenario_inputs <- reactive({
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), !is.null(explore_effect(calc$spec)))
+    vals <- c(conservative = input$scenario_conservative %||% NA, optimistic = input$scenario_optimistic %||% NA)
+    req(any(!is.na(vals)))
+    list(calc = calc, vals = vals)
+  }) |> debounce(600)
+  scenario_results <- reactive({
+    x <- scenario_inputs()
+    n <- scenario_n(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], seed = forms$default_seed)
+    list(spec = x$calc$spec, n = n,
+      curves = scenario_curves(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], n = n, seed = forms$default_seed))
+  })
+  output$scenario_plot <- renderPlot({
+    df <- scenario_results()$curves
+    keys <- intersect(names(scenario_names), unique(df$scenario))
+    style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
+    par(mar = c(4.5, 4.5, 1, 1))
+    plot(NA, xlim = range(df$n), ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
+    for (k in keys) {
+      d <- df[df$scenario == k, ]
+      lines(d$n, d$power, col = style[[k]]$col, lty = style[[k]]$lty, lwd = 2.5)
+    }
+    abline(h = c(0.8, 0.95), lty = 2, col = "grey70")
+    legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
+      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 2.5, bty = "n")
+  })
+  output$scenario_n <- renderUI({
+    x <- scenario_results()
+    p(class = "small", scenario_sentence(x$spec, x$n))
+  })
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)
