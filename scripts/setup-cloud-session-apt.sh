@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # The slower fallback for scripts/setup-cloud-session.sh, used when the CI
-# image can't be downloaded: builds R and Powerkit's packages from Ubuntu's
+# image can't be downloaded (run it by hand, or pass --build-from-source
+# to that script): builds R and Powerkit's packages from Ubuntu's
 # apt and CRAN source. Takes 20-30 minutes; run it directly only to rebuild.
 #
 # What it does, and why:
