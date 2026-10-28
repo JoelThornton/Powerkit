@@ -32,6 +32,11 @@
 #' on Superpower's `ANOVA_exact()` (design `"kw"`), with one SD and one
 #' correlation `population > r` for every pair of conditions, so sphericity
 #' holds. `goal > n` is the number of participants, each in every condition.
+#' Mixed ANOVA beyond 2 x 2 (template `mixed`): one between factor A by one
+#' within factor B, at least one with three or more levels (for example
+#' group by time with three timepoints), on Superpower's `ANOVA_exact()`
+#' (design `"kb*mw"`), with one SD and one correlation, so sphericity holds.
+#' `population > means` has one row per level of A, one mean per level of B.
 #' Two dependent correlations in one group (engine only), by Steiger's z
 #' test with pwrss's `power.z.twocors.steiger()` (unpooled, as G*Power):
 #' templates `overlapping_correlations` (X with Y against X with Z) and

@@ -1418,6 +1418,7 @@
             "enum": [
               "2x2_between",
               "2x2_mixed",
+              "mixed",
               "oneway_between",
               "oneway_within",
               "oneway_ancova",
@@ -1481,6 +1482,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_2x2_mixed"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "mixed"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mixed"
             }
           },
           {
@@ -1650,6 +1666,96 @@
         },
         "target_test": {
           "properties": {
+            "method": {
+              "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_mixed": {
+      "description": "One factor A varies between participants, one factor B within participants (for example group by time), with at least one of them having three or more levels; a 2 x 2 design uses template 2x2_mixed. Groups are equal in size; the SD is the same in every cell and the correlation is the same between every pair of B's levels, so sphericity holds.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected cell means: one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "sd": {
+              "description": "Standard deviation in every cell (the same in every cell).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r": {
+              "description": "Correlation between any two levels of B within a participant (the same for every pair).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "interaction"
+              ]
+            },
             "method": {
               "const": "anova_f"
             }

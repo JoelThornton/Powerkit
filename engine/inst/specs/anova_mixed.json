@@ -1,0 +1,62 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "mixed",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Group",
+      "levels": [
+        "Therapy",
+        "Waiting list"
+      ]
+    },
+    "B": {
+      "type": "within_factor",
+      "label": "Time",
+      "levels": [
+        "Before",
+        "After",
+        "Follow-up"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Anxiety score"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        20,
+        16,
+        15
+      ],
+      [
+        20,
+        19,
+        18.5
+      ]
+    ],
+    "sd": 6,
+    "r": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 3-point larger drop with therapy than on the waiting list is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261028
+  }
+}

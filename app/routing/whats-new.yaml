@@ -6,6 +6,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Power for group by time with three or more timepoints"
+    text: >-
+      powerkit now calculates the mixed ANOVA beyond 2 x 2: groups of
+      different people, each measured at three or more timepoints or in
+      several conditions, such as a trial with before, after and follow-up.
+      You choose the effect you care about, usually whether the change over
+      time differs between groups, and the design finder takes you there
+      when one factor is different people and the other is measured in
+      everyone.
+  - date: "2026-10-28"
     title: "Fewer words on the screens"
     text: >-
       The design finder asks only once whether you want to show there's no

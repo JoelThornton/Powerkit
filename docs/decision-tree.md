@@ -339,7 +339,9 @@ flowchart TD
   F2a -->|Any difference,<br/>the same people| E54["E54 One-way<br/>repeated-measures ANOVA"]
   F1 -->|Three or more| E21["E21 Larger factorial ANOVA"]
   F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
-  F3 -->|No| E21
+  F3 -->|No| F3a{"F3a For each factor: different<br/>people, or everyone in every level?"}
+  F3a -->|One between,<br/>one within| E55["E55 Mixed ANOVA<br/>beyond 2 x 2"]
+  F3a -->|Both between or<br/>both within| E21
   F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
   F4 -->|Both within| E20["E20 2 x 2 within ANOVA"]
   F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
@@ -352,8 +354,8 @@ flowchart TD
   F4b -->|Yes| PP{"PP1 Randomised?<br/>PP2 Which analysis?"}
   PP -->|The mixed interaction| E8
   PP -->|ANCOVA| E23["E23 ANCOVA"]
-  class F1,F2,F2a,F3,F4,F4a,F4b,PP,F5b,F5m q
-  class E1,E2,E3,E7,E8,E18,E19,E23,E54 avail
+  class F1,F2,F2a,F3,F3a,F4,F4a,F4b,PP,F5b,F5m q
+  class E1,E2,E3,E7,E8,E18,E19,E23,E54,E55 avail
   class E20,E21,E22 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -529,6 +531,7 @@ engine can use the answer today.
 | V1 | Whose spread of scores are you comparing? | One group's, against a fixed value (E52); two groups', different people in each (E53) | `template` (`one_variance`, `two_variances`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
+| F3a | For each factor: different people, or everyone got every level? (at least one factor with three or more levels) | One between, one within (E55); both between or both within (E21) | `variables.A.type`, `variables.B.type` (A is the between factor in `mixed`) | Yes for one between and one within; routing only otherwise |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
 | F4a | Will the groups be equal in size? | Yes / no (decisions D5, N1–N3) | 2x2: none (equal cells assumed). Two groups: `options.allocation_ratio` | 2x2: routing only (unequal → not available). Two-group tests: yes |
 | F4b, PP1, PP2 | Before and after? Randomised? ANCOVA or mixed interaction? | (decision D2) | `factorial_anova / 2x2_mixed`, `target_test.effect = interaction` | Routing only. Randomisation and the reason for the choice aren't stored for the write-up: **flag** (open question 4). ANCOVA: **no (flag)** |
@@ -641,6 +644,7 @@ the two in step.
 | E52 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E53 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E54 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E55 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -713,6 +717,7 @@ taken from coverage.md, where they are proposals.
 | E52 | One variance against a fixed value | `basic_test / one_variance` | `Spower::p_var.test()` (the chi-square test of one variance, simulated: Known difference 4). Reached from Q1 (scores more spread out or more consistent) and V1 | Simulation | The expected variance and the fixed value | Yes: matches the G\*Power 3.1 manual's examples, Spower and Type I error in the full validation run (27 October 2026) | v2 | Runs |
 | E53 | Two variances (independent groups) | `basic_test / two_variances` | `Spower::p_var.test()` (the F test of two variances, simulated, equal groups only: Known difference 4). Reached from Q1 and V1 | Simulation | The expected variance in each group | Yes: matches the G\*Power 3.1 manual's example, Spower and Type I error in the full validation run (27 October 2026) | v2 | Runs |
 | E54 | One-way repeated-measures ANOVA, omnibus | `factorial_anova / oneway_within` | `Superpower::ANOVA_design("kw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. One SD and one correlation for every pair of conditions, so sphericity holds and no correction applies. Reached from F2a when the screening says the same people are in three or more conditions | Exact dataset (no repeated simulation) | Condition means (raw or in SD units), one SD, the correlation between any two conditions | No: matches Superpower's `ANOVA_exact()` and `power_oneway_within()` in `test-backend-oneway-within.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
+| E55 | Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints) | `factorial_anova / mixed` | `Superpower::ANOVA_design("kb*mw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Equal groups, one SD and one correlation, so sphericity holds. Reached from F3a, and from the guided route for three conditions measured twice | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, the correlation between any two levels of the within factor, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-mixed.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 
