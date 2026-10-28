@@ -255,6 +255,8 @@ zero_effect_cases <- list(
   process_14 = function(s) within(s, population$paths[["MW->Y"]] <- 0),
   anova_oneway_between = function(s) within(s, population$means <- list(12, 12, 12)),
   anova_oneway_within = function(s) within(s, population$means <- list(620, 620, 620)),
+  # Parallel lines over time: no interaction, though both main effects exist.
+  anova_mixed = function(s) within(s, population$means <- list(list(20, 16, 15), list(22, 18, 17))),
   regression_r2_zero = function(s) within(s, population$r2 <- 0),
   regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),
   one_proportion = function(s) within(s, population$p <- population$p0),

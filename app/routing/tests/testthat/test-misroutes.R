@@ -254,6 +254,8 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "McNemar's test" = list(c(twice(yesno), diff, "The same people in every condition"), "E26"),
     "One-way ANOVA" = list(c(once(score), diff, "One", "Three or more", "Any difference among the groups"), "E18"),
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Three or more", "Any difference among the conditions"), "E54"),
+    "Mixed ANOVA, group by three timepoints" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),
+    "Mixed ANOVA, three groups before and after" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),
     "Factorial ANOVA" = list(c(once(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: different people", "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
     "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29"),
     "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E47"),

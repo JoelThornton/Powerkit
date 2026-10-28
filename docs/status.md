@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 11). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 10). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -80,7 +80,7 @@ fully validated. Validation runs are recorded in
   on the "People nested in groups" card (E34), with the design effect and
   the effective sample size on the result screen. Validation in progress
   (published examples to choose and transcribe). Next: simulated
-  multilevel models wait for a package decision (`next.md`, item 8); a
+  multilevel models wait for a package decision (`next.md`, item 7); a
   yes/no outcome (powertools `crt.parallel.bin()`) is a candidate.
 - **Structural equation model fit (27 October 2026, 0.13.0):** the power
   of the chi-square test of exact fit to reject a model with a given
@@ -90,15 +90,16 @@ fully validated. Validation runs are recorded in
   items and factors (semPower counts the df with lavaan); any other model
   by its df. Validation in progress (published examples to choose and
   transcribe). Next: measurement invariance, then factor correlations,
-  then latent paths (`next.md`, item 10); the test of close fit is an
+  then latent paths (`next.md`, item 9); the test of close fit is an
   open method choice.
-- **Repeated measures (27 October 2026, 0.14.0):** the one-way
-  repeated-measures ANOVA (the same people in three or more conditions)
-  runs in the app by Superpower's exact data set (E54), with one SD and one
-  correlation between conditions, so sphericity holds. Validation in
-  progress (a published example to choose and transcribe). Next: group by
-  time with three or more timepoints (`next.md`, item 6); then 2 x 2 and
-  larger within designs and the MANOVA approach (item 5).
+- **Repeated measures (27 to 28 October 2026, 0.14.0 and 0.15.0):** the one-way
+  repeated-measures ANOVA (the same people in three or more conditions,
+  E54) and the mixed ANOVA beyond 2 x 2 (groups of different people each
+  measured at three or more timepoints or in several conditions, E55) run
+  in the app by Superpower's exact data set, with one SD and one
+  correlation, so sphericity holds. Validation in progress (published
+  examples to choose and transcribe). Next: 2 x 2 and larger within
+  designs and the MANOVA approach (`next.md`, item 5).
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
@@ -126,7 +127,7 @@ fully validated. Validation runs are recorded in
   below. Next: a quick run in the app, an R script for the full run, and
   a search for the sample size.
 - **App** (`app/routing/`): the question tree, cards and input screens for
-  every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), ANCOVA (E23), multiple
+  every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), mixed designs beyond 2 x 2 (E55), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
   (E48), two correlations (E49), the generic tests (E50) and
   clustered designs (E34) and model fit for CFA and SEM (E37) calculate in

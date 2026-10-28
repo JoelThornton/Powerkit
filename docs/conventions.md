@@ -159,6 +159,14 @@ power while matching G\*Power) is folded there instead
 | Superpower | `ANOVA_exact()` on the design `"kw"` (for example `"3w"`), and `ANOVA_power()` for simulation [SP-src]; `power_oneway_within()` computes the same test from the design object [SP-src] | Condition means, SD(s) and a correlation `r` between repeated measures [SP-src] | `correction` defaults to `"none"` (`Superpower_options()`), for both `ANOVA_exact()` and `ANOVA_power()` [SP-src] |
 | **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` with `options > method = "simulation"` [powerkit] | Condition means in the user's units or standardised, **one** SD and **one** correlation for every pair of conditions | Superpower's defaults, so no sphericity correction. With one SD and one correlation the population covariance matrix has compound symmetry, so sphericity holds and the uncorrected F test is the right one; this is not a departure. Unequal SDs or correlations, a correction and the MANOVA approach are not offered (`decisions.md`, 27 October 2026). `goal.n` is the number of participants, each in every condition, at least 5. Agrees with `power_oneway_within()` in `test-backend-oneway-within.R` |
 
+### Mixed designs beyond 2 x 2 (one between factor, one within factor)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G*Power | "ANOVA: Repeated measures, within-between interaction" (and "between factors", "within factors" for the main effects). The manual has no section on them [GP-man, contents]; see the 2 x 2 mixed row above | As the 2 x 2 mixed row | To check (maintainer, in G*Power) |
+| Superpower | `ANOVA_exact()` on the design `"kb*mw"` (for example `"2b*3w"`), `ANOVA_power()` for simulation [SP-src]. `ANOVA_exact()` refuses a design whose n per group is not greater than the number of cells ("n <= the product of the factors") [SP-src] | Cell means, SD(s) and `r` | `correction` `"none"` by default [SP-src] |
+| **powerkit** | As the 2 x 2 mixed design: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per group), **one** SD and **one** correlation between every pair of the within factor's levels | No sphericity correction, which compound symmetry makes unnecessary (not a departure). Equal groups only; `goal.n` is the total, a multiple of the number of groups. Exact power needs more people per group than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`] |
+
 ### Planned comparisons (contrasts)
 
 | Tool | Test | Effect size | Settings |

@@ -26,6 +26,7 @@ route_spec <- function(spec, seed = NULL) {
     key,
     "factorial_anova/2x2_between" = ,
     "factorial_anova/2x2_mixed" = ,
+    "factorial_anova/mixed" = ,
     "factorial_anova/oneway_between" = ,
     "factorial_anova/oneway_within" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,

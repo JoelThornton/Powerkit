@@ -1,3 +1,35 @@
+# powerkit 0.15.0
+
+* Mixed ANOVA beyond 2 x 2 (design `factorial_anova`, template `mixed`;
+  card E55): one between-participants factor A by one within-participants
+  factor B, at least one with three or more levels (for example group by
+  time with three timepoints), by Superpower's `ANOVA_exact()` on the
+  design `"kb*mw"` (`ANOVA_power()` on request), for the main effect of A,
+  of B, or the interaction. `population$means` has one row per level of A,
+  each with one mean per level of B; one SD and one correlation `r`, so
+  sphericity holds. Equal groups; `goal > n` is a multiple of the number
+  of groups. The check run recovers every cell's mean and SD and, in each
+  group, every pairwise correlation. Unit tests in `test-backend-mixed.R`;
+  validation placeholders in `test-validation-anova-mixed.R` (in the
+  `anova` chunk).
+
+* Superpower's exact route now asks for more participants per group than
+  there are cells in the design (at least 5), which is what
+  `ANOVA_exact()` needs; before, a design with six or more cells per group
+  could reach Superpower with too few and fail with Superpower's own
+  message.
+
+* App: a card and input screen for the mixed design. A new design-finder
+  question after "No: at least one factor has three or more" asks which
+  factors are different people; one between and one within leads to it,
+  as does the guided route for three conditions measured twice. The
+  input screen's table of cell means takes its rows and columns from the
+  two factors' levels (`rows_from`, `cols_from` in `forms.yaml`).
+
+* App: in the write-up, a table of values (the mixed design's cell means,
+  the chi-square test's proportions) now reads as bracketed rows on one
+  line instead of breaking across lines.
+
 # powerkit 0.14.2
 
 * App: the design finder asks once whether the aim is to show there is no

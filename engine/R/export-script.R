@@ -292,6 +292,10 @@ design_description <- function(spec) {
       "2 x 2 between-participants ANOVA of %s: %s (%s) by %s (%s); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
+    "factorial_anova/mixed" = sprintf(
+      "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; sphericity assumed",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
@@ -529,6 +533,7 @@ add_recruitment_section <- function(lines, spec, result) {
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,
     oneway_contrast = ,
+    mixed = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
@@ -1154,6 +1159,29 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(inputs$r)),
       "groups <- 1 # one group: everyone is in every condition",
       "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+    ))
+  }
+  if (spec$template == "mixed") {
+    level_line <- function(role, letter) {
+      lv <- comment_text(unlist(v[[role]]$levels))
+      sprintf("#   %s = %s: %s", letter, comment_text(v[[role]]$label),
+              paste(sprintf("%s%d = %s", letter, seq_along(lv), lv), collapse = ", "))
+    }
+    k <- length(unlist(v$A$levels))
+    m <- length(unlist(v$B$levels))
+    return(c(
+      "# Superpower names the factors a and b and their levels a1, a2, ..., b1, b2, ...:",
+      level_line("A", "a"),
+      level_line("B", "b"),
+      sprintf("design_string <- %s # a between participants (%d levels), b within (%d levels)", r_code(inputs$design), k, m),
+      sprintf(
+        "mu <- %s # cell means of %s, in Superpower's order a1_b1, a1_b2, ..., a2_b1, ...",
+        r_code(inputs$mu), comment_text(v$Y$label)
+      ),
+      sprintf("cell_sd <- %s # SD in every cell", r_code(inputs$sd)),
+      sprintf("r <- %s # correlation between any two levels of b, within a participant", r_code(inputs$r)),
+      sprintf("groups <- %s # between-participants groups: the total n is split equally across them", inputs$groups),
+      sprintf("effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect))
     ))
   }
   between <- spec$template == "2x2_between"

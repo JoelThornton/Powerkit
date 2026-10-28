@@ -509,9 +509,13 @@ form_problems <- function(fields, values) {
       if (any(vapply(tb, function(r) any(is.nan(r) | is.na(r)), logical(1)))) {
         add(sprintf("%s: every entry should be a number written with a decimal point, such as 0.25.", quote_label(f)))
       } else {
-        rows <- length(parse_levels(values$X_levels)); cols <- length(parse_levels(values$Y_levels))
+        # Rows and columns follow two level fields: X_levels and Y_levels
+        # unless the field names others (`rows_from`, `cols_from`).
+        rows <- length(parse_levels(values[[f$rows_from %||% "X_levels"]]))
+        cols <- length(parse_levels(values[[f$cols_from %||% "Y_levels"]]))
         if (length(tb) != rows || any(lengths(tb) != cols)) {
-          add(sprintf("%s should have %d lines (one per category of the first variable) of %d numbers each (one per category of the second).", quote_label(f), rows, cols))
+          add(sprintf("%s should have %d lines (one per %s) of %d numbers each (one per %s).", quote_label(f), rows,
+                      f$rows_name %||% "category of the first variable", cols, f$cols_name %||% "category of the second"))
         }
       }
     }

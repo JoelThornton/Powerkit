@@ -559,6 +559,28 @@ check_factorial_anova <- function(spec) {
   if (identical(spec$template, "oneway_contrast")) {
     return(check_contrast_weights(spec))
   }
+  if (identical(spec$template, "mixed")) {
+    return(check_mixed_shape(spec))
+  }
+  character()
+}
+
+# The larger mixed design: one row of means per level of A, each with one
+# mean per level of B, and at least one factor with three or more levels
+# (a 2 x 2 design has its own template).
+check_mixed_shape <- function(spec) {
+  k <- length(spec$variables$A$levels)
+  m <- length(spec$variables$B$levels)
+  if (k == 2 && m == 2) {
+    return("Both factors have two levels: use the template '2x2_mixed' for a 2 x 2 mixed design.")
+  }
+  rows <- lengths(spec$population$means)
+  if (length(rows) != k || any(rows != m)) {
+    return(sprintf(
+      "'population > means' should have %d rows (one per level of %s), each with %d means (one per level of %s), in the same order as the levels.",
+      k, var_label(spec, "A"), m, var_label(spec, "B")
+    ))
+  }
   character()
 }
 
@@ -607,6 +629,18 @@ anova_contrast <- function(spec) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
+  }
+  if (identical(spec$template, "mixed")) {
+    # Each effect's largest departure from no effect: zero only when the
+    # effect is absent.
+    m <- do.call(rbind, lapply(spec$population$means, function(row) as.numeric(unlist(row))))
+    residual <- m - outer(rowMeans(m), colMeans(m), "+") + mean(m)
+    return(switch(
+      spec$target_test$effect,
+      main_effect_A = diff(range(rowMeans(m))),
+      main_effect_B = diff(range(colMeans(m))),
+      interaction = max(abs(residual))
+    ))
   }
   m <- matrix(as.numeric(unlist(spec$population$means)), nrow = 2, byrow = TRUE)
   switch(
@@ -1105,6 +1139,8 @@ minimum_n <- function(spec) {
       spec$template,
       "2x2_between" = 8,
       "2x2_mixed" = 4,
+      # Two participants per between-participants group.
+      mixed = 2 * length(spec$variables$A$levels),
       # Two participants per group, so the error df is at least the number
       # of groups.
       oneway_between = ,
@@ -1141,7 +1177,7 @@ group_split <- function(spec) {
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }

@@ -3219,8 +3219,14 @@ matrix has compound symmetry, sphericity holds and the univariate F test
 needs no correction. Unequal SDs or correlations, a sphericity
 correction (Greenhouse-Geisser, Huynh-Feldt) and the MANOVA approach are
 not offered yet; each would need its own decision. The first design is
-the one-way repeated-measures ANOVA (template `oneway_within`, card E54);
-group by time beyond 2 x 2 follows in its own pull request.
+the one-way repeated-measures ANOVA (template `oneway_within`, card E54).
+The second is the mixed design beyond 2 x 2 (template `mixed`, card E55):
+one between factor by one within factor, at least one with three or more
+levels, such as group by time with three timepoints, by the same route
+with equal groups. The design finder reaches it through a new question
+after "No: at least one factor has three or more" (F3a); designs with both
+factors between or both within still reach the larger factorial card
+(E21).
 
 ## 2026-10-28 · Mentioning other tools: where the answer differs, and in the details
 

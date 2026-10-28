@@ -169,6 +169,7 @@ group_sizes <- function(spec, n) {
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
     oneway_between = ,
+    mixed = ,
     oneway_ancova = {
       k <- length(spec$variables$A$levels)
       rep(n / k, k)
@@ -1091,7 +1092,13 @@ writeup_effect <- function(fields, values) {
   out <- character()
   for (f in fields) {
     if (!(isTRUE(f$effect) || isTRUE(f$in_effect_text)) || blank(values[[f$id]]) || !field_applies(f, values)) next
-    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, trimws(as.character(values[[f$id]]))))
+    value <- trimws(as.character(values[[f$id]]))
+    # A table (one line per row) reads as bracketed rows on one line.
+    if (identical(f$type, "table")) {
+      rows <- trimws(strsplit(value, "\n", fixed = TRUE)[[1]])
+      value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
+    }
+    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, value))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
 }
@@ -1161,7 +1168,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
-  if (spec$template %in% c("2x2_between", "2x2_mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
