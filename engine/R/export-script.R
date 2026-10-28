@@ -60,6 +60,7 @@ export_script <- function(spec, result, file = NULL) {
     power4mome = power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     powertools = powertools_script(spec, result),
+    semPower = sempower_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -272,6 +273,10 @@ design_description <- function(spec) {
       "multisite trial: %s compared between the conditions of %s (%s), people randomised within each group of %s; t test of the average difference",
       label("Y"), label("X"), levels("X"), spec$population$cluster_size
     ),
+    "sem/model_fit" = sprintf(
+      "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
+      spec$population$rmsea, sem_df(spec)
+    ),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -370,7 +375,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools") || p$method == "analytic") {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools", "semPower") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend

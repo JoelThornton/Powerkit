@@ -65,6 +65,10 @@ tool_defaults:
     alpha_source: "powertools' default (crt.parallel.cont(alpha = 0.05), powertools 1.0.0)"
     power_source: "powertools has no default target power (crt.parallel.cont(power = NULL)); enter one"
     alternative_source: "powertools' default (two-sided: crt.parallel.cont(sides = 2), powertools 1.0.0)"
+  semPower:
+    alpha: 0.05
+    alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
+    power_source: "semPower has no default target power (semPower.aPriori(power = NULL)); enter one"
   power4mome:
     alpha: 0.05
     alpha_source: "power4mome's default (95% confidence intervals: n_region_from_power(ci_level = 0.95), power4mome 0.2.1)"
@@ -101,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E34, E36, E48, E49, E50, E51, E52, E53]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -1037,6 +1041,38 @@ forms:
              help: "For example, pupils per class. The total number of participants is then a whole number of groups (with whole groups assigned, the same number of groups in each condition)."}
           - {id: cluster_size_sd, label: "How much group sizes vary: their SD (0 if all the same size)", type: number, path: population.cluster_size_sd, required: true, min: 0,
              default: 0, default_source: "groups of equal size, powertools' default (crt.parallel.cont(m.sd = 0) and multisite.cont(m.sd = 0), powertools 1.0.0)"}
+
+  # Structural equation model fit (semPower's semPower.postHoc() with an
+  # RMSEA): the chi-square test of exact fit, power to reject a model whose
+  # population misfit is the RMSEA given. The model is a CFA (items and
+  # factors; the engine counts its df) or any model given by its df.
+  E37:
+    methods_name: "the chi-square test of exact model fit (power to reject a model whose misfit is the RMSEA given)"
+    tool: semPower
+    directional: false
+    sides: false
+    base: {spec_version: "0.1", design: sem, template: model_fit, variables: {},
+           population: {metric: rmsea},
+           target_test: {effect: model_fit, method: chi_square_exact_fit}}
+    groups:
+      - input: "The model: the number of items and factors (for a CFA), or its degrees of freedom"
+        fields:
+          - {id: model_kind, label: "What kind of model", type: select, required: true,
+             choices: {cfa: "A confirmatory factor analysis (CFA): items, each measuring one factor",
+                       df: "Another model: I know its degrees of freedom"}}
+          - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, integer: true,
+             shown_if: {field: model_kind, is: cfa},
+             help: "For example, 12 questionnaire items."}
+          - {id: factors, writeup_label: "factors", label: "Number of factors", type: number, path: population.factors, required: true, min: 1, integer: true,
+             shown_if: {field: model_kind, is: cfa},
+             help: "The factors are allowed to correlate, and each item measures one factor. powerkit counts the model's degrees of freedom from these."}
+          - {id: df, writeup_label: "degrees of freedom", label: "The model's degrees of freedom", type: number, path: population.df, required: true, min: 1, integer: true,
+             shown_if: {field: model_kind, is: df},
+             help: "lavaan, Mplus and other SEM software report this when they fit the model (in lavaan, fitMeasures(fit, \"df\")). You can fit it to made-up data to get the number."}
+      - input: "The misfit to detect: the model's RMSEA in the population"
+        fields:
+          - {id: rmsea, writeup_label: "RMSEA", label: "RMSEA of the misfit to detect", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "How wrong the model would have to be for you to want the test to notice. 0 would be a model that fits exactly; larger values are worse fit. Many studies use 0.05. A smaller value needs many more people."}
 
   # Planned contrast (pwrss's t test of one weighted combination of the
   # group means, k.covariates = 0): equal groups, two-sided only, because

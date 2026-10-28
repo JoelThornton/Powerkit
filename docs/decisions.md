@@ -3170,3 +3170,35 @@ effective sample size with every result. Equal numbers of groups per
 condition, one ICC and no covariates for now. Validation placeholders in
 `test-validation-cluster-randomised.R`; published examples to be chosen
 and transcribed by the maintainer.
+
+## 2026-10-27 · Structural equation models: semPower, model fit first
+
+**Decision (maintainer, 27 October 2026).** powerkit's structural
+equation models are computed by formula with semPower 2.2.0 (LGPL;
+Moshagen & Bader, 2024, `refs.bib` `semPower_method`). The first design
+is model fit: the power of the chi-square test of exact fit to reject a
+model whose misfit in the population is a given RMSEA, the question
+behind "how many people does my CFA need?". Next, in this order:
+measurement invariance across groups (`semPower.powerMI()`), the
+correlation between two factors (`semPower.powerCFA()`), and paths
+between latent variables (`semPower.powerPath()`).
+
+**Why.** semPower covers model fit, CFA parameters, multigroup and
+longitudinal invariance and latent paths in one maintained package, by
+formula (instant, no simulation), and needs only base R plus lavaan,
+which powerkit already installs. Model fit asks for the fewest inputs a
+psychologist can give (items, factors, an RMSEA), so the card, the design
+finder's route and the package come in with the simplest screen, and the
+other three reuse them. G\*Power has no structural equation models.
+Latent mediation is partly covered already by the whole-study simulation
+(power4mome).
+
+**How.** Design `sem`, template `model_fit`: the model is given by its
+degrees of freedom, or, for a CFA, by its number of items and factors
+(each item on one factor, the factors correlated), whose df
+`semPower.getDf()` counts with lavaan. Goals: power and sample size.
+The card and the result say plainly that this is power to show a model
+is wrong. semPower tests exact fit only; the test of close fit (the null
+hypothesis RMSEA no more than 0.05) is not offered, and whether to add it
+is an open method choice ([`conventions.md`](conventions.md)). Validation
+placeholders in `test-validation-sem-model-fit.R`.

@@ -197,6 +197,9 @@ group_text <- function(spec, n) {
 }
 
 test_text <- function(spec) {
+  if (identical(spec$design, "sem")) {
+    return(sprintf("the chi-square test of exact model fit at alpha = %s", alpha_text(spec$target_test$alpha)))
+  }
   alt <- spec$target_test$alternative %||% "two_sided"
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
@@ -288,7 +291,7 @@ equivalence_sentences <- function(spec, result) {
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools")) {
+  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools", "semPower")) {
     sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   } else {
     "Superpower's exact dataset, no repeated simulation"
@@ -312,7 +315,43 @@ result_sentences <- function(spec, result) {
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   clusters <- cluster_sentence(result)
   if (!is.null(clusters)) out[["detail"]] <- paste(out[["detail"]], clusters)
+  sem <- sem_sentence(result)
+  if (!is.null(sem)) {
+    out[["detail"]] <- paste(out[["detail"]], sem)
+    # Model fit: what is detected is the model's misfit, not an effect.
+    out <- vapply(out, sem_wording, character(1))
+  }
   out
+}
+
+sem_wording <- function(text) {
+  text <- gsub("the true effect is the one you entered", "the model is wrong by the amount you entered", text, fixed = TRUE)
+  text <- gsub("If the true effect is smaller", "If the misfit is smaller", text, fixed = TRUE)
+  gsub("the effect you entered", "the misfit you entered", text, fixed = TRUE)
+}
+
+# Structural equation model fit: what "the effect" is here (misfit, as an
+# RMSEA), the model's degrees of freedom from the engine's sem_summary(),
+# and that this is power to reject the model.
+sem_model_text <- function(s) {
+  if (is.null(s$indicators)) return(sprintf("a model with %s degrees of freedom", whole(s$df)))
+  sprintf("a CFA of %s items on %s correlated factor%s (%s degrees of freedom)",
+    whole(s$indicators), whole(s$factors), if (s$factors == 1) "" else "s", whole(s$df))
+}
+
+sem_sentence <- function(result) {
+  s <- result$sem
+  if (is.null(s)) return(NULL)
+  sprintf(paste0(
+    "The effect here is misfit: power is the chance that the test rejects %s if the model is wrong by an RMSEA of %s in the population. ",
+    "A model that is not rejected is not shown to be right; with too few people, even a poor model is rarely rejected."),
+    sem_model_text(s), format(s$rmsea))
+}
+
+sem_writeup <- function(result) {
+  s <- result$sem
+  if (is.null(s)) return(NULL)
+  sprintf("The model was %s, and the misfit to detect was a population RMSEA of %s.", sem_model_text(s), format(s$rmsea))
 }
 
 # Clustered designs: what the grouping costs, from the engine's
@@ -1187,7 +1226,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   )
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, cluster_writeup(result))
+  main <- c(main, cluster_writeup(result), sem_writeup(result))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
@@ -1234,6 +1273,10 @@ ethics_text <- function(spec, result, fields, values) {
   # matter.
   if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
+    alpha, percent(p), percent(1 - p))
+  # Model fit: the aim is to find out whether the model is wrong.
+  if (identical(spec$design, "sem")) chance <- function(p) sprintf(
+    "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
   include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
   recruit <- result$recruitment
