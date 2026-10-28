@@ -848,6 +848,32 @@ test_that("a cluster-randomised trial runs on powertools, with the groups and th
   expect_error(run(bad), "whole number of groups of 20", fixed = TRUE)
 })
 
+test_that("a yes/no outcome in groups runs on powertools' .bin() functions from the same screen", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E34"))
+  values <- modifyList(form_examples$E34, list(outcome_type = "proportion", p1 = "0.3", p2 = "0.45", sigma_u_groups = "0.3"))
+  values$d <- NULL; values$icc <- NULL
+  spec <- build_spec(forms, "E34", fields, values)
+  expect_identical(spec$population$metric, "proportion")
+  expect_identical(spec$variables$Y$type, "binary")
+  expect_identical(spec$target_test$method, "logistic_mixed")
+  expect_null(spec$population$d)
+  expect_null(spec$population$cluster_size_sd)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "powertools::crt.parallel.bin")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "SD of 0.3 on the log-odds scale", fixed = TRUE)
+  w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, modifyList(values, list(just_source = "A pilot study.")))
+  expect_match(w[["short"]], "analysed as yes/no", fixed = TRUE)
+  # People randomised within groups: the effect's SD across groups.
+  values_ms <- modifyList(values, list(assignment = "multisite", sigma_u_effect = "0.3"))
+  values_ms$sigma_u_groups <- NULL
+  spec_ms <- build_spec(forms, "E34", fields, values_ms)
+  expect_identical(spec_ms$population$sigma_u, 0.3)
+  expect_identical(run_calculation(spec_ms, run, seed = 1L)$result$provenance$backend_function, "powertools::multisite.bin")
+})
+
 test_that("a multisite trial runs on powertools from the same screen, with the effect's variation asked for", {
   skip_without_run()
   values <- modifyList(form_examples$E34, list(assignment = "multisite", icc = "0.1", icc_effect = "0.02"))
