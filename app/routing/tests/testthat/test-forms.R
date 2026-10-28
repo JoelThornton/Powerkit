@@ -19,7 +19,7 @@ fields_for <- function(ep, k = 2) form_fields(form_groups(forms, ep, k))
 test_that("every end point that runs has an input screen, and only those", {
   runs <- names(Filter(function(e) e$status %in% c("runs_validated", "runs_validation_in_progress"), tree$endpoints))
   expect_setequal(form_ids, runs)
-  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53"))
+  expect_setequal(form_ids, c(paste0("E", 1:14), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54"))
 })
 
 test_that("each screen asks for every line of the card's 'What you would enter', in order", {

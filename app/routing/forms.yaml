@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -658,6 +658,40 @@ forms:
       - input: "The SD"
         fields:
           - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+    extra:
+      - {id: method, label: "Method", type: select, path: options.method, required: true,
+         choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
+         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+
+  # One-way repeated measures (27 October 2026): one within-participants
+  # factor, one SD and one correlation for every pair of conditions, so
+  # sphericity holds. No smallest detectable effect yet, as for E18.
+  E54:
+    sides: false
+    methods_name: "a one-way repeated-measures ANOVA"
+    tool: Superpower
+    departures: ["3"]
+    directional: false
+    base: {spec_version: "0.1", design: factorial_anova, template: oneway_within,
+           variables: {A: {type: within_factor}, "Y": {type: continuous}},
+           target_test: {effect: main_effect_A, method: anova_f}}
+    groups:
+      - input: "Names of the conditions and the outcome"
+        fields:
+          - {id: A_label, label: "What the conditions are (for example, task difficulty or time)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The conditions' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The expected mean in each condition"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: means, writeup_label: "condition means", label: "Means: one for each condition, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
+      - input: "The SD"
+        fields:
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every condition; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "The correlation between any two conditions"
+        fields:
+          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},

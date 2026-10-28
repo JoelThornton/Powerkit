@@ -254,6 +254,7 @@ zero_effect_cases <- list(
   process_7 = function(s) within(s, population$paths[["XW->M"]] <- 0),
   process_14 = function(s) within(s, population$paths[["MW->Y"]] <- 0),
   anova_oneway_between = function(s) within(s, population$means <- list(12, 12, 12)),
+  anova_oneway_within = function(s) within(s, population$means <- list(620, 620, 620)),
   regression_r2_zero = function(s) within(s, population$r2 <- 0),
   regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),
   one_proportion = function(s) within(s, population$p <- population$p0),

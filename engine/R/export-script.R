@@ -233,6 +233,10 @@ design_description <- function(spec) {
       "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
     ),
+    "factorial_anova/oneway_within" = sprintf(
+      "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
     "logistic_regression/single_predictor" = sprintf(
       "logistic regression of %s (%s) on %s%s: Wald z test of %s",
       label("Y"), levels("Y"), label("X"),
@@ -1136,6 +1140,19 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("cell_sd <- %s # SD in every group", r_code(inputs$sd)),
       "r <- 0 # correlation between repeated measures (none in a between design)",
       sprintf("groups <- %s # groups: the total n is split equally across them", inputs$groups),
+      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+    ))
+  }
+  if (spec$template == "oneway_within") {
+    lv <- comment_text(unlist(v$A$levels))
+    return(c(
+      sprintf("# Superpower names the factor a and its levels a1 to a%d:", length(lv)),
+      sprintf("#   a = %s: %s", comment_text(v$A$label), paste(sprintf("a%d = %s", seq_along(lv), lv), collapse = ", ")),
+      sprintf("design_string <- %s # one within-participants factor with %d levels", r_code(inputs$design), length(lv)),
+      sprintf("mu <- %s # mean of %s in each condition, a1 to a%d", r_code(inputs$mu), comment_text(v$Y$label), length(lv)),
+      sprintf("cell_sd <- %s # SD in every condition", r_code(inputs$sd)),
+      sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(inputs$r)),
+      "groups <- 1 # one group: everyone is in every condition",
       "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
     ))
   }
