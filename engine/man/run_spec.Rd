@@ -102,6 +102,14 @@ within factor B, at least one with three or more levels (for example
 group by time with three timepoints), on Superpower's \code{ANOVA_exact()}
 (design \code{"kb*mw"}), with one SD and one correlation, so sphericity holds.
 \code{population > means} has one row per level of A, one mean per level of B.
+Two-factor ANOVA with both factors between participants, beyond 2 x 2
+(template \code{factorial_between}, design \code{"kb*mb"}), or both within
+participants, 2 x 2 or larger (template \code{factorial_within}, design
+\code{"kw*mw"}, one correlation between every pair of cells, so sphericity
+holds): either main effect or the interaction on Superpower's
+\code{ANOVA_exact()}, with means laid out as for \code{mixed}. \code{goal > n} is the
+total number of participants (split equally across the cells for the
+between design; each in every cell for the within design).
 Two dependent correlations in one group (engine only), by Steiger's z
 test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and

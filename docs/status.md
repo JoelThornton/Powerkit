@@ -100,14 +100,17 @@ fully validated. Validation runs are recorded in
   transcribe). Next: measurement invariance, then factor correlations,
   then latent paths (`next.md`, item 9); the test of close fit is an
   open method choice.
-- **Repeated measures (27 to 28 October 2026, 0.14.0 and 0.15.0):** the one-way
-  repeated-measures ANOVA (the same people in three or more conditions,
-  E54) and the mixed ANOVA beyond 2 x 2 (groups of different people each
-  measured at three or more timepoints or in several conditions, E55) run
-  in the app by Superpower's exact data set, with one SD and one
-  correlation, so sphericity holds. Validation in progress (published
-  examples to choose and transcribe). Next: 2 x 2 and larger within
-  designs and the MANOVA approach (`next.md`, item 5).
+- **Repeated measures and larger factorial designs (27 to 28 October
+  2026, 0.14.0 to 0.17.0):** the one-way repeated-measures ANOVA (the same
+  people in three or more conditions, E54), the mixed ANOVA beyond 2 x 2
+  (groups of different people each measured at three or more timepoints
+  or in several conditions, E55), the two-factor within-participants
+  ANOVA (everyone in every combination, 2 x 2 or larger, E20) and the
+  two-factor between-participants ANOVA beyond 2 x 2 (E21) run in the app
+  by Superpower's exact data set, with one SD and, for repeated measures,
+  one correlation, so sphericity holds. Validation in progress (published
+  examples to choose and transcribe). Next: three-factor designs and the
+  MANOVA approach (`next.md`, item 5).
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
@@ -135,7 +138,7 @@ fully validated. Validation runs are recorded in
   below. Next: a quick run in the app, an R script for the full run, and
   a search for the sample size.
 - **App** (`app/routing/`): the question tree, cards and input screens for
-  every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), mixed designs beyond 2 x 2 (E55), ANCOVA (E23), multiple
+  every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), mixed designs beyond 2 x 2 (E55), two-factor within and larger between designs (E20, E21), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
   (E48), two correlations (E49), the generic tests (E50) and
   clustered designs (E34) and model fit for CFA and SEM (E37) calculate in

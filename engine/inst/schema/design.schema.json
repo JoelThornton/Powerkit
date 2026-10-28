@@ -1419,6 +1419,8 @@
               "2x2_between",
               "2x2_mixed",
               "mixed",
+              "factorial_between",
+              "factorial_within",
               "oneway_between",
               "oneway_within",
               "oneway_ancova",
@@ -1497,6 +1499,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_mixed"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factorial_between"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_factorial_between"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factorial_within"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_factorial_within"
             }
           },
           {
@@ -1743,6 +1775,181 @@
             },
             "r": {
               "description": "Correlation between any two levels of B within a participant (the same for every pair).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "interaction"
+              ]
+            },
+            "method": {
+              "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_factorial_between": {
+      "description": "Two crossed factors A and B, both between participants, with at least one of them having three or more levels (a 2 x 2 design uses template 2x2_between). Every cell is a different group of people, all equal in size, and the SD is the same in every cell.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected cell means: one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "sd": {
+              "description": "Standard deviation in every cell (the same in every cell).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "interaction"
+              ]
+            },
+            "method": {
+              "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_factorial_within": {
+      "description": "Two crossed factors A and B, both within participants: everyone is measured in every combination of their levels (a two-factor repeated-measures ANOVA, 2 x 2 or larger). The SD is the same in every cell and the correlation is the same between every pair of cells, so sphericity holds.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected cell means: one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "sd": {
+              "description": "Standard deviation in every cell (the same in every cell).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r": {
+              "description": "Correlation between a participant's scores in any two cells (the same for every pair).",
               "$ref": "#/definitions/correlation"
             }
           }

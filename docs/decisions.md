@@ -3291,3 +3291,20 @@ used for both levels would hide that assumption.
 E34, "A baseline score, such as a pre-test (optional)", with
 `copy_if_empty`. The help page's description of the two values is a
 question for powertools (`upstream-questions.md`, 3).
+
+## 2026-10-28 · Two-factor designs: the same route as the repeated-measures designs
+
+**What.** Two-factor ANOVAs with both factors within participants (2 x 2
+or larger, E20) and with both factors between participants beyond 2 x 2
+(E21) calculate, so the design finder no longer ends at "not in powerkit"
+for them.
+
+**Method.** The route already chosen for the repeated-measures designs
+(27 October 2026): `Superpower::ANOVA_exact()` on one data set with
+exactly the specified cell means, one SD and, for the within design, one
+correlation between every pair of cells (`"kw*mw"`, compound symmetry, so
+sphericity holds and no correction applies); `"kb*mb"` with equal cells
+for the between design. No new method choice: unequal SDs or
+correlations, a sphericity correction and the MANOVA approach stay with
+`next.md`, item 5; three-factor designs are not covered yet, and E21's
+card says so.

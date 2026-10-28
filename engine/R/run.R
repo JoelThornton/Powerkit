@@ -37,6 +37,14 @@
 #' group by time with three timepoints), on Superpower's `ANOVA_exact()`
 #' (design `"kb*mw"`), with one SD and one correlation, so sphericity holds.
 #' `population > means` has one row per level of A, one mean per level of B.
+#' Two-factor ANOVA with both factors between participants, beyond 2 x 2
+#' (template `factorial_between`, design `"kb*mb"`), or both within
+#' participants, 2 x 2 or larger (template `factorial_within`, design
+#' `"kw*mw"`, one correlation between every pair of cells, so sphericity
+#' holds): either main effect or the interaction on Superpower's
+#' `ANOVA_exact()`, with means laid out as for `mixed`. `goal > n` is the
+#' total number of participants (split equally across the cells for the
+#' between design; each in every cell for the within design).
 #' Two dependent correlations in one group (engine only), by Steiger's z
 #' test with pwrss's `power.z.twocors.steiger()` (unpooled, as G*Power):
 #' templates `overlapping_correlations` (X with Y against X with Z) and
