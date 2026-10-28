@@ -1,4 +1,4 @@
-# powerkit 0.12.1
+# powerkit 0.13.1
 
 * App: the plain reading of a target power counts out of 10 only for a
   whole number of tenths (80%, 90%) and otherwise out of 100, so 95% power
@@ -15,6 +15,28 @@
   not minimum-effect or non-inferiority tests; a choice's default note no
   longer repeats the choice ("Starts at As Cohen's d: ..."); and an empty
   number of Monte Carlo draws shows as power4mome's 1,000, not "none".
+
+# powerkit 0.13.0
+
+* Structural equation model fit (design `sem`, template `model_fit`; card
+  E37, "Check that a model or questionnaire structure fits"): the power of
+  the chi-square test of exact fit to reject a model whose misfit in the
+  population is a given RMSEA, and the sample size for a target power, by
+  semPower's `semPower.postHoc()` (noncentrality (N - 1) x RMSEA^2 x df).
+  The model is given by its degrees of freedom, or, for a confirmatory
+  factor analysis, by its number of items and correlated factors, whose df
+  `semPower.getDf()` counts with lavaan. New backend
+  `engine/R/backend-sempower.R`; semPower 2.2.0 joins Imports and
+  `renv.lock`. Every result for this design has `sem` (`sem_summary()`):
+  the RMSEA, the df and, for a CFA, the lavaan model. No sensitivity goal
+  or simulation yet; the test of close fit is not offered. semPower's
+  method paper is in `refs.bib` (`semPower_method`). Validation
+  placeholders in `test-validation-sem-model-fit.R` (chunk `sem_fit`).
+
+* App: the card for model fit calculates, with an input screen asking for
+  the items and factors of a CFA (or another model's df) and the RMSEA to
+  detect. The result, the write-up and the ethics-board version say that
+  this is power to show a model is wrong.
 
 # powerkit 0.12.0
 

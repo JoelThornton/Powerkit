@@ -82,6 +82,16 @@ fully validated. Validation runs are recorded in
   (published examples to choose and transcribe). Next: simulated
   multilevel models wait for a package decision (`next.md`, item 8); a
   yes/no outcome (powertools `crt.parallel.bin()`) is a candidate.
+- **Structural equation model fit (27 October 2026, 0.13.0):** the power
+  of the chi-square test of exact fit to reject a model with a given
+  RMSEA, and the sample size for a target power, by formula with
+  semPower's `semPower.postHoc()` on the "Check that a model or
+  questionnaire structure fits" card (E37). A CFA is described by its
+  items and factors (semPower counts the df with lavaan); any other model
+  by its df. Validation in progress (published examples to choose and
+  transcribe). Next: measurement invariance, then factor correlations,
+  then latent paths (`next.md`, item 10); the test of close fit is an
+  open method choice.
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
@@ -112,7 +122,7 @@ fully validated. Validation runs are recorded in
   every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
   (E48), two correlations (E49), the generic tests (E50) and
-  clustered designs (E34) calculate in
+  clustered designs (E34) and model fit for CFA and SEM (E37) calculate in
   the app; E10–E14 give a rough preview, then a full run in the app or an
   R script. Results save as a project file and reopen. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
@@ -211,6 +221,12 @@ fully validated. Validation runs are recorded in
 - **Nightly validation:** fixed on 25 October 2026 (testthat's JUnit
   reporter needed xml2, missing from `renv.lock`, and the report's path
   was relative); it had failed on every run since 12 October.
+- **R in cloud sessions:** `scripts/setup-cloud-session.sh`, run as the
+  cloud environment's setup script, copies R and every locked package out
+  of the CI image (about a minute) when the network allows
+  `pkg-containers.githubusercontent.com`; otherwise it builds R 4.3 and the
+  packages from source (`scripts/setup-cloud-session-apt.sh`, 20-30
+  minutes).
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
   What to work on is [`next.md`](next.md).
 

@@ -1,0 +1,28 @@
+{
+  "spec_version": "0.1",
+  "design": "sem",
+  "template": "model_fit",
+  "variables": {},
+  "population": {
+    "metric": "rmsea",
+    "rmsea": 0.05,
+    "indicators": 12,
+    "factors": 3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a questionnaire of 12 items on three correlated factors, where misfit of RMSEA 0.05 or more is the smallest misfit worth detecting."
+  },
+  "target_test": {
+    "effect": "model_fit",
+    "method": "chi_square_exact_fit",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261027
+  }
+}

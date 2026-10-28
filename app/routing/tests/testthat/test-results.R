@@ -46,8 +46,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18, E19, E23-E28, E34, E36 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E50", "E51", "E52", "E53"))
+test_that("E1-E9, E18, E19, E23-E28, E34, E36, E37 and E48-E53 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -860,6 +860,32 @@ test_that("a multisite trial runs on powertools from the same screen, with the e
   expect_match(w[["short"]], "randomised within each group", fixed = TRUE)
   # The effect's variation is asked for only when people are randomised within groups.
   expect_null(build_spec(forms, "E34", fields, form_examples$E34)$population$icc_effect)
+})
+
+test_that("SEM model fit runs on semPower, for a CFA or a model given by its df, and says it is power to reject the model", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E37"))
+  spec <- build_spec(forms, "E37", fields, form_examples$E37)
+  expect_equal(spec$population$indicators, 12)
+  expect_null(spec$population$df)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "semPower::semPower.postHoc")
+  expect_equal(calc$result$sem$df, 51)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "to detect the misfit you entered, with the chi-square test of exact model fit", fixed = TRUE)
+  expect_match(words[["detail"]], "a CFA of 12 items on 3 correlated factors (51 degrees of freedom)", fixed = TRUE)
+  expect_match(words[["detail"]], "A model that is not rejected is not shown to be right", fixed = TRUE)
+  expect_no_match(paste(words, collapse = " "), "two-sided|the effect you entered")
+  w <- writeup_text(forms$forms$E37, calc$spec, calc$result, fields, modifyList(form_examples$E37, list(just_source = "The smallest misfit worth detecting.")))
+  expect_match(w[["short"]], "a population RMSEA of 0.05", fixed = TRUE)
+  expect_match(w[["ethics"]], "If our model is wrong by the amount we set", fixed = TRUE)
+  # Another model, given by its degrees of freedom.
+  values <- modifyList(form_examples$E37, list(model_kind = "df", df = "24"))
+  spec <- build_spec(forms, "E37", fields, values)
+  expect_equal(spec$population$df, 24)
+  expect_null(spec$population$indicators)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "a model with 24 degrees of freedom", fixed = TRUE)
 })
 
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {

@@ -94,7 +94,8 @@ powerkit_paper_key <- function() "powerkit"
 # the backends' sources: Spower runs its simulations with SimDesign;
 # Superpower fits its ANOVAs with afex::aov_car() and generates data with
 # MASS::mvrnorm(); power4mome fits with lavaan and computes indirect effects
-# and their confidence intervals with manymome; InteractionPoweR uses base
+# and their confidence intervals with manymome; semPower counts a CFA's
+# degrees of freedom with lavaan; InteractionPoweR uses base
 # R only), then R itself (except for stats, which is R). `citation` is the package whose citation() is
 # used ("base" for R).
 #
@@ -118,6 +119,9 @@ supporting_software <- function(backend, used = character()) {
       s("lavaan", "which fits the model to each simulated data set"),
       s("manymome", "which computes the indirect effect or index and its confidence interval")
     ),
+    semPower = if ("lavaan" %in% used) {
+      list(s("lavaan", "which counts the model's degrees of freedom for semPower (semPower.getDf())"))
+    },
     list()
   )
   # stats is part of R and citation("stats") is R's own citation, so R

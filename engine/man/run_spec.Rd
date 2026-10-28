@@ -38,6 +38,10 @@ estimate, with \code{lower} the effect size the calculation used.
 \code{cluster_trial}); otherwise \code{\link[=cluster_summary]{cluster_summary()}}'s list for the n
 analysed: the number of groups, the design effect and the effective
 sample size;
+\item \code{sem}: \code{NULL} unless the design is a structural equation model
+(design \code{sem}); otherwise \code{\link[=sem_summary]{sem_summary()}}'s list: the RMSEA, the
+model's degrees of freedom and, for a CFA, its items, factors and
+lavaan model;
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
@@ -121,6 +125,13 @@ of groups of \code{population > cluster_size}, the same number of groups in
 each condition. Multisite trials (template \code{multisite}): people are
 randomised to the two conditions within each group, by powertools'
 \code{multisite.cont()}; \code{goal > n} is a whole number of groups.
+Structural equation models (design \code{sem}, template \code{model_fit}): the
+power of the chi-square test of exact fit to reject a model whose misfit
+in the population is \code{population > rmsea}, by semPower's
+\code{semPower.postHoc()}. The model's degrees of freedom are
+\code{population > df}, or are counted by \code{semPower.getDf()} for a
+confirmatory factor analysis of \code{population > indicators} items on
+\code{population > factors} correlated factors. Goals: power and sample size.
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

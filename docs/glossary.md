@@ -60,7 +60,6 @@ only partly supported, and the details are listed there.
 | mediator | A variable through which X affects the outcome (a go-between). | E11, E39, E40 |
 | predictor | A variable used to explain or predict the outcome. | E17, E24 |
 | confidence interval (CI) | A range of plausible values for an effect, estimated from the data. | E10 |
-| model parameters | The numbers that define a model, such as the strength of each path. | E37 |
 | prior | The range of effect sizes you consider plausible before seeing the data, written as a distribution. | E-bayes |
 | omnibus test | A single overall test of whether there are any differences among all the groups or conditions at once; it doesn't say which ones differ. | E18 |
 | ANOVA | Analysis of variance: a test of whether the average outcome differs across the levels of one or more factors. | E7, E8, E18, E20, E21, E22 |

@@ -1,94 +1,112 @@
 #!/usr/bin/env bash
-# Sets up R for a Claude Code cloud session on Powerkit, so each new thread
-# doesn't rebuild it by hand. Paste the line below into the project's cloud
-# environment "Setup script" (Project settings > environment):
+# Sets up R for a Claude Code cloud session on Powerkit, so a new session
+# starts with R and every package ready instead of installing them itself.
+# Put this line in the cloud environment's "Setup script":
 #
 #   bash scripts/setup-cloud-session.sh
 #
-# What it does, and why:
-# - Installs R from Ubuntu's apt (R 4.3.x). The cloud network blocks the
-#   CRAN apt repository and Posit's binaries, so a newer R isn't available.
-#   CI uses the R version in renv.lock; local results never count as
-#   validation.
-# - Installs the packages in _dependencies.R from cran.r-project.org (the
-#   only CRAN mirror the network allows), from source, into a user library.
-# - power4mome declares R >= 4.4. It is installed from source with that line
-#   relaxed and a definition of `%||%` added (base R only has it from 4.4).
-#   This patched copy is for running tests locally only.
-# Safe to run twice: installed packages are skipped.
+# Safe to run again: it stops early if R and the packages are already there.
+#
+# Fast route (about a minute): copy R out of the image CI already builds,
+# ghcr.io/joelthornton/powerkit-ci (.github/ci/Dockerfile). That image has
+# the R version in renv.lock and every locked package at its locked version,
+# so a session tests against what CI tests against and nothing is compiled.
+# The image is public, so no login is needed. Its tag is the hash of
+# renv.lock and the Dockerfile that ci-image.yaml computes, so the copy
+# matches the lockfile on the checked-out branch; if that image hasn't been
+# built yet, the last tag the registry lists is used. Only R's own folder
+# (/usr/local/lib/R, which holds the packages), R and Rscript, and shared
+# libraries (and their alternatives links) the session doesn't already have
+# are copied; nothing already there is overwritten (both are Ubuntu 24.04).
+#
+# The image's layers download from pkg-containers.githubusercontent.com,
+# which the cloud environment's network must allow (Allowed domains). If it
+# can't be reached, the script falls back to scripts/setup-cloud-session-apt.sh,
+# which builds R 4.3 and the packages from source (20-30 minutes, no
+# attention needed).
 set -euo pipefail
 
-LIB="${POWERKIT_R_LIB:-$HOME/R/powerkit-lib}"
-mkdir -p "$LIB"
+cd "$(dirname "$0")/.."
 
-if ! command -v Rscript >/dev/null 2>&1; then
-  sudo_cmd=""; [ "$(id -u)" -ne 0 ] && sudo_cmd="sudo"
-  $sudo_cmd apt-get update -qq
-  DEBIAN_FRONTEND=noninteractive $sudo_cmd apt-get install -y -qq \
-    r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev \
-    libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev \
-    libpng-dev libtiff5-dev libjpeg-dev libv8-dev cmake >/dev/null
+IMG="joelthornton/powerkit-ci"
+sudo_cmd=""; [ "$(id -u)" -ne 0 ] && sudo_cmd="sudo"
+
+if command -v Rscript >/dev/null 2>&1 &&
+   R_PROFILE_USER="$HOME/.Rprofile-powerkit" Rscript -e 'loadNamespace("power4mome")' >/dev/null 2>&1; then
+  echo "powerkit R setup: already done"
+  exit 0
 fi
 
-# Profile: the CRAN mirror the network allows, and the user library first.
-PROFILE="$HOME/.Rprofile-powerkit"
-cat > "$PROFILE" <<RPROF
-options(repos = c(CRAN = "https://cran.r-project.org"), Ncpus = $(nproc))
-.libPaths(c("$LIB", .libPaths()))
+ghcr() {
+  curl -fsSL -H "Authorization: Bearer $token" \
+    -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json" \
+    "https://ghcr.io/v2/$IMG/$1"
+}
+json() { python3 -c "import sys, json; m = json.load(sys.stdin); $1"; }
+
+from_ci_image() {
+  token="$(curl -fsS "https://ghcr.io/token?scope=repository:$IMG:pull" |
+    json 'print(m["token"])')" || return 1
+
+  tag="$(python3 -c '
+import hashlib
+h = b"".join(hashlib.sha256(open(f, "rb").read()).digest()
+             for f in ["renv.lock", ".github/ci/Dockerfile"])
+print(hashlib.sha256(h).hexdigest()[:16])')"
+  if ! index="$(ghcr "manifests/$tag" 2>/dev/null)"; then
+    echo "powerkit R setup: no CI image for this renv.lock yet; using the newest listed" >&2
+    tag="$(ghcr tags/list | json 'print(m["tags"][-1])')" || return 1
+    index="$(ghcr "manifests/$tag")" || return 1
+  fi
+
+  # A multi-platform index points to one manifest per platform: take amd64.
+  manifest="$index"
+  digest="$(printf '%s' "$index" | json '
+print("" if "layers" in m else next(x["digest"] for x in m["manifests"]
+      if x.get("platform", {}).get("architecture") == "amd64"))')"
+  if [ -n "$digest" ]; then manifest="$(ghcr "manifests/$digest")" || return 1; fi
+  layers="$(printf '%s' "$manifest" | json 'print(" ".join(l["digest"] for l in m["layers"]))')"
+
+  stage="$(mktemp -d)"
+  for layer in $layers; do
+    ghcr "blobs/$layer" > "$stage/layer.tgz" || { rm -rf "$stage"; return 1; }
+    tar -xzf "$stage/layer.tgz" -C "$stage" --no-same-owner \
+      --wildcards 'usr/local/*' 'usr/lib/x86_64-linux-gnu/*' 'etc/alternatives/*' 2>/dev/null || true
+    rm -f "$stage/layer.tgz"
+  done
+  [ -x "$stage/usr/local/lib/R/bin/exec/R" ] || { rm -rf "$stage"; return 1; }
+
+  $sudo_cmd mkdir -p /usr/local/lib/R
+  $sudo_cmd cp -a "$stage/usr/local/lib/R/." /usr/local/lib/R/
+  $sudo_cmd cp -a "$stage/usr/local/bin/R" "$stage/usr/local/bin/Rscript" /usr/local/bin/
+  $sudo_cmd cp -an "$stage/usr/lib/x86_64-linux-gnu/." /usr/lib/x86_64-linux-gnu/
+  # BLAS and LAPACK are reached through Debian's alternatives links.
+  [ -d "$stage/etc/alternatives" ] && $sudo_cmd cp -an "$stage/etc/alternatives/." /etc/alternatives/
+  $sudo_cmd ldconfig
+  rm -rf "$stage"
+
+  # The image's default package source (Posit Package Manager) is blocked
+  # here, so installs go to the CRAN mirror the network allows; renv isn't
+  # activated because the packages are in R's own library.
+  cat > "$HOME/.Rprofile-powerkit" <<'RPROF'
+options(repos = c(CRAN = "https://cran.r-project.org"))
 RPROF
-grep -q "R_PROFILE_USER" "$HOME/.bashrc" 2>/dev/null || cat >> "$HOME/.bashrc" <<ENV
-export R_PROFILE_USER="$PROFILE"
+  grep -q "Rprofile-powerkit" "$HOME/.bashrc" 2>/dev/null || cat >> "$HOME/.bashrc" <<ENV
+export R_PROFILE_USER="$HOME/.Rprofile-powerkit"
 export RENV_ACTIVATE_PROJECT=FALSE
 export NOT_CRAN=true
 export LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV
-export R_PROFILE_USER="$PROFILE" RENV_ACTIVATE_PROJECT=FALSE LANG=C.UTF-8 LC_ALL=C.UTF-8
+  export R_PROFILE_USER="$HOME/.Rprofile-powerkit" RENV_ACTIVATE_PROJECT=FALSE
 
-cd "$(dirname "$0")/.."
+  # The engine itself, so the app tests find it.
+  ${sudo_cmd:+$sudo_cmd -E} /usr/local/bin/R CMD INSTALL --no-test-load engine >/dev/null ||
+    echo "powerkit R setup: engine not installed; run R CMD INSTALL engine" >&2
+  /usr/local/bin/Rscript -e 'for (p in c("power4mome", "Spower", "Superpower", "testthat")) loadNamespace(p)' \
+    -e 'cat("powerkit R setup done:", R.version.string, "from the CI image", commandArgs(TRUE), "\n")' "$tag"
+}
 
-# Packages whose current CRAN version needs a newer R than apt's: install
-# an older release from the CRAN archive first (Deriv 4.3.x needs R 4.5;
-# Superpower and Spower depend on it through doBy).
-Rscript -e '
-if (!requireNamespace("Deriv", quietly = TRUE))
-  install.packages("https://cran.r-project.org/src/contrib/Archive/Deriv/Deriv_4.2.0.tar.gz",
-                   repos = NULL, type = "source")
-'
-
-# Everything _dependencies.R names, plus devtools-free test tools.
-Rscript -e '
-pkgs <- sub("^library\\(([^)]+)\\).*", "\\1", grep("^library\\(", readLines("_dependencies.R"), value = TRUE))
-pkgs <- setdiff(unique(c(pkgs, "testthat", "withr")), "power4mome")
-missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
-if (length(missing)) install.packages(missing)
-still <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
-if (length(still)) stop("Could not install: ", paste(still, collapse = ", "))
-'
-
-# power4mome, patched for R 4.3 (see the note at the top).
-if ! Rscript -e 'quit(status = !requireNamespace("power4mome", quietly = TRUE))'; then
-  tmp="$(mktemp -d)"
-  # download.packages() hides packages that need a newer R, so build the
-  # URL from the unfiltered index.
-  Rscript -e "
-v <- available.packages(filters = 'duplicates')['power4mome', 'Version']
-download.file(sprintf('https://cran.r-project.org/src/contrib/power4mome_%s.tar.gz', v),
-              file.path('$tmp', 'power4mome.tar.gz'), quiet = TRUE)
-"
-  tar -xzf "$tmp/power4mome.tar.gz" -C "$tmp"
-  sed -i 's/R (>= 4\.4[^)]*)/R (>= 4.1)/' "$tmp/power4mome/DESCRIPTION"
-  printf '\n`%%||%%` <- function(x, y) if (is.null(x)) y else x\n' > "$tmp/power4mome/R/zzz-null-default.R"
-  # Its dependencies first (installing from a folder doesn't fetch them).
-  Rscript -e "
-d <- read.dcf('$tmp/power4mome/DESCRIPTION', fields = c('Depends', 'Imports'))
-deps <- trimws(sub('\\\\(.*', '', unlist(strsplit(paste(na.omit(d), collapse = ','), ','))))
-deps <- setdiff(deps[nzchar(deps)], c('R', rownames(installed.packages(priority = 'base'))))
-missing <- deps[!vapply(deps, requireNamespace, logical(1), quietly = TRUE)]
-if (length(missing)) install.packages(missing)
-"
-  R CMD INSTALL "$tmp/power4mome"
+if ! from_ci_image; then
+  echo "powerkit R setup: CI image not reachable; building from source instead" >&2
+  bash scripts/setup-cloud-session-apt.sh
 fi
-
-# The engine itself, so the app tests find it.
-R CMD INSTALL --no-test-load engine >/dev/null
-echo "powerkit R setup done: $(Rscript -e 'cat(R.version.string)')"
