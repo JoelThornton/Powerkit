@@ -142,6 +142,42 @@ direct_spower_var_test <- function(n, vars, sigma2 = 1, alternative = NULL,
   run_spower(experiment, alpha, nrep, seed, data = list(vars = vars))
 }
 
+# Rank tests. Scores are written out here by hand, not with powerkit's
+# score_shape_sampler(): mean 0 and SD 1, the skewed shape being the
+# standardised chi-square (10 df) of Spower's p_wilcox.test() examples and
+# the heavy-tailed one t (3 df) over sqrt(3).
+direct_scores <- list(
+  normal = function(n) stats::rnorm(n),
+  skewed = function(n) (stats::rchisq(n, df = 10) - 10) / sqrt(20),
+  heavy_tailed = function(n) stats::rt(n, df = 3) / sqrt(3)
+)
+
+# `n` is per group (two.sample) or the number of scores or pairs. `d` is in
+# Spower's orientation: the first sample minus the second. For a paired
+# test the differences are drawn directly and the second sample is 0.
+direct_spower_wilcox <- function(type, n, d, shape = "normal", n2_n1 = 1,
+                                 alternative = NULL, alpha, nrep, seed) {
+  draw <- direct_scores[[shape]]
+  parent1 <- function(n, d) d + draw(n)
+  parent2 <- if (type == "paired") function(n, d) rep(0, n) else function(n, d) draw(n)
+  experiment <- bquote(Spower::p_wilcox.test(
+    n = .(n), d = .(d), type = .(type), n2_n1 = .(n2_n1),
+    parent1 = parent1, parent2 = parent2
+  ))
+  if (!is.null(alternative)) experiment$alternative <- alternative
+  run_spower(experiment, alpha, nrep, seed, data = list(parent1 = parent1, parent2 = parent2))
+}
+
+# `n` per group; `means` in SD units.
+direct_spower_kruskal <- function(n, means, shape = "normal", alpha, nrep, seed) {
+  draw <- direct_scores[[shape]]
+  gen <- function(n, k, n.ratios, means, ...) lapply(seq_len(k), function(g) means[g] + draw(n))
+  run_spower(
+    bquote(Spower::p_kruskal.test(n = .(n), k = .(length(means)), means = means, gen_fun = gen)),
+    alpha, nrep, seed, data = list(means = means, gen = gen)
+  )
+}
+
 # InteractionPoweR ----------------------------------------------------------------
 
 direct_interactionpower_analytic <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,

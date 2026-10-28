@@ -660,7 +660,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
 # correlation by formula only for now. The app only calls the engine.
 explore_effect <- function(spec) {
   if (!identical(spec$design, "basic_test") || identical(spec$options$method, "simulation") ||
-      identical(spec$target_test$method, "welch_t")) return(NULL)
+      identical(spec$target_test$method, "welch_t") || is_rank_test(spec)) return(NULL)
   switch(spec$template,
     one_sample_t = list(field = "d", label = "Cohen's d", max = 1.5),
     independent_t = list(field = "d", label = "Cohen's d", max = 1.5),
@@ -976,6 +976,26 @@ entered_lines <- function(fields, values) {
   out
 }
 
+# The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis): a
+# test version on E1, E2, E3 and E18, simulated by the engine with Spower.
+is_rank_test <- function(spec) {
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
+}
+
+rank_test_name <- function(spec) {
+  test <- switch(spec$template,
+    one_sample_t = "a one-sample Wilcoxon signed-rank test",
+    paired_t = "a Wilcoxon signed-rank test of paired measurements",
+    independent_t = "a Mann-Whitney (Wilcoxon rank-sum) test",
+    oneway_between = "a Kruskal-Wallis test")
+  shape <- switch(spec$population$score_shape %||% "normal",
+    normal = "normally distributed scores",
+    skewed = "skewed scores (a standardised chi-square distribution with 10 df)",
+    heavy_tailed = "heavy-tailed scores (a t distribution with 3 df)")
+  if (identical(spec$template, "paired_t")) shape <- sub("scores", "differences", shape)
+  sprintf("%s, simulated assuming %s", test, shape)
+}
+
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   # Departure 1 is about the interaction's required N only.
@@ -983,7 +1003,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
-  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, c("9", "10", "11"))
+  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  # Departure 3 is about Superpower's exact dataset, which the
+  # Kruskal-Wallis test (Spower) doesn't use.
+  if (is_rank_test(spec)) keys <- setdiff(keys, "3")
   # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
   # test's departures, nor the continuity correction, apply.
   if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
@@ -1232,6 +1255,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {

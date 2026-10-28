@@ -1,3 +1,28 @@
+# powerkit 0.18.0
+
+* Rank tests, simulated with Spower: the Wilcoxon signed-rank test for one
+  sample (`one_sample_t`) and for pairs (`paired_t`), with
+  `target_test$method = "wilcoxon_signed_rank"`; the Mann-Whitney test
+  (`independent_t`, `"mann_whitney"`, unequal groups allowed); and the
+  Kruskal-Wallis test (`factorial_anova/oneway_between`,
+  `"kruskal_wallis"`). Spower's `p_wilcox.test()` and `p_kruskal.test()`
+  run the tests on scores drawn from `population$score_shape`: `normal`
+  (the default), `skewed` (standardised chi-square with 10 df, as in
+  Spower's examples) or `heavy_tailed` (t with 3 df, rescaled to SD 1),
+  shifted by the effect, so d, d_z and the means in SD units mean what
+  they mean for the t-tests and ANOVA. The signed-rank test assumes
+  symmetric scores (or differences), so `skewed` is refused for it. No
+  formula (`options$method = "exact"` is refused), and no sensitivity goal
+  yet. Exported scripts write the score generators out. Unit tests against
+  direct Spower calls (`test-backend-rank.R`); validation file
+  `test-validation-rank-tests.R` (chunk `rank`) with placeholders for
+  G*Power's values, direct-call and Type I error checks, and the size of
+  the difference from the t-test. Known difference 5 in
+  `docs/conventions.md`: G*Power adjusts the t-test by an efficiency factor
+  instead of simulating the rank test. In the app, the one-sample,
+  paired, two-group and one-way ANOVA cards offer the rank test as a test
+  version.
+
 # powerkit 0.17.0
 
 * Two-factor ANOVA beyond the 2 x 2 between and mixed designs (design

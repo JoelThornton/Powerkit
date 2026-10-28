@@ -3322,3 +3322,28 @@ passes the effect's rows of pwrss's own `factorial.contrasts()`
 Shieh's method, agrees for every effect in the unit tests. Equal cells
 and one SD, as for the one-way design; three or more factors are not
 offered.
+
+## 2026-10-28 · Rank tests: simulated with Spower, for a chosen shape of scores
+
+**What.** The Wilcoxon signed-rank test (one sample, pairs), the
+Mann-Whitney test and the Kruskal-Wallis test are a test version on the
+one-sample, paired, two-group and one-way ANOVA cards (E1, E3, E2, E18).
+This takes up the 22 October decision's second step ("simulating the rank
+tests with Spower can follow"); the rank correlations (E4) and Friedman's
+test (E54) keep the "only approximates" label, since Spower has no
+function for them.
+
+**Method.** Spower's `p_wilcox.test()` and `p_kruskal.test()`, with
+Spower's and base R's defaults for the test itself (`wilcox.test()`'s
+exact p-value for small samples without ties, its continuity correction
+otherwise). The effect is a shift of the score distribution in SD units,
+so the user gives the same d, d_z or means as for the parametric test. The
+shape of the scores is the maintainer's choice of three: normal, skewed
+(the standardised chi-square with 10 df of Spower's own examples) and
+heavy-tailed (t with 3 df, rescaled to SD 1); uniform and Laplace were
+considered and left out, as rarely the reason for a rank test. The
+signed-rank test assumes symmetric scores (or within-person differences),
+so it offers normal and heavy-tailed only; for pairs the differences are
+drawn directly. G\*Power instead adjusts the t-test by the test's
+efficiency for a parent distribution: recorded as Known difference 5
+(`conventions.md`), to be sized once G\*Power's values are transcribed.

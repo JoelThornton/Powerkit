@@ -37,6 +37,13 @@
 #' group by time with three timepoints), on Superpower's `ANOVA_exact()`
 #' (design `"kb*mw"`), with one SD and one correlation, so sphericity holds.
 #' `population > means` has one row per level of A, one mean per level of B.
+#' Rank tests (`target_test > method` `"wilcoxon_signed_rank"` for
+#' `one_sample_t` and `paired_t`, `"mann_whitney"` for `independent_t`,
+#' `"kruskal_wallis"` for `oneway_between`): simulated with Spower's
+#' `p_wilcox.test()` and `p_kruskal.test()` on scores of the shape in
+#' `population > score_shape` (normal, skewed or heavy-tailed; the
+#' signed-rank test, which assumes symmetry, normal or heavy-tailed),
+#' shifted by the effect. No formula.
 #' Two-way ANCOVA (template `factorial_ancova`): two between factors, either
 #' main effect or the interaction, by pwrss's `power.f.ancova.shieh()`
 #' (Shieh's method) with the effect's rows of `factorial.contrasts()`;

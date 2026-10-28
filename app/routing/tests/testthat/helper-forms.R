@@ -4,11 +4,11 @@ closing_ok <- list(goal = "sample_size", power = "0.8", alpha = "0.05",
   just_type = "smallest_effect_of_interest", just_source = "Example only")
 
 form_examples <- list(
-  E1 = c(list(Y_label = "Change in wellbeing", d = "0.3", alternative = "two_sided"), closing_ok),
+  E1 = c(list(Y_label = "Change in wellbeing", d = "0.3", method = "t_test", alternative = "two_sided"), closing_ok),
   E2 = c(list(X_label = "Condition", X_level1 = "Control", X_level2 = "Training", Y_label = "Recall score",
               d = "0.4", allocation_ratio = "1", method = "welch_t", alternative = "two_sided"), closing_ok),
   E3 = c(list(X_label = "Session", X_level1 = "Before", X_level2 = "After", Y_label = "Anxiety score",
-              dz = "0.35", alternative = "two_sided"), closing_ok),
+              dz = "0.35", method = "t_test", alternative = "two_sided"), closing_ok),
   E4 = c(list(X_label = "Trait mindfulness", Y_label = "Rumination", r = "-0.2", alternative = "two_sided"), closing_ok),
   E5 = c(list(X_label = "Reminder", X_level1 = "No reminder", X_level2 = "Text reminder", Y_label = "Attended",
               p1 = "0.6", p2 = "0.7", allocation_ratio = "1", method = "z_test", alternative = "two_sided"), closing_ok),
@@ -33,7 +33,7 @@ form_examples <- list(
   E13 = c(list(X_label = "Condition", W_label = "Group identification", M_label = "Perceived threat", Y_label = "Support for policy",
                p_X_M = "0.2", p_W_M = "0.1", p_XW_M = "0.15", p_M_Y = "0.3", p_X_Y = "0.05"), closing_ok),
   E18 = c(list(A_label = "Feedback", A_levels = "None, Neutral, Praise", Y_label = "Persistence (minutes)",
-               metric = "raw", means = "10, 11, 13", sd = "6", method = "exact"), closing_ok),
+               metric = "raw", means = "10, 11, 13", sd = "6", test_version = "anova_f", method = "exact"), closing_ok),
   E54 = c(list(A_label = "Task difficulty", A_levels = "Easy, Medium, Hard", Y_label = "Reaction time (ms)",
                metric = "raw", means = "600, 620, 650", sd = "100", r = "0.6", method = "exact"), closing_ok),
   E55 = c(list(A_label = "Group", A_levels = "Therapy, Waiting list", B_label = "Time", B_levels = "Before, After, Follow-up",
@@ -78,6 +78,15 @@ form_examples <- list(
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)
+)
+
+# The rank tests: a test version on E1, E2, E3 and E18, with the shape of
+# the scores.
+form_examples_rank <- list(
+  E1 = modifyList(form_examples$E1, list(method = "wilcoxon_signed_rank", score_shape = "heavy_tailed")),
+  E2 = modifyList(form_examples$E2, list(method = "mann_whitney", score_shape = "skewed")),
+  E3 = modifyList(form_examples$E3, list(method = "wilcoxon_signed_rank", score_shape = "normal")),
+  E18 = modifyList(form_examples$E18, list(test_version = "kruskal_wallis", score_shape = "skewed", method = NULL))
 )
 
 # E23 with two crossed factors (a two-way ANCOVA): the same screen, another

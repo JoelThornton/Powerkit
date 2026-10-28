@@ -909,6 +909,36 @@ Wired into the app on 18 October 2026 (E25, E26).*
   Monte Carlo error, whereas G\*Power computes this test exactly."
   (`known_differences_methods`, key "4").
 
+### 5. Rank tests: the rank test simulated, where G\*Power adjusts the t-test
+
+- **What differs:** G\*Power plans its Wilcoxon signed-rank and
+  Mann-Whitney tests from the t-test, adjusted by the rank test's
+  efficiency for a chosen parent distribution. powerkit simulates the
+  rank test itself with Spower's `p_wilcox.test()` (and the
+  Kruskal-Wallis test with `p_kruskal.test()`), on scores of the shape
+  the user chooses (normal, skewed or heavy-tailed), shifted by the
+  effect. The answer carries Monte Carlo error, and for a given shape it
+  need not equal the efficiency-adjusted figure.
+- **Size:** not yet measured against G\*Power; the published comparisons
+  in `test-validation-rank-tests.R` are placeholders for the maintainer to
+  transcribe. Against the t-test powerkit showed before (normal scores,
+  d = 0.5, 64 per group), the Mann-Whitney test has slightly less power,
+  within 0.05; with heavy-tailed scores it has more. Both are pinned by
+  the same file.
+- **Test:** `engine/tests/testthat/test-validation-rank-tests.R` (chunk
+  `rank`): published placeholders, direct Spower calls, Type I error, and
+  the difference from the t-test; `test-backend-rank.R` checks the
+  translation, the refusals and the exported script.
+- **Shown to users:** on the one-sample, paired, two-group and one-way
+  ANOVA result screens when the rank test is chosen, under "Where other
+  established tools give a different answer" (`app/routing/forms.yaml`,
+  `known_differences`, key "5").
+- **Methods paragraph:** "Power for the rank test was estimated by
+  simulating the test itself on scores of the assumed shape, rather than
+  by adjusting the t-test's power for the test's efficiency as G\*Power
+  does, so the two can give slightly different sample sizes."
+  (`known_differences_methods`, key "5").
+
 ## Not departures, but worth stating
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with

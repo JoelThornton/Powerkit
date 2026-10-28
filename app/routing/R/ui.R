@@ -461,8 +461,14 @@ named_tools_ui <- function(tree, ep) {
 
 # Rank-based tests (setting rank_based_tests, `label`): on cards whose end
 # point names the rank-based alternative, say the figure only approximates it.
+# Where powerkit simulates the rank test (`rank_test_simulated`), the card
+# points to the test version instead.
 rank_test_ui <- function(tree, ep) {
-  if (is.null(ep$rank_test) || !identical(setting_by_key(tree, "rank_based_tests")$value, "label")) return(NULL)
+  if (is.null(ep$rank_test)) return(NULL)
+  if (isTRUE(ep$rank_test_simulated)) {
+    return(p(class = "rank-test-note", sub("{rank_test}", ep$rank_test, tree$rank_test_simulated_text, fixed = TRUE)))
+  }
+  if (!identical(setting_by_key(tree, "rank_based_tests")$value, "label")) return(NULL)
   p(class = "rank-test-note", sub("{rank_test}", ep$rank_test, tree$rank_test_text, fixed = TRUE))
 }
 

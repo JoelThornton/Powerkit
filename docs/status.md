@@ -112,6 +112,17 @@ fully validated. Validation runs are recorded in
   one correlation, so sphericity holds. Validation in progress (published
   examples to choose and transcribe). Next: three-factor designs and the
   MANOVA approach (`next.md`, item 5).
+- **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
+  test (one sample, or pairs), the Mann-Whitney test and the
+  Kruskal-Wallis test are a test version on the one-sample, paired,
+  two-group and one-way ANOVA cards, simulated with Spower for the shape
+  of scores the user expects (normal, skewed or heavy-tailed; the
+  signed-rank test, which assumes symmetry, offers normal and
+  heavy-tailed). Known difference 5: G\*Power adjusts the t-test by an
+  efficiency factor instead; its values are still to transcribe
+  (`test-validation-rank-tests.R`). The rank correlations and Friedman's
+  test still carry the "only approximates" note (Spower has no function
+  for them).
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
