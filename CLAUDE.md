@@ -99,8 +99,10 @@ to read small.
   Personal and discussion notes stay outside the repository.
 - One thread per area at a time (engine, app, docs). Before editing a
   shared page (handover.md, status.md), check open PRs for edits to it.
-- Local R in a cloud session: scripts/setup-cloud-session.sh (also usable
-  as the environment's setup script).
+- Local R in a cloud session: scripts/setup-cloud-session.sh, set as the
+  environment's setup script, so a session starts with R and the packages
+  ready. Check `Rscript -e 'library(power4mome)'` before installing
+  anything; run the script only if that fails.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
