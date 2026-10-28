@@ -15,7 +15,7 @@ test_that("E37 says IRT designs aren't covered (flag F7)", {
 
 test_that("a test-retest study answered 'Twice' reaches E41, as the audit says (flag F11)", {
   base <- c("A score or scale", "Independent people")
-  rel <- c("Detect an effect", "A relationship between two things you measure")
+  rel <- c("A relationship between two things you measure")
   expect_equal(follow_with_context(tree, c(base, "Twice", rel))$id, "E41")
   audit <- read_doc("routing-audit.md")
   expect_match(audit, "rel reaches **E41** (relationships measured within people)", fixed = TRUE)

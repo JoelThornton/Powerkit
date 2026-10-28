@@ -250,7 +250,7 @@ flowchart TD
   T1 -->|Over time: does a trend<br/>change at a known point?| E45["E45 Segmented regression,<br/>interrupted time series"]
   T1 -->|Over time: how<br/>people change| E35["E35 Longitudinal"]
   T1 -->|Three or more<br/>conditions| S4
-  S3 -->|Once or twice| S4{"S4 What's your goal?"}
+  S3 -->|Once or twice| S4{"S4 Goal, from the aim screen"}
   S4 -->|Show there's no<br/>meaningful effect| E36["E36 Equivalence or<br/>non-inferiority"]
   S4 -->|Estimate an effect<br/>precisely| E46["E46 Precision planning"]
   S4 -->|Detect an effect| R["The route continues: the shortcut<br/>list, Q1 (chart 0) or the guided planner"]
@@ -520,7 +520,7 @@ engine can use the answer today.
 | S2 | How are the data grouped? (screening) | Independent people / people within groups (including whole groups assigned) / pairs (e.g. couples) / many trials or stimuli per person | — | Independent people: routing only, the route continues. Within groups → E34, pairs → E44, trials or stimuli → E33: **no (flag)** |
 | S3 | How many times is each person measured on the outcome? (screening) | Once / twice / many times (→ T1) | Once: `between_factor`; twice: `within_factor` (as Q3) | Once and twice: yes. Sets Q3's answer, which isn't asked again, and hides options that contradict it (e.g. "the same people" after "once") |
 | T1 | What are the repeated measurements? (after S3 "many times") | The same people in three or more conditions / over time, to see whether a trend changes at a known point / over time, to see how people change | — | Three or more conditions: routing only, the route continues (E18–E21 and E26 are reached later). A trend that changes → E45, how people change → E35: **no (flag)** |
-| S4 | What's your goal? (screening) | Detect an effect / show there's no meaningful effect / estimate an effect precisely | `goal` (detect only) | Detect: yes, the route continues. No meaningful effect → E36, estimate precisely → E46: **no (flag)** |
+| S4 | What's your goal? (answered by the aim screen since 28 October 2026, not asked again) | Detect an effect / show there's no meaningful effect (from the aim) | `goal` | Detect: the route continues (people within groups → E34). No meaningful effect → E36 (people within groups → E34). Estimating precisely leaves at the aim screen → E46 |
 | Every question | None of these fit / I'm not sure | (safety net, on every question in every route and on the shortcut list) | — | Leads to E-unsure: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." |
 | Q1 | What do you want your study to show? | A difference; a relationship; works through something (mediation); depends on something (moderation); both; scores more spread out (or more consistent) in one group than another or than a fixed value (a score measured once only); an effect is absent; a model fits, including a model with latent variables (SEM) | `design`: `basic_test` or `factorial_anova`, `regression_interaction`, `mediation`, `moderated_mediation` | Yes, except "absent" and "model fits": **no (flag)**, not in spec |
 | Q2 | What is your outcome like? | Answered by S1 and not asked again. In the relationship path, a categorical outcome asks which kind: yes/no (E27) or one of several categories (E6) | `variables.Y.type` | As S1 |

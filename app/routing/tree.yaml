@@ -187,7 +187,7 @@ settings:
     question: "Final wording of the screening questions (S1-S4 and T1). The wording here is a draft."
     options: {as_drafted: "Keep the draft wording", revised: "Revised wording (edit the questions in tree.yaml and decision-tree.md)"}
     value: null
-    shown_at: [s1, s2, s3, t1, s4]
+    shown_at: [s1, s2, s3, t1]
   - key: segmented_growth_shared
     ref: "Open question 17"
     question: "Should segmented regression / interrupted time series (E45) and growth curves (E35) share one end point? Now: two cards, chosen at T1."
@@ -247,8 +247,8 @@ settings:
 # Start screen: the three routes (decision-tree.md 2.1 and 4.1).
 # ---------------------------------------------------------------------------
 # Every route starts with the screening questions (`screening_start`). The
-# screening's "Detect an effect" answer has `next: continue`, which leads to
-# the route's `after_screening`: a node id, "list" (the end-point list) or
+# screening's last question leads to `continue` (S4, answered by the aim),
+# which leads to the route's `after_screening`: a node id, "list" (the end-point list) or
 # "guided" (the guided route's variables screen).
 # ---------------------------------------------------------------------------
 # Screen A: the aim, asked after "How do you want to start?" and before the
@@ -265,7 +265,7 @@ start_questions:
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
       estimate: {label: "Estimate how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
-      equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set. powerkit calculates this for comparing two means or one mean against a fixed value.", next: E36}
+      equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
 routes:
   doc_id: S0
@@ -276,13 +276,13 @@ routes:
   # questions then become a filter the user can apply afterwards.
   skip_screening:
     label: "Skip the questions and show every analysis"
-    help: "You get the whole list, as in G*Power's menu. Some analyses won't suit your design, and nothing checks that: each card still says what its test assumes."
+    help: "You get the whole list. Some analyses won't suit your design, and nothing checks that: each card still says what its test assumes."
     note: "Showing all %d analyses, with nothing screened out. Some won't suit your design; each card says what its test assumes and what it needs."
     filter_label: "Answer the four screening questions instead, to see only what fits"
   options:
     - id: known
       label: "I know my analysis"
-      help: "Pick it from a list, as in G*Power's or PAMLj's menus (after four screening questions)."
+      help: "Pick it from a list (after four screening questions)."
       after_screening: list
     - id: choose
       label: "Help me choose"
@@ -352,13 +352,26 @@ nodes:
       - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
   s4:
     doc_id: S4
-    text: "What's your goal?"
-    options:
-      - {label: "Detect an effect", next: continue, when: {grouping: independent}, help: "Show that a difference, relationship or effect exists."}
-      - {label: "Detect an effect", next: E34, when: {grouping: clusters}, help: "Show that a difference, relationship or effect exists."}
-      - {label: "Show there's no meaningful effect", next: E36, when: {grouping: independent}, help: "Equivalence or non-inferiority: the effect is smaller than a bound you set."}
-      - {label: "Show there's no meaningful effect", next: E34, when: {grouping: clusters}, help: "Equivalence or non-inferiority: the effect is smaller than a bound you set."}
-      - {label: "Estimate an effect precisely", next: E46, help: "Plan for a target confidence-interval width rather than for power."}
+    # The goal (detect, equivalence, estimate) is asked once, on the aim
+    # screen before the screening; equivalence and estimation leave from
+    # there. A study that detects an effect continues, unless people are in
+    # groups (the multilevel card).
+    text: "What's your goal? (answered by the aim)"
+    branch_on: goal
+    default: detect
+    routes: {detect: s4_detect, equivalence: s4_equivalence}
+  s4_detect:
+    doc_id: S4
+    text: "How are the data grouped? (answered by S2)"
+    branch_on: grouping
+    routes: {independent: continue, clusters: E34}
+  # Equivalence for grouped data goes to the grouped card, which says it
+  # isn't covered yet: the equivalence card assumes separate people.
+  s4_equivalence:
+    doc_id: S4
+    text: "How are the data grouped? (answered by S2)"
+    branch_on: grouping
+    routes: {independent: E36, clusters: E34}
 
   q1:
     doc_id: Q1
@@ -372,7 +385,6 @@ nodes:
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
       - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
          when: {outcome: score, times: once}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
-      - {label: "That an effect is absent, or too small to matter", next: E36}
       - {label: "That a model fits: a questionnaire structure, or a model with latent variables (SEM)", next: E37}
 
   # A difference ------------------------------------------------------------
@@ -722,7 +734,6 @@ safety_net:
       - {label: "What kind of outcome you will measure", nodes: [s1, o5a]}
       - {label: "How the data are grouped", nodes: [s2]}
       - {label: "How many times each person (or unit) is measured", nodes: [s3, t1]}
-      - {label: "Your goal", nodes: [s4]}
     not_answered: "not answered yet"
     stopped_at: "Where nothing fitted"
     also: ["Your hypothesis, in one sentence", "The effect you expect, and where that number comes from", "How many participants you could realistically recruit", "How you plan to analyse the data, if you know"]
@@ -845,7 +856,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
-      - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests (test-backend-formula-tests.R), but hasn't yet been checked against G*Power or a published example."
+      - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:
@@ -994,7 +1005,7 @@ endpoints:
     backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
       - "powerkit calculates this for different people in each group, with equal group sizes and the same SD in every group."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
@@ -1049,7 +1060,7 @@ endpoints:
     backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() in the engine's tests. Not yet checked against G*Power or a published example."}
     card_points:
       - "powerkit calculates the overall test of a one-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
@@ -1063,7 +1074,7 @@ endpoints:
     backend: "pwrss: power.f.regression() (the F test, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is an R-squared increase with 1 predictor tested: the same F test."
     inputs: ["Your outcome's name and what you want to test", "R-squared, or the R-squared change for the predictor(s) of interest", "Number of predictors"]
@@ -1076,7 +1087,7 @@ endpoints:
     backend: "pwrss: power.exact.oneprop() (the exact binomial test)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     inputs: ["Your outcome's name", "The expected proportion", "The fixed value"]
     tier: v2
     alternatives: ["the exact binomial test", "a z test for one proportion"]
@@ -1087,7 +1098,7 @@ endpoints:
     backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests (test-backend-wave2.R). Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     no_ready_made_tool: "Cochran's Q"
     inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions"]
     tier: v2
@@ -1102,7 +1113,7 @@ endpoints:
     validation: {file: test-backend-formula-tests.R, note: "Matches the G*Power 3.1 manual's two examples, a normal and a yes/no predictor (sample size and power), in the validation tests (27 October 2026), and pwrss in the engine's tests."}
     card_points:
       - "Tests one predictor of a yes/no outcome: a score, or a yes/no group. The odds ratio is per standard deviation for a score, or the second group against the first."
-      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared)."
     inputs: ["Your outcome, your predictor and what kind of predictor it is", "The odds ratio and the proportion of 'yes' at the starting point", "How much the other predictors overlap with this one"]
     tier: v2
     alternatives: ["Fisher's exact test or the z test of two proportions, for a yes/no group with no other predictors"]
@@ -1113,11 +1124,11 @@ endpoints:
     backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example in the validation run."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests. Not yet checked against G*Power or a published example in the validation run."}
     card_points:
       - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
       - "Poisson regression only: it assumes the counts vary as much as their average (a Poisson outcome). For counts that vary more than that, a negative binomial model is needed, and powerkit doesn't calculate it yet."
-      - "Other predictors in the model enter only through how much they overlap with this one (R-squared), as in G*Power."
+      - "Other predictors in the model enter only through how much they overlap with this one (R-squared)."
     inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "How much the other predictors overlap with this one"]
     tier: v2
     alternatives: ["a negative binomial regression, for counts that vary more than their average (not in powerkit yet)"]
@@ -1172,7 +1183,7 @@ endpoints:
     backend: "powertools: crt.parallel.cont() and multisite.cont() (the t test of the difference between conditions, by formula, with the design effect)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests (test-backend-powertools.R), for both designs. Not yet checked against a published worked example in the validation run (test-validation-cluster-randomised.R, test-validation-multisite.R)."}
+    validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests, for both designs. Not yet checked against a published worked example in the validation run."}
     card_points:
       - "Calculates two designs where a score is compared between two conditions. In a cluster-randomised trial, whole groups (for example, classes or clinics) are assigned to a condition, the same number of groups in each. In a multisite trial, people are assigned within each group, half to each condition."
       - "People in the same group tend to be alike, so each person adds less information than in a study of separate people. The intraclass correlation (ICC) says how alike they are, and the result shows how much the grouping costs (or, in a multisite trial, often saves). powerkit works this out with the standard design-effect formula, an approximation, not by fitting a multilevel model."
@@ -1212,7 +1223,7 @@ endpoints:
     backend: "semPower: semPower.postHoc() with an RMSEA (the chi-square test of exact model fit, by formula), and semPower.getDf() for a CFA's degrees of freedom"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, and the same noncentral chi-square written out in base R, in the engine's tests (test-backend-sempower.R); the degrees of freedom match lavaan's count for the same model. Not yet checked against a published worked example in the validation run (test-validation-sem-model-fit.R)."}
+    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, and the same noncentral chi-square written out in base R, in the engine's tests; the degrees of freedom match lavaan's count for the same model. Not yet checked against a published worked example in the validation run."}
     # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
     # card through Q1's "a questionnaire structure" answer.
     card_points:
@@ -1335,7 +1346,7 @@ endpoints:
     backend: "pwrss: power.chisq.gof(), with Cohen's w from probs.to.w() (by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and pwr's pwr.chisq.test() in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and pwr's pwr.chisq.test() in the engine's tests. Not yet checked against G*Power or a published example."}
     card_points:
       - "The test has one fewer degree of freedom than the number of categories."
       - "Without fixed proportions to compare with, powerkit compares with equal proportions, as pwrss's probs.to.w() does."
@@ -1349,7 +1360,7 @@ endpoints:
     backend: "pwrss: power.z.twocors() (Fisher's z test, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests (test-backend-formula-tests.R). Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests. Not yet checked against G*Power or a published example."}
     card_points:
       - "Both groups measure the same two variables; the test compares the correlation between them in one group with that in the other."
       - "For two correlations in the same people (for example, X with Y and X with Z), use the card for two dependent correlations."
@@ -1365,7 +1376,7 @@ endpoints:
     status: runs_validated
     validation: {file: test-backend-generic.R, note: "Matches four G*Power 3.1 examples (t, F, chi-square and z) in the full validation run of 27 October 2026, and pwrss and base R's noncentral distributions in the engine's tests."}
     card_points:
-      - "For people who have worked out their test's noncentrality parameter themselves, as with G*Power's generic tests."
+      - "For people who have worked out their test's noncentrality parameter themselves."
       - "There is no sample size: the noncentrality parameter already reflects it. powerkit gives the power for a noncentrality, or the noncentrality needed for a target power."
       - "Only from \"I know my analysis\": the other routes find a design with its own card."
     inputs: ["The test statistic", "The noncentrality parameter and the degrees of freedom"]

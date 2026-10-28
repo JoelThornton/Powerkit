@@ -43,7 +43,7 @@ test_that("the card screen and the guided plan include it", {
   expect_match(code, 'mismatch_ui("mismatch-path", path_text(', fixed = TRUE)
   answers <- list(x = "cond2", outcome = "score", mediators = "none", moderator = "none", covariate = "none")
   plan <- as.character(guided_plan_ui(tree, guided_answers(tree, answers), "compare", "compare", list(), "each",
-    history = history_to(c("A score or scale", "Independent people", "Once", "Detect an effect")),
+    history = history_to(c("A score or scale", "Independent people", "Once")),
     route_label = "Plan my whole study", raw_answers = answers))
   expect_match(plan, "Something doesn", fixed = TRUE)
   expect_match(plan, "Main predictor (X): A condition with two groups", fixed = TRUE)

@@ -7,21 +7,18 @@
   "example": "We will compare a new reading programme with usual teaching in 20 primary-school classes, about 25 pupils per class. Each pupil's reading score is measured once, at the end of the year.",
   "choose": [
    "A score or scale",
-   "People within groups",
-   "Detect an effect"
+   "People within groups"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "People within groups",
-    "Detect an effect"
+    "People within groups"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "People within groups",
-    "Detect an effect"
+    "People within groups"
    ]
   },
   "reaches": {
@@ -66,21 +63,18 @@
   "example": "Twelve GP practices will be randomly assigned to offer a brief anxiety leaflet or not, and patients' anxiety will be measured a month later. Whole practices, not individual patients, are assigned.",
   "choose": [
    "A score or scale",
-   "People within groups",
-   "Detect an effect"
+   "People within groups"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "People within groups",
-    "Detect an effect"
+    "People within groups"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "People within groups",
-    "Detect an effect"
+    "People within groups"
    ]
   },
   "reaches": {
@@ -263,7 +257,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Different people, two groups, yes/no outcome"
   ],
@@ -271,8 +264,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two groups on a yes/no outcome"
   },
@@ -280,8 +272,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -308,15 +299,13 @@
    "A count",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
     "A count",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "An outcome that counts how often something happened"
   },
@@ -324,8 +313,7 @@
    "answers": [
     "A count",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -401,26 +389,24 @@
   "section": "Goal",
   "design": "Equivalence or non-inferiority",
   "example": "We want to show that an online version of a memory test gives the same average score as the paper version, within 2 points. Each participant does one version once.",
+  "aim": "equivalence",
   "choose": [
    "A score or scale",
    "Independent people",
-   "Once",
-   "Show there's no meaningful effect"
+   "Once"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Show there's no meaningful effect"
+    "Once"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Show there's no meaningful effect"
+    "Once"
    ]
   },
   "reaches": {
@@ -435,26 +421,24 @@
   "section": "Goal",
   "design": "Precision (CI width)",
   "example": "We want to estimate the correlation between empathy and helping in teenagers, with a confidence interval no wider than plus or minus 0.10. We aren't testing a hypothesis, only measuring how strong the relationship is.",
+  "aim": "estimate",
   "choose": [
    "A score or scale",
    "Independent people",
-   "Once",
-   "Estimate an effect precisely"
+   "Once"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Estimate an effect precisely"
+    "Once"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Estimate an effect precisely"
+    "Once"
    ]
   },
   "reaches": {
@@ -473,7 +457,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -482,8 +465,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two separate groups on a score"
   },
@@ -491,8 +473,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -519,7 +500,6 @@
    "A score or scale",
    "Independent people",
    "Twice",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Two, crossed (every combination appears)",
    "Yes: 2 x 2",
@@ -533,8 +513,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "pick": "Compare groups adjusting for a covariate (e.g. the before score)"
   },
@@ -542,8 +521,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "vars": {
     "x": "cond2",
@@ -571,7 +549,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Three or more",
@@ -581,8 +558,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -590,8 +566,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond3",
@@ -618,7 +593,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -627,8 +601,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two separate groups on a score"
   },
@@ -636,8 +609,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -664,7 +636,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -673,8 +644,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two separate groups on a score"
   },
@@ -682,8 +652,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -710,7 +679,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "A score or scale"
   ],
@@ -718,8 +686,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -727,8 +694,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -755,7 +721,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -764,8 +729,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -773,8 +737,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -801,15 +764,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Check that a model or questionnaire structure fits"
   },
@@ -817,8 +778,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -845,15 +805,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Check that a model or questionnaire structure fits"
   },
@@ -861,8 +819,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -889,15 +846,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Check that a model or questionnaire structure fits"
   },
@@ -905,8 +860,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -929,26 +883,24 @@
   "section": "Specialised",
   "design": "Reliability or ICC",
   "example": "Two clinicians will each rate the symptom severity of the same 50 patients. We want the inter-rater reliability (an ICC) estimated to within plus or minus 0.1.",
+  "aim": "estimate",
   "choose": [
    "A score or scale",
    "Independent people",
-   "Twice",
-   "Estimate an effect precisely"
+   "Twice"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Estimate an effect precisely"
+    "Twice"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Estimate an effect precisely"
+    "Twice"
    ]
   },
   "reaches": {
@@ -967,15 +919,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Check that a model or questionnaire structure fits"
   },
@@ -983,8 +933,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1011,15 +960,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -1027,8 +974,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1080,15 +1026,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "None of these fit / I'm not sure"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -1096,8 +1040,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1124,7 +1067,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "One group, compared with a fixed value"
@@ -1133,8 +1075,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare one group's average with a fixed value"
   },
@@ -1142,8 +1083,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1170,7 +1110,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "One group, compared with a fixed value"
@@ -1179,8 +1118,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -1188,8 +1126,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1216,7 +1153,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One group, compared with a fixed proportion"
   ],
@@ -1224,8 +1160,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare one group's proportion with a fixed value"
   },
@@ -1233,8 +1168,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1261,7 +1195,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One group, compared with a fixed proportion"
   ],
@@ -1269,8 +1202,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare one group's proportion with a fixed value"
   },
@@ -1278,8 +1210,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -1306,7 +1237,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -1315,8 +1245,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two separate groups on a score"
   },
@@ -1324,8 +1253,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -1352,7 +1280,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -1361,8 +1288,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -1370,8 +1296,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -1398,7 +1323,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Different people, outcome in categories"
   ],
@@ -1406,8 +1330,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Test whether two sets of categories are related"
   },
@@ -1415,8 +1338,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -1453,7 +1375,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Different people, two groups, yes/no outcome"
   ],
@@ -1461,8 +1382,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare two groups on a yes/no outcome"
   },
@@ -1470,8 +1390,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -1498,7 +1417,6 @@
    "A score or scale",
    "Independent people",
    "Twice",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with the same people in both (or one group measured twice)"
@@ -1507,8 +1425,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "pick": "Compare the same people in two conditions (or before and after)"
   },
@@ -1516,8 +1433,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "vars": {
     "x": "within2",
@@ -1554,7 +1470,6 @@
    "A score or scale",
    "Independent people",
    "Twice",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with the same people in both (or one group measured twice)"
@@ -1563,8 +1478,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "pick": "safety"
   },
@@ -1572,8 +1486,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "vars": {
     "x": "within2",
@@ -1610,7 +1523,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Twice",
-   "Detect an effect",
    "A difference between groups or conditions",
    "The same people in every condition"
   ],
@@ -1618,8 +1530,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "pick": "The same people, a yes/no outcome in each condition"
   },
@@ -1627,8 +1538,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Twice",
-    "Detect an effect"
+    "Twice"
    ],
    "vars": {
     "x": "within2",
@@ -1665,7 +1575,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Three or more",
@@ -1675,8 +1584,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Any difference among three or more groups"
   },
@@ -1684,8 +1592,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond3",
@@ -1712,7 +1619,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Three or more",
@@ -1722,8 +1628,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -1731,8 +1636,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond3",
@@ -1759,7 +1663,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Different people, outcome in categories"
   ],
@@ -1767,8 +1670,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Test whether two sets of categories are related"
   },
@@ -1776,8 +1678,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond3",
@@ -1815,7 +1716,6 @@
    "Independent people",
    "Many times",
    "The same people in three or more conditions",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Three or more",
@@ -1826,8 +1726,7 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "pick": "Any difference among three or more conditions, the same people in each"
   },
@@ -1836,8 +1735,7 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "continue": [
     "A difference between groups or conditions",
@@ -1863,7 +1761,6 @@
    "Independent people",
    "Many times",
    "The same people in three or more conditions",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Three or more",
@@ -1874,8 +1771,7 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "pick": "safety"
   },
@@ -1884,8 +1780,7 @@
     "A score or scale",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "continue": [
     "A difference between groups or conditions",
@@ -1911,7 +1806,6 @@
    "Independent people",
    "Many times",
    "The same people in three or more conditions",
-   "Detect an effect",
    "A difference between groups or conditions",
    "The same people in every condition"
   ],
@@ -1920,8 +1814,7 @@
     "Yes/no, or one of several categories",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "pick": "The same people, a yes/no outcome in each condition"
   },
@@ -1930,8 +1823,7 @@
     "Yes/no, or one of several categories",
     "Independent people",
     "Many times",
-    "The same people in three or more conditions",
-    "Detect an effect"
+    "The same people in three or more conditions"
    ],
    "continue": [
     "A difference between groups or conditions",
@@ -1954,7 +1846,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Two, crossed (every combination appears)",
    "Yes: 2 x 2",
@@ -1967,8 +1858,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Two factors crossed, different people in each of the four groups"
   },
@@ -1976,8 +1866,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -2032,7 +1921,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"
   ],
@@ -2040,8 +1928,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Two or more factors crossed, with a yes/no outcome"
   },
@@ -2049,8 +1936,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -2087,7 +1973,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "A score or scale"
   ],
@@ -2095,8 +1980,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Test whether two scores are related"
   },
@@ -2104,8 +1988,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2132,7 +2015,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "A score or scale"
   ],
@@ -2140,8 +2022,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Test whether two scores are related"
   },
@@ -2149,8 +2030,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2177,7 +2057,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "A score or scale"
   ],
@@ -2185,8 +2064,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -2194,8 +2072,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2222,7 +2099,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "Yes/no"
   ],
@@ -2230,8 +2106,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Predict a yes/no outcome"
   },
@@ -2239,8 +2114,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2267,7 +2141,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "Several predictors at once, or controlling for other variables"
   ],
@@ -2275,8 +2148,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Several predictors at once, or one predictor controlling for others"
   },
@@ -2284,8 +2156,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2312,7 +2183,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -2321,8 +2191,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Compare groups adjusting for a covariate (e.g. the before score)"
   },
@@ -2330,8 +2199,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -2358,7 +2226,6 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "Yes/no"
   ],
@@ -2366,8 +2233,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Predict a yes/no outcome"
   },
@@ -2375,8 +2241,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2403,15 +2268,13 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Once",
-   "Detect an effect",
    "None of these fit / I'm not sure"
   ],
   "known": {
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -2419,8 +2282,7 @@
    "answers": [
     "Yes/no, or one of several categories",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -2447,7 +2309,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A difference between groups or conditions",
    "One",
    "Two, with different people in each"
@@ -2456,8 +2317,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -2465,8 +2325,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "cond2",
@@ -2493,7 +2352,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "Several predictors at once, or controlling for other variables"
   ],
@@ -2501,8 +2359,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -2510,8 +2367,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "score",
@@ -2538,15 +2394,13 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "Check that a model or questionnaire structure fits"
   },
@@ -2554,8 +2408,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",
@@ -2582,7 +2435,6 @@
    "A score or scale",
    "Independent people",
    "Once",
-   "Detect an effect",
    "A relationship between two things you measure",
    "Several predictors at once, or controlling for other variables"
   ],
@@ -2590,8 +2442,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "pick": "safety"
   },
@@ -2599,8 +2450,7 @@
    "answers": [
     "A score or scale",
     "Independent people",
-    "Once",
-    "Detect an effect"
+    "Once"
    ],
    "vars": {
     "x": "notsure",

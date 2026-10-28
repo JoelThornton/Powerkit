@@ -380,11 +380,10 @@ test_that("the safety-net card says what to write down for a statistician, using
     list(node = "s1", answer = "A score or scale", ctx = list()),
     list(node = "s2", answer = "Independent people", ctx = list(outcome = "score")),
     list(node = "s3", answer = "Once", ctx = list(outcome = "score")),
-    list(node = "s4", answer = "Detect an effect", ctx = list(outcome = "score", times = "once")),
     list(node = "q1", answer = tree$safety_net$label, ctx = list(outcome = "score", times = "once"))
   )
   html <- as.character(card_ui(tree, "E-unsure", history = history))
-  for (a in c("A score or scale", "Independent people", "Once", "Detect an effect")) expect_match(html, a, fixed = TRUE)
+  for (a in c("A score or scale", "Independent people", "Once")) expect_match(html, a, fixed = TRUE)
   expect_no_match(html, "not answered yet", fixed = TRUE)
   expect_match(html, "Where nothing fitted", fixed = TRUE)
   expect_match(html, htmltools::htmlEscape(tree$nodes$q1$text), fixed = TRUE)
@@ -446,9 +445,10 @@ test_that("cards fold what you'd enter, the package and the next questions into 
   expect_match(html, '<details class="card-more">', fixed = TRUE)
   more <- sub('.*<details class="card-more">', "", html)
   for (text in c("What you would enter", "Backend:", "be asked next")) expect_match(more, text, fixed = TRUE)
-  # What matters for choosing stays in view: the effect size's source and the rank-test note.
+  # The rank-test note stays in view. The effect size's source is asked on
+  # the input screen only, not listed on the card first (28 October 2026).
   before <- sub('<details class="card-more">.*', "", html)
-  expect_match(before, "Where your effect size comes from", fixed = TRUE)
+  expect_no_match(before, "Where your effect size comes from", fixed = TRUE)
   expect_match(before, "rank-test-note", fixed = TRUE)
 })
 

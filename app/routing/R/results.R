@@ -988,6 +988,8 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   p_ <- result$provenance
   departures <- departures_for(forms, ep_id, spec)
   known <- known_differences_for(forms, ep_id, spec)
+  folded <- names(departures) %in% unlist(forms$departures_folded)
+  departures_in_view <- departures[!folded]
   notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
@@ -1013,7 +1015,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
-    if (length(known)) p(class = "result-differs-pointer small",
+    if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
     if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
     div(class = "result-card result-explore", explore_ui(spec, result)),
@@ -1039,10 +1041,13 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep),
-    if (length(departures)) tagList(
+    if (length(departures_in_view)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
-      tags$ul(class = "result-departures", lapply(unname(departures), tags$li))
+      tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
     ),
+    if (any(folded)) tags$details(class = "result-more result-departures-minor",
+      tags$summary("Small differences from the tools' defaults, which don't change the answer in practice"),
+      tags$ul(class = "result-departures", lapply(unname(departures[folded]), tags$li))),
     if (length(known)) tagList(
       h4(class = "h6", "Where other established tools give a different answer"),
       tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))

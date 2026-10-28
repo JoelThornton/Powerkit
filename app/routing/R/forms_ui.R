@@ -8,8 +8,8 @@ field_input_id <- function(f) paste0("f_", f$id)
 field_ui <- function(f, value, described_by = character()) {
   id <- field_input_id(f)
   # One convention (22 October 2026): everything is needed unless marked
-  # optional. Effect sizes say they start empty, as nothing is filled in.
-  label <- if (isTRUE(f$effect)) paste0(f$label, " (starts empty)") else if (field_is_optional(f)) paste0(f$label, " (optional)") else f$label
+  # optional. Effect sizes start empty; the box itself shows that.
+  label <- if (field_is_optional(f)) paste0(f$label, " (optional)") else f$label
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
@@ -119,7 +119,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     trail_ui(history),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
-    p(class = "lead", "Everything is needed unless it says optional. Effect sizes start empty: enter the value you expect, and say where it comes from."),
+    p(class = "lead", "Everything is needed unless it says optional."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
     carried,
@@ -242,10 +242,9 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     !is.null(v) && length(v) && nzchar(as.character(v)) && !identical(as.character(v), as.character(f[["default"]] %||% ""))
   }, logical(1)))
   tagList(
-    div(class = "form-section", h3(class = "h5 form-section-title", "1. What you want to find out"), part("goal")),
+    div(class = "form-section", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
-      p(class = "hint", "This is the heart of a power analysis: the result is only as good as the effect size and your reason for it."),
       effect_unsure_ui(form),
       effect_help_ui(form, groups),
       part("effect")),
@@ -334,16 +333,15 @@ effect_help_ui <- function(form, groups) {
   if ("effect_units" %in% ids) {
     convert <- paste(convert, "Or choose \u201cIn my measure's own units\u201d and enter the means and SD: powerkit works it out for you and shows the result.")
   }
-  unsure <- if (isTRUE(form$sensitivity_without_effect)) {
-    "Choose \u201cI can't justify an effect size\u201d as the source (or use the button above): powerkit shows the smallest effect your sample could detect."
-  } else if (isTRUE(form$sensitivity)) {
-    "Enter the pattern you expect and choose \u201cThe smallest effect I could detect at a given sample size\u201d: powerkit scales your pattern to the smallest size your sample could detect."
-  } else {
-    "This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; powerkit won't suggest one."
+  # Where the prompt above already offers the smallest detectable effect,
+  # it isn't repeated here.
+  unsure <- if (!isTRUE(form$sensitivity_without_effect) && !isTRUE(form$sensitivity)) {
+    list(tags$dt("You don't know"),
+      tags$dd("This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; powerkit won't suggest one."))
   }
   tags$details(class = "effect-help",
     tags$summary("Not sure what number to put here?"),
-    p("powerkit won't suggest a number: a value you can't explain is no better than a guess. These are the ways to one you can defend."),
+    p("powerkit won't suggest a number. These are the ways to one you can defend."),
     tags$dl(
       tags$dt("The smallest effect that would matter"),
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
@@ -352,8 +350,7 @@ effect_help_ui <- function(form, groups) {
       tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Choose \u201cA meta-analysis\u201d as the source."),
       tags$dt("One previous study"),
       tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
-      tags$dt("You don't know"),
-      tags$dd(unsure)))
+      unsure))
 }
 
 # The button above: sets what to find out (and, where the design allows,

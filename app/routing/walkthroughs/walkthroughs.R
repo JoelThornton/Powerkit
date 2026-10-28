@@ -6,9 +6,14 @@
 #' End point id reached by one route of a scenario.
 walk_route <- function(tree, scenario, route) {
   plain <- vapply(tree$endpoints, function(e) e$plain_name, character(1))
-  if (route == "choose") return(follow_answers(tree, unlist(scenario$choose), "choose"))
+  # The aim screen comes first: estimation leaves there, and equivalence
+  # carries its goal into the screening (`aim`, "predict" if not given).
+  aim <- tree$start_questions[[1]]$options[[scenario$aim %||% "predict"]]
+  if (!is.null(aim$`next`)) return(aim$`next`)
+  ctx <- aim$sets %||% list()
+  if (route == "choose") return(follow_answers(tree, unlist(scenario$choose), "choose", ctx))
   step <- scenario[[route]]
-  followed <- follow_with_context(tree, unlist(step$answers), route)
+  followed <- follow_with_context(tree, unlist(step$answers), route, ctx)
   reached <- followed$id
   if (route == "known") {
     if (!identical(reached, "list")) return(reached)
@@ -22,7 +27,7 @@ walk_route <- function(tree, scenario, route) {
   if (!identical(reached, "guided")) return(reached)
   if (!is.null(step$`continue`)) {
     # Sent on to "Help me choose", keeping the screening answers.
-    return(follow_answers(tree, c(unlist(step$answers), unlist(step$`continue`)), "choose"))
+    return(follow_answers(tree, c(unlist(step$answers), unlist(step$`continue`)), "choose", ctx))
   }
   for (v in tree$guided$variables) {
     if (!step$vars[[v$id]] %in% names(guided_options(v, followed$ctx))) {

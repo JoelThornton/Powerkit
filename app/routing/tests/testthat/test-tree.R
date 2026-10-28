@@ -58,7 +58,9 @@ test_that("cards for t-tests, correlations and ANOVA say the figure only approxi
 })
 
 test_that("every end point can be reached: from the tree, or from the 'I know my analysis' list", {
-  from_tree <- reachable(tree, start_node(tree))$endpoints
+  # The aim screen, before the screening, leads to precision planning.
+  aims <- unlist(lapply(tree$start_questions[[1]]$options, `[[`, "next"))
+  from_tree <- union(reachable(tree, start_node(tree))$endpoints, aims)
   # The list offers every end point; check that the tree reaches all but
   # the ones decision-tree.md reaches only by other routes (Bayes factors:
   # open question 8; the generic tests, E50, for people who already have a
@@ -165,4 +167,13 @@ test_that("the guided route offers the comparison for every study, and moderatio
   base <- list(x = "cond2", outcome = "score", mediators = "none", moderator = "none", covariate = "none")
   expect_identical(ids(base), "compare")
   expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "mediation", "modmed"))
+})
+
+test_that("cards never show test file names to users", {
+  for (id in names(tree$endpoints)) {
+    ep <- tree$endpoints[[id]]
+    ep$validation$file <- NULL
+    shown <- unlist(ep)
+    expect_false(any(grepl("test-[a-z0-9-]+\\.R", shown)), label = id)
+  }
 })

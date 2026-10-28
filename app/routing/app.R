@@ -464,7 +464,9 @@ server <- function(input, output, session) {
     } else if (kind == "aim") {
       # Estimation and equivalence go to their cards.
       state$start <- list(aim = value)
-      state$history <- list(); state$ctx <- list()
+      # The aim's goal (equivalence) is carried into the screening, which
+      # then doesn't ask it again.
+      state$history <- list(); state$ctx <- aim_context(tree, state$start)
       exit <- start_exit(tree, state$start)
       if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
@@ -482,7 +484,7 @@ server <- function(input, output, session) {
     } else if (pick == "screen_me") {
       # From the unfiltered list back to the screening questions.
       state$skip_screening <- FALSE
-      state$history <- list(); state$ctx <- list()
+      state$history <- list(); state$ctx <- aim_context(tree, state$start)
       go_to(resolve_target(tree, start_node(tree), state$ctx, "known"))
     } else if (kind == "opt") {
       option <- visible_options(tree, tree$nodes[[state$node]], state$ctx)[[as.integer(value)]]
