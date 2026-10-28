@@ -27,6 +27,11 @@
 #' `probs.to.w()`), two independent correlations (`power.z.twocors()`) and
 #' one-way ANCOVA (`power.f.ancova.shieh()`). None has a simulation option;
 #' Fisher's exact test is an exact test of counts too.
+#' One-way repeated-measures ANOVA (template `oneway_within`): one
+#' within-participants factor with three or more levels, the omnibus F test
+#' on Superpower's `ANOVA_exact()` (design `"kw"`), with one SD and one
+#' correlation `population > r` for every pair of conditions, so sphericity
+#' holds. `goal > n` is the number of participants, each in every condition.
 #' Two dependent correlations in one group (engine only), by Steiger's z
 #' test with pwrss's `power.z.twocors.steiger()` (unpooled, as G*Power):
 #' templates `overlapping_correlations` (X with Y against X with Z) and

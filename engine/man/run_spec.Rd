@@ -92,6 +92,11 @@ chi-square goodness-of-fit test (\code{power.chisq.gof()}, with Cohen's w from
 \code{probs.to.w()}), two independent correlations (\code{power.z.twocors()}) and
 one-way ANCOVA (\code{power.f.ancova.shieh()}). None has a simulation option;
 Fisher's exact test is an exact test of counts too.
+One-way repeated-measures ANOVA (template \code{oneway_within}): one
+within-participants factor with three or more levels, the omnibus F test
+on Superpower's \code{ANOVA_exact()} (design \code{"kw"}), with one SD and one
+correlation \code{population > r} for every pair of conditions, so sphericity
+holds. \code{goal > n} is the number of participants, each in every condition.
 Two dependent correlations in one group (engine only), by Steiger's z
 test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
