@@ -64,7 +64,7 @@ resolve_target <- function(tree, id, ctx = list(), route = "choose") {
     if (is.null(node) || !is_automatic(node)) return(id)
     if (id %in% seen) return(NA_character_)
     seen <- c(seen, id)
-    value <- ctx[[node$branch_on]]
+    value <- ctx[[node$branch_on]] %||% node$default
     id <- if (is.null(value)) NA_character_ else node$routes[[value]] %||% NA_character_
   }
 }
@@ -72,14 +72,13 @@ resolve_target <- function(tree, id, ctx = list(), route = "choose") {
 #' Follow a list of answer labels from the start of the screening, as a user
 #' would click them. Returns where they lead (an end point id, a question id,
 #' or a route screen), or stops if a label isn't offered at that point.
-follow_answers <- function(tree, labels, route = "choose") {
-  follow_with_context(tree, labels, route)$id
+follow_answers <- function(tree, labels, route = "choose", ctx = list()) {
+  follow_with_context(tree, labels, route, ctx)$id
 }
 
 #' As follow_answers(), but also returns the screening context (`ctx`) the
 #' answers built up: list(id, ctx).
-follow_with_context <- function(tree, labels, route = "choose") {
-  ctx <- list()
+follow_with_context <- function(tree, labels, route = "choose", ctx = list()) {
   id <- resolve_target(tree, start_node(tree), ctx, route)
   for (label in labels) {
     node <- tree$nodes[[id]]

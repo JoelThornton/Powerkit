@@ -245,6 +245,12 @@ aim_ui <- function(tree) {
 
 # Where the aim sends the user before the design finder: a card for aims
 # powerkit doesn't support yet, or NULL.
+# The screening context the aim sets (its goal, for equivalence), so the
+# screening doesn't ask the goal again.
+aim_context <- function(tree, start) {
+  aim_question(tree)$options[[start$aim %||% "predict"]]$sets %||% list()
+}
+
 start_exit <- function(tree, start) {
   aim_question(tree)$options[[start$aim %||% "predict"]]$`next`
 }

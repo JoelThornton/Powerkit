@@ -12,7 +12,11 @@ map_branch_text <- list(
   outcome = list(question = "It depends on your outcome",
     values = list(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count")),
   times = list(question = "It depends on how often each person is measured",
-    values = list(once = "Once", twice = "Twice", many_conditions = "In three or more conditions"))
+    values = list(once = "Once", twice = "Twice", many_conditions = "In three or more conditions")),
+  goal = list(question = "It depends on your goal",
+    values = list(detect = "Detect an effect", equivalence = "Show there's no meaningful effect")),
+  grouping = list(question = "It depends on how the data are grouped",
+    values = list(independent = "Independent people", clusters = "People within groups"))
 )
 
 # How each status reads on the map, and its colour class.
@@ -32,6 +36,20 @@ map_filters <- list(
 
 map_screening <- c("s1", "o5a", "s2", "s3", "t1", "s4")
 map_elsewhere <- "Designs set by how the data are collected"
+
+# The end points an automatic node leads to, through further automatic
+# nodes, named by the answers on the way ("Show there's no meaningful
+# effect, people within groups").
+automatic_endpoints <- function(tree, id, label = NULL) {
+  if (is_endpoint_id(id)) return(stats::setNames(id, label))
+  n <- tree$nodes[[id]]
+  if (is.null(n) || !is_automatic(n)) return(character())
+  words <- map_branch_text[[n$branch_on]]
+  unlist(lapply(names(n$routes), function(value) {
+    step <- words$values[[value]] %||% value
+    automatic_endpoints(tree, n$routes[[value]], if (is.null(label)) step else paste0(label, ", ", tolower(step)))
+  }))
+}
 
 # The map as a tree of nested lists, for the plain list and the tests:
 # list(kind, id, answer, text, children). A question already drawn
@@ -60,6 +78,14 @@ map_tree <- function(tree) {
   questions <- node("q1", NULL)
   elsewhere <- lapply(map_screening, function(id) {
     n <- tree$nodes[[id]]
+    if (is_automatic(n)) {
+      # S4 is answered by the aim and the grouping: list the cards it
+      # leads to, through its automatic steps.
+      ends <- automatic_endpoints(tree, id)
+      if (!length(ends)) return(NULL)
+      return(list(kind = "question", id = id, answer = NULL, text = map_node_text(n),
+        children = unname(Map(node, ends, names(ends)))))
+    }
     opts <- Filter(function(o) is_endpoint_id(o$`next` %||% ""), n$options)
     if (!length(opts)) return(NULL)
     list(kind = "question", id = id, answer = NULL, text = n$text,
@@ -154,6 +180,19 @@ map_graph <- function(tree) {
   add_node("elsewhere", "hub", map_elsewhere, list(rq = map_elsewhere))
   for (id in map_screening) {
     n <- tree$nodes[[id]]
+    if (is_automatic(n)) {
+      # S4, answered by the aim and the grouping: one edge to each card.
+      ends <- automatic_endpoints(tree, id)
+      if (!length(ends)) next
+      add_node(id, "question", map_node_text(n))
+      add_edge("elsewhere", id, "")
+      for (i in seq_along(ends)) {
+        add_edge(id, ends[[i]], names(ends)[i])
+        endpoint(ends[[i]])
+        tag(ends[[i]], list(rq = map_elsewhere))
+      }
+      next
+    }
     opts <- Filter(function(o) is_endpoint_id(o$`next` %||% ""), n$options)
     if (!length(opts)) next
     add_node(id, "question", n$text)

@@ -58,7 +58,9 @@ test_that("cards for t-tests, correlations and ANOVA say the figure only approxi
 })
 
 test_that("every end point can be reached: from the tree, or from the 'I know my analysis' list", {
-  from_tree <- reachable(tree, start_node(tree))$endpoints
+  # The aim screen, before the screening, leads to precision planning.
+  aims <- unlist(lapply(tree$start_questions[[1]]$options, `[[`, "next"))
+  from_tree <- union(reachable(tree, start_node(tree))$endpoints, aims)
   # The list offers every end point; check that the tree reaches all but
   # the ones decision-tree.md reaches only by other routes (Bayes factors:
   # open question 8; the generic tests, E50, for people who already have a
