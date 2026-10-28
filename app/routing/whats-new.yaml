@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Three-factor ANOVA"
+    text: >-
+      powerkit now calculates designs with three factors crossed, such as
+      group by time by task difficulty, with any mix of factors that have
+      different people at each level and factors everyone is measured in.
+      Power the three-way interaction, a two-way interaction or one
+      factor's main effect. In the design finder, answer "Three, crossed"
+      to how many things you varied.
+  - date: "2026-10-28"
     title: "Rank-based tests: Wilcoxon, Mann-Whitney and Kruskal-Wallis"
     text: >-
       Planning a rank-based test instead of a t-test or one-way ANOVA? On

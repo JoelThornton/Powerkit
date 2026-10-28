@@ -3347,3 +3347,22 @@ so it offers normal and heavy-tailed only; for pairs the differences are
 drawn directly. G\*Power instead adjusts the t-test by the test's
 efficiency for a parent distribution: recorded as Known difference 5
 (`conventions.md`), to be sized once G\*Power's values are transcribed.
+
+## 2026-10-28 · Three-factor ANOVA: Superpower's exact data set, any mix of factors
+
+**What.** A three-factor ANOVA card (E56, template `factorial_three`):
+three crossed factors, each between or within participants, with power
+for any main effect, two-way interaction or the three-way interaction.
+The design finder's "how many factors" question now offers "Three,
+crossed" (to E56) and "Four or more" (to the safety net); until now
+"three or more" led to the two-factor between card, which could not
+represent a third factor.
+
+**Method.** Superpower's `ANOVA_design()` with a three-factor design
+string and `ANOVA_exact()`, as for the two-factor designs, which follows
+Superpower's convention for the univariate F test with sphericity assumed
+(one SD, one correlation between every pair of a participant's cells).
+Superpower allows up to three factors, so four or more are not offered.
+Equal group sizes across the between factors' combinations. No new
+departure; as for the other Superpower designs, Departure 3
+(`ANOVA_exact()` run under the run's seed) applies.

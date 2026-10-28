@@ -400,7 +400,8 @@ nodes:
     options:
       - {label: "One", next: f2}
       - {label: "Two, crossed (every combination appears)", next: f3}
-      - {label: "Three or more", next: E21}
+      - {label: "Three, crossed (every combination appears)", next: E56}
+      - {label: "Four or more", next: E-unsure}
   f2:
     doc_id: F2
     text: "How many groups or conditions?"
@@ -713,8 +714,8 @@ closing_questions:
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53]}
   - doc_id: Q-test
     text: "Which version of the test?"
-    applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55]
-    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E54: "Exact dataset (no repeated simulation) or repeated simulation.", E55: "Exact dataset (no repeated simulation) or repeated simulation.", E20: "Exact dataset (no repeated simulation) or repeated simulation.", E21: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
+    applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
+    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E54: "Exact dataset (no repeated simulation) or repeated simulation.", E55: "Exact dataset (no repeated simulation) or repeated simulation.", E56: "Exact dataset (no repeated simulation) or repeated simulation.", E20: "Exact dataset (no repeated simulation) or repeated simulation.", E21: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
@@ -1068,7 +1069,7 @@ endpoints:
     card_points:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "powerkit assumes the same number of people and the same SD in every cell. Designs with three or more factors aren't covered yet: Superpower can calculate them (up to three factors)."
+      - "powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect"]
     tier: v2
     alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other"]
@@ -1484,6 +1485,21 @@ endpoints:
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures"]
+  E56:
+    doc_name: "Three-factor ANOVA (2 x 2 x 2 or larger; any mix of between and within factors)"
+    plain_name: "Three factors crossed, such as group by time by task"
+    template: "factorial_anova / factorial_three"
+    backend: "Superpower: ANOVA_design() with three factors (such as \"2b*2w*2w\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    method: "Exact dataset (no repeated simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-anova-three.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for all three main effects, the two-way interactions and the three-way interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
+    card_points:
+      - "Three factors crossed, every combination appearing, such as group (training or control) by time (before or after) by task difficulty (easy or hard). Each factor is either different people at each level or measured in everyone."
+      - "Power is for one effect: a factor's main effect, a two-way interaction, or the three-way interaction (whether a two-way interaction depends on the third factor)."
+      - "powerkit assumes equal group sizes, the same SD in every cell and the same correlation between any two conditions a person is measured in. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+    inputs: ["Names of the three factors, their levels and the outcome", "Which factors everyone is measured in", "The expected cell means", "The SD", "The correlation between any two conditions a person is measured in", "Which effect"]
+    tier: v2
+    alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"

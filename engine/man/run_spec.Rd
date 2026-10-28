@@ -121,6 +121,12 @@ holds): either main effect or the interaction on Superpower's
 \code{ANOVA_exact()}, with means laid out as for \code{mixed}. \code{goal > n} is the
 total number of participants (split equally across the cells for the
 between design; each in every cell for the within design).
+Three-factor ANOVA (template \code{factorial_three}): factors A, B and C, each
+between or within participants (between factors first), means as a
+nested A by B by C array, one SD and one correlation between every pair
+of a participant's cells; any main effect or interaction on
+Superpower's \code{ANOVA_exact()}. \code{goal > n} is the total number of
+participants, split equally across the between factors' combinations.
 Two dependent correlations in one group (engine only), by Steiger's z
 test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and

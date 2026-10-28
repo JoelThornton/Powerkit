@@ -29,6 +29,10 @@ analysed_groups <- function(spec, n) {
       cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
       rep(n / cells, cells)
     },
+    factorial_three = {
+      groups <- three_factor_groups(spec)
+      if (groups == 1) n else rep(n / groups, groups)
+    },
     oneway_between = ,
     oneway_contrast = ,
     mixed = ,
@@ -60,6 +64,7 @@ group_unit <- function(spec) {
     factorial_ancova = "cell",
     "2x2_mixed" = ,
     mixed = ,
+    factorial_three = if (three_factor_groups(spec) == 1) NA_character_ else "group",
     oneway_between = ,
     oneway_contrast = ,
     oneway_ancova = "group",

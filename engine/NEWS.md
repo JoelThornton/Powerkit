@@ -1,3 +1,24 @@
+# powerkit 0.19.0
+
+* Three-factor ANOVA (design `factorial_anova`, template
+  `factorial_three`): three crossed factors `A`, `B` and `C`, each a
+  `between_factor` or a `within_factor` with two or more levels, the
+  between factors listed first. Means are a nested array (A by B by C),
+  with one SD and, when any factor is within participants, one
+  correlation `r` between every pair of a participant's cells, so
+  sphericity holds. Power for any main effect, two-way interaction or the
+  three-way interaction (`target_test$effect`: `main_effect_A`/`B`/`C`,
+  `interaction_AB`/`AC`/`BC`/`ABC`) on Superpower's `ANOVA_exact()` (or
+  `ANOVA_power()` by simulation), with the design string built from the
+  factor types (such as `"2b*2w*2w"`). `goal > n` is the total number of
+  participants, split equally across the combinations of the between
+  factors. No sensitivity goal yet. Unit tests against direct
+  `ANOVA_exact()` calls (`test-backend-factorial-three.R`); validation
+  file `test-validation-anova-three.R` (chunk `anova`) with a published
+  placeholder, analytic and simulation checks and a Type I error check. In
+  the app, a new three-factor ANOVA card, reached from the design finder's
+  "how many factors" question.
+
 # powerkit 0.18.0
 
 * Rank tests, simulated with Spower: the Wilcoxon signed-rank test for one

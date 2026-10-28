@@ -168,6 +168,7 @@ script_header <- function(spec, result, package, call_description) {
 
 design_description <- function(spec) {
   v <- spec$variables
+  factor_kind <- function(role) if (identical(v[[role]]$type, "within_factor")) "within" else "between participants"
   label <- function(role) comment_text(v[[role]]$label)
   levels <- function(role) paste(comment_text(unlist(v[[role]]$levels)), collapse = ", ")
   if (rank_test(spec)) {
@@ -317,6 +318,15 @@ design_description <- function(spec) {
       "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; sphericity assumed",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
+    "factorial_anova/factorial_three" = sprintf(
+      "three-factor ANOVA of %s: %s (%s, %s) by %s (%s, %s) by %s (%s, %s); effect tested: %s%s",
+      label("Y"),
+      label("A"), levels("A"), factor_kind("A"),
+      label("B"), levels("B"), factor_kind("B"),
+      label("C"), levels("C"), factor_kind("C"),
+      anova_effect_name(spec),
+      if (any(three_factor_within(spec))) "; sphericity assumed" else ""
+    ),
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
@@ -368,7 +378,14 @@ anova_effect_name <- function(spec) {
     spec$target_test$effect,
     main_effect_A = sprintf("main effect of %s", comment_text(v$A$label)),
     main_effect_B = sprintf("main effect of %s", comment_text(v$B$label)),
-    interaction = sprintf("%s x %s interaction", comment_text(v$A$label), comment_text(v$B$label))
+    interaction = sprintf("%s x %s interaction", comment_text(v$A$label), comment_text(v$B$label)),
+    main_effect_C = sprintf("main effect of %s", comment_text(v$C$label)),
+    interaction_AB = sprintf("%s x %s interaction", comment_text(v$A$label), comment_text(v$B$label)),
+    interaction_AC = sprintf("%s x %s interaction", comment_text(v$A$label), comment_text(v$C$label)),
+    interaction_BC = sprintf("%s x %s interaction", comment_text(v$B$label), comment_text(v$C$label)),
+    interaction_ABC = sprintf(
+      "%s x %s x %s interaction", comment_text(v$A$label), comment_text(v$B$label), comment_text(v$C$label)
+    )
   )
 }
 
@@ -1337,6 +1354,37 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(inputs$r)),
       "groups <- 1 # one group: everyone is in every condition",
       "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+    ))
+  }
+  if (spec$template == "factorial_three") {
+    level_line <- function(role, letter) {
+      lv <- comment_text(unlist(v[[role]]$levels))
+      sprintf("#   %s = %s (%s): %s", letter, comment_text(v[[role]]$label),
+              if (identical(v[[role]]$type, "within_factor")) "within participants" else "between participants",
+              paste(sprintf("%s%d = %s", letter, seq_along(lv), lv), collapse = ", "))
+    }
+    return(c(
+      "# Superpower names the factors a, b and c and their levels a1, a2, ..., b1, ..., c1, ...:",
+      level_line("A", "a"),
+      level_line("B", "b"),
+      level_line("C", "c"),
+      sprintf("design_string <- %s # b: between participants, w: within", r_code(inputs$design)),
+      sprintf(
+        "mu <- %s # cell means of %s, in Superpower's order a1_b1_c1, a1_b1_c2, ..., a1_b2_c1, ...",
+        r_code(inputs$mu), comment_text(v$Y$label)
+      ),
+      sprintf("cell_sd <- %s # SD in every cell", r_code(inputs$sd)),
+      sprintf("r <- %s # %s", r_code(inputs$r), if (any(three_factor_within(spec))) {
+        "correlation between any two cells, within a participant"
+      } else {
+        "no repeated measures: every cell is different people"
+      }),
+      sprintf("groups <- %s # %s", inputs$groups, if (inputs$groups == 1) {
+        "one group: everyone is in every cell"
+      } else {
+        "between-participants groups: the total n is split equally across them"
+      }),
+      sprintf("effect_row <- %s # Superpower's row for the effect tested (\"a\", \"a:b\", \"a:b:c\", ...)", r_code(inputs$effect))
     ))
   }
   if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {

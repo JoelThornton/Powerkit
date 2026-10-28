@@ -1,6 +1,7 @@
 # Backend adapter: 2x2 between, 2x2 mixed, larger mixed (between x within),
-# two-factor between (beyond 2x2) and two-factor within, one-way between and
-# one-way within (repeated-measures) ANOVA via Superpower.
+# two-factor between (beyond 2x2) and two-factor within, three-factor (any
+# mix of between and within), one-way between and one-way within
+# (repeated-measures) ANOVA via Superpower.
 #
 # By default power is computed exactly with Superpower::ANOVA_exact(), which
 # is exact for the specified population and matches G*Power and the
@@ -35,7 +36,8 @@ superpower_backend <- function(spec, seed = NULL) {
         "Exact power for this design needs at least %d participants%s; for n = %s, set 'options > method' to 'simulation'.",
         exact_min_n,
         if (inputs$groups == 1) "" else sprintf(
-          " (%d per %s)", per_group, if (spec$template %in% c("2x2_between", "factorial_between")) "cell" else "group"
+          " (%d per %s)", per_group, if (spec$template %in% c("2x2_between", "factorial_between") ||
+            (spec$template == "factorial_three" && !any(three_factor_within(spec)))) "cell" else "group"
         ),
         n
       ))
@@ -57,7 +59,7 @@ superpower_backend <- function(spec, seed = NULL) {
     },
     # Sensitivity for the one-way designs (which effect pattern to scale)
     # is not settled yet; it is available for the 2x2 designs.
-    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed", "factorial_between", "factorial_within")) NULL else function(n, power) {
+    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed", "factorial_between", "factorial_within", "factorial_three")) NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
@@ -137,6 +139,9 @@ superpower_inputs <- function(spec) {
       alpha = spec$target_test$alpha,
       effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
     ))
+  }
+  if (spec$template == "factorial_three") {
+    return(three_factor_inputs(spec))
   }
   between <- spec$template == "2x2_between"
   list(
@@ -266,6 +271,9 @@ superpower_check_run <- function(spec, design, seed = NULL) {
   if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
     return(superpower_check_mixed(spec, data))
   }
+  if (spec$template == "factorial_three") {
+    return(superpower_check_three(spec, data))
+  }
   level <- function(x) as.integer(sub(".*(\\d)$", "\\1", as.character(x)))
   data$i <- level(data$a)
   data$j <- level(data$b)
@@ -389,6 +397,90 @@ superpower_check_mixed <- function(spec, data) {
         recovered = stats::cor(by_level[[pairs[1, p]]], by_level[[pairs[2, p]]])
       )
     }))
+  }
+  check <- do.call(rbind, rows)
+  check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))
+  check
+}
+
+# Three crossed factors A, B and C, each between or within participants:
+# Superpower's design "kb*mw*lb" and the like (for example "2b*2w*3w").
+# Cells are read with A slowest and C fastest (a1_b1_c1, a1_b1_c2, ...),
+# Superpower's order. Superpower's n is per between-participants group: the
+# number of combinations of the between factors' levels (1 with no between
+# factor). One SD; with a within factor, one correlation between every pair
+# of a participant's cells, so sphericity holds.
+three_factor_inputs <- function(spec) {
+  roles <- c("A", "B", "C")
+  levels <- vapply(roles, function(v) length(spec$variables[[v]]$levels), integer(1))
+  within <- three_factor_within(spec)
+  effect <- c(
+    main_effect_A = "a", main_effect_B = "b", main_effect_C = "c",
+    interaction_AB = "a:b", interaction_AC = "a:c", interaction_BC = "b:c",
+    interaction_ABC = "a:b:c"
+  )[[spec$target_test$effect]]
+  list(
+    design = paste0(levels, ifelse(within, "w", "b"), collapse = "*"),
+    groups = as.integer(prod(levels[!within])),
+    mu = as.numeric(unlist(spec$population$means)),
+    sd = spec$population$sd,
+    r = if (any(within)) spec$population$r else 0,
+    alpha = spec$target_test$alpha,
+    effect = effect
+  )
+}
+
+# Which of A, B and C are within participants.
+three_factor_within <- function(spec) {
+  vapply(c("A", "B", "C"), function(v) identical(spec$variables[[v]]$type, "within_factor"), logical(1))
+}
+
+# Check run for three factors: every cell's mean and SD, and, with a within
+# factor, the correlation between every pair of cells a participant is
+# measured in (within each combination of the between factors' levels),
+# with participants matched by Superpower's subject label and levels by
+# its labels (a1, b2, c3, ...).
+superpower_check_three <- function(spec, data) {
+  roles <- c("A", "B", "C")
+  levels <- vapply(roles, function(v) length(spec$variables[[v]]$levels), integer(1))
+  within <- three_factor_within(spec)
+  means <- array(as.numeric(unlist(spec$population$means)), dim = rev(levels))
+  level <- function(x) as.integer(sub("^.*[a-z]", "", as.character(x)))
+  data$i <- level(data$a)
+  data$j <- level(data$b)
+  data$l <- level(data$c)
+  cells <- expand.grid(l = seq_len(levels[3]), j = seq_len(levels[2]), i = seq_len(levels[1]))
+  label <- function(c) sprintf("A%d B%d C%d", cells$i[c], cells$j[c], cells$l[c])
+  in_cell <- function(c) data$i == cells$i[c] & data$j == cells$j[c] & data$l == cells$l[c]
+  rows <- lapply(seq_len(nrow(cells)), function(c) {
+    y <- data$y[in_cell(c)]
+    data.frame(
+      parameter = c(paste("mean,", label(c)), paste("SD,", label(c))),
+      specified = c(means[cells$l[c], cells$j[c], cells$i[c]], spec$population$sd),
+      recovered = c(mean(y), stats::sd(y))
+    )
+  })
+  if (any(within)) {
+    # Cells share participants when they agree on every between factor.
+    between_key <- do.call(paste, c(list(sep = "_"), cells[c("i", "j", "l")[!within]]))
+    if (all(within)) between_key <- rep("all", nrow(cells))
+    for (key in unique(between_key)) {
+      group <- which(between_key == key)
+      by_cell <- lapply(group, function(c) {
+        cell <- data[in_cell(c), ]
+        cell$y[order(cell$subject)]
+      })
+      pairs <- utils::combn(seq_along(group), 2)
+      rows <- c(rows, lapply(seq_len(ncol(pairs)), function(p) {
+        a <- pairs[1, p]
+        b <- pairs[2, p]
+        data.frame(
+          parameter = sprintf("r between %s and %s", label(group[a]), label(group[b])),
+          specified = spec$population$r,
+          recovered = stats::cor(by_cell[[a]], by_cell[[b]])
+        )
+      }))
+    }
   }
   check <- do.call(rbind, rows)
   check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))

@@ -511,7 +511,9 @@ form_problems <- function(fields, values) {
       } else {
         # Rows and columns follow two level fields: X_levels and Y_levels
         # unless the field names others (`rows_from`, `cols_from`).
-        rows <- length(parse_levels(values[[f$rows_from %||% "X_levels"]]))
+        # `rows_from` may name two level fields: one line per combination,
+        # the first's levels slowest (E56: A by B, with C's levels across).
+        rows <- prod(vapply(unlist(f$rows_from %||% "X_levels"), function(id) length(parse_levels(values[[id]])), integer(1)))
         cols <- length(parse_levels(values[[f$cols_from %||% "Y_levels"]]))
         if (length(tb) != rows || any(lengths(tb) != cols)) {
           add(sprintf("%s should have %d lines (one per %s) of %d numbers each (one per %s).", quote_label(f), rows,
@@ -543,13 +545,22 @@ split_path <- function(path) {
   strsplit(path, ".", fixed = TRUE)[[1]]
 }
 
-field_value <- function(f, v) {
+field_value <- function(f, v, values = list()) {
   switch(
     f$type,
     number = { x <- parse_number(v); if (isTRUE(f$integer)) as.integer(x) else x },
     levels = as.list(parse_levels(v)),
     numbers = as.list(parse_numbers(v)),
-    table = lapply(parse_table(v), as.list),
+    table = {
+      rows <- lapply(parse_table(v), as.list)
+      # `nest_by`: lines grouped into one array per level of the first
+      # factor, each holding one line per level of the field named (E56:
+      # three factors' means, A by B by C).
+      if (is.null(f$nest_by)) rows else {
+        per <- length(parse_levels(values[[f$nest_by]]))
+        unname(split(rows, ceiling(seq_along(rows) / per)))
+      }
+    },
     trimws(as.character(v))
   )
 }
@@ -563,14 +574,16 @@ build_spec <- function(forms, ep_id, fields, values) {
     for (m in mediator_roles(as.integer(values$n_mediators %||% 2))) spec$variables[[m]] <- list(type = "continuous")
   }
   for (f in fields) {
-    if (is.null(f$path) || !field_applies(f, values)) next
+    # A field with no path may still set spec values through `sets` (E56:
+    # which factors are measured in everyone).
+    if ((is.null(f$path) && is.null(f$sets)) || !field_applies(f, values)) next
     v <- values[[f$id]]
     if (blank(v) && effect_optional(f, values)) v <- empty_effect(f, values)
     # A field left empty may stand for another field's value (E34: the
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
     if (blank(v)) next
-    spec <- set_path(spec, split_path(f$path), field_value(f, v))
+    if (!is.null(f$path)) spec <- set_path(spec, split_path(f$path), field_value(f, v, values))
     # `sets`: further spec values that follow from a choice (E24's
     # question sets the template and the effect tested); an entry with a
     # `shown_if` applies only when its conditions hold (E34: the test of a

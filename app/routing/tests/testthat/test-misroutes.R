@@ -253,6 +253,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Paired t-test" = list(c(twice(score), diff, "One", "Two, with the same people in both (or one group measured twice)"), "E3"),
     "McNemar's test" = list(c(twice(yesno), diff, "The same people in every condition"), "E26"),
     "One-way ANOVA" = list(c(once(score), diff, "One", "Three or more", "Any difference among the groups"), "E18"),
+    "Three-factor ANOVA, group by time by task" = list(c(twice(score), diff, "Three, crossed (every combination appears)"), "E56"),
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Three or more", "Any difference among the conditions"), "E54"),
     "Mixed ANOVA, group by three timepoints" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),
     "Mixed ANOVA, three groups before and after" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),

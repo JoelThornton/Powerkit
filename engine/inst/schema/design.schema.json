@@ -1450,6 +1450,7 @@
               "mixed",
               "factorial_between",
               "factorial_within",
+              "factorial_three",
               "oneway_between",
               "oneway_within",
               "oneway_ancova",
@@ -1470,7 +1471,12 @@
                       "main_effect_A",
                       "main_effect_B",
                       "interaction",
-                      "contrast"
+                      "contrast",
+                      "main_effect_C",
+                      "interaction_AB",
+                      "interaction_AC",
+                      "interaction_BC",
+                      "interaction_ABC"
                     ]
                   },
                   "method": {
@@ -1560,6 +1566,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_factorial_within"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factorial_three"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_factorial_three"
             }
           },
           {
@@ -2007,6 +2028,123 @@
                 "main_effect_A",
                 "main_effect_B",
                 "interaction"
+              ]
+            },
+            "method": {
+              "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_factorial_three": {
+      "description": "Three crossed factors A, B and C, each either between participants (different people at each level) or within participants (everyone at every level): a three-factor ANOVA, 2 x 2 x 2 or larger. The SD is the same in every cell; with any within factor, the correlation between a participant's scores in any two cells is the same for every pair, so sphericity holds. Every between-participants cell has the same number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "C",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "between_factor",
+                    "within_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "between_factor",
+                    "within_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "C": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "between_factor",
+                    "within_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected cell means: one array per level of A, each holding one array per level of B, each with one mean per level of C, in the order of the factors' levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "sd": {
+              "description": "Standard deviation in every cell (the same in every cell).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r": {
+              "description": "Only with at least one within-participants factor (and then required): the correlation between a participant's scores in any two cells (the same for every pair).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "main_effect_C",
+                "interaction_AB",
+                "interaction_AC",
+                "interaction_BC",
+                "interaction_ABC"
               ]
             },
             "method": {

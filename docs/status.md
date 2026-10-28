@@ -102,16 +102,17 @@ fully validated. Validation runs are recorded in
   then latent paths (`next.md`, item 9); the test of close fit is an
   open method choice.
 - **Repeated measures and larger factorial designs (27 to 28 October
-  2026, 0.14.0 to 0.17.0):** the one-way repeated-measures ANOVA (the same
+  2026, 0.14.0 to 0.19.0):** the one-way repeated-measures ANOVA (the same
   people in three or more conditions, E54), the mixed ANOVA beyond 2 x 2
   (groups of different people each measured at three or more timepoints
   or in several conditions, E55), the two-factor within-participants
   ANOVA (everyone in every combination, 2 x 2 or larger, E20) and the
-  two-factor between-participants ANOVA beyond 2 x 2 (E21) run in the app
-  by Superpower's exact data set, with one SD and, for repeated measures,
+  two-factor between-participants ANOVA beyond 2 x 2 (E21) and, from
+  0.19.0, the three-factor ANOVA with any mix of between and within
+  factors (E56) run in the app by Superpower's exact data set, with one SD and, for repeated measures,
   one correlation, so sphericity holds. Validation in progress (published
-  examples to choose and transcribe). Next: three-factor designs and the
-  MANOVA approach (`next.md`, item 5).
+  examples to choose and transcribe). Next: the MANOVA approach
+  (`next.md`, item 5); four or more factors go to the safety net.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,

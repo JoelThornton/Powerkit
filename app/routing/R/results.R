@@ -173,6 +173,12 @@ group_sizes <- function(spec, n) {
       cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
       rep(n / cells, cells)
     },
+    factorial_three = {
+      v <- spec$variables[c("A", "B", "C")]
+      between <- vapply(v, function(x) identical(x$type, "between_factor"), logical(1))
+      groups <- prod(vapply(v[between], function(x) length(x$levels), numeric(1)))
+      if (groups > 1) rep(n / groups, groups) else NULL
+    },
     oneway_between = ,
     mixed = ,
     oneway_ancova = {
@@ -1256,7 +1262,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
-  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",

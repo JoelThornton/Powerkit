@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -792,6 +792,70 @@ forms:
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
 
+
+  # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
+  # between and within participants, the between factors listed first. One
+  # SD; with a within factor, one correlation between every pair of a
+  # participant's cells, so sphericity holds. No smallest detectable effect
+  # yet, as for the two-factor designs.
+  E56:
+    sides: false
+    methods_name: "a three-factor ANOVA"
+    departures: ["3"]
+    tool: Superpower
+    directional: false
+    base: {spec_version: "0.1", design: factorial_anova, template: factorial_three,
+           variables: {A: {type: between_factor}, B: {type: between_factor}, C: {type: between_factor}, "Y": {type: continuous}},
+           target_test: {method: anova_f}}
+    groups:
+      - input: "Names of the three factors, their levels and the outcome"
+        note: "List any factor with different people at each level first, then the factors everyone is measured in."
+        fields:
+          - {id: A_label, label: "First factor (for example, group)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: B_label, label: "Second factor (for example, time)", type: text, path: variables.B.label, required: true}
+          - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
+          - {id: C_label, label: "Third factor (for example, task difficulty)", type: text, path: variables.C.label, required: true}
+          - {id: C_levels, label: "The third factor's levels, separated by commas", type: levels, path: variables.C.levels, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "Which factors everyone is measured in"
+        fields:
+          - {id: within, label: "Which factors does everyone take part in at every level?", type: select, required: true,
+             choices: {none: "None: different people in every combination",
+                       C: "Only the third factor",
+                       BC: "The second and third factors",
+                       ABC: "All three: everyone takes part in every combination"},
+             sets: {C: [{path: variables.C.type, value: within_factor}],
+                    BC: [{path: variables.B.type, value: within_factor}, {path: variables.C.type, value: within_factor}],
+                    ABC: [{path: variables.A.type, value: within_factor}, {path: variables.B.type, value: within_factor}, {path: variables.C.type, value: within_factor}]}}
+      - input: "The expected cell means"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: means, writeup_label: "cell means", label: "Means: one line for each combination of the first and second factors (first factor's first level with each of the second factor's levels, then its second level, and so on), with one number per level of the third factor, separated by commas", type: table, path: population.means, effect: true,
+             rows_from: [A_levels, B_levels], nest_by: B_levels, cols_from: C_levels,
+             rows_name: "combination of the first and second factors", cols_name: "level of the third factor"}
+      - input: "The SD"
+        fields:
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "The correlation between any two conditions a person is measured in"
+        fields:
+          - {id: r, writeup_label: "correlation between repeated measurements", label: "Correlation between a person's scores in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: within, is_not: none}}
+      - input: "Which effect"
+        fields:
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {interaction_ABC: "The three-way interaction: does the two-way interaction of the first two factors depend on the third?",
+                       interaction_AB: "The interaction of the first and second factors, averaged over the third",
+                       interaction_AC: "The interaction of the first and third factors, averaged over the second",
+                       interaction_BC: "The interaction of the second and third factors, averaged over the first",
+                       main_effect_A: "The first factor, averaged over the others",
+                       main_effect_B: "The second factor, averaged over the others",
+                       main_effect_C: "The third factor, averaged over the others"}}
+    extra:
+      - {id: method, label: "Method", type: select, path: options.method, required: true,
+         choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
+         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
 
   # Two-factor ANOVA, both factors within participants (2 x 2 or larger;
   # 28 October 2026): one SD and one correlation between every pair of
