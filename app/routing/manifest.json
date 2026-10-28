@@ -4486,7 +4486,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.16.0",
+        "Version": "0.16.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome),\n    cluster-randomised trials (via 'powertools'), and the fit of structural\n    equation models (via 'semPower').",
         "License": "GPL (>= 3)",
@@ -4501,19 +4501,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c2054ee3348fbd8dbd02b4620bc5d0517bddc988",
-        "RemoteSha": "c2054ee3348fbd8dbd02b4620bc5d0517bddc988",
+        "RemoteRef": "66b18047090c16dfdb6d0ce2bcc268c9ba7b419d",
+        "RemoteSha": "66b18047090c16dfdb6d0ce2bcc268c9ba7b419d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c2054ee3348fbd8dbd02b4620bc5d0517bddc988",
-        "GithubSHA1": "c2054ee3348fbd8dbd02b4620bc5d0517bddc988",
+        "GithubRef": "66b18047090c16dfdb6d0ce2bcc268c9ba7b419d",
+        "GithubSHA1": "66b18047090c16dfdb6d0ce2bcc268c9ba7b419d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-28 12:09:37 UTC; runner",
+        "Packaged": "2026-10-28 15:09:16 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-28 12:09:45 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-28 15:09:23 UTC; unix"
       }
     },
     "powertools": {
@@ -6202,7 +6202,7 @@
       "checksum": "a9fb7744609a11d2b887d4bfffe62d75"
     },
     "R/about.R": {
-      "checksum": "46c243d5f43e33e43e54175ad3656f0f"
+      "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
     },
     "R/feedback.R": {
       "checksum": "42102805122e9bfd028022d0751264d5"
@@ -6316,7 +6316,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "ae1cbeaed531fec9153c28fc5b2351a2"
+      "checksum": "598aee6393e8fbb26486fc680b72e10f"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
