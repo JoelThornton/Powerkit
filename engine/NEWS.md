@@ -1,3 +1,13 @@
+# powerkit 0.16.1
+
+* The app opens faster when a new copy of it starts: the About tab's
+  credits now read each package's `citation()` without loading the
+  package (`about_citation_text()` checks `system.file()` instead of
+  `requireNamespace()`). Loading the backends there took about 2.5 of
+  the 3 seconds a new app process spent before showing its first page;
+  the backends now load when a calculation first needs them. The credits
+  shown are unchanged.
+
 # powerkit 0.16.0
 
 * Clustered designs (card E34) with a yes/no outcome: `population$metric`

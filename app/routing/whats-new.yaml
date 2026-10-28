@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Opens faster"
+    text: >-
+      powerkit's first page appears sooner when the app has been idle,
+      because it no longer loads every calculation package before showing
+      the start screen; each one now loads when a calculation needs it.
+  - date: "2026-10-28"
     title: "Yes/no outcomes for people nested in groups"
     text: >-
       The "People nested in groups" card now works for a yes/no outcome
