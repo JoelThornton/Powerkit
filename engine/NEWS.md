@@ -1,4 +1,4 @@
-# powerkit 0.13.1
+# powerkit 0.14.1
 
 * App: the plain reading of a target power counts out of 10 only for a
   whole number of tenths (80%, 90%) and otherwise out of 100, so 95% power
@@ -15,6 +15,30 @@
   not minimum-effect or non-inferiority tests; a choice's default note no
   longer repeats the choice ("Starts at As Cohen's d: ..."); and an empty
   number of Monte Carlo draws shows as power4mome's 1,000, not "none".
+
+# powerkit 0.14.0
+
+* One-way repeated-measures ANOVA (design `factorial_anova`, template
+  `oneway_within`; card E54): one within-participants factor with three or
+  more levels, the omnibus F test, by Superpower's `ANOVA_exact()` on the
+  design `"kw"` (`ANOVA_power()` with `options > method = "simulation"`).
+  The spec gives one mean per condition, one SD and `population$r`, the
+  correlation between any two conditions; with one SD and one correlation
+  the covariance matrix has compound symmetry, so sphericity holds and no
+  correction applies. `goal > n` is the number of participants, each in
+  every condition (at least 5, as `ANOVA_exact()` needs). The check run
+  recovers each condition's mean and SD and every pairwise correlation.
+  Unit tests in `test-backend-oneway-within.R` (against `ANOVA_exact()` and
+  `power_oneway_within()` called directly, and the exported script);
+  validation placeholders in `test-validation-anova-oneway-within.R` (in
+  the `anova` chunk).
+
+* App: a card and input screen for the one-way repeated-measures ANOVA.
+  The design finder reaches it from "Three or more" conditions when the
+  screening says the same people are in three or more conditions; "Any
+  difference among the groups" (E18) is now shown only for different
+  people in each group, and its card no longer says powerkit can't
+  calculate the repeated-measures case.
 
 # powerkit 0.13.0
 

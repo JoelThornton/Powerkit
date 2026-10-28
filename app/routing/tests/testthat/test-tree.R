@@ -49,7 +49,7 @@ test_that("generic 'not covered' cards have their own text, and those that claim
 })
 
 test_that("cards for t-tests, correlations and ANOVA say the figure only approximates a rank-based test", {
-  for (id in c("E1", "E2", "E3", "E4", "E18")) {
+  for (id in c("E1", "E2", "E3", "E4", "E18", "E54")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
     expect_match(html, "only approximates the rank-based one", fixed = TRUE, label = id)

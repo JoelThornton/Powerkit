@@ -5,6 +5,15 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-28"
+    title: "Power for the same people in three or more conditions"
+    text: >-
+      powerkit now calculates the repeated-measures ANOVA with one factor,
+      for studies where everyone takes part in three or more conditions or
+      is measured at three or more timepoints. You enter the mean in each
+      condition, the SD and how strongly people's scores in two conditions
+      are related, and the design finder takes you there when you say the
+      same people are in every condition.
   - date: "2026-10-27"
     title: "Text fixes: results, the analysis list and mediation"
     text: >-

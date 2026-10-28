@@ -155,8 +155,8 @@ study". Verdicts are as defined at the top of this page.
 | One-way ANOVA | Score, once → difference → One → Three or more → Any difference among the groups → E18 (or a specific comparison → E19) | E18, E19 | X: three or more groups → E18 | **Honest card (E18, E19)** |
 | Kruskal–Wallis | As the one-way ANOVA → E18 | E18 | E18 | **Judgement needed** (rank-based test; judgement call 3.8) |
 | Chi-square test (two or more groups) | Yes/no or categories, once → difference → Different people, outcome in categories → E6 (any table of at least 2 x 2: groups by outcome categories) | E6 | X three or more groups, outcome "One of several categories" → E6 (F2; before, E27) | **Covered (E6)** |
-| One-way repeated measures ANOVA | Score, many times → The same people in three or more conditions → difference → One → Three or more → E18 | E18 | Sent to "Help me choose" (three or more conditions per person) | **Honest card (E18)** |
-| Friedman | As the repeated measures ANOVA → E18 | E18 | As above | **Judgement needed** (rank-based test; judgement call 3.8) |
+| One-way repeated measures ANOVA | Score, many times → The same people in three or more conditions → difference → One → Three or more → Any difference among the conditions → E54 | E54 | Sent to "Help me choose" (three or more conditions per person) | **Runs (E54, 27 October 2026)** |
+| Friedman | As the repeated measures ANOVA → E54 | E54 | As above | **Judgement needed** (rank-based test; judgement call 3.8) |
 | Repeated measures logistic regression | Yes/no, twice or many times → difference → The same people in every condition → E26 (McNemar's test or Cochran's Q). Many yes/no trials per person stop at S2 → E33 | E26, E33 | Not offered | **Honest card (E26 or E33).** **Judgement needed:** does a model-based analysis of repeated yes/no outcomes need its own card? |
 
 ### Two or more factors

@@ -416,7 +416,8 @@ nodes:
     refs: "decision D8"
     options:
       - {label: "A specific comparison (e.g. both feedback conditions beat no feedback)", next: E19}
-      - {label: "Any difference among the groups", next: E18}
+      - {label: "Any difference among the groups", next: E18, when: {times: once}}
+      - {label: "Any difference among the conditions", next: E54, when: {times: many_conditions}}
   f3:
     doc_id: F3
     text: "Does each factor have exactly two levels?"
@@ -704,8 +705,8 @@ closing_questions:
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53]}
   - doc_id: Q-test
     text: "Which version of the test?"
-    applies_to: [E2, E5, E7, E8, E18]
-    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
+    applies_to: [E2, E5, E7, E8, E18, E54]
+    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E54: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
@@ -998,8 +999,8 @@ endpoints:
     alternatives: ["conditional indirect effects for each group"]
   E18:
     rank_test: "the Kruskal-Wallis test (or Friedman's test, for the same people)"
-    doc_name: "One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus"
-    plain_name: "Any difference among three or more groups or conditions"
+    doc_name: "One-way ANOVA (different people), omnibus"
+    plain_name: "Any difference among three or more groups"
     template: "factorial_anova / oneway_between"
     backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -1007,7 +1008,7 @@ endpoints:
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
       - "powerkit calculates this for different people in each group, with equal group sizes and the same SD in every group."
-      - "For the same people in every condition (repeated measures), powerkit doesn't calculate it yet: Superpower (https://cran.r-project.org/package=Superpower) covers within-participants designs."
+      - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD"]
     tier: v2
     alternatives: ["Welch's one-way ANOVA", "planned contrasts", "the Kruskal-Wallis test"]
@@ -1424,6 +1425,22 @@ endpoints:
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
+  E54:
+    rank_test: "Friedman's test"
+    doc_name: "One-way repeated-measures ANOVA, omnibus"
+    plain_name: "Any difference among three or more conditions, the same people in each"
+    template: "factorial_anova / oneway_within"
+    backend: "Superpower: ANOVA_design(\"kw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    method: "Exact dataset (no repeated simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-anova-oneway-within.R, note: "Matches Superpower's ANOVA_exact() and power_oneway_within() called directly in the engine's tests. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
+    card_points:
+      - "Everyone takes part in every condition, such as three task difficulties or three timepoints, and the test asks whether the condition means differ at all."
+      - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
+      - "powerkit assumes the same SD in every condition and the same correlation between every pair of conditions. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+    inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions"]
+    tier: v2
+    alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model", "Friedman's test"]
   E-unsure:
     doc_name: "No matching design (safety net)"
     plain_name: "None of these fit, or I'm not sure"

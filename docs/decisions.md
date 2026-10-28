@@ -3203,6 +3203,25 @@ hypothesis RMSEA no more than 0.05) is not offered, and whether to add it
 is an open method choice ([`conventions.md`](conventions.md)). Validation
 placeholders in `test-validation-sem-model-fit.R`.
 
+## 2026-10-27 · Repeated measures: Superpower's exact route, sphericity assumed
+
+**What next after equivalence.** The maintainer chose repeated measures
+with three or more levels (`next.md`, items 5 and 6) over Welch's one-way
+ANOVA, equivalence for correlations and proportions, and rank
+correlations: the within-participants design is the standard one in
+cognitive psychology, and powerkit covered only 2 x 2 mixed.
+
+**Method.** The same route as the 2 x 2 mixed design (E8):
+`Superpower::ANOVA_exact()` on one data set with exactly the specified
+means, SD and correlation, `ANOVA_power()` on request. The spec takes one
+SD and one correlation for every pair of conditions, so the covariance
+matrix has compound symmetry, sphericity holds and the univariate F test
+needs no correction. Unequal SDs or correlations, a sphericity
+correction (Greenhouse-Geisser, Huynh-Feldt) and the MANOVA approach are
+not offered yet; each would need its own decision. The first design is
+the one-way repeated-measures ANOVA (template `oneway_within`, card E54);
+group by time beyond 2 x 2 follows in its own pull request.
+
 ## 2026-10-28 · Mentioning other tools: where the answer differs, and in the details
 
 **Decision (maintainer, 28 October 2026).** powerkit names another tool,

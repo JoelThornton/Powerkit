@@ -34,6 +34,8 @@ form_examples <- list(
                p_X_M = "0.2", p_W_M = "0.1", p_XW_M = "0.15", p_M_Y = "0.3", p_X_Y = "0.05"), closing_ok),
   E18 = c(list(A_label = "Feedback", A_levels = "None, Neutral, Praise", Y_label = "Persistence (minutes)",
                metric = "raw", means = "10, 11, 13", sd = "6", method = "exact"), closing_ok),
+  E54 = c(list(A_label = "Task difficulty", A_levels = "Easy, Medium, Hard", Y_label = "Reaction time (ms)",
+               metric = "raw", means = "600, 620, 650", sd = "100", r = "0.6", method = "exact"), closing_ok),
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
   E23 = c(list(A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
