@@ -3270,3 +3270,24 @@ already finds this design's sample size from the same t-based power.
 Departure 14 in `conventions.md`, shown on the result screen and in the
 methods paragraph (`forms.yaml`, `departures`, key "14"); the size of the
 difference is tested in `test-backend-powertools.R`.
+
+## 2026-10-28 · Clustered designs: a baseline score asked for at both levels
+
+**Decision (maintainer, 28 October 2026).** For a cluster-randomised
+trial with a score outcome, the screen asks for two values for a
+baseline score: the share of the variance within groups it explains
+(powertools' `RsqW`) and the share of the variance between the groups'
+averages (`RsqB`). The second starts at the first when left empty, and
+the write-up states both. A multisite trial needs only the first
+(`multisite.cont()`'s `Rsq`).
+
+**Why.** powertools' design effect needs both, and they can differ a
+lot: a group's average baseline often predicts its average outcome
+better than an individual's baseline predicts theirs. One correlation
+used for both levels would hide that assumption.
+
+**How.** `population > baseline_r2_within` and `baseline_r2_between`
+(engine schema), passed as one covariate (`ncov = 1`); `forms.yaml`,
+E34, "A baseline score, such as a pre-test (optional)", with
+`copy_if_empty`. The help page's description of the two values is a
+question for powertools (`upstream-questions.md`, 3).

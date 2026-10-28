@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Adjusting for a pre-test in grouped studies"
+    text: >-
+      The "People nested in groups" card can now allow for a baseline
+      score, such as a pre-test, that the analysis will adjust for. Say how
+      much of the differences between people, and between the groups'
+      averages, it explains; adjusting for a good baseline usually means
+      you need fewer groups.
+  - date: "2026-10-28"
     title: "Power when only one condition is delivered in groups"
     text: >-
       The "People nested in groups" card now covers studies where people

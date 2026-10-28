@@ -3799,7 +3799,27 @@
               "description": "Yes/no outcome: the SD, on the log-odds scale, of the groups' random intercepts (powertools' sigma.u): how much the groups' proportions differ.",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "baseline_r2_within": {
+              "description": "A baseline score (for example, a pre-test) adjusted for in the analysis: the proportion of the outcome's variance within groups (between people in the same group) that it explains, an R-squared from 0 to below 1 (powertools' RsqW). Leave out for no adjustment.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "baseline_r2_between": {
+              "description": "With a baseline score: the proportion of the variance between the groups' averages that the baseline explains (powertools' RsqB, which its formula applies to the between-group variance: 1 + (m (1 - RsqB) - 1) ICC). Required with baseline_r2_within.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
             }
+          },
+          "dependencies": {
+            "baseline_r2_within": [
+              "baseline_r2_between"
+            ],
+            "baseline_r2_between": [
+              "baseline_r2_within"
+            ]
           }
         },
         "target_test": {
@@ -3850,6 +3870,16 @@
                     {
                       "required": [
                         "icc"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "baseline_r2_within"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "baseline_r2_between"
                       ]
                     }
                   ]
@@ -4000,6 +4030,12 @@
               "description": "Yes/no outcome: the SD, on the log-odds scale, of the effect (the log odds ratio) across groups (powertools' sigma.u).",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "baseline_r2_within": {
+              "description": "A baseline score (for example, a pre-test) adjusted for in the analysis: the proportion of the outcome's variance within groups (between people in the same group) that it explains, an R-squared from 0 to below 1 (powertools' RsqW; multisite.cont()'s Rsq). Leave out for no adjustment.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
             }
           }
         },
@@ -4056,6 +4092,11 @@
                     {
                       "required": [
                         "icc_effect"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "baseline_r2_within"
                       ]
                     }
                   ]

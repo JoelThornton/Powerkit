@@ -45,6 +45,15 @@
 #                       effect. The same number of people in each condition,
 #                       the same total SD in both (Theta = 1).
 #
+# A baseline score (population > baseline_r2_within, and for a
+# cluster-randomised trial baseline_r2_between) is passed as one covariate:
+# crt.parallel.cont()'s ncov = 1, RsqW and RsqB (degrees of freedom J - 3),
+# or multisite.cont()'s Rsq. In crt.parallel.cont()'s design effect,
+# 1 + (m (1 - RsqB) - 1) ICC - m RsqW (1 - 2 ICC) / (m - 1), RsqB scales the
+# between-group variance and RsqW the within-group variance, so they are
+# the shares of each that the baseline explains (its help page calls them
+# shares of the total variance: docs/upstream-questions.md).
+#
 # The spec's n is the total number of participants analysed: n / m groups
 # of m (population > cluster_size). In a cluster-randomised trial half the
 # groups are in each condition, so the valid sizes are multiples of 2m; in
@@ -82,6 +91,8 @@ is_multisite <- function(spec) identical(spec$template, "multisite")
 is_group_treatment <- function(spec) identical(spec$template, "group_treatment")
 
 is_binary_cluster <- function(spec) identical(spec$population$metric, "proportion")
+
+has_baseline <- function(spec) !is.null(spec$population$baseline_r2_within)
 
 powertools_function_name <- function(spec) {
   paste0(
@@ -125,7 +136,7 @@ powertools_args <- function(spec, n, delta = abs(spec$population$d)) {
       m = m, m.sd = pop$cluster_size_sd %||% 0,
       alloc.ratio = 1, J = n / m,
       delta = delta, sd = 1,
-      icc0 = pop$icc, icc1 = pop$icc_effect, Rsq = 0,
+      icc0 = pop$icc, icc1 = pop$icc_effect, Rsq = pop$baseline_r2_within %||% 0,
       alpha = spec$target_test$alpha,
       sides = sides,
       v = FALSE
@@ -136,6 +147,8 @@ powertools_args <- function(spec, n, delta = abs(spec$population$d)) {
     J1 = n / m / 2, J.ratio = 1,
     delta = delta, sd = 1,
     icc1 = pop$icc, icc2 = pop$icc,
+    ncov = if (has_baseline(spec)) 1 else 0,
+    RsqB = pop$baseline_r2_between %||% 0, RsqW = pop$baseline_r2_within %||% 0,
     alpha = spec$target_test$alpha,
     sides = sides,
     v = FALSE
@@ -229,7 +242,8 @@ powertools_check_run <- function(spec) {
       row("ICC of the effect across groups passed to powertools (icc1)", pop$icc_effect, args$icc1),
       row("group size passed to powertools (m)", m, args$m),
       row("SD of group sizes passed to powertools (m.sd)", pop$cluster_size_sd %||% 0, args$m.sd),
-      row("groups and split within each at 10 groups (J, alloc.ratio)", c(10, 1), c(args$J, args$alloc.ratio))
+      row("groups and split within each at 10 groups (J, alloc.ratio)", c(10, 1), c(args$J, args$alloc.ratio)),
+      row("baseline score's R-squared passed to powertools (Rsq)", pop$baseline_r2_within %||% 0, args$Rsq)
     ))
   }
   rbind(
@@ -237,7 +251,10 @@ powertools_check_run <- function(spec) {
     row("ICC passed to powertools (icc1, icc2)", c(pop$icc, pop$icc), c(args$icc1, args$icc2)),
     row("group size passed to powertools (m)", m, args$m),
     row("SD of group sizes passed to powertools (m.sd)", pop$cluster_size_sd %||% 0, args$m.sd),
-    row("groups per condition at 20 groups in all (J1, J.ratio)", c(10, 1), c(args$J1, args$J.ratio))
+    row("groups per condition at 20 groups in all (J1, J.ratio)", c(10, 1), c(args$J1, args$J.ratio)),
+    row("baseline score passed to powertools (ncov, RsqW, RsqB)",
+        c(as.numeric(has_baseline(spec)), pop$baseline_r2_within %||% 0, pop$baseline_r2_between %||% 0),
+        c(args$ncov, args$RsqW, args$RsqB))
   )
 }
 
@@ -278,7 +295,10 @@ powertools_check_run <- function(spec) {
 #'   is its design effect 1 + (group size - 1) * ICC, and `design_effect`
 #'   is the factor for the whole trial: that design effect weighted by the
 #'   grouped condition's share of the variance of the difference (a half
-#'   for a score).
+#'   for a score). `baseline` is `TRUE` when a baseline score is adjusted
+#'   for; `design_effect` then includes the adjustment, as powertools
+#'   computes it, and `design_effect_without_baseline` (otherwise `NA` for
+#'   the yes/no and group treatment designs) is the factor without it.
 #' @export
 cluster_summary <- function(spec, n) {
   if (!identical(spec$design, "cluster_trial") || length(n) != 1 || is.na(n)) {
@@ -310,7 +330,8 @@ cluster_summary <- function(spec, n) {
       icc = pop$icc, icc_effect = NA_real_,
       relative_efficiency = 1, design_effect = design_effect, effective_n = n / design_effect,
       outcome = if (is_binary_cluster(spec)) "yes/no" else "score", sigma_u = NA_real_,
-      grouped_design_effect = grouped
+      grouped_design_effect = grouped,
+      baseline = FALSE, design_effect_without_baseline = NA_real_
     ))
   }
   if (is_binary_cluster(spec)) {
@@ -321,7 +342,8 @@ cluster_summary <- function(spec, n) {
       clusters_per_condition = if (multisite) NA_real_ else n / m / 2,
       icc = NA_real_, icc_effect = NA_real_,
       relative_efficiency = NA_real_, design_effect = NA_real_, effective_n = NA_real_,
-      outcome = "yes/no", sigma_u = pop$sigma_u, grouped_design_effect = NA_real_
+      outcome = "yes/no", sigma_u = pop$sigma_u, grouped_design_effect = NA_real_,
+      baseline = FALSE, design_effect_without_baseline = NA_real_
     ))
   }
   re_icc <- if (multisite) pop$icc_effect else pop$icc
@@ -330,10 +352,21 @@ cluster_summary <- function(spec, n) {
   } else {
     1
   }
-  design_effect <- if (multisite) {
+  # With a baseline score, the factor as powertools computes it: multisite
+  # trials divide d by sqrt(1 - Rsq), which is the same as multiplying the
+  # variance by 1 - Rsq; cluster-randomised trials use crt.parallel.cont()'s
+  # adjusted design effect (see the header).
+  r2w <- pop$baseline_r2_within %||% 0
+  r2b <- pop$baseline_r2_between %||% 0
+  unadjusted <- if (multisite) {
     (1 - pop$icc + (m - 1) * pop$icc_effect) / re
   } else {
     (1 + (m - 1) * pop$icc) / re
+  }
+  design_effect <- if (multisite) {
+    unadjusted * (1 - r2w)
+  } else {
+    (1 + (m * (1 - r2b) - 1) * pop$icc - m * r2w * (1 - 2 * pop$icc) / (m - 1)) / re
   }
   list(
     assignment = if (multisite) "people" else "groups",
@@ -345,7 +378,8 @@ cluster_summary <- function(spec, n) {
     relative_efficiency = re,
     design_effect = design_effect,
     effective_n = n / design_effect,
-    outcome = "score", sigma_u = NA_real_, grouped_design_effect = NA_real_
+    outcome = "score", sigma_u = NA_real_, grouped_design_effect = NA_real_,
+    baseline = has_baseline(spec), design_effect_without_baseline = unadjusted
   )
 }
 
@@ -370,6 +404,7 @@ powertools_script <- function(spec, result) {
       sprintf("delta = %s", delta), "sd = 1 # so delta is Cohen's d",
       "icc0 = icc # ICC of the group means",
       "icc1 = icc_effect # ICC of the effect: how much it varies between groups",
+      if (has_baseline(spec)) "Rsq = baseline_r2_within # share of the outcome's variance the baseline score explains",
       "alpha = alpha",
       if (!is.null(power)) sprintf("power = %s", power),
       sprintf("sides = %s # %s", sides, if (sides == 2) "two-sided test" else "one-sided, in the direction of the specified effect")
@@ -380,6 +415,11 @@ powertools_script <- function(spec, result) {
       "J.ratio = 1 # the same number of groups in each condition",
       sprintf("delta = %s", delta), "sd = 1 # so delta is Cohen's d",
       "icc1 = icc", "icc2 = icc # the same ICC in both conditions",
+      if (has_baseline(spec)) c(
+        "ncov = 1 # the baseline score",
+        "RsqB = baseline_r2_between # share of the variance between groups' averages it explains",
+        "RsqW = baseline_r2_within # share of the variance within groups it explains"
+      ),
       "alpha = alpha",
       if (!is.null(power)) sprintf("power = %s", power),
       sprintf("sides = %s # %s", sides, if (sides == 2) "two-sided test" else "one-sided, in the direction of the specified effect")
@@ -414,6 +454,8 @@ powertools_script <- function(spec, result) {
     if (multisite) sprintf("icc_effect <- %s # share of the outcome's variance from the effect varying between groups", r_code(pop$icc_effect)),
     sprintf("cluster_size <- %s # participants analysed in each group%s", r_code(pop$cluster_size), if (multisite) ", half in each condition" else ""),
     sprintf("cluster_size_sd <- %s # SD of the group sizes", r_code(pop$cluster_size_sd %||% 0)),
+    if (has_baseline(spec)) sprintf("baseline_r2_within <- %s # baseline score: R-squared within groups", r_code(pop$baseline_r2_within)),
+    if (has_baseline(spec) && !multisite) sprintf("baseline_r2_between <- %s # baseline score: R-squared between groups' averages", r_code(pop$baseline_r2_between)),
     goal_inputs(spec, result),
     "",
     "# Power at a total sample size (groups x group size), from powertools'",

@@ -84,12 +84,12 @@ fully validated. Validation runs are recorded in
   Also in 0.16.0, group treatment trials (people randomised one by one,
   only one condition delivered in groups: powertools' `irgtt.cont()` and
   `irgtt.bin()`; the smallest detectable d is found from the t-based
-  power, not powertools' normal approximation, `conventions.md`).
-  Validation in progress (published examples to choose and transcribe);
-  two questions for powertools in `upstream-questions.md`. Next: a
-  baseline covariate;
-  simulated multilevel models wait for a package decision (`next.md`,
-  item 7).
+  power, not powertools' normal approximation, `conventions.md`), and an
+  optional baseline score (one covariate) for a score outcome in the
+  first two designs. Validation in progress (published examples to
+  choose and transcribe); three questions for powertools in
+  `upstream-questions.md`. Next: simulated multilevel models wait for a
+  package decision (`next.md`, item 7).
 - **Structural equation model fit (27 October 2026, 0.13.0):** the power
   of the chi-square test of exact fit to reject a model with a given
   RMSEA, and the sample size for a target power, by formula with

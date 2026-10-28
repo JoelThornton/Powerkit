@@ -1138,6 +1138,19 @@ forms:
           - {id: icc_effect, writeup_label: "intraclass correlation of the effect", label: "How much the effect varies between groups, as a share of the outcome's variation (0 to 1)", type: number, path: population.icc_effect, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is: multisite}],
              help: "0 means the conditions differ by the same amount in every group. Larger values mean the effect is bigger in some groups than others, which costs power. It is usually much smaller than the ICC above; if you have no estimate, try 0 and a small value such as 0.01."}
+      - input: "A baseline score, such as a pre-test (optional)"
+        shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}]
+        fields:
+          - {id: adjust_baseline, label: "Will the analysis adjust for a baseline score?", type: select, required: true,
+             shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}],
+             choices: {"no": "No", "yes": "Yes (for example, the same measure taken before the study)"},
+             default: "no", default_source: "no covariates, powertools' default (ncov = 0, Rsq = 0)"}
+          - {id: baseline_within, writeup_label: "share of the variance within groups explained by the baseline score", label: "How much of the differences between people in the same group the baseline explains (R-squared, 0 to below 1)", type: number, path: population.baseline_r2_within, required: true, min: 0, max_exclusive: 1,
+             shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}, {field: adjust_baseline, is: "yes"}],
+             help: "If you know the correlation between the baseline and the outcome, square it: a correlation of 0.6 gives 0.36. Take it from earlier studies with the same measure; a guess that is too high overstates power."}
+          - {id: baseline_between, writeup_label: "share of the variance between groups' averages explained by the baseline score", label: "How much of the differences between the groups' averages the baseline explains (R-squared, 0 to below 1)", type: number, path: population.baseline_r2_between, min: 0, max_exclusive: 1, copy_if_empty: baseline_within,
+             shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is: cluster_randomised}, {field: adjust_baseline, is: "yes"}],
+             help: "A group's average baseline often predicts its average outcome better than one person's baseline predicts theirs, so this can be higher than the value above. If you leave it empty, powerkit uses the same value as above, and the result says so."}
       - input: "Yes/no outcome: the proportion of 'yes' in each condition"
         shown_if: {field: outcome_type, is: proportion}
         fields:

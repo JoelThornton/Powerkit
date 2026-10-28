@@ -56,7 +56,7 @@ form_examples <- list(
                odds_ratio = "1.5", base_prob = "0.3", r2_other = "0", alternative = "two_sided"), closing_ok),
   E28 = c(list(Y_label = "Clinic visits in a year", X_label = "Social support", X_type = "continuous",
                rate_ratio = "0.8", base_rate = "3", mean_exposure = "1", r2_other = "0", alternative = "two_sided"), closing_ok),
-  E34 = c(list(assignment = "cluster_randomised", outcome_type = "standardised", X_label = "Programme", X_level1 = "Usual lessons", X_level2 = "Wellbeing programme",
+  E34 = c(list(assignment = "cluster_randomised", outcome_type = "standardised", adjust_baseline = "no", X_label = "Programme", X_level1 = "Usual lessons", X_level2 = "Wellbeing programme",
                Y_label = "Wellbeing score", d = "0.3", icc = "0.05", cluster_size = "20", cluster_size_sd = "0",
                alternative = "two_sided"), closing_ok),
   E37 = c(list(model_kind = "cfa", indicators = "12", factors = "3", rmsea = "0.05"), closing_ok),

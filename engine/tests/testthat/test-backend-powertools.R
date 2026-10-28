@@ -420,3 +420,50 @@ test_that("the exported group treatment scripts reproduce each goal with powerto
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
   }
 })
+
+# A baseline score (one covariate): crt.parallel.cont()'s ncov, RsqW and
+# RsqB, or multisite.cont()'s Rsq.
+
+test_that("a baseline score is passed to powertools as one covariate", {
+  spec <- cluster_spec(list(type = "power", n = 400), baseline_r2_within = 0.4, baseline_r2_between = 0.6)
+  result <- run_spec(spec)
+  direct <- powertools::crt.parallel.cont(
+    m = 20, J1 = 10, delta = 0.3, icc1 = 0.05, icc2 = 0.05, ncov = 1, RsqB = 0.6, RsqW = 0.4
+  )
+  expect_equal(result$curve$power, direct)
+  expect_gt(direct, run_spec(cluster_spec(list(type = "power", n = 400)))$curve$power)
+  expect_true(all(result$check_run$ok))
+  # The reported design effect is powertools' adjusted one.
+  s <- result$clusters
+  expect_true(s$baseline)
+  expect_equal(s$design_effect, 1 + (20 * 0.4 - 1) * 0.05 - 20 * 0.4 * 0.9 / 19)
+  expect_equal(s$design_effect_without_baseline, 1.95)
+  ms <- multisite_spec(list(type = "power", n = 400), baseline_r2_within = 0.3)
+  ms_result <- run_spec(ms)
+  expect_equal(ms_result$curve$power, powertools::multisite.cont(
+    m = 20, J = 20, delta = 0.3, icc0 = 0.1, icc1 = 0.02, Rsq = 0.3
+  ))
+  expect_equal(ms_result$clusters$design_effect, ms_result$clusters$design_effect_without_baseline * 0.7)
+})
+
+test_that("baseline specs: both R-squared values for a cluster-randomised trial, none for yes/no", {
+  spec <- cluster_spec(list(type = "power", n = 400), baseline_r2_within = 0.4)
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  spec <- binary_spec("cluster_randomised_binary", list(type = "power", n = 800))
+  spec$population$baseline_r2_within <- 0.4
+  spec$population$baseline_r2_between <- 0.4
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+})
+
+test_that("the exported scripts reproduce results with a baseline score", {
+  specs <- list(
+    cluster_spec(list(type = "sample_size", power = 0.8), baseline_r2_within = 0.4, baseline_r2_between = 0.6),
+    cluster_spec(list(type = "sensitivity", n = 400, power = 0.8), baseline_r2_within = 0.4, baseline_r2_between = 0.4),
+    multisite_spec(list(type = "power", n = 400), baseline_r2_within = 0.3)
+  )
+  for (spec in specs) {
+    result <- run_spec(spec)
+    out <- run_exported_script(spec, result)
+    expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
+  }
+})

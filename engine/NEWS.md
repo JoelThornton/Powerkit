@@ -37,11 +37,22 @@
   `cluster_summary()` gains `grouped_design_effect`. New example specs
   `group_treatment.json` and `group_treatment_binary.json`.
 
+* Clustered designs with a score outcome can adjust for a baseline score
+  (one covariate): `population$baseline_r2_within` and, for a
+  cluster-randomised trial, `baseline_r2_between`, passed to
+  `crt.parallel.cont()` as `ncov = 1`, `RsqW` and `RsqB` (df J - 3), or to
+  `multisite.cont()` as `Rsq`. `cluster_summary()` gains `baseline` and
+  `design_effect_without_baseline`; its `design_effect` includes the
+  adjustment, as powertools computes it. The help page's description of
+  `RsqB` and `RsqW` is recorded in `docs/upstream-questions.md`.
+
 * App: the "People nested in groups" screen asks whether the outcome is a
   score or yes/no, and for yes/no asks for the proportion in each
   condition and how much the groups differ. The result and the write-up
   describe the yes/no analysis. A third choice of assignment covers
-  studies where only condition 2 is delivered in groups.
+  studies where only condition 2 is delivered in groups, and an optional
+  question about a baseline score; a field in `forms.yaml` may name
+  another to stand for it when left empty (`copy_if_empty`).
 
 # powerkit 0.15.0
 
