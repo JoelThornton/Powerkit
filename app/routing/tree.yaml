@@ -36,7 +36,7 @@ feedback:
   issues_url: https://github.com/JoelThornton/Powerkit/issues/new
   email: null
 
-banner: "Prototype, still being checked: t-tests, correlations, ANOVA, ANCOVA, regression, proportions and chi-square tests calculate here; mediation gives a quick preview, then a full run or an R script; other designs give guidance only for now."
+banner: "Prototype, still being checked. The common analyses calculate here: t-tests, correlations, ANOVA, ANCOVA, regression, proportions, chi-square tests, equivalence tests and cluster-randomised and multisite trials. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. Other designs give guidance only for now."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
@@ -1190,8 +1190,8 @@ endpoints:
       - {name: PowerAnalysisIL, url: "https://github.com/ginettelafit/PowerAnalysisIL", what: "Shiny app for intensive longitudinal (experience sampling) designs."}
     tier: later
   E36:
-    doc_name: "Equivalence test (TOST) or minimum-effect test"
-    plain_name: "Show that an effect is absent or too small to matter (equivalence, or non-inferiority)"
+    doc_name: "Equivalence test (TOST)"
+    plain_name: "Show that an effect is absent or too small to matter (equivalence)"
     template: "equivalence_test / tost_independent, tost_paired, tost_one_sample"
     backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula)"
     method: "Formula (no simulation)"
@@ -1216,7 +1216,7 @@ endpoints:
     card_points: ["This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."]
     tier: later
   E38:
-    doc_name: "PROCESS models 8, 58, 59"
+    doc_name: "Moderated mediation with W on both links or the direct link (PROCESS models 8, 58, 59)"
     plain_name: "Moderated mediation where W changes both links, or the direct link too"
     status: not_in_powerkit
     inputs: ["Standardised paths"]
@@ -1679,7 +1679,6 @@ glossary:
   - {term: "SEM and model fit", pattern: "\\bSEM model fit\\b|\\bSEM\\b", hint: "Structural equation modelling: a family of models that combines regressions among variables with unobserved (latent) variables measured by several items; model fit is how closely the relationships the model implies match those in the data."}
   - {term: "measurement invariance", pattern: "\\bmeasurement invariance\\b", hint: "Whether a questionnaire measures the same underlying trait in the same way in different groups (or on different occasions), checked by requiring parts of the measurement model, such as item loadings, to be equal across them."}
   - {term: "equivalence test (TOST)", pattern: "\\bequivalence test(?: \\(TOST\\))?|\\bTOST\\b", hint: "A test that aims to show there is no meaningful effect: two one-sided tests (TOST) check that the effect lies above the lower equivalence bound and below the upper one."}
-  - {term: "minimum-effect test", pattern: "\\bminimum-effect test\\b|\\bminimal effects? test(?:ing)?\\b", hint: "The reverse of an equivalence test: it aims to show that an effect goes beyond a chosen minimal threshold."}
   - {term: "precision planning", pattern: "\\bprecision planning\\b", hint: "Choosing the sample size so that the confidence interval around the estimate is expected to come out no wider than a target width."}
   - {term: "Bayes factor", pattern: "\\bBayes factors?\\b", hint: "A ratio that says how strongly the data support one hypothesis compared with a competing one (often 'no effect'), used instead of a p-value."}
 

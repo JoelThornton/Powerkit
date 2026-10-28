@@ -6,6 +6,15 @@
   test it now says the studies would show the difference lies inside the
   bounds, and that fewer would if the true difference is closer to a
   bound (not "if the true effect is smaller").
+* App text corrected where it was out of date or misleading: the About
+  tab's banner lists what now calculates (equivalence, multilevel trials,
+  and mediation's quick look plus R script); the "I know my analysis"
+  list shows standard names without internal codes or PROCESS model
+  numbers; the methods paragraph names mediation models without PROCESS
+  numbers; the equivalence card is named for what powerkit runs (TOST),
+  not minimum-effect or non-inferiority tests; a choice's default note no
+  longer repeats the choice ("Starts at As Cohen's d: ..."); and an empty
+  number of Monte Carlo draws shows as power4mome's 1,000, not "none".
 
 # powerkit 0.12.0
 

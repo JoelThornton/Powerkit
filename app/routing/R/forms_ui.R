@@ -35,7 +35,9 @@ field_ui <- function(f, value, described_by = character()) {
     input,
     if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
-      if (!is.null(f[["default"]])) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
+      # A choice's default is already shown selected, so only its source is
+      # added (naming it again garbled the sentence).
+      if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
   # A note for each choice that needs one, shown when it is chosen (the
@@ -209,7 +211,9 @@ field_is_optional <- function(f) {
 # colon or bracket ("Formula (pwr; ...): assumes ..." becomes "Formula").
 setting_value_text <- function(f, value) {
   value <- if (is.null(value) || length(value) == 0 || identical(as.character(value), "")) NULL else as.character(value)
-  if (is.null(value)) return(if (isTRUE(f$optional)) "none" else "not set")
+  # An empty optional value means "none", unless the field says what empty
+  # stands for (an empty number of Monte Carlo draws is power4mome's 1,000).
+  if (is.null(value)) return(f$empty_text %||% if (isTRUE(f$optional)) "none" else "not set")
   text <- if (identical(f$type, "select")) f$choices[[value]] %||% value else value
   trimws(sub("[:(].*$", "", text))
 }

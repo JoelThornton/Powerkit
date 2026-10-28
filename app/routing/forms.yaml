@@ -536,7 +536,7 @@ forms:
           - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E10:
-    methods_name: "a simple mediation model (PROCESS model 4)"
+    methods_name: "a simple mediation model"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -552,10 +552,10 @@ forms:
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
       - input: "Number of Monte Carlo draws per CI (optional)"
         fields:
-          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, min: 100, max: 100000, integer: true}
+          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, empty_text: "1,000 (power4mome's default)", min: 100, max: 100000, integer: true}
 
   E11:
-    methods_name: "a parallel mediation model (PROCESS model 4)"
+    methods_name: "a parallel mediation model"
     tool: power4mome
     departures: ["6", "7", "8"]
     directional: false
@@ -575,7 +575,7 @@ forms:
         generated: target_path
 
   E12:
-    methods_name: "a serial mediation model (PROCESS model 6)"
+    methods_name: "a serial mediation model"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -591,7 +591,7 @@ forms:
         generated: target_path
 
   E13:
-    methods_name: "a first-stage moderated mediation model (PROCESS model 7; index of moderated mediation)"
+    methods_name: "a first-stage moderated mediation model (index of moderated mediation)"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
@@ -610,7 +610,7 @@ forms:
           - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
   E14:
-    methods_name: "a second-stage moderated mediation model (PROCESS model 14)"
+    methods_name: "a second-stage moderated mediation model"
     tool: power4mome
     departures: ["6", "8"]
     directional: false
