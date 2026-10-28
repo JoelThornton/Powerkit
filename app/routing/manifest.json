@@ -4486,14 +4486,14 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.12.0",
+        "Version": "0.13.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome), and\n    cluster-randomised trials (via 'powertools').",
+        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome),\n    cluster-randomised trials (via 'powertools'), and the fit of structural\n    equation models (via 'semPower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "digest, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nmanymome, parallel, psych, power4mome, pwr, powertools, pwrss,\nSpower (>= 0.7), stats, Superpower, TOSTER, utils",
+        "Imports": "digest, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nmanymome, parallel, psych, power4mome, pwr, powertools, pwrss,\nsemPower, Spower (>= 0.7), stats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/roxygen2/version": "8.1.1",
@@ -4501,19 +4501,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "a78d13fd4fea2e0fc876df66b5a5dfb5613b112c",
-        "RemoteSha": "a78d13fd4fea2e0fc876df66b5a5dfb5613b112c",
+        "RemoteRef": "a7e0b4539099513ce72a09c06f380fbdbf0ab9c4",
+        "RemoteSha": "a7e0b4539099513ce72a09c06f380fbdbf0ab9c4",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "a78d13fd4fea2e0fc876df66b5a5dfb5613b112c",
-        "GithubSHA1": "a78d13fd4fea2e0fc876df66b5a5dfb5613b112c",
+        "GithubRef": "a7e0b4539099513ce72a09c06f380fbdbf0ab9c4",
+        "GithubSHA1": "a7e0b4539099513ce72a09c06f380fbdbf0ab9c4",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-27 21:57:57 UTC; runner",
+        "Packaged": "2026-10-28 09:50:04 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-27 21:58:04 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-28 09:50:11 UTC; unix"
       }
     },
     "powertools": {
@@ -5311,6 +5311,33 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-04-24 11:00:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:44:48 UTC; unix"
+      }
+    },
+    "semPower": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "semPower",
+        "Title": "Power Analyses for SEM",
+        "Version": "2.2.0",
+        "Authors@R": "c(\n    person(\"Morten\", \"Moshagen\", , \"morten.moshagen@uni-ulm.de\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-2929-7288\")),\n    person(\"Martina\", \"Bader\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-5706-8933\"))\n  )",
+        "Description": "Provides a-priori, post-hoc, and compromise power-analyses\n    for structural equation models (SEM).",
+        "License": "LGPL",
+        "URL": "https://github.com/moshagen/semPower",
+        "BugReports": "https://github.com/moshagen/semPower/issues",
+        "Imports": "graphics, grDevices, stats, utils",
+        "Suggests": "bookdown, covsim, doFuture, foreach, future, knitr, lavaan,\nmnonr, progressr, rmarkdown,",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-15 09:01:59 UTC; morten",
+        "Author": "Morten Moshagen [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-2929-7288>),\n  Martina Bader [aut] (ORCID: <https://orcid.org/0000-0002-5706-8933>)",
+        "Maintainer": "Morten Moshagen <morten.moshagen@uni-ulm.de>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-15 09:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-10-16 04:02:16 UTC; unix"
       }
     },
     "semTools": {
@@ -6172,7 +6199,7 @@
       "checksum": "cf823be3c506db3f81a1c068408ed05a"
     },
     "forms.yaml": {
-      "checksum": "9e9ad9b1005b228cb39ce02d37ce765c"
+      "checksum": "c0af788d91d8e9f5237558e09df7f95b"
     },
     "R/about.R": {
       "checksum": "46c243d5f43e33e43e54175ad3656f0f"
@@ -6196,7 +6223,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "2802233e591e3e8386ca2431c2622a55"
+      "checksum": "99fff34c2dd218c6951aff3ed9066126"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6220,7 +6247,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "a5843d70de0877a931f8c6e21b83ca54"
+      "checksum": "dfda316f9f0fa610a6baebc38719e0ff"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6235,7 +6262,7 @@
       "checksum": "0a2094597b96e8ba723d6ba83d571efa"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "b0ac52741b8db57b72e3e9e15f286ac7"
+      "checksum": "6a961fa5c2b43c10ff196143d54671f0"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6253,10 +6280,10 @@
       "checksum": "d4407e05b509f35eeeb8dbb6f2956243"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "f5ece8bc303a8bee8ca099f9181b17d6"
+      "checksum": "899c1b1e12b8e1f33da24a667fad59ce"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "91df80d27f16404f015a517a1ba0ebce"
+      "checksum": "c9651c052b685064cfb4045ba566f435"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "add0982ce3e26f26efdf680492a0bc95"
@@ -6274,7 +6301,7 @@
       "checksum": "cc38fa65bbd10f92dfa4d934f2101535"
     },
     "tree.yaml": {
-      "checksum": "4e68595a377dfb903a6105784b40491a"
+      "checksum": "bbafdcd62b058818048edc0dd9ff2aab"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "8e047af7587d77728019e0f63b34e3bd"
@@ -6289,7 +6316,7 @@
       "checksum": "4b39c3585be0289613809e34b0b91398"
     },
     "whats-new.yaml": {
-      "checksum": "9eb831227ed6a61779e91d61f6544983"
+      "checksum": "39e3c25cfddc83c0683d0b71e09be6e1"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
