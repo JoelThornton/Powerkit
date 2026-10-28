@@ -33,11 +33,25 @@
 #                       smallest detectable effect: powertools can't solve
 #                       for the proportions.
 #
+#   group treatment     cluster_trial/group_treatment: people are randomised
+#   trial               one by one, and those in the second condition receive
+#                       it in groups (an individually randomised group
+#                       treatment trial), so only that condition is
+#                       clustered. powertools::irgtt.cont(): the t test with
+#                       Satterthwaite degrees of freedom, the grouped
+#                       condition's variance inflated by 1 + (m - 1) * ICC;
+#                       or, for a yes/no outcome, irgtt.bin(): the z test of
+#                       the difference in proportions with the same design
+#                       effect. The same number of people in each condition,
+#                       the same total SD in both (Theta = 1).
+#
 # The spec's n is the total number of participants analysed: n / m groups
 # of m (population > cluster_size). In a cluster-randomised trial half the
 # groups are in each condition, so the valid sizes are multiples of 2m; in
 # a multisite trial every group has both conditions, so they are multiples
-# of m. Functions and arguments were checked in
+# of m; in a group treatment trial, n / 2 people are in J = n / (2m) groups
+# and n / 2 people take part individually, so they are multiples of 2m.
+# Functions and arguments were checked in
 # powertools 1.0.0's help pages and sources (docs/conventions.md,
 # "powertools").
 
@@ -65,11 +79,13 @@ powertools_backend <- function(spec, seed = NULL) {
 
 is_multisite <- function(spec) identical(spec$template, "multisite")
 
+is_group_treatment <- function(spec) identical(spec$template, "group_treatment")
+
 is_binary_cluster <- function(spec) identical(spec$population$metric, "proportion")
 
 powertools_function_name <- function(spec) {
   paste0(
-    if (is_multisite(spec)) "multisite" else "crt.parallel",
+    if (is_multisite(spec)) "multisite" else if (is_group_treatment(spec)) "irgtt" else "crt.parallel",
     if (is_binary_cluster(spec)) ".bin" else ".cont"
   )
 }
@@ -83,6 +99,17 @@ powertools_args <- function(spec, n, delta = abs(spec$population$d)) {
   m <- pop$cluster_size
   alternative <- spec$target_test$alternative %||% "two_sided"
   sides <- if (alternative == "two_sided") 2 else 1
+  if (is_group_treatment(spec)) {
+    # irgtt's m and J are the grouped (second) condition's group size and
+    # number of groups; n is the number of people in the first condition.
+    common <- list(m = m, J = n / m / 2, n = n / 2)
+    effect <- if (is_binary_cluster(spec)) {
+      list(p1 = pop$p1, p2 = pop$p2, icc = pop$icc)
+    } else {
+      list(delta = delta, sd = 1, icc = pop$icc, Theta = 1)
+    }
+    return(c(common, effect, list(alpha = spec$target_test$alpha, sides = sides, v = FALSE)))
+  }
   if (is_binary_cluster(spec)) {
     # Yes/no outcome. crt.parallel.bin()'s J is the number of groups in
     # both conditions together, as is multisite.bin()'s.
@@ -129,12 +156,27 @@ powertools_power <- function(spec, n) {
 # The smallest detectable d: powertools solves for delta when it is left
 # NULL. It is positive; it takes the sign of the specified d (or of the
 # one-sided test's direction), positive if neither gives one.
+#
+# For a group treatment trial, irgtt.cont() solves for delta with a normal
+# approximation (its help page: "other quantities ... are solved for using
+# normal approximation"), while its power uses the t distribution with
+# Satterthwaite df; at a few dozen groups that d falls several points short
+# of the target power. powerkit finds n from the t-based power, so it finds
+# d from the same power the same way (docs/conventions.md, "Group treatment
+# trials").
 powertools_sensitivity <- function(spec, n, power) {
-  args <- powertools_args(spec, n, delta = NULL)
-  args$power <- power
-  found <- powertools_call(args, spec)
+  power_at_delta <- function(delta) {
+    powertools_call(utils::modifyList(powertools_args(spec, n, delta = delta), list(power = NULL)), spec)
+  }
+  found <- if (is_group_treatment(spec)) {
+    stats::uniroot(function(delta) power_at_delta(delta) - power, c(1e-6, 20), tol = 1e-10)$root
+  } else {
+    args <- powertools_args(spec, n, delta = NULL)
+    args$power <- power
+    powertools_call(args, spec)
+  }
   negative <- isTRUE(spec$population$d < 0) || identical(spec$target_test$alternative, "less")
-  reached <- powertools_call(utils::modifyList(powertools_args(spec, n, delta = found), list(power = NULL)), spec)
+  reached <- power_at_delta(found)
   list(
     effect = if (negative) -found else found,
     effect_name = "d",
@@ -154,6 +196,20 @@ powertools_check_run <- function(spec) {
       parameter = parameter, specified = specified, recovered = passed,
       ok = isTRUE(all.equal(specified, passed))
     )
+  }
+  if (is_group_treatment(spec)) {
+    args <- powertools_args(spec, 20 * m)
+    effect_row <- if (is_binary_cluster(spec)) {
+      row("proportions passed to powertools (p1, p2)", c(pop$p1, pop$p2), c(args$p1, args$p2))
+    } else {
+      row("size of d passed to powertools (delta, with sd = 1)", abs(pop$d), args$delta / args$sd)
+    }
+    return(rbind(
+      effect_row,
+      row("ICC of the grouped condition passed to powertools (icc)", pop$icc, args$icc),
+      row("group size passed to powertools (m)", m, args$m),
+      row("at 10 groups in the grouped condition: its groups, and the people taking part individually (J, n)", c(10, 10 * m), c(args$J, args$n))
+    ))
   }
   if (is_binary_cluster(spec)) {
     groups <- if (is_multisite(spec)) 10 else 20
@@ -199,7 +255,9 @@ powertools_check_run <- function(spec) {
 #' differences between the groups' averages cancel out. When group sizes
 #' vary, either is divided by powertools' relative efficiency,
 #' `re.clustsize.cont()` (with the ICC of the effect, for a multisite
-#' trial). The effective sample size is `n` divided by the design effect.
+#' trial). In a group treatment trial only the second condition is
+#' grouped (powertools' `irgtt.cont()` and `irgtt.bin()`). The effective
+#' sample size is `n` divided by the design effect.
 #'
 #' @param spec A validated spec with design `cluster_trial`.
 #' @param n Total number of participants analysed.
@@ -213,7 +271,14 @@ powertools_check_run <- function(spec) {
 #'   and `effective_n`, and `outcome` ("score" or "yes/no"). For a yes/no
 #'   outcome, powertools gives no design effect in these terms, so `icc`,
 #'   `icc_effect`, `design_effect` and `effective_n` are `NA`, and
-#'   `sigma_u` (otherwise `NA`) is the SD on the log-odds scale.
+#'   `sigma_u` (otherwise `NA`) is the SD on the log-odds scale. For a
+#'   group treatment trial (template `group_treatment`, only the second
+#'   condition grouped), `assignment` is "one_condition", `clusters` counts
+#'   the groups in that condition, `grouped_design_effect` (otherwise `NA`)
+#'   is its design effect 1 + (group size - 1) * ICC, and `design_effect`
+#'   is the factor for the whole trial: that design effect weighted by the
+#'   grouped condition's share of the variance of the difference (a half
+#'   for a score).
 #' @export
 cluster_summary <- function(spec, n) {
   if (!identical(spec$design, "cluster_trial") || length(n) != 1 || is.na(n)) {
@@ -223,6 +288,31 @@ cluster_summary <- function(spec, n) {
   m <- pop$cluster_size
   m_sd <- pop$cluster_size_sd %||% 0
   multisite <- is_multisite(spec)
+  if (is_group_treatment(spec)) {
+    # Only the second condition is grouped: its variance is multiplied by
+    # 1 + (m - 1) ICC, as in irgtt.cont() and irgtt.bin(). Over the whole
+    # trial, the factor is that design effect weighted by the grouped
+    # condition's share of the variance of the difference (a half for a
+    # score with the same SD in both conditions).
+    grouped <- 1 + (m - 1) * pop$icc
+    share <- if (is_binary_cluster(spec)) {
+      v2 <- pop$p2 * (1 - pop$p2)
+      v2 / (v2 + pop$p1 * (1 - pop$p1))
+    } else {
+      1 / 2
+    }
+    design_effect <- 1 + share * (grouped - 1)
+    return(list(
+      assignment = "one_condition",
+      cluster_size = m,
+      clusters = n / m / 2,
+      clusters_per_condition = NA_real_,
+      icc = pop$icc, icc_effect = NA_real_,
+      relative_efficiency = 1, design_effect = design_effect, effective_n = n / design_effect,
+      outcome = if (is_binary_cluster(spec)) "yes/no" else "score", sigma_u = NA_real_,
+      grouped_design_effect = grouped
+    ))
+  }
   if (is_binary_cluster(spec)) {
     return(list(
       assignment = if (multisite) "people" else "groups",
@@ -231,7 +321,7 @@ cluster_summary <- function(spec, n) {
       clusters_per_condition = if (multisite) NA_real_ else n / m / 2,
       icc = NA_real_, icc_effect = NA_real_,
       relative_efficiency = NA_real_, design_effect = NA_real_, effective_n = NA_real_,
-      outcome = "yes/no", sigma_u = pop$sigma_u
+      outcome = "yes/no", sigma_u = pop$sigma_u, grouped_design_effect = NA_real_
     ))
   }
   re_icc <- if (multisite) pop$icc_effect else pop$icc
@@ -255,13 +345,14 @@ cluster_summary <- function(spec, n) {
     relative_efficiency = re,
     design_effect = design_effect,
     effective_n = n / design_effect,
-    outcome = "score", sigma_u = NA_real_
+    outcome = "score", sigma_u = NA_real_, grouped_design_effect = NA_real_
   )
 }
 
 # The R script for a clustered design: the same powertools call as
 # powerkit's, with the values written out.
 powertools_script <- function(spec, result) {
+  if (is_group_treatment(spec)) return(powertools_script_group_treatment(spec, result))
   if (is_binary_cluster(spec)) return(powertools_script_binary(spec, result))
   pop <- spec$population
   v <- spec$variables
@@ -384,6 +475,85 @@ powertools_script_binary <- function(spec, result) {
     "}",
     "",
     pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The R script for a group treatment trial (only the second condition
+# delivered in groups), a score or a yes/no outcome.
+powertools_script_group_treatment <- function(spec, result) {
+  pop <- spec$population
+  lv <- function(i) comment_text(unlist(spec$variables$X$levels)[i])
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  sides <- if (alternative == "two_sided") 2 else 1
+  binary <- is_binary_cluster(spec)
+  fun <- powertools_function_name(spec)
+  call_lines <- function(delta, power = NULL) {
+    args <- c(
+      sprintf("m = cluster_size # participants in each group of %s", lv(2)),
+      sprintf("J = n_total / cluster_size / 2 # groups in %s", lv(2)),
+      sprintf("n = n_total / 2 # people in %s, taking part individually", lv(1)),
+      if (binary) c("p1 = p1", "p2 = p2") else c(sprintf("delta = %s", delta), "sd = 1 # so delta is Cohen's d"),
+      sprintf("icc = icc # ICC in %s", lv(2)),
+      if (!binary) "Theta = 1 # the same total SD in both conditions",
+      "alpha = alpha",
+      if (!is.null(power)) sprintf("power = %s", power),
+      sprintf("sides = %s # %s", sides, if (sides == 2) "two-sided test" else "one-sided, in the direction of the specified effect")
+    )
+    c(paste0(fun, "("), paste0("    ", ensure_commas(args)), "  )")
+  }
+  inputs <- if (binary) c(
+    sprintf("p1 <- %s # proportion of 'yes' in %s", r_code(pop$p1), lv(1)),
+    sprintf("p2 <- %s # proportion of 'yes' in %s", r_code(pop$p2), lv(2))
+  ) else {
+    sprintf("d <- %s # Cohen's d: (mean in %s minus mean in %s) / the outcome's total SD", r_code(pop$d), lv(2), lv(1))
+  }
+  power_fun <- if (binary) c(
+    "power_at <- function(n_total) {",
+    paste0("  ", call_lines(NULL)),
+    "}"
+  ) else c(
+    "# Its one-sided test runs in the direction of a positive delta, so the",
+    "# size of d is passed.",
+    "power_at <- function(n_total, d_value = d) {",
+    paste0("  ", call_lines("abs(d_value)")),
+    "}"
+  )
+  goal_lines <- if (spec$goal$type == "sensitivity") {
+    s <- result$sensitivity
+    c(
+      "# Smallest detectable effect ----",
+      "# The d at which power_at() reaches the target power. (irgtt.cont() can",
+      "# also solve for delta itself, but by a normal approximation, which",
+      "# gives a smaller d with less than the target power.) It takes the",
+      "# direction of the effect you specified.",
+      "found <- uniroot(function(delta) power_at(n_total, delta) - target_power, c(1e-6, 20), tol = 1e-10)$root",
+      sprintf("d <- %sfound", if (s$effect < 0) "-" else ""),
+      "power <- power_at(n_total, d)",
+      "cat(sprintf(\"Smallest detectable effect: Cohen's d = %.4g (power %.4f)\\n\", d, power))",
+      "",
+      "reproduced <- list(effect = d, power = power)",
+      sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
+      ""
+    )
+  } else {
+    pwr_goal_section(spec, result)
+  }
+  c(
+    script_header(spec, result, "powertools", paste0("powertools::", fun, "()")),
+    "library(powertools)",
+    "",
+    "# Inputs ----",
+    inputs,
+    sprintf("icc <- %s # intraclass correlation in %s: share of the outcome's variance between its groups", r_code(pop$icc), lv(2)),
+    sprintf("cluster_size <- %s # participants analysed in each group of %s", r_code(pop$cluster_size), lv(2)),
+    goal_inputs(spec, result),
+    "",
+    sprintf("# Power at a total sample size: half in %s, in groups of", lv(2)),
+    sprintf("# cluster_size, and half in %s, taking part individually.", lv(1)),
+    power_fun,
+    "",
+    goal_lines,
     comparison_section()
   )
 }

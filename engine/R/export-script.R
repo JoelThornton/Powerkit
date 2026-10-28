@@ -277,6 +277,11 @@ design_description <- function(spec) {
       "multisite trial: %s compared between the conditions of %s (%s), people randomised within each group of %s; %s",
       label("Y"), label("X"), levels("X"), spec$population$cluster_size, cluster_test_words(spec, "t test of the average difference")
     ),
+    "cluster_trial/group_treatment" = sprintf(
+      "group treatment trial: %s compared between the conditions of %s (%s), people randomised one by one and the second condition delivered in groups of %s; %s",
+      label("Y"), label("X"), levels("X"), spec$population$cluster_size,
+      if (identical(spec$population$metric, "proportion")) "yes/no outcome, z test of the difference in proportions" else "t test with Satterthwaite degrees of freedom"
+    ),
     "sem/model_fit" = sprintf(
       "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
       spec$population$rmsea, sem_df(spec)
@@ -528,6 +533,10 @@ add_recruitment_section <- function(lines, spec, result) {
     multisite = c(
       sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),
       "groups_analysed <- rep(cluster_size, n_analysed / cluster_size) # each group's analysed size"
+    ),
+    group_treatment = c(
+      sprintf("cluster_size <- %s # participants analysed in each group of the grouped condition", r_code(spec$population$cluster_size)),
+      "groups_analysed <- c(rep(cluster_size, n_analysed / cluster_size / 2), n_analysed / 2) # its groups, then the other condition"
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",

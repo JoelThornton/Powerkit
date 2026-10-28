@@ -22,10 +22,26 @@
   `crt.varexplore()` or `ms.varexplore()` table. New example specs
   `cluster_randomised_binary.json` and `multisite_binary.json`.
 
+* Group treatment trials (design `cluster_trial`, template
+  `group_treatment`; card E34): people are randomised one by one and the
+  second condition is delivered in groups (for example, group therapy
+  against individual treatment), the same number of people in each
+  condition. A score runs on powertools' `irgtt.cont()` (t test with
+  Satterthwaite df), a yes/no outcome on `irgtt.bin()` (z test of the
+  difference in proportions); both inflate the grouped condition's
+  variance by 1 + (m - 1) ICC. Power, the required number of participants
+  (a whole number of groups, and as many people again) and, for a score,
+  the smallest detectable d, found from the t-based power by root-finding
+  rather than `irgtt.cont()`'s normal approximation (which falls a few
+  points short of the target power; `docs/conventions.md`).
+  `cluster_summary()` gains `grouped_design_effect`. New example specs
+  `group_treatment.json` and `group_treatment_binary.json`.
+
 * App: the "People nested in groups" screen asks whether the outcome is a
   score or yes/no, and for yes/no asks for the proportion in each
   condition and how much the groups differ. The result and the write-up
-  describe the yes/no analysis.
+  describe the yes/no analysis. A third choice of assignment covers
+  studies where only condition 2 is delivered in groups.
 
 # powerkit 0.15.0
 

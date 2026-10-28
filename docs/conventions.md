@@ -279,6 +279,14 @@ app may add them later.
 | powertools | `crt.parallel.bin()` and `multisite.bin()`: a z test of the log odds ratio between conditions, its variance from the binomial variance in each condition plus the between-group variance `sigma.u`² (for a cluster-randomised trial, the SD of the groups' random intercepts; for a multisite trial, the SD of the effect across groups), both on the log-odds scale, and multiplied by 1.2. The help pages do not give a source for the factor 1.2 (`upstream-questions.md`). Two-sided power is `pnorm(gamma / sqrt(var) - z)`, ignoring the far tail (powertools 1.0.0 help and source, R/crt.parallel.bin.R and R/multisite.bin.R, opened 28 October 2026) | `pc` and `pt`, the proportions in the two conditions | `m`, `m.sd` (cluster-randomised only), `J`, the total number of groups, `alloc.ratio` (multisite only), `sigma.u`, `alpha = 0.05`, `sides = 2` |
 | **powerkit** | powertools' `crt.parallel.bin()` and `multisite.bin()`, by formula; no simulation option (E34, from 28 October 2026) [powerkit] | `p1` and `p2`, the proportion of "yes" in each condition, and `sigma_u` on the log-odds scale; there is no ICC for this outcome | The same number of groups in each condition, or half of each group in each condition (`alloc.ratio = 1`). Groups of the same size only: `cluster_size_sd` is refused, because the relative-efficiency adjustment for varying sizes (`re.clustsize.bin()`) appears to contain a typo (`upstream-questions.md`). No smallest detectable effect, since the functions cannot solve for the proportions. The exported script prints powertools' `crt.varexplore()` or `ms.varexplore()` table, to help judge `sigma_u`. Not a departure: powertools' own method, including its factor 1.2, and no established psychology tool computes this design for comparison |
 
+## Group treatment trials (only one condition delivered in groups)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for clustered designs | — | — |
+| powertools | `irgtt.cont()`: people are randomised individually, and those in the intervention condition are treated in J groups of m. The variance of the difference is Theta × sd² × (1 + (m − 1) × ICC) / (mJ) + sd² / n, n being the control condition's size; power by the noncentral t (one-sided) or F with 1 df (two-sided) on Satterthwaite degrees of freedom. Other quantities (J, m, n, delta, alpha) are "solved for using normal approximation" (its help page), that is, with 10,000 df. `irgtt.bin()`: the z test of the difference in proportions, the intervention condition's binomial variance multiplied by the same design effect (powertools 1.0.0 help and source, R/irgtt.cont.R and R/irgtt.bin.R, opened 28 October 2026) | `delta / sd`, with `sd` the outcome's total SD; or `p1` (control) and `p2` (intervention) | `icc = 0`, `Theta = 1`, `alpha = 0.05`, `sides = 2` |
+| **powerkit** | powertools' `irgtt.cont()` and `irgtt.bin()`, by formula (E34, from 28 October 2026) [powerkit] | `d` over the outcome's total SD, taken to be the same in both conditions (`Theta = 1`); or `p1` and `p2`. The ICC is the grouped condition's | The same number of people in each condition (`n = mJ`); condition 2 is the grouped one. The sample size is found from the t-based power, as for every design, so it is a whole number of groups. **The smallest detectable d is also found from that power** (by root-finding), not from `irgtt.cont()`'s own solver for delta (Departure 14): at 20 groups of 8 and 160 people treated individually (ICC 0.05), powertools' normal approximation gives d = 0.340, which has 77.1% power by its own power formula; powerkit gives d = 0.352, with 80% (`test-backend-powertools.R`). With an ICC of 0, the Satterthwaite df still count the groups, so power is a little below an ordinary t test of the same size (0.935 against 0.946 at d = 0.4 and 160 per condition). No smallest detectable effect for a yes/no outcome, since `irgtt.bin()` can't solve for the proportions |
+
 ## Structural equation model fit (the chi-square test of exact fit, by RMSEA)
 
 | Tool | Test | Effect size | Settings |
@@ -714,6 +722,30 @@ as an experimental option, for a statistician's check
   from calculating each analysis separately"; `app/routing/forms.yaml`,
   `departures`, key "13") and in its methods paragraph, which says the
   whole study was simulated.
+
+### 14. Group treatment trials: the smallest detectable d from the t-based power, not powertools' normal approximation
+
+**The maintainer's decision, 28 October 2026** (`docs/decisions.md`).
+
+- **Established convention:** powertools' `irgtt.cont()` computes power
+  from the noncentral t (or F) distribution with Satterthwaite degrees of
+  freedom, but solves for every other quantity, delta among them, "using
+  normal approximation" (its help page), that is, with 10,000 degrees of
+  freedom. The d it returns therefore has less than the target power by its
+  own power formula.
+- **powerkit:** the smallest detectable d is the value at which
+  `irgtt.cont()`'s t-based power equals the target power, found by
+  root-finding, as the required sample size already is (powerkit searches
+  the power at whole numbers of groups, for every design).
+- **Size:** at 20 groups of 8 and 160 people treated individually (ICC
+  0.05, 80% power, two-sided α = .05), powertools gives d = 0.340, which
+  has 77.1% power by its own formula; powerkit gives d = 0.352, with 80%.
+  The gap narrows as the number of groups grows.
+- **Test:** `test-backend-powertools.R`, "the smallest detectable d for a
+  group treatment trial is powertools' own answer".
+- **Shown to users:** on the result screen for this design's smallest
+  detectable effect (`app/routing/forms.yaml`, `departures`, key "14") and
+  in its methods paragraph.
 
 ## Known differences
 

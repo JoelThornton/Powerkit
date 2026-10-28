@@ -233,7 +233,7 @@ check_direction_allowed <- function(spec) {
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor",
                  "single_predictor_count", "one_variance", "two_variances",
-                 "cluster_randomised", "multisite", "t", "z")
+                 "cluster_randomised", "multisite", "group_treatment", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
   }
@@ -262,7 +262,8 @@ check_direction_allowed <- function(spec) {
     two_variances = pop$var1 - pop$var2,
     # "greater" means the second condition's mean is higher.
     cluster_randomised = ,
-    multisite = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
+    multisite = ,
+    group_treatment = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -1168,7 +1169,8 @@ minimum_n <- function(spec) {
     logistic_regression = ,
     poisson_regression = 3,
     # Two groups in each condition (cluster-randomised), or two groups
-    # (multisite): the fewest powertools accepts.
+    # (multisite), or two groups and as many people again (group
+    # treatment): the fewest powertools accepts.
     cluster_trial = (if (identical(spec$template, "multisite")) 2 else 4) * spec$population$cluster_size,
     regression_interaction = 6,
     # More participants than items, so that the sample covariance matrix
@@ -1196,6 +1198,13 @@ group_split <- function(spec) {
     return(list(
       rule = sprintf("be a whole number of groups of %s", format_number(m)),
       valid = function(n) n %% m == 0
+    ))
+  }
+  if (spec$template == "group_treatment") {
+    m <- spec$population$cluster_size
+    return(list(
+      rule = sprintf("be a whole number of groups of %s in the grouped condition, with as many people again taking part individually", format_number(m)),
+      valid = function(n) n %% (2 * m) == 0
     ))
   }
   if (spec$template == "cluster_randomised") {

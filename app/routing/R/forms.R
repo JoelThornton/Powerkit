@@ -569,8 +569,12 @@ build_spec <- function(forms, ep_id, fields, values) {
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
     # `sets`: further spec values that follow from a choice (E24's
-    # question sets the template and the effect tested).
-    for (extra in f$sets[[as.character(v)]]) spec <- set_path(spec, split_path(extra$path), extra$value)
+    # question sets the template and the effect tested); an entry with a
+    # `shown_if` applies only when its conditions hold (E34: the test of a
+    # yes/no outcome depends on how the conditions are assigned).
+    for (extra in f$sets[[as.character(v)]]) {
+      if (field_applies(extra, values)) spec <- set_path(spec, split_path(extra$path), extra$value)
+    }
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)

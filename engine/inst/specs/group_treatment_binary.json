@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "cluster_trial",
+  "template": "group_treatment",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Support",
+      "levels": ["Individual support", "Peer support group"]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Still abstinent at 6 months"
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.3,
+    "p2": 0.45,
+    "icc": 0.05,
+    "cluster_size": 10
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: an increase from 30% to 45% still abstinent is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "proportion_difference",
+    "method": "z_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261028
+  }
+}

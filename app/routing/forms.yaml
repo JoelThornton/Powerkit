@@ -188,6 +188,7 @@ departures:
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): the established tools calculate each analysis on its own, from its own inputs, and the chance that several analyses all succeed has to be worked out from their separate powers, as if they were unrelated. Here one population model generates every simulated study and each analysis is fitted to the same data, so the analyses' inputs can't contradict each other and the joint chance is counted directly. Each analysis's own power agrees with its separate calculation from the values the population implies, within simulation error in powerkit's checks; where the population has a term an analysis leaves out (for example, an interaction when testing the correlation of X and Y), the simulation includes its effect and the separate calculation doesn't."
+  "14": "Smallest detectable effect when only one condition is in groups: powerkit finds the d at which powertools' power formula (irgtt.cont(), a t test) reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 77% power rather than 80%; powerkit gives 0.352."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
   "6": "Mediation is fitted with lavaan (maximum likelihood), as power4mome does, not by PROCESS's ordinary least squares. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
   "7": "Parallel mediators: powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
@@ -1084,12 +1085,14 @@ forms:
   # outcome's total SD; one ICC for both conditions; no covariates. The
   # total N is a whole number of groups (forms.R checks it via the engine).
   E34:
-    # Two clustered designs on one screen; how the conditions are assigned
+    # Three clustered designs on one screen; how the conditions are assigned
     # sets the template, and the outcome sets the function: powertools'
-    # crt.parallel.cont() or multisite.cont() for a score, crt.parallel.bin()
-    # or multisite.bin() for a yes/no outcome.
+    # crt.parallel.cont(), multisite.cont() or irgtt.cont() for a score,
+    # crt.parallel.bin(), multisite.bin() or irgtt.bin() for a yes/no
+    # outcome.
     methods_name: "a clustered design (the test of the difference between conditions, allowing for the grouping)"
     tool: powertools
+    departures: ["14"]
     sensitivity: true
     sensitivity_without_effect: true
     directional: true
@@ -1101,18 +1104,24 @@ forms:
         fields:
           - {id: assignment, label: "Who is assigned to the conditions", type: select, path: template, required: true,
              choices: {cluster_randomised: "Whole groups: everyone in a group gets the same condition (a cluster-randomised trial)",
-                       multisite: "People within each group: every group has people in both conditions, half in each (a multisite trial)"},
+                       multisite: "People within each group: every group has people in both conditions, half in each (a multisite trial)",
+                       group_treatment: "People one by one, and condition 2 is delivered in groups (for example, group therapy compared with individual treatment)"},
              sets: {cluster_randomised: [{path: target_test.method, value: cluster_t}],
-                    multisite: [{path: target_test.method, value: multisite_t}]}}
+                    multisite: [{path: target_test.method, value: multisite_t}],
+                    group_treatment: [{path: target_test.method, value: cluster_t}]}}
           - {id: outcome_type, label: "What kind of outcome", type: select, path: population.metric, required: true,
              choices: {standardised: "A score (for example, a questionnaire total)",
                        proportion: "Yes/no (for example, passed or failed)"},
              default: standardised, default_source: "a score outcome, the design powerkit covered first",
-             sets: {proportion: [{path: variables.Y.type, value: binary}, {path: target_test.effect, value: odds_ratio},
-                                 {path: target_test.method, value: logistic_mixed}]}}
+             sets: {proportion: [{path: variables.Y.type, value: binary},
+                                 {path: target_test.effect, value: odds_ratio, shown_if: {field: assignment, is_not: group_treatment}},
+                                 {path: target_test.method, value: logistic_mixed, shown_if: {field: assignment, is_not: group_treatment}},
+                                 {path: target_test.effect, value: proportion_difference, shown_if: {field: assignment, is: group_treatment}},
+                                 {path: target_test.method, value: z_test, shown_if: {field: assignment, is: group_treatment}}]}}
           - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
           - {id: X_level1, label: "Condition 1 (for example, usual lessons)", type: text, path: variables.X.levels.1, required: true}
-          - {id: X_level2, label: "Condition 2 (for example, the new programme)", type: text, path: variables.X.levels.2, required: true}
+          - {id: X_level2, label: "Condition 2 (for example, the new programme)", type: text, path: variables.X.levels.2, required: true,
+             help: "When only one condition is delivered in groups, make it condition 2."}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The effect: Cohen's d (the difference between conditions, over the outcome's total SD)"
         shown_if: {field: outcome_type, is: standardised}
@@ -1125,7 +1134,7 @@ forms:
         fields:
           - {id: icc, writeup_label: "intraclass correlation", label: "Intraclass correlation (ICC, 0 to 1)", type: number, path: population.icc, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: outcome_type, is: standardised},
-             help: "The share of the outcome's variation that lies between groups rather than within them. 0 means people in the same group are no more alike than strangers. Take it from earlier studies with similar groups and outcomes, and try a higher value too: the answer depends on it a lot."}
+             help: "The share of the outcome's variation that lies between groups rather than within them (when only condition 2 is in groups, within that condition). 0 means people in the same group are no more alike than strangers. Take it from earlier studies with similar groups and outcomes, and try a higher value too: the answer depends on it a lot."}
           - {id: icc_effect, writeup_label: "intraclass correlation of the effect", label: "How much the effect varies between groups, as a share of the outcome's variation (0 to 1)", type: number, path: population.icc_effect, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is: multisite}],
              help: "0 means the conditions differ by the same amount in every group. Larger values mean the effect is bigger in some groups than others, which costs power. It is usually much smaller than the ICC above; if you have no estimate, try 0 and a small value such as 0.01."}
@@ -1145,12 +1154,19 @@ forms:
           - {id: sigma_u_effect, writeup_label: "SD of the effect across groups (log odds ratio)", label: "How much the effect varies between groups: the SD of the log odds ratio (above 0)", type: number, path: population.sigma_u, effect: true, min_exclusive: 0,
              shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is: multisite}],
              help: "Larger values mean the effect is bigger in some groups than others, which costs power. An SD of 0.3 means about 95% of groups' odds ratios would lie within a factor of about 1.8 either side of the average. The R script prints powertools' table of these ranges (ms.varexplore()). powertools needs a value above 0; if you expect the same effect everywhere, use a small one such as 0.1."}
+          - {id: icc_grouped, writeup_label: "intraclass correlation", label: "Intraclass correlation in condition 2's groups (ICC, 0 to 1)", type: number, path: population.icc, effect: true, min: 0, max_exclusive: 1,
+             shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is: group_treatment}],
+             help: "The share of the outcome's variation within condition 2 that lies between its groups. 0 means people in the same group are no more alike than strangers. Take it from earlier studies with similar groups, and try a higher value too."}
       - input: "How many people in each group (the cluster size), and how much that varies"
         fields:
           - {id: cluster_size, writeup_label: "participants per group", label: "People analysed in each group, both conditions together (the average, if sizes vary)", type: number, path: population.cluster_size, required: true, min: 2,
+             shown_if: {field: assignment, is_not: group_treatment},
              help: "For example, pupils per class. The total number of participants is then a whole number of groups (with whole groups assigned, the same number of groups in each condition)."}
+          - {id: cluster_size_grouped, writeup_label: "participants per group", label: "People analysed in each group of condition 2", type: number, path: population.cluster_size, required: true, min: 2, integer: true,
+             shown_if: {field: assignment, is: group_treatment},
+             help: "For example, members of each therapy group. Condition 1 gets as many people in all as condition 2, taking part individually."}
           - {id: cluster_size_sd, label: "How much group sizes vary: their SD (0 if all the same size)", type: number, path: population.cluster_size_sd, required: true, min: 0,
-             shown_if: {field: outcome_type, is: standardised},
+             shown_if: [{field: outcome_type, is: standardised}, {field: assignment, is_not: group_treatment}],
              default: 0, default_source: "groups of equal size, powertools' default (crt.parallel.cont(m.sd = 0) and multisite.cont(m.sd = 0), powertools 1.0.0)"}
 
   # Structural equation model fit (semPower's semPower.postHoc() with an
