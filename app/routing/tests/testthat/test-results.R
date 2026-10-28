@@ -1287,3 +1287,12 @@ test_that("a group treatment trial (only condition 2 in groups) runs on powertoo
   expect_identical(calc_bin$status, "ok")
   expect_identical(calc_bin$result$provenance$backend_function, "powertools::irgtt.bin")
 })
+
+test_that("departure 14 shows only for a group treatment trial's smallest detectable d", {
+  base <- list(design = "cluster_trial", template = "group_treatment", population = list(metric = "standardised"),
+               target_test = list(method = "cluster_t"), goal = list(type = "sensitivity"))
+  expect_true(any(grepl("0.352", departures_for(forms, "E34", base), fixed = TRUE)))
+  expect_length(departures_for(forms, "E34", modifyList(base, list(goal = list(type = "sample_size")))), 0)
+  expect_length(departures_for(forms, "E34", modifyList(base, list(template = "multisite"))), 0)
+  expect_length(departures_for(forms, "E34", modifyList(base, list(population = list(metric = "proportion")))), 0)
+})

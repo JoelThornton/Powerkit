@@ -959,6 +959,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
   # test's departures, nor the continuity correction, apply.
   if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
+  # Departure 14 is about the smallest detectable d of a group treatment
+  # trial with a score outcome only.
+  if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised") &&
+        identical(spec$goal$type, "sensitivity"))) keys <- setdiff(keys, "14")
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 

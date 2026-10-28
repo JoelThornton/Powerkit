@@ -3252,3 +3252,21 @@ test refuses to fold any departure that changes the answer (1, 5, 6, 7,
 validation notes still say which published examples and tools a design
 was checked against.
 
+## 2026-10-28 · Group treatment trials: the smallest detectable d from the t-based power
+
+**Decision (maintainer, 28 October 2026).** For a group treatment trial
+(only one condition delivered in groups), the smallest detectable d is
+the value at which powertools' `irgtt.cont()` power, a t test with
+Satterthwaite degrees of freedom, reaches the target power, found by
+root-finding. powertools' own solver for delta, a normal approximation,
+is not used.
+
+**Why.** At 20 groups of 8 and 160 people treated individually (ICC
+0.05), powertools' d (0.340) has 77.1% power by its own power formula;
+the root-finding d (0.352) has the 80% it is reported with. powerkit
+already finds this design's sample size from the same t-based power.
+
+**How.** `powertools_sensitivity()` in `engine/R/backend-powertools.R`;
+Departure 14 in `conventions.md`, shown on the result screen and in the
+methods paragraph (`forms.yaml`, `departures`, key "14"); the size of the
+difference is tested in `test-backend-powertools.R`.

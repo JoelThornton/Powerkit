@@ -832,3 +832,32 @@ as the record of the options.
   - Whole-study simulation is more coherent, but new.
 - **Knock-on effects:** may need a record in `conventions.md`.
 - **Recorded in:** open question 12; setting `consistency_approach`.
+
+### E7. Group treatment trials: which smallest detectable d to report
+
+**Decided 28 October 2026** (`decisions.md`): option (a).
+
+*Added 28 October 2026.*
+
+- **Question:** for a group treatment trial (only one condition delivered
+  in groups), should the smallest detectable d be powertools' own answer
+  from `irgtt.cont()`, or the d at which its power formula reaches the
+  target power?
+- **Options:**
+  - (a) the d at which `irgtt.cont()`'s t-based power reaches the target,
+    found by root-finding, as powerkit finds every sample size;
+  - (b) `irgtt.cont()`'s own solver, which its help page says uses a
+    normal approximation.
+- **What tools and sources do:** powertools 1.0.0 (help page and source,
+  `R/irgtt.cont.R`) gives (b). At 20 groups of 8 and 160 people treated
+  individually (ICC 0.05), (b) gives d = 0.340, which has 77.1% power by
+  powertools' own formula; (a) gives 0.352, with 80%. G\*Power has no
+  clustered designs.
+- **Who might disagree, and why:** someone checking powerkit against
+  powertools' delta would see a d about 4% larger.
+- **Knock-on effects:** none outside this design; recorded as Departure
+  14 in [`conventions.md`](../conventions.md), shown on the result screen and in the methods
+  paragraph.
+- **Recommendation:** (a), because the answer then has the power it
+  claims, and the sample size for this design is already found that way.
+- **Recorded in:** this entry; [`conventions.md`](../conventions.md), Departure 14; PR #152.

@@ -83,7 +83,7 @@ ordered by impact.
 - [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B18
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
-- [E. Behind the scenes](#e-behind-the-scenes): E1–E6
+- [E. Behind the scenes](#e-behind-the-scenes): E1–E7
 - [F. Validation](#f-validation): F1
 - [G. Coverage and scope](#g-coverage-and-scope): G1–G9
 
@@ -1413,6 +1413,10 @@ Setting `consistency_approach` records it.
   that future versions must read.
 - **Recorded in:** this entry; [`saving-projects.md`](saving-projects.md);
   a draft PR implements (a) for review.
+
+### E7. Group treatment trials: which smallest detectable d to report
+
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#e7-group-treatment-trials-which-smallest-detectable-d-to-report).
 
 ## F. Validation
 
