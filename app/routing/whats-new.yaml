@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Fewer words on the screens"
+    text: >-
+      The design finder asks only once whether you want to show there's no
+      meaningful effect. Cards and input screens repeat themselves less,
+      and other tools such as G*Power are mentioned only where they would
+      give you a different answer.
+  - date: "2026-10-28"
     title: "Power for the same people in three or more conditions"
     text: >-
       powerkit now calculates the repeated-measures ANOVA with one factor,

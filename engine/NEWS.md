@@ -1,3 +1,20 @@
+# powerkit 0.14.2
+
+* App: the design finder asks once whether the aim is to show there is no
+  meaningful effect, on the aim screen; the later goal question (S4) is
+  answered from it. The analysis card no longer lists effect-size
+  sources (the input screen does). The input screen drops repeated
+  wording: the goal's section is titled "Your goal", effect sizes no
+  longer say "(starts empty)", and the smallest-detectable-effect route
+  is offered once. Validation notes no longer name test files, and
+  "as in G*Power" asides are removed from cards and menus. On the result,
+  departures that leave the answer practically unchanged (`forms.yaml`
+  `departures_folded`: 2, 3, 8, 9, 11) are folded under "How it was
+  calculated"; the others stay in view, with a pointer from the answer.
+  The methods paragraph still states every departure. The whole-study
+  screen says "experimental" once and describes "your study", not "the
+  population".
+
 # powerkit 0.14.1
 
 * App: the plain reading of a target power counts out of 10 only for a

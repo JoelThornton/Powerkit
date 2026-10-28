@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 27 October 2026. This page says where the project is now
+*Last updated: 28 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -249,9 +249,14 @@ fully validated. Validation runs are recorded in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
   the write-up was merged the same day. The plain reading counts out of
-  100 unless the power is a whole number of tenths (0.12.1), so 95% is
+  100 unless the power is a whole number of tenths (0.14.1), so 95% is
   never shown as "10 in 10". Analyses are named by their standard names,
   not PROCESS model numbers, in the list and the methods paragraph.
+  Screens trimmed (0.14.2): the goal of showing there's no meaningful
+  effect is asked once, on the aim screen; repeated wording is gone from
+  cards and input screens; G\*Power is named only where its answer
+  differs, with departures that don't change the answer folded under
+  "How it was calculated" (`decisions.md`, 28 October 2026).
 
 ## What's next
 
