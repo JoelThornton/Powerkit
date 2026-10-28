@@ -12,6 +12,7 @@ population_problems <- function(spec) {
     logistic_regression = check_single_predictor_x,
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
+    sem = check_sem,
     regression_interaction = check_regression_interaction,
     mediation = check_path_model,
     moderated_mediation = check_path_model,
@@ -118,7 +119,7 @@ spower_only <- function(spec) {
 # Tests powerkit computes with pwrss's formulas only (and clustered
 # designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
-  spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial") ||
+  spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem") ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -346,6 +347,49 @@ check_cluster_trial <- function(spec) {
     ),
     format_number(m_sd), format_number(pop$cluster_size)
   )
+}
+
+# Structural equation models -----------------------------------------------------
+
+# Model fit: the model is given either by its df or by the number of items
+# and factors of a CFA, not both; each factor needs two items, and the
+# model needs at least one degree of freedom to be tested.
+check_sem <- function(spec) {
+  pop <- spec$population
+  shape <- !is.null(pop$indicators) || !is.null(pop$factors)
+  if (!is.null(pop$df) && shape) {
+    return(paste0(
+      "Give either 'population > df' or 'population > indicators' and ",
+      "'population > factors', not both."
+    ))
+  }
+  if (!is.null(pop$df)) {
+    return(character())
+  }
+  if (is.null(pop$indicators) || is.null(pop$factors)) {
+    return(paste0(
+      "Give the model's degrees of freedom ('population > df'), or both the number of ",
+      "items ('population > indicators') and of factors ('population > factors')."
+    ))
+  }
+  if (pop$indicators < 2 * pop$factors) {
+    return(sprintf(
+      "%s items can't measure %s factors: each factor needs at least two items (three for a model with one factor).",
+      format_number(pop$indicators), format_number(pop$factors)
+    ))
+  }
+  df <- sem_df(spec)
+  if (df < 1) {
+    return(sprintf(
+      paste0(
+        "A model with %s items on %s factor%s has %s degrees of freedom, so its fit can't be ",
+        "tested. Add items: a single factor needs at least four."
+      ),
+      format_number(pop$indicators), format_number(pop$factors),
+      if (pop$factors == 1) "" else "s", format_number(df)
+    ))
+  }
+  character()
 }
 
 # Basic tests ----------------------------------------------------------------
@@ -1078,6 +1122,9 @@ minimum_n <- function(spec) {
     # (multisite): the fewest powertools accepts.
     cluster_trial = (if (identical(spec$template, "multisite")) 2 else 4) * spec$population$cluster_size,
     regression_interaction = 6,
+    # More participants than items, so that the sample covariance matrix
+    # can be positive definite; 2 when only the df are known.
+    sem = if (is.null(spec$population$indicators)) 2 else spec$population$indicators + 1,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -1156,6 +1203,8 @@ target_effect_is_zero <- function(spec) {
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = pop$d,
+    # Never 0 in practice: the schema refuses it, as semPower does.
+    sem = pop$rmsea,
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

@@ -60,6 +60,13 @@
 #' each condition. Multisite trials (template `multisite`): people are
 #' randomised to the two conditions within each group, by powertools'
 #' `multisite.cont()`; `goal > n` is a whole number of groups.
+#' Structural equation models (design `sem`, template `model_fit`): the
+#' power of the chi-square test of exact fit to reject a model whose misfit
+#' in the population is `population > rmsea`, by semPower's
+#' `semPower.postHoc()`. The model's degrees of freedom are
+#' `population > df`, or are counted by `semPower.getDf()` for a
+#' confirmatory factor analysis of `population > indicators` items on
+#' `population > factors` correlated factors. Goals: power and sample size.
 #'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
@@ -116,6 +123,10 @@
 #'     `cluster_trial`); otherwise [cluster_summary()]'s list for the n
 #'     analysed: the number of groups, the design effect and the effective
 #'     sample size;
+#'   * `sem`: `NULL` unless the design is a structural equation model
+#'     (design `sem`); otherwise [sem_summary()]'s list: the RMSEA, the
+#'     model's degrees of freedom and, for a CFA, its items, factors and
+#'     lavaan model;
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -229,6 +240,7 @@ run_spec <- function(spec) {
       safeguard = safeguard_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),
+      sem = sem_summary(spec),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),
