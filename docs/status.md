@@ -276,7 +276,10 @@ any time, and user testing is the maintainer's to run):
    It updates itself: Connect Cloud publishes from GitHub on each merge
    (set up by the maintainer, 18 October 2026), using
    `app/routing/manifest.json` (kept current by a workflow). Fallback:
-   `scripts/deploy-online.R`. Running it on your own computer: the Mac
+   `scripts/deploy-online.R`. A new app process now shows its first page
+   in about 2 seconds instead of about 4.5 (measured on a cloud machine;
+   0.15.1); hosting options for the longer term are being compared.
+   Running it on your own computer: the Mac
    route broke on 19 October 2026 when CRAN replaced a locked package
    (RcppArmadillo); the lockfile now has the new version.
 3. Fill the core gaps: the "does this still apply?" flag on the

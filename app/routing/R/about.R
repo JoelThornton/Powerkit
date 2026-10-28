@@ -26,8 +26,11 @@ about_supporting_tools <- list(
 )
 
 # A package's own citation() as plain text, or a note if it isn't installed.
+# citation() reads the installed package's files, so the package isn't
+# loaded: loading the backends here took about 2.5 of the 3 seconds a new
+# app process needs before it can show the first page.
 about_citation_text <- function(package) {
-  if (!identical(package, "base") && !requireNamespace(package, quietly = TRUE)) {
+  if (!identical(package, "base") && !nzchar(system.file(package = package))) {
     return(sprintf("Not installed on this computer; see citation(\"%s\") in R.", package))
   }
   text <- tryCatch(format(utils::citation(package), style = "text"), error = function(e) character())
