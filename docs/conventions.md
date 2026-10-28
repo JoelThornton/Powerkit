@@ -167,6 +167,14 @@ power while matching G\*Power) is folded there instead
 | Superpower | `ANOVA_exact()` on the design `"kb*mw"` (for example `"2b*3w"`), `ANOVA_power()` for simulation [SP-src]. `ANOVA_exact()` refuses a design whose n per group is not greater than the number of cells ("n <= the product of the factors") [SP-src] | Cell means, SD(s) and `r` | `correction` `"none"` by default [SP-src] |
 | **powerkit** | As the 2 x 2 mixed design: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per group), **one** SD and **one** correlation between every pair of the within factor's levels | No sphericity correction, which compound symmetry makes unnecessary (not a departure). Equal groups only; `goal.n` is the total, a multiple of the number of groups. Exact power needs more people per group than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`] |
 
+### Two-factor designs: both between (beyond 2 x 2) or both within
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G*Power | Both between: "ANOVA: Fixed effects, special, main effects and interactions", from f and the numerator df [GP-man, contents]. Both within: "ANOVA: Repeated measures, within factors", which takes one within factor; a second within factor has to be folded into it by hand. The manual has no section on repeated measures [GP-man, contents] | f (both between); f with the correlation among repeated measures and the nonsphericity correction epsilon (within) | To check (maintainer, in G*Power) |
+| Superpower | `ANOVA_exact()` on the design `"kb*mb"` (both between, for example `"2b*3b"`) or `"kw*mw"` (both within, for example `"2w*3w"`), `ANOVA_power()` for simulation [SP-src]. For a between design `n` is per cell | Cell means, SD(s) and `r` | `correction` `"none"` by default [SP-src] |
+| **powerkit** | As the mixed designs: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per level of the first factor), **one** SD; for the within design **one** correlation between every pair of cells | No sphericity correction, which compound symmetry makes unnecessary (not a departure). Both between: 2 x 2 uses its own template (E7, which also takes an SD per cell); equal cells, `goal.n` is the total, a multiple of the number of cells. Both within: 2 x 2 and larger; the correlation must be above -1 / (cells - 1) for one correlation to fit every pair. Exact power needs more people per cell than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`, `engine/R/spec-checks.R`] |
+
 ### Planned comparisons (contrasts)
 
 | Tool | Test | Effect size | Settings |

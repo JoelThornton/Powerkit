@@ -1,0 +1,61 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "factorial_between",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Feedback",
+      "levels": [
+        "None",
+        "Praise"
+      ]
+    },
+    "B": {
+      "type": "between_factor",
+      "label": "Task difficulty",
+      "levels": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Persistence (minutes)"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "means": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0.1,
+        0.3,
+        0.5
+      ]
+    ],
+    "sd": 1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: praise helping more as tasks get harder, by 0.2 SD per step, is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261028
+  }
+}

@@ -24,6 +24,10 @@ analysed_groups <- function(spec, n) {
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
+    factorial_between = {
+      cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
+      rep(n / cells, cells)
+    },
     oneway_between = ,
     oneway_contrast = ,
     mixed = ,
@@ -50,7 +54,8 @@ group_unit <- function(spec) {
     two_correlations = ,
     two_variances = ,
     tost_independent = "group",
-    "2x2_between" = "cell",
+    "2x2_between" = ,
+    factorial_between = "cell",
     "2x2_mixed" = ,
     mixed = ,
     oneway_between = ,

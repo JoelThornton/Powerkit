@@ -1,6 +1,6 @@
 # Backend adapter: 2x2 between, 2x2 mixed, larger mixed (between x within),
-# one-way between and one-way within (repeated-measures) ANOVA via
-# Superpower.
+# two-factor between (beyond 2x2) and two-factor within, one-way between and
+# one-way within (repeated-measures) ANOVA via Superpower.
 #
 # By default power is computed exactly with Superpower::ANOVA_exact(), which
 # is exact for the specified population and matches G*Power and the
@@ -35,7 +35,7 @@ superpower_backend <- function(spec, seed = NULL) {
         "Exact power for this design needs at least %d participants%s; for n = %s, set 'options > method' to 'simulation'.",
         exact_min_n,
         if (inputs$groups == 1) "" else sprintf(
-          " (%d per %s)", per_group, if (spec$template == "2x2_between") "cell" else "group"
+          " (%d per %s)", per_group, if (spec$template %in% c("2x2_between", "factorial_between")) "cell" else "group"
         ),
         n
       ))
@@ -57,7 +57,7 @@ superpower_backend <- function(spec, seed = NULL) {
     },
     # Sensitivity for the one-way designs (which effect pattern to scale)
     # is not settled yet; it is available for the 2x2 designs.
-    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed")) NULL else function(n, power) {
+    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed", "factorial_between", "factorial_within")) NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
@@ -115,6 +115,25 @@ superpower_inputs <- function(spec) {
       mu = by_row(pop$means),
       sd = pop$sd,
       r = pop$r,
+      alpha = spec$target_test$alpha,
+      effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
+    ))
+  }
+  if (spec$template %in% c("factorial_between", "factorial_within")) {
+    # Two crossed factors, both between participants (design "kb*mb", one
+    # group of different people per cell) or both within (design "kw*mw",
+    # everyone in every cell). Cells are read row by row (a1_b1, a1_b2,
+    # ..., a2_b1, ...), Superpower's order. One SD; for the within design
+    # one correlation between every pair of cells, so sphericity holds.
+    k <- length(spec$variables$A$levels)
+    m <- length(spec$variables$B$levels)
+    between <- spec$template == "factorial_between"
+    return(list(
+      design = sprintf(if (between) "%db*%db" else "%dw*%dw", k, m),
+      groups = if (between) k * m else 1,
+      mu = by_row(pop$means),
+      sd = pop$sd,
+      r = if (between) 0 else pop$r,
       alpha = spec$target_test$alpha,
       effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
     ))
@@ -244,7 +263,7 @@ superpower_check_run <- function(spec, design, seed = NULL) {
   if (spec$template %in% c("oneway_between", "oneway_within")) {
     return(superpower_check_oneway(spec, data))
   }
-  if (spec$template == "mixed") {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
     return(superpower_check_mixed(spec, data))
   }
   level <- function(x) as.integer(sub(".*(\\d)$", "\\1", as.character(x)))
@@ -316,10 +335,12 @@ superpower_check_oneway <- function(spec, data) {
   check
 }
 
-# Check run for the larger mixed design: every cell's mean and SD, and in
-# each between-participants group the correlation between every pair of
-# the within factor's levels, with participants matched by Superpower's
-# subject label. Levels are matched by Superpower's labels (a1, b2, ...).
+# Check run for the larger two-factor designs: every cell's mean and SD,
+# and the correlations between repeated measurements, with participants
+# matched by Superpower's subject label: in the mixed design, within each
+# between-participants group, between every pair of the within factor's
+# levels; in the within design, between every pair of cells. Levels are
+# matched by Superpower's labels (a1, b2, ...).
 superpower_check_mixed <- function(spec, data) {
   means <- lapply(spec$population$means, function(row) as.numeric(unlist(row)))
   k <- length(means)
@@ -338,7 +359,23 @@ superpower_check_mixed <- function(spec, data) {
       recovered = c(mean(y), stats::sd(y))
     )
   })
-  pairs <- utils::combn(seq_len(m), 2)
+  if (spec$template == "factorial_within") {
+    by_cell <- lapply(seq_len(nrow(cells)), function(c) {
+      cell <- data[data$i == cells$i[c] & data$j == cells$j[c], ]
+      cell$y[order(cell$subject)]
+    })
+    cell_pairs <- utils::combn(seq_len(nrow(cells)), 2)
+    rows <- c(rows, lapply(seq_len(ncol(cell_pairs)), function(p) {
+      a <- cell_pairs[1, p]
+      b <- cell_pairs[2, p]
+      data.frame(
+        parameter = sprintf("r between A%d B%d and A%d B%d", cells$i[a], cells$j[a], cells$i[b], cells$j[b]),
+        specified = spec$population$r,
+        recovered = stats::cor(by_cell[[a]], by_cell[[b]])
+      )
+    }))
+  }
+  pairs <- if (spec$template == "mixed") utils::combn(seq_len(m), 2) else matrix(integer(), 2, 0)
   for (i in seq_len(k)) {
     group <- data[data$i == i, ]
     by_level <- lapply(seq_len(m), function(j) {

@@ -1,0 +1,62 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "factorial_within",
+  "variables": {
+    "A": {
+      "type": "within_factor",
+      "label": "Cue",
+      "levels": [
+        "Valid",
+        "Invalid"
+      ]
+    },
+    "B": {
+      "type": "within_factor",
+      "label": "Delay",
+      "levels": [
+        "Short",
+        "Medium",
+        "Long"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time (ms)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        400,
+        410,
+        420
+      ],
+      [
+        430,
+        450,
+        470
+      ]
+    ],
+    "sd": 80,
+    "r": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: an invalid-cue cost that grows by 20 ms from each delay to the next is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261028
+  }
+}

@@ -431,7 +431,7 @@ nodes:
     options:
       - {label: "One factor different people, the other everyone got every level", next: E55, when: {times: [twice, many_conditions]}}
       - {label: "Both factors: different people", next: E21, when: {times: once}}
-      - {label: "Both factors: everyone got every level", next: E21, when: {times: many_conditions}}
+      - {label: "Both factors: everyone got every level", next: E20, when: {times: many_conditions}}
   f4:
     doc_id: F4
     text: "For each factor: did different people get each level, or did everyone get both?"
@@ -713,8 +713,8 @@ closing_questions:
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53]}
   - doc_id: Q-test
     text: "Which version of the test?"
-    applies_to: [E2, E5, E7, E8, E18, E54, E55]
-    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E54: "Exact dataset (no repeated simulation) or repeated simulation.", E55: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
+    applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55]
+    card_notes: {E2: "Student's or Welch's t-test.", E5: "The z test or Fisher's exact test.", E18: "Exact dataset (no repeated simulation) or repeated simulation.", E54: "Exact dataset (no repeated simulation) or repeated simulation.", E55: "Exact dataset (no repeated simulation) or repeated simulation.", E20: "Exact dataset (no repeated simulation) or repeated simulation.", E21: "Exact dataset (no repeated simulation) or repeated simulation.", E7: "Exact dataset (no repeated simulation) or repeated simulation.", E8: "Exact dataset (no repeated simulation) or repeated simulation."}
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
@@ -1036,22 +1036,35 @@ endpoints:
     tier: v2
     alternatives: ["the overall F test of any difference among the groups (one-way ANOVA)"]
   E20:
-    doc_name: "2 x 2 within-participants ANOVA"
-    plain_name: "Two factors crossed, everyone in all four conditions"
-    status: not_in_powerkit
-    inputs: ["The four expected means", "The SD", "The correlations between the repeated measures"]
-    packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Factorial ANOVA power from means, SDs and correlations, including within-participants designs (\"2w*2w\")."}
+    doc_name: "Two-factor within-participants ANOVA (2 x 2 or larger)"
+    plain_name: "Two factors crossed, everyone in every combination"
+    template: "factorial_anova / factorial_within"
+    backend: "Superpower: ANOVA_design(\"kw*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    method: "Exact dataset (no repeated simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-anova-factorial.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for both main effects and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
+    card_points:
+      - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
+      - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
+      - "powerkit assumes the same SD in every combination and the same correlation between people's scores in any two of them. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect"]
     tier: v2
+    alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
   E21:
-    doc_name: "Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...)"
-    plain_name: "Factorial designs bigger than 2 x 2"
-    status: not_in_powerkit
-    inputs: ["The expected cell means", "SDs and correlations"]
-    packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Factorial ANOVA up to three factors, 2 to 99 levels each, any mix of between and within."}
-      - {name: pwranova, url: "https://cran.r-project.org/package=pwranova", what: "Analytic power for any number of between and within factors (default cap six), from partial eta-squared or Cohen's f."}
+    doc_name: "Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...)"
+    plain_name: "Factorial designs bigger than 2 x 2, with different people in every group"
+    template: "factorial_anova / factorial_between"
+    backend: "Superpower: ANOVA_design(\"kb*mb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    method: "Exact dataset (no repeated simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-anova-factorial.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for both main effects and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
+    card_points:
+      - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
+      - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
+      - "powerkit assumes the same number of people and the same SD in every cell. Designs with three or more factors aren't covered yet: Superpower can calculate them (up to three factors)."
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect"]
     tier: v2
+    alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other"]
   E22:
     doc_name: "2 x 2 ANOVA with unequal group sizes"
     plain_name: "A 2 x 2 design where the groups differ in size"

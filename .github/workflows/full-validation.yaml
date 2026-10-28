@@ -20,10 +20,10 @@
 # these; the job runs in the CI image (ci-image.yaml), so no time goes on
 # installing packages):
 #   basic, interactions   minutes
-#   anova                 about 2 hours (18 simulated tests of about 9
+#   anova                 about 2.5 hours (23 simulated tests of about 9
 #                         minutes each, 4 at a time; the one-way
-#                         within and larger mixed tests are estimated,
-#                         not yet timed)
+#                         within, larger mixed and two-factor tests are
+#                         estimated, not yet timed)
 #   process_4             about 2.5 hours (8 simulations of 10,000
 #                         replications at about 0.4 s each)
 #   process_6             about 1 hour (3 simulations, about 0.4 s each)

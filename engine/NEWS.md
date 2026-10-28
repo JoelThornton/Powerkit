@@ -1,3 +1,28 @@
+# powerkit 0.17.0
+
+* Two-factor ANOVA beyond the 2 x 2 between and mixed designs (design
+  `factorial_anova`): template `factorial_within`, both factors within
+  participants, 2 x 2 or larger (Superpower's `"kw*mw"` design, one SD and
+  one correlation between every pair of cells, so sphericity holds; the
+  correlation must be above -1 / (cells - 1)), and template
+  `factorial_between`, both factors between participants with at least one
+  at three or more levels (`"kb*mb"`, equal cells, one SD; 2 x 2 stays
+  `2x2_between`). Either main effect or the interaction, on
+  `ANOVA_exact()` (`ANOVA_power()` on request); power and the required
+  sample size, no sensitivity goal yet. `population$means` has one row per
+  level of A, as for `mixed`. The check run recovers every cell's mean and
+  SD and, for the within design, every pairwise correlation. New example
+  specs `anova_factorial_within.json` and `anova_factorial_between.json`;
+  unit tests against `ANOVA_exact()` called directly; validation file
+  `test-validation-anova-factorial.R` with placeholders, in the `anova`
+  chunk.
+
+* App: cards E20 (two-factor within, now 2 x 2 or larger) and E21
+  (two-factor between beyond 2 x 2) calculate, with input screens taking
+  the cell means as a table. The design finder sends "both factors:
+  everyone got every level" to E20; E21's card says three-factor designs
+  are not covered yet.
+
 # powerkit 0.16.1
 
 * The app opens faster when a new copy of it starts: the About tab's

@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Two-factor designs with the same people in every condition, and larger designs with different people"
+    text: >-
+      powerkit now calculates two-factor ANOVAs where everyone takes part
+      in every combination of the factors, such as cue by delay in a
+      reaction-time task, from 2 x 2 upwards. It also calculates two-factor
+      designs larger than 2 x 2 with different people in every group, such
+      as feedback by three levels of task difficulty. Choose either factor
+      or the interaction to power.
+  - date: "2026-10-28"
     title: "Adjusting for a pre-test in grouped studies"
     text: >-
       The "People nested in groups" card can now allow for a baseline

@@ -337,13 +337,14 @@ flowchart TD
   F2a -->|A specific comparison| E19["E19 Planned contrast"]
   F2a -->|Any difference,<br/>different people| E18["E18 One-way ANOVA"]
   F2a -->|Any difference,<br/>the same people| E54["E54 One-way<br/>repeated-measures ANOVA"]
-  F1 -->|Three or more| E21["E21 Larger factorial ANOVA"]
+  F1 -->|Three or more| E21["E21 Larger factorial ANOVA,<br/>different people"]
   F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
   F3 -->|No| F3a{"F3a For each factor: different<br/>people, or everyone in every level?"}
   F3a -->|One between,<br/>one within| E55["E55 Mixed ANOVA<br/>beyond 2 x 2"]
-  F3a -->|Both between or<br/>both within| E21
+  F3a -->|Both between| E21
+  F3a -->|Both within| E20
   F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
-  F4 -->|Both within| E20["E20 2 x 2 within ANOVA"]
+  F4 -->|Both within| E20["E20 Two-factor within ANOVA"]
   F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
   F4a -->|No| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
   F4a -->|Yes, both between| F5b["F5 Which effect?<br/>F6 Which shape?"]
@@ -355,8 +356,8 @@ flowchart TD
   PP -->|The mixed interaction| E8
   PP -->|ANCOVA| E23["E23 ANCOVA"]
   class F1,F2,F2a,F3,F3a,F4,F4a,F4b,PP,F5b,F5m q
-  class E1,E2,E3,E7,E8,E18,E19,E23,E54,E55 avail
-  class E20,E21,E22 later
+  class E1,E2,E3,E7,E8,E18,E19,E20,E21,E23,E54,E55 avail
+  class E22 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -531,7 +532,7 @@ engine can use the answer today.
 | V1 | Whose spread of scores are you comparing? | One group's, against a fixed value (E52); two groups', different people in each (E53) | `template` (`one_variance`, `two_variances`) | Yes |
 | F1–F3 | How many factors? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
-| F3a | For each factor: different people, or everyone got every level? (at least one factor with three or more levels) | One between, one within (E55); both between or both within (E21) | `variables.A.type`, `variables.B.type` (A is the between factor in `mixed`) | Yes for one between and one within; routing only otherwise |
+| F3a | For each factor: different people, or everyone got every level? (at least one factor with three or more levels) | One between, one within (E55); both between (E21); both within (E20) | `variables.A.type`, `variables.B.type` (A is the between factor in `mixed`) | Yes for one between and one within; routing only otherwise |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
 | F4a | Will the groups be equal in size? | Yes / no (decisions D5, N1–N3) | 2x2: none (equal cells assumed). Two groups: `options.allocation_ratio` | 2x2: routing only (unequal → not available). Two-group tests: yes |
 | F4b, PP1, PP2 | Before and after? Randomised? ANCOVA or mixed interaction? | (decision D2) | `factorial_anova / 2x2_mixed`, `target_test.effect = interaction` | Routing only. Randomisation and the reason for the choice aren't stored for the write-up: **flag** (open question 4). ANCOVA: **no (flag)** |
@@ -628,6 +629,8 @@ the two in step.
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E18 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E19 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E20 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E21 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E23 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E24 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E25 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -682,8 +685,8 @@ taken from coverage.md, where they are proposals.
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E18 | One-way ANOVA (different people), omnibus | `factorial_anova / oneway_between` | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. The same people in every condition: E54 | Exact dataset (no repeated simulation) | Group means (raw or in SD units) and one SD | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E19 | Planned contrast | `factorial_anova / oneway_contrast` | `pwrss::power.t.contrasts()` (one contrast, equal groups, two-sided; `k.covariates = 0`). Also Superpower's emmeans contrasts, which agree with it; pwranova `pwrcontrast()` unchecked | Formula (no simulation) | Group means and SD; contrast weights | Yes: matches the G\*Power 3.1 manual's three contrast examples in the full validation run (27 October 2026) | v2 | Runs |
-| E20 | 2 x 2 within-participants ANOVA | — | Candidate: Superpower `"2w*2w"` | — | Means, SD, correlation matrix | No | v2 | Not in spec |
-| E21 | Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...) | — | Candidates: Superpower (up to three factors); pwranova (more, from partial η²) | — | Means, SDs, correlations | No | v2 for 2x3, 3x3, 2x2x2; later for the rest | Not in spec |
+| E20 | Two-factor within-participants ANOVA (2 x 2 or larger) | `factorial_anova / factorial_within` | `Superpower::ANOVA_design("kw*mw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. One SD and one correlation between every pair of cells, so sphericity holds. Reached from F4 (2 x 2) and F3a (larger) when everyone is in every combination | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, the correlation between any two conditions, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-factorial.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
+| E21 | Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...) | `factorial_anova / factorial_between` | `Superpower::ANOVA_design("kb*mb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Equal cells, one SD. Reached from F3a when both factors are different people; F1's "three or more" factors also reach it, and its card says three-factor designs aren't covered yet (Superpower can do up to three; pwranova more) | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-factorial.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E22 | 2 x 2 ANOVA with unequal group sizes | — | Superpower documents unequal n for `ANOVA_power()` only: `ANOVA_design()` help, argument `n` ("If unequal n is entered then the design can only be passed onto ANOVA_power"), and NEWS for 0.0.3 [SP]. `ANOVA_power()` stops for designs with a within factor, so this covers 2 x 2 between, not mixed. None validated by powerkit (decision N3: needs an independent reference) | — | — | No | v2 | Not in spec |
 | E23 | ANCOVA (incl. pre–post with a baseline covariate) | `factorial_anova / oneway_ancova` | `pwrss::power.f.ancova.shieh()` (Shieh's method) | Formula (no simulation) | Adjusted group means (raw or in SD units), one SD, covariates' R², number of covariates | No: matches pwrss called directly and `Superpower::power_oneway_ancova()` in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs (one-way, overall test) |
 | E24 | Multiple regression (R² or one coefficient) | `multiple_regression / r2_zero`, `r2_increase` | `pwrss::power.f.regression()` (one coefficient: an R² increase with 1 predictor tested) | Formula (no simulation) | R², or R² with and without the tested predictors; numbers of predictors | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |

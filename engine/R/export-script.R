@@ -301,6 +301,14 @@ design_description <- function(spec) {
       "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; sphericity assumed",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
+    "factorial_anova/factorial_between" = sprintf(
+      "two-factor between-participants ANOVA of %s: %s (%s) by %s (%s); effect tested: %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
+    "factorial_anova/factorial_within" = sprintf(
+      "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; sphericity assumed",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
@@ -539,6 +547,10 @@ add_recruitment_section <- function(lines, spec, result) {
       "groups_analysed <- c(rep(cluster_size, n_analysed / cluster_size / 2), n_analysed / 2) # its groups, then the other condition"
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
+    factorial_between = sprintf(
+      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal cells",
+      length(spec$variables$A$levels) * length(spec$variables$B$levels)
+    ),
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = ,
     oneway_contrast = ,
@@ -1170,7 +1182,7 @@ superpower_script_inputs <- function(spec, inputs) {
       "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
     ))
   }
-  if (spec$template == "mixed") {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
     level_line <- function(role, letter) {
       lv <- comment_text(unlist(v[[role]]$levels))
       sprintf("#   %s = %s: %s", letter, comment_text(v[[role]]$label),
@@ -1182,14 +1194,28 @@ superpower_script_inputs <- function(spec, inputs) {
       "# Superpower names the factors a and b and their levels a1, a2, ..., b1, b2, ...:",
       level_line("A", "a"),
       level_line("B", "b"),
-      sprintf("design_string <- %s # a between participants (%d levels), b within (%d levels)", r_code(inputs$design), k, m),
+      sprintf("design_string <- %s # %s", r_code(inputs$design), switch(
+        spec$template,
+        mixed = sprintf("a between participants (%d levels), b within (%d levels)", k, m),
+        factorial_between = sprintf("a (%d levels) and b (%d levels), both between participants", k, m),
+        factorial_within = sprintf("a (%d levels) and b (%d levels), both within participants", k, m)
+      )),
       sprintf(
         "mu <- %s # cell means of %s, in Superpower's order a1_b1, a1_b2, ..., a2_b1, ...",
         r_code(inputs$mu), comment_text(v$Y$label)
       ),
       sprintf("cell_sd <- %s # SD in every cell", r_code(inputs$sd)),
-      sprintf("r <- %s # correlation between any two levels of b, within a participant", r_code(inputs$r)),
-      sprintf("groups <- %s # between-participants groups: the total n is split equally across them", inputs$groups),
+      sprintf("r <- %s # %s", r_code(inputs$r), switch(
+        spec$template,
+        mixed = "correlation between any two levels of b, within a participant",
+        factorial_between = "no repeated measures: every cell is different people",
+        factorial_within = "correlation between any two cells, within a participant"
+      )),
+      sprintf("groups <- %s # %s", inputs$groups, if (inputs$groups == 1) {
+        "one group: everyone is in every cell"
+      } else {
+        "between-participants groups: the total n is split equally across them"
+      }),
       sprintf("effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect))
     ))
   }

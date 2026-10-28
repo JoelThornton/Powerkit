@@ -570,7 +570,7 @@ check_factorial_anova <- function(spec) {
   if (identical(spec$template, "oneway_contrast")) {
     return(check_contrast_weights(spec))
   }
-  if (identical(spec$template, "mixed")) {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
     return(check_mixed_shape(spec))
   }
   character()
@@ -582,14 +582,25 @@ check_factorial_anova <- function(spec) {
 check_mixed_shape <- function(spec) {
   k <- length(spec$variables$A$levels)
   m <- length(spec$variables$B$levels)
-  if (k == 2 && m == 2) {
+  if (k == 2 && m == 2 && spec$template == "mixed") {
     return("Both factors have two levels: use the template '2x2_mixed' for a 2 x 2 mixed design.")
+  }
+  if (k == 2 && m == 2 && spec$template == "factorial_between") {
+    return("Both factors have two levels: use the template '2x2_between' for a 2 x 2 between-participants design.")
   }
   rows <- lengths(spec$population$means)
   if (length(rows) != k || any(rows != m)) {
     return(sprintf(
       "'population > means' should have %d rows (one per level of %s), each with %d means (one per level of %s), in the same order as the levels.",
       k, var_label(spec, "A"), m, var_label(spec, "B")
+    ))
+  }
+  if (spec$template == "factorial_within" && spec$population$r <= -1 / (k * m - 1)) {
+    # The same correlation between every pair of the k x m cells is only
+    # possible above -1 / (cells - 1).
+    return(sprintf(
+      "With %d conditions, one correlation between every pair of them must be above %s. Check 'population > r'.",
+      k * m, format(round(-1 / (k * m - 1), 3))
     ))
   }
   character()
@@ -641,7 +652,7 @@ anova_contrast <- function(spec) {
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
   }
-  if (identical(spec$template, "mixed")) {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
     # Each effect's largest departure from no effect: zero only when the
     # effect is absent.
     m <- do.call(rbind, lapply(spec$population$means, function(row) as.numeric(unlist(row))))
@@ -1152,6 +1163,11 @@ minimum_n <- function(spec) {
       "2x2_mixed" = 4,
       # Two participants per between-participants group.
       mixed = 2 * length(spec$variables$A$levels),
+      # Two participants per cell when every cell is different people;
+      # Superpower's exact data set needs at least five people in a
+      # within design (backend-superpower.R, exact_min_n).
+      factorial_between = 2 * length(spec$variables$A$levels) * length(spec$variables$B$levels),
+      factorial_within = 5,
       # Two participants per group, so the error df is at least the number
       # of groups.
       oneway_between = ,
@@ -1192,6 +1208,10 @@ group_split <- function(spec) {
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
+  if (spec$template == "factorial_between") {
+    cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per cell", cells), valid = function(n) n %% cells == 0))
   }
   if (spec$template == "multisite") {
     m <- spec$population$cluster_size
