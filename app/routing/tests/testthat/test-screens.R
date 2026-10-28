@@ -445,9 +445,10 @@ test_that("cards fold what you'd enter, the package and the next questions into 
   expect_match(html, '<details class="card-more">', fixed = TRUE)
   more <- sub('.*<details class="card-more">', "", html)
   for (text in c("What you would enter", "Backend:", "be asked next")) expect_match(more, text, fixed = TRUE)
-  # What matters for choosing stays in view: the effect size's source and the rank-test note.
+  # The rank-test note stays in view. The effect size's source is asked on
+  # the input screen only, not listed on the card first (28 October 2026).
   before <- sub('<details class="card-more">.*', "", html)
-  expect_match(before, "Where your effect size comes from", fixed = TRUE)
+  expect_no_match(before, "Where your effect size comes from", fixed = TRUE)
   expect_match(before, "rank-test-note", fixed = TRUE)
 })
 

@@ -193,6 +193,13 @@ departures:
   "7": "Parallel mediators: powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
   "8": "Boos and Zhang's (2000) method is switched off: every simulated sample is tested with its confidence interval. power4mome switches the method on for some numbers of Monte Carlo draws (39, 79, ..., 359). In powerkit's runs this makes no difference to power."
 
+# Departures that leave the answer practically unchanged (no difference,
+# or under 0.01 in power, and powerkit matches G*Power) are folded under
+# "How it was calculated"; the others stay in view, with a pointer from
+# the answer (docs/decisions.md, "Mentioning other tools", 28 October 2026).
+# The methods paragraph states every departure.
+departures_folded: ["2", "3", "8", "9", "11"]
+
 # Known differences between established tools, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Known
 # differences". They are not departures: powerkit follows one established

@@ -111,11 +111,11 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(html, "the joint chance is counted directly", fixed = TRUE)
   expect_match(html, "the chance that all of your main analyses are significant in the same study", fixed = TRUE)
   expect_match(html, plan$analyses[[1]]$label, fixed = TRUE)
-  expect_match(html, "Implied by your population", fixed = TRUE)
+  expect_match(html, "Implied by your study model", fixed = TRUE)
   expect_match(html, ">0.25<", fixed = TRUE)
   expect_match(html, "Methods paragraph", fixed = TRUE)
   expect_match(html, "power4mome", fixed = TRUE)
-  expect_match(html, "Experimental", fixed = TRUE)
+  expect_match(html, "experimental)", fixed = TRUE)
 
   failed <- whole_study_result_ui(list(status = "error", message = "Something plain."))
   expect_match(as.character(failed), "Something plain.", fixed = TRUE)

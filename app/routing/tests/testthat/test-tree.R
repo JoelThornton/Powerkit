@@ -168,3 +168,12 @@ test_that("the guided route offers the comparison for every study, and moderatio
   expect_identical(ids(base), "compare")
   expect_setequal(ids(modifyList(base, list(mediators = "one", moderator = "score"))), c("compare", "moderation", "mediation", "modmed"))
 })
+
+test_that("cards never show test file names to users", {
+  for (id in names(tree$endpoints)) {
+    ep <- tree$endpoints[[id]]
+    ep$validation$file <- NULL
+    shown <- unlist(ep)
+    expect_false(any(grepl("test-[a-z0-9-]+\\.R", shown)), label = id)
+  }
+})

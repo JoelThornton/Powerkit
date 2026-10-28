@@ -51,7 +51,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_null(f[["default"]], label = paste(ep, f$id))
       html <- as.character(field_ui(f, f[["default"]]))
       expect_match(html, if (identical(f$type, "table")) '"></textarea>' else 'value=""', fixed = TRUE, label = paste(ep, f$id))
-      expect_match(html, "(starts empty)", fixed = TRUE)
+      expect_no_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
     # E24's, E36's and E51's effect sizes appear once their first question is chosen.
@@ -263,9 +263,10 @@ test_that("the start screen asks only how to start; the aim follows on its own s
   for (k in names(q$options)) expect_match(aim, paste0("aim:", k), fixed = TRUE, info = k)
 })
 
-test_that("estimation and equivalence go to their cards; testing a prediction goes on to the design finder", {
+test_that("estimation goes to its card; equivalence sets the goal and goes on to the design finder, as does testing a prediction", {
   expect_equal(start_exit(tree, list(aim = "estimate")), "E46")
-  expect_equal(start_exit(tree, list(aim = "equivalence")), "E36")
+  expect_null(start_exit(tree, list(aim = "equivalence")))
+  expect_equal(aim_context(tree, list(aim = "equivalence")), list(goal = "equivalence"))
   expect_null(start_exit(tree, list(aim = "predict")))
 })
 
@@ -536,10 +537,10 @@ test_that("the input screen asks the goal first, keeps the effect size with its 
     }
     html <- as.character(form_ui(tree, forms, ep, groups))
     headings <- regmatches(html, gregexpr("form-section-title\">[^<]+", html))[[1]]
-    expect_match(headings[1], "1. What you want to find out", fixed = TRUE, label = ep)
+    expect_match(headings[1], "1. Your goal", fixed = TRUE, label = ep)
     expect_match(html, "Your effect size, and where it comes from", fixed = TRUE)
     # The goal's section comes before the effect size's.
-    expect_lt(regexpr("What you want to find out", html), regexpr("Your effect size, and where it comes from", html), label = ep)
+    expect_lt(regexpr("1. Your goal", html, fixed = TRUE), regexpr("Your effect size, and where it comes from", html), label = ep)
   }
 })
 
@@ -617,6 +618,8 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   expect_match(e2, "I don&#39;t know my effect size|I don't know my effect size")
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
   expect_match(e2, "divide it by how much people usually vary", fixed = TRUE)
+  # The smallest detectable effect is offered once, in view, not again in the list.
+  expect_no_match(as.character(effect_help_ui(forms$forms$E2, form_groups(forms, "E2"))), "You don&#39;t know|You don't know")
   e3 <- as.character(form_ui(tree, forms, "E3", form_groups(forms, "E3")))
   expect_match(e3, "SD of the differences", fixed = TRUE)
   # 2 x 2 designs scale the entered pattern; mediation can't yet.

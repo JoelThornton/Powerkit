@@ -500,7 +500,6 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   # h2; a compact card sits under the plan's h2.
   section_heading <- function(text) (if (compact) h4 else h3)(class = "h5", text)
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
-  jp <- tree$justification_prompt
   div(
     class = paste("card endpoint-card", if (compact) "compact"),
     div(
@@ -515,11 +514,6 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
-      if (!compact && !isTRUE(ep$generic)) div(class = "card-effect",
-        section_heading("Where your effect size comes from"),
-        p(jp$text),
-        tags$ul(lapply(unname(jp$types), tags$li))
-      ),
       other_analyses_ui(tree, ep),
       rank_test_ui(tree, ep),
       # What the input screen will ask and which package calculates it:

@@ -15,6 +15,14 @@ powerkit does. **Every departure from an established tool is listed in
 it. Where powerkit follows one established tool but another gives a
 different answer, the difference is listed in "Known differences".
 
+On the result screen, a departure that changes the answer a user would
+compare (for example, a different required N from G\*Power's) is in view
+under "How it was calculated", with a pointer from the answer. One that
+leaves the answer practically unchanged (no difference, or under 0.01 in
+power while matching G\*Power) is folded there instead
+(`app/routing/forms.yaml`, `departures_folded`; decisions.md, 28 October
+2026). The methods paragraph states every departure.
+
 ## How to read this file
 
 - Each entry says where it was checked. Anything not verified from

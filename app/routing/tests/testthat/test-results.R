@@ -197,6 +197,13 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
   expect_match(html, "Validated. ", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
+  # Departures that change the answer stay in view, with a pointer from the
+  # answer; the ones that don't (9, 11) are folded.
+  expect_match(html, "slightly different answer for this design", fixed = TRUE)
+  minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
+  expect_match(minor, "Calculated with a formula", fixed = TRUE)
+  expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
+  expect_no_match(minor, "No continuity correction", fixed = TRUE)
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
@@ -1218,4 +1225,11 @@ test_that("the plain reading of power never rounds a target up to every study", 
   expect_match(plain_reading(0.95), "about 95 in 100 studies", fixed = TRUE)
   expect_match(plain_reading(0.85), "about 85 in 100 studies", fixed = TRUE)
   expect_match(plain_reading(0.999), "about 99 in 100 studies", fixed = TRUE)
+})
+
+test_that("every folded departure exists, and folding never hides one that changes the answer", {
+  folded <- unlist(forms$departures_folded)
+  expect_true(all(folded %in% names(forms$departures)))
+  # Departures 1, 5, 6, 7, 10, 12 and 13 change the number a user would compare.
+  expect_false(any(c("1", "5", "6", "7", "10", "12", "13") %in% folded))
 })

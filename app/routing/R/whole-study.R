@@ -158,7 +158,7 @@ whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NUL
     h3(class = "h4", "Your whole study in one go ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
     p(class = "lead", "Describe your study once. powerkit simulates it many times and runs every analysis below on each simulated study, so you see the power of each one, and the chance that your claim succeeds, from one model."),
     if (length(ticked)) tags$ul(class = "whole-study-analyses", lapply(ticked, function(id) tags$li(labels[[id]], if (!is.null(badge)) badge(id)))),
-    p(class = "text-muted small", "Experimental: the method is new in powerkit and hasn't been checked by a statistician yet. Use it to explore, not to report."),
+    p(class = "text-muted small", "New in powerkit and not yet checked by a statistician: use it to explore, not to report."),
     pick_button("Describe your study", "guided:simulate", class = "btn btn-primary")
   )
 }
@@ -172,9 +172,8 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
   tagList(
     screen_nav_ui("guided:plan", "Back to your plan"),
     h2("Simulate the whole study ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
-    p(class = "lead", "Describe the population once. Every planned analysis is then run on the same simulated studies."),
+    p(class = "lead", "Describe your study once. Every planned analysis is then run on the same simulated studies."),
     div(class = "alert alert-warning", role = "note",
-      tags$strong("Experimental. "),
       "The method is new in powerkit and is waiting for a statistician's check. The results may change. Use them to explore your plan, not to report."),
     if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
     h3(class = "h5", "Your analyses"),
@@ -183,7 +182,7 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
     if (!is.null(plan$path_choices)) selectInput("ws_path", "Which indirect effect does the mediation analysis test?",
       choices = plan$path_choices, selected = path %||% plan$path_choices[1], width = "100%"),
-    h3(class = "h5", "The population: standardised paths"),
+    h3(class = "h5", "Your study: standardised paths"),
     p(class = "text-muted", "Each path is the change in the outcome of that arrow, in standard deviations, for a one standard deviation change in its cause, holding the arrow's other causes constant. Use 0 for no effect. Values entered on your plan's input screens are filled in where they mean the same thing; check them, since in the whole model each path holds every other cause constant."),
     div(class = "ws-paths", lapply(c(params$paths, params$correlations), function(key) {
       textInput(whole_study_input_id(key), whole_study_path_label(key), value = value_of(key), width = "100%")
@@ -353,7 +352,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
   pv <- r$provenance
   div(
     class = "result-panel whole-study-result", role = "status", tabindex = "-1",
-    h3(class = "h4", "Result ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    h3(class = "h4", "Result"),
     if (!is.null(script)) p(class = "alert alert-info", role = "note", sprintf(
       "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (below).",
       whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
@@ -371,21 +370,21 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       "Your claim counts any one significant main result, so each main analysis is tested at alpha divided by the number of main analyses (Bonferroni), as on the plan's input screens.")),
     p(sprintf("From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
       whole(pv$nrep), whole(r$n))),
-    h4(class = "h5", "What this population means for each analysis's own input screen"),
+    h4(class = "h5", "What your study model means for each analysis's own input screen"),
     p(class = "text-muted", "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
     lapply(r$implied, function(imp) {
       own <- plan_values[[imp$id]] %||% list()
       label <- a$label[a$id == imp$id]
       tagList(tags$p(tags$strong(label)),
         tags$table(class = "table table-sm ws-implied",
-          tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your population"), tags$th("You entered on its screen"))),
+          tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your study model"), tags$th("You entered on its screen"))),
           tags$tbody(lapply(names(imp$values), function(k) tags$tr(
             tags$td(whole_study_value_label(k)), tags$td(sprintf("%.3f", imp$values[[k]])),
             tags$td(own[[k]] %||% "—"))))))
     }),
     h4(class = "h5", "How this differs from calculating each analysis separately"),
-    p(departure %||% "Separate calculations each assume their own population; this simulation uses one population for all of them."),
-    p(class = "text-muted", "This is recorded as a departure from the established tools in powerkit's conventions, and its accuracy is still to be checked by a statistician."),
+    p(departure %||% "Separate calculations each describe their own study; this simulation uses one model of your study for all of them."),
+    p(class = "text-muted", "This is recorded as a departure from the established tools in powerkit's conventions."),
     h4(class = "h5", "Methods paragraph (draft)"),
     p(class = "methods", whole_study_methods(r)),
     tags$details(tags$summary("Details for a statistician"),

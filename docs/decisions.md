@@ -3202,3 +3202,28 @@ is wrong. semPower tests exact fit only; the test of close fit (the null
 hypothesis RMSEA no more than 0.05) is not offered, and whether to add it
 is an open method choice ([`conventions.md`](conventions.md)). Validation
 placeholders in `test-validation-sem-model-fit.R`.
+
+## 2026-10-28 · Mentioning other tools: where the answer differs, and in the details
+
+**Decision (maintainer, 28 October 2026).** powerkit names another tool,
+such as G\*Power, on its screens only where that tool would give a
+different answer, and then plainly, or in the details of how a result
+was calculated and checked. Departures that change the answer stay in
+view under "How it was calculated", with a pointer from the answer;
+departures that leave it practically unchanged (2, 3, 8, 9 and 11) are
+folded there. Asides such as "as in G\*Power" on cards and menus are
+removed.
+
+**Why.** Naming another tool on every screen adds reading without helping
+most users decide anything, and it suggests that agreement with G\*Power
+is what makes an answer right, which CLAUDE.md says it is not. A user
+comparing tools still needs to know, in view, when the number they would
+get elsewhere is different; that is the case the rule against diverging
+silently protects.
+
+**How.** `forms.yaml` `departures_folded` lists the folded departures; a
+test refuses to fold any departure that changes the answer (1, 5, 6, 7,
+10, 12, 13). The methods paragraph still states every departure, and the
+validation notes still say which published examples and tools a design
+was checked against.
+
