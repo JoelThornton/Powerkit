@@ -1296,3 +1296,22 @@ test_that("departure 14 shows only for a group treatment trial's smallest detect
   expect_length(departures_for(forms, "E34", modifyList(base, list(template = "multisite"))), 0)
   expect_length(departures_for(forms, "E34", modifyList(base, list(population = list(metric = "proportion")))), 0)
 })
+
+test_that("a baseline score on the grouped-designs screen reaches powertools, and the between-group value can start as the within", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E34"))
+  values <- modifyList(form_examples$E34, list(adjust_baseline = "yes", baseline_within = "0.36"))
+  spec <- build_spec(forms, "E34", fields, values)
+  expect_identical(spec$population$baseline_r2_within, 0.36)
+  expect_identical(spec$population$baseline_r2_between, 0.36)
+  spec2 <- build_spec(forms, "E34", fields, modifyList(values, list(baseline_between = "0.6")))
+  expect_identical(spec2$population$baseline_r2_between, 0.6)
+  calc <- run_calculation(spec2, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "adjustment for the baseline score", fixed = TRUE)
+  w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, modifyList(values, list(just_source = "A pilot study.")))
+  expect_match(w[["short"]], "0.6 of the variance between the groups' averages", fixed = TRUE)
+  # No baseline: nothing is passed.
+  expect_null(build_spec(forms, "E34", fields, modifyList(values, list(adjust_baseline = "no")))$population$baseline_r2_within)
+})

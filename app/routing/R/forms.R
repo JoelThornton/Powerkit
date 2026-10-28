@@ -566,6 +566,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     if (is.null(f$path) || !field_applies(f, values)) next
     v <- values[[f$id]]
     if (blank(v) && effect_optional(f, values)) v <- empty_effect(f, values)
+    # A field left empty may stand for another field's value (E34: the
+    # baseline score's R-squared between groups starts as the one within).
+    if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
     if (blank(v)) next
     spec <- set_path(spec, split_path(f$path), field_value(f, v))
     # `sets`: further spec values that follow from a choice (E24's

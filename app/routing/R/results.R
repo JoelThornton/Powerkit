@@ -386,6 +386,17 @@ cluster_sentence <- function(result) {
       what, format(s$sigma_u)))
   }
   varying <- if (s$relative_efficiency < 1) " (more, because the group sizes vary)" else ""
+  paste0(cluster_score_sentence(s, n, varying), cluster_baseline_sentence(s))
+}
+
+# With a baseline score: what the adjustment gains, in the design effect.
+cluster_baseline_sentence <- function(s) {
+  if (!isTRUE(s$baseline)) return("")
+  sprintf(" The design effect includes the adjustment for the baseline score; without it, it would be %s.",
+          format(round(s$design_effect_without_baseline, 2), nsmall = 2))
+}
+
+cluster_score_sentence <- function(s, n, varying) {
   if (identical(s$assignment, "people")) {
     return(sprintf(paste0(
       "Every group has people in both conditions, so differences between the groups' averages (intraclass correlation %s) cancel out of the comparison; ",
@@ -404,7 +415,7 @@ cluster_sentence <- function(result) {
 }
 
 # The design effect for the write-up.
-cluster_writeup <- function(result) {
+cluster_writeup <- function(result, spec = NULL) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
   if (identical(s$assignment, "one_condition")) {
@@ -418,14 +429,26 @@ cluster_writeup <- function(result) {
       if (identical(s$assignment, "people")) "an SD of the effect across groups" else "an SD of the groups' log odds",
       format(s$sigma_u), whole(s$cluster_size)))
   }
+  baseline <- cluster_baseline_writeup(s, spec)
   if (identical(s$assignment, "people")) {
-    return(sprintf("Participants were randomised within each group; with an intraclass correlation of %s, %s of the outcome's variance from the effect varying between groups and %s participants per group%s, the design effect is %s.",
+    return(paste0(sprintf("Participants were randomised within each group; with an intraclass correlation of %s, %s of the outcome's variance from the effect varying between groups and %s participants per group%s, the design effect is %s.",
       format(s$icc), format(s$icc_effect), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",
-      format(round(s$design_effect, 2), nsmall = 2)))
+      format(round(s$design_effect, 2), nsmall = 2)), baseline))
   }
-  sprintf("With an intraclass correlation of %s and %s participants per group%s, the design effect is %s.",
+  paste0(sprintf("With an intraclass correlation of %s and %s participants per group%s, the design effect is %s.",
     format(s$icc), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",
-    format(round(s$design_effect, 2), nsmall = 2))
+    format(round(s$design_effect, 2), nsmall = 2)), baseline)
+}
+
+cluster_baseline_writeup <- function(s, spec) {
+  if (!isTRUE(s$baseline) || is.null(spec)) return("")
+  pop <- spec$population
+  if (is.null(pop$baseline_r2_between)) {
+    return(sprintf(" The analysis adjusts for a baseline score explaining %s of the outcome's variance (R-squared), which the design effect includes.",
+                   format(pop$baseline_r2_within)))
+  }
+  sprintf(" The analysis adjusts for a baseline score explaining %s of the variance within groups and %s of the variance between the groups' averages (R-squared), which the design effect includes.",
+          format(pop$baseline_r2_within), format(pop$baseline_r2_between))
 }
 
 # With the effect given in the outcome's own units: the standardised effect
@@ -1284,7 +1307,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   )
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, cluster_writeup(result), sem_writeup(result))
+  main <- c(main, cluster_writeup(result, spec), sem_writeup(result))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))

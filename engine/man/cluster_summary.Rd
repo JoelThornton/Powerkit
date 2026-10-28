@@ -28,7 +28,10 @@ the groups in that condition, \code{grouped_design_effect} (otherwise \code{NA})
 is its design effect 1 + (group size - 1) * ICC, and \code{design_effect}
 is the factor for the whole trial: that design effect weighted by the
 grouped condition's share of the variance of the difference (a half
-for a score).
+for a score). \code{baseline} is \code{TRUE} when a baseline score is adjusted
+for; \code{design_effect} then includes the adjustment, as powertools
+computes it, and \code{design_effect_without_baseline} (otherwise \code{NA} for
+the yes/no and group treatment designs) is the factor without it.
 }
 \description{
 For a clustered design (design \code{cluster_trial}), the numbers of groups

@@ -22,6 +22,16 @@ Questions about powertools 1.0.0, from its source (opened 28 October
    `(1 - lamc)`. If this is a typo, the adjustment is wrong whenever
    group sizes vary. Until this is answered, powerkit offers yes/no
    outcomes for groups of the same size only (`cluster_size_sd` 0).
+3. **What `RsqB` and `RsqW` are shares of.** `crt.parallel.cont()`'s help
+   page describes `RsqB` and `RsqW` as the "proportion of total variance
+   explained" by cluster-level and individual-level covariates. Its
+   design effect, 1 + (m (1 - RsqB) - 1) ICC - m RsqW (1 - 2 ICC) /
+   (m - 1), multiplies `RsqB` by the ICC, which is what a share of the
+   between-cluster variance (not of the total) would need; worked by hand,
+   reading `RsqB` and `RsqW` as shares of the between- and within-cluster
+   variance gives the expected design effect (for m = 20, ICC 0.05 and
+   RsqW 0.5, 1.476 against 1.475). Is that the intended reading? powerkit
+   asks for them that way.
 
 ## power4mome
 
