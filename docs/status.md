@@ -235,10 +235,10 @@ fully validated. Validation runs are recorded in
   was relative); it had failed on every run since 12 October.
 - **R in cloud sessions:** `scripts/setup-cloud-session.sh`, run as the
   cloud environment's setup script, copies R and every locked package out
-  of the CI image (about a minute) when the network allows
-  `pkg-containers.githubusercontent.com`; otherwise it builds R 4.3 and the
-  packages from source (`scripts/setup-cloud-session-apt.sh`, 20-30
-  minutes).
+  of the CI image (about a minute; the environment then caches it) when
+  the network allows `pkg-containers.githubusercontent.com`. Otherwise it
+  exits without installing, and a session builds R 4.3 from source with
+  `--build-from-source` (20-30 minutes, too long for a setup script).
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
   What to work on is [`next.md`](next.md).
 

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Sets up R for a Claude Code cloud session on Powerkit, so a new session
 # starts with R and every package ready instead of installing them itself.
-# Put this line in the cloud environment's "Setup script":
+# Put this line in the cloud environment's "Setup script" (the setup script
+# doesn't start in the repository folder, so the path is absolute):
 #
-#   bash scripts/setup-cloud-session.sh
+#   bash /home/user/Powerkit/scripts/setup-cloud-session.sh || true
+#
+# The environment caches the result when setup finishes within about five
+# minutes, so later sessions start with R already on disk.
 #
 # Safe to run again: it stops early if R and the packages are already there.
 #
@@ -20,10 +24,13 @@
 # are copied; nothing already there is overwritten (both are Ubuntu 24.04).
 #
 # The image's layers download from pkg-containers.githubusercontent.com,
-# which the cloud environment's network must allow (Allowed domains). If it
-# can't be reached, the script falls back to scripts/setup-cloud-session-apt.sh,
-# which builds R 4.3 and the packages from source (20-30 minutes, no
-# attention needed).
+# which the cloud environment's network must allow (Network access: Custom,
+# with the host under Allowed domains and the default list included). If it
+# can't be reached, the script says so and exits without failing: the
+# fallback, scripts/setup-cloud-session-apt.sh, builds R 4.3 and the
+# packages from source in 20-30 minutes, too long for a setup script (it
+# would hold up every session start and never be cached). Pass
+# --build-from-source to run that fallback here instead.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -107,6 +114,11 @@ ENV
 }
 
 if ! from_ci_image; then
-  echo "powerkit R setup: CI image not reachable; building from source instead" >&2
-  bash scripts/setup-cloud-session-apt.sh
+  if [ "${1:-}" = "--build-from-source" ]; then
+    echo "powerkit R setup: CI image not reachable; building from source instead" >&2
+    bash scripts/setup-cloud-session-apt.sh
+  else
+    echo "powerkit R setup: CI image not reachable (is pkg-containers.githubusercontent.com allowed?)." >&2
+    echo "Run: bash scripts/setup-cloud-session-apt.sh to build R from source (20-30 minutes)." >&2
+  fi
 fi

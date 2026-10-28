@@ -102,7 +102,8 @@ to read small.
 - Local R in a cloud session: scripts/setup-cloud-session.sh, set as the
   environment's setup script, so a session starts with R and the packages
   ready. Check `Rscript -e 'library(power4mome)'` before installing
-  anything; run the script only if that fails.
+  anything; if that fails, run `bash scripts/setup-cloud-session.sh
+  --build-from-source`.
 
 ## Before finishing any task
 - Run devtools::test() and devtools::check() in engine/; both must pass
