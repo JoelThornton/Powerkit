@@ -92,7 +92,6 @@ only partly supported, and the details are listed there.
 | SEM and model fit | Structural equation modelling: a family of models that combines regressions among variables with unobserved (latent) variables measured by several items; model fit is how closely the relationships the model implies match those in the data. | E37 |
 | measurement invariance | Whether a questionnaire measures the same underlying trait in the same way in different groups (or on different occasions), checked by requiring parts of the measurement model, such as item loadings, to be equal across them. | E37 |
 | equivalence test (TOST) | A test that aims to show there is no meaningful effect: two one-sided tests (TOST) check that the effect lies above the lower equivalence bound and below the upper one. | E36 |
-| minimum-effect test | The reverse of an equivalence test: it aims to show that an effect goes beyond a chosen minimal threshold. | E36 |
 | precision planning | Choosing the sample size so that the confidence interval around the estimate is expected to come out no wider than a target width. | E46 |
 | Bayes factor | A ratio that says how strongly the data support one hypothesis compared with a competing one (often 'no effect'), used instead of a p-value. | E-bayes |
 

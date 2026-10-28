@@ -1,3 +1,21 @@
+# powerkit 0.14.1
+
+* App: the plain reading of a target power counts out of 10 only for a
+  whole number of tenths (80%, 90%) and otherwise out of 100, so 95% power
+  reads "about 95 in 100 studies", not "10 in 10". For an equivalence
+  test it now says the studies would show the difference lies inside the
+  bounds, and that fewer would if the true difference is closer to a
+  bound (not "if the true effect is smaller").
+* App text corrected where it was out of date or misleading: the About
+  tab's banner lists what now calculates (equivalence, multilevel trials,
+  and mediation's quick look plus R script); the "I know my analysis"
+  list shows standard names without internal codes or PROCESS model
+  numbers; the methods paragraph names mediation models without PROCESS
+  numbers; the equivalence card is named for what powerkit runs (TOST),
+  not minimum-effect or non-inferiority tests; a choice's default note no
+  longer repeats the choice ("Starts at As Cohen's d: ..."); and an empty
+  number of Monte Carlo draws shows as power4mome's 1,000, not "none".
+
 # powerkit 0.14.0
 
 * One-way repeated-measures ANOVA (design `factorial_anova`, template

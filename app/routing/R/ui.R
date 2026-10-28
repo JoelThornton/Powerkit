@@ -352,7 +352,10 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
       tagList(
         h3(class = "h4 mt-4", g),
         div(class = "choices list", lapply(ids, function(id) {
-          pick_button(eps[[id]]$plain_name, paste0("ep:", id), sprintf("%s (%s)", eps[[id]]$doc_name, id))
+          pick_button(eps[[id]]$plain_name, paste0("ep:", id),
+            # The standard name, without a PROCESS model number or the
+            # internal code (shown to the maintainer only).
+            if (maintainer_view()) sprintf("%s (%s)", standard_name(eps[[id]]$doc_name)$name, id) else standard_name(eps[[id]]$doc_name)$name)
         }))
       )
     }),

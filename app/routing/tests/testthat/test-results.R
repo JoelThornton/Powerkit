@@ -745,6 +745,11 @@ test_that("equivalence tests run on TOSTER for each comparison, with their own w
   expect_match(s[["headline"]], "inside the equivalence bounds", fixed = TRUE)
   expect_match(s[["headline"]], "d = \u00b10.5", fixed = TRUE)
   expect_match(s[["detail"]], "TOSTER's formula, TOSTER::power_t_TOST(), no simulation", fixed = TRUE)
+  # The plain reading is about showing equivalence, and fewer succeed
+  # nearer a bound (not with a smaller effect).
+  expect_match(s[["reading"]], "would show that the difference lies inside the equivalence bounds", fixed = TRUE)
+  expect_match(s[["reading"]], "closer to a bound, fewer would", fixed = TRUE)
+  expect_no_match(s[["reading"]], "significant result", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E36", fields, values, calc))
   expect_match(html, "Validation in progress. ", fixed = TRUE)
   w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
@@ -1205,4 +1210,12 @@ test_that("the smallest detectable effect is also given in the measure's own uni
   spec$population <- list(metric = "raw", raw = list(mean_1 = 0, mean_2 = 0, sd = 1.2))
   calc <- run_calculation(spec, seed = forms$default_seed)
   expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "In your outcome's own units, that is a difference of", fixed = TRUE)
+})
+
+test_that("the plain reading of power never rounds a target up to every study", {
+  expect_match(plain_reading(0.9), "about 9 in 10 studies", fixed = TRUE)
+  expect_match(plain_reading(0.8), "about 8 in 10 studies", fixed = TRUE)
+  expect_match(plain_reading(0.95), "about 95 in 100 studies", fixed = TRUE)
+  expect_match(plain_reading(0.85), "about 85 in 100 studies", fixed = TRUE)
+  expect_match(plain_reading(0.999), "about 99 in 100 studies", fixed = TRUE)
 })

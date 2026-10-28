@@ -248,7 +248,10 @@ fully validated. Validation runs are recorded in
   with a plain reading and write-up). The decisions are in
   [`decisions.md`](decisions.md), "The new design". Screens A, C and D
   and the departures on the result screen were merged on 18 October 2026;
-  the write-up was merged the same day.
+  the write-up was merged the same day. The plain reading counts out of
+  100 unless the power is a whole number of tenths (0.12.1), so 95% is
+  never shown as "10 in 10". Analyses are named by their standard names,
+  not PROCESS model numbers, in the list and the methods paragraph.
 
 ## What's next
 

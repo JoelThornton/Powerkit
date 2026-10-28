@@ -275,7 +275,10 @@ equivalence_sentences <- function(spec, result) {
       headline = sprintf("You need %s participants in total%s for %s power to %s, if the true difference is the one you entered, with %s.",
         whole(est$n), group_text(spec, est$n), percent(spec$goal$power), shown, test),
       detail = paste("This N is", source, closer),
-      reading = plain_reading(spec$goal$power)
+      reading = plain_reading(spec$goal$power,
+        outcome = "show that the difference lies inside the equivalence bounds",
+        if_not = "If the true difference is closer to a bound, fewer would.",
+        condition = "the true difference is the one you entered")
     )
   } else {
     row <- result$curve[1, ]
@@ -489,12 +492,19 @@ goal_sentences <- function(spec, result) {
 }
 
 # The plain reading of a target power (the new design, 18 October 2026):
-# it keeps the condition, and says what power is a chance of.
-plain_reading <- function(power) {
-  sprintf(
-    "In plain words: if the true effect is the one you entered, about %d in 10 studies like this would get a significant result. If the true effect is smaller, fewer would.",
-    round(10 * power)
-  )
+# it keeps the condition, and says what power is a chance of. Out of 10
+# when the power is a whole number of tenths (80%, 90%), otherwise out of
+# 100, so 95% reads "95 in 100", not "10 in 10".
+plain_reading <- function(power, outcome = "get a significant result",
+                          if_not = "If the true effect is smaller, fewer would.",
+                          condition = "the true effect is the one you entered") {
+  tenths <- 10 * power
+  count <- if (abs(tenths - round(tenths)) < 1e-9) {
+    sprintf("%d in 10", as.integer(round(tenths)))
+  } else {
+    sprintf("%d in 100", as.integer(min(99, max(1, round(100 * power)))))
+  }
+  sprintf("In plain words: if %s, about %s studies like this would %s. %s", condition, count, outcome, if_not)
 }
 
 # What power can't tell you, under every result.

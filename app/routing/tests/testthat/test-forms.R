@@ -630,3 +630,11 @@ test_that("people unsure of their effect size get honest routes, never a suggest
   # Effect sizes still start empty on every form.
   for (ep in form_ids) for (f in Filter(function(f) isTRUE(f$effect), form_fields(form_groups(forms, ep)))) expect_null(f[["default"]], label = paste(ep, f$id))
 })
+
+test_that("a choice's default note names only its source, and an empty draws setting says what it stands for", {
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_no_match(html, "Starts at As Cohen", fixed = TRUE)
+  fields <- form_fields(form_groups(forms, "E10"))
+  draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
+  expect_equal(setting_value_text(draws, ""), "1,000 (power4mome's default)")
+})

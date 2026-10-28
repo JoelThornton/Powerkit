@@ -3,7 +3,8 @@
 # engine (validate_spec(), run_spec() and the exports).
 
 test_that("the banner says in plain words which designs calculate (judgement call B14)", {
-  expect_identical(tree$banner, "Prototype, still being checked: t-tests, correlations, ANOVA, ANCOVA, regression, proportions and chi-square tests calculate here; mediation gives a quick preview, then a full run or an R script; other designs give guidance only for now.")
+  expect_match(tree$banner, "^Prototype, still being checked\\.")
+  expect_match(tree$banner, "R script for the full run on your computer", fixed = TRUE)
   # No internal codes such as E1 or E10-E14.
   expect_false(grepl("E[0-9]", tree$banner))
   expect_match(as.character(prototype_banner(tree)), tree$banner, fixed = TRUE)
@@ -504,4 +505,22 @@ test_that("the browser's Back and Forward move between powerkit's screens", {
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "observeEvent(input$pk_nav_to,", fixed = TRUE)
   expect_match(code, "tags$script(HTML(nav_js))", fixed = TRUE)
+})
+
+test_that("the analysis list names each analysis without internal codes or PROCESS numbers", {
+  withr::local_options(powerkit.maintainer_view = FALSE)
+  html <- as.character(known_ui(tree))
+  expect_no_match(html, "\\(E[0-9]+\\)")
+  expect_no_match(html, "PROCESS model", fixed = TRUE)
+  expect_match(html, "Simple mediation", fixed = TRUE)
+  # Equivalence is named as what powerkit does, not as tests it doesn't.
+  expect_no_match(html, "minimum-effect test", fixed = TRUE)
+  withr::local_options(powerkit.maintainer_view = TRUE)
+  expect_match(as.character(known_ui(tree)), "Simple mediation (E10)", fixed = TRUE)
+})
+
+test_that("the methods paragraph names mediation models without PROCESS numbers", {
+  for (ep in c("E10", "E11", "E12", "E13", "E14")) {
+    expect_no_match(forms$forms[[ep]]$methods_name, "PROCESS", fixed = TRUE, info = ep)
+  }
 })

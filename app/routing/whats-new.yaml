@@ -15,6 +15,14 @@ entries:
       are related, and the design finder takes you there when you say the
       same people are in every condition.
   - date: "2026-10-27"
+    title: "Text fixes: results, the analysis list and mediation"
+    text: >-
+      The plain-words line under a result no longer rounds 95% power up to
+      "10 in 10 studies"; it now says "95 in 100", and fits equivalence
+      tests. The analysis list and the methods paragraph no longer label
+      mediation by PROCESS model numbers, and a few out-of-date or garbled
+      lines are corrected.
+  - date: "2026-10-27"
     title: "Sample size for a CFA or structural equation model"
     text: >-
       The card "Check that a model or questionnaire structure fits" now
