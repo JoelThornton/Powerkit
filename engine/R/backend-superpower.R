@@ -1,5 +1,5 @@
-# Backend adapter: 2x2 between, 2x2 mixed and one-way between ANOVA via
-# Superpower.
+# Backend adapter: 2x2 between, 2x2 mixed, one-way between and one-way
+# within (repeated-measures) ANOVA via Superpower.
 #
 # By default power is computed exactly with Superpower::ANOVA_exact(), which
 # is exact for the specified population and matches G*Power and the
@@ -29,7 +29,7 @@ superpower_backend <- function(spec, seed = NULL) {
     if (n < exact_min_n) {
       abort_run(sprintf(
         "Exact power for this design needs at least %d participants (5 per %s); for n = %s, set 'options > method' to 'simulation'.",
-        exact_min_n, if (spec$template == "2x2_between") "cell" else "group", n
+        exact_min_n, switch(spec$template, "2x2_between" = "cell", oneway_within = "condition", "group"), n
       ))
     }
     superpower_exact(design_at(n, mu), inputs, seed)
@@ -47,9 +47,9 @@ superpower_backend <- function(spec, seed = NULL) {
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
-    # Sensitivity for the one-way design (which effect pattern to scale)
+    # Sensitivity for the one-way designs (which effect pattern to scale)
     # is not settled yet; it is available for the 2x2 designs.
-    sensitivity = if (spec$template == "oneway_between") NULL else function(n, power) {
+    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within")) NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     check_run = function() {
@@ -73,6 +73,22 @@ superpower_inputs <- function(spec) {
       mu = as.numeric(unlist(pop$means)),
       sd = pop$sd,
       r = 0,
+      alpha = spec$target_test$alpha,
+      effect = "a"
+    ))
+  }
+  if (spec$template == "oneway_within") {
+    # One within-participants factor with k levels: Superpower's design
+    # "kw" (for example "3w"). Everyone is in every condition, so there is
+    # one group; one SD and one correlation for every pair of conditions
+    # (compound symmetry), so sphericity holds and no correction applies.
+    k <- length(spec$variables$A$levels)
+    return(list(
+      design = paste0(k, "w"),
+      groups = 1,
+      mu = as.numeric(unlist(pop$means)),
+      sd = pop$sd,
+      r = pop$r,
       alpha = spec$target_test$alpha,
       effect = "a"
     ))
@@ -200,7 +216,7 @@ superpower_check_run <- function(spec, design, seed = NULL) {
     "Superpower",
     with_seed(seed, Superpower::ANOVA_exact(design, verbose = FALSE))
   )$dataframe
-  if (spec$template == "oneway_between") {
+  if (spec$template %in% c("oneway_between", "oneway_within")) {
     return(superpower_check_oneway(spec, data))
   }
   level <- function(x) as.integer(sub(".*(\\d)$", "\\1", as.character(x)))
@@ -235,19 +251,38 @@ superpower_check_run <- function(spec, design, seed = NULL) {
   check
 }
 
-# Check run for the one-way design: each group's mean and SD in the data
-# set Superpower builds, matched by its level labels (a1, a2, ...).
+# Check run for the one-way designs: each group's (or condition's) mean
+# and SD in the data set Superpower builds, matched by its level labels (a1,
+# a2, ...), and for repeated measures the correlation between every pair of
+# conditions, with participants matched by Superpower's subject label.
 superpower_check_oneway <- function(spec, data) {
   means <- as.numeric(unlist(spec$population$means))
   group <- as.integer(sub("^.*a", "", as.character(data$a)))
+  unit <- if (spec$template == "oneway_within") "condition" else "group"
   rows <- lapply(seq_along(means), function(i) {
     y <- data$y[group == i]
     data.frame(
-      parameter = c(sprintf("mean, group %d", i), sprintf("SD, group %d", i)),
+      parameter = c(sprintf("mean, %s %d", unit, i), sprintf("SD, %s %d", unit, i)),
       specified = c(means[i], spec$population$sd),
       recovered = c(mean(y), stats::sd(y))
     )
   })
+  if (spec$template == "oneway_within") {
+    by_level <- lapply(seq_along(means), function(i) {
+      level <- data[group == i, ]
+      level$y[order(level$subject)]
+    })
+    pairs <- utils::combn(seq_along(means), 2)
+    rows <- c(rows, lapply(seq_len(ncol(pairs)), function(k) {
+      i <- pairs[1, k]
+      j <- pairs[2, k]
+      data.frame(
+        parameter = sprintf("r between conditions %d and %d", i, j),
+        specified = spec$population$r,
+        recovered = stats::cor(by_level[[i]], by_level[[j]])
+      )
+    }))
+  }
   check <- do.call(rbind, rows)
   check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))
   check

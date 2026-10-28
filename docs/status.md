@@ -82,6 +82,13 @@ fully validated. Validation runs are recorded in
   (published examples to choose and transcribe). Next: simulated
   multilevel models wait for a package decision (`next.md`, item 8); a
   yes/no outcome (powertools `crt.parallel.bin()`) is a candidate.
+- **Repeated measures (27 October 2026, 0.13.0):** the one-way
+  repeated-measures ANOVA (the same people in three or more conditions)
+  runs in the app by Superpower's exact data set (E54), with one SD and one
+  correlation between conditions, so sphericity holds. Validation in
+  progress (a published example to choose and transcribe). Next: group by
+  time with three or more timepoints (`next.md`, item 6); then 2 x 2 and
+  larger within designs and the MANOVA approach (item 5).
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
@@ -109,7 +116,7 @@ fully validated. Validation runs are recorded in
   below. Next: a quick run in the app, an R script for the full run, and
   a search for the sample size.
 - **App** (`app/routing/`): the question tree, cards and input screens for
-  every end point. E1–E9, one-way ANOVA (E18), ANCOVA (E23), multiple
+  every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
   (E48), two correlations (E49), the generic tests (E50) and
   clustered designs (E34) calculate in

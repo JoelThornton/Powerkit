@@ -335,7 +335,8 @@ flowchart TD
   F2 -->|Two, the same people| E3["E3 Paired t-test"]
   F2 -->|Three or more| F2a{"F2a A specific comparison,<br/>or any difference?"}
   F2a -->|A specific comparison| E19["E19 Planned contrast"]
-  F2a -->|Any difference| E18["E18 One-way or<br/>repeated-measures ANOVA"]
+  F2a -->|Any difference,<br/>different people| E18["E18 One-way ANOVA"]
+  F2a -->|Any difference,<br/>the same people| E54["E54 One-way<br/>repeated-measures ANOVA"]
   F1 -->|Three or more| E21["E21 Larger factorial ANOVA"]
   F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
   F3 -->|No| E21
@@ -352,8 +353,8 @@ flowchart TD
   PP -->|The mixed interaction| E8
   PP -->|ANCOVA| E23["E23 ANCOVA"]
   class F1,F2,F2a,F3,F4,F4a,F4b,PP,F5b,F5m q
-  class E1,E2,E3,E7,E8 avail
-  class E18,E19,E20,E21,E22,E23 later
+  class E1,E2,E3,E7,E8,E18,E19,E23,E54 avail
+  class E20,E21,E22 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -638,6 +639,7 @@ the two in step.
 | E36 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E52 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E53 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E54 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ### 2.3 End points
 
@@ -673,7 +675,7 @@ taken from coverage.md, where they are proposals.
 | E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)` (planned) | Simulation | Fully standardised correlations; groups 50/50 (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
-| E18 | One-way ANOVA (different people) or repeated-measures ANOVA (same people), omnibus | `factorial_anova / oneway_between` (different people only) | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Repeated measures: candidates Superpower `"kw"`; Spower `p_anova.test()` | Exact dataset (no repeated simulation) | Group means (raw or in SD units) and one SD | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs (different people only) |
+| E18 | One-way ANOVA (different people), omnibus | `factorial_anova / oneway_between` | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. The same people in every condition: E54 | Exact dataset (no repeated simulation) | Group means (raw or in SD units) and one SD | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E19 | Planned contrast | `factorial_anova / oneway_contrast` | `pwrss::power.t.contrasts()` (one contrast, equal groups, two-sided; `k.covariates = 0`). Also Superpower's emmeans contrasts, which agree with it; pwranova `pwrcontrast()` unchecked | Formula (no simulation) | Group means and SD; contrast weights | Yes: matches the G\*Power 3.1 manual's three contrast examples in the full validation run (27 October 2026) | v2 | Runs |
 | E20 | 2 x 2 within-participants ANOVA | — | Candidate: Superpower `"2w*2w"` | — | Means, SD, correlation matrix | No | v2 | Not in spec |
 | E21 | Larger factorial ANOVA (2 x 3, 3 x 3, 2 x 2 x 2, ...) | — | Candidates: Superpower (up to three factors); pwranova (more, from partial η²) | — | Means, SDs, correlations | No | v2 for 2x3, 3x3, 2x2x2; later for the rest | Not in spec |
@@ -709,6 +711,7 @@ taken from coverage.md, where they are proposals.
 | E51 | Two dependent correlations | `basic_test / overlapping_correlations, nonoverlapping_correlations` | `pwrss::power.z.twocors.steiger(pooled = FALSE)` (Steiger's z test, unpooled as in G\*Power: Departure 12). Reached from R1 (scores, and whether one correlation is stronger than another in the same people) | Formula (no simulation) | The two compared correlations and the correlations among the other pairs | Yes: matches both G\*Power 3.1 manual examples in the full validation run (27 October 2026) | v2 | Runs |
 | E52 | One variance against a fixed value | `basic_test / one_variance` | `Spower::p_var.test()` (the chi-square test of one variance, simulated: Known difference 4). Reached from Q1 (scores more spread out or more consistent) and V1 | Simulation | The expected variance and the fixed value | Yes: matches the G\*Power 3.1 manual's examples, Spower and Type I error in the full validation run (27 October 2026) | v2 | Runs |
 | E53 | Two variances (independent groups) | `basic_test / two_variances` | `Spower::p_var.test()` (the F test of two variances, simulated, equal groups only: Known difference 4). Reached from Q1 and V1 | Simulation | The expected variance in each group | Yes: matches the G\*Power 3.1 manual's example, Spower and Type I error in the full validation run (27 October 2026) | v2 | Runs |
+| E54 | One-way repeated-measures ANOVA, omnibus | `factorial_anova / oneway_within` | `Superpower::ANOVA_design("kw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. One SD and one correlation for every pair of conditions, so sphericity holds and no correction applies. Reached from F2a when the screening says the same people are in three or more conditions | Exact dataset (no repeated simulation) | Condition means (raw or in SD units), one SD, the correlation between any two conditions | No: matches Superpower's `ANOVA_exact()` and `power_oneway_within()` in `test-backend-oneway-within.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E-unsure | No matching design (safety net) | — | None: "powerkit can't advise on this design yet. We suggest discussing it with a statistician." | — | — | No | None (safety net) | Not in spec |
 | E-bayes | Bayes factor design (any design) | — | Candidates: BFDA; bfpwr; Spower with a user-written criterion | — | Prior and expected effect | No | later | Not in spec |
 

@@ -1678,7 +1678,7 @@
     "Once",
     "Detect an effect"
    ],
-   "pick": "Any difference among three or more groups or conditions"
+   "pick": "Any difference among three or more groups"
   },
   "guided": {
    "answers": [
@@ -1819,7 +1819,7 @@
    "A difference between groups or conditions",
    "One",
    "Three or more",
-   "Any difference among the groups"
+   "Any difference among the conditions"
   ],
   "known": {
    "answers": [
@@ -1829,7 +1829,7 @@
     "The same people in three or more conditions",
     "Detect an effect"
    ],
-   "pick": "Any difference among three or more groups or conditions"
+   "pick": "Any difference among three or more conditions, the same people in each"
   },
   "guided": {
    "answers": [
@@ -1843,13 +1843,13 @@
     "A difference between groups or conditions",
     "One",
     "Three or more",
-    "Any difference among the groups"
+    "Any difference among the conditions"
    ]
   },
   "reaches": {
-   "choose": "E18",
-   "known": "E18",
-   "guided": "E18"
+   "choose": "E54",
+   "known": "E54",
+   "guided": "E54"
   }
  },
  {
@@ -1867,7 +1867,7 @@
    "A difference between groups or conditions",
    "One",
    "Three or more",
-   "Any difference among the groups"
+   "Any difference among the conditions"
   ],
   "known": {
    "answers": [
@@ -1891,13 +1891,13 @@
     "A difference between groups or conditions",
     "One",
     "Three or more",
-    "Any difference among the groups"
+    "Any difference among the conditions"
    ]
   },
   "reaches": {
-   "choose": "E18",
+   "choose": "E54",
    "known": "E-unsure",
-   "guided": "E18"
+   "guided": "E54"
   }
  },
  {

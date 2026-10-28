@@ -1415,6 +1415,7 @@
               "2x2_between",
               "2x2_mixed",
               "oneway_between",
+              "oneway_within",
               "oneway_ancova",
               "oneway_contrast"
             ]
@@ -1491,6 +1492,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_oneway_between"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "oneway_within"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_oneway_within"
             }
           },
           {
@@ -2144,6 +2160,77 @@
               "description": "Standard deviation within each group (the same in every group).",
               "type": "number",
               "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "main_effect_A"
+            },
+            "method": {
+              "const": "anova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_oneway_within": {
+      "description": "One within-participants factor with three or more levels: the same people in every condition (one-way repeated-measures ANOVA, omnibus F test, sphericity assumed). The SD is the same in every condition and the correlation is the same between every pair of conditions.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected mean in each condition, in the order of the factor's levels.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd": {
+              "description": "Standard deviation in each condition (the same in every condition).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r": {
+              "description": "Correlation between any two conditions' measurements within a participant (the same for every pair).",
+              "$ref": "#/definitions/correlation"
             }
           }
         },

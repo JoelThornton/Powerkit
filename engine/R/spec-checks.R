@@ -503,7 +503,7 @@ check_factorial_anova <- function(spec) {
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
     ))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast")) {
+  if (spec$template %in% c("oneway_between", "oneway_within", "oneway_ancova", "oneway_contrast")) {
     k <- length(spec$variables$A$levels)
     if (length(pop$means) != k) {
       return(sprintf(
@@ -559,7 +559,7 @@ anova_contrast <- function(spec) {
     weights <- as.numeric(unlist(spec$target_test$weights))
     return(sum(weights * as.numeric(unlist(spec$population$means))))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
+  if (spec$template %in% c("oneway_between", "oneway_within", "oneway_ancova")) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
@@ -1065,6 +1065,9 @@ minimum_n <- function(spec) {
       # of groups.
       oneway_between = ,
       oneway_contrast = 2 * length(spec$variables$A$levels),
+      # Everyone is in every condition: Superpower's exact data set needs at
+      # least five participants (backend-superpower.R, exact_min_n).
+      oneway_within = 5,
       # Two per group, plus one error df for each covariate.
       oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates
     ),

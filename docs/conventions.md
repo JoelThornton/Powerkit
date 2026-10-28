@@ -143,6 +143,14 @@ different answer, the difference is listed in "Known differences".
 | Spower | to check | to check | to check |
 | **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Superpower and unequal group sizes" below). |
 
+### One-way repeated measures (one within factor, three or more levels)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G*Power | "ANOVA: Repeated measures, within factors". **The manual has no section on any repeated-measures ANOVA** [GP-man, contents], so its inputs and defaults (the nonsphericity correction, the effect-size setting) are to check in G*Power itself | Cohen's f, with the correlation among repeated measures as a separate field unless "As in SPSS" is chosen (see the 2 x 2 mixed row above) [SP-vig] | To check (maintainer, in G*Power) |
+| Superpower | `ANOVA_exact()` on the design `"kw"` (for example `"3w"`), and `ANOVA_power()` for simulation [SP-src]; `power_oneway_within()` computes the same test from the design object [SP-src] | Condition means, SD(s) and a correlation `r` between repeated measures [SP-src] | `correction` defaults to `"none"` (`Superpower_options()`), for both `ANOVA_exact()` and `ANOVA_power()` [SP-src] |
+| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` with `options > method = "simulation"` [powerkit] | Condition means in the user's units or standardised, **one** SD and **one** correlation for every pair of conditions | Superpower's defaults, so no sphericity correction. With one SD and one correlation the population covariance matrix has compound symmetry, so sphericity holds and the uncorrected F test is the right one; this is not a departure. Unequal SDs or correlations, a correction and the MANOVA approach are not offered (`decisions.md`, 27 October 2026). `goal.n` is the number of participants, each in every condition, at least 5. Agrees with `power_oneway_within()` in `test-backend-oneway-within.R` |
+
 ### Planned comparisons (contrasts)
 
 | Tool | Test | Effect size | Settings |

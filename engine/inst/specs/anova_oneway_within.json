@@ -1,0 +1,47 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "oneway_within",
+  "variables": {
+    "A": {
+      "type": "within_factor",
+      "label": "Task difficulty",
+      "levels": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time (ms)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      600,
+      620,
+      650
+    ],
+    "sd": 100,
+    "r": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 50 ms slowing from the easy to the hard task is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "main_effect_A",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261027
+  }
+}

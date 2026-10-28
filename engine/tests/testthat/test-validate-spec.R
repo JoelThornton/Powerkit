@@ -23,6 +23,8 @@ test_that("there is an example for every template", {
     "two_way", "process_4", "process_6", "process_7", "process_14",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
+    # One-way repeated measures.
+    "oneway_within",
     # More tests by formula (engine only).
     "chi_square_gof", "two_correlations", "oneway_ancova",
     "overlapping_correlations", "nonoverlapping_correlations",

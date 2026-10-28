@@ -91,7 +91,10 @@ validation_chunks <- function() {
   list(
     basic = "test-validation-basic-tests.R",
     variances = "test-validation-variance-tests.R",
-    anova = c("test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R"),
+    anova = c(
+      "test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R",
+      "test-validation-anova-oneway-within.R"
+    ),
     interactions = "test-validation-regression-interaction.R",
     process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
     process_6 = "test-validation-mediation-serial.R",
