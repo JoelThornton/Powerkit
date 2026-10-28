@@ -34,6 +34,9 @@ analysed_groups <- function(spec, n) {
     # Attrition within each group: every group's analysed size is divided.
     cluster_randomised = ,
     multisite = rep(spec$population$cluster_size, n / spec$population$cluster_size),
+    # The grouped condition's groups, then the condition whose people take
+    # part individually, as one group.
+    group_treatment = c(rep(spec$population$cluster_size, n / spec$population$cluster_size / 2), n / 2),
     n
   )
 }
@@ -54,7 +57,8 @@ group_unit <- function(spec) {
     oneway_contrast = ,
     oneway_ancova = "group",
     cluster_randomised = ,
-    multisite = "cluster",
+    multisite = ,
+    group_treatment = "cluster",
     NA_character_
   )
 }

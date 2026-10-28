@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Power when only one condition is delivered in groups"
+    text: >-
+      The "People nested in groups" card now covers studies where people
+      are randomised one by one but one condition is delivered in groups,
+      such as group therapy compared with individual treatment. Choose it
+      under "Who is assigned to the conditions"; it works for a score or a
+      yes/no outcome.
+  - date: "2026-10-28"
     title: "Opens faster"
     text: >-
       powerkit's first page appears sooner when the app has been idle,

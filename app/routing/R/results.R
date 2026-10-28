@@ -187,6 +187,10 @@ group_text <- function(spec, n) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s groups of %s, half of each group in each condition)", whole(n / m), whole(m)))
   }
+  if (identical(spec$template, "group_treatment")) {
+    m <- spec$population$cluster_size
+    return(sprintf(" (%s in %s groups of %s, and %s taking part individually)", whole(n / 2), whole(n / m / 2), whole(m), whole(n / 2)))
+  }
   sizes <- group_sizes(spec, n)
   if (is.null(sizes)) return("")
   unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
@@ -364,6 +368,15 @@ cluster_sentence <- function(result) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
   n <- s$clusters * s$cluster_size
+  if (identical(s$assignment, "one_condition")) {
+    return(sprintf(paste0(
+      "Only the condition delivered in groups is clustered: people in the same group tend to be alike (intraclass correlation %s), ",
+      "so each of its groups of %s counts for less than %s separate people (a design effect of %s in that condition). ",
+      "Over the whole study, these %s participants carry about as much information as %s participants randomised and treated one by one would. ",
+      "Adding groups usually raises power more than adding people to each group."),
+      format(s$icc), whole(s$cluster_size), whole(s$cluster_size), format(round(s$grouped_design_effect, 2), nsmall = 2),
+      whole(2 * n), whole(floor(s$effective_n))))
+  }
   if (identical(s$outcome, "yes/no")) {
     what <- if (identical(s$assignment, "people")) "how much the effect varies between groups" else "how much the groups' proportions differ"
     return(sprintf(paste0(
@@ -394,6 +407,11 @@ cluster_sentence <- function(result) {
 cluster_writeup <- function(result) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
+  if (identical(s$assignment, "one_condition")) {
+    return(sprintf("Participants were randomised individually and the second condition was delivered in groups of %s; with an intraclass correlation of %s in that condition, its design effect is %s (%s).",
+      whole(s$cluster_size), format(s$icc), format(round(s$grouped_design_effect, 2), nsmall = 2),
+      if (identical(s$outcome, "yes/no")) "a z test of the difference in proportions, powertools' irgtt.bin()" else "a t test with Satterthwaite degrees of freedom, powertools' irgtt.cont()"))
+  }
   if (identical(s$outcome, "yes/no")) {
     return(sprintf("%s; the outcome was analysed as yes/no (a z test of the log odds ratio, powertools), with %s of %s on the log-odds scale and %s participants per group.",
       if (identical(s$assignment, "people")) "Participants were randomised within each group" else "Whole groups were assigned to the conditions",

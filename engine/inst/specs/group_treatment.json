@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1",
+  "design": "cluster_trial",
+  "template": "group_treatment",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Treatment",
+      "levels": ["Individual treatment as usual", "Group therapy"]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Depression score after treatment"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": -0.4,
+    "icc": 0.05,
+    "cluster_size": 8
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a reduction of 0.4 SD is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "cluster_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261028
+  }
+}

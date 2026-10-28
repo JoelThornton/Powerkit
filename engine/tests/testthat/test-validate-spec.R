@@ -33,7 +33,7 @@ test_that("there is an example for every template", {
     # Poisson regression (engine only).
     "single_predictor_count",
     # Clustered designs (powertools).
-    "cluster_randomised", "multisite",
+    "cluster_randomised", "multisite", "group_treatment",
     # Structural equation model fit (semPower).
     "model_fit",
     # Planned comparisons (engine only).

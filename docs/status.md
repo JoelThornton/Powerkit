@@ -81,9 +81,13 @@ fully validated. Validation runs are recorded in
   from 0.16.0 (28 October 2026), a yes/no outcome (`crt.parallel.bin()`
   and `multisite.bin()`, groups of equal size, no smallest detectable
   effect), all by formula on the "People nested in groups" card (E34).
+  Also in 0.16.0, group treatment trials (people randomised one by one,
+  only one condition delivered in groups: powertools' `irgtt.cont()` and
+  `irgtt.bin()`; the smallest detectable d is found from the t-based
+  power, not powertools' normal approximation, `conventions.md`).
   Validation in progress (published examples to choose and transcribe);
-  two questions for powertools in `upstream-questions.md`. Next: one
-  condition grouped (powertools `irgtt`), then a baseline covariate;
+  two questions for powertools in `upstream-questions.md`. Next: a
+  baseline covariate;
   simulated multilevel models wait for a package decision (`next.md`,
   item 7).
 - **Structural equation model fit (27 October 2026, 0.13.0):** the power

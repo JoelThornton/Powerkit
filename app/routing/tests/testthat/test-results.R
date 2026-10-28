@@ -1259,3 +1259,31 @@ test_that("every folded departure exists, and folding never hides one that chang
   # Departures 1, 5, 6, 7, 10, 12 and 13 change the number a user would compare.
   expect_false(any(c("1", "5", "6", "7", "10", "12", "13") %in% folded))
 })
+
+test_that("a group treatment trial (only condition 2 in groups) runs on powertools' irgtt functions from the same screen", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E34"))
+  values <- modifyList(form_examples$E34, list(assignment = "group_treatment", cluster_size_grouped = "8"))
+  values$cluster_size <- NULL; values$cluster_size_sd <- NULL
+  spec <- build_spec(forms, "E34", fields, values)
+  expect_identical(spec$template, "group_treatment")
+  expect_identical(spec$target_test$method, "cluster_t")
+  expect_null(spec$population$cluster_size_sd)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "powertools::irgtt.cont")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "Only the condition delivered in groups is clustered", fixed = TRUE)
+  w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, modifyList(values, list(just_source = "A pilot study.")))
+  expect_match(w[["short"]], "randomised individually", fixed = TRUE)
+  # A yes/no outcome: the test of the difference in proportions, with the ICC.
+  values_bin <- modifyList(values, list(outcome_type = "proportion", p1 = "0.3", p2 = "0.45", icc_grouped = "0.05"))
+  values_bin$d <- NULL; values_bin$icc <- NULL
+  spec_bin <- build_spec(forms, "E34", fields, values_bin)
+  expect_identical(spec_bin$target_test$effect, "proportion_difference")
+  expect_identical(spec_bin$target_test$method, "z_test")
+  expect_identical(spec_bin$population$icc, 0.05)
+  calc_bin <- run_calculation(spec_bin, run, seed = 1L)
+  expect_identical(calc_bin$status, "ok")
+  expect_identical(calc_bin$result$provenance$backend_function, "powertools::irgtt.bin")
+})

@@ -3554,7 +3554,8 @@
           "template": {
             "enum": [
               "cluster_randomised",
-              "multisite"
+              "multisite",
+              "group_treatment"
             ]
           },
           "target_test": {
@@ -3593,6 +3594,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_multisite"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "group_treatment"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_group_treatment"
             }
           }
         ]
@@ -4106,6 +4122,176 @@
                   },
                   "method": {
                     "const": "multisite_t"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "template_group_treatment": {
+      "description": "Individually randomised group treatment trial: people are randomised one by one to two conditions, and those in the second condition receive it in groups (for example, group therapy compared with individual treatment as usual), so only the second condition is clustered. The same number of people in each condition. A score is compared by powertools::irgtt.cont() (a t test with Satterthwaite degrees of freedom, the variance of the grouped condition inflated by the design effect 1 + (m - 1) * ICC), or, with population > metric 'proportion', a yes/no outcome by powertools::irgtt.bin() (the z test of the difference in proportions, with the same design effect). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size in the second condition, and as many people again in the first.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "continuous",
+                    "binary"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "icc",
+            "cluster_size"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'standardised': a score outcome, the effect given as Cohen's d. 'proportion': a yes/no outcome, the effect given as the proportion of 'yes' in each condition.",
+              "enum": [
+                "standardised",
+                "proportion"
+              ]
+            },
+            "d": {
+              "description": "Cohen's d: (mean in the second, grouped condition - mean in the first) / the outcome's total SD, taken to be the same in both conditions (powertools' Theta = 1). 0 is allowed, to check the Type I error rate at a fixed n, or for a sensitivity analysis.",
+              "type": "number"
+            },
+            "p1": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the first condition, delivered individually (powertools' p1).",
+              "$ref": "#/definitions/proportion"
+            },
+            "p2": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the second condition, delivered in groups (powertools' p2).",
+              "$ref": "#/definitions/proportion"
+            },
+            "icc": {
+              "description": "Intraclass correlation in the grouped condition: the proportion of the outcome's variance there that lies between the groups. 0 means people in the same group are no more alike than people in different groups.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "cluster_size": {
+              "description": "Number of participants analysed in each group of the second condition. The first condition has as many people in all as the second.",
+              "type": "integer",
+              "minimum": 2
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "mean_difference",
+                "proportion_difference"
+              ]
+            },
+            "method": {
+              "enum": [
+                "cluster_t",
+                "z_test"
+              ]
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "population": {
+                "properties": {
+                  "metric": {
+                    "const": "proportion"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "population": {
+                "required": [
+                  "p1",
+                  "p2"
+                ],
+                "not": {
+                  "required": [
+                    "d"
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_binary"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "proportion_difference"
+                  },
+                  "method": {
+                    "const": "z_test"
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "population": {
+                "required": [
+                  "d"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "p1"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "p2"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_continuous"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "mean_difference"
+                  },
+                  "method": {
+                    "const": "cluster_t"
                   }
                 }
               }

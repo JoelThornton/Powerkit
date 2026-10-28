@@ -18,7 +18,17 @@ trial), \code{cluster_size}, \code{clusters} (in all), \code{clusters_per_condit
 (\code{NA} for a multisite trial, whose groups have both conditions), \code{icc},
 \code{icc_effect} (\code{NA} for a cluster-randomised trial),
 \code{relative_efficiency} (1 for groups of equal size), \code{design_effect}
-and \code{effective_n}.
+and \code{effective_n}, and \code{outcome} ("score" or "yes/no"). For a yes/no
+outcome, powertools gives no design effect in these terms, so \code{icc},
+\code{icc_effect}, \code{design_effect} and \code{effective_n} are \code{NA}, and
+\code{sigma_u} (otherwise \code{NA}) is the SD on the log-odds scale. For a
+group treatment trial (template \code{group_treatment}, only the second
+condition grouped), \code{assignment} is "one_condition", \code{clusters} counts
+the groups in that condition, \code{grouped_design_effect} (otherwise \code{NA})
+is its design effect 1 + (group size - 1) * ICC, and \code{design_effect}
+is the factor for the whole trial: that design effect weighted by the
+grouped condition's share of the variance of the difference (a half
+for a score).
 }
 \description{
 For a clustered design (design \code{cluster_trial}), the numbers of groups
@@ -33,5 +43,7 @@ condition: below 1 when the effect is the same in every group, because
 differences between the groups' averages cancel out. When group sizes
 vary, either is divided by powertools' relative efficiency,
 \code{re.clustsize.cont()} (with the ICC of the effect, for a multisite
-trial). The effective sample size is \code{n} divided by the design effect.
+trial). In a group treatment trial only the second condition is
+grouped (powertools' \code{irgtt.cont()} and \code{irgtt.bin()}). The effective
+sample size is \code{n} divided by the design effect.
 }
