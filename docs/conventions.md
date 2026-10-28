@@ -765,7 +765,10 @@ as an experimental option, for a statistician's check
   the analysis prior's scale (`dpsd = pscale`, 1/sqrt(2)): the true effect
   is spread as widely as the prior used to analyse the data. A usual power
   analysis (G\*Power, pwr, and powerkit's other designs) plans for one
-  effect.
+  effect. bfpwr's own t-test example in its vignette ("Design with the
+  *t*-test Bayes factor", `using-bfpwr`, 0.1.6) also plans for one
+  effect (`dpm = 0.5`, `dpsd = 0`), and says a positive SD can be set "if
+  parameter uncertainty is to be accounted for".
 - **powerkit:** plans for exactly the effect entered (`population >
   effect_sd` 0) unless the user gives an SD for how unsure they are, so
   the Bayes factor version of a t-test answers the same question as the
