@@ -25,6 +25,7 @@ population_problems <- function(spec) {
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
     check_method_allowed(spec),
+    check_score_shape_allowed(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -96,10 +97,12 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
-    pwr_covers(spec) ||
-    pwrss_only(spec) ||
-    identical(spec$target_test$method, "welch_t")
+  !rank_test(spec) && (
+    spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
+      pwr_covers(spec) ||
+      pwrss_only(spec) ||
+      identical(spec$target_test$method, "welch_t")
+  )
 }
 
 # Tests with no simulation in powerkit yet: they are computed by formula
@@ -111,9 +114,30 @@ simulation_available <- function(spec) {
 # Basic tests powerkit computes by simulation only: neither pwr nor pwrss
 # has a formula for them. G*Power computes the variance tests by formula,
 # but no package powerkit is built on does, and powerkit doesn't write the
-# maths itself (CLAUDE.md), so these are simulated with Spower.
+# maths itself (CLAUDE.md), so these are simulated with Spower. The rank
+# tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances")
+  spec$template %in% c("one_variance", "two_variances") || rank_test(spec)
+}
+
+# Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
+# Mann-Whitney test (two groups) and the Kruskal-Wallis test (three or more
+# groups), simulated with Spower's p_wilcox.test() and p_kruskal.test().
+rank_test <- function(spec) {
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
+}
+
+# The shape of the scores is only an input to the rank tests: the t-tests
+# and ANOVA powerkit computes assume normal scores.
+check_score_shape_allowed <- function(spec) {
+  if (is.null(spec$population$score_shape) || rank_test(spec)) {
+    return(character())
+  }
+  paste0(
+    "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
+    "Mann-Whitney, Kruskal-Wallis); the t-tests and ANOVA assume normal ",
+    "scores. Remove it, or choose a rank test in 'target_test > method'."
+  )
 }
 
 # Tests powerkit computes with pwrss's formulas only (and clustered

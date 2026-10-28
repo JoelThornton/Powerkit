@@ -123,11 +123,11 @@ Departure 10 in [`conventions.md`](conventions.md).
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | A16 | One group: difference from constant | GP; UCLA | E1 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_t.test(type = "one.sample")` (Example 20.3); pwr `pwr.t.test(type = "one.sample")` | — | — |
-| A17 | One group: Wilcoxon | GP; UCLA (one-sample median) | none: reaches E1 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "one.sample", parent1)` (Examples 22.1, 22.3) | Decide judgement call 3.8 | [C10][] |
+| A17 | One group: Wilcoxon | GP; UCLA (one-sample median) | E1 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN. Could: S | **Engine: Spower `p_wilcox.test(type = "one.sample", parent1)`** (Examples 22.1, 22.3), normal or heavy-tailed scores | Transcribe G\*Power's values (Known difference 5) | — |
 | A18 | Two dependent groups (matched pairs) | GP; UCLA | E3 | Done (validated and wired) | As A16 | Spower `p_t.test(type = "paired")` (Example 19.3); pwr `pwr.t.test(type = "paired")` | — | — |
-| A19 | Two dependent groups: Wilcoxon | GP; UCLA | none: reaches E3 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "paired")` (Example 23.3) | As A17 | [C10][] |
+| A19 | Two dependent groups: Wilcoxon | GP; UCLA | E3 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN. Could: S | **Engine: Spower `p_wilcox.test(type = "paired")`** (Example 23.3), the differences drawn normal or heavy-tailed | As A17 | — |
 | A20 | Two independent groups | GP; UCLA | E2 | Done (validated and wired) | As A16 | Spower `p_t.test(n2_n1)`; pwr `pwr.t.test()`, `pwr.t2n.test()` (unequal groups) | — | — |
-| A21 | Two independent groups: Wilcoxon | GP; UCLA | none: reaches E2 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_wilcox.test(type = "two.sample", n2_n1, parent1, parent2)` | As A17 | [C10][] |
+| A21 | Two independent groups: Wilcoxon | GP; UCLA | E2 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN. Could: S | **Engine: Spower `p_wilcox.test(type = "two.sample", n2_n1, parent1, parent2)`**, normal, skewed or heavy-tailed scores | As A17 | — |
 | A22 | ANCOVA: main effects and interactions | GP; UCLA; BG | E23 | Wired: the one-way overall test, and from 28 October 2026 both main effects and the interaction with two factors (not yet checked against G\*Power) | Could: PN, AP (by a search over n) | **Engine (one or two factors, one or more covariates): pwrss `power.f.ancova.shieh()`** (Shieh's method; templates `oneway_ancova` and `factorial_ancova`; agrees with Superpower `power_oneway_ancova(type = "exact")` and `ANCOVA_analytic()` in tests). Superpower `ANCOVA_analytic()`, `power_oneway_ancova()`, `ANCOVA_contrast()`. Confirmed in G\*Power's menu (maintainer, 17 October 2026) | Name a phase | [C15][], [D7][] |
 | A23 | ANOVA: one-way | GP; UCLA | E18 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | Engine: AP, PN (Superpower, exact). Could: S (not yet: which pattern to scale is open); AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: Superpower `ANOVA_design("kb")` + `ANOVA_exact()`** (equal groups, equal SDs; agrees with pwr `pwr.anova.test()` in a test). Also `power_oneway_between()`; Spower `p_anova.test(n.ratios, var.equal)` (Example 10.3) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A24 | ANOVA: main effects and interactions (two or more IVs) | GP; UCLA | E7 (2 x 2); E21 (two factors beyond 2 x 2, in the app 28 October 2026, validation in progress) | Done (validated and wired) | Now: AP, PN, S (2 x 2); AP, PN (E21). Could: Co (Superpower `ANOVA_compromise()`) | Superpower `ANOVA_exact()`, `ANOVA_power()` (`"kb*mb"` for E21); `power_twoway_between()`, `power_threeway_between()` for larger designs | E21: published value to transcribe. Three factors (2 x 2 x 2 is in the build guide's MVP family with no phase) still to come | [G1][] |
@@ -228,7 +228,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B24 | Welch's t | ML | E2 (an option) | Done (validated and wired) | Now: AP, PN (Spower). Engine on request: AP, PN by formula (pwrss). Could: S, Co, Cr | Spower `p_t.test(var.equal = FALSE)` (default). **Engine, with `options > method = "exact"` only: pwrss `power.t.welch(d, var.ratio = 1, n.ratio)`** (wave 2, draft PR; the app still uses Spower) | G\*Power check of the formula (wave 2 list below) | — |
-| B25 | Kruskal–Wallis | ML; UCLA | none: reaches E18 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_kruskal.test(n, k, means, n.ratios)` | Decide judgement call 3.8 | [C10][] |
+| B25 | Kruskal–Wallis | ML; UCLA | E18 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN | **Engine: Spower `p_kruskal.test(n, k, means, gen_fun)`**, normal, skewed or heavy-tailed scores | Choose a published example | — |
 | B26 | Friedman | ML; UCLA | none: reaches E54 | Unknown (no Friedman power function in the foundation tools or the 47 other packages opened; check further) | — | unknown | Search | [C10][] |
 | B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found. **Candidate, not checked:** DescTools' `CochranQTest()` is the test, not its power, so it would support a custom simulation only, and a published power method would still be needed (coverage.md) | Check the candidate against its own help files | [C6][] |
 | B28 | Factorial logistic regression | ML; UCLA | E47 | Planned (phase 6: GLMs) | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
@@ -427,10 +427,10 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 19 | 4 | 0 | 23 |
+| Wired (validation not finished) | 22 | 5 | 0 | 27 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 22 | 2 | 25 |
-| Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
+| Foundation tool can do it, not planned | 8 | 10 | 2 | 20 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
 | G\*Power covers it, powerkit doesn't | 7 | 0 | 0 | 7 |
@@ -450,9 +450,6 @@ needs only a routing change, a new field or an output it already has):
   effect-size conversion on the existing cards.
 - **A38: Fisher's exact test.** Spower's `p_prop.test(exact = TRUE)`, the
   same function E5 calls (judgement call 3.9).
-- **A17, A19, A21, B25: Wilcoxon and Kruskal–Wallis tests.** Spower's
-  `p_wilcox.test()` and `p_kruskal.test()`; the routes already reach the
-  parametric cards (judgement call 3.8).
 - **A42: chi-square goodness-of-fit.** Spower's `p_chisq.test()` with
   `P0` and `P`, which E6 already calls (judgement call 3.7).
 - **A35, A37: one proportion and McNemar.** Now wave 2 (engine

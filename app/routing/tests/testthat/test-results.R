@@ -707,6 +707,39 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.t.welch")
 })
 
+test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with Spower, with their own notes", {
+  skip_without_run()
+  for (ep in names(form_examples_rank)) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- form_examples_rank[[ep]]
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$population$score_shape, values$score_shape, info = ep)
+    expect_null(spec$options$method, info = ep)
+    spec$goal <- list(type = "power", n = 60L)
+    spec$options$nrep <- 100L
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend, "Spower", info = ep)
+    expect_true(all(calc$result$check_run$ok), info = ep)
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
+    expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, info = ep) # Known difference 5
+    expect_no_match(html, "Calculated with a formula", fixed = TRUE, info = ep)          # Departure 9
+    expect_no_match(html, "exact dataset is built", fixed = TRUE, info = ep)              # Departure 3
+    expect_null(explore_effect(calc$spec))
+    w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, values)
+    expect_match(w[["short"]], "simulated assuming", fixed = TRUE, info = ep)
+  }
+  # The t-test and ANOVA have no shape question, and no Known difference 5.
+  for (ep in names(form_examples_rank)) {
+    spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
+    expect_null(spec$population$score_shape, info = ep)
+    expect_length(known_difference_keys(forms, ep, spec), 0)
+  }
+  # The signed-rank screens offer no skewed shape (the test assumes symmetry).
+  shape <- Filter(function(f) identical(f$id, "score_shape"), form_fields(form_groups(forms, "E1")))[[1]]
+  expect_false("skewed" %in% names(shape$choices))
+})
+
 test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E5"))

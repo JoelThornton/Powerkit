@@ -48,11 +48,20 @@ test_that("generic 'not covered' cards have their own text, and those that claim
   expect_false(grepl("Hmisc", as.character(card_ui(t2, "E43")), fixed = TRUE))
 })
 
-test_that("cards for t-tests, correlations and ANOVA say the figure only approximates a rank-based test", {
-  for (id in c("E1", "E2", "E3", "E4", "E18", "E54")) {
+test_that("cards for the correlation and repeated-measures ANOVA say the figure only approximates a rank-based test", {
+  for (id in c("E4", "E54")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
     expect_match(html, "only approximates the rank-based one", fixed = TRUE, label = id)
+  }
+  # The t-test and one-way ANOVA cards offer the rank test as a test version.
+  for (id in c("E1", "E2", "E3", "E18")) {
+    html <- as.character(card_ui(tree, id))
+    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
+    expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, label = id)
+    expect_false(grepl("only approximates", html, fixed = TRUE), label = id)
+    method <- Filter(function(f) identical(f$path, "target_test.method"), form_fields(forms$forms[[id]]$groups))
+    expect_true(any(c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis") %in% names(method[[1]]$choices)), label = id)
   }
   expect_false(grepl("rank-based one", as.character(card_ui(tree, "E7")), fixed = TRUE))
 })

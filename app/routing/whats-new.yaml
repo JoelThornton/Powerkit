@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Rank-based tests: Wilcoxon, Mann-Whitney and Kruskal-Wallis"
+    text: >-
+      Planning a rank-based test instead of a t-test or one-way ANOVA? On
+      those screens, choose the Wilcoxon signed-rank test, the
+      Mann-Whitney test or the Kruskal-Wallis test as the test version, and
+      say what shape you expect the scores to have (bell-shaped, skewed or
+      with more extreme scores). powerkit simulates the rank test itself,
+      so the answer reflects that shape.
+  - date: "2026-10-28"
     title: "ANCOVA with two factors"
     text: >-
       The ANCOVA card now also covers two factors crossed, such as

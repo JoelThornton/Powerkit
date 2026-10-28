@@ -170,6 +170,9 @@ design_description <- function(spec) {
   v <- spec$variables
   label <- function(role) comment_text(v[[role]]$label)
   levels <- function(role) paste(comment_text(unlist(v[[role]]$levels)), collapse = ", ")
+  if (rank_test(spec)) {
+    return(rank_design_description(spec, label, levels))
+  }
   switch(
     paste(spec$design, spec$template, sep = "/"),
     "basic_test/one_sample_t" = sprintf("one-sample t-test of %s", label("Y")),
@@ -338,6 +341,25 @@ design_description <- function(spec) {
       label("W"), label("M"), label("Y"), label("X")
     )
   )
+}
+
+rank_design_description <- function(spec, label, levels) {
+  v <- spec$variables
+  test <- switch(
+    spec$template,
+    one_sample_t = sprintf("one-sample Wilcoxon signed-rank test of %s", label("Y")),
+    paired_t = sprintf(
+      "Wilcoxon signed-rank test of %s between the conditions of %s (%s)", label("Y"), label("X"), levels("X")
+    ),
+    independent_t = sprintf(
+      "Mann-Whitney (Wilcoxon rank-sum) test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
+    ),
+    oneway_between = sprintf(
+      "Kruskal-Wallis test of %s across the %d groups of %s (%s)",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+    )
+  )
+  sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape))
 }
 
 anova_effect_name <- function(spec) {
@@ -914,6 +936,9 @@ spower_script <- function(spec, result) {
 
 # The user's values, in the spec's terms.
 spower_script_inputs <- function(spec) {
+  if (rank_test(spec)) {
+    return(rank_script_inputs(spec))
+  }
   pop <- spec$population
   v <- spec$variables
   lv <- function(role, i) comment_text(unlist(v[[role]]$levels)[i])
@@ -967,6 +992,12 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (rank_test(spec) && spec$template == "oneway_between") {
+    return(c(
+      "  # Spower's n is the size of each group; the groups are equal.",
+      "  n_group <- batch_n / length(means)"
+    ))
+  }
   if (spec$template %in% c("independent_t", "two_proportions")) {
     return(c(
       "  # Spower's n is the size of group 1; group 2 has allocation_ratio times as many.",
@@ -985,6 +1016,9 @@ spower_group_size_lines <- function(spec) {
 # The arguments of Spower's experiment function, one per line, with a
 # comment on each. powerkit passes the same values (spower_inputs()).
 spower_experiment_lines <- function(spec, inputs, one_sided) {
+  if (rank_test(spec)) {
+    return(rank_experiment_lines(spec, inputs, one_sided))
+  }
   welch <- identical(spec$target_test$method, "welch_t")
   args <- switch(
     spec$template,
@@ -1081,6 +1115,9 @@ ensure_commas <- function(args) {
 
 # Spower's values computed from the user's (powerkit's spower_inputs()).
 spower_derived_lines <- function(spec) {
+  if (rank_test(spec)) {
+    return(rank_derived_lines(spec))
+  }
   switch(
     spec$template,
     independent_t = "d_spower <- -d # Spower puts the effect in group 1, so d (group 2 minus group 1) changes sign",
@@ -1093,6 +1130,120 @@ spower_derived_lines <- function(spec) {
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
     character()
   )
+}
+
+# Rank tests (Spower's p_wilcox.test() and p_kruskal.test()) -------------------
+
+rank_script_inputs <- function(spec) {
+  pop <- spec$population
+  v <- spec$variables
+  lv <- function(role, i) comment_text(unlist(v[[role]]$levels)[i])
+  shape <- sprintf(
+    "score_shape <- %s # the shape of the scores: %s",
+    r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape)
+  )
+  effect <- switch(
+    spec$template,
+    one_sample_t = sprintf(
+      "d <- %s # Cohen's d: (expected mean of %s minus the fixed value) / SD", r_code(pop$d), comment_text(v$Y$label)
+    ),
+    paired_t = sprintf(
+      "dz <- %s # d_z: mean of the differences (%s minus %s) / SD of the differences",
+      r_code(pop$dz), lv("X", 2), lv("X", 1)
+    ),
+    independent_t = c(
+      sprintf("d <- %s # Cohen's d: (mean of %s minus mean of %s) / SD", r_code(pop$d), lv("X", 2), lv("X", 1)),
+      sprintf(
+        "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
+        r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
+      )
+    ),
+    oneway_between = sprintf(
+      "means <- %s / %s # group means (%s) in SD units: the means over the SD",
+      r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
+      paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    )
+  )
+  c(effect, shape)
+}
+
+# The score generators powerkit uses (score_shape_sampler(), and the
+# parents in rank_test_inputs()).
+rank_derived_lines <- function(spec) {
+  draw <- c(
+    "# Scores with mean 0 and SD 1 in the chosen shape.",
+    "draw_scores <- function(n) {",
+    "  switch(score_shape,",
+    "    normal = rnorm(n),",
+    "    skewed = (rchisq(n, df = 10) - 10) / sqrt(20), # standardised chi-square, 10 df (as in Spower's examples)",
+    "    heavy_tailed = rt(n, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1",
+    "  )",
+    "}"
+  )
+  rest <- switch(
+    spec$template,
+    one_sample_t = c(
+      "shifted <- function(n, d) d + draw_scores(n) # scores shifted by d"
+    ),
+    paired_t = c(
+      "# The signed-rank test ranks the within-person differences, so the",
+      "# differences are drawn directly: first minus second condition, shifted",
+      "# by -d_z, against a second sample of 0.",
+      "shifted <- function(n, d) d + draw_scores(n)",
+      "zero <- function(n, d) rep(0, n)",
+      "d_spower <- -dz"
+    ),
+    independent_t = c(
+      "shifted <- function(n, d) d + draw_scores(n) # group 1, shifted by d",
+      "unshifted <- function(n, d) draw_scores(n) # group 2",
+      "d_spower <- -d # Spower compares group 1 with group 2, so d (group 2 minus group 1) changes sign"
+    ),
+    oneway_between = c(
+      "# Each group's scores: its mean plus scores in the chosen shape.",
+      "gen_groups <- function(n, k, n.ratios, means, ...) {",
+      "  lapply(seq_len(k), function(g) means[g] + draw_scores(n * n.ratios[g]))",
+      "}"
+    )
+  )
+  c(draw, "", rest)
+}
+
+rank_experiment_lines <- function(spec, inputs, one_sided) {
+  args <- switch(
+    spec$template,
+    one_sample_t = c(
+      "n = batch_n, # sample size",
+      "d = d, # Cohen's d",
+      "type = \"one.sample\",",
+      "parent1 = shifted"
+    ),
+    paired_t = c(
+      "n = batch_n, # number of participants (pairs)",
+      "d = d_spower, # -d_z (see above)",
+      "type = \"paired\",",
+      "parent1 = shifted,",
+      "parent2 = zero"
+    ),
+    independent_t = c(
+      "n = n_group1, # size of group 1",
+      "d = d_spower, # -d (see above)",
+      "type = \"two.sample\",",
+      "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      "parent1 = shifted,",
+      "parent2 = unshifted"
+    ),
+    oneway_between = c(
+      "n = n_group, # size of each group",
+      "k = length(means), # number of groups",
+      "means = means, # group means in SD units",
+      "gen_fun = gen_groups"
+    )
+  )
+  if (one_sided) {
+    args <- c(args, spower_alternative_line(spec, inputs))
+  }
+  args <- ensure_commas(args)
+  c(sprintf("%s(", inputs$experiment), paste0("  ", args), "),")
 }
 
 # Superpower ----------------------------------------------------------------------

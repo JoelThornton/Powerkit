@@ -727,7 +727,7 @@ direction?" instead of the silent two-sided default.
 
 ### C10. Rank-based tests reaching the parametric cards (judgement call 3.8)
 
-**Decided 22 October 2026** (`decisions.md`): give the parametric figure and say plainly that it only approximates the rank-based test, on the t-test, correlation and one-way ANOVA cards. Simulating the rank tests (Spower) can come later. Setting `rank_based_tests`. The entry is kept below as the record of the options.
+**Decided 22 October 2026** (`decisions.md`): give the parametric figure and say plainly that it only approximates the rank-based test, on the t-test, correlation and one-way ANOVA cards. Simulating the rank tests (Spower) can come later. Setting `rank_based_tests`. **Update, 28 October 2026** (`decisions.md`): the Wilcoxon, Mann–Whitney and Kruskal–Wallis tests are now simulated with Spower, as a test version on E1, E2, E3 and E18; the label stays on the correlation (E4) and repeated-measures (E54) cards. The entry is kept below as the record of the options.
 
 - **Question:** Mann–Whitney, Wilcoxon, Kruskal–Wallis, Friedman and rank
   correlation reach the parametric end points. How should powerkit handle

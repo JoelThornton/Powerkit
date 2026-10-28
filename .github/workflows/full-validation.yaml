@@ -58,6 +58,7 @@ on:
           - interactions
           - basic
           - variances
+          - rank
           - process_4
           - process_6
           - process_7

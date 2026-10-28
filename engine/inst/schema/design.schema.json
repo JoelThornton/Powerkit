@@ -512,7 +512,7 @@
           ]
         },
         "method": {
-          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; for multiple regression, via pwrss's F test; and for Fisher's exact test, the goodness-of-fit test, two correlations and ANCOVA, via pwrss's formulas). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request).",
+          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; for multiple regression, via pwrss's F test; and for Fisher's exact test, the goodness-of-fit test, two correlations and ANCOVA, via pwrss's formulas). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis) have no exact method. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request, and the only method for the rank tests).",
           "enum": [
             "exact",
             "simulation"
@@ -954,6 +954,13 @@
                   "exclusiveMinimum": 0
                 }
               }
+            },
+            "score_shape": {
+              "description": "Rank tests only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the scores (one sample) or of the within-person differences (paired), which the test assumes are symmetric, so 'skewed' isn't offered. 'normal' (the default); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "heavy_tailed"
+              ]
             }
           },
           "allOf": [
@@ -989,7 +996,10 @@
               "const": "mean"
             },
             "method": {
-              "const": "t_test"
+              "enum": [
+                "t_test",
+                "wilcoxon_signed_rank"
+              ]
             }
           }
         }
@@ -1054,6 +1064,14 @@
                   "exclusiveMinimum": 0
                 }
               }
+            },
+            "score_shape": {
+              "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           },
           "allOf": [
@@ -1091,7 +1109,8 @@
             "method": {
               "enum": [
                 "student_t",
-                "welch_t"
+                "welch_t",
+                "mann_whitney"
               ]
             }
           }
@@ -1197,6 +1216,13 @@
                   }
                 }
               ]
+            },
+            "score_shape": {
+              "description": "Rank tests only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the scores (one sample) or of the within-person differences (paired), which the test assumes are symmetric, so 'skewed' isn't offered. 'normal' (the default); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "heavy_tailed"
+              ]
             }
           },
           "allOf": [
@@ -1232,7 +1258,10 @@
               "const": "mean_difference"
             },
             "method": {
-              "const": "t_test"
+              "enum": [
+                "t_test",
+                "wilcoxon_signed_rank"
+              ]
             }
           }
         }
@@ -1448,7 +1477,8 @@
                     "enum": [
                       "anova_f",
                       "ancova_f",
-                      "contrast_t"
+                      "contrast_t",
+                      "kruskal_wallis"
                     ]
                   }
                 }
@@ -2493,6 +2523,14 @@
               "description": "Standard deviation within each group (the same in every group).",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "score_shape": {
+              "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           }
         },
@@ -2502,7 +2540,10 @@
               "const": "main_effect_A"
             },
             "method": {
-              "const": "anova_f"
+              "enum": [
+                "anova_f",
+                "kruskal_wallis"
+              ]
             }
           }
         }

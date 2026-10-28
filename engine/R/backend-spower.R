@@ -59,7 +59,7 @@ spower_inputs <- function(spec) {
   # Group 1's size, from the total n and the allocation ratio n2 / n1.
   first_group <- function(n) round(n / (1 + ratio))
   template <- spec$template
-  test <- switch(
+  test <- if (rank_test(spec)) rank_test_inputs(spec, first_group) else switch(
     template,
     one_sample_t = list(
       experiment = "p_t.test", generator = "gen_t.test",
@@ -118,7 +118,9 @@ spower_inputs <- function(spec) {
   test$template <- template
   test$alpha <- spec$target_test$alpha
   test$alternative <- alternative
-  test$description <- if (alternative == "two_sided") {
+  test$description <- if (rank_test(spec)) {
+    rank_test_description(test, template, alternative)
+  } else if (alternative == "two_sided") {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
   } else {
     sprintf(
@@ -127,6 +129,85 @@ spower_inputs <- function(spec) {
     )
   }
   test
+}
+
+# Rank tests: the Wilcoxon signed-rank test (one sample, paired) and the
+# Mann-Whitney test (two groups) with Spower's p_wilcox.test(); the
+# Kruskal-Wallis test with p_kruskal.test(). Scores are drawn from the
+# chosen shape in SD units (score_shape_sampler()), and the effect shifts
+# it: d for one sample, dz for the within-person differences, d for two
+# groups, and the group means in SD units for Kruskal-Wallis. So the
+# effect sizes mean what they mean for the t-test and ANOVA.
+#
+# Orientation as for the t-tests: p_wilcox.test() compares the first
+# sample with the second, so the spec's d (group 2 minus group 1) and dz
+# (second minus first) are passed with their sign reversed. For a paired
+# test the differences themselves are drawn (the second sample is 0), so
+# that their shape is the one chosen: the signed-rank test ranks the
+# differences, and assumes they are symmetric.
+rank_test_inputs <- function(spec, first_group) {
+  pop <- spec$population
+  ratio <- spec$options$allocation_ratio %||% 1
+  draw <- score_shape_sampler(pop$score_shape)
+  shifted <- function(n, d) d + draw(n)
+  if (identical(spec$template, "oneway_between")) {
+    k <- length(spec$variables$A$levels)
+    means <- as.numeric(unlist(pop$means)) / pop$sd
+    gen <- function(n, k, n.ratios, means, ...) {
+      lapply(seq_len(k), function(g) means[g] + draw(n * n.ratios[g]))
+    }
+    return(list(
+      experiment = "p_kruskal.test", rank = "kruskal", draw = draw,
+      args = function(n) list(n = n / k, k = k, means = means, gen_fun = gen)
+    ))
+  }
+  wilcox <- function(args) {
+    c(args, list(parent1 = shifted, parent2 = if (identical(args$type, "paired")) {
+      function(n, d) rep(0, n)
+    } else {
+      function(n, d) draw(n)
+    }))
+  }
+  args <- switch(
+    spec$template,
+    one_sample_t = function(n) wilcox(list(n = n, d = pop$d, type = "one.sample")),
+    paired_t = function(n) wilcox(list(n = n, d = -pop$dz, type = "paired")),
+    independent_t = function(n) {
+      wilcox(list(n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = ratio))
+    }
+  )
+  list(experiment = "p_wilcox.test", rank = "wilcox", draw = draw, args = args)
+}
+
+# Draws of n scores with mean 0 and SD 1 in the chosen shape. The skewed
+# shape is the standardised chi-square distribution with 10 df that
+# Spower's p_wilcox.test() examples use; the heavy-tailed shape is a t
+# distribution with 3 df, whose SD is sqrt(3).
+score_shape_sampler <- function(shape) {
+  switch(
+    shape %||% "normal",
+    normal = function(n) stats::rnorm(n),
+    skewed = function(n) (stats::rchisq(n, df = 10) - 10) / sqrt(20),
+    heavy_tailed = function(n) stats::rt(n, df = 3) / sqrt(3)
+  )
+}
+
+score_shape_words <- function(shape) {
+  switch(
+    shape %||% "normal",
+    normal = "normal scores",
+    skewed = "skewed scores (standardised chi-square, 10 df)",
+    heavy_tailed = "heavy-tailed scores (t, 3 df, rescaled to SD 1)"
+  )
+}
+
+rank_test_description <- function(test, template, alternative) {
+  type <- switch(template, one_sample_t = "one.sample", paired_t = "paired", independent_t = "two.sample", NULL)
+  arguments <- c(
+    if (!is.null(type)) sprintf("type = \"%s\"", type),
+    if (alternative != "two_sided") sprintf("alternative = \"%s\"", spower_alternative(template, alternative))
+  )
+  sprintf("Spower::Spower(Spower::%s(%s))", test$experiment, paste(arguments, collapse = ", "))
 }
 
 probability_matrix <- function(spec) {
@@ -192,6 +273,9 @@ spower_eval <- function(head, args, nrep, alpha, seed) {
 # orientation, with its standard error.
 spower_check_run <- function(spec, inputs, n, seed) {
   args <- inputs$args(n)
+  if (!is.null(inputs$rank)) {
+    return(rank_check_run(spec, args, seed))
+  }
   generator <- getExportedValue("Spower", inputs$generator)
   data <- call_backend("Spower", with_seed(seed, do.call(generator, args)))
   pop <- spec$population
@@ -275,6 +359,45 @@ spower_check_run <- function(spec, inputs, n, seed) {
         p[cbind(cells$i, cells$j)],
         p_hat[cbind(cells$i, cells$j)],
         sqrt(p_hat[cbind(cells$i, cells$j)] * (1 - p_hat[cbind(cells$i, cells$j)]) / sum(data))
+      )
+    }
+  )
+}
+
+# Check run for the rank tests: one large sample drawn as each simulated
+# sample is, with the effect recovered in the spec's own orientation.
+rank_check_run <- function(spec, args, seed) {
+  pop <- spec$population
+  if (identical(spec$template, "oneway_between")) {
+    groups <- call_backend("Spower", with_seed(seed, args$gen_fun(args$n, args$k, rep(1, args$k), args$means)))
+    return(check_run_rows(
+      sprintf("mean of %s (SD units)", unlist(spec$variables$A$levels)),
+      args$means,
+      vapply(groups, mean, numeric(1)),
+      1 / sqrt(lengths(groups))
+    ))
+  }
+  data <- call_backend("Spower", with_seed(seed, list(
+    first = args$parent1(args$n, args$d),
+    second = args$parent2(args$n * (args$n2_n1 %||% 1), args$d)
+  )))
+  standardised <- function(x, label, specified) {
+    check_run_rows(label, specified, mean(x) / stats::sd(x), 1 / sqrt(length(x)))
+  }
+  switch(
+    spec$template,
+    one_sample_t = standardised(data$first, "d (mean / SD)", pop$d),
+    # The second sample is 0: the first holds the differences, first minus
+    # second condition, so their sign is reversed here.
+    paired_t = standardised(-data$first, "dz (second minus first condition)", pop$dz),
+    independent_t = {
+      g1 <- data$first
+      g2 <- data$second
+      pooled <- sqrt(((length(g1) - 1) * stats::var(g1) + (length(g2) - 1) * stats::var(g2)) /
+        (length(g1) + length(g2) - 2))
+      check_run_rows(
+        "d (group 2 minus group 1, pooled SD)", pop$d,
+        (mean(g2) - mean(g1)) / pooled, sqrt(1 / length(g1) + 1 / length(g2))
       )
     }
   )
