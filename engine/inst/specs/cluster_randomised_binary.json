@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "cluster_trial",
+  "template": "cluster_randomised",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Programme",
+      "levels": ["Usual lessons", "Wellbeing programme"]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Passed the reading test"
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.3,
+    "p2": 0.45,
+    "sigma_u": 0.3,
+    "cluster_size": 20
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: an increase from 30% to 45% of pupils passing is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "odds_ratio",
+    "method": "logistic_mixed",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261027
+  }
+}

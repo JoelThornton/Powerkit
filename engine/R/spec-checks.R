@@ -262,7 +262,7 @@ check_direction_allowed <- function(spec) {
     two_variances = pop$var1 - pop$var2,
     # "greater" means the second condition's mean is higher.
     cluster_randomised = ,
-    multisite = pop$d,
+    multisite = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
       identical(spec$options$method, "exact")) pop$d
@@ -332,6 +332,16 @@ check_cluster_trial <- function(spec) {
   m_sd <- pop$cluster_size_sd %||% 0
   if (m_sd <= 0) {
     return(character())
+  }
+  # Yes/no outcome: multisite.bin() has no adjustment for groups of
+  # different sizes, and crt.parallel.bin()'s (re.clustsize.bin()) is an
+  # open question upstream (docs/upstream-questions.md), so groups of equal
+  # size only.
+  if (identical(pop$metric, "proportion")) {
+    return(paste0(
+      "For a yes/no outcome, powerkit plans for groups of the same size only: ",
+      "remove 'population > cluster_size_sd' or set it to 0, and give the average group size."
+    ))
   }
   # A multisite trial's adjustment uses the ICC of the effect (icc1).
   icc <- if (identical(spec$template, "multisite")) pop$icc_effect else pop$icc
@@ -1241,7 +1251,7 @@ target_effect_is_zero <- function(spec) {
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),
-    cluster_trial = pop$d,
+    cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice: the schema refuses it, as semPower does.
     sem = pop$rmsea,
     regression_interaction = pop$r_XW_Y,

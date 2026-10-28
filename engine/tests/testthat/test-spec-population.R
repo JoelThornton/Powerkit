@@ -286,7 +286,9 @@ zero_effect_cases <- list(
   one_variance = function(s) within(s, population$var0 <- population$var),
   two_variances = function(s) within(s, population$var2 <- population$var1),
   cluster_randomised = function(s) within(s, population$d <- 0),
-  multisite = function(s) within(s, population$d <- 0)
+  multisite = function(s) within(s, population$d <- 0),
+  cluster_randomised_binary = function(s) within(s, population$p2 <- population$p1),
+  multisite_binary = function(s) within(s, population$p2 <- population$p1)
 )
 
 test_that("a zero target effect can't be the basis of a sample size search", {

@@ -22,6 +22,17 @@
 #                       (icc1), divided by the relative efficiency when group
 #                       sizes vary; degrees of freedom J - 1.
 #
+#   yes/no outcome      population > metric "proportion", either design:
+#                       powertools::crt.parallel.bin() or multisite.bin(),
+#                       the z test of the log odds ratio from a mixed-effects
+#                       logistic model with a random intercept for the group
+#                       (cluster-randomised) or a random effect of the
+#                       condition across groups (multisite). Both multiply
+#                       the variance by 1.2 (their source; the help pages
+#                       don't say why: docs/upstream-questions.md). No
+#                       smallest detectable effect: powertools can't solve
+#                       for the proportions.
+#
 # The spec's n is the total number of participants analysed: n / m groups
 # of m (population > cluster_size). In a cluster-randomised trial half the
 # groups are in each condition, so the valid sizes are multiples of 2m; in
@@ -47,15 +58,20 @@ powertools_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = function(n, power) powertools_sensitivity(spec, n, power),
+    sensitivity = if (is_binary_cluster(spec)) NULL else function(n, power) powertools_sensitivity(spec, n, power),
     check_run = function() powertools_check_run(spec)
   )
 }
 
 is_multisite <- function(spec) identical(spec$template, "multisite")
 
+is_binary_cluster <- function(spec) identical(spec$population$metric, "proportion")
+
 powertools_function_name <- function(spec) {
-  if (is_multisite(spec)) "multisite.cont" else "crt.parallel.cont"
+  paste0(
+    if (is_multisite(spec)) "multisite" else "crt.parallel",
+    if (is_binary_cluster(spec)) ".bin" else ".cont"
+  )
 }
 
 # powertools' arguments at a total of n participants. delta is the size of
@@ -67,6 +83,16 @@ powertools_args <- function(spec, n, delta = abs(spec$population$d)) {
   m <- pop$cluster_size
   alternative <- spec$target_test$alternative %||% "two_sided"
   sides <- if (alternative == "two_sided") 2 else 1
+  if (is_binary_cluster(spec)) {
+    # Yes/no outcome. crt.parallel.bin()'s J is the number of groups in
+    # both conditions together, as is multisite.bin()'s.
+    common <- list(
+      m = m, J = n / m, pc = pop$p1, pt = pop$p2, sigma.u = pop$sigma_u,
+      alpha = spec$target_test$alpha, sides = sides, v = FALSE
+    )
+    extra <- if (is_multisite(spec)) list(alloc.ratio = 1) else list(m.sd = pop$cluster_size_sd %||% 0)
+    return(c(common[1], extra, common[-1]))
+  }
   if (is_multisite(spec)) {
     return(list(
       m = m, m.sd = pop$cluster_size_sd %||% 0,
@@ -90,7 +116,7 @@ powertools_args <- function(spec, n, delta = abs(spec$population$d)) {
 }
 
 powertools_call <- function(args, spec) {
-  fun <- if (is_multisite(spec)) powertools::multisite.cont else powertools::crt.parallel.cont
+  fun <- getExportedValue("powertools", powertools_function_name(spec))
   call_backend("powertools", quietly(do.call(fun, args)))
 }
 
@@ -128,6 +154,16 @@ powertools_check_run <- function(spec) {
       parameter = parameter, specified = specified, recovered = passed,
       ok = isTRUE(all.equal(specified, passed))
     )
+  }
+  if (is_binary_cluster(spec)) {
+    groups <- if (is_multisite(spec)) 10 else 20
+    args <- powertools_args(spec, groups * m)
+    return(rbind(
+      row("proportions passed to powertools (pc, pt)", c(pop$p1, pop$p2), c(args$pc, args$pt)),
+      row("SD on the log-odds scale passed to powertools (sigma.u)", pop$sigma_u, args$sigma.u),
+      row("group size passed to powertools (m)", m, args$m),
+      row(sprintf("groups in all at %s groups (J)", groups), groups, args$J)
+    ))
   }
   if (is_multisite(spec)) {
     args <- powertools_args(spec, 10 * m)
@@ -174,7 +210,10 @@ powertools_check_run <- function(spec) {
 #'   (`NA` for a multisite trial, whose groups have both conditions), `icc`,
 #'   `icc_effect` (`NA` for a cluster-randomised trial),
 #'   `relative_efficiency` (1 for groups of equal size), `design_effect`
-#'   and `effective_n`.
+#'   and `effective_n`, and `outcome` ("score" or "yes/no"). For a yes/no
+#'   outcome, powertools gives no design effect in these terms, so `icc`,
+#'   `icc_effect`, `design_effect` and `effective_n` are `NA`, and
+#'   `sigma_u` (otherwise `NA`) is the SD on the log-odds scale.
 #' @export
 cluster_summary <- function(spec, n) {
   if (!identical(spec$design, "cluster_trial") || length(n) != 1 || is.na(n)) {
@@ -184,6 +223,17 @@ cluster_summary <- function(spec, n) {
   m <- pop$cluster_size
   m_sd <- pop$cluster_size_sd %||% 0
   multisite <- is_multisite(spec)
+  if (is_binary_cluster(spec)) {
+    return(list(
+      assignment = if (multisite) "people" else "groups",
+      cluster_size = m,
+      clusters = n / m,
+      clusters_per_condition = if (multisite) NA_real_ else n / m / 2,
+      icc = NA_real_, icc_effect = NA_real_,
+      relative_efficiency = NA_real_, design_effect = NA_real_, effective_n = NA_real_,
+      outcome = "yes/no", sigma_u = pop$sigma_u
+    ))
+  }
   re_icc <- if (multisite) pop$icc_effect else pop$icc
   re <- if (m_sd > 0) {
     call_backend("powertools", quietly(powertools::re.clustsize.cont(m = m, m.sd = m_sd, icc = re_icc)))
@@ -204,13 +254,15 @@ cluster_summary <- function(spec, n) {
     icc_effect = if (multisite) pop$icc_effect else NA_real_,
     relative_efficiency = re,
     design_effect = design_effect,
-    effective_n = n / design_effect
+    effective_n = n / design_effect,
+    outcome = "score", sigma_u = NA_real_
   )
 }
 
 # The R script for a clustered design: the same powertools call as
 # powerkit's, with the values written out.
 powertools_script <- function(spec, result) {
+  if (is_binary_cluster(spec)) return(powertools_script_binary(spec, result))
   pop <- spec$population
   v <- spec$variables
   lv <- function(i) comment_text(unlist(v$X$levels)[i])
@@ -281,6 +333,57 @@ powertools_script <- function(spec, result) {
     "}",
     "",
     goal_lines,
+    comparison_section()
+  )
+}
+
+# The R script for a clustered design with a yes/no outcome. It also
+# prints powertools' own table for judging the SD on the log-odds scale
+# (crt.varexplore() or ms.varexplore()).
+powertools_script_binary <- function(spec, result) {
+  pop <- spec$population
+  lv <- function(i) comment_text(unlist(spec$variables$X$levels)[i])
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  sides <- if (alternative == "two_sided") 2 else 1
+  multisite <- is_multisite(spec)
+  fun <- powertools_function_name(spec)
+  explore <- if (multisite) "ms.varexplore" else "crt.varexplore"
+  args <- c(
+    if (multisite) "m = cluster_size # participants in each group, both conditions" else
+      "m = cluster_size # participants in each group (the average, if sizes vary)",
+    if (multisite) "alloc.ratio = 1 # half of each group in each condition" else
+      "m.sd = cluster_size_sd # SD of the group sizes (0: all the same size)",
+    "J = n_total / cluster_size # number of groups, both conditions together",
+    "pc = p1", "pt = p2",
+    "sigma.u = sigma_u",
+    "alpha = alpha",
+    sprintf("sides = %s # %s", sides, if (sides == 2) "two-sided test" else "one-sided, in the direction of the specified effect")
+  )
+  c(
+    script_header(spec, result, "powertools", paste0("powertools::", fun, "()")),
+    "library(powertools)",
+    "",
+    "# Inputs ----",
+    sprintf("p1 <- %s # proportion of 'yes' in %s", r_code(pop$p1), lv(1)),
+    sprintf("p2 <- %s # proportion of 'yes' in %s", r_code(pop$p2), lv(2)),
+    sprintf("sigma_u <- %s # SD on the log-odds scale: %s", r_code(pop$sigma_u),
+            if (multisite) "how much the effect varies between groups" else "how much the groups' proportions differ"),
+    sprintf("cluster_size <- %s # participants analysed in each group%s", r_code(pop$cluster_size), if (multisite) ", half in each condition" else ""),
+    if (!multisite) sprintf("cluster_size_sd <- %s # SD of the group sizes", r_code(pop$cluster_size_sd %||% 0)),
+    goal_inputs(spec, result),
+    "",
+    "# How plausible is sigma_u? powertools' table of the range in which",
+    if (multisite) "# about 95% of the groups' odds ratios would lie, for SDs from 0.1 to 1." else
+      "# about 95% of the groups' proportions would lie, for SDs from 0.1 to 1.",
+    sprintf("%s(pc = p1, pt = p2)", explore),
+    "",
+    "# Power at a total sample size (groups x group size), from powertools'",
+    "# formula (a z test of the log odds ratio).",
+    "power_at <- function(n_total) {",
+    paste0("  ", c(paste0(fun, "("), paste0("    ", ensure_commas(args)), "  )")),
+    "}",
+    "",
+    pwr_goal_section(spec, result),
     comparison_section()
   )
 }

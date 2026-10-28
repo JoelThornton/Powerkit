@@ -3713,7 +3713,7 @@
       }
     },
     "template_cluster_randomised": {
-      "description": "Cluster-randomised trial: whole groups (classes, clinics, teams) are assigned to one of two conditions, the same number of groups in each, and a score is compared between the conditions. The t test of the difference between conditions with the variance inflated by the design effect, by powertools::crt.parallel.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size, the same number of groups in each condition.",
+      "description": "Cluster-randomised trial: whole groups (classes, clinics, teams) are assigned to one of two conditions, the same number of groups in each, and a score is compared between the conditions. The t test of the difference between conditions with the variance inflated by the design effect, by powertools::crt.parallel.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size, the same number of groups in each condition. With population > metric 'proportion', the outcome is yes/no and powertools' crt.parallel.bin() gives the z test of the log odds ratio from a mixed-effects logistic model.",
       "properties": {
         "variables": {
           "required": [
@@ -3726,21 +3726,30 @@
               "$ref": "#/definitions/variable_binary"
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "properties": {
+                "type": {
+                  "enum": [
+                    "continuous",
+                    "binary"
+                  ]
+                }
+              }
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "d",
-            "icc",
             "cluster_size"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised': a score outcome, the effect given as Cohen's d. 'proportion': a yes/no outcome, the effect given as the proportion of 'yes' in each condition.",
+              "enum": [
+                "standardised",
+                "proportion"
+              ]
             },
             "d": {
               "description": "Cohen's d: (mean in the second condition - mean in the first) / the outcome's total SD (between and within groups together), as powertools defines it (delta / sd). 0 is allowed, to check the Type I error rate at a fixed n, or for a sensitivity analysis.",
@@ -3761,23 +3770,145 @@
               "description": "Standard deviation of the group sizes, if they vary (0, the default, for groups of equal size). powertools adjusts power for the loss of efficiency.",
               "type": "number",
               "minimum": 0
+            },
+            "p1": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the first condition (powertools' pc).",
+              "$ref": "#/definitions/proportion"
+            },
+            "p2": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the second condition (powertools' pt).",
+              "$ref": "#/definitions/proportion"
+            },
+            "sigma_u": {
+              "description": "Yes/no outcome: the SD, on the log-odds scale, of the groups' random intercepts (powertools' sigma.u): how much the groups' proportions differ.",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
           }
         },
         "target_test": {
           "properties": {
             "effect": {
-              "const": "mean_difference"
+              "enum": [
+                "mean_difference",
+                "odds_ratio"
+              ]
             },
             "method": {
-              "const": "cluster_t"
+              "enum": [
+                "cluster_t",
+                "logistic_mixed"
+              ]
             }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "population": {
+                "properties": {
+                  "metric": {
+                    "const": "proportion"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "population": {
+                "required": [
+                  "p1",
+                  "p2",
+                  "sigma_u"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "d"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "icc"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_binary"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "odds_ratio"
+                  },
+                  "method": {
+                    "const": "logistic_mixed"
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "population": {
+                "required": [
+                  "d",
+                  "icc"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "p1"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "p2"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "sigma_u"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_continuous"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "mean_difference"
+                  },
+                  "method": {
+                    "const": "cluster_t"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "template_multisite": {
-      "description": "Multisite trial: within each group (school, clinic, team), people are randomised to one of two conditions, half to each, and a score is compared between the conditions. The t test of the average difference between conditions, with degrees of freedom from the number of groups, by powertools::multisite.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size.",
+      "description": "Multisite trial: within each group (school, clinic, team), people are randomised to one of two conditions, half to each, and a score is compared between the conditions. The t test of the average difference between conditions, with degrees of freedom from the number of groups, by powertools::multisite.cont(). goal > n is the total number of participants analysed: a whole number of groups of population > cluster_size. With population > metric 'proportion', the outcome is yes/no and powertools' multisite.bin() gives the z test of the log odds ratio from a mixed-effects logistic model.",
       "properties": {
         "variables": {
           "required": [
@@ -3790,22 +3921,30 @@
               "$ref": "#/definitions/variable_binary"
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "properties": {
+                "type": {
+                  "enum": [
+                    "continuous",
+                    "binary"
+                  ]
+                }
+              }
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "d",
-            "icc",
-            "icc_effect",
             "cluster_size"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised': a score outcome, the effect given as Cohen's d. 'proportion': a yes/no outcome, the effect given as the proportion of 'yes' in each condition.",
+              "enum": [
+                "standardised",
+                "proportion"
+              ]
             },
             "d": {
               "description": "Cohen's d: (mean in the second condition - mean in the first) / the outcome's total SD (between and within groups together), as powertools defines it (delta / sd). 0 is allowed, to check the Type I error rate at a fixed n, or for a sensitivity analysis.",
@@ -3832,20 +3971,148 @@
               "description": "Standard deviation of the group sizes, if they vary (0, the default, for groups of equal size). powertools adjusts power for the loss of efficiency.",
               "type": "number",
               "minimum": 0
+            },
+            "p1": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the first condition (powertools' pc).",
+              "$ref": "#/definitions/proportion"
+            },
+            "p2": {
+              "description": "Yes/no outcome: the proportion of 'yes' in the second condition (powertools' pt).",
+              "$ref": "#/definitions/proportion"
+            },
+            "sigma_u": {
+              "description": "Yes/no outcome: the SD, on the log-odds scale, of the effect (the log odds ratio) across groups (powertools' sigma.u).",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
           }
         },
         "target_test": {
           "properties": {
             "effect": {
-              "const": "mean_difference"
+              "enum": [
+                "mean_difference",
+                "odds_ratio"
+              ]
             },
             "method": {
-              "const": "multisite_t"
+              "enum": [
+                "multisite_t",
+                "logistic_mixed"
+              ]
             }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "population": {
+                "properties": {
+                  "metric": {
+                    "const": "proportion"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "population": {
+                "required": [
+                  "p1",
+                  "p2",
+                  "sigma_u"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "d"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "icc"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "icc_effect"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_binary"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "odds_ratio"
+                  },
+                  "method": {
+                    "const": "logistic_mixed"
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "population": {
+                "required": [
+                  "d",
+                  "icc",
+                  "icc_effect"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "p1"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "p2"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "sigma_u"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "variables": {
+                "properties": {
+                  "Y": {
+                    "$ref": "#/definitions/variable_continuous"
+                  }
+                }
+              },
+              "target_test": {
+                "properties": {
+                  "effect": {
+                    "const": "mean_difference"
+                  },
+                  "method": {
+                    "const": "multisite_t"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "template_tost_independent": {
       "description": "Equivalence (TOST) for two independent groups: is the difference in means between -bound and +bound?",

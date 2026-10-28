@@ -253,3 +253,74 @@ test_that("the exported multisite script reproduces each goal with powertools al
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
   }
 })
+
+# Yes/no outcomes (powertools' crt.parallel.bin() and multisite.bin()).
+
+binary_spec <- function(name, goal, ...) {
+  spec <- example_spec(name)
+  spec$options <- list(seed = 7)
+  spec$goal <- goal
+  changes <- list(...)
+  for (field in names(changes)) spec$population[[field]] <- changes[[field]]
+  spec
+}
+
+test_that("yes/no outcomes run on powertools' .bin() functions and pass their check run", {
+  r1 <- run_spec(binary_spec("cluster_randomised_binary", list(type = "power", n = 800)))
+  expect_equal(r1$provenance$backend_function, "powertools::crt.parallel.bin")
+  expect_true(all(r1$check_run$ok))
+  r2 <- run_spec(binary_spec("multisite_binary", list(type = "power", n = 400)))
+  expect_equal(r2$provenance$backend_function, "powertools::multisite.bin")
+  expect_true(all(r2$check_run$ok))
+})
+
+test_that("yes/no power equals powertools called directly", {
+  # 800 pupils: 40 classes of 20 (J is the total number of groups).
+  direct <- powertools::crt.parallel.bin(m = 20, m.sd = 0, J = 40, pc = 0.3, pt = 0.45, sigma.u = 0.3, alpha = 0.05, sides = 2)
+  expect_equal(run_spec(binary_spec("cluster_randomised_binary", list(type = "power", n = 800)))$curve$power, direct)
+  direct_ms <- powertools::multisite.bin(m = 20, alloc.ratio = 1, J = 20, pc = 0.3, pt = 0.45, sigma.u = 0.3, alpha = 0.05, sides = 2)
+  expect_equal(run_spec(binary_spec("multisite_binary", list(type = "power", n = 400)))$curve$power, direct_ms)
+  # One-sided, and a decrease tested one-sided "less" in the same direction.
+  spec <- binary_spec("cluster_randomised_binary", list(type = "power", n = 800), p1 = 0.45, p2 = 0.3)
+  spec$target_test$alternative <- "less"
+  direct_one <- powertools::crt.parallel.bin(m = 20, J = 40, pc = 0.45, pt = 0.3, sigma.u = 0.3, sides = 1)
+  expect_equal(run_spec(spec)$curve$power, direct_one)
+  spec$target_test$alternative <- "greater"
+  expect_spec_problem(spec, "goes the other way")
+})
+
+test_that("the yes/no sample size is a whole number of groups and matches powertools' number of groups", {
+  r <- run_spec(binary_spec("cluster_randomised_binary", list(type = "sample_size", power = 0.8)))
+  j <- powertools::crt.parallel.bin(m = 20, J = NULL, pc = 0.3, pt = 0.45, sigma.u = 0.3, power = 0.8)
+  # The same number of groups in each condition: J rounded up to even.
+  expect_equal(r$n_required$n, 2 * ceiling(j / 2) * 20)
+  expect_identical(r$clusters$outcome, "yes/no")
+  expect_true(is.na(r$clusters$design_effect))
+  r2 <- run_spec(binary_spec("multisite_binary", list(type = "sample_size", power = 0.8)))
+  j2 <- powertools::multisite.bin(m = 20, J = NULL, pc = 0.3, pt = 0.45, sigma.u = 0.3, power = 0.8)
+  expect_equal(r2$n_required$n, ceiling(j2) * 20)
+})
+
+test_that("yes/no spec checks: equal group sizes, no smallest detectable effect, the right fields", {
+  expect_spec_problem(binary_spec("cluster_randomised_binary", list(type = "power", n = 800), cluster_size_sd = 3), "same size only")
+  expect_spec_problem(binary_spec("cluster_randomised_binary", list(type = "sample_size", power = 0.8), p2 = 0.3), "zero")
+  expect_error(run_spec(binary_spec("cluster_randomised_binary", list(type = "sensitivity", n = 800, power = 0.8))), "isn't available yet")
+  spec <- binary_spec("multisite_binary", list(type = "power", n = 400))
+  spec$population$icc <- 0.1
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  spec <- binary_spec("multisite_binary", list(type = "power", n = 400))
+  spec$variables$Y$type <- "continuous"
+  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+})
+
+test_that("the exported yes/no scripts reproduce the result with powertools alone", {
+  specs <- list(
+    binary_spec("cluster_randomised_binary", list(type = "power", n = 800)),
+    binary_spec("multisite_binary", list(type = "sample_size", power = 0.8))
+  )
+  for (spec in specs) {
+    result <- run_spec(spec)
+    out <- run_exported_script(spec, result)
+    expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$template)
+  }
+})

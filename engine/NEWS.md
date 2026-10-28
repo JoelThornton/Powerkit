@@ -1,3 +1,22 @@
+# powerkit 0.16.0
+
+* Clustered designs (card E34) with a yes/no outcome: `population$metric`
+  `"proportion"` with `p1`, `p2` and `sigma_u` (the SD between groups, or
+  of the effect across groups, on the log-odds scale) runs on powertools'
+  `crt.parallel.bin()` or `multisite.bin()`, the z test of the log odds
+  ratio (Y binary, effect `odds_ratio`, method `logistic_mixed`). Power
+  and the required number of participants (a whole number of groups);
+  no sensitivity goal, and groups of equal size only (`cluster_size_sd`
+  is refused; see `docs/upstream-questions.md`). `cluster_summary()` now
+  returns `outcome` and `sigma_u`. The exported script prints powertools'
+  `crt.varexplore()` or `ms.varexplore()` table. New example specs
+  `cluster_randomised_binary.json` and `multisite_binary.json`.
+
+* App: the "People nested in groups" screen asks whether the outcome is a
+  score or yes/no, and for yes/no asks for the proportion in each
+  condition and how much the groups differ. The result and the write-up
+  describe the yes/no analysis.
+
 # powerkit 0.15.0
 
 * Mixed ANOVA beyond 2 x 2 (design `factorial_anova`, template `mixed`;

@@ -364,6 +364,14 @@ cluster_sentence <- function(result) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
   n <- s$clusters * s$cluster_size
+  if (identical(s$outcome, "yes/no")) {
+    what <- if (identical(s$assignment, "people")) "how much the effect varies between groups" else "how much the groups' proportions differ"
+    return(sprintf(paste0(
+      "People in the same group tend to be alike, so the grouping costs power. For a yes/no outcome, powertools allows for it through %s ",
+      "(an SD of %s on the log-odds scale; the R script prints a table to check that value is plausible). ",
+      "Adding groups usually raises power more than adding people to each group."),
+      what, format(s$sigma_u)))
+  }
   varying <- if (s$relative_efficiency < 1) " (more, because the group sizes vary)" else ""
   if (identical(s$assignment, "people")) {
     return(sprintf(paste0(
@@ -386,6 +394,12 @@ cluster_sentence <- function(result) {
 cluster_writeup <- function(result) {
   s <- result$clusters
   if (is.null(s)) return(NULL)
+  if (identical(s$outcome, "yes/no")) {
+    return(sprintf("%s; the outcome was analysed as yes/no (a z test of the log odds ratio, powertools), with %s of %s on the log-odds scale and %s participants per group.",
+      if (identical(s$assignment, "people")) "Participants were randomised within each group" else "Whole groups were assigned to the conditions",
+      if (identical(s$assignment, "people")) "an SD of the effect across groups" else "an SD of the groups' log odds",
+      format(s$sigma_u), whole(s$cluster_size)))
+  }
   if (identical(s$assignment, "people")) {
     return(sprintf("Participants were randomised within each group; with an intraclass correlation of %s, %s of the outcome's variance from the effect varying between groups and %s participants per group%s, the design effect is %s.",
       format(s$icc), format(s$icc_effect), whole(s$cluster_size), if (s$relative_efficiency < 1) " on average (group sizes varying)" else "",

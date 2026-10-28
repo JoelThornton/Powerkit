@@ -270,12 +270,12 @@ design_description <- function(spec) {
       "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
     ),
     "cluster_trial/cluster_randomised" = sprintf(
-      "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; t test of the difference",
-      label("Y"), label("X"), levels("X"), spec$population$cluster_size
+      "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; %s",
+      label("Y"), label("X"), levels("X"), spec$population$cluster_size, cluster_test_words(spec, "t test of the difference")
     ),
     "cluster_trial/multisite" = sprintf(
-      "multisite trial: %s compared between the conditions of %s (%s), people randomised within each group of %s; t test of the average difference",
-      label("Y"), label("X"), levels("X"), spec$population$cluster_size
+      "multisite trial: %s compared between the conditions of %s (%s), people randomised within each group of %s; %s",
+      label("Y"), label("X"), levels("X"), spec$population$cluster_size, cluster_test_words(spec, "t test of the average difference")
     ),
     "sem/model_fit" = sprintf(
       "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
@@ -1518,4 +1518,14 @@ power4mome_covariance_comment <- function(spec) {
     return("# \"X ~~ W\" is the correlation of X and W.")
   }
   character()
+}
+
+# The test of a clustered design, in words: the t test for a score, or the
+# z test of the log odds ratio for a yes/no outcome.
+cluster_test_words <- function(spec, score_words) {
+  if (identical(spec$population$metric, "proportion")) {
+    "yes/no outcome, z test of the log odds ratio (mixed-effects logistic model)"
+  } else {
+    score_words
+  }
 }
