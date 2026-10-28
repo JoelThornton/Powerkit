@@ -1208,14 +1208,22 @@ endpoints:
   E37:
     doc_name: "CFA, SEM model fit, measurement invariance"
     plain_name: "Check that a model or questionnaire structure fits"
-    status: not_in_powerkit
-    inputs: ["RMSEA or model parameters"]
-    packages:
-      - {name: semPower, url: "https://cran.r-project.org/package=semPower", what: "A priori, post hoc and compromise power for SEM, including CFA, measurement invariance and RMSEA-based fit."}
+    template: "sem / model_fit"
+    backend: "semPower: semPower.postHoc() with an RMSEA (the chi-square test of exact model fit, by formula), and semPower.getDf() for a CFA's degrees of freedom"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, and the same noncentral chi-square written out in base R, in the engine's tests (test-backend-sempower.R); the degrees of freedom match lavaan's count for the same model. Not yet checked against a published worked example in the validation run (test-validation-sem-model-fit.R)."}
     # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
     # card through Q1's "a questionnaire structure" answer.
-    card_points: ["This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."]
-    tier: later
+    card_points:
+      - "Works out the sample size a confirmatory factor analysis (CFA) or structural equation model (SEM) needs for its test of model fit: the chance that the chi-square test rejects your model if it is wrong by a given amount (an RMSEA you choose)."
+      - "This is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05."
+      - "For a CFA, give the number of items and factors and powerkit counts the model's degrees of freedom (semPower, with lavaan). For any other model, enter its degrees of freedom, which lavaan reports when you fit it."
+      - "Not calculated here yet: measurement invariance across groups or over time, the correlation between two factors, paths between latent variables, and the test of close fit (RMSEA no more than 0.05). semPower (https://cran.r-project.org/package=semPower) covers all of these."
+      - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."
+    inputs: ["The model: the number of items and factors (for a CFA), or its degrees of freedom", "The misfit to detect: the model's RMSEA in the population"]
+    tier: v2
+    alternatives: ["planning for the precision of the RMSEA (the width of its confidence interval)", "a simulation of the full model (simsem, or semPower's simulated power)"]
   E38:
     doc_name: "PROCESS models 8, 58, 59"
     plain_name: "Moderated mediation where W changes both links, or the direct link too"
@@ -1661,7 +1669,6 @@ glossary:
   - {term: "mediator", pattern: "\\bmediators?('s|s')?\\b", hint: "A variable through which X affects the outcome (a go-between)."}
   - {term: "predictor", pattern: "\\bpredictors?\\b", hint: "A variable used to explain or predict the outcome."}
   - {term: "confidence interval (CI)", pattern: "\\bCI\\b", hint: "A range of plausible values for an effect, estimated from the data."}
-  - {term: "model parameters", pattern: "model parameters", hint: "The numbers that define a model, such as the strength of each path."}
   - {term: "prior", pattern: "\\bprior\\b", hint: "The range of effect sizes you consider plausible before seeing the data, written as a distribution."}
   # Terms in the cards' standard names and backend lines (16 October 2026).
   # Sources: docs/card-sources.md.

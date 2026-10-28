@@ -73,6 +73,7 @@ on:
           - whole_study
           - cluster
           - multisite
+          - sem_fit
 
 permissions:
   contents: read

@@ -82,7 +82,17 @@ fully validated. Validation runs are recorded in
   (published examples to choose and transcribe). Next: simulated
   multilevel models wait for a package decision (`next.md`, item 8); a
   yes/no outcome (powertools `crt.parallel.bin()`) is a candidate.
-- **Repeated measures (27 October 2026, 0.13.0):** the one-way
+- **Structural equation model fit (27 October 2026, 0.13.0):** the power
+  of the chi-square test of exact fit to reject a model with a given
+  RMSEA, and the sample size for a target power, by formula with
+  semPower's `semPower.postHoc()` on the "Check that a model or
+  questionnaire structure fits" card (E37). A CFA is described by its
+  items and factors (semPower counts the df with lavaan); any other model
+  by its df. Validation in progress (published examples to choose and
+  transcribe). Next: measurement invariance, then factor correlations,
+  then latent paths (`next.md`, item 10); the test of close fit is an
+  open method choice.
+- **Repeated measures (27 October 2026, 0.14.0):** the one-way
   repeated-measures ANOVA (the same people in three or more conditions)
   runs in the app by Superpower's exact data set (E54), with one SD and one
   correlation between conditions, so sphericity holds. Validation in
@@ -119,7 +129,7 @@ fully validated. Validation runs are recorded in
   every end point. E1–E9, one-way ANOVA (E18), one-way repeated measures (E54), ANCOVA (E23), multiple
   regression (E24), one proportion (E25), McNemar (E26), goodness of fit
   (E48), two correlations (E49), the generic tests (E50) and
-  clustered designs (E34) calculate in
+  clustered designs (E34) and model fit for CFA and SEM (E37) calculate in
   the app; E10–E14 give a rough preview, then a full run in the app or an
   R script. Results save as a project file and reopen. It is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates

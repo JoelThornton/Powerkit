@@ -255,6 +255,19 @@ app may add them later.
 | powertools | `multisite.cont()`: the variance of the average difference between conditions is c × (1 − icc0 + (4m/c − 1) × icc1) / N, with c = (1 + r)² / r for allocation ratio r within each group, so 4 × (1 − icc0 + (m − 1) × icc1) / N for half in each; divided by a relative efficiency when group sizes vary (`re.clustsize.cont()` with icc1); the test is a noncentral t (one-sided) or F with 1 and J − 1 df (two-sided). `icc0` is the share of the total variance between the groups' means, `icc1` the share from the effect varying between groups (powertools 1.0.0 help and source, R/multisite.cont.R) | `delta / sd`, sd the outcome's total SD | `alloc.ratio = 1`, `m.sd = 0`, `Rsq = 0`, `alpha = 0.05`, `sides = 2` |
 | **powerkit** | powertools' `multisite.cont()`, by formula; no simulation option (E34, from 27 October 2026) [powerkit] | `d` over the outcome's total SD, as for the cluster-randomised trial | Half of each group in each condition (`alloc.ratio = 1`), no covariates; `cluster_size` is the people in each group, both conditions together; `icc` is passed as `icc0` and `icc_effect` as `icc1`. The reported design effect is the factor above relative to an individually randomised trial of the same size (1 − icc0 + (m − 1) × icc1, over the relative efficiency): below 1 when the effect is the same in every group. No departure from powertools |
 
+## Structural equation model fit (the chi-square test of exact fit, by RMSEA)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for structural equation models | — | — |
+| semPower | `semPower.postHoc()` and `semPower.aPriori()` with `effect.measure = "RMSEA"`: F0 = RMSEA² × df (`getF.RMSEA()`), noncentrality (N − 1) × F0 (`getNCP()`), and power is the chance that the noncentral chi-square on the model's df exceeds the central chi-square's critical value at alpha, so the null hypothesis is exact fit (RMSEA = 0). No test of close fit. `semPower.getDf()` counts a model's df by fitting its lavaan syntax (semPower 2.2.0, `R/postHoc.R`, `R/aPriori.R`, `R/effectSizes.R`, help for `semPower.getDf()`, opened 27 October 2026) | RMSEA of the population misfit | `alpha` must be given (no default); `fittingFunction = "ML"` |
+| **powerkit** | semPower's `semPower.postHoc()` by formula; no simulation option (E37, from 27 October 2026) [powerkit] | `rmsea` | The model is given by its df, or, for a CFA, by its number of items and factors, each item on one factor and the factors correlated; the df are then counted by `semPower.getDf()` with the items split as evenly as possible (the split does not change the df). The required N is powerkit's own search over whole N with semPower's power, which agrees with `semPower.aPriori()`'s `requiredN` (unit tests). Not a departure: semPower's own method and defaults, and no established psychology tool computes this for comparison. Alpha 0.05 is offered as the usual level because semPower has none |
+
+The test of close fit (the null hypothesis RMSEA no more than 0.05,
+rather than exact fit) is in the methods literature on RMSEA-based power
+but not in semPower; whether powerkit should offer it is a method choice
+for the maintainer, not yet made.
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |

@@ -34,7 +34,8 @@
         "poisson_regression",
         "generic_test",
         "equivalence_test",
-        "cluster_trial"
+        "cluster_trial",
+        "sem"
       ]
     },
     "template": {
@@ -98,6 +99,9 @@
     },
     {
       "$ref": "#/definitions/design_cluster_trial"
+    },
+    {
+      "$ref": "#/definitions/design_sem"
     },
     {
       "if": {
@@ -3486,6 +3490,120 @@
             }
           }
         ]
+      }
+    },
+    "design_sem": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "sem"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "model_fit"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "power",
+                  "sample_size"
+                ]
+              }
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "model_fit"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_sem_model_fit"
+            }
+          }
+        ]
+      }
+    },
+    "template_sem_model_fit": {
+      "description": "Structural equation model fit: the power of the chi-square test of exact fit to reject a model whose misfit in the population is a given RMSEA, by semPower::semPower.postHoc() (effect.measure 'RMSEA'). The model is described by its degrees of freedom ('df'), or, for a confirmatory factor analysis, by its number of items ('indicators') and of correlated factors ('factors'), each item loading on one factor; semPower::semPower.getDf() then counts the df. goal > n is the total number of participants analysed.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "A model-fit power analysis needs no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "rmsea"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "rmsea"
+            },
+            "rmsea": {
+              "description": "The misfit the test should detect, as the population RMSEA (root mean square error of approximation) of the model. Above 0: semPower refuses an RMSEA of 0 (a model that fits exactly).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "df": {
+              "description": "The model's degrees of freedom. Give this, or 'indicators' and 'factors', not both.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "indicators": {
+              "description": "Confirmatory factor analysis: the number of items (observed variables).",
+              "type": "integer",
+              "minimum": 3
+            },
+            "factors": {
+              "description": "Confirmatory factor analysis: the number of factors, which are allowed to correlate. Each item loads on one factor.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "model_fit"
+                },
+                "method": {
+                  "const": "chi_square_exact_fit"
+                }
+              }
+            }
+          ]
+        }
       }
     },
     "template_cluster_randomised": {

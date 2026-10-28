@@ -263,14 +263,14 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B45 | SEM | ML; BG; Audit | E37 | Planned (later in the build guide; no phase) | Could: AP, PN, Co (semPower) | semPower `semPower.aPriori()`, `semPower.postHoc()`, `semPower.compromise()`, `semPower.powerLav()`, `semPower.powerPath()`; simsem `sim()`; power4mome (latent models) | — | [C18][] |
+| B45 | SEM | ML; BG; Audit | E37 | Wired (model fit: the chi-square test of exact fit, power to reject a model with a given RMSEA, for a CFA described by its items and factors or any model given by its df; matches semPower called directly and the noncentral chi-square in base R in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: Co, the test of close fit, simulated power | **Engine: semPower `semPower.postHoc()` and `semPower.getDf()`** (27 October 2026). Also `semPower.aPriori()`, `semPower.compromise()`, `semPower.powerLav()`, `semPower.powerPath()`; simsem `sim()`; power4mome (latent models) | Next: measurement invariance (B47), then factor correlations (B46), then latent paths | [C18][] |
 | B46 | CFA | ML; BG | E37 | Planned (later in the build guide; no phase) | As B45 | semPower `semPower.powerCFA()` | — | — |
 | B47 | Measurement invariance | ML; BG | E37 | Planned (later in the build guide; no phase) | As B45 | semPower `semPower.powerMI()` (multigroup), `semPower.powerLI()` (longitudinal) | — | — |
 | B48 | Latent interactions | ML | none: nearest E9 with reliabilities *(inferred)* | Unknown (no candidate found) | — | unknown | Search | — |
 | B49 | Latent profile/class analysis | ML | none: not reachable | Unknown (no candidate found) | — | unknown | Search | — |
 | B50 | Reliability (ICC) | ML; Audit | none: reaches E41, E4 or E46 | Unknown (decide the card; tools exist) | — | ICC.Sample.Size `calculateIccSampleSize()`; presize `prec_icc()`; MBESS `ss.aipe.reliability()`; kappaSize `PowerBinary()` (agreement) | Decide | [C4][] |
 | B51 | IRT | ML; Audit | E37 (says IRT isn't covered) | Unknown (decide scope; tools exist) | — | irtpwr `irtpwr()`; irtsim `irt_simulate()` | Decide | — |
-| B52 | Factor analysis sample size | ML; Audit | E37 (confirmatory); exploratory not reachable | Unknown (exploratory: no candidate found) | — | Confirmatory: semPower `semPower.powerCFA()` | — | — |
+| B52 | Factor analysis sample size | ML; Audit | E37 (confirmatory); exploratory not reachable | Unknown (exploratory: no candidate found) | — | Confirmatory: semPower `semPower.powerCFA()`; the power of a CFA's test of fit is computed (B45, E37) | — | — |
 | B53 | Network models | ML; Audit | none: not reachable | Unknown (decide scope; a tool exists) | — | powerly `powerly()` ("Sample Size Analysis for Psychological Networks") | Decide | — |
 
 ### Other goals
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 19 | 3 | 0 | 22 |
+| Wired (validation not finished) | 19 | 4 | 0 | 23 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 23 | 2 | 26 |
+| Planned | 1 | 22 | 2 | 25 |
 | Foundation tool can do it, not planned | 11 | 11 | 2 | 24 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

@@ -5,7 +5,7 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
-  - date: "2026-10-27"
+  - date: "2026-10-28"
     title: "Power for the same people in three or more conditions"
     text: >-
       powerkit now calculates the repeated-measures ANOVA with one factor,
@@ -14,6 +14,15 @@ entries:
       condition, the SD and how strongly people's scores in two conditions
       are related, and the design finder takes you there when you say the
       same people are in every condition.
+  - date: "2026-10-27"
+    title: "Sample size for a CFA or structural equation model"
+    text: >-
+      The card "Check that a model or questionnaire structure fits" now
+      calculates. Enter how many items and factors your confirmatory factor
+      analysis has (or your model's degrees of freedom) and how much misfit
+      you would want to notice, and powerkit works out the sample size or
+      the power for the test of model fit. The result explains that this is
+      the power to show a model is wrong.
   - date: "2026-10-27"
     title: "Power for studies where people are randomised within groups"
     text: >-

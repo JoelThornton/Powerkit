@@ -308,6 +308,19 @@
       ],
       "Hash": "6a72e94a8c9be4ef719af3aa3628f2dc"
     },
+    "semPower": {
+      "Package": "semPower",
+      "Version": "2.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Hash": "6808ca9d5fbaf5fc768e0e462e64e5b3"
+    },
     "SimDesign": {
       "Package": "SimDesign",
       "Version": "2.28",

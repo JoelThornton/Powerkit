@@ -6,10 +6,15 @@
 \alias{powerkit-package}
 \title{powerkit: Unified Power Analysis for Psychology Designs}
 \description{
-Reads a single design specification (JSON) for common psychology designs, checks that it describes a possible population, and routes it to validated backends ('pwr', 'Spower', 'power4mome', 'Superpower', 'InteractionPoweR') to estimate power, required sample size and sensitivity. This development version runs basic tests (by exact formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2 mixed ANOVA designs (via Superpower), two-way regression interactions (via InteractionPoweR), and simple, parallel and serial mediation and first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14, via power4mome), and cluster-randomised trials (via 'powertools').
+Reads a single design specification (JSON) for common psychology designs, checks that it describes a possible population, and routes it to validated backends ('pwr', 'Spower', 'power4mome', 'Superpower', 'InteractionPoweR') to estimate power, required sample size and sensitivity. This development version runs basic tests (by exact formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2 mixed ANOVA designs (via Superpower), two-way regression interactions (via InteractionPoweR), and simple, parallel and serial mediation and first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14, via power4mome), cluster-randomised trials (via 'powertools'), and the fit of structural equation models (via 'semPower').
 }
 \author{
 \strong{Maintainer}: Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
+
+Authors:
+\itemize{
+  \item Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
+}
 
 }
 \keyword{internal}

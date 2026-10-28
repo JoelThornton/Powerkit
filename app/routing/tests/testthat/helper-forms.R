@@ -56,6 +56,7 @@ form_examples <- list(
   E34 = c(list(assignment = "cluster_randomised", X_label = "Programme", X_level1 = "Usual lessons", X_level2 = "Wellbeing programme",
                Y_label = "Wellbeing score", d = "0.3", icc = "0.05", cluster_size = "20", cluster_size_sd = "0",
                alternative = "two_sided"), closing_ok),
+  E37 = c(list(model_kind = "cfa", indicators = "12", factors = "3", rmsea = "0.05"), closing_ok),
   E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
                Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E50 = c(list(generic_test = "t", ncp = "2.5", df = "30", alternative = "two_sided"),

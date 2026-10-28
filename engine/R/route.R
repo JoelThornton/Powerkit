@@ -74,6 +74,7 @@ route_spec <- function(spec, seed = NULL) {
     "moderated_mediation/process_14" = power4mome_backend(spec, seed),
     "cluster_trial/cluster_randomised" = ,
     "cluster_trial/multisite" = powertools_backend(spec, seed),
+    "sem/model_fit" = sempower_backend(spec, seed),
     abort_not_available(sprintf(
       "Power analysis for this design (%s, template '%s') isn't available yet; it is planned for a later version of powerkit.",
       gsub("_", " ", spec$design), spec$template
