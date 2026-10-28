@@ -211,6 +211,12 @@ fully validated. Validation runs are recorded in
 - **Nightly validation:** fixed on 25 October 2026 (testthat's JUnit
   reporter needed xml2, missing from `renv.lock`, and the report's path
   was relative); it had failed on every run since 12 October.
+- **R in cloud sessions:** `scripts/setup-cloud-session.sh`, run as the
+  cloud environment's setup script, copies R and every locked package out
+  of the CI image (about a minute) when the network allows
+  `pkg-containers.githubusercontent.com`; otherwise it builds R 4.3 and the
+  packages from source (`scripts/setup-cloud-session-apt.sh`, 20-30
+  minutes).
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
   What to work on is [`next.md`](next.md).
 
