@@ -121,6 +121,13 @@ holds): either main effect or the interaction on Superpower's
 \code{ANOVA_exact()}, with means laid out as for \code{mixed}. \code{goal > n} is the
 total number of participants (split equally across the cells for the
 between design; each in every cell for the within design).
+Bayes factor t-tests (\code{target_test > method} \code{"bayes_factor"} for
+\code{one_sample_t}, \code{paired_t} and \code{independent_t}, equal groups): power is
+the probability that the JZS Bayes factor BF10 reaches
+\code{target_test > evidence_threshold} (default 10), by bfpwr's
+\code{powertbf01()} in closed form, with a Cauchy analysis prior of scale
+\code{target_test > prior_scale} (default 1/sqrt(2)) and a normal design
+prior with SD \code{population > effect_sd} (default 0). No alpha.
 Three-factor ANOVA (template \code{factorial_three}): factors A, B and C, each
 between or within participants (between factors first), means as a
 nested A by B by C array, one SD and one correlation between every pair

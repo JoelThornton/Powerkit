@@ -229,7 +229,7 @@ and from each package's own GitHub repository for the development version.
 | Bayes factor as the decision rule, in simulation | Spower, user-written simulation returning a logical (example with `BayesFactor::ttestBF()`) [Sp, `SpowerIntro_logicals`] | planned | later *(build guide)* | No | Not a built-in function in Spower; the vignette shows how |
 | Posterior probability as the decision rule | Spower `sig.direction = "above"` with a user-written simulation (example with rstanarm and bayestestR) [Sp] | planned | later *(proposal)* | No | |
 | Region of practical equivalence (HDI + ROPE) | Spower vignette example [Sp] | planned | later *(proposal)* | No | |
-| Bayes factor design analysis (BFDA), including sequential designs | None of the five as a built-in feature | planned | later *(build guide)* | No | The build guide names BFDA as a likely backend |
+| Bayes factor design analysis (BFDA), including sequential designs | None of the five as a built-in feature; bfpwr `powertbf01()` for t-tests, fixed N (closed form) | t-tests (fixed N) in the app from 28 October 2026 (E1, E2, E3, by bfpwr); sequential designs planned | later *(build guide)* | In progress: `test-validation-bayes-factor.R` | The build guide names BFDA as a likely backend for sequential designs |
 | Assurance (power averaged over a prior on the effect size) | Not found in the five tools' documentation | planned | later *(proposal)* | No | |
 
 ## Not covered by the five tools, and tools that could help

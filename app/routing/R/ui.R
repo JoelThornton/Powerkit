@@ -426,7 +426,7 @@ status_ui <- function(tree, ep) {
     } else {
       div(
         class = "status status-not",
-        tags$strong("Not in powerkit yet: use ",
+        tags$strong(ep$not_in_powerkit_heading %||% "Not in powerkit yet: use ",
           lapply(seq_along(ep$packages), function(i) {
             pk <- ep$packages[[i]]
             tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
@@ -522,6 +522,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       other_analyses_ui(tree, ep),
       rank_test_ui(tree, ep),
+      if (isTRUE(ep$bayes_test)) p(class = "bayes-test-note", tree$bayes_test_text),
       # What the input screen will ask and which package calculates it:
       # useful before starting, but it repeats the input screen, so it is
       # folded (22 October 2026).

@@ -59,6 +59,7 @@ export_script <- function(spec, result, file = NULL) {
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
+    bfpwr = bfpwr_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     abort_export(sprintf(
@@ -173,6 +174,9 @@ design_description <- function(spec) {
   levels <- function(role) paste(comment_text(unlist(v[[role]]$levels)), collapse = ", ")
   if (rank_test(spec)) {
     return(rank_design_description(spec, label, levels))
+  }
+  if (bayes_factor_test(spec)) {
+    return(bayes_design_description(spec, label, levels))
   }
   switch(
     paste(spec$design, spec$template, sep = "/"),
@@ -391,6 +395,13 @@ anova_effect_name <- function(spec) {
 
 goal_description <- function(spec) {
   goal <- spec$goal
+  if (bayes_factor_test(spec)) {
+    return(switch(
+      goal$type,
+      power = sprintf("the probability of strong evidence (BF10 at least %s) at a total sample size of %s", bfpwr_inputs(spec)$threshold, goal$n),
+      sample_size = sprintf("the smallest total sample size with a probability of at least %s of strong evidence (BF10 at least %s)", goal$power, bfpwr_inputs(spec)$threshold)
+    ))
+  }
   if (spec$design == "generic_test") {
     return(switch(
       goal$type,

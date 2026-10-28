@@ -105,7 +105,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Karhulahti2025_prereplication = "verified",
       Rubin2022_twosided = "verified", Rubin2024_typeI = "verified",
       FrancisThunell2021_reversing = "verified", Mayo2018_severe = "verified",
-      Perugini2014_safeguard = "verified", semPower_method = "verified"
+      Perugini2014_safeguard = "verified", semPower_method = "verified",
+      bfpwr_method = "citation"
     )
   )
 })

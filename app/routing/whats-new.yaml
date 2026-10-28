@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "Planning a Bayes factor t-test"
+    text: >-
+      Testing with a Bayes factor instead of a p-value? On the one-sample,
+      paired and two-group t-test screens, choose the Bayes factor t-test
+      as the test version. powerkit works out the chance that your study
+      finds strong evidence for the effect (a Bayes factor past the
+      threshold you set), and what the same study would show if there were
+      no effect.
+  - date: "2026-10-28"
     title: "Three-factor ANOVA"
     text: >-
       powerkit now calculates designs with three factors crossed, such as

@@ -180,6 +180,10 @@ basic_method_field <- function(forms, ep_id) {
   field
 }
 
+offers_bayes_factor <- function(form) {
+  any(vapply(form_fields(form$groups), function(f) identical(f$id, "method") && "bayes_factor" %in% names(f$choices), logical(1)))
+}
+
 # The closing questions every form asks (decision-tree.md, table 2.2).
 closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
@@ -190,6 +194,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
+  # A form offering a Bayes factor t-test (E1-E3) has no significance
+  # level for that version: "power" is the chance of strong evidence.
+  no_bayes <- if (offers_bayes_factor(form)) list(field = "method", is_not = "bayes_factor")
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
@@ -204,7 +211,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = "As a proportion, for example 0.9.",
+    list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor t-test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
@@ -215,11 +222,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     situation,
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
-         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]]),
+         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
     # Shown only when alpha is changed from its default (decided 18 October
     # 2026, judgement call G8); goes in the write-up.
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05)))
+         type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   Filter(Negate(is.null), c(list(
@@ -362,7 +369,10 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
     values$claim %||% "one",
     one = NULL,
     each = "Your claim: several claims, each standing on its own. This result is for one test, with no correction; work out each of the others the same way.",
-    any = sprintf(
+    any = if (is.null(alpha_used)) {
+      # Bayes factor tests have no significance level to divide.
+      sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
+    } else sprintf(
       "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
     ),

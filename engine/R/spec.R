@@ -129,7 +129,11 @@ print.powerkit_spec <- function(x, ...) {
     sprintf("<powerkit spec %s>\n", x$spec_version),
     sprintf("Design:    %s / %s\n", x$design, x$template),
     sprintf("Variables: %s\n", paste(vars, collapse = "; ")),
-    sprintf("Target:    %s, %s, alpha = %s\n", target, x$target_test$method, x$target_test$alpha),
+    if (is.null(x$target_test$alpha)) {
+      sprintf("Target:    %s, %s\n", target, x$target_test$method)
+    } else {
+      sprintf("Target:    %s, %s, alpha = %s\n", target, x$target_test$method, x$target_test$alpha)
+    },
     effect_definition(x),
     sprintf("Goal:      %s\n", goal),
     sep = ""

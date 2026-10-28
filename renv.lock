@@ -544,6 +544,16 @@
       ],
       "Hash": "0f4e9d8caa6feaa7e409ae6c30f2ca66"
     },
+    "bfpwr": {
+      "Package": "bfpwr",
+      "Version": "0.1.6",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "lamW"
+      ],
+      "Hash": "a79ac074d35e9fd1d09ddd7640237d90"
+    },
     "bit": {
       "Package": "bit",
       "Version": "4.6.0",
@@ -1632,6 +1642,17 @@
         "stats"
       ],
       "Hash": "b64ec208ac5bc1852b285f665d6368b3"
+    },
+    "lamW": {
+      "Package": "lamW",
+      "Version": "2.2.7",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "Rcpp",
+        "RcppParallel"
+      ],
+      "Hash": "c8df8cb24f0b52aace0201dc90c0b81b"
     },
     "later": {
       "Package": "later",

@@ -286,7 +286,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Approach | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B58 | Bayes factor design analysis (fixed N) | ML; BG | none: not reachable | Planned (later in the build guide; no phase) | — | bfpwr `powertbf01()`, `powerbf01()`, `powerbinbf01()`, `powernmbf01()`; Spower with a user-written experiment using `BayesFactor::ttestBF()` (vignette "Bayes Factors"); BFDA *(coverage.md; GitHub)* | — | [D3][], [G2][] |
+| B58 | Bayes factor design analysis (fixed N) | ML; BG | E1, E2, E3 (test version, t-tests only; in the app 28 October 2026) | Wired (t-tests, by bfpwr's closed form; Known difference 6 and Departure 15; published value to transcribe) | Now: AP, PN | **Engine: bfpwr `powertbf01()`** (t-tests); later `powerbf01()`, `powerbf01()`, `powerbinbf01()`, `powernmbf01()`; Spower with a user-written experiment using `BayesFactor::ttestBF()` (vignette "Bayes Factors"); BFDA *(coverage.md; GitHub)* | — | [D3][], [G2][] |
 | B59 | Sequential Bayes factors (expected and maximum N) | ML; BG | none: not reachable | Planned (later in the build guide; no phase) | — | BFDA `BFDA.sim()`, `SSD()` *(coverage.md; GitHub)*; powerbrmsINLA `brms_inla_power_sequential()` | — | [D3][], [G2][] |
 | B60 | Assurance / expected power over a prior distribution of effects | ML | none: not reachable | Foundation tool can do it, not planned | Could: PN, AP (Spower: its example solves N with an effect drawn from a prior) | Spower `Spower()`: "For expected power computations, the arguments to the simulation experiment arguments can be specified as a function to reflect the prior uncertainty", for example `d = d_prior()` (help, Details and the "Expected Power" example). So Spower's expected power is power averaged over a prior on the effect, which is what this row asks. powerbrmsINLA `compute_assurance()` | Decide whether to offer it | [G2][] |
 | B61 | Precision of posterior intervals | ML; BG | none: not reachable | Unknown (check powerbrmsINLA's precision functions) | — | candidate: powerbrmsINLA `plot_precision_assurance_curve()` | Check | [G2][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 22 | 5 | 0 | 27 |
+| Wired (validation not finished) | 22 | 6 | 0 | 28 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 22 | 2 | 25 |
+| Planned | 1 | 21 | 2 | 24 |
 | Foundation tool can do it, not planned | 8 | 10 | 2 | 20 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

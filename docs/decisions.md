@@ -3366,3 +3366,27 @@ Superpower allows up to three factors, so four or more are not offered.
 Equal group sizes across the between factors' combinations. No new
 departure; as for the other Superpower designs, Departure 3
 (`ANOVA_exact()` run under the run's seed) applies.
+
+## 2026-10-28 · Bayes factor t-tests: bfpwr, in closed form, as a test version
+
+**What.** The one-sample, paired and two-group t-test cards (E1, E3, E2)
+offer a Bayes factor t-test as a test version (`target_test > method`
+`"bayes_factor"`), the first step of Bayesian design analysis (coverage
+roadmap B58). The maintainer chose this scope: the t-tests first, by
+bfpwr, fixed N; sequential designs (BFDA, GitHub only) later.
+
+**Method.** bfpwr's `powertbf01()` (Pawel & Held, 2025, its own
+`citation()`): the JZS Bayes factor with a Cauchy analysis prior, bfpwr's
+default scale 1/sqrt(2), and its default threshold, BF10 = 10. Power is
+the probability that BF10 reaches the threshold; the result also gives
+the chance of strong evidence for no effect, and of misleading evidence,
+when there is none (`ptbf01()`). Equal groups only (bfpwr takes one group
+size); no alpha, no simulation, no smallest detectable effect.
+
+**Open for the maintainer.** The design prior's default: powerkit plans
+for exactly the effect entered (SD 0), where bfpwr's default spreads it as
+widely as the analysis prior (Departure 15; recommended, so the Bayes
+factor version answers the same question as the t-test). bfpwr's closed
+form is slightly low at small samples (Known difference 6;
+`upstream-questions.md`, bfpwr).
+

@@ -59,6 +59,7 @@ on:
           - basic
           - variances
           - rank
+          - bayes
           - process_4
           - process_6
           - process_7

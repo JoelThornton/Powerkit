@@ -124,6 +124,15 @@ fully validated. Validation runs are recorded in
   (`test-validation-rank-tests.R`). The rank correlations and Friedman's
   test still carry the "only approximates" note (Spower has no function
   for them).
+- **Bayes factor t-tests (28 October 2026, 0.20.0):** the one-sample,
+  paired and two-group t-test cards offer a Bayes factor t-test as a test
+  version, by bfpwr's closed form (Pawel & Held, 2025): the chance the
+  Bayes factor passes a threshold (BF10 = 10 by default, Cauchy prior
+  scale 0.707), and, with no effect, the chance of strong evidence for
+  none and of misleading evidence. Fixed N, equal groups. Awaiting the
+  maintainer: Departure 15 (plan for exactly the effect entered, not
+  bfpwr's spread-out default). Known difference 6: bfpwr is slightly low
+  in small samples. Sequential designs (BFDA) and other designs later.
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
