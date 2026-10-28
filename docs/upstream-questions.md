@@ -6,6 +6,23 @@ an issue on the package's repository. Questions that were raised and
 answered are recorded in `docs/conventions.md` (Departures 4 and 8) and
 `docs/decisions.md` ("Upstream reports fixed; upstream watch").
 
+## powertools
+
+Questions about powertools 1.0.0, from its source (opened 28 October
+2026).
+
+1. **The factor 1.2 for yes/no outcomes.** `crt.parallel.bin()` and
+   `multisite.bin()` multiply the variance of the log odds ratio by 1.2.
+   The help pages do not say where this comes from. What is its source,
+   and does it depend on the size of `sigma.u`? powerkit uses the
+   functions as they are and says the method is an approximation.
+2. **Varying group sizes for a yes/no outcome.** In `re.clustsize.bin()`,
+   the denominator uses `lamc^2 * (1 - lamt)`, where the matching
+   numerator term and the continuous-outcome version suggest
+   `(1 - lamc)`. If this is a typo, the adjustment is wrong whenever
+   group sizes vary. Until this is answered, powerkit offers yes/no
+   outcomes for groups of the same size only (`cluster_size_sd` 0).
+
 ## power4mome
 
 1. **Reproducibility with a product term.** For a model with a product

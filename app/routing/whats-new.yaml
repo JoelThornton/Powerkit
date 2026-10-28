@@ -12,6 +12,14 @@ entries:
       because it no longer loads every calculation package before showing
       the start screen; each one now loads when a calculation needs it.
   - date: "2026-10-28"
+    title: "Yes/no outcomes for people nested in groups"
+    text: >-
+      The "People nested in groups" card now works for a yes/no outcome
+      too, such as passing a test or attending a session. Give the share
+      of "yes" you expect in each condition and how much the groups
+      differ, and powerkit works out the sample size or the power, for
+      groups assigned whole or for people randomised within each group.
+  - date: "2026-10-28"
     title: "Power for group by time with three or more timepoints"
     text: >-
       powerkit now calculates the mixed ANOVA beyond 2 x 2: groups of

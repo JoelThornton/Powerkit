@@ -75,13 +75,17 @@ fully validated. Validation runs are recorded in
   sources.
 - **Clustered designs (27 October 2026, 0.12.0):** cluster-randomised
   trials (whole groups assigned to two conditions) and multisite trials
-  (people randomised within each group), both with a score outcome, run
-  by formula with powertools' `crt.parallel.cont()` and `multisite.cont()`
-  on the "People nested in groups" card (E34), with the design effect and
-  the effective sample size on the result screen. Validation in progress
-  (published examples to choose and transcribe). Next: simulated
-  multilevel models wait for a package decision (`next.md`, item 7); a
-  yes/no outcome (powertools `crt.parallel.bin()`) is a candidate.
+  (people randomised within each group), with a score outcome
+  (powertools' `crt.parallel.cont()` and `multisite.cont()`, with the
+  design effect and the effective sample size on the result screen) or,
+  from 0.16.0 (28 October 2026), a yes/no outcome (`crt.parallel.bin()`
+  and `multisite.bin()`, groups of equal size, no smallest detectable
+  effect), all by formula on the "People nested in groups" card (E34).
+  Validation in progress (published examples to choose and transcribe);
+  two questions for powertools in `upstream-questions.md`. Next: one
+  condition grouped (powertools `irgtt`), then a baseline covariate;
+  simulated multilevel models wait for a package decision (`next.md`,
+  item 7).
 - **Structural equation model fit (27 October 2026, 0.13.0):** the power
   of the chi-square test of exact fit to reject a model with a given
   RMSEA, and the sample size for a target power, by formula with
@@ -278,7 +282,7 @@ any time, and user testing is the maintainer's to run):
    `app/routing/manifest.json` (kept current by a workflow). Fallback:
    `scripts/deploy-online.R`. A new app process now shows its first page
    in about 2 seconds instead of about 4.5 (measured on a cloud machine;
-   0.15.1); hosting options for the longer term are being compared.
+   0.16.1); hosting stays on Connect Cloud for now (browser-only hosting is ruled out: several backends have no WebAssembly build).
    Running it on your own computer: the Mac
    route broke on 19 October 2026 when CRAN replaced a locked package
    (RcppArmadillo); the lockfile now has the new version.
