@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-28"
+    title: "ANCOVA with two factors"
+    text: >-
+      The ANCOVA card now also covers two factors crossed, such as
+      condition by delivery, adjusting for a covariate like the before
+      score. Choose "By two factors crossed" and power either factor or the
+      interaction.
+  - date: "2026-10-28"
     title: "Two-factor designs with the same people in every condition, and larger designs with different people"
     text: >-
       powerkit now calculates two-factor ANOVAs where everyone takes part

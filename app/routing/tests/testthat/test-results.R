@@ -689,6 +689,17 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   # One-way ANCOVA, on pwrss's Shieh method.
   calc <- run_calculation(light_spec("E23"), run, seed = 1L)
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.ancova.shieh")
+  # Two-way ANCOVA, from the same screen with two factors.
+  fields <- form_fields(form_groups(forms, "E23"))
+  expect_equal(form_problems(fields, form_example_ancova_two), character())
+  spec <- build_spec(forms, "E23", fields, form_example_ancova_two)
+  expect_identical(spec$template, "factorial_ancova")
+  expect_identical(spec$variables$B$type, "between_factor")
+  expect_identical(spec$target_test$effect, "interaction")
+  spec$goal <- list(type = "power", n = 120L)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.ancova.shieh")
+  expect_true(all(calc$result$check_run$ok))
   # Welch's t-test by formula, if chosen.
   values <- c(form_examples$E2, list(welch_method = "exact"))
   spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), values)

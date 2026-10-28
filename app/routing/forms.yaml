@@ -828,7 +828,7 @@ forms:
 
   E23:
     sides: false
-    methods_name: "a one-way ANCOVA (Shieh's method)"
+    methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_ancova,
@@ -837,15 +837,35 @@ forms:
     groups:
       - input: "Names of the groups and the outcome"
         fields:
+          # Two crossed factors (28 October 2026): the template follows the
+          # choice, and the second factor's fields, the table of cell means
+          # and the effect appear only for it.
+          - {id: factors, label: "How the groups are formed", type: select, path: template, required: true,
+             choices: {oneway_ancova: "By one factor (for example, three conditions)",
+                       factorial_ancova: "By two factors crossed, different people in every combination (for example, condition by delivery)"},
+             default: oneway_ancova, default_source: "one factor, the usual ANCOVA",
+             sets: {oneway_ancova: [{path: target_test.effect, value: main_effect_A}],
+                    factorial_ancova: [{path: variables.B.type, value: between_factor}]}}
           - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: B_label, label: "The second factor (for example, delivery)", type: text, path: variables.B.label, required: true,
+             shown_if: {field: factors, is: factorial_ancova}}
+          - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true,
+             shown_if: {field: factors, is: factorial_ancova}}
           - {id: Y_label, label: "Outcome (for example, the after score)", type: text, path: variables.Y.label, required: true}
       - input: "The expected (adjusted) group means and SD"
         fields:
           - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
              choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
-          - {id: means, writeup_label: "adjusted group means", label: "Means adjusted for the covariates: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
+          - {id: means, writeup_label: "adjusted group means", label: "Means adjusted for the covariates: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true,
+             shown_if: {field: factors, is_not: factorial_ancova}}
+          - {id: cell_means, writeup_label: "adjusted cell means", label: "Means adjusted for the covariates: one line per level of the first factor, with one number per level of the second, separated by commas", type: table, path: population.means, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor",
+             shown_if: {field: factors, is: factorial_ancova}}
           - {id: sd, writeup_label: "SD", label: "SD of the outcome within each group, before adjusting (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"},
+             shown_if: {field: factors, is: factorial_ancova}}
       - input: "How much the covariate explains (R-squared), or its correlation with the outcome"
         fields:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", label: "R-squared: the share of the outcome's variance the covariates explain (for one covariate, its correlation with the outcome, squared)", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}

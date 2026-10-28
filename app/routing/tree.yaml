@@ -1077,13 +1077,13 @@ endpoints:
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
-    template: "factorial_anova / oneway_ancova"
+    template: "factorial_anova / oneway_ancova, factorial_ancova"
     backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() in the engine's tests. Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. Not yet checked against G*Power or a published example."}
     card_points:
-      - "powerkit calculates the overall test of a one-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
+      - "powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome"]
     tier: v2

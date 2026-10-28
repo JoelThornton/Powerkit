@@ -68,6 +68,7 @@ on:
           - logistic
           - poisson
           - contrast
+          - ancova
           - two_correlations
           - generic
           - equivalence

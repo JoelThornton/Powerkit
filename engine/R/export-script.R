@@ -208,6 +208,11 @@ design_description <- function(spec) {
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       spec$population$covariates, if (spec$population$covariates == 1) "" else "s"
     ),
+    "factorial_anova/factorial_ancova" = sprintf(
+      "two-way ANCOVA of %s: %s (%s) by %s (%s), adjusting for %s covariate%s; effect tested: %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"),
+      spec$population$covariates, if (spec$population$covariates == 1) "" else "s", anova_effect_name(spec)
+    ),
     "factorial_anova/oneway_contrast" = sprintf(
       "planned comparison of %s across the %d groups of %s (%s), with weights %s; t test of the contrast",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
@@ -547,7 +552,8 @@ add_recruitment_section <- function(lines, spec, result) {
       "groups_analysed <- c(rep(cluster_size, n_analysed / cluster_size / 2), n_analysed / 2) # its groups, then the other condition"
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
-    factorial_between = sprintf(
+    factorial_between = ,
+    factorial_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal cells",
       length(spec$variables$A$levels) * length(spec$variables$B$levels)
     ),
