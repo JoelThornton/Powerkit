@@ -597,6 +597,44 @@ check_factorial_anova <- function(spec) {
   if (spec$template %in% c("mixed", "factorial_between", "factorial_within", "factorial_ancova")) {
     return(check_mixed_shape(spec))
   }
+  if (spec$template == "factorial_three") {
+    return(check_three_shape(spec))
+  }
+  character()
+}
+
+# Three factors: one array of means per level of A, one per level of B
+# within it, one mean per level of C; a correlation exactly when a factor
+# is within participants, above -1 / (cells - 1) for the cells a
+# participant is measured in.
+check_three_shape <- function(spec) {
+  pop <- spec$population
+  levels <- vapply(c("A", "B", "C"), function(v) length(spec$variables[[v]]$levels), integer(1))
+  shape_ok <- length(pop$means) == levels[1] &&
+    all(vapply(pop$means, function(a) length(a) == levels[2] && all(lengths(a) == levels[3]), logical(1)))
+  if (!shape_ok) {
+    return(sprintf(
+      paste0(
+        "'population > means' should have %d arrays (one per level of %s), each with %d arrays ",
+        "(one per level of %s) of %d means (one per level of %s), in the same order as the levels."
+      ),
+      levels[1], var_label(spec, "A"), levels[2], var_label(spec, "B"), levels[3], var_label(spec, "C")
+    ))
+  }
+  within <- vapply(c("A", "B", "C"), function(v) identical(spec$variables[[v]]$type, "within_factor"), logical(1))
+  if (!any(within) && !is.null(pop$r)) {
+    return("Every factor is between participants, so there are no repeated measurements to correlate: remove 'population > r'.")
+  }
+  if (any(within) && is.null(pop$r)) {
+    return("At least one factor is within participants: give 'population > r', the correlation between a participant's scores in any two conditions.")
+  }
+  cells <- prod(levels[within])
+  if (any(within) && pop$r <= -1 / (cells - 1)) {
+    return(sprintf(
+      "With %d conditions per participant, one correlation between every pair of them must be above %s. Check 'population > r'.",
+      cells, format(round(-1 / (cells - 1), 3))
+    ))
+  }
   character()
 }
 
@@ -664,6 +702,35 @@ check_contrast_weights <- function(spec) {
   character()
 }
 
+# Three factors: the target effect's largest departure from no effect, from
+# the ANOVA decomposition of the cell means (each effect's terms are the
+# marginal means with the lower-order effects removed). Zero only when the
+# effect is absent.
+three_factor_effect_size <- function(spec) {
+  levels <- vapply(c("A", "B", "C"), function(v) length(spec$variables[[v]]$levels), integer(1))
+  m <- aperm(array(as.numeric(unlist(spec$population$means)), dim = rev(levels)), 3:1)
+  centre <- function(x) x - mean(x)
+  margin <- function(dims) apply(m, dims, mean)
+  a <- centre(margin(1))
+  b <- centre(margin(2))
+  c <- centre(margin(3))
+  ab <- margin(c(1, 2)) - outer(a, b, "+") - mean(m)
+  ac <- margin(c(1, 3)) - outer(a, c, "+") - mean(m)
+  bc <- margin(c(2, 3)) - outer(b, c, "+") - mean(m)
+  abc <- m - mean(m) -
+    outer(outer(a, rep(1, levels[2])), rep(1, levels[3])) -
+    outer(outer(rep(1, levels[1]), b), rep(1, levels[3])) -
+    outer(outer(rep(1, levels[1]), rep(1, levels[2])), c) -
+    outer(ab, rep(1, levels[3])) -
+    aperm(outer(ac, rep(1, levels[2])), c(1, 3, 2)) -
+    aperm(outer(bc, rep(1, levels[1])), c(3, 1, 2))
+  terms <- list(
+    main_effect_A = a, main_effect_B = b, main_effect_C = c,
+    interaction_AB = ab, interaction_AC = ac, interaction_BC = bc, interaction_ABC = abc
+  )
+  max(abs(terms[[spec$target_test$effect]]))
+}
+
 anova_contrast <- function(spec) {
   if (identical(spec$template, "oneway_contrast")) {
     # The contrast itself: zero when the weighted means cancel out, which
@@ -675,6 +742,9 @@ anova_contrast <- function(spec) {
     # Largest difference between group means: zero only if all are equal.
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
+  }
+  if (spec$template == "factorial_three") {
+    return(three_factor_effect_size(spec))
   }
   if (spec$template %in% c("mixed", "factorial_between", "factorial_within", "factorial_ancova")) {
     # Each effect's largest departure from no effect: zero only when the
@@ -1192,6 +1262,12 @@ minimum_n <- function(spec) {
       # within design (backend-superpower.R, exact_min_n).
       factorial_between = 2 * length(spec$variables$A$levels) * length(spec$variables$B$levels),
       factorial_within = 5,
+      # Two participants per between-participants group (one group when
+      # every factor is within); Superpower's exact data set needs at
+      # least five participants per group (backend-superpower.R).
+      factorial_three = 5 * prod(vapply(c("A", "B", "C"), function(v) {
+        if (identical(spec$variables[[v]]$type, "within_factor")) 1L else length(spec$variables[[v]]$levels)
+      }, integer(1))),
       # Two participants per group, so the error df is at least the number
       # of groups.
       oneway_between = ,
@@ -1238,6 +1314,16 @@ group_split <- function(spec) {
   if (spec$template %in% c("factorial_between", "factorial_ancova")) {
     cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
     return(list(rule = sprintf("split into %d equal groups, one per cell", cells), valid = function(n) n %% cells == 0))
+  }
+  if (spec$template == "factorial_three") {
+    groups <- three_factor_groups(spec)
+    if (groups == 1) {
+      return(NULL)
+    }
+    return(list(
+      rule = sprintf("split into %d equal groups, one per combination of the between-participants factors", groups),
+      valid = function(n) n %% groups == 0
+    ))
   }
   if (spec$template == "multisite") {
     m <- spec$population$cluster_size
@@ -1323,4 +1409,12 @@ target_effect_is_zero <- function(spec) {
     )
   )
   isTRUE(abs(value) < 1e-12)
+}
+
+# Three factors: how many groups of different people (the combinations of
+# the between-participants factors' levels; 1 when every factor is within).
+three_factor_groups <- function(spec) {
+  as.integer(prod(vapply(c("A", "B", "C"), function(v) {
+    if (identical(spec$variables[[v]]$type, "within_factor")) 1L else length(spec$variables[[v]]$levels)
+  }, integer(1))))
 }

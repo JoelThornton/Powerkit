@@ -1,0 +1,79 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "factorial_three",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Group",
+      "levels": [
+        "Control",
+        "Training"
+      ]
+    },
+    "B": {
+      "type": "within_factor",
+      "label": "Time",
+      "levels": [
+        "Before",
+        "After"
+      ]
+    },
+    "C": {
+      "type": "within_factor",
+      "label": "Task difficulty",
+      "levels": [
+        "Easy",
+        "Hard"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Accuracy (%)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        [
+          80,
+          60
+        ],
+        [
+          81,
+          61
+        ]
+      ],
+      [
+        [
+          80,
+          60
+        ],
+        [
+          84,
+          70
+        ]
+      ]
+    ],
+    "sd": 12,
+    "r": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: training helping more on hard tasks than easy ones, after training only, is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "interaction_ABC",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261028
+  }
+}

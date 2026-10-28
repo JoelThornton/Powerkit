@@ -14,18 +14,21 @@
 # Superpower -----------------------------------------------------------------
 
 superpower_effect_row <- function(effect) {
-  switch(effect, main_effect_A = "a", main_effect_B = "b", interaction = "a:b")
+  switch(effect, main_effect_A = "a", main_effect_B = "b", interaction = "a:b",
+         main_effect_C = "c", interaction_AB = "a:b", interaction_AC = "a:c",
+         interaction_BC = "b:c", interaction_ABC = "a:b:c")
 }
 
 # `design` is a Superpower design string ("2b*2b" or "2b*2w"); `n` is the
 # number of participants per between-participants cell; `means` is a 2x2
-# matrix with rows = levels of A and columns = levels of B.
+# matrix with rows = levels of A and columns = levels of B, or (three
+# factors) a vector already in Superpower's order a1_b1_c1, a1_b1_c2, ...
 superpower_design <- function(design, n, means, sd, r = 0) {
   Superpower::ANOVA_design(
     design = design,
     n = n,
     # Superpower orders cells a1_b1, a1_b2, a2_b1, a2_b2.
-    mu = as.vector(t(means)),
+    mu = if (is.matrix(means)) as.vector(t(means)) else means,
     sd = sd,
     r = r,
     plot = FALSE

@@ -46,8 +46,8 @@ script_reproduces <- function(text) {
 
 wired <- unlist(forms$calculates)
 
-test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54 and E55 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55"))
+test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -654,7 +654,7 @@ test_that("the regression interaction's write-up carries the known difference's 
 
 test_that("the designs added later get a write-up with short effect names and their known difference", {
   skip_without_run()
-  for (ep in c("E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E51", "E52", "E53", "E54", "E55")) {
+  for (ep in c("E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E48", "E49", "E51", "E52", "E53", "E54", "E55", "E56")) {
     spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), form_examples[[ep]])
     calc <- run_calculation(spec, run, seed = 1L)
     fields <- form_fields(form_groups(forms, ep))
@@ -664,7 +664,7 @@ test_that("the designs added later get a write-up with short effect names and th
     expect_match(w[["short"]], forms$forms[[ep]]$methods_name, fixed = TRUE, label = ep)
     expect_no_match(w[["short"]], "(0 to 1", fixed = TRUE, label = ep)
     if (ep %in% c("E25", "E26")) expect_match(w[["short"]], "exact test of counts", fixed = TRUE, label = ep)
-    if (ep %in% c("E18", "E20", "E21", "E23", "E24", "E54", "E55")) expect_no_match(w[["short"]], "sided", fixed = TRUE, label = ep) # F tests have no sides
+    if (ep %in% c("E18", "E20", "E21", "E23", "E24", "E54", "E55", "E56")) expect_no_match(w[["short"]], "sided", fixed = TRUE, label = ep) # F tests have no sides
   }
 })
 
