@@ -259,6 +259,8 @@ zero_effect_cases <- list(
   anova_mixed = function(s) within(s, population$means <- list(list(20, 16, 15), list(22, 18, 17))),
   # Parallel lines: no interaction, though both main effects exist.
   anova_factorial_within = function(s) within(s, population$means <- list(list(400, 410, 420), list(430, 440, 450))),
+  # Parallel lines: no interaction, though both main effects exist.
+  anova_factorial_ancova = function(s) within(s, population$means <- list(list(20, 19, 18), list(17, 16, 15))),
   anova_factorial_between = function(s) within(s, population$means <- list(list(0, 0.1, 0.2), list(0.3, 0.4, 0.5))),
   regression_r2_zero = function(s) within(s, population$r2 <- 0),
   regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),

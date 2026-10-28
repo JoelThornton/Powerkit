@@ -168,7 +168,8 @@ group_sizes <- function(spec, n) {
     },
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
-    factorial_between = {
+    factorial_between = ,
+    factorial_ancova = {
       cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
       rep(n / cells, cells)
     },
@@ -1231,7 +1232,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
-  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
+  if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",

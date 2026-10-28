@@ -121,7 +121,7 @@ spower_only <- function(spec) {
 pwrss_only <- function(spec) {
   spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem") ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
-                         "oneway_ancova", "oneway_contrast") ||
+                         "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
     identical(spec$target_test$method, "fisher_exact")
 }
@@ -570,7 +570,7 @@ check_factorial_anova <- function(spec) {
   if (identical(spec$template, "oneway_contrast")) {
     return(check_contrast_weights(spec))
   }
-  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within", "factorial_ancova")) {
     return(check_mixed_shape(spec))
   }
   character()
@@ -652,7 +652,7 @@ anova_contrast <- function(spec) {
     means <- as.numeric(unlist(spec$population$means))
     return(max(means) - min(means))
   }
-  if (spec$template %in% c("mixed", "factorial_between", "factorial_within")) {
+  if (spec$template %in% c("mixed", "factorial_between", "factorial_within", "factorial_ancova")) {
     # Each effect's largest departure from no effect: zero only when the
     # effect is absent.
     m <- do.call(rbind, lapply(spec$population$means, function(row) as.numeric(unlist(row))))
@@ -1176,7 +1176,9 @@ minimum_n <- function(spec) {
       # least five participants (backend-superpower.R, exact_min_n).
       oneway_within = 5,
       # Two per group, plus one error df for each covariate.
-      oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates
+      oneway_ancova = 2 * length(spec$variables$A$levels) + spec$population$covariates,
+      # Two per cell, plus one error df for each covariate.
+      factorial_ancova = 2 * length(spec$variables$A$levels) * length(spec$variables$B$levels) + spec$population$covariates
     ),
     # The intercept, every predictor, and at least one residual df.
     multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
@@ -1209,7 +1211,7 @@ group_split <- function(spec) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
-  if (spec$template == "factorial_between") {
+  if (spec$template %in% c("factorial_between", "factorial_ancova")) {
     cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
     return(list(rule = sprintf("split into %d equal groups, one per cell", cells), valid = function(n) n %% cells == 0))
   }

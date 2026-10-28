@@ -22,8 +22,11 @@
 #                      vs X2 with Y2), one group: Steiger's (1980) z test,
 #                      pwrss::power.z.twocors.steiger(), unpooled as in
 #                      G*Power (Departure 12)
-#   ANCOVA             factorial_anova/oneway_ancova: Shieh's method,
-#                      pwrss::power.f.ancova.shieh()
+#   ANCOVA             factorial_anova/oneway_ancova and factorial_ancova
+#                      (two between factors): Shieh's method,
+#                      pwrss::power.f.ancova.shieh(); for two factors the
+#                      effect tested is chosen by its rows of pwrss's own
+#                      factorial.contrasts() matrix
 #   logistic           logistic_regression/single_predictor: the Wald z
 #   regression         test of one predictor, pwrss::power.z.logistic()
 #                      (Demidenko's 2007 method with its variance
@@ -46,7 +49,8 @@ pwrss_covers <- function(spec) {
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
-             "factorial_anova/oneway_ancova", "factorial_anova/oneway_contrast",
+             "factorial_anova/oneway_ancova", "factorial_anova/factorial_ancova",
+             "factorial_anova/oneway_contrast",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase",
              "logistic_regression/single_predictor",
              "poisson_regression/single_predictor_count") ||
@@ -222,6 +226,21 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
+    factorial_ancova = {
+      k <- length(spec$variables$A$levels)
+      m <- length(spec$variables$B$levels)
+      contrasts <- ancova_effect_contrasts(k, m, spec$target_test$effect)
+      list(
+        fun = "power.f.ancova.shieh",
+        contrasts = contrasts,
+        args = function(n) list(
+          mu.vector = as.numeric(unlist(pop$means)), sd.vector = rep(pop$sd, k * m),
+          n.vector = rep(n / (k * m), k * m), factor.levels = c(k, m),
+          r.squared = pop$r2_covariates, k.covariates = pop$covariates,
+          contrast.matrix = contrasts, alpha = alpha, ceil.n = FALSE, verbose = 0
+        )
+      )
+    },
     single_predictor = {
       distribution <- pwrss_predictor_distribution(spec)
       list(
@@ -366,6 +385,17 @@ pwrss_check_run <- function(spec, inputs) {
       row("adjusted means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
       row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared)
     ),
+    factorial_ancova = {
+      k <- length(spec$variables$A$levels)
+      m <- length(spec$variables$B$levels)
+      rbind(
+        row("adjusted cell means passed to pwrss (mu.vector, A1:B1, A1:B2, ...)", as.numeric(unlist(pop$means)), args$mu.vector),
+        row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared),
+        row("numerator df of the effect tested (contrast rows)",
+            switch(spec$target_test$effect, main_effect_A = k - 1, main_effect_B = m - 1, interaction = (k - 1) * (m - 1)),
+            nrow(args$contrast.matrix))
+      )
+    },
     single_predictor = rbind(
       row("odds ratio passed to pwrss (odds.ratio)", pop$odds_ratio, args$odds.ratio),
       row("base probability passed to pwrss (base.prob)", pop$base_prob, args$base.prob),
@@ -403,4 +433,17 @@ pwrss_check_run <- function(spec, inputs) {
       row("Cohen's f^2 pwrss will use (r.squared.change / (1 - r.squared.change))", expected_f2, r / (1 - r))
     }
   )
+}
+
+# The rows of pwrss's own contrast matrix for a k x m design (deviation
+# coding, pwrss::factorial.contrasts()) that test one effect: rows named
+# A1, A2, ... for A's main effect, B1, ... for B's, and A1:B1, ... for the
+# interaction. pwrss's power.f.ancova.shieh() tests only the interaction
+# when given factor.levels and no contrast matrix.
+ancova_effect_contrasts <- function(k, m, effect) {
+  full <- call_backend("pwrss", quietly(pwrss::factorial.contrasts(
+    factor.levels = c(k, m), intercept = FALSE, verbose = 0
+  )))$contrast.matrix
+  pattern <- switch(effect, main_effect_A = "^A[0-9]+$", main_effect_B = "^B[0-9]+$", interaction = ":")
+  full[grepl(pattern, rownames(full)), , drop = FALSE]
 }

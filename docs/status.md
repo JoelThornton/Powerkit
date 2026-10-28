@@ -59,7 +59,8 @@ fully validated. Validation runs are recorded in
     question ("Whose spread of scores are you comparing?") **in review**
     (26 October 2026).
 - **More tests by formula already in the app** (pwrss): Fisher's exact
-  test (E5's test version), one-way ANCOVA (E23), chi-square goodness of
+  test (E5's test version), ANCOVA with one factor or, from 0.17.0
+  (28 October 2026), two crossed factors (E23), chi-square goodness of
   fit (E48, its own card), two independent correlations (E49) and the
   generic t, F, chi-square and z tests (E50, only from "I know my
   analysis"; no sample size). pwrss's search for the noncentrality is

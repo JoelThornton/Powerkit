@@ -122,6 +122,25 @@ pwrss_script_inputs <- function(spec) {
       sprintf("covariates <- %s # number of covariates", r_code(pop$covariates)),
       sprintf("groups <- %s", r_code(length(unlist(v$A$levels))))
     ),
+    factorial_ancova = {
+      k <- length(unlist(v$A$levels))
+      m <- length(unlist(v$B$levels))
+      cells <- as.vector(t(outer(comment_text(unlist(v$A$levels)), comment_text(unlist(v$B$levels)), paste, sep = " x ")))
+      c(
+        sprintf("means <- %s # expected adjusted cell means, A1:B1, A1:B2, ...: %s",
+          r_code(as.numeric(unlist(pop$means))), paste(cells, collapse = ", ")),
+        sprintf("sd <- %s # SD of the outcome within each cell, before adjusting", r_code(pop$sd)),
+        sprintf("r2_covariates <- %s # variance in the outcome the covariates explain", r_code(pop$r2_covariates)),
+        sprintf("covariates <- %s # number of covariates", r_code(pop$covariates)),
+        sprintf("levels <- c(%d, %d) # levels of %s (A) and %s (B)", k, m, comment_text(v$A$label), comment_text(v$B$label)),
+        "# pwrss's contrast matrix for this design; its rows named A1, ... test A,",
+        "# B1, ... test B, and A1:B1, ... the interaction.",
+        "contrasts <- factorial.contrasts(factor.levels = levels, intercept = FALSE, verbose = 0)$contrast.matrix",
+        sprintf("contrasts <- contrasts[grepl(%s, rownames(contrasts)), , drop = FALSE] # %s",
+          r_code(switch(spec$target_test$effect, main_effect_A = "^A[0-9]+$", main_effect_B = "^B[0-9]+$", interaction = ":")),
+          anova_effect_name(spec))
+      )
+    },
     single_predictor = c(
       sprintf("odds_ratio <- %s # %s", r_code(pop$odds_ratio), if (identical(v$X$type, "binary")) {
         sprintf("odds of %s = %s in %s against %s", comment_text(v$Y$label), lv("Y", 2), lv("X", 2), lv("X", 1))
@@ -254,6 +273,12 @@ pwrss_script_call_lines <- function(spec, inputs) {
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
       "n.vector = rep(n_total / groups, groups) # equal groups", "r.squared = r2_covariates",
       "k.covariates = covariates", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
+    )),
+    factorial_ancova = list(head = "power.f.ancova.shieh( # two-way ANCOVA, Shieh's method", args = c(
+      "mu.vector = means", "sd.vector = rep(sd, prod(levels)) # the same SD in every cell",
+      "n.vector = rep(n_total / prod(levels), prod(levels)) # equal cells", "factor.levels = levels",
+      "r.squared = r2_covariates", "k.covariates = covariates", "contrast.matrix = contrasts",
+      "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
     )),
     single_predictor = list(head = "power.z.logistic( # Wald z test of the predictor in logistic regression", args = c(
       "base.prob = base_prob", "odds.ratio = odds_ratio", "n = n_total",

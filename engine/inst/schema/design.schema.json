@@ -1424,6 +1424,7 @@
               "oneway_between",
               "oneway_within",
               "oneway_ancova",
+              "factorial_ancova",
               "oneway_contrast"
             ]
           },
@@ -1574,6 +1575,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_oneway_ancova"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factorial_ancova"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_factorial_ancova"
             }
           },
           {
@@ -3643,6 +3659,104 @@
           "properties": {
             "effect": {
               "const": "main_effect_A"
+            },
+            "method": {
+              "const": "ancova_f"
+            }
+          }
+        }
+      }
+    },
+    "template_factorial_ancova": {
+      "description": "Two crossed between-participants factors A and B, adjusting for one or more covariates (two-way ANCOVA; Shieh's method, covariates treated as random): either main effect or the interaction. Every cell is a different group of people, all equal in size, and the SD is the same in every cell.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd",
+            "r2_covariates",
+            "covariates"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "raw",
+                "standardised"
+              ]
+            },
+            "means": {
+              "description": "Expected adjusted cell means (adjusted for the covariates): one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "sd": {
+              "description": "Standard deviation of the outcome within each cell, before adjusting for the covariates (the same in every cell).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r2_covariates": {
+              "description": "Proportion of the outcome's variance the covariates explain (R-squared).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "covariates": {
+              "description": "Number of covariates.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "interaction"
+              ]
             },
             "method": {
               "const": "ancova_f"

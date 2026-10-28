@@ -102,6 +102,10 @@ within factor B, at least one with three or more levels (for example
 group by time with three timepoints), on Superpower's \code{ANOVA_exact()}
 (design \code{"kb*mw"}), with one SD and one correlation, so sphericity holds.
 \code{population > means} has one row per level of A, one mean per level of B.
+Two-way ANCOVA (template \code{factorial_ancova}): two between factors, either
+main effect or the interaction, by pwrss's \code{power.f.ancova.shieh()}
+(Shieh's method) with the effect's rows of \code{factorial.contrasts()};
+adjusted cell means laid out as for \code{mixed}, equal cells.
 Two-factor ANOVA with both factors between participants, beyond 2 x 2
 (template \code{factorial_between}, design \code{"kb*mb"}), or both within
 participants, 2 x 2 or larger (template \code{factorial_within}, design

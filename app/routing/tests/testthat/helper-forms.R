@@ -47,7 +47,7 @@ form_examples <- list(
                effect = "interaction", method = "exact"), closing_ok),
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
-  E23 = c(list(A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
+  E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1"), closing_ok),
   E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
@@ -79,3 +79,11 @@ form_examples <- list(
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)
 )
+
+# E23 with two crossed factors (a two-way ANCOVA): the same screen, another
+# template.
+form_example_ancova_two <- modifyList(form_examples$E23, list(
+  factors = "factorial_ancova", A_levels = "Control, Mindfulness",
+  B_label = "Delivery", B_levels = "In person, Online, App",
+  cell_means = "20, 20, 20\n16, 17, 18", effect = "interaction"
+))

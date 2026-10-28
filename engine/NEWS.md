@@ -17,6 +17,18 @@
   `test-validation-anova-factorial.R` with placeholders, in the `anova`
   chunk.
 
+* Two-way ANCOVA (template `factorial_anova/factorial_ancova`): two
+  crossed between factors, adjusting for one or more covariates, either
+  main effect or the interaction, by pwrss's `power.f.ancova.shieh()`
+  (Shieh's method) with `factor.levels = c(k, m)` and the effect's rows of
+  pwrss's `factorial.contrasts()` (pwrss alone tests only the interaction).
+  Equal cells, one SD; power and the required sample size. Agrees with
+  Superpower's `ANCOVA_analytic()` in the unit tests
+  (`test-backend-factorial-ancova.R`); validation file
+  `test-validation-anova-ancova.R` with placeholders, chunk `ancova`. New
+  example spec `anova_factorial_ancova.json`. In the app, the ANCOVA card
+  (E23) asks whether the groups are formed by one factor or two.
+
 * App: cards E20 (two-factor within, now 2 x 2 or larger) and E21
   (two-factor between beyond 2 x 2) calculate, with input screens taking
   the cell means as a table. The design finder sends "both factors:

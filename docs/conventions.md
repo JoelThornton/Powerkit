@@ -924,7 +924,14 @@ Wired into the app on 18 October 2026 (E25, E26).*
   pwrss's `power.f.ancova.shieh()`, Shieh's (2020) method, which
   Superpower's `power_oneway_ancova(type = "exact")` also uses (its help
   names Keppel's approach as the approximate one); a test shows the two
-  agree. Whether it matches G*Power's ANCOVA is still to check.
+  agree. Whether it matches G*Power's ANCOVA is still to check. The
+  two-way ANCOVA (template `factorial_ancova`, 28 October 2026) uses the
+  same function with `factor.levels = c(k, m)`. Given no contrast matrix,
+  pwrss tests only the highest interaction, so powerkit passes the rows of
+  pwrss's own `factorial.contrasts()` (deviation coding) for the effect
+  asked for: rows `A1`, ... for A, `B1`, ... for B, `A1:B1`, ... for the
+  interaction. Each effect agrees with Superpower's `ANCOVA_analytic()`
+  in a test [powerkit, `engine/R/backend-pwrss.R`].
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

@@ -32,6 +32,7 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/factorial_between" = ,
     "factorial_anova/factorial_within" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,
+    "factorial_anova/factorial_ancova" = ,
     "factorial_anova/oneway_contrast" = ,
     "basic_test/one_proportion" = ,
     "basic_test/mcnemar" = ,

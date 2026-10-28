@@ -3308,3 +3308,17 @@ for the between design. No new method choice: unequal SDs or
 correlations, a sphericity correction and the MANOVA approach stay with
 `next.md`, item 5; three-factor designs are not covered yet, and E21's
 card says so.
+
+## 2026-10-28 · Two-way ANCOVA: Shieh's method, the effect chosen by pwrss's own contrasts
+
+**What.** The ANCOVA card (E23) covers two crossed between-participants
+factors as well as one, for either main effect or the interaction.
+
+**Method.** The one-way ANCOVA's method (Shieh, 2020, through pwrss's
+`power.f.ancova.shieh()`), with `factor.levels = c(k, m)`. Given no
+contrast matrix pwrss tests only the highest interaction, so powerkit
+passes the effect's rows of pwrss's own `factorial.contrasts()`
+(deviation coding). Superpower's `ANCOVA_analytic()`, which also uses
+Shieh's method, agrees for every effect in the unit tests. Equal cells
+and one SD, as for the one-way design; three or more factors are not
+offered.

@@ -1,0 +1,63 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "factorial_ancova",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Intervention",
+      "levels": [
+        "Control",
+        "Mindfulness"
+      ]
+    },
+    "B": {
+      "type": "between_factor",
+      "label": "Delivery",
+      "levels": [
+        "In person",
+        "Online",
+        "App"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Anxiety after"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        20,
+        20,
+        20
+      ],
+      [
+        16,
+        17,
+        18
+      ]
+    ],
+    "sd": 6,
+    "r2_covariates": 0.36,
+    "covariates": 1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: mindfulness helping 2 points less online and in the app than in person, adjusting for anxiety before, is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "ancova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261018
+  }
+}
