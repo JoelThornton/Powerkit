@@ -346,8 +346,7 @@
       "type": "object",
       "required": [
         "effect",
-        "method",
-        "alpha"
+        "method"
       ],
       "additionalProperties": false,
       "properties": {
@@ -370,7 +369,7 @@
           }
         },
         "alpha": {
-          "description": "Significance level (two-sided unless 'alternative' says otherwise).",
+          "description": "Significance level (two-sided unless 'alternative' says otherwise). Required for every test except the Bayes factor t-tests (method 'bayes_factor'), which have none.",
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 0.5
@@ -382,8 +381,46 @@
             "greater",
             "less"
           ]
+        },
+        "evidence_threshold": {
+          "description": "Bayes factor t-tests only (method 'bayes_factor'): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "type": "number",
+          "exclusiveMinimum": 1
+        },
+        "prior_scale": {
+          "description": "Bayes factor t-tests only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))).",
+          "type": "number",
+          "exclusiveMinimum": 0
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "method"
+            ],
+            "properties": {
+              "method": {
+                "const": "bayes_factor"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "alpha": false
+            }
+          },
+          "else": {
+            "required": [
+              "alpha"
+            ],
+            "properties": {
+              "evidence_threshold": false,
+              "prior_scale": false
+            }
+          }
+        }
+      ]
     },
     "goal": {
       "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'.",
@@ -961,6 +998,11 @@
                 "normal",
                 "heavy_tailed"
               ]
+            },
+            "effect_sd": {
+              "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (d) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
+              "type": "number",
+              "minimum": 0
             }
           },
           "allOf": [
@@ -998,7 +1040,8 @@
             "method": {
               "enum": [
                 "t_test",
-                "wilcoxon_signed_rank"
+                "wilcoxon_signed_rank",
+                "bayes_factor"
               ]
             }
           }
@@ -1072,6 +1115,11 @@
                 "skewed",
                 "heavy_tailed"
               ]
+            },
+            "effect_sd": {
+              "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (d) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
+              "type": "number",
+              "minimum": 0
             }
           },
           "allOf": [
@@ -1110,7 +1158,8 @@
               "enum": [
                 "student_t",
                 "welch_t",
-                "mann_whitney"
+                "mann_whitney",
+                "bayes_factor"
               ]
             }
           }
@@ -1223,6 +1272,11 @@
                 "normal",
                 "heavy_tailed"
               ]
+            },
+            "effect_sd": {
+              "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (dz) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
+              "type": "number",
+              "minimum": 0
             }
           },
           "allOf": [
@@ -1260,7 +1314,8 @@
             "method": {
               "enum": [
                 "t_test",
-                "wilcoxon_signed_rank"
+                "wilcoxon_signed_rank",
+                "bayes_factor"
               ]
             }
           }

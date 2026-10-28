@@ -755,6 +755,34 @@ as an experimental option, for a statistician's check
   detectable effect (`app/routing/forms.yaml`, `departures`, key "14") and
   in its methods paragraph.
 
+### 15. Bayes factor t-tests: plan for exactly the effect entered, not bfpwr's default design prior
+
+**Recommended, awaiting the maintainer's decision** (`docs/decisions.md`,
+28 October 2026).
+
+- **Established convention:** bfpwr's `powertbf01()` takes a normal
+  "design prior" on the true effect, with SD `dpsd`, which by default is
+  the analysis prior's scale (`dpsd = pscale`, 1/sqrt(2)): the true effect
+  is spread as widely as the prior used to analyse the data. A usual power
+  analysis (G\*Power, pwr, and powerkit's other designs) plans for one
+  effect.
+- **powerkit:** plans for exactly the effect entered (`population >
+  effect_sd` 0) unless the user gives an SD for how unsure they are, so
+  the Bayes factor version of a t-test answers the same question as the
+  t-test it replaces.
+- **Size:** for d = 0.5 and BF10 of at least 10 (two groups, two-sided,
+  prior scale 0.707), 80% needs 120 per group with powerkit's default and
+  372 per group with bfpwr's; at 120 per group bfpwr's default gives 67%
+  (bfpwr 0.1.6).
+- **Test:** `test-backend-bayes.R`, "the threshold, the prior's scale, the
+  design prior and the direction reach bfpwr" (the design prior SD is
+  passed through); the size above is from `ntbf01()` and `powertbf01()`
+  with `dpsd` 0 and 1/sqrt(2).
+- **Shown to users:** on the one-sample, paired and two-group result
+  screens when the Bayes factor t-test is chosen and the SD is left at 0
+  (`app/routing/forms.yaml`, `departures`, key "15"), and in the methods
+  paragraph's full version.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -938,6 +966,32 @@ Wired into the app on 18 October 2026 (E25, E26).*
   by adjusting the t-test's power for the test's efficiency as G\*Power
   does, so the two can give slightly different sample sizes."
   (`known_differences_methods`, key "5").
+
+### 6. Bayes factor t-tests: bfpwr's closed form against simulated Bayes factors
+
+- **What differs:** bfpwr computes the probability that the Bayes factor
+  passes the threshold by treating the effect estimate as normally
+  distributed with standard error 1 / sqrt(effective n) (`ptbf01()`'s
+  source, bfpwr 0.1.6), a large-sample approximation to the t statistic.
+  Simulating the Bayes factor itself, as BFDA does, uses the t statistic's
+  own distribution.
+- **Size:** close in larger samples (within simulation error in the
+  validation checks from 100 people in one group, or 50 per group in two),
+  and a little lower in small ones. For a one-sample test with d = 0.4 and
+  BF10 of at least 10: 7.6% against about 11% simulated with 20 people,
+  and 28.3% against about 30% with 40.
+- **Test:** `engine/tests/testthat/test-validation-bayes-factor.R` (chunk
+  `bayes`), "bfpwr's normal approximation gives a little less power than
+  simulation" (one sample, 20 and 40 people), against Bayes factors from
+  `bfpwr::tbf01()` on simulated t statistics.
+- **Shown to users:** on the one-sample, paired and two-group result
+  screens when the Bayes factor t-test is chosen (`app/routing/forms.yaml`,
+  `known_differences`, key "6").
+- **Methods paragraph:** "The probability of strong evidence was
+  calculated in closed form, which treats the effect estimate as normally
+  distributed; in small samples this gives slightly lower values than
+  simulating the Bayes factor itself." (`known_differences_methods`, key
+  "6").
 
 ## Not departures, but worth stating
 

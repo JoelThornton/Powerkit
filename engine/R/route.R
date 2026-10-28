@@ -50,7 +50,9 @@ route_spec <- function(spec, seed = NULL) {
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = pwrss_backend(spec, seed),
-    "basic_test/independent_t" = if (pwrss_covers(spec)) {
+    "basic_test/independent_t" = if (bayes_factor_test(spec)) {
+      bfpwr_backend(spec, seed)
+    } else if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
@@ -58,7 +60,15 @@ route_spec <- function(spec, seed = NULL) {
       spower_backend(spec, seed)
     },
     "basic_test/one_sample_t" = ,
-    "basic_test/paired_t" = ,
+    "basic_test/paired_t" = if (bayes_factor_test(spec)) {
+      bfpwr_backend(spec, seed)
+    } else if (pwrss_covers(spec)) {
+      pwrss_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
+      pwr_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/correlation" = ,
     "basic_test/two_proportions" = if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)

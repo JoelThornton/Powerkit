@@ -189,6 +189,7 @@ departures:
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): the established tools calculate each analysis on its own, from its own inputs, and the chance that several analyses all succeed has to be worked out from their separate powers, as if they were unrelated. Here one population model generates every simulated study and each analysis is fitted to the same data, so the analyses' inputs can't contradict each other and the joint chance is counted directly. Each analysis's own power agrees with its separate calculation from the values the population implies, within simulation error in powerkit's checks; where the population has a term an analysis leaves out (for example, an interaction when testing the correlation of X and Y), the simulation includes its effect and the separate calculation doesn't."
   "14": "Smallest detectable effect when only one condition is in groups: powerkit finds the d at which powertools' power formula (irgtt.cont(), a t test) reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 77% power rather than 80%; powerkit gives 0.352."
+  "15": "Bayes factor t-tests: powerkit plans for exactly the effect you entered unless you say how unsure you are about it (a design prior SD of 0), as a usual power analysis does. bfpwr's own default spreads the true effect as widely as the analysis prior (SD 0.707), which needs far more people: for d = 0.5 and BF10 of at least 10, 120 per group give 80% with powerkit's default and 67% with bfpwr's, which needs 372 per group."
   "5": "No continuity correction, as in G*Power; Spower applies Yates' correction by default. In an example with proportions .50 and .65 and 170 per group, power is .818 without the correction and .789 with it."
   "6": "Mediation is fitted with lavaan (maximum likelihood), as power4mome does, not by PROCESS's ordinary least squares. The estimates are identical; the standard errors are slightly smaller (at N = 50, 2% for the a path and 3% for b and c'; at N = 200, under 1%)."
   "7": "Parallel mediators: powerkit lets their residuals correlate, as PROCESS's separate regressions do; lavaan and power4mome fix that correlation at 0 by default. With a residual correlation of 0.4 and N = 200, fixing it at 0 would understate the standard errors of the mediator-to-outcome paths by about 10% and so overstate power."
@@ -212,6 +213,7 @@ known_differences:
   "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
   "4": "Variance tests: powerkit simulates power (Spower's p_var.test()), because no package it builds on has a formula for these tests; G*Power computes them exactly. The simulated answer carries a little random error: about 0.013 in power at 1,000 replications and about 0.004 at 10,000, so the sample size can differ from G*Power's by a participant or two."
   "5": "Rank tests: powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
+  "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -222,13 +224,14 @@ known_differences_methods:
   "3": "The predictor's overlap with the other predictors was allowed for through its R-squared with them; for this case the G*Power manual's example reports a sample size a few per cent larger than this method gives, a difference that has not yet been resolved."
   "4": "Power was estimated by simulation, so it carries Monte Carlo error, whereas G*Power computes this test exactly."
   "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency as G*Power does, so the two can give slightly different sample sizes."
+  "6": "The probability of strong evidence was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
 
 forms:
   E1:
     methods_name: "a one-sample t-test"
-    departures: ["9"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank}
-    known_differences: ["5"]
+    departures: ["9", "15"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
+    known_differences: ["5", "6"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -254,22 +257,34 @@ forms:
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
              shown_if: {field: effect_units, is: raw}}
-      - input: "The t-test or the Wilcoxon signed-rank test"
+      - input: "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated"},
+             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
              help: "The signed-rank test assumes the scores are symmetric, so a skewed shape isn't offered here. The effect stays the same d: the whole distribution shifts by it."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
+             help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
 
   E2:
     methods_name: "an independent-samples t-test"
-    departures: ["9"]
-    known_differences_if_method: {"5": mann_whitney}
-    known_differences: ["5"]
+    departures: ["9", "15"]
+    known_differences_if_method: {"5": mann_whitney, "6": bayes_factor}
+    known_differences: ["5", "6"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -302,16 +317,28 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwr.t.test() (pwr 1.3-0) and Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
-      - input: "Student's or Welch's t-test, or the Mann-Whitney test"
+      - input: "Student's or Welch's t-test, the Mann-Whitney test, or a Bayes factor t-test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated"},
+             choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value"},
              default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: mann_whitney},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
              help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
+             help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
     method_extra:
       # Welch's t-test: Spower's simulation by default, pwrss's formula on
       # request (engine, wave 2).
@@ -322,9 +349,9 @@ forms:
 
   E3:
     methods_name: "a paired-samples t-test"
-    departures: ["9"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank}
-    known_differences: ["5"]
+    departures: ["9", "15"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
+    known_differences: ["5", "6"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -361,16 +388,28 @@ forms:
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
           - {id: raw_r, label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
-      - input: "The t-test or the Wilcoxon signed-rank test"
+      - input: "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated"},
+             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
              help: "The signed-rank test assumes people's changes are symmetric, so a skewed shape isn't offered here. The effect stays the same d_z: the whole distribution of changes shifts by it."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
+             help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
 
   E4:
     methods_name: "a Pearson correlation"

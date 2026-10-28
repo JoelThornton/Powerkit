@@ -26,6 +26,7 @@ population_problems <- function(spec) {
     check_allocation_allowed(spec),
     check_method_allowed(spec),
     check_score_shape_allowed(spec),
+    check_bayes_factor(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -97,7 +98,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  !rank_test(spec) && (
+  bayes_factor_test(spec) || !rank_test(spec) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
@@ -108,7 +109,7 @@ exact_available <- function(spec) {
 # Tests with no simulation in powerkit yet: they are computed by formula
 # only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec))
+  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
 }
 
 # Basic tests powerkit computes by simulation only: neither pwr nor pwrss
@@ -125,6 +126,29 @@ spower_only <- function(spec) {
 # groups), simulated with Spower's p_wilcox.test() and p_kruskal.test().
 rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
+}
+
+# Bayes factor t-tests (bfpwr, backend-bfpwr.R): bfpwr takes equal groups
+# only, and the uncertainty about the effect is an input to them alone.
+check_bayes_factor <- function(spec) {
+  if (!bayes_factor_test(spec)) {
+    if (!is.null(spec$population$effect_sd)) {
+      return(paste0(
+        "'population > effect_sd' is only used by the Bayes factor t-tests; ",
+        "remove it, or set 'target_test > method' to 'bayes_factor'."
+      ))
+    }
+    return(character())
+  }
+  ratio <- spec$options$allocation_ratio %||% 1
+  if (!isTRUE(all.equal(ratio, 1))) {
+    return(paste0(
+      "The Bayes factor t-test for two groups is calculated for equal groups ",
+      "only (bfpwr takes one group size), so 'options > allocation_ratio' ",
+      "must be 1."
+    ))
+  }
+  character()
 }
 
 # The shape of the scores is only an input to the rank tests: the t-tests
@@ -1150,7 +1174,7 @@ check_goal <- function(spec, check_effect = TRUE) {
   goal <- spec$goal
   alpha <- spec$target_test$alpha
   problems <- character()
-  if (!is.null(goal$power) && goal$power <= alpha) {
+  if (!is.null(goal$power) && !is.null(alpha) && goal$power <= alpha) {
     problems <- c(problems, sprintf(
       paste0(
         "'goal > power' (%s) must be greater than alpha (%s): even with no ",

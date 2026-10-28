@@ -217,6 +217,10 @@ test_text <- function(spec) {
     return(sprintf("the chi-square test of exact model fit at alpha = %s", alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
+  if (is_bayes_test(spec)) {
+    side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
+    return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
+  }
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
 }
@@ -310,7 +314,7 @@ equivalence_sentences <- function(spec, result) {
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools", "semPower")) {
+  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools", "semPower", "bfpwr")) {
     sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   } else {
     "Superpower's exact dataset, no repeated simulation"
@@ -334,6 +338,10 @@ result_sentences <- function(spec, result) {
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   clusters <- cluster_sentence(result)
   if (!is.null(clusters)) out[["detail"]] <- paste(out[["detail"]], clusters)
+  if (is_bayes_test(spec)) {
+    out <- vapply(out, bayes_wording, character(1))
+    out[["detail"]] <- paste(c(out[["detail"]], bayes_sentence(spec, result)), collapse = " ")
+  }
   sem <- sem_sentence(result)
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
@@ -1002,6 +1010,52 @@ rank_test_name <- function(spec) {
   sprintf("%s, simulated assuming %s", test, shape)
 }
 
+# Bayes factor t-tests: a test version on E1, E2 and E3, calculated by
+# the engine with bfpwr. There is no alpha: "power" is the chance that
+# BF10 reaches the threshold.
+is_bayes_test <- function(spec) identical(spec$target_test$method, "bayes_factor")
+
+bayes_settings_text <- function(spec) {
+  tt <- spec$target_test
+  sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
+    format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
+}
+
+bayes_test_name <- function(spec) {
+  switch(spec$template,
+    one_sample_t = "a one-sample Bayes factor t-test",
+    paired_t = "a paired-samples Bayes factor t-test",
+    independent_t = "an independent-samples Bayes factor t-test")
+}
+
+# Results in Bayes factor terms: what the chance is a chance of, and what
+# the same sample would show if there were no effect (from the engine's
+# bayes summary).
+bayes_wording <- function(text) {
+  text <- gsub("would get a significant result with", "would find strong evidence for the effect with", text, fixed = TRUE)
+  text <- gsub("would get a significant result", "would find strong evidence for the effect", text, fixed = TRUE)
+  text <- gsub("([0-9]+%) power to detect the effect you entered", "a \\1 chance of strong evidence for the effect you entered (its power)", text)
+  text <- gsub("the study has ([0-9]+%) power", "the study has a \\1 chance of strong evidence (its power)", text)
+  # "an 80%", "an 11%", "an 18%".
+  gsub("\\ba ((8[0-9]?|11|18)%)", "an \\1", text, perl = TRUE)
+}
+
+bayes_sentence <- function(spec, result) {
+  b <- result$bayes
+  if (is.null(b)) return(NULL)
+  k <- format(b$evidence_threshold)
+  c(
+    if (b$effect_sd > 0) sprintf("This averages over true effects spread around yours with an SD of %s (the design prior).", format(b$effect_sd)),
+    if (b$evidence_for_null > 0) sprintf(
+      "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
+      whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)
+    ) else sprintf(
+      "If there were no effect, a study of %s couldn't give strong evidence that there is none (BF01 of at least %s): it is too small for that, however the data fall. It would give misleading strong evidence for an effect %s of the time.",
+      whole(b$n), k, percent(b$misleading_evidence)
+    )
+  )
+}
+
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   # Departure 1 is about the interaction's required N only.
@@ -1009,7 +1063,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
-  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  # Departure 15 is about the Bayes factor tests' design prior, when the
+  # user keeps powerkit's default (no uncertainty about the effect).
+  if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test (Spower) doesn't use.
   if (is_rank_test(spec)) keys <- setdiff(keys, "3")
@@ -1155,7 +1212,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
         if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
           "Nothing was simulated, so the seed doesn't change this result in practice."),
       p(class = "result-observed small", not_observed_power),
-      p(class = "result-limits small", power_limits)),
+      p(class = "result-limits small", if (is_bayes_test(spec)) bayes_wording(power_limits) else power_limits)),
     placeholders_at(tree, "result"),
     tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
     tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
@@ -1241,7 +1298,7 @@ writeup_claim <- function(values, spec) {
   switch(values$claim %||% "one",
     one = NULL,
     each = "Each hypothesis supports its own claim, so no correction for multiple tests was applied; each test is powered on its own.",
-    any = sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+    any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     all = {
       k <- claim_tests(values)
@@ -1262,6 +1319,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
+  if (is_bayes_test(spec)) name <- bayes_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
@@ -1276,7 +1334,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     name <- paste("a generic", sub("^an? ", "", sub(" \\(two-sided.*| \\(one-sided.*| at alpha.*", "", generic_test_text(spec))))
     sides <- if (spec$template %in% c("t", "z")) writeup_sides(spec)
   }
-  test <- sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
+  test <- if (!is.null(spec$target_test$alpha)) sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
+  if (is_bayes_test(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
+  }
   if (equivalence) test <- sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
   power_line <- if (equivalence) "Power to show equivalence (the difference lying inside the bounds), if the true difference is as expected, is %.1f%%." else "Power to detect this effect is %.1f%%."
   effect <- writeup_effect(fields, values)
@@ -1341,6 +1404,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         basis)
     }
   )
+  if (is_bayes_test(spec)) {
+    main <- gsub("Power to detect this effect is", "The probability of strong evidence for this effect (its power) is", main, fixed = TRUE)
+    main <- gsub("For a target power of", "For a target probability of strong evidence of", main, fixed = TRUE)
+    main <- gsub("; power at this sample size is", "; the probability at this sample size is", main, fixed = TRUE)
+    main <- gsub("An a priori power analysis", "An a priori Bayes factor design analysis", main, fixed = TRUE)
+    main <- gsub("A power analysis was conducted", "A Bayes factor design analysis was conducted", main, fixed = TRUE)
+    main <- c(main, bayes_sentence(spec, result))
+  }
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), sem_writeup(result))
   recruit <- result$recruitment
@@ -1371,7 +1442,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
 ethics_text <- function(spec, result, fields, values) {
   # Generic tests (E50) have no participants to describe.
   if (identical(spec$design, "generic_test")) return(NA_character_)
-  alpha <- paste0(format(100 * spec$target_test$alpha), "%")
+  alpha <- if (is.null(spec$target_test$alpha)) NA_character_ else paste0(format(100 * spec$target_test$alpha), "%")
   fixed <- identical(values$situation, "fixed")
   effect <- writeup_effect(fields, values)
   reasoning <- writeup_quote(values$just_source)
@@ -1390,6 +1461,10 @@ ethics_text <- function(spec, result, fields, values) {
   if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
     alpha, percent(p), percent(1 - p))
+  # Bayes factor tests: strong evidence, not a significant result.
+  if (is_bayes_test(spec)) chance <- function(p) sprintf(
+    "If that effect is real, the chance that a study of this size finds strong evidence for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
+    format(spec$target_test$evidence_threshold %||% 10), percent(p), percent(1 - p))
   # Model fit: the aim is to find out whether the model is wrong.
   if (identical(spec$design, "sem")) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",

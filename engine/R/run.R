@@ -56,6 +56,13 @@
 #' `ANOVA_exact()`, with means laid out as for `mixed`. `goal > n` is the
 #' total number of participants (split equally across the cells for the
 #' between design; each in every cell for the within design).
+#' Bayes factor t-tests (`target_test > method` `"bayes_factor"` for
+#' `one_sample_t`, `paired_t` and `independent_t`, equal groups): power is
+#' the probability that the JZS Bayes factor BF10 reaches
+#' `target_test > evidence_threshold` (default 10), by bfpwr's
+#' `powertbf01()` in closed form, with a Cauchy analysis prior of scale
+#' `target_test > prior_scale` (default 1/sqrt(2)) and a normal design
+#' prior with SD `population > effect_sd` (default 0). No alpha.
 #' Three-factor ANOVA (template `factorial_three`): factors A, B and C, each
 #' between or within participants (between factors first), means as a
 #' nested A by B by C array, one SD and one correlation between every pair
@@ -280,6 +287,7 @@ run_spec <- function(spec) {
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),
       sem = sem_summary(spec),
+      bayes = bayes_summary(spec, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),

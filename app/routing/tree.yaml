@@ -764,6 +764,8 @@ established_tools_text: "Established tools exist for this design; powerkit hasn'
 # rank_test_simulated_text replaces it.
 rank_test_text: "Planning {rank_test} instead? The figure here is for the parametric test, and only approximates the rank-based one: how closely depends on how your data are distributed, and powerkit hasn't checked it."
 rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
+# On the t-test cards (`bayes_test: true`): the Bayes factor version.
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor t-test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by formula with bfpwr."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -811,12 +813,13 @@ endpoints:
   E1:
     rank_test: "the Wilcoxon signed-rank test"
     rank_test_simulated: true
+    bayes_test: true
     doc_name: "One-sample t-test"
     plain_name: "Compare one group's average with a fixed value"
     template: "basic_test / one_sample_t"
-    backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test"
+    backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
-    inputs: ["Your outcome's name", "The effect: Cohen's d, or the means and SD in your measure's own units", "The t-test or the Wilcoxon signed-rank test"]
+    inputs: ["Your outcome's name", "The effect: Cohen's d, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -824,12 +827,13 @@ endpoints:
   E2:
     rank_test: "the Mann-Whitney test"
     rank_test_simulated: true
+    bayes_test: true
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
     plain_name: "Compare two separate groups on a score"
     template: "basic_test / independent_t"
-    backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test"
+    backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, or the Mann-Whitney test"]
+    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney test, or a Bayes factor t-test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -837,12 +841,13 @@ endpoints:
   E3:
     rank_test: "the Wilcoxon signed-rank test"
     rank_test_simulated: true
+    bayes_test: true
     doc_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
     template: "basic_test / paired_t"
-    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test"
+    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
-    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test or the Wilcoxon signed-rank test"]
+    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -1513,9 +1518,12 @@ endpoints:
     doc_name: "Bayes factor design (any design)"
     plain_name: "Plan a study analysed with Bayes factors"
     status: not_in_powerkit
+    not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
+    card_points:
+      - "For a one-sample, paired or two-group t-test, powerkit plans this itself: on that design's card, choose the Bayes factor t-test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr."
     inputs: ["Prior and expected effect"]
     packages:
-      - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors."}
+      - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
       - {name: BFDA, url: "https://github.com/nicebread/BFDA", what: "Bayes factor design analysis by simulation, fixed-N and sequential (GitHub, not on CRAN)."}
     tier: later
 

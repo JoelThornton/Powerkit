@@ -740,6 +740,46 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
   expect_false("skewed" %in% names(shape$choices))
 })
 
+test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
+  skip_without_run()
+  for (ep in c("E1", "E2", "E3")) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707",
+                                                   effect_sd = "0", just_source = "A meta-analysis.", alpha = NULL))
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    # The significance level isn't asked for the Bayes factor version.
+    alpha <- Filter(function(f) identical(f$id, "alpha"), fields)[[1]]
+    expect_false(field_applies(alpha, values), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_null(spec$target_test$alpha, info = ep)
+    expect_identical(spec$target_test$evidence_threshold, 10, info = ep)
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend, "bfpwr", info = ep)
+    words <- result_sentences(calc$spec, calc$result)
+    expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE, info = ep)
+    expect_match(words[["detail"]], "If there were no effect", fixed = TRUE, info = ep)
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
+    expect_match(html, "treating the effect estimate as normally distributed", fixed = TRUE, info = ep) # Known difference 6
+    expect_match(html, "plans for exactly the effect you entered", fixed = TRUE, info = ep)            # Departure 15
+    expect_no_match(html, "Calculated with a formula", fixed = TRUE, info = ep)                        # Departure 9
+    known <- vapply(known_difference_keys(forms, ep, calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
+    w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, values, known_methods = known)
+    expect_match(w[["short"]], "Bayes factor design analysis", fixed = TRUE, info = ep)
+    expect_match(w[["short"]], "BF10 ≥ 10", fixed = TRUE, info = ep)
+    expect_no_match(w[["short"]], "α", fixed = TRUE, info = ep)
+    expect_no_match(w[["ethics"]], "NA", fixed = TRUE, info = ep)
+    expect_match(w[["ethics"]], "strong evidence", fixed = TRUE, info = ep)
+  }
+  # With uncertainty about the effect, Departure 15 (the default) doesn't apply.
+  values <- modifyList(form_examples$E1, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707", effect_sd = "0.1", alpha = NULL))
+  spec <- build_spec(forms, "E1", form_fields(form_groups(forms, "E1")), values)
+  expect_false("15" %in% names(departures_for(forms, "E1", spec)))
+  # Other test versions keep alpha and have no Known difference 6.
+  spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples$E2)
+  expect_false("6" %in% known_difference_keys(forms, "E2", spec))
+  expect_false("15" %in% names(departures_for(forms, "E2", spec)))
+})
+
 test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E5"))

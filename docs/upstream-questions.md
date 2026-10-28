@@ -33,6 +33,20 @@ Questions about powertools 1.0.0, from its source (opened 28 October
    RsqW 0.5, 1.476 against 1.475). Is that the intended reading? powerkit
    asks for them that way.
 
+## bfpwr
+
+Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
+
+1. **The normal approximation for t-test Bayes factors.** `ptbf01()`
+   finds the critical effect estimates with `tbf01()` and then takes their
+   probability from a normal distribution with SD sqrt(1 / effective n +
+   `dpsd`^2), so the t statistic's degrees of freedom don't enter. Against
+   Bayes factors computed on simulated t statistics this gives slightly
+   lower power at small samples (Known difference 6 in
+   `docs/conventions.md`). Is an exact version (the noncentral t, or a
+   t-based design prior) planned, or is the approximation the intended
+   method? powerkit uses the function as it is and states the difference.
+
 ## power4mome
 
 1. **Reproducibility with a product term.** For a model with a product

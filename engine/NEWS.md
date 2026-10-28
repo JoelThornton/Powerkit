@@ -1,3 +1,28 @@
+# powerkit 0.20.0
+
+* Bayes factor t-tests (one sample, paired, two groups): templates
+  `one_sample_t`, `paired_t` and `independent_t` with
+  `target_test$method = "bayes_factor"`, computed in closed form by bfpwr's
+  `powertbf01()` (new dependency, bfpwr 0.1.6; Pawel & Held, 2025). Power
+  is the probability that the JZS Bayes factor BF10 reaches
+  `target_test$evidence_threshold` (default 10, bfpwr's), with a Cauchy
+  analysis prior of scale `target_test$prior_scale` (default 1/sqrt(2),
+  bfpwr's) and a normal design prior on the effect with SD
+  `population$effect_sd` (default 0: exactly the effect entered;
+  Departure 15). These tests have no alpha (the schema refuses one), no
+  simulation and no sensitivity goal; two groups must be equal. The result
+  gains `bayes`: the settings and, at the analysed n, the probability of
+  strong evidence for no effect and of misleading strong evidence for an
+  effect when there is none (`ptbf01()`). Exported scripts call bfpwr.
+  bfpwr treats the effect estimate as normal, so at small samples it gives
+  a little less power than simulated Bayes factors (Known difference 6).
+  Unit tests against direct bfpwr calls (`test-backend-bayes.R`);
+  validation file `test-validation-bayes-factor.R` (chunk `bayes`) with a
+  published placeholder, checks against simulated Bayes factors, the
+  no-effect side and the size of Known difference 6. In the app, the
+  one-sample, paired and two-group cards offer the Bayes factor t-test as a
+  test version.
+
 # powerkit 0.19.0
 
 * Three-factor ANOVA (design `factorial_anova`, template
