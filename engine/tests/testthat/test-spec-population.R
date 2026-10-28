@@ -262,6 +262,8 @@ zero_effect_cases <- list(
   # Parallel lines: no interaction, though both main effects exist.
   anova_factorial_ancova = function(s) within(s, population$means <- list(list(20, 19, 18), list(17, 16, 15))),
   anova_factorial_between = function(s) within(s, population$means <- list(list(0, 0.1, 0.2), list(0.3, 0.4, 0.5))),
+  # Additive means: no three-way interaction, though every main effect exists.
+  anova_factorial_three = function(s) within(s, population$means <- list(list(list(80, 60), list(81, 61)), list(list(82, 62), list(83, 63)))),
   regression_r2_zero = function(s) within(s, population$r2 <- 0),
   regression_r2_increase = function(s) within(s, population$r2_full <- population$r2_reduced),
   one_proportion = function(s) within(s, population$p <- population$p0),
