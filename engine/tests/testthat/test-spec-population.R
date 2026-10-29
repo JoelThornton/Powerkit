@@ -307,7 +307,7 @@ test_that("a zero target effect can't be the basis of a sample size search", {
   # schema requires), so they aren't in this list. Nor is model fit for a
   # structural equation model: the schema refuses an RMSEA of 0, because
   # semPower does.
-  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|sem)_", example_spec_names(), value = TRUE, invert = TRUE))
+  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|noninf|sem)_", example_spec_names(), value = TRUE, invert = TRUE))
   for (name in names(zero_effect_cases)) {
     spec <- zero_effect_cases[[name]](example_spec(name))
     spec$goal <- list(type = "sample_size", power = 0.8)
