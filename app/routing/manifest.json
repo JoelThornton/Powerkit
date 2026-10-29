@@ -4542,9 +4542,9 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.20.0",
+        "Version": "0.20.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to validated backends ('pwr', 'Spower', 'power4mome',\n    'Superpower', 'InteractionPoweR') to estimate power, required sample size\n    and sensitivity. This development version runs basic tests (by exact\n    formula via 'pwr', or simulation via 'Spower'), 2x2 between and 2x2\n    mixed ANOVA designs (via Superpower),\n    two-way regression interactions (via InteractionPoweR), and simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via power4mome),\n    cluster-randomised trials (via 'powertools'), and the fit of structural\n    equation models (via 'semPower').",
+        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    tests (via 'TOSTER') and the fit of structural equation models (via\n    'semPower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
@@ -4557,19 +4557,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "422175bb98490518797548b0d8834930be330fa7",
-        "RemoteSha": "422175bb98490518797548b0d8834930be330fa7",
+        "RemoteRef": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
+        "RemoteSha": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "422175bb98490518797548b0d8834930be330fa7",
-        "GithubSHA1": "422175bb98490518797548b0d8834930be330fa7",
+        "GithubRef": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
+        "GithubSHA1": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-28 23:39:11 UTC; runner",
+        "Packaged": "2026-10-29 00:57:49 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-28 23:39:15 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-29 00:57:53 UTC; unix"
       }
     },
     "powertools": {
@@ -6252,7 +6252,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "245b8ad42a1d6c02242a8cea0d810248"
+      "checksum": "c6ba4a59348b268fff1bff5a4e7bd7c9"
     },
     "forms.yaml": {
       "checksum": "9683ece045b985965a38af6ff328b603"
@@ -6264,10 +6264,10 @@
       "checksum": "42102805122e9bfd028022d0751264d5"
     },
     "R/forms_ui.R": {
-      "checksum": "e9d054ece3cc337b42a1a5cf1ade4164"
+      "checksum": "f8d04b8589f94a830b4d38258b87454a"
     },
     "R/forms.R": {
-      "checksum": "3bb678e8928b745d0fc54b6f9dbc729b"
+      "checksum": "e9c9d152a04dd2b53d643ad69ce471ed"
     },
     "R/labs.R": {
       "checksum": "defe8fc51eb2151ecfbb75ab14bde431"
@@ -6294,7 +6294,7 @@
       "checksum": "7c93e4bc9af7cbfd4687ba6d43671576"
     },
     "README.md": {
-      "checksum": "cb0e69557df6c6d21567f413d7e23c59"
+      "checksum": "25d3acccc5da1b89e468c2d96622f548"
     },
     "tests/testthat.R": {
       "checksum": "3d9842b2a978788150823956f93ba0bd"
@@ -6318,7 +6318,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "39f115f52da21b03f0250207efe8e5d2"
+      "checksum": "dfdcac983159cf79b8be31a99babdccd"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6333,7 +6333,7 @@
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
     },
     "tests/testthat/test-repo-consistency.R": {
-      "checksum": "d4407e05b509f35eeeb8dbb6f2956243"
+      "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
       "checksum": "0c5e33837e6758fee3b4c91fcc5c82e6"
@@ -6372,7 +6372,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "060af59b5bbee16b0b196a223edc639c"
+      "checksum": "cb90e1f6e0ab73707048d845874b8315"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
