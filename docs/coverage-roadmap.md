@@ -532,6 +532,15 @@ until it goes through
 - **Comparing two ROC curves** (DeLong's test), where the ROC row covers
   one curve against a benchmark.
 - **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F: in the app as E18's test version since 29 October 2026 (Spower, by simulation).
+- **From a review of the tests psychologists most often report (29
+  October 2026; `next.md` items 22 to 27):** the Brunner-Munzel test,
+  the aligned rank transform for factorial designs, Quade's
+  non-parametric ANCOVA, PERMANOVA; pairwise follow-ups after an ANOVA
+  (Tukey's HSD, Games-Howell, Dunnett, simple effects; see C1); robust
+  (HC3 or HC4) and quantile regression; McDonald's omega, Fleiss' kappa
+  and Krippendorff's alpha beside B50; and signal detection sensitivity
+  (d'). Effect-size formats users bring (d_rm, d_av, omega squared,
+  generalised eta squared) belong to C9.
 - **Average power under FDR control** (Jung; Liu and Hwang): the sample
   size at which a stated share of truly active channels or voxels is
   detected at q = .05. Different in kind from the per-test corrections in
