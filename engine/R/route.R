@@ -27,8 +27,8 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/2x2_between" = ,
     "factorial_anova/2x2_mixed" = ,
     "factorial_anova/mixed" = ,
-    "factorial_anova/oneway_between" = if (rank_test(spec)) {
-      # The Kruskal-Wallis test, simulated with Spower.
+    "factorial_anova/oneway_between" = if (rank_test(spec) || welch_anova(spec)) {
+      # The Kruskal-Wallis test and Welch's F, simulated with Spower.
       spower_backend(spec, seed)
     } else {
       superpower_backend(spec, seed)

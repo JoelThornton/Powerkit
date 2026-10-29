@@ -739,11 +739,15 @@ forms:
           - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
-      - input: "The ANOVA or the Kruskal-Wallis test"
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: test_version, is_not: welch_f}}
+          - {id: sds, writeup_label: "group SDs", label: "SDs: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.sds, effect: true,
+             shown_if: {field: test_version, is: welch_f},
+             help: "In the same units as the means. Welch's F doesn't assume the groups vary equally."}
+      - input: "The ANOVA, Welch's F or the Kruskal-Wallis test"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "One-way ANOVA (F test)", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated"},
+             choices: {anova_f: "One-way ANOVA (F test)", welch_f: "Welch's F test (the groups' SDs may differ), simulated", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated"},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: kruskal_wallis},

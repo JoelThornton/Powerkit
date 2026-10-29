@@ -1023,16 +1023,17 @@ endpoints:
     doc_name: "One-way ANOVA (different people), omnibus"
     plain_name: "Any difference among three or more groups"
     template: "factorial_anova / oneway_between"
-    backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_kruskal.test() for the Kruskal-Wallis test"
-    method: "Exact dataset (no repeated simulation); simulation for the Kruskal-Wallis test"
+    backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_anova.test(var.equal = FALSE) for Welch's F; Spower's p_kruskal.test() for the Kruskal-Wallis test"
+    method: "Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test"
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
-      - "powerkit calculates this for different people in each group, with equal group sizes and the same SD in every group."
+      - "powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
+      - "Expect the groups to vary by different amounts? Choose Welch's F as the test version on the next screen and give each group's SD: powerkit simulates it with Spower."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
-    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA or the Kruskal-Wallis test"]
+    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F or the Kruskal-Wallis test"]
     tier: v2
-    alternatives: ["Welch's one-way ANOVA", "planned contrasts", "the Kruskal-Wallis test"]
+    alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
   E19:
     doc_name: "Planned contrast"
     plain_name: "A specific comparison among three or more groups"

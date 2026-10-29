@@ -243,8 +243,9 @@ design_description <- function(spec) {
       label("Y"), comment_text(unlist(v$Y$levels)[2]), label("X"), levels("X")
     ),
     "factorial_anova/oneway_between" = sprintf(
-      "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "one-way between-participants ANOVA of %s across the %d groups of %s (%s); %s",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      if (welch_anova(spec)) "Welch's F test (variances not assumed equal)" else "omnibus F test"
     ),
     "factorial_anova/oneway_within" = sprintf(
       "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
@@ -992,6 +993,13 @@ spower_script_inputs <- function(spec) {
     "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
     r_code(ratio), lv("X", 2), lv("X", 1)
   )
+  if (welch_anova(spec)) {
+    groups <- paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    return(c(
+      sprintf("means <- %s # mean of %s in each group (%s)", r_code(as.numeric(unlist(pop$means))), comment_text(v$Y$label), groups),
+      sprintf("sds <- %s # SD in each group, in the same units", r_code(welch_sds(spec)))
+    ))
+  }
   switch(
     spec$template,
     one_sample_t = sprintf(
@@ -1037,7 +1045,7 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
-  if (rank_test(spec) && spec$template == "oneway_between") {
+  if (spec$template == "oneway_between") {
     return(c(
       "  # Spower's n is the size of each group; the groups are equal.",
       "  n_group <- batch_n / length(means)"
@@ -1067,6 +1075,13 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
   welch <- identical(spec$target_test$method, "welch_t")
   args <- switch(
     spec$template,
+    oneway_between = c(
+      "n = n_group, # size of each group",
+      "k = length(means), # number of groups",
+      "means = means,",
+      "sds = sds,",
+      "var.equal = FALSE # Welch's F test (stats::oneway.test())"
+    ),
     one_sample_t = c(
       "n = batch_n, # sample size",
       "d = d, # Cohen's d",

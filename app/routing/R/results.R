@@ -1120,8 +1120,8 @@ departures_for <- function(forms, ep_id, spec) {
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
-  # Kruskal-Wallis test (Spower) doesn't use.
-  if (is_rank_test(spec)) keys <- setdiff(keys, "3")
+  # Kruskal-Wallis test and Welch's F (Spower) don't use.
+  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "3")
   # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
   # test's departures, nor the continuity correction, apply.
   if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
@@ -1371,6 +1371,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
+  if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))

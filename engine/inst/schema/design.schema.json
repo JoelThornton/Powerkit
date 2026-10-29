@@ -1539,7 +1539,8 @@
                       "anova_f",
                       "ancova_f",
                       "contrast_t",
-                      "kruskal_wallis"
+                      "kruskal_wallis",
+                      "welch_f"
                     ]
                   }
                 }
@@ -2693,8 +2694,7 @@
         "population": {
           "required": [
             "metric",
-            "means",
-            "sd"
+            "means"
           ],
           "additionalProperties": false,
           "properties": {
@@ -2717,6 +2717,15 @@
               "type": "number",
               "exclusiveMinimum": 0
             },
+            "sds": {
+              "description": "Welch's F only (target_test > method 'welch_f'): the SD of each group, in the order of the factor's levels, in the means' units. Give this or 'sd' (the same SD in every group).",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
             "score_shape": {
               "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
@@ -2725,7 +2734,19 @@
                 "heavy_tailed"
               ]
             }
-          }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "sd"
+              ]
+            },
+            {
+              "required": [
+                "sds"
+              ]
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -2735,7 +2756,8 @@
             "method": {
               "enum": [
                 "anova_f",
-                "kruskal_wallis"
+                "kruskal_wallis",
+                "welch_f"
               ]
             }
           }
