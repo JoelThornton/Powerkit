@@ -14,7 +14,7 @@ exact_power_direct <- function(design, n, mu, sd, r = 0, effect = "a:b") {
 test_that("a fixed-n run returns the standard result object", {
   result <- run_spec(small_run_spec("anova_2x2_between", goal = list(type = "power", n = 80)))
   expect_s3_class(result, "powerkit_result")
-  expect_named(result, c("goal_type", "curve", "n_required", "sensitivity", "effect_from_units", "safeguard", "recruitment", "clusters", "sem", "bayes", "manova", "check_run", "provenance"))
+  expect_named(result, c("goal_type", "curve", "n_required", "sensitivity", "effect_from_units", "safeguard", "recruitment", "clusters", "sem", "bayes", "manova", "details", "check_run", "provenance"))
   expect_identical(result$recruitment, NA) # no attrition given
   expect_equal(result$goal_type, "power")
   expect_equal(result$curve, data.frame(n = 80, power = result$curve$power, mcse = 0))
@@ -186,7 +186,7 @@ test_that("a simulation sample-size run returns a curve and an interval for n", 
     goal = list(type = "sample_size", power = 0.8)
   )
   result <- run_quietly(spec)
-  expect_named(result$n_required, c("n", "lower", "upper"))
+  expect_named(result$n_required, c("n", "lower", "upper", "power", "power_lower", "power_upper"))
   expect_true(result$n_required$lower <= result$n_required$n)
   expect_true(result$n_required$n <= result$n_required$upper)
   expect_true(nrow(result$curve) >= 5)
