@@ -681,7 +681,11 @@ add_recruitment_section <- function(lines, spec, result) {
       sprintf("cluster_size <- %s # participants analysed in each group of the grouped condition", r_code(spec$population$cluster_size)),
       "groups_analysed <- c(rep(cluster_size, n_analysed / cluster_size / 2), n_analysed / 2) # its groups, then the other condition"
     ),
-    "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
+    "2x2_between" = if (unequal_cells(spec)) {
+      sprintf("groups_analysed <- n_analysed * %1$s / sum(%1$s) # the four cells, in the ratio given", r_code(cell_ratio_vector(spec)))
+    } else {
+      "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells"
+    },
     factorial_between = ,
     factorial = ,
     factorial_ancova = sprintf(
@@ -1462,7 +1466,11 @@ superpower_script <- function(spec, result) {
     "  set.seed(seed)",
     "  ANOVA_design(",
     "    design = design_string,",
-    "    n = n_total / groups, # Superpower's n is per between-participants group",
+    if (is.null(inputs$cell_ratio)) {
+      "    n = n_total / groups, # Superpower's n is per between-participants group"
+    } else {
+      "    n = n_total * cell_ratio / sum(cell_ratio), # Superpower's n for each cell: unequal cells"
+    },
     "    mu = means,",
     "    sd = cell_sd,",
     "    r = r,",
@@ -1623,7 +1631,12 @@ superpower_script_inputs <- function(spec, inputs) {
         "correlation between the two measurements of b"
     ),
     sprintf(
-      "groups <- %s # between-participants groups: the total n is split equally across them", inputs$groups
+      "groups <- %s # between-participants groups: %s", inputs$groups,
+      if (is.null(inputs$cell_ratio)) "the total n is split equally across them" else "the total n is split in the ratio below"
+    ),
+    if (!is.null(inputs$cell_ratio)) sprintf(
+      "cell_ratio <- %s # relative cell sizes, in the same order (ANOVA_exact() takes equal cells only, so power is simulated)",
+      r_code(inputs$cell_ratio)
     ),
     sprintf(
       "effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect)

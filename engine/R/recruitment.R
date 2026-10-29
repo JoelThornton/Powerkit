@@ -23,7 +23,7 @@ analysed_groups <- function(spec, n) {
       n1 <- round(n / (1 + ratio))
       c(n1, n - n1)
     },
-    "2x2_between" = rep(n / 4, 4),
+    "2x2_between" = if (unequal_cells(spec)) n * cell_ratio_vector(spec) / sum(cell_ratio_vector(spec)) else rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
     factorial_between = ,
     factorial = ,

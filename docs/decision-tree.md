@@ -347,7 +347,8 @@ flowchart TD
   F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
   F4 -->|Both within| E20["E20 Two-factor within ANOVA"]
   F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
-  F4a -->|No| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
+  F4a -->|No, both between| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
+  F4a -->|No, one within| UNS2["E-unsure (safety net)"]
   F4a -->|Yes, both between| F5b["F5 Which effect?<br/>F6 Which shape?"]
   F5b --> E7["E7 2 x 2 between ANOVA"]
   F4a -->|Yes, one within| F4b{"F4b Is the within factor<br/>before and after?"}
@@ -357,8 +358,7 @@ flowchart TD
   PP -->|The mixed interaction| E8
   PP -->|ANCOVA| E23["E23 ANCOVA"]
   class F1,F2,F2a,F3,F3a,F4,F4a,F4b,PP,F5b,F5m q
-  class E1,E2,E3,E7,E8,E18,E19,E20,E21,E23,E54,E55,E56 avail
-  class E22 later
+  class E1,E2,E3,E7,E8,E18,E19,E20,E21,E22,E23,E54,E55,E56 avail
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -535,7 +535,7 @@ engine can use the answer today.
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F3a | For each factor: different people, or everyone got every level? (at least one factor with three or more levels) | One between, one within (E55); both between (E21); both within (E20) | `variables.A.type`, `variables.B.type` (A is the between factor in `mixed`) | Yes for one between and one within; routing only otherwise |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
-| F4a | Will the groups be equal in size? | Yes / no (decisions D5, N1–N3) | 2x2: none (equal cells assumed). Two groups: `options.allocation_ratio` | 2x2: routing only (unequal → not available). Two-group tests: yes |
+| F4a | Will the groups be equal in size? | Yes / no (decisions D5, N1–N3) | 2x2 between: `options.cell_ratio`. Two groups: `options.allocation_ratio` | 2x2 between: yes. 2x2 mixed: routing only (unequal → safety net). Two-group tests: yes |
 | F4b, PP1, PP2 | Before and after? Randomised? ANCOVA or mixed interaction? | (decision D2) | `factorial_anova / 2x2_mixed`, `target_test.effect = interaction` | Routing only. Randomisation and the reason for the choice aren't stored for the write-up: **flag** (open question 4). ANCOVA: **no (flag)** |
 | F5 | Which result matters most for your study? | Effect of A; effect of B; the interaction | `target_test.effect`: `main_effect_A`, `main_effect_B`, `interaction` | Yes |
 | F6 | Which picture matches your prediction? (interaction) | Lines cross; one effect shrinks; one disappears (decision D6) | — | **No (flag):** the shape is used only for a warning on the form. It isn't stored, so the write-up can't mention it (open question 4) |
@@ -634,6 +634,7 @@ the two in step.
 | E19 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E20 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E21 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E22 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E23 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E24 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E25 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -694,7 +695,7 @@ taken from coverage.md, where they are proposals.
 | E19 | Planned contrast | `factorial_anova / oneway_contrast` | `pwrss::power.t.contrasts()` (one contrast, equal groups, two-sided; `k.covariates = 0`). Also Superpower's emmeans contrasts, which agree with it; pwranova `pwrcontrast()` unchecked | Formula (no simulation) | Group means and SD; contrast weights | Yes: matches the G\*Power 3.1 manual's three contrast examples in the full validation run (27 October 2026) | v2 | Runs |
 | E20 | Two-factor within-participants ANOVA (2 x 2 or larger) | `factorial_anova / factorial_within` | `Superpower::ANOVA_design("kw*mw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. One SD and one correlation between every pair of cells, so sphericity holds. Reached from F4 (2 x 2) and F3a (larger) when everyone is in every combination | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, the correlation between any two conditions, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-factorial.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E21 | Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...) | `factorial_anova / factorial_between` | `Superpower::ANOVA_design("kb*mb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Equal cells, one SD. Reached from F3a when both factors are different people; three factors go to E56 | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-factorial.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
-| E22 | 2 x 2 ANOVA with unequal group sizes | — | Superpower documents unequal n for `ANOVA_power()` only: `ANOVA_design()` help, argument `n` ("If unequal n is entered then the design can only be passed onto ANOVA_power"), and NEWS for 0.0.3 [SP]. `ANOVA_power()` stops for designs with a within factor, so this covers 2 x 2 between, not mixed. None validated by powerkit (decision N3: needs an independent reference) | — | — | No | v2 | Not in spec |
+| E22 | 2 x 2 ANOVA with unequal group sizes | `factorial_anova / 2x2_between`, `options > cell_ratio` | `Superpower::ANOVA_power()` with one n per cell (Type III sums of squares), simulated: `ANOVA_exact()` takes equal cells only, and `ANOVA_power()` stops for unequal groups with a within factor, so a mixed design with unequal groups goes to the safety net. Independent check (decision N3): pwrss's `power.f.ancova.shieh()` with one covariate that explains nothing | Simulation | Four cell means, the SD (one, or one per cell), which effect, and each group's size or their ratio | No: agrees with pwrss's Shieh formula and with Superpower called directly in `test-backend-anova-unequal.R` and `test-validation-anova-unequal.R` (published value TODO) | v2 | Runs |
 | E23 | ANCOVA (incl. pre–post with a baseline covariate) | `factorial_anova / oneway_ancova`, `factorial_ancova` | `pwrss::power.f.ancova.shieh()` (Shieh's method); for two factors, with the effect's rows of `pwrss::factorial.contrasts()` | Formula (no simulation) | One or two factors; adjusted group or cell means (raw or in SD units), one SD, covariates' R², number of covariates, and with two factors which effect | No: matches pwrss called directly and `Superpower::power_oneway_ancova()` and `ANCOVA_analytic()` in `test-backend-formula-tests.R` and `test-backend-factorial-ancova.R` (G\*Power and published value TODO) | v2 | Runs (one-way overall test; two-way main effects and interaction) |
 | E24 | Multiple regression (R² or one coefficient) | `multiple_regression / r2_zero`, `r2_increase` | `pwrss::power.f.regression()` (one coefficient: an R² increase with 1 predictor tested) | Formula (no simulation) | R², or R² with and without the tested predictors; numbers of predictors | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E25 | One proportion against a fixed value | `basic_test / one_proportion` | `pwrss::power.exact.oneprop()` (exact binomial test) | Formula (no simulation) | Expected proportion and the fixed value | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |

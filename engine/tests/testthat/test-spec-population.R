@@ -246,6 +246,7 @@ zero_effect_cases <- list(
     s
   },
   anova_2x2_between = function(s) within(s, population$means <- list(list(10, 12), list(11, 13))),
+  anova_2x2_between_unequal = function(s) within(s, population$means <- list(list(20, 18), list(30, 28))),
   anova_2x2_mixed = function(s) within(s, population$means <- list(list(0, -0.2), list(0, -0.2))),
   regression_interaction = function(s) within(s, population$r_XW_Y <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),

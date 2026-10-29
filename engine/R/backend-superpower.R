@@ -20,10 +20,10 @@ superpower_backend <- function(spec, seed = NULL) {
   # ANOVA_design() draws random numbers; it runs under the run's seed so it
   # leaves the caller's random-number state alone. Its draws don't affect
   # ANOVA_exact(), which is seeded again (see superpower_exact()).
-  design_at <- function(n, mu = inputs$mu) {
+  design_at <- function(n, mu = inputs$mu, cells = superpower_cell_n(inputs, n)) {
     call_backend("Superpower", with_seed(seed, Superpower::ANOVA_design(
       design = inputs$design,
-      n = n / inputs$groups,
+      n = cells,
       mu = mu,
       sd = inputs$sd,
       r = inputs$r,
@@ -44,16 +44,19 @@ superpower_backend <- function(spec, seed = NULL) {
     }
     superpower_exact(design_at(n, mu), inputs, seed)
   }
+  # Unequal cells: ANOVA_exact() takes equal cells only, so they are
+  # simulated (unequal_cells()).
+  unequal <- !is.null(inputs$cell_ratio)
   list(
     name = "Superpower",
     packages = c("Superpower", "afex"),
-    methods = c("exact", "simulation"),
-    default_method = "exact",
+    methods = if (unequal) "simulation" else c("exact", "simulation"),
+    default_method = if (unequal) "simulation" else "exact",
     functions = c(exact = "Superpower::ANOVA_exact", simulation = "Superpower::ANOVA_power"),
     n_step = inputs$groups,
     exact_min_n = exact_min_n,
-    exact_power = function(n) exact_at(n)$power,
-    bracket_power = function(n) exact_at(n)$power,
+    exact_power = if (unequal) NULL else function(n) exact_at(n)$power,
+    bracket_power = if (unequal) NULL else function(n) exact_at(n)$power,
     manova_power = function(n) exact_at(n)$manova_power,
     details = function(n) exact_at(n)$details,
     simulate = function(n, nrep, seed, cores) {
@@ -64,10 +67,21 @@ superpower_backend <- function(spec, seed = NULL) {
     sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed", "factorial_between", "factorial_within", "factorial_three")) NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
+    # The check reads the cell means and SDs back from ANOVA_exact()'s data
+    # set, which needs equal cells; the cell sizes don't change them.
     check_run = function() {
-      superpower_check_run(spec, design_at(50 * inputs$groups), seed)
+      superpower_check_run(spec, design_at(50 * inputs$groups, cells = 50), seed)
     }
   )
+}
+
+# Superpower's n: the number in each between-participants group, one
+# number for equal groups or one per cell (options > cell_ratio).
+superpower_cell_n <- function(inputs, n) {
+  if (is.null(inputs$cell_ratio)) {
+    return(n / inputs$groups)
+  }
+  n * inputs$cell_ratio / sum(inputs$cell_ratio)
 }
 
 # Translate a validated 2x2 spec into Superpower's terms. Superpower orders
@@ -147,6 +161,9 @@ superpower_inputs <- function(spec) {
   }
   between <- spec$template == "2x2_between"
   list(
+    # Relative cell sizes (options > cell_ratio), in Superpower's order;
+    # NULL for equal cells.
+    cell_ratio = if (unequal_cells(spec)) cell_ratio_vector(spec),
     design = if (between) "2b*2b" else "2b*2w",
     # Superpower's n is per between-participants cell: four cells in a 2x2
     # between design, two groups in a 2x2 mixed design.

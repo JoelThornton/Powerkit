@@ -1,0 +1,68 @@
+{
+  "spec_version": "0.1",
+  "design": "factorial_anova",
+  "template": "2x2_between",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Group",
+      "levels": [
+        "Community sample",
+        "Clinical sample"
+      ]
+    },
+    "B": {
+      "type": "between_factor",
+      "label": "Instructions",
+      "levels": [
+        "Standard",
+        "Self-compassion"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Self-criticism score"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "means": [
+      [
+        20,
+        18
+      ],
+      [
+        30,
+        24
+      ]
+    ],
+    "sd": 8
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: self-compassion instructions helping the clinical sample by 4 points more than the community sample is the smallest effect of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "anova_f",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "cell_ratio": [
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "nrep": 1000,
+    "seed": 20261029
+  }
+}

@@ -99,7 +99,8 @@ validation_chunks <- function() {
     anova = c(
       "test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R",
       "test-validation-anova-oneway-within.R", "test-validation-anova-mixed.R",
-      "test-validation-anova-factorial.R", "test-validation-anova-three.R"
+      "test-validation-anova-factorial.R", "test-validation-anova-three.R",
+      "test-validation-anova-unequal.R"
     ),
     interactions = "test-validation-regression-interaction.R",
     three_way = "test-validation-three-way.R",

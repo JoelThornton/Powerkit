@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "A 2 x 2 design with groups of different sizes"
+    text: >-
+      If your four groups won't be the same size, for example a clinical
+      sample half the size of a community sample, powerkit now works out
+      power and sample size for either factor or their interaction: give each
+      group's expected size, or their ratio.
+  - date: "2026-10-29"
     title: "Technical details for checking a result"
     text: >-
       Under "How it was calculated", a folded section now gives the test's

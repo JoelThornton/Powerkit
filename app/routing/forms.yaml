@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -559,6 +559,64 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
+
+  E22:
+    sides: false
+    methods_name: "a 2 × 2 between-participants ANOVA with unequal group sizes (Type III sums of squares, simulated)"
+    departures: []
+    tool: Superpower
+    directional: false
+    base: {spec_version: "0.1", design: factorial_anova, template: 2x2_between,
+           variables: {A: {type: between_factor}, B: {type: between_factor}, "Y": {type: continuous}},
+           target_test: {method: anova_f}}
+    groups:
+      - input: "Names of the two factors, their levels and the outcome"
+        fields:
+          - {id: A_label, label: "Factor A", type: text, path: variables.A.label, required: true}
+          - {id: A_level1, label: "Factor A, level 1", type: text, path: variables.A.levels.1, required: true}
+          - {id: A_level2, label: "Factor A, level 2", type: text, path: variables.A.levels.2, required: true}
+          - {id: B_label, label: "Factor B", type: text, path: variables.B.label, required: true}
+          - {id: B_level1, label: "Factor B, level 1", type: text, path: variables.B.levels.1, required: true}
+          - {id: B_level2, label: "Factor B, level 2", type: text, path: variables.B.levels.2, required: true}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The four expected cell means (raw or in SD units)"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: m11, label: "Mean: A level 1, B level 1", type: number, path: population.means.1.1, effect: true}
+          - {id: m12, label: "Mean: A level 1, B level 2", type: number, path: population.means.1.2, effect: true}
+          - {id: m21, label: "Mean: A level 2, B level 1", type: number, path: population.means.2.1, effect: true}
+          - {id: m22, label: "Mean: A level 2, B level 2", type: number, path: population.means.2.2, effect: true}
+      - input: "The SD (one, or one per cell)"
+        fields:
+          # The spec's population > sd is one number or a 2 x 2 array of
+          # positive numbers (rows = levels of A), as validate_spec() accepts.
+          - {id: sd_mode, label: "One SD, or one per cell", type: select, required: true,
+             choices: {one: "One SD for all four cells", per_cell: "A different SD in each cell"},
+             default: one, default_source: "the simpler choice; the design spec accepts either"}
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is_not: per_cell}}
+          - {id: sd11, label: "SD: A level 1, B level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd12, label: "SD: A level 1, B level 2", type: number, path: population.sd.1.2, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd21, label: "SD: A level 2, B level 1", type: number, path: population.sd.2.1, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+          - {id: sd22, label: "SD: A level 2, B level 2", type: number, path: population.sd.2.2, effect: true, min_exclusive: 0,
+             shown_if: {field: sd_mode, is: per_cell}}
+      - input: "Which effect: factor A, factor B or the interaction"
+        fields:
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
+      - input: "The size of each group"
+        fields:
+          # options > cell_ratio: relative sizes, so expected group sizes
+          # (60, 60, 30, 30) work as they are; the total n is split in this
+          # ratio.
+          - {id: n11, writeup_label: "relative size of A level 1, B level 1", label: "Group size (or ratio): A level 1, B level 1", type: number, path: options.cell_ratio.1.1, required: true, min: 1, integer: true}
+          - {id: n12, writeup_label: "relative size of A level 1, B level 2", label: "Group size (or ratio): A level 1, B level 2", type: number, path: options.cell_ratio.1.2, required: true, min: 1, integer: true}
+          - {id: n21, writeup_label: "relative size of A level 2, B level 1", label: "Group size (or ratio): A level 2, B level 1", type: number, path: options.cell_ratio.2.1, required: true, min: 1, integer: true}
+          - {id: n22, writeup_label: "relative size of A level 2, B level 2", label: "Group size (or ratio): A level 2, B level 2", type: number, path: options.cell_ratio.2.2, required: true, min: 1, integer: true}
 
   E8:
     sides: false
