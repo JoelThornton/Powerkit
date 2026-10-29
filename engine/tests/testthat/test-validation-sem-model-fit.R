@@ -79,7 +79,7 @@ test_that("SEM model fit: power and N match semPower called directly (direct cal
   direct <- semPower::semPower.postHoc(
     effect = 0.05, effect.measure = "RMSEA", alpha = 0.05, N = 150, df = 200
   )$power
-  expect_equal(engine_power(spec), direct, tolerance = 1e-10)
+  expect_equal(engine_power(spec)$power, direct, tolerance = 1e-10)
   spec <- sem_fit_validation_spec(0.05, 200, 0.05, seed = 324, target_power = 0.95)
   direct_n <- semPower::semPower.aPriori(
     effect = 0.05, effect.measure = "RMSEA", alpha = 0.05, power = 0.95, df = 200

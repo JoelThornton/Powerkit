@@ -116,3 +116,17 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    correlation, so nothing in powerkit is affected today. Recorded in
    `docs/decisions.md` (17 October 2026, "Spower: one-sided tests against
    a non-zero null correlation") and `docs/coverage-roadmap.md` (flags).
+
+## semPower
+
+1. **Simulated power for a multigroup comparison with the configural
+   model.** `semPower.powerMI(type = "post-hoc", comparison =
+   "configural", nullEffect = "metric", ..., simulatedPower = TRUE)`
+   (semPower 2.2.0) stops with "length of 'dimnames' [2] not equal to
+   array extent" in its internal `simulate()`, where the column names for
+   the fitted H0 and difference statistics are set (`c("fmin", "chisq",
+   "df", "p", paste0("fminGroup", seq(length(N))))`), whether `N` is a
+   list or a vector. The same call with `comparison = "saturated"` runs.
+   powerkit's analytic route is unaffected; the validation cross-check for
+   measurement invariance simulates the same chi-square difference test
+   with lavaan directly instead (`test-validation-sem-latent.R`).

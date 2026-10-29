@@ -109,7 +109,7 @@ test_that("SEM latent regression: required N matches a published worked example 
 
 # 3. Agreement with semPower's simulated power ------------------------------
 
-test_that("SEM factor correlation and invariance: formula power agrees with semPower's simulation (direct call)", {
+test_that("SEM factor correlation and invariance: formula power agrees with simulation (semPower, and lavaan directly) (direct call)", {
   skip_unless_full_validation()
   set.seed(334)
   population <- list(metric = "factor_correlation", r = 0.2, indicators = list(4, 5), loadings = list(0.6, 0.7))
@@ -119,15 +119,35 @@ test_that("SEM factor correlation and invariance: formula power agrees with semP
     simulatedPower = TRUE, simOptions = list(nReplications = 1000)
   )$power
   # 1,000 replications: Monte Carlo SE at most 0.016.
-  expect_lt(abs(engine_power(spec) - simulated), 0.05)
+  expect_lt(abs(engine_power(spec)$power - simulated), 0.05)
 
   population <- list(metric = "invariance", level = "metric", indicators = 6, loading = 0.7,
                      noninvariant = 2, loading_group2 = 0.5)
   spec <- sem_latent_validation_spec("invariance", population, 0.05, seed = 335, n = 400)
-  simulated <- semPower::semPower.powerMI(
-    type = "post-hoc", comparison = "configural", nullEffect = "metric",
-    loadings = list(list(rep(0.7, 6)), list(c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5))),
-    alpha = 0.05, N = list(200, 200), simulatedPower = TRUE, simOptions = list(nReplications = 1000)
-  )$power
-  expect_lt(abs(engine_power(spec) - simulated), 0.05)
+  # semPower 2.2.0's own simulation stops for a multigroup comparison with
+  # the configural model ("length of 'dimnames' [2] not equal to array
+  # extent", in its internal simulate(); docs/upstream-questions.md), so
+  # the same test is simulated directly with lavaan: two groups of 200 from
+  # the standardised population (residual variances 1 - loading^2), the
+  # configural and the metric model fitted to each data set, and the
+  # chi-square difference test at alpha.
+  loadings <- list(rep(0.7, 6), c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5))
+  population_model <- function(l) {
+    paste0(
+      "f =~ ", paste0(l, "*x", 1:6, collapse = " + "), "\n",
+      paste0("x", 1:6, " ~~ ", 1 - l^2, "*x", 1:6, collapse = "\n"), "\nf ~~ 1*f"
+    )
+  }
+  analysis_model <- paste0("f =~ ", paste0("x", 1:6, collapse = " + "))
+  rejected <- vapply(seq_len(1000), function(i) {
+    data <- rbind(
+      cbind(lavaan::simulateData(population_model(loadings[[1]]), sample.nobs = 200), g = 1),
+      cbind(lavaan::simulateData(population_model(loadings[[2]]), sample.nobs = 200), g = 2)
+    )
+    configural <- lavaan::cfa(analysis_model, data = data, group = "g")
+    metric <- lavaan::cfa(analysis_model, data = data, group = "g", group.equal = "loadings")
+    lavaan::lavTestLRT(configural, metric)[["Pr(>Chisq)"]][2] < 0.05
+  }, logical(1))
+  simulated <- mean(rejected)
+  expect_lt(abs(engine_power(spec)$power - simulated), 0.05)
 })
