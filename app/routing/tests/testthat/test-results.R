@@ -54,8 +54,8 @@ test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 cal
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
-  # Only E9 runs in the background with no preview, with its usual run times.
-  expect_identical(names(forms$background), "E9")
+  # E9 and E15 run in the background with no preview, with their usual run times.
+  expect_identical(names(forms$background), c("E9", "E15"))
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)

@@ -1000,7 +1000,7 @@ endpoints:
     doc_name: "Moderated regression with a yes/no X or W"
     plain_name: "Does an effect depend on a moderator, when X or W is two groups?"
     template: "regression_interaction / two_way (X or W yes/no)"
-    backend: "InteractionPoweR: power_interaction() with k.x1 or k.x2 = 2 (simulation)"
+    backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (simulation)"
     method: Simulation
     status: runs_validation_in_progress
     validation: {file: test-validation-interaction-binary.R, note: "Agrees with InteractionPoweR called directly and with an independent simulation, and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
