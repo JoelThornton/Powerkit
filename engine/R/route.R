@@ -87,7 +87,8 @@ route_spec <- function(spec, seed = NULL) {
     "equivalence_test/noninf_one_sample" = ,
     "equivalence_test/noninf_two_proportions" = noninf_backend(spec, seed),
     "basic_test/one_variance" = ,
-    "basic_test/two_variances" = spower_backend(spec, seed),
+    "basic_test/two_variances" = ,
+    "basic_test/paired_variances" = spower_backend(spec, seed),
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {

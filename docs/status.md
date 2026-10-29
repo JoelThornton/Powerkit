@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 6). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 4). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -90,7 +90,7 @@ fully validated. Validation runs are recorded in
   first two designs. Validation in progress (published examples to
   choose and transcribe); three questions for powertools in
   `upstream-questions.md`. Next: simulated multilevel models wait for a
-  package decision (`next.md`, item 4).
+  package decision (`next.md`, item 2).
 - **Structural equation models (27 to 29 October 2026, 0.13.0 and
   0.21.0):** on the latent variables card (E37), by formula with
   semPower: model fit (the chi-square test of exact fit by RMSEA, for a
@@ -117,9 +117,15 @@ fully validated. Validation runs are recorded in
   univariate F when the effect involves a within factor with three or
   more levels. Validation in progress (published examples to choose and
   transcribe). Next: sphericity corrections and unequal SDs or
-  correlations (`next.md`, item 8); four or more factors go to the safety
+  correlations (`next.md`, item 6); four or more factors go to the safety
   net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
   card from 0.21.0, simulated with Spower.
+- **Rank correlations and the Pitman-Morgan test (29 October 2026,
+  0.22.0):** Spearman's rho and Kendall's tau are a test version on the
+  correlation card (Spower's `p_r(method =)`, normal scores), and the
+  Pitman-Morgan test of two paired variances has its own card (E57),
+  simulated with Spower's `p_r()` on the sum and difference of the paired
+  scores. Validation in progress.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
@@ -128,9 +134,8 @@ fully validated. Validation runs are recorded in
   signed-rank test, which assumes symmetry, offers normal and
   heavy-tailed). Known difference 5: G\*Power adjusts the t-test by an
   efficiency factor instead; its values are still to transcribe
-  (`test-validation-rank-tests.R`). The rank correlations and Friedman's
-  test still carry the "only approximates" note (Spower has no function
-  for them).
+  (`test-validation-rank-tests.R`). Friedman's test still carries the
+  "only approximates" note (`next.md`, item 9).
 - **Bayes factor t-tests (28 October 2026, 0.20.0):** the one-sample,
   paired and two-group t-test cards offer a Bayes factor t-test as a test
   version, by bfpwr's closed form (Pawel & Held, 2025): the chance the

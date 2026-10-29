@@ -47,7 +47,7 @@ script_reproduces <- function(text) {
 wired <- unlist(forms$calculates)
 
 test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56"))
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57"))
   for (ep in paste0("E", 10:14)) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
@@ -837,6 +837,36 @@ test_that("measurement invariance over two occasions (E37) runs on semPower.powe
   words <- result_sentences(calc$spec, calc$result)
   expect_match(words[["headline"]], "equal loadings on the two occasions", fixed = TRUE)
   expect_match(words[["detail"]], "on two occasions (the factor correlating 0.6 between them)", fixed = TRUE)
+})
+
+test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test (E57) are simulated with Spower", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E4"))
+  for (method in c("spearman", "kendall")) {
+    values <- modifyList(form_examples$E4, list(method = method))
+    expect_equal(form_problems(fields, values), character(), info = method)
+    spec <- build_spec(forms, "E4", fields, values)
+    expect_identical(spec$target_test$method, method)
+    expect_null(spec$options$method)
+    spec$goal <- list(type = "power", n = 60L)
+    spec$options$nrep <- 100L
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_match(calc$result$provenance$backend_function, sprintf("method = \"%s\"", method), fixed = TRUE)
+  }
+  # The test version is Pearson's r unless chosen.
+  calc_field <- Filter(function(f) identical(f$id, "calc_method"), fields)[[1]]
+  expect_identical(calc_field$shown_if, list(field = "method", is = "pearson"))
+
+  fields <- form_fields(form_groups(forms, "E57"))
+  expect_equal(form_problems(fields, form_examples$E57), character())
+  spec <- build_spec(forms, "E57", fields, form_examples$E57)
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "Pitman-Morgan", fixed = TRUE)
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms$E57, calc$spec, calc$result, fields, form_examples$E57)
+  expect_match(w[["short"]], "the Pitman-Morgan test of two paired variances", fixed = TRUE)
 })
 
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {

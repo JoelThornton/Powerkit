@@ -713,7 +713,8 @@
               "overlapping_correlations",
               "nonoverlapping_correlations",
               "one_variance",
-              "two_variances"
+              "two_variances",
+              "paired_variances"
             ]
           },
           "target_test": {
@@ -931,6 +932,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_variances"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "paired_variances"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_paired_variances"
             }
           }
         ]
@@ -1361,7 +1377,12 @@
               "const": "correlation"
             },
             "method": {
-              "const": "pearson"
+              "enum": [
+                "pearson",
+                "spearman",
+                "kendall"
+              ],
+              "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r."
             }
           }
         }
@@ -3839,6 +3860,64 @@
             },
             "method": {
               "const": "f_var"
+            }
+          }
+        }
+      }
+    },
+    "template_paired_variances": {
+      "description": "The same people measured twice, compared on the variance of Y (the Pitman-Morgan test: the correlation between the sum and the difference of the two measurements is zero exactly when their variances are equal). Simulated with Spower's p_r() on bivariate normal scores. goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "var1",
+            "var2",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "variance"
+            },
+            "var1": {
+              "description": "Variance of Y in the first measurement.",
+              "$ref": "#/definitions/variance"
+            },
+            "var2": {
+              "description": "Variance of Y in the second measurement. Equal variances (no effect) are allowed, to check the Type I error rate at a fixed n.",
+              "$ref": "#/definitions/variance"
+            },
+            "r": {
+              "description": "The correlation between the two measurements.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "variance_ratio"
+            },
+            "method": {
+              "const": "pitman_morgan"
             }
           }
         }
