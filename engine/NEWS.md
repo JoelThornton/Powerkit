@@ -11,6 +11,17 @@
   English. Unequal groups through `options$allocation_ratio`. Exported
   scripts call pwrss alone. In the app, four more choices under "What you
   are comparing" on the equivalence screen.
+* Spearman's rho and Kendall's tau: `target_test$method = "spearman"` or
+  `"kendall"` for template `correlation`, simulated with Spower's
+  `p_r(method =)` on bivariate normal scores whose Pearson correlation is
+  `population$r`. In the app, a test version on the correlation screen.
+* The Pitman-Morgan test of two paired variances: template
+  `paired_variances` (`population$var1`, `var2` and `r`, the correlation
+  between the measurements), simulated with Spower's `p_r()` on the sum
+  and the difference of the paired scores, whose correlation is zero
+  exactly when the variances are equal. In the app, its own card (E57),
+  reached from the design finder's variance question when each person is
+  measured twice.
 * Measurement invariance over time: `population$over = "occasions"` for
   template `invariance`, with `population$stability` (the factor's
   correlation between the two occasions), by semPower's

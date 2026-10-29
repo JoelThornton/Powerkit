@@ -221,6 +221,25 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
   independent reference). It must also be validated against an independent
   reference before it is offered (decision N3 in `docs/design-finder.md`).
 
+### Rank correlations and the Pitman-Morgan test (from 29 October 2026, 0.22.0)
+
+- **Spearman's rho and Kendall's tau** are simulated with Spower's
+  `p_r(method = "spearman" / "kendall")`, which runs `cor.test()` on
+  bivariate normal scores (Spower's `gen_r()`). The correlation entered is
+  the Pearson correlation of those scores, not rho or tau themselves (for
+  normal scores rho is slightly smaller than r). G\*Power has no rank
+  correlation test; the only established alternative is an asymptotic
+  approximation, which powerkit would have to write itself. Normal scores
+  only for now: a choice of score shape, as for the rank location tests,
+  is a queue item.
+- **The Pitman-Morgan test** of two paired variances is simulated with
+  Spower's `p_r()` on the sum and the difference (first minus second) of
+  bivariate normal paired scores with the two variances and their
+  correlation: cov(sum, difference) = var1 − var2, so the test of zero
+  correlation is the test of equal variances. A one-sided test predicting
+  "positive" says the first measurement's variance is the larger, as for
+  the two-group variance test. G\*Power has no paired variance test.
+
 ### Welch's one-way ANOVA and the MANOVA approach (from 29 October 2026, 0.21.0)
 
 - **Welch's F** (groups whose SDs differ) is a test version on the

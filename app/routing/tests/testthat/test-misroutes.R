@@ -228,12 +228,18 @@ test_that("two correlations in the same people reach their own card, not the ind
   expect_identical(follow_answers(tree, c(base, "A score, and the question is whether the relationship differs between two separate groups")), "E49")
 })
 
-test_that("a hypothesis about how much scores vary reaches the variance tests, and only for a score measured once", {
+test_that("a hypothesis about how much scores vary reaches the variance tests, for a score measured once or twice", {
   base <- c("A score or scale", "Independent people", "Once",
     "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
   expect_identical(follow_answers(tree, c(base, "One group's, against a fixed value (for example, a published norm)")), "E52")
   expect_identical(follow_answers(tree, c(base, "Two groups', with different people in each")), "E53")
-  q1 <- vapply(visible_options(tree, tree$nodes$q1, list(outcome = "score", times = "twice")), `[[`, "", "label")
+  # Measured twice: the same people's spread, the Pitman-Morgan test (E57).
+  twice <- c("A score or scale", "Independent people", "Twice",
+    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
+  expect_identical(follow_answers(tree, c(twice, "The same people's, measured twice (before and after, or in two conditions)")), "E57")
+  v1 <- vapply(visible_options(tree, tree$nodes$v1, list(outcome = "score", times = "twice")), `[[`, "", "label")
+  expect_false(any(grepl("Two groups'", v1, fixed = TRUE)))
+  q1 <- vapply(visible_options(tree, tree$nodes$q1, list(outcome = "score", times = "many_conditions")), `[[`, "", "label")
   expect_false(any(grepl("spread out", q1, fixed = TRUE)))
 })
 

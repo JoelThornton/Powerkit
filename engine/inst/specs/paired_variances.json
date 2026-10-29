@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "paired_variances",
+  "variables": {
+    "X": {
+      "type": "within_factor",
+      "label": "Session",
+      "levels": [
+        "Before training",
+        "After training"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Reaction time (ms)"
+    }
+  },
+  "population": {
+    "metric": "variance",
+    "var1": 2500,
+    "var2": 1600,
+    "r": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: reaction times becoming more consistent after training, the SD falling from 50 to 40 ms, is the smallest change worth detecting."
+  },
+  "target_test": {
+    "effect": "variance_ratio",
+    "method": "pitman_morgan",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

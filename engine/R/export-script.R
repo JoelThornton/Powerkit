@@ -191,7 +191,11 @@ design_description <- function(spec) {
     "basic_test/paired_t" = sprintf(
       "paired-samples t-test of %s between the conditions of %s (%s)", label("Y"), label("X"), levels("X")
     ),
-    "basic_test/correlation" = sprintf("Pearson correlation of %s with %s", label("X"), label("Y")),
+    "basic_test/correlation" = sprintf(
+      "%s of %s with %s",
+      switch(spec$target_test$method %||% "pearson", spearman = "Spearman's rank correlation (rho)", kendall = "Kendall's rank correlation (tau)", "Pearson correlation"),
+      label("X"), label("Y")
+    ),
     "basic_test/two_proportions" = sprintf(
       "%s of two proportions: %s between the groups of %s (%s)",
       if (identical(spec$target_test$method, "fisher_exact")) "Fisher's exact test" else "z test",
@@ -235,6 +239,10 @@ design_description <- function(spec) {
     "basic_test/two_variances" = sprintf(
       "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
       label("Y"), label("G"), levels("G")
+    ),
+    "basic_test/paired_variances" = sprintf(
+      "Pitman-Morgan test of two paired variances: does the variance of %s differ between %s (%s), in the same people?",
+      label("Y"), label("X"), levels("X")
     ),
     "basic_test/one_proportion" = sprintf(
       "exact binomial test of one proportion: %s = %s, compared with a fixed value",
@@ -1035,7 +1043,12 @@ spower_script_inputs <- function(spec) {
       "dz <- %s # d_z: mean of the differences (%s minus %s) / SD of the differences",
       r_code(pop$dz), lv("X", 2), lv("X", 1)
     ),
-    correlation = sprintf("r <- %s # population correlation", r_code(pop$r)),
+    correlation = sprintf("r <- %s # population correlation (Pearson's r of the scores)", r_code(pop$r)),
+    paired_variances = c(
+      sprintf("var1 <- %s # variance of %s in %s", r_code(pop$var1), comment_text(v$Y$label), lv("X", 1)),
+      sprintf("var2 <- %s # variance of %s in %s", r_code(pop$var2), comment_text(v$Y$label), lv("X", 2)),
+      sprintf("rho12 <- %s # correlation between the two measurements", r_code(pop$r))
+    ),
     two_proportions = c(
       sprintf(
         "proportions <- %s # proportion with %s = %s in %s, then in %s",
@@ -1123,7 +1136,17 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
     ),
     correlation = c(
       "n = batch_n, # sample size",
-      "r = r # population correlation"
+      "r = r, # population correlation",
+      if (rank_correlation(spec)) sprintf("method = \"%s\" # %s", spec$target_test$method,
+        if (identical(spec$target_test$method, "spearman")) "Spearman's rho" else "Kendall's tau")
+    ),
+    paired_variances = c(
+      "n = batch_n, # number of people",
+      "r = 0, # p_r()'s own argument; the generator below ignores it",
+      "gen_fun = pitman_morgan_scores, # the sum and difference of the paired scores",
+      "var1 = var1,",
+      "var2 = var2,",
+      "rho12 = rho12"
     ),
     two_proportions = c(
       "n = n_group1, # size of group 1",
@@ -1180,6 +1203,10 @@ spower_alternative_line <- function(spec, inputs) {
       "your test expects group 1's variance to be %s than group 2's",
       if (positive) "larger" else "smaller"
     ),
+    paired_variances = sprintf(
+      "your test expects the first measurement's variance to be %s than the second's (the sum and difference correlate %s)",
+      if (positive) "larger" else "smaller", if (positive) "positively" else "negatively"
+    ),
     sprintf("one-sided: the effect is expected to be %s", if (positive) "positive" else "negative")
   )
   sprintf("alternative = %s # %s", r_code(alternative), why)
@@ -1210,6 +1237,18 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    paired_variances = c(
+      "# The Pitman-Morgan test: two paired variances are equal exactly when the",
+      "# sum and the difference of the two measurements are uncorrelated, so",
+      "# p_r() tests that correlation on paired normal scores.",
+      "pitman_morgan_scores <- function(n, r, var1, var2, rho12, ...) {",
+      "  z1 <- rnorm(n)",
+      "  z2 <- rho12 * z1 + sqrt(1 - rho12^2) * rnorm(n)",
+      "  x <- sqrt(var1) * z1",
+      "  y <- sqrt(var2) * z2",
+      "  data.frame(x = x + y, y = x - y)",
+      "}"
+    ),
     character()
   )
 }

@@ -99,7 +99,8 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && (
+  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) &&
+    !identical(spec$template, "paired_variances") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
@@ -119,7 +120,8 @@ simulation_available <- function(spec) {
 # maths itself (CLAUDE.md), so these are simulated with Spower. The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances") || rank_test(spec) || welch_anova(spec)
+  spec$template %in% c("one_variance", "two_variances", "paired_variances") || rank_test(spec) || welch_anova(spec) ||
+    rank_correlation(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -132,6 +134,9 @@ rank_test <- function(spec) {
 # Welch's one-way ANOVA (unequal variances), simulated with Spower's
 # p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
 welch_anova <- function(spec) identical(spec$target_test$method, "welch_f")
+
+# Spearman's rho and Kendall's tau, simulated with Spower's p_r(method =).
+rank_correlation <- function(spec) isTRUE(spec$target_test$method %in% c("spearman", "kendall"))
 
 # Bayes factor t-tests (bfpwr, backend-bfpwr.R): bfpwr takes equal groups
 # only, and the uncertainty about the effect is an input to them alone.
@@ -1583,7 +1588,8 @@ target_effect_is_zero <- function(spec) {
       overlapping_correlations = ,
       nonoverlapping_correlations = dependent_correlation_difference(spec),
       one_variance = pop$var - pop$var0,
-      two_variances = pop$var1 - pop$var2,
+      two_variances = ,
+      paired_variances = pop$var1 - pop$var2,
       chi_square_gof = {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))

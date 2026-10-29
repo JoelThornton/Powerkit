@@ -48,13 +48,16 @@ test_that("generic 'not covered' cards have their own text, and those that claim
   expect_false(grepl("Hmisc", as.character(card_ui(t2, "E43")), fixed = TRUE))
 })
 
-test_that("cards for the correlation and repeated-measures ANOVA say the figure only approximates a rank-based test", {
-  for (id in c("E4", "E54")) {
+test_that("the repeated-measures ANOVA card says the figure only approximates a rank-based test", {
+  for (id in c("E54")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
     expect_match(html, "only approximates the rank-based one", fixed = TRUE, label = id)
   }
-  # The t-test and one-way ANOVA cards offer the rank test as a test version.
+  # The t-test, one-way ANOVA and correlation cards offer the rank test as a
+  # test version (the correlation card with its own note: normal scores only).
+  e4 <- as.character(card_ui(tree, "E4"))
+  expect_match(e4, "powerkit simulates the rank test itself, on normal scores", fixed = TRUE)
   for (id in c("E1", "E2", "E3", "E18")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)

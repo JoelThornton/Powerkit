@@ -384,7 +384,7 @@ nodes:
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
       - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
-         when: {outcome: score, times: once}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
+         when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
 
   # A difference ------------------------------------------------------------
@@ -521,8 +521,9 @@ nodes:
     doc_id: V1
     text: "Whose spread of scores are you comparing?"
     options:
-      - {label: "One group's, against a fixed value (for example, a published norm)", next: E52}
-      - {label: "Two groups', with different people in each", next: E53}
+      - {label: "One group's, against a fixed value (for example, a published norm)", next: E52, when: {times: once}}
+      - {label: "Two groups', with different people in each", next: E53, when: {times: once}}
+      - {label: "The same people's, measured twice (before and after, or in two conditions)", next: E57, when: {times: twice}}
 
   # A count outcome: Poisson regression (E28) when each person is measured
   # once; repeated counts need a mixed model powerkit doesn't have.
@@ -711,7 +712,7 @@ closing_questions:
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -854,13 +855,15 @@ endpoints:
     alternatives: ["the Wilcoxon signed-rank test", "the sign test"]
   E4:
     rank_test: "Spearman's or Kendall's rank correlation"
+    rank_test_simulated: true
+    rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, on normal scores with the correlation you enter."
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
     template: "basic_test / correlation"
-    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it)"
+    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations"
     refs: "Departures 9 and 10 (docs/conventions.md)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two variables", "The expected correlation r"]
+    inputs: ["Names of the two variables", "The expected correlation r", "Pearson's r, Spearman's rho or Kendall's tau"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -1461,6 +1464,21 @@ endpoints:
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
+  E57:
+    doc_name: "Two variances in the same people (Pitman-Morgan test)"
+    plain_name: "Did the same people's scores become more (or less) spread out?"
+    template: "basic_test / paired_variances"
+    backend: "Spower: p_r() on the sum and the difference of the paired scores (the Pitman-Morgan test, by simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-backend-paired-variances-rank-cor.R, note: "Matches a direct Spower call, recovers the variances and the correlation in its check run, and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Compares how spread out the same people's scores are on two occasions or in two conditions, for example whether reaction times become more consistent after training."
+      - "Because the same people give both measurements, the test (Pitman and Morgan's) allows for how strongly the two correlate: you give that correlation too."
+      - "The answer is simulated, so it carries a little random error; G*Power has no test for this."
+    inputs: ["Names of the two measurements and the outcome", "The expected variance at each measurement, and how strongly the two correlate"]
+    tier: v2
+    alternatives: ["the paired t-test, if your hypothesis is about the average rather than the spread"]
   E54:
     rank_test: "Friedman's test"
     doc_name: "One-way repeated-measures ANOVA, omnibus"

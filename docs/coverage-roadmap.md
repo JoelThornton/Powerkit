@@ -509,15 +509,18 @@ until it goes through
 [`adding-a-test.md`](adding-a-test.md) section 2.
 
 - **Pitman–Morgan test**: variances compared in a paired design. The
-  natural sibling of A43 and A44, which powerkit now computes.
+  natural sibling of A43 and A44. In the app since 29 October 2026 (E57,
+  simulated with Spower's `p_r()` on the sum and difference of the paired
+  scores).
 - **Barnard's unconditional exact test** for a 2x2 table: an alternative
   to Fisher's exact test (E5's test version), said to be more powerful.
 - **Cochran–Armitage trend test**: a linear trend in proportions across
   ordered groups (dose, age band).
 - **Jonckheere–Terpstra trend test**: the rank-based equivalent for
   ordered alternatives across k groups.
-- **Spearman's rho and Kendall's tau**: power for rank correlations, where
-  the roadmap has only Pearson's r and the rank *location* tests.
+- **Spearman's rho and Kendall's tau**: power for rank correlations. In
+  the app since 29 October 2026 as a test version on E4 (Spower's
+  `p_r(method =)`, normal scores).
 - **Cronbach's alpha against a benchmark** (Bonett and Wright's formula):
   scale-development studies planning for a minimum internal consistency.
   B50 covers ICC and kappa but not alpha.

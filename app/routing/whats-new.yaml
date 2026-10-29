@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Rank correlations, and spread in the same people"
+    text: >-
+      The correlation screen now offers Spearman's rho and Kendall's tau as
+      test versions, simulated. And if you want to show that the same
+      people's scores became more (or less) consistent, for example
+      reaction times after training, the design finder now leads to a new
+      card for that: the Pitman-Morgan test.
+  - date: "2026-10-29"
     title: "Non-inferiority, and invariance over time"
     text: >-
       Want to show a new approach is no worse than the usual one? The

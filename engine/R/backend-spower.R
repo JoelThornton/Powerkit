@@ -78,9 +78,25 @@ spower_inputs <- function(spec) {
       experiment = "p_t.test", generator = "gen_t.test",
       args = function(n) list(n = n, d = -sqrt(2) * pop$dz, type = "paired")
     ),
+    # Pearson's r by simulation, or Spearman's rho or Kendall's tau
+    # (p_r(method =)), on bivariate normal scores with Pearson correlation r.
     correlation = list(
       experiment = "p_r", generator = "gen_r",
-      args = function(n) list(n = n, r = pop$r)
+      args = function(n) {
+        method <- spec$target_test$method %||% "pearson"
+        c(list(n = n, r = pop$r), if (!identical(method, "pearson")) list(method = method))
+      }
+    ),
+    # The Pitman-Morgan test: the variances of two paired measurements are
+    # equal exactly when their sum and difference (first minus second) are
+    # uncorrelated, and cov(sum, difference) = var1 - var2. p_r() tests that
+    # correlation (cor.test()) on the sum and difference of bivariate normal
+    # scores with the two variances and the correlation r.
+    paired_variances = list(
+      experiment = "p_r", generator = "pitman_morgan_scores", generate = pitman_morgan_scores,
+      args = function(n) {
+        list(n = n, r = 0, gen_fun = pitman_morgan_scores, var1 = pop$var1, var2 = pop$var2, rho12 = pop$r)
+      }
     ),
     two_proportions = list(
       experiment = "p_prop.test", generator = "gen_prop.test",
@@ -132,6 +148,12 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
+  } else if (identical(template, "paired_variances")) {
+    sprintf("Spower::Spower(Spower::p_r(gen_fun = <sum and difference of paired scores>%s)) (the Pitman-Morgan test)",
+      if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
+  } else if (rank_correlation(spec)) {
+    sprintf("Spower::Spower(Spower::p_r(method = \"%s\"%s))", spec$target_test$method,
+      if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
   } else if (alternative == "two_sided") {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
   } else {
@@ -222,6 +244,17 @@ rank_test_description <- function(test, template, alternative) {
   sprintf("Spower::Spower(Spower::%s(%s))", test$experiment, paste(arguments, collapse = ", "))
 }
 
+# Paired scores for the Pitman-Morgan test, returned as their sum and
+# their difference (first minus second); `r` is p_r()'s own argument and
+# unused here.
+pitman_morgan_scores <- function(n, r, var1, var2, rho12, ...) {
+  z1 <- stats::rnorm(n)
+  z2 <- rho12 * z1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+  x <- sqrt(var1) * z1
+  y <- sqrt(var2) * z2
+  data.frame(x = x + y, y = x - y)
+}
+
 # Each group's SD for Welch's F: population > sds, or sd in every group.
 welch_sds <- function(spec) {
   pop <- spec$population
@@ -294,7 +327,7 @@ spower_check_run <- function(spec, inputs, n, seed) {
   if (!is.null(inputs$rank)) {
     return(rank_check_run(spec, args, seed))
   }
-  generator <- getExportedValue("Spower", inputs$generator)
+  generator <- inputs$generate %||% getExportedValue("Spower", inputs$generator)
   data <- call_backend("Spower", with_seed(seed, do.call(generator, args)))
   pop <- spec$population
   ratio <- spec$options$allocation_ratio %||% 1
@@ -350,6 +383,21 @@ spower_check_run <- function(spec, inputs, n, seed) {
       check_run_rows(
         "variance of Y", pop$var, v, pop$var * sqrt(2 / (nrow(data) - 1))
       )
+    },
+    # Pitman-Morgan: the paired scores back from their sum and difference.
+    paired_variances = {
+      x <- (data[[1]] + data[[2]]) / 2
+      y <- (data[[1]] - data[[2]]) / 2
+      size <- nrow(data)
+      r <- stats::cor(x, y)
+      rows <- check_run_rows(
+        c("variance of the first measurement", "variance of the second measurement"),
+        c(pop$var1, pop$var2), c(stats::var(x), stats::var(y)),
+        c(pop$var1, pop$var2) * sqrt(2 / (size - 1))
+      )
+      cor_row <- check_run_rows("correlation between the measurements", pop$r, r, NA)
+      cor_row$ok <- abs(atanh(r) - atanh(pop$r)) <= 5 / sqrt(size - 3)
+      rbind(rows, cor_row)
     },
     # Welch's F: each group's mean and SD, in the means' units.
     oneway_between = {
