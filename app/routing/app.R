@@ -849,6 +849,14 @@ server <- function(input, output, session) {
       export(state$calc$result, format = "text", file = file)
     }
   )
+  output$download_simulated_data <- downloadHandler(
+    filename = function() sprintf("SIMULATED-not-real-data-%s.csv", state$endpoint),
+    content = function(file) {
+      simulate <- engine_function("simulated_data")
+      n <- simulated_data_n_for(state$calc$spec, state$calc$result)
+      simulate(state$calc$spec, n, seed = state$calc$result$provenance$seed %||% 1, file = file)
+    }
+  )
   # E10-E14: the R script that runs the full analysis on the user's computer.
   output$download_run_script <- downloadHandler(
     filename = function() sprintf("powerkit-%s-run-full-analysis.R", state$endpoint),

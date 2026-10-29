@@ -207,6 +207,8 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
   expect_match(html, "download_script", fixed = TRUE)
   expect_match(html, "download_citations", fixed = TRUE)
+  expect_match(html, "download_simulated_data", fixed = TRUE)            # the simulated data set
+  expect_match(html, "Simulated, not real data.", fixed = TRUE)
   expect_match(html, "Short version (for the paper)", fixed = TRUE)
   expect_match(html, "Departures from the established tools&#39; defaults:|Departures from the established tools' defaults:")
   expect_match(html, calc$result$provenance$spec_hash, fixed = TRUE)
@@ -1559,4 +1561,18 @@ test_that("a baseline score on the grouped-designs screen reaches powertools, an
   expect_match(w[["short"]], "0.6 of the variance between the groups' averages", fixed = TRUE)
   # No baseline: nothing is passed.
   expect_null(build_spec(forms, "E34", fields, modifyList(values, list(adjust_baseline = "no")))$population$baseline_r2_within)
+})
+
+test_that("the simulated data set: offered where the engine has a generator, with its n; said to be unavailable elsewhere", {
+  skip_if(is.null(engine_function("simulated_data_available")), "powerkit's engine isn't available here")
+  spec_at <- function(name) jsonlite::fromJSON(file.path(repo_dir, "engine", "inst", "specs", paste0(name, ".json")), simplifyVector = FALSE)
+  spec <- spec_at("independent_t")
+  result <- list(goal_type = "sample_size", n_required = list(n = 128))
+  html <- as.character(simulated_data_ui(spec, result))
+  expect_match(html, "Simulated data set (CSV, n = 128)", fixed = TRUE)
+  expect_match(html, "not evidence, not a pilot", fixed = TRUE)
+  expect_equal(simulated_data_n_for(spec, list(goal_type = "power")), spec$goal$n %||% NA_real_)
+  html <- as.character(simulated_data_ui(spec_at("sem_model_fit"), result))
+  expect_match(html, "A simulated data set isn't available for this design yet.", fixed = TRUE)
+  expect_no_match(html, "download_simulated_data", fixed = TRUE)
 })

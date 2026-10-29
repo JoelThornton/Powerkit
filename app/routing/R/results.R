@@ -1293,6 +1293,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
+    simulated_data_ui(spec, result),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known))),
     div(class = "result-card result-how",
@@ -1624,6 +1625,28 @@ ethics_text <- function(spec, result, fields, values) {
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")
+}
+
+# The simulated data set: a CSV of one sample of the planned size, drawn
+# from the population entered, for writing the analysis code (the engine's
+# simulated_data()). The note says what it is for, and what it is not.
+simulated_data_ui <- function(spec, result) {
+  n <- simulated_data_n_for(spec, result)
+  available <- !is.na(n) && isTRUE(tryCatch(engine_function("simulated_data_available")(spec), error = function(e) FALSE))
+  if (!available) {
+    return(p(class = "small simulated-data-unavailable", "A simulated data set isn't available for this design yet."))
+  }
+  div(class = "simulated-data",
+    downloadButton("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
+    p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
+      "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set."))
+}
+
+# The n the simulated data set uses: the required n for a sample-size
+# goal, otherwise the n entered.
+simulated_data_n_for <- function(spec, result) {
+  n <- if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
+  if (is.numeric(n) && length(n) == 1 && !is.na(n)) n else NA_real_
 }
 
 writeup_ui <- function(text) {

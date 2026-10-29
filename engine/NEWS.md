@@ -1,5 +1,20 @@
 # powerkit 0.22.0
 
+* Simulated data sets: `simulated_data(spec, n, seed, file)` draws one
+  data set of `n` participants from the spec's population with the
+  backend's own generator (Spower's `gen_*()`, Superpower's
+  `ANOVA_design()`, InteractionPoweR's `generate_interaction()`,
+  power4mome's `power4test(do_the_test = FALSE)`), and writes it as CSV.
+  The first column, `SIMULATED_NOT_REAL_DATA`, marks every row; columns
+  are named after the variable labels, in a form SPSS, JASP, jamovi,
+  Python and R all accept; repeated measures are one row per
+  participant. `simulated_data_available()` says whether a design is
+  covered (the basic tests except the rank tests, the Superpower ANOVA
+  designs, Welch's ANOVA, regression interactions, mediation and
+  moderated mediation). The R script from `export_script()` ends with
+  the code that builds the same data set for the same seed. In the app,
+  a CSV download on the results screen, with a note that it is for
+  writing analysis code, not evidence or a pilot.
 * Non-inferiority: templates `noninf_independent`, `noninf_paired`,
   `noninf_one_sample` and `noninf_two_proportions` for design
   `equivalence_test`, with `target_test$method = "non_inferiority"`,

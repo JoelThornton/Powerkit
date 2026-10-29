@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "A simulated data set to write your analysis code"
+    text: >-
+      For most designs, the results screen now offers a made-up data set of
+      the planned size as a CSV file, drawn from the population you
+      entered, so you can write and check your analysis code in R, SPSS,
+      JASP, jamovi or Python before the real data arrive. Every row is
+      marked as simulated; it is not evidence and not a pilot.
+  - date: "2026-10-29"
     title: "Rank correlations, and spread in the same people"
     text: >-
       The correlation screen now offers Spearman's rho and Kendall's tau as

@@ -222,6 +222,11 @@ comes from, and expected attrition).
 - **Download R script** (the engine's `export_script()`: reproduces the
   result with the backend package alone) and **Citations**
   (`export_citations()`).
+- **Simulated data set (CSV)** (the engine's `simulated_data()`): one
+  sample of the planned size from the population entered, every row
+  marked `SIMULATED_NOT_REAL_DATA`, with a note that it is for writing
+  the analysis code, not evidence or a pilot. Designs without a
+  generator yet say so instead.
 - **The methods paragraph** is a placeholder.
 - A reproducibility record (backend, method, seed, spec hash, R and
   package versions, check run, run time) and the spec that was run.
@@ -239,8 +244,8 @@ comes from, and expected attrition).
 **The engine is used read-only.** The prototype uses the installed
 `powerkit` package if there is one, or loads `engine/` with
 `pkgload::load_all()` (about 5 seconds, once per session). It calls only
-`validate_spec()`, `run_spec()` (E1–E9), `export_script()` and
-`export_citations()`; it never computes power itself. Where neither is available, the screen says the spec
+`validate_spec()`, `run_spec()` (E1–E9), `export_script()`,
+`export_citations()` and `simulated_data()`; it never computes power itself. Where neither is available, the screen says the spec
 couldn't be checked, and the tests that need the engine are skipped
 locally. **On GitHub the app-tests job installs the engine** (from
 `engine/`, with the package versions in `renv.lock`), so those tests run
