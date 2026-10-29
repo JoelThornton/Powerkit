@@ -1,5 +1,13 @@
 # powerkit 0.23.0
 
+* Simulated data sets for more designs: the rank tests (scores of the
+  chosen shape, shifted by the effect), equivalence and non-inferiority
+  tests (drawn as the t-test, two proportions or correlation they test),
+  one proportion, goodness of fit, two independent and two dependent
+  correlations (Spower's `gen_r()` and `gen_2r()`), factorial logistic
+  regression (each cell's 'yes' with its proportion) and ordinal outcomes
+  in two groups (group 2's shares from `Hmisc::pomodm()`). McNemar's test
+  isn't covered: its spec gives only the discordant proportions.
 * Unequal group sizes in a 2 x 2 between-participants ANOVA:
   `options$cell_ratio`, the relative size of each cell (two rows of two
   positive whole numbers), for template `2x2_between`. `goal$n` is split
