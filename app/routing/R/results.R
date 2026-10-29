@@ -160,6 +160,7 @@ group_sizes <- function(spec, n) {
     spec$template,
     independent_t = ,
     tost_independent = ,
+    tost_two_proportions = ,
     invariance = ,
     two_proportions = ,
     two_correlations = {
@@ -277,7 +278,7 @@ generic_sentences <- function(spec, result) {
 # Equivalence tests (E36): the two one-sided tests, each at alpha, and the
 # bounds (in the outcome's own units too, when given that way).
 equivalence_bound <- function(spec, result) {
-  name <- if (identical(spec$template, "tost_paired")) "d_z" else "d"
+  name <- switch(spec$template, tost_paired = "d_z", tost_correlation = "r", tost_two_proportions = "p2 \u2212 p1", "d")
   u <- result$effect_from_units
   std <- sprintf("%s = \u00b1%s", name, format(round(u$bound_value %||% spec$population$bound, 3)))
   if (is.null(u$bound)) std else sprintf("\u00b1%s in your outcome's units (%s)", format(signif(u$bound, 4)), std)
@@ -290,25 +291,27 @@ equivalence_test_text <- function(spec, result) {
 
 equivalence_sentences <- function(spec, result) {
   test <- equivalence_test_text(spec, result)
-  shown <- "show that the true difference lies inside the equivalence bounds (both one-sided tests significant)"
-  closer <- "An expected difference of 0 is the most optimistic case: the closer the true difference is to a bound, the lower the power."
-  source <- sprintf("calculated for the difference you entered (%s).", exact_source(result))
+  # A correlation is tested itself, not a difference.
+  what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
+  shown <- sprintf("show that the true %s lies inside the equivalence bounds (both one-sided tests significant)", what)
+  closer <- sprintf("An expected %s of 0 is the most optimistic case: the closer the true %s is to a bound, the lower the power.", what, what)
+  source <- sprintf("calculated for the %s you entered (%s).", what, exact_source(result))
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
     c(
-      headline = sprintf("You need %s participants in total%s for %s power to %s, if the true difference is the one you entered, with %s.",
-        whole(est$n), group_text(spec, est$n), percent(spec$goal$power), shown, test),
+      headline = sprintf("You need %s participants in total%s for %s power to %s, if the true %s is the one you entered, with %s.",
+        whole(est$n), group_text(spec, est$n), percent(spec$goal$power), shown, what, test),
       detail = paste("This N is", source, closer),
       reading = plain_reading(spec$goal$power,
-        outcome = "show that the difference lies inside the equivalence bounds",
-        if_not = "If the true difference is closer to a bound, fewer would.",
-        condition = "the true difference is the one you entered")
+        outcome = sprintf("show that the %s lies inside the equivalence bounds", what),
+        if_not = sprintf("If the true %s is closer to a bound, fewer would.", what),
+        condition = sprintf("the true %s is the one you entered", what))
     )
   } else {
     row <- result$curve[1, ]
     c(
-      headline = sprintf("With %s participants in total%s, the study has %s power: if the true difference is the one you entered, about %d in 100 studies like this would %s, with %s.",
-        whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), shown, test),
+      headline = sprintf("With %s participants in total%s, the study has %s power: if the true %s is the one you entered, about %d in 100 studies like this would %s, with %s.",
+        whole(row$n), group_text(spec, row$n), percent(row$power), what, round(100 * row$power), shown, test),
       detail = paste("This power is", source, closer)
     )
   }
@@ -1378,7 +1381,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
-      tost_paired = "of two paired measurements", tost_one_sample = "of one mean against a fixed value"))
+      tost_paired = "of two paired measurements", tost_one_sample = "of one mean against a fixed value",
+      tost_correlation = "of a correlation (z tests on Fisher's z)", tost_two_proportions = "of two independent proportions (z tests)"))
   }
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
@@ -1395,7 +1399,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
   }
   if (equivalence) test <- sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
-  power_line <- if (equivalence) "Power to show equivalence (the difference lying inside the bounds), if the true difference is as expected, is %.1f%%." else "Power to detect this effect is %.1f%%."
+  power_line <- if (equivalence) {
+    what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
+    sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
+  } else "Power to detect this effect is %.1f%%."
   effect <- writeup_effect(fields, values)
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units

@@ -283,6 +283,13 @@ design_description <- function(spec) {
     "equivalence_test/tost_one_sample" = sprintf(
       "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
     ),
+    "equivalence_test/tost_correlation" = sprintf(
+      "equivalence test (two one-sided z tests on Fisher's z, TOST) of the correlation between %s and %s", label("X"), label("Y")
+    ),
+    "equivalence_test/tost_two_proportions" = sprintf(
+      "equivalence test (two one-sided z tests, TOST) of the difference in %s between the groups of %s (%s)",
+      label("Y"), label("X"), levels("X")
+    ),
     "cluster_trial/cluster_randomised" = sprintf(
       "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; %s",
       label("Y"), label("X"), levels("X"), spec$population$cluster_size, cluster_test_words(spec, "t test of the difference")
@@ -609,7 +616,8 @@ add_recruitment_section <- function(lines, spec, result) {
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
-    two_variances = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    two_variances = ,
+    tost_two_proportions = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     cluster_randomised = ,
     multisite = c(
       sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),

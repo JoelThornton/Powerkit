@@ -763,6 +763,32 @@ test_that("Welch's F (E18's test version) is simulated with Spower from each gro
   expect_false(field_applies(sds, form_examples$E18))
 })
 
+test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER's z tests, in its own words", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E36"))
+  expected <- list(
+    tost_correlation = c("TOSTER::power_z_cor", "show that the true correlation lies inside", "r = \u00b10.2", "of a correlation"),
+    tost_two_proportions = c("TOSTER::power_twoprop", "show that the true difference lies inside", "p2 \u2212 p1 = \u00b10.1", "of two independent proportions")
+  )
+  for (name in names(expected)) {
+    values <- tost_z_examples[[name]]
+    expect_equal(form_problems(fields, values), character(), info = name)
+    spec <- build_spec(forms, "E36", fields, values)
+    expect_identical(spec$template, name)
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend_function, expected[[name]][1], info = name)
+    words <- result_sentences(calc$spec, calc$result)
+    expect_match(words[["headline"]], expected[[name]][2], fixed = TRUE, info = name)
+    expect_match(words[["headline"]], expected[[name]][3], fixed = TRUE, info = name)
+    w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
+    expect_match(w[["short"]], expected[[name]][4], fixed = TRUE, info = name)
+  }
+  # Two equal groups.
+  spec <- build_spec(forms, "E36", fields, tost_z_examples$tost_two_proportions)
+  result <- run_calculation(spec, run, seed = 1L)$result
+  expect_match(result_sentences(spec, result)[["headline"]], sprintf("(%s per group)", result$n_required$n / 2), fixed = TRUE)
+})
+
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
   skip_without_run()
   for (ep in c("E1", "E2", "E3")) {

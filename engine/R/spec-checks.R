@@ -384,7 +384,13 @@ check_single_predictor_x <- function(spec) {
 # reaches a target power.
 check_equivalence_test <- function(spec) {
   pop <- spec$population
-  effect <- if (identical(spec$template, "tost_paired")) pop$dz else pop$d
+  effect <- switch(
+    spec$template,
+    tost_paired = pop$dz,
+    tost_correlation = pop$r,
+    tost_two_proportions = if (!is.null(pop$p1) && !is.null(pop$p2)) pop$p2 - pop$p1,
+    pop$d
+  )
   if (is.null(effect) || is.null(pop$bound)) {
     return(character())
   }
@@ -1385,7 +1391,17 @@ minimum_n <- function(spec) {
     # TOSTER's power_t_TOST() needs two people per group (one in a
     # one-sample or paired design); powerkit asks for one more, as for the
     # t-tests.
-    equivalence_test = if (identical(spec$template, "tost_independent")) 4 else 3,
+    equivalence_test = switch(
+      spec$template,
+      tost_independent = 4,
+      # TOSTER's z test of a correlation uses Fisher's z, whose SE is
+      # 1 / sqrt(n - 3).
+      tost_correlation = 5,
+      # TOSTER's power_twoprop() needs four people in each of the two
+      # equal groups.
+      tost_two_proportions = 8,
+      3
+    ),
     factorial_anova = switch(
       spec$template,
       "2x2_between" = 8,
@@ -1448,6 +1464,9 @@ group_split <- function(spec) {
   }
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
+  }
+  if (spec$template == "tost_two_proportions") {
+    return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
   }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed")) {
     k <- length(spec$variables$A$levels)
