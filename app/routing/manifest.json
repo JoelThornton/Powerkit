@@ -4542,9 +4542,9 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.20.1",
+        "Version": "0.21.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    tests (via 'TOSTER') and the fit of structural equation models (via\n    'semPower').",
+        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    tests (via 'TOSTER') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
@@ -4557,19 +4557,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
-        "RemoteSha": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
+        "RemoteRef": "361012da6518efcafc9f42be9a8200672c3071cf",
+        "RemoteSha": "361012da6518efcafc9f42be9a8200672c3071cf",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
-        "GithubSHA1": "a8262b24de57b93d523a7bdd678fbde6cf642d4d",
+        "GithubRef": "361012da6518efcafc9f42be9a8200672c3071cf",
+        "GithubSHA1": "361012da6518efcafc9f42be9a8200672c3071cf",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-29 00:57:49 UTC; runner",
+        "Packaged": "2026-10-29 01:38:44 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-29 00:57:53 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-29 01:38:51 UTC; unix"
       }
     },
     "powertools": {
@@ -6255,7 +6255,7 @@
       "checksum": "c6ba4a59348b268fff1bff5a4e7bd7c9"
     },
     "forms.yaml": {
-      "checksum": "9683ece045b985965a38af6ff328b603"
+      "checksum": "4c85616af7cd13b554a570a17535e9c3"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6279,7 +6279,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "23c3e3356f15e787b8a85d0525b4b7b1"
+      "checksum": "a6d7e945b7db88539e4f5fa7baef6a54"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6303,7 +6303,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "01f016e19c4c14f2759dda564d6c4925"
+      "checksum": "882fc67aebc3086cd93c7b8dd5cc2fdf"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6318,7 +6318,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "dfdcac983159cf79b8be31a99babdccd"
+      "checksum": "4ac6ec74a0dce8be48393f93a98f3a76"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6327,7 +6327,7 @@
       "checksum": "f2c5e8dc75cebcde94496b25aa768d36"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "7197f6aa17a58b69e2fd581192d6a08f"
+      "checksum": "1366733d955221cd2cbf4e8737ce45cb"
     },
     "tests/testthat/test-project.R": {
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
@@ -6336,7 +6336,7 @@
       "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "0c5e33837e6758fee3b4c91fcc5c82e6"
+      "checksum": "bc8fe63f039db3cb7e3c7371c9379686"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "81759d544781b6bc220144978d4c9ffe"
@@ -6357,13 +6357,13 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "e2f364ca2840dce472c0234c54392220"
+      "checksum": "18044c27843459285d6a291fb98ca0c9"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
     },
     "walkthroughs/scenarios.json": {
-      "checksum": "74951020482401d122bc67138e4ba9c0"
+      "checksum": "75272dcf499354159164277da1d11fd4"
     },
     "walkthroughs/screenshots.js": {
       "checksum": "802c48435b6593e32184e35aea1c38b0"
@@ -6372,7 +6372,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "cb90e1f6e0ab73707048d845874b8315"
+      "checksum": "5e9a3c503e26fcf116ee4edc1a2633a1"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
