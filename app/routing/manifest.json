@@ -4542,9 +4542,9 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.21.0",
+        "Version": "0.22.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    tests (via 'TOSTER') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower').",
+        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
@@ -4557,19 +4557,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "1c4ba6119aa95f0276709b2088e176b1522c40c2",
-        "RemoteSha": "1c4ba6119aa95f0276709b2088e176b1522c40c2",
+        "RemoteRef": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
+        "RemoteSha": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "1c4ba6119aa95f0276709b2088e176b1522c40c2",
-        "GithubSHA1": "1c4ba6119aa95f0276709b2088e176b1522c40c2",
+        "GithubRef": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
+        "GithubSHA1": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-29 02:45:01 UTC; runner",
+        "Packaged": "2026-10-29 09:09:17 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-29 02:45:08 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-29 09:09:25 UTC; unix"
       }
     },
     "powertools": {
@@ -6255,7 +6255,7 @@
       "checksum": "c6ba4a59348b268fff1bff5a4e7bd7c9"
     },
     "forms.yaml": {
-      "checksum": "859ba8cd94d7efc4065150fcf8b65e85"
+      "checksum": "cfa78c9c1d63ef0fc1719740938f6afd"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6279,7 +6279,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "62f398715cc4413995ec852a68ca1b86"
+      "checksum": "fb4cd4730049d545b83e81dcaba83a27"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6303,7 +6303,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "c95eda10e01bc7f62b50214d6ea9e9f6"
+      "checksum": "cc6a4077deae86383a555a7e076f3472"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6336,7 +6336,7 @@
       "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "c0a79cdf2bd56d6777ec62e2b3f901fb"
+      "checksum": "2b8efcd9eed56681d4527e0a83d6de51"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "81759d544781b6bc220144978d4c9ffe"
@@ -6345,7 +6345,7 @@
       "checksum": "c92c171e7605860a519402c49dd13229"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
-      "checksum": "bab267243da5c539cf76ee46afe774d6"
+      "checksum": "eb24de159f0e5b0df56d8921ce187e2d"
     },
     "tests/testthat/test-walkthroughs.R": {
       "checksum": "65e053621b32226343cd019be25d99a4"
@@ -6357,7 +6357,7 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "11129e553c0c2054e2d9a1548c14ecb3"
+      "checksum": "087e4bca5f593976266fc4a99fd6b41a"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -6372,7 +6372,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "b8c994f19c5050f1e100cf4cdca892d3"
+      "checksum": "7a60f7dfc908294b63a3902a7c792559"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
