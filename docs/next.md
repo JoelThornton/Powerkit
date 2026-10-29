@@ -85,4 +85,3 @@ call), and nodes for approaches powerkit doesn't compute.
 - **The logistic R-squared question** (Known difference 3): whether
   powerkit's reading of "R² other X" matches G\*Power's.
 - **Which batch comes after 1**, if the order above is wrong.
-
