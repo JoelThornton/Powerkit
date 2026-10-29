@@ -1,3 +1,19 @@
+# powerkit 0.23.0
+
+* Three-way regression interactions: template `three_way` for design
+  `regression_interaction` (variables X, W, Z and Y; the correlations of
+  X, W, Z and the products XW, XZ and WZ with Y, the correlations among
+  X, W and Z, optional reliabilities, and `population$b_XWZ`, the
+  standardised coefficient of the three-way product; `target_test$effect`
+  `"three_way_interaction"`). Power is InteractionPoweR's analytic
+  `power_interaction_3way_r2()` (the change in R-squared when XWZ is
+  added; predictors treated as fixed, as InteractionPoweR has no
+  three-way simulation). Correlations InteractionPoweR can't turn into a
+  valid matrix are refused in plain English. The check run confirms the
+  values InteractionPoweR received; exported scripts call it alone. In
+  the app, the three-way interaction card (reached from the design
+  finder's moderation questions) now calculates, with an input screen.
+
 # powerkit 0.22.0
 
 * Simulated data sets: `simulated_data(spec, n, seed, file)` draws one

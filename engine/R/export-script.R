@@ -383,6 +383,10 @@ design_description <- function(spec) {
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
+    "regression_interaction/three_way" = sprintf(
+      "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",
+      label("X"), label("W"), label("Y"), label("Z")
+    ),
     "regression_interaction/two_way" = sprintf(
       "regression interaction: does the effect of %s (X) on %s (Y) depend on %s (W)?",
       label("X"), label("Y"), label("W")
@@ -1658,6 +1662,9 @@ superpower_sensitivity_section <- function(spec, result) {
 # InteractionPoweR -----------------------------------------------------------------
 
 interactionpower_script <- function(spec, result) {
+  if (identical(spec$template, "three_way")) {
+    return(interactionpower_3way_script(spec, result))
+  }
   inputs <- interactionpower_inputs(spec)
   v <- spec$variables
   label <- function(role) comment_text(v[[role]]$label)
@@ -1678,6 +1685,57 @@ interactionpower_script <- function(spec, result) {
     goal_inputs(spec, result),
     "",
     if (spec$goal$type == "sensitivity") interactionpower_sensitivity_section(result) else interactionpower_simulation_lines(spec, result)
+  )
+}
+
+# Three-way interactions: InteractionPoweR's analytic
+# power_interaction_3way_r2(), called with the spec's values.
+interactionpower_3way_script <- function(spec, result) {
+  inputs <- interactionpower_3way_inputs(spec)
+  label <- function(role) comment_text(spec$variables[[role]]$label %||% role)
+  line <- function(name, value, comment) sprintf("%s <- %s # %s", name, r_code(value), comment)
+  c(
+    script_header(spec, result, "InteractionPoweR", "InteractionPoweR::power_interaction_3way_r2()"),
+    "library(InteractionPoweR)",
+    "",
+    "# Inputs ----",
+    sprintf(
+      "# InteractionPoweR's x1 is X (%s), x2 is W (%s), x3 is Z (%s), y is Y (%s).",
+      label("X"), label("W"), label("Z"), label("Y")
+    ),
+    "# Correlations are among the true scores; the three-way effect is the",
+    "# standardised regression coefficient of the product x1x2x3.",
+    line("b_x1x2x3", inputs$b.x1x2x3, "the three-way interaction XWZ (standardised coefficient)"),
+    line("r_x1_y", inputs$r.x1.y, "X with Y"),
+    line("r_x2_y", inputs$r.x2.y, "W with Y"),
+    line("r_x3_y", inputs$r.x3.y, "Z with Y"),
+    line("r_x1x2_y", inputs$r.x1x2.y, "the product XW with Y"),
+    line("r_x1x3_y", inputs$r.x1x3.y, "the product XZ with Y"),
+    line("r_x2x3_y", inputs$r.x2x3.y, "the product WZ with Y"),
+    line("r_x1_x2", inputs$r.x1.x2, "X with W"),
+    line("r_x1_x3", inputs$r.x1.x3, "X with Z"),
+    line("r_x2_x3", inputs$r.x2.x3, "W with Z"),
+    line("rel_x1", inputs$rel.x1, "reliability of X (1 = no measurement error)"),
+    line("rel_x2", inputs$rel.x2, "reliability of W"),
+    line("rel_x3", inputs$rel.x3, "reliability of Z"),
+    line("rel_y", inputs$rel.y, "reliability of Y"),
+    goal_inputs(spec, result),
+    "",
+    "# Power of the test of the three-way coefficient at a total sample size:",
+    "# InteractionPoweR's analytic formula (the change in R-squared when XWZ is",
+    "# added to the model with every lower-order term).",
+    "power_at <- function(n_total) {",
+    "  power_interaction_3way_r2(",
+    "    N = n_total, b.x1x2x3 = b_x1x2x3,",
+    "    r.x1.y = r_x1_y, r.x2.y = r_x2_y, r.x3.y = r_x3_y,",
+    "    r.x1x2.y = r_x1x2_y, r.x1x3.y = r_x1x3_y, r.x2x3.y = r_x2x3_y,",
+    "    r.x1.x2 = r_x1_x2, r.x1.x3 = r_x1_x3, r.x2.x3 = r_x2_x3,",
+    "    rel.x1 = rel_x1, rel.x2 = rel_x2, rel.x3 = rel_x3, rel.y = rel_y, alpha = alpha",
+    "  )$pwr[1]",
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
   )
 }
 

@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -623,6 +623,37 @@ forms:
         fields:
           - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
           - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+
+  E31:
+    methods_name: "a three-way regression interaction"
+    tool: InteractionPoweR
+    directional: false
+    base: {spec_version: "0.1", design: regression_interaction, template: three_way,
+           variables: {X: {type: continuous}, W: {type: continuous}, Z: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: three_way_interaction, method: ols_t}}
+    names: [X, W, Z, "Y"]
+    groups:
+      - input: "Correlations of X, W, Z and Y, and of the products XW, XZ and WZ with Y"
+        fields:
+          - {id: r_X_Y, label: "Correlation of X with Y", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
+          - {id: r_W_Y, label: "Correlation of W with Y", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
+          - {id: r_Z_Y, label: "Correlation of Z with Y", type: number, path: population.r_Z_Y, effect: true, min: -1, max: 1}
+          - {id: r_XW_Y, label: "Correlation of the product XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
+          - {id: r_XZ_Y, label: "Correlation of the product XZ with Y", type: number, path: population.r_XZ_Y, effect: true, min: -1, max: 1}
+          - {id: r_WZ_Y, label: "Correlation of the product WZ with Y", type: number, path: population.r_WZ_Y, effect: true, min: -1, max: 1}
+          - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
+          - {id: r_X_Z, label: "Correlation of X with Z", type: number, path: population.r_X_Z, effect: true, min: -1, max: 1}
+          - {id: r_W_Z, label: "Correlation of W with Z", type: number, path: population.r_W_Z, effect: true, min: -1, max: 1}
+      - input: "The three-way effect (standardised coefficient of XWZ)"
+        fields:
+          - {id: b_XWZ, label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
+             help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
+      - input: "Optional: reliability of X, W, Z and Y"
+        fields:
+          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Z, label: "Reliability of Z (optional; empty = perfectly reliable)", type: number, path: variables.Z.reliability, optional: true, min_exclusive: 0, max: 1}
           - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E10:

@@ -34,6 +34,7 @@ only partly supported, and the details are listed there.
 | interaction | Whether the effect of one factor or variable depends on the level of another. | E7, E8, E9, E13, E14, E15, E31 |
 | reliability | How consistently a measure gives the same result; 1 means no measurement error. | E9, E31 |
 | standardised paths | The strength of each arrow in the model (for example, X to M), expressed in standard deviations so that arrows between differently scaled measures can be compared. | E10, E11, E12, E13, E14, E15, E16, E17, E38, E40 |
+| standardised coefficient | A regression coefficient with every variable measured in standard deviations: how many SDs the outcome changes when the predictor (here, the three-way product) is one SD higher. | E31 |
 | Monte Carlo draws per CI | How many random draws are used to build each confidence interval for the indirect effect; more draws give a more stable interval. | E10 |
 | residuals | The part of each mediator that X doesn't explain; their correlation says how much the mediators overlap beyond X. | E11 |
 | indirect path | The route from X to the outcome through a mediator (X to M to Y). | E11, E12, E42 |

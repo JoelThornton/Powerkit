@@ -2246,7 +2246,8 @@
         "properties": {
           "template": {
             "enum": [
-              "two_way"
+              "two_way",
+              "three_way"
             ]
           }
         },
@@ -2264,6 +2265,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_way"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "three_way"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_three_way"
             }
           }
         ]
@@ -2329,6 +2345,109 @@
                 "path": false,
                 "effect": {
                   "const": "interaction"
+                },
+                "method": {
+                  "const": "ols_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_three_way": {
+      "description": "Y regressed on X, W, Z, their three two-way products and the three-way product XWZ. Parametrised as in InteractionPoweR's power_interaction_3way_r2(): correlations among the true scores, and the standardised coefficient of XWZ.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Z",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Z": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_X_Y",
+            "r_W_Y",
+            "r_Z_Y",
+            "r_XW_Y",
+            "r_XZ_Y",
+            "r_WZ_Y",
+            "r_X_W",
+            "r_X_Z",
+            "r_W_Z",
+            "b_XWZ"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_X_Y": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_W_Y": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_Z_Y": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_XW_Y": {
+              "$ref": "#/definitions/correlation",
+              "description": "Correlation between the product XW and Y."
+            },
+            "r_XZ_Y": {
+              "$ref": "#/definitions/correlation",
+              "description": "Correlation between the product XZ and Y."
+            },
+            "r_WZ_Y": {
+              "$ref": "#/definitions/correlation",
+              "description": "Correlation between the product WZ and Y."
+            },
+            "r_X_W": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_X_Z": {
+              "$ref": "#/definitions/correlation"
+            },
+            "r_W_Z": {
+              "$ref": "#/definitions/correlation"
+            },
+            "b_XWZ": {
+              "description": "Standardised regression coefficient of the three-way product XWZ: the effect tested, in InteractionPoweR's parametrisation (b.x1x2x3).",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "three_way_interaction"
                 },
                 "method": {
                   "const": "ols_t"
