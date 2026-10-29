@@ -2,9 +2,15 @@
 # (docs/decisions.md, "Routing prototype: maintainer decisions from PRs #21
 # and #22").
 
-test_that("E15 (yes/no X or W) doesn't ask the reliability question", {
-  expect_false("Q-rel" %in% vapply(closing_questions_for(tree, "E15"), `[[`, "", "doc_id"))
+test_that("E15 (yes/no X or W) asks for reliability of the score and outcome only (29 October 2026)", {
+  expect_true("Q-rel" %in% vapply(closing_questions_for(tree, "E15"), `[[`, "", "doc_id"))
   expect_true("Q-rel" %in% vapply(closing_questions_for(tree, "E9"), `[[`, "", "doc_id"))
+  # The yes/no variable's reliability is never asked: X's only when W is
+  # the yes/no one, and W's only when X is.
+  fields <- form_fields(form_groups(forms, "E15"))
+  shown_if <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]$shown_if
+  expect_identical(shown_if("rel_X")$is, "W")
+  expect_identical(shown_if("rel_W")$is, "X")
 })
 
 test_that("E37 says IRT designs aren't covered (flag F7)", {

@@ -3471,3 +3471,29 @@ with one covariate that explains nothing, which differs from the ANOVA by
 one error degree of freedom (a difference far below the simulation's own
 error at the sample sizes checked). A published example is still to be
 transcribed (`test-validation-anova-unequal.R`).
+
+## 2026-10-29 · Binary X and W (phase 3b) and E15
+
+**Effect of a yes/no variable.** Entered as the standardised path or
+correlation the backends take, with the group difference it implies shown
+beside it (`phase-3b-questions.md`, section 1, option B). For E15 the
+difference is `psych::r2d()` of the yes/no variable's correlation with Y
+(two equal groups), worked out by the engine
+(`implied_group_difference()`). A Cohen's d input comes later, as a
+recorded departure.
+
+**Group split.** Asked on the mediation cards (E16, E17), 50/50 by
+default; fixed at 50/50 for interactions, where InteractionPoweR has no
+unequal split, and the card says so.
+
+**Reliability on E15 (judgement call B8).** Asked for the score variable
+and for Y only. The engine refuses a reliability for a yes/no X or W in a
+regression interaction (judgement call E5).
+
+**E15.** InteractionPoweR's `power_interaction()` with `k.x1` or `k.x2 = 2`
+(correlations of the observed yes/no data, `adjust.correlations = TRUE`).
+Both X and W yes/no is pointed to the 2 x 2 ANOVA. The fixed-model formula
+brackets the sample-size search only; the smallest detectable effect isn't
+offered, because the formula assumes continuous variables. Validated
+against InteractionPoweR called directly and an independent simulation
+(orthogonal predictors, so the coefficients equal the correlations).

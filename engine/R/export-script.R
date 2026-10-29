@@ -1761,6 +1761,12 @@ interactionpower_script <- function(spec, result) {
     sprintf("rel_x1 <- %s # reliability of X (1 = no measurement error)", r_code(inputs$rel.x1)),
     sprintf("rel_x2 <- %s # reliability of W", r_code(inputs$rel.x2)),
     sprintf("rel_y <- %s # reliability of Y", r_code(inputs$rel.y)),
+    if (inputs$k.x1 > 0 || inputs$k.x2 > 0) c(
+      sprintf("k_x1 <- %s # %s", inputs$k.x1, if (inputs$k.x1 > 0) "X is yes/no: two levels, split 50/50" else "X is a score"),
+      sprintf("k_x2 <- %s # %s", inputs$k.x2, if (inputs$k.x2 > 0) "W is yes/no: two levels, split 50/50" else "W is a score"),
+      "# With a yes/no variable, its correlations are those of the observed 0/1",
+      "# data (point-biserial with Y): adjust.correlations = TRUE, the default."
+    ),
     goal_inputs(spec, result),
     "",
     if (spec$goal$type == "sensitivity") interactionpower_sensitivity_section(result) else interactionpower_simulation_lines(spec, result)
@@ -1880,6 +1886,7 @@ interactionpower_simulation_lines <- function(spec, result) {
     "    rel.x1 = rel_x1,",
     "    rel.x2 = rel_x2,",
     "    rel.y = rel_y,",
+    if (spec$variables$X$type == "binary" || spec$variables$W$type == "binary") "    k.x1 = k_x1, k.x2 = k_x2,",
     "    alpha = alpha",
     "  )",
     "  c(round(result$pwr[1] * batch_replications), batch_replications)",

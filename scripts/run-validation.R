@@ -102,7 +102,7 @@ validation_chunks <- function() {
       "test-validation-anova-factorial.R", "test-validation-anova-three.R",
       "test-validation-anova-unequal.R"
     ),
-    interactions = "test-validation-regression-interaction.R",
+    interactions = c("test-validation-regression-interaction.R", "test-validation-interaction-binary.R"),
     three_way = "test-validation-three-way.R",
     process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
     process_6 = "test-validation-mediation-serial.R",

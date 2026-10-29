@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Moderation with a condition or two groups"
+    text: >-
+      If your predictor is a condition, such as training or a waitlist, and
+      you want to know whether its effect depends on a score such as trait
+      anxiety, powerkit now works out power and sample size for the
+      interaction, and shows the difference between the groups that your
+      correlation implies.
+  - date: "2026-10-29"
     title: "Simulated data sets for contrasts, regressions and cluster trials"
     text: >-
       The simulated data set to write your analysis code with is now also

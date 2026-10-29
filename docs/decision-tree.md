@@ -407,8 +407,7 @@ flowchart TD
   MO1 -->|One two groups,<br/>one a score| E15["E15 Moderated regression,<br/>yes/no X or W"]
   MO1 -->|Three or more groups| E30["E30 Moderator with<br/>three or more groups"]
   class Q2,Q3,MO1,MO3 q
-  class E9,E31 avail
-  class E15 spec
+  class E9,E31,E15 avail
   class E30,E32,E41 later
   class A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
@@ -588,10 +587,10 @@ are different analyses, and the app keeps them apart:
 The full list of closing questions is in table 2.2 (the "Every design"
 rows). Each card asks only the ones that apply to its design, following
 that table's "Engine can use it?" column:
-- reliability (Q-rel) only for regression interactions with scores (E9).
-  Not E15: misclassification in a yes/no X or W is a different problem
-  from unreliable scores (maintainer decision, 16 October 2026; see
-  `decisions.md`);
+- reliability (Q-rel) only for regression interactions (E9, E31, and E15
+  for its score and outcome only: misclassification in a yes/no X or W is
+  a different problem from unreliable scores; maintainer decisions, 16
+  and 29 October 2026, `decisions.md`);
 - a direction (Q-dir) only for the basic tests except chi-square, and for
   one proportion, McNemar's test and two correlations (E25, E26, E49,
   E51), logistic regression (E27), Poisson regression (E28), the
@@ -627,7 +626,7 @@ the two in step.
 | E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E40 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E18 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -688,7 +687,7 @@ taken from coverage.md, where they are proposals.
 | E12 | Serial mediation (PROCESS model 6) | `mediation / process_6`, `M1`–`M4` | As E10 | Simulation | Standardised paths, every forward path | Yes: `test-validation-mediation-serial.R` (full run passed with two mediators; three or more not yet tested; published value TODO) | MVP | Runs |
 | E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | Yes: `test-validation-modmed-process7.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
 | E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | Yes: `test-validation-modmed-process14.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
-| E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)` (planned) | Simulation | Fully standardised correlations; groups 50/50 (maintainer decision) | No | MVP: phase 3b | Spec only |
+| E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, X or W `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)`: a 50/50 split coded -1 and 1, correlations of the observed yes/no data (point-biserial with Y), simulated; the implied group difference shown by `psych::r2d()`. Both yes/no: pointed to the 2 x 2 ANOVA | Simulation | Which variable is yes/no; the four correlations; reliability of the score and Y only (decided 29 October 2026) | No: matches InteractionPoweR called directly and an independent simulation, and holds alpha, in `test-backend-interaction-binary.R` and `test-validation-interaction-binary.R` (published value TODO) | MVP | Runs |
 | E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E18 | One-way ANOVA (different people), omnibus | `factorial_anova / oneway_between` | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen; Welch's F (unequal SDs): `Spower::p_anova.test(var.equal = FALSE)`; the Kruskal-Wallis test: `Spower::p_kruskal.test()`. The same people in every condition: E54 | Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test | Group means (raw or in SD units) and one SD, or each group's SD for Welch's F | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
@@ -1398,8 +1397,8 @@ flowchart LR
 **Where each hypothesis ends in the tree today:**
 - **H1 → E23 (ANCOVA):** not in the spec. Candidates: Superpower
   `ANCOVA_analytic()`; pwrss.
-- **H2 → E15 (moderated regression with a yes/no X):** spec only until
-  phase 3b.
+- **H2 → E15 (moderated regression with a yes/no X):** runs (29 October
+  2026).
 - **H3 → E16 (mediation with a yes/no X):** spec only until phase 3b.
 
 So none of the three runs in powerkit yet; the example is about what
@@ -1411,7 +1410,7 @@ all three marked primary and "each stands alone":
 | Card | Standard name | Inputs still needed | Backend (candidate where not built) | Status today |
 | --- | --- | --- | --- | --- |
 | H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
-| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Spec only until phase 3b (E15) |
+| H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Runs (E15) |
 | H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
 | Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
 

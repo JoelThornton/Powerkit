@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -113,6 +113,7 @@ calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
+  E15: {power: 5, sample_size: 80}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with
@@ -685,6 +686,47 @@ forms:
         fields:
           - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
           - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+
+  E15:
+    methods_name: "a moderated regression with a yes/no predictor or moderator"
+    tool: InteractionPoweR
+    known_differences: ["1"]
+    directional: false
+    base: {spec_version: "0.1", design: regression_interaction, template: two_way,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: interaction, method: ols_t}}
+    groups:
+      - input: "Which variable is yes/no, and what you call X, W and Y"
+        fields:
+          # The yes/no variable is split 50/50 (InteractionPoweR's k.x1 or
+          # k.x2 = 2; it has no unequal split for interactions).
+          - {id: binary_role, label: "Which variable is two groups or conditions?", type: select, required: true,
+             choices: {X: "X, the cause or predictor (for example, a training or control condition)", W: "W, the moderator (for example, two groups of people)"},
+             sets: {X: [{path: variables.X.type, value: binary}, {path: variables.W.type, value: continuous}],
+                    W: [{path: variables.X.type, value: continuous}, {path: variables.W.type, value: binary}]}}
+          - {id: X_label, label: "X (the cause or predictor)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "X's two groups or conditions, separated by a comma", type: levels, path: variables.X.levels, required: true,
+             shown_if: {field: binary_role, is: X}}
+          - {id: W_label, label: "W (the moderator)", type: text, path: variables.W.label, required: true}
+          - {id: W_levels, label: "W's two groups, separated by a comma", type: levels, path: variables.W.levels, required: true,
+             shown_if: {field: binary_role, is: W}}
+          - {id: Y_label, label: "Y (the outcome)", type: text, path: variables.Y.label, required: true}
+      - input: "Correlations: X with Y, W with Y, the interaction XW with Y, and X with W"
+        fields:
+          - {id: r_X_Y, label: "Correlation of X with Y (for a yes/no X, the point-biserial correlation)", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
+          - {id: r_W_Y, label: "Correlation of W with Y (for a yes/no W, the point-biserial correlation)", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
+          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
+          - {id: r_X_W, label: "Correlation of X with W (0 when X is a randomised condition)", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
+      - input: "Optional: reliability of the score variable and of Y"
+        fields:
+          # Not for the yes/no variable: misclassification isn't the same as
+          # unreliable scores (decided 16 October 2026; judgement call B8,
+          # decided 29 October 2026).
+          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
+             shown_if: {field: binary_role, is: W}}
+          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
+             shown_if: {field: binary_role, is: X}}
           - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
 
   E31:

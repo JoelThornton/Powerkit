@@ -11,6 +11,7 @@
 interactionpower_backend <- function(spec, seed = NULL) {
   check_interaction_supported(spec)
   inputs <- interactionpower_inputs(spec)
+  binary <- interaction_binary(spec)
   list(
     name = "InteractionPoweR",
     packages = "InteractionPoweR",
@@ -19,6 +20,9 @@ interactionpower_backend <- function(spec, seed = NULL) {
     functions = c(simulation = "InteractionPoweR::power_interaction", analytic = "InteractionPoweR::power_interaction_r2"),
     n_step = 1,
     exact_min_n = minimum_n(spec),
+    # The fixed-model formula only brackets the required n; with a yes/no X
+    # or W it is an approximation (it assumes continuous normal variables),
+    # and the search widens its grid if the bracket is off.
     bracket_power = function(n) interactionpower_analytic(inputs, n)$pwr,
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
@@ -27,30 +31,29 @@ interactionpower_backend <- function(spec, seed = NULL) {
     },
     # The smallest detectable effect uses the fixed-model formula
     # (power_interaction_r2()), not simulation: see interactionpower_sensitivity().
-    sensitivity = function(n, power) interactionpower_sensitivity(inputs, n, power),
-    sensitivity_method = "analytic",
+    # Not with a yes/no X or W: the formula assumes continuous variables.
+    sensitivity = if (!any(binary)) function(n, power) interactionpower_sensitivity(inputs, n, power),
+    sensitivity_method = if (!any(binary)) "analytic",
     check_run = function() interactionpower_check_run(spec, inputs, seed)
   )
 }
 
-# Binary X or W would use InteractionPoweR's discretised variables (k.x1,
-# k.x2 = 2), whose correlations are adjusted so the observed binary data
-# have the specified correlations. That is a methodological choice still to
-# be made (docs/decisions.md, open questions; docs/build-guide.md, section
-# 8), so it isn't offered yet. Treating a binary variable as continuous
-# isn't suggested: InteractionPoweR's analytic power is documented as valid
-# only for continuous, normally distributed variables. A 2x2 ANOVA is
-# suggested only when both X and W are binary.
+# A yes/no X or W (E15) uses InteractionPoweR's discretised variables
+# (k.x1 or k.x2 = 2): a 50/50 split, coded -1 and 1, with the correlations
+# adjusted (adjust.correlations, its default) so that the observed yes/no
+# data have the correlations entered (point-biserial for the yes/no
+# variable with Y). InteractionPoweR has no unequal split for these. When
+# both X and W are yes/no, the 2x2 ANOVA is the established analysis, so
+# that is refused here and pointed to.
+interaction_binary <- function(spec) {
+  vapply(c("X", "W"), function(v) identical(spec$variables[[v]]$type, "binary"), logical(1))
+}
+
 check_interaction_supported <- function(spec) {
-  binary <- vapply(c("X", "W"), function(v) identical(spec$variables[[v]]$type, "binary"), logical(1))
-  if (any(binary)) {
-    labels <- quote_list(vapply(names(binary)[binary], function(v) var_label(spec, v), character(1)), "and")
-    abort_not_available(paste0(
-      sprintf(
-        "Regression interactions with a yes/no (binary) predictor or moderator aren't available yet (%s %s yes/no). Treating %s as continuous may give an inaccurate power estimate.",
-        labels, if (sum(binary) == 1) "is" else "are", if (sum(binary) == 1) "it" else "them"
-      ),
-      if (all(binary)) " Because both are yes/no, you can use a 2x2 ANOVA design instead." else ""
+  if (all(interaction_binary(spec))) {
+    abort_not_available(sprintf(
+      "With both %s yes/no, use the 2x2 ANOVA design (factorial_anova, template 2x2_between): it is the established analysis for two crossed two-level factors.",
+      quote_list(c(var_label(spec, "X"), var_label(spec, "W")), "and")
     ))
   }
   invisible(TRUE)
@@ -69,14 +72,17 @@ interactionpower_inputs <- function(spec) {
     rel.x1 = reliability("X"),
     rel.x2 = reliability("W"),
     rel.y = reliability("Y"),
+    k.x1 = if (identical(spec$variables$X$type, "binary")) 2 else 0,
+    k.x2 = if (identical(spec$variables$W$type, "binary")) 2 else 0,
     alpha = spec$target_test$alpha
   )
 }
 
+# The fixed-model formula takes no discretised variables (k.x1, k.x2).
 interactionpower_analytic <- function(inputs, n, detailed_results = FALSE) {
   call_backend("InteractionPoweR", quietly(do.call(
     InteractionPoweR::power_interaction_r2,
-    c(list(N = n, detailed_results = detailed_results), inputs)
+    c(list(N = n, detailed_results = detailed_results), inputs[setdiff(names(inputs), c("k.x1", "k.x2"))])
   )))
 }
 
@@ -144,7 +150,7 @@ interactionpower_rejections <- function(inputs, n, nrep, seed) {
 interactionpower_check_run <- function(spec, inputs, seed) {
   n <- check_run_n()
   generate <- function(rel) {
-    args <- inputs[c("r.x1.y", "r.x2.y", "r.x1x2.y", "r.x1.x2")]
+    args <- inputs[c("r.x1.y", "r.x2.y", "r.x1x2.y", "r.x1.x2", "k.x1", "k.x2")]
     if (rel) args <- c(args, inputs[c("rel.x1", "rel.x2", "rel.y")])
     call_backend("InteractionPoweR", with_seed(seed, quietly(do.call(
       InteractionPoweR::generate_interaction, c(list(N = n), args)
@@ -273,5 +279,40 @@ interactionpower_3way_check_run <- function(spec, inputs) {
     specified = unname(specified),
     recovered = unname(recovered),
     ok = abs(unname(recovered) - unname(specified)) < 1e-12
+  )
+}
+
+#' The group difference a yes/no predictor's correlation implies
+#'
+#' For a regression interaction with a yes/no X or W (split 50/50, as
+#' InteractionPoweR draws it), the standardised mean difference in Y between
+#' its two groups that its correlation with Y implies, by psych::r2d()
+#' (d = 2r / sqrt(1 - r^2), for equal groups). The correlation is what the
+#' design takes; the difference is shown beside it so that it can be read
+#' in familiar units. It describes the groups' difference averaged over the
+#' other predictor, not the interaction.
+#'
+#' @param spec A validated design specification.
+#' @return `NULL` unless the spec is a two-way regression interaction with a
+#'   yes/no X or W; otherwise a list with the `role` ("X" or "W"), its
+#'   `label` and `levels`, the correlation `r` with Y and the implied `d`
+#'   (the second level minus the first, in SDs of Y).
+#' @export
+implied_group_difference <- function(spec) {
+  if (!identical(spec$design, "regression_interaction") || !identical(spec$template, "two_way")) {
+    return(NULL)
+  }
+  binary <- interaction_binary(spec)
+  if (sum(binary) != 1) {
+    return(NULL)
+  }
+  role <- names(binary)[binary]
+  r <- spec$population[[paste0("r_", role, "_Y")]]
+  list(
+    role = role,
+    label = var_label(spec, role),
+    levels = as.character(unlist(spec$variables[[role]]$levels)),
+    r = r,
+    d = psych::r2d(r)
   )
 }

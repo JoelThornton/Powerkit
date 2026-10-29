@@ -508,27 +508,6 @@ Rubin.
 - **Recorded in:** `decision-tree.md` 3.4; open question 5; setting
   `simple_effects_target`.
 
-### B8. Reliability for E15's score variable
-
-- **Question:** E15 (moderated regression, one yes/no variable and one
-  score) no longer asks about reliability (decided 16 October 2026).
-  Should it still ask about the *score's* reliability?
-- **Options:**
-  - no reliability question on E15 (as now);
-  - ask for the score variable only.
-- **What tools and sources do:** InteractionPoweR takes a reliability per
-  variable (`rel.x1`, `rel.x2`; default 1, "perfect reliability")
-  (opened).
-- **Who might disagree, and why:**
-  - The decision's reason (misclassification differs from unreliability)
-    applies to the 0/1 variable, not to the score. Some would ask for the
-    score's reliability.
-  - Others prefer one simple rule per card.
-- **Knock-on effects:** the engine's spec accepts reliabilities for any
-  regression interaction (E5).
-- **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
-  setting.
-
 ### B9. Three or more parallel mediators (open question 10)
 
 Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b9-three-or-more-parallel-mediators-open-question-10).
@@ -1354,30 +1333,15 @@ Setting `consistency_approach` records it.
   - the validation targets.
 - **Where:** [`phase-3b-questions.md`](phase-3b-questions.md), with the
   options and what the backends' documentation says. Not copied here.
-- **Knock-on effects:** the E15, E16 and E17 cards (B8; E5).
-
-### E5. The engine still accepts reliabilities for a binary X or W
-
-- **Question:** E15 no longer asks about reliability in the prototype,
-  but the engine's spec accepts `variables.*.reliability` for a
-  regression interaction of any variable type. Should the engine refuse
-  it for a binary X or W?
-- **Options:**
-  - refuse it (an engine change);
-  - accept it (as now).
-- **What tools and sources do:** InteractionPoweR's `power_interaction()`
-  takes `rel.x1` (reliability) and `k.x1` (number of discrete values) as
-  separate arguments (help page; opened). The help page doesn't say
-  whether a reliability is meaningful for a binary variable.
-- **Who might disagree, and why:** the same as B8.
-- **Knock-on effects:**
-  - an engine change, for the engine's owner; phase 3b (E4);
-  - separately, InteractionPoweR's `power_interaction_r2()`, which powerkit
-    uses only to narrow the sample-size search for E9, is documented as
-    valid for continuous, normally distributed variables (help page;
-    opened). Whether E15 could reuse it is for phase 3b.
-- **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
-  setting.
+- **Knock-on effects:** the E15, E16 and E17 cards.
+- **Partly decided (29 October 2026, `decisions.md`):** the effect is
+  entered as a standardised path or correlation, with the group
+  difference it implies shown beside it (option B; a Cohen's d input
+  later, as a departure); the split is asked on the mediation cards
+  (50/50 by default) and fixed at 50/50 for interactions. E15 is built on
+  these. Still open for E16 and E17: how power4mome standardises a binary
+  W in moderated mediation, and whether its Monte Carlo CI has been
+  checked with a binary X (questions for power4mome's author).
 
 ### E6. Saving projects
 

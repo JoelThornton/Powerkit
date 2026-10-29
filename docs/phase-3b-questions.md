@@ -1,5 +1,7 @@
 # Phase 3b: statistical decisions needed before coding binary X and W
 
+*Decided 29 October 2026 (`decisions.md`): section 1, option B; section 2, the split asked on the mediation cards (50/50 default) and fixed at 50/50 for interactions; reliability for E15's score only. E15 is built. Sections 3 and 5 remain for E16 and E17.*
+
 Phase 3b adds a yes/no (binary) X or W to regression interactions and to
 mediation and moderated mediation (build guide, section 8). This page
 lists the statistical decisions that coding needs. **Nothing here is

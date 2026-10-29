@@ -719,10 +719,11 @@ nodes:
 # same table; a test keeps them in step. `card_notes` gives a card-specific
 # note in place of `note`.
 closing_questions:
-  # Not E15 (a yes/no X or W): misclassification in a 0/1 variable is a
-  # different problem from unreliable scores (maintainer decision,
-  # 16 October 2026; docs/decisions.md).
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31]}
+  # E15 (a yes/no X or W) asks for the score's reliability only:
+  # misclassification in a 0/1 variable is a different problem from
+  # unreliable scores (maintainer decisions, 16 and 29 October 2026;
+  # docs/decisions.md).
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57]}
   - doc_id: Q-test
     text: "Which version of the test?"
@@ -999,14 +1000,18 @@ endpoints:
     doc_name: "Moderated regression with a yes/no X or W"
     plain_name: "Does an effect depend on a moderator, when X or W is two groups?"
     template: "regression_interaction / two_way (X or W yes/no)"
-    backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (planned)"
+    backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (simulation)"
     method: Simulation
-    inputs: ["Fully standardised correlations", "Groups are always 50/50 for interactions (InteractionPoweR has no unequal split)"]
-    status: coming_soon
-    coming_soon_note: "Planned next: a yes/no X or W."
-    refs: "phase 3b (build guide, section 8)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-interaction-binary.R, note: "Agrees with InteractionPoweR called directly and with an independent simulation, and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "One of X and W is two groups or conditions, such as a training or waitlist condition, and the other is a score: for example, whether training helps wellbeing more for people higher in trait anxiety."
+      - "You give correlations, as for two scores; the yes/no variable's correlation with Y is a point-biserial correlation, and the result shows the difference between the groups it implies."
+      - "The two groups are taken as equal in size (InteractionPoweR has no unequal split for interactions)."
+      - "Reliability is asked for the score and the outcome only, not for the yes/no variable. When both X and W are yes/no, use the 2 x 2 ANOVA."
+    inputs: ["Which variable is yes/no, and what you call X, W and Y", "Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of the score variable and of Y"]
     tier: MVP
-    alternatives: ["a latent-variable interaction model that allows for measurement error"]
+    alternatives: ["a latent-variable interaction model that allows for measurement error", "for a randomised condition, comparing the condition's effect at chosen levels of the moderator"]
   E16:
     doc_name: "Mediation with a yes/no X"
     plain_name: "Mediation where X is two conditions or two groups"

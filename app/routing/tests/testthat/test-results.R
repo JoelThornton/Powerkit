@@ -49,13 +49,13 @@ script_reproduces <- function(text) {
 wired <- unlist(forms$calculates)
 
 test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22"))
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15"))
   for (ep in c(paste0("E", 10:14), "E40")) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
-  # Only E9 runs in the background with no preview, with its usual run times.
-  expect_identical(names(forms$background), "E9")
+  # E9 and E15 run in the background with no preview, with their usual run times.
+  expect_identical(names(forms$background), c("E9", "E15"))
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)

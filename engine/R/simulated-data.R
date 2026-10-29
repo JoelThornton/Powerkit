@@ -569,19 +569,29 @@ sim_superpower_code <- function(spec, n) {
 
 # Regression interactions, from InteractionPoweR's generate_interaction()
 # with the backend's correlations and reliabilities: observed scores, with
-# measurement error when a reliability is below 1. The product term is
+# measurement error when a reliability is below 1, and a yes/no X or W as
+# its two levels, split 50/50. The product term is
 # left out; the analysis makes it.
 sim_interaction_code <- function(spec, n) {
   inputs <- interactionpower_inputs(spec)
   c(
     "sim <- InteractionPoweR::generate_interaction(",
-    sim_args(c(list(N = n), inputs[c("r.x1.y", "r.x2.y", "r.x1x2.y", "r.x1.x2", "rel.x1", "rel.x2", "rel.y")])),
+    sim_args(c(list(N = n), inputs[c("r.x1.y", "r.x2.y", "r.x1x2.y", "r.x1.x2", "rel.x1", "rel.x2", "rel.y", if (inputs$k.x1 > 0) "k.x1", if (inputs$k.x2 > 0) "k.x2")])),
     ")",
     sprintf(
-      "simulated <- data.frame(%s = sim$x1, %s = sim$x2, %s = sim$y)",
-      sim_label(spec, "X"), sim_label(spec, "W"), sim_label(spec, "Y")
+      "simulated <- data.frame(%s = %s, %s = %s, %s = sim$y)",
+      sim_label(spec, "X"), sim_column("x1", spec, "X"), sim_label(spec, "W"), sim_column("x2", spec, "W"), sim_label(spec, "Y")
     )
   )
+}
+
+# A generated predictor as a column: a score as it is, or a yes/no variable
+# (InteractionPoweR's -1 and 1) as its level names, the second level for 1.
+sim_column <- function(name, spec, role) {
+  if (!identical(spec$variables[[role]]$type, "binary")) {
+    return(sprintf("sim$%s", name))
+  }
+  sprintf("%s[(sim$%s > 0) + 1]", r_code(sim_levels(spec, role)), name)
 }
 
 # Mediation and moderated mediation, from power4mome's generator (the

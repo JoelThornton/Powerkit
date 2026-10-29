@@ -1043,6 +1043,20 @@ actual_power_sentence <- function(spec, result) {
   sprintf("%s, power is %.1f%%.", who, 100 * at_n)
 }
 
+# A yes/no predictor's correlation with Y, read as the difference between
+# its groups (E15): the engine works it out (implied_group_difference(),
+# psych::r2d() for equal groups); this only words it.
+group_difference_note <- function(spec) {
+  d <- tryCatch(engine_function("implied_group_difference")(spec), error = function(e) NULL)
+  if (is.null(d)) return(NULL)
+  label <- spec$variables[[d$role]]$label %||% d$role
+  sprintf(
+    "A correlation of %s between %s and %s means that %s differs from %s by d = %s SDs of %s, averaged over the other predictor (two equal groups). The interaction is what is tested.",
+    formatC(d$r, digits = 2, format = "f"), label, spec$variables$Y$label %||% "Y",
+    d$levels[2], d$levels[1], formatC(d$d, digits = 2, format = "f"), spec$variables$Y$label %||% "Y"
+  )
+}
+
 # Technical details, for checking a result against G*Power or R: the
 # test's statistic, degrees of freedom, critical value and noncentrality,
 # as the package reported them at the n analysed (run_spec()'s `details`).
@@ -1312,7 +1326,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring

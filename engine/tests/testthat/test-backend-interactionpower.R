@@ -46,20 +46,14 @@ test_that("a sample-size search brackets n with the analytic power", {
   expect_true(nrow(result$curve) >= 5)
 })
 
-test_that("a binary X or W isn't available yet", {
+test_that("one yes/no X or W runs (E15); both yes/no points to the 2x2 ANOVA", {
   spec <- sim_spec("regression_interaction")
   spec$variables$W <- list(type = "binary", label = "Group", levels = list("A", "B"))
-  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
-  expect_match(conditionMessage(error), "'Group (W)' is yes/no", fixed = TRUE)
-  expect_match(conditionMessage(error), "Treating it as continuous may give an inaccurate power estimate", fixed = TRUE)
-  # A 2x2 ANOVA fits only when both X and W are binary.
-  expect_no_match(conditionMessage(error), "ANOVA", fixed = TRUE)
+  expect_true(all(run_quietly(spec)$check_run$ok))
 
   spec$variables$X <- list(type = "binary", label = "Condition", levels = list("Control", "Treatment"))
-  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
-  expect_match(conditionMessage(error), "'Condition (X)' and 'Group (W)' are yes/no", fixed = TRUE)
-  expect_match(conditionMessage(error), "Treating them as continuous may give an inaccurate power estimate", fixed = TRUE)
-  expect_match(conditionMessage(error), "Because both are yes/no, you can use a 2x2 ANOVA design instead.", fixed = TRUE)
+  error <- expect_error(run_quietly(spec), "use the 2x2 ANOVA design", class = "powerkit_not_available")
+  expect_match(conditionMessage(error), "With both 'Condition (X)' and 'Group (W)' yes/no", fixed = TRUE)
 })
 
 test_that("the smallest detectable interaction comes from power_interaction_r2, the others kept", {
