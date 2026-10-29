@@ -57,6 +57,7 @@ pwr_backend <- function(spec, seed = NULL) {
     bracket_power = power_at,
     simulate = NULL,
     sensitivity = function(n, power) pwr_sensitivity(spec, n, power),
+    details = function(n) pwr_details(spec, inputs, n, power_at(n)),
     check_run = function() pwr_check_run(spec, inputs)
   )
 }

@@ -158,7 +158,7 @@ test_that("a sample-size result and a sensitivity result are worded from the eng
   expect_match(words[["headline"]], sprintf("Cohen's f = %.3f", calc$result$sensitivity$cohen_f), fixed = TRUE)
 })
 
-test_that("an exact required N shows the power it actually gives (G5); a simulated one doesn't", {
+test_that("a required N shows the power it actually gives (G5), with an interval when simulated", {
   skip_without_run()
   spec <- light_spec("E4", goal = list(type = "sample_size", power = 0.8))
   spec$options$nrep <- NULL
@@ -180,7 +180,28 @@ test_that("an exact required N shows the power it actually gives (G5); a simulat
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$options$method <- "simulation"
   calc <- run_calculation(spec, run, seed = 3L)
-  expect_null(actual_power_sentence(calc$spec, calc$result))
+  est <- calc$result$n_required
+  expect_match(actual_power_sentence(calc$spec, calc$result), sprintf(
+    "power is about %.1f%% (95%% interval %.1f%% to %.1f%%, from the curve fitted to the simulations)",
+    100 * est$power, 100 * est$power_lower, 100 * est$power_upper), fixed = TRUE)
+})
+
+test_that("technical details show the package's df, critical value and noncentrality, or say why not", {
+  skip_without_run()
+  calc <- run_calculation(light_spec("E7"), run, seed = 3L)
+  d <- calc$result$details
+  html <- as.character(technical_details_ui(calc$result))
+  expect_match(html, "Technical details (for checking against G*Power or R)", fixed = TRUE)
+  expect_match(html, sprintf("Degrees of freedom: %s and %s.", d$df[1], d$df[2]), fixed = TRUE)
+  expect_match(html, "Noncentrality parameter:", fixed = TRUE)
+  expect_match(html, paste("Reported by", d$source), fixed = TRUE)
+  full <- as.character(result_panel_ui(tree, forms, "E7", form_fields(form_groups(forms, "E7")), form_examples[["E7"]], calc))
+  expect_match(full, "Technical details", fixed = TRUE)
+
+  spec <- light_spec("E2")
+  spec$options$method <- "simulation"
+  calc <- run_calculation(spec, run, seed = 3L)
+  expect_match(as.character(technical_details_ui(calc$result)), "Not applicable: this result was simulated", fixed = TRUE)
 })
 
 test_that("the result screen shows the number, inputs, backend, validation status, departures and exports", {

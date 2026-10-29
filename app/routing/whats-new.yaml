@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Technical details for checking a result"
+    text: >-
+      Under "How it was calculated", a folded section now gives the test's
+      degrees of freedom, critical value and noncentrality parameter, as the
+      R package reported them, so you can check a result against G*Power or
+      your own R code. For a simulated sample size, the result now also
+      gives the power reached at that size, with its interval.
+  - date: "2026-10-29"
     title: "Two factors with a yes/no outcome"
     text: >-
       If you cross two factors, such as the frame of a message and who

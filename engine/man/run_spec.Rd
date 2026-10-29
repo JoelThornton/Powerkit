@@ -18,7 +18,9 @@ error; 0 for exact results); a single row for a fixed-n or
 sensitivity goal;
 \item \code{n_required}: list of \code{n}, \code{lower} and \code{upper} (95\% interval for
 simulation; all equal for exact results), or \code{NA} unless the goal is
-\code{sample_size};
+\code{sample_size}. For simulation it also has \code{power}, \code{power_lower} and
+\code{power_upper}: the power the fitted curve gives at \code{n}, with its 95\%
+interval;
 \item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity}; otherwise a list
 with the smallest detectable \code{effect} (with an \code{effect_description})
 and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
@@ -53,6 +55,14 @@ or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
 \code{groups_recruit}: each group's analysed n divided by
 (1 - attrition) and rounded up. This common heuristic ignores how
 missing data will be handled (Rubin, 2025, doi:10.1002/ijop.70017);
+\item \code{details}: \code{NULL} for a simulated result, a sensitivity analysis or
+a backend that doesn't report them; otherwise the test at the n
+analysed, as the backend package reports it: its \code{statistic} ("t",
+"F", "z", "chi-square", or "count" for an exact test of counts),
+\code{df} (two values for F), \code{critical} value(s), \code{ncp} (noncentrality;
+for a z test, the mean of z under the alternative), \code{actual_alpha}
+(for an exact test of counts) and \code{source}, the function that
+reported them;
 \item \code{check_run}: data frame comparing specified and recovered population
 values;
 \item \code{provenance}: spec hash, method, seed, replications, cores, batch

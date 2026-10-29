@@ -83,6 +83,7 @@ pwrss_backend <- function(spec, seed = NULL) {
     bracket_power = power_at,
     simulate = NULL,
     sensitivity = NULL,
+    details = function(n) pwrss_details(pwrss_output(inputs$fun, inputs$args(n)), inputs$fun),
     # Exact tests of counts: power goes up and down with n.
     sawtooth = spec$template %in% c("one_proportion", "mcnemar") ||
       identical(spec$target_test$method, "fisher_exact"),

@@ -23,7 +23,9 @@ from it.}
 \item{level}{Confidence level for the interval around the required n.}
 }
 \value{
-A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}),
+A list with \code{n_required} (list of \code{n}, \code{lower}, \code{upper}, and
+\code{power}, \code{power_lower} and \code{power_upper}: the fitted curve's power at
+\code{n} and its interval),
 \code{curve} (data frame of \code{n}, \code{power} and \code{mcse} at each simulated n) and
 \code{simulations} (data frame of \code{n}, \code{seed}, \code{rejections}, \code{nrep} and
 \code{fitted}: whether the final probit curve was fitted to that n).

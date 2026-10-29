@@ -55,6 +55,7 @@ superpower_backend <- function(spec, seed = NULL) {
     exact_power = function(n) exact_at(n)$power,
     bracket_power = function(n) exact_at(n)$power,
     manova_power = function(n) exact_at(n)$manova_power,
+    details = function(n) exact_at(n)$details,
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
@@ -193,7 +194,31 @@ superpower_exact <- function(design, inputs, seed = NULL) {
   # ANOVA_exact() reports it for designs with a within factor.
   manova <- result$manova_results
   manova_power <- if (!is.null(manova) && inputs$effect %in% rownames(manova)) manova[inputs$effect, "power"] / 100 else NA_real_
-  list(power = row$power / 100, cohen_f = row$cohen_f, manova_power = manova_power)
+  list(
+    power = row$power / 100, cohen_f = row$cohen_f, manova_power = manova_power,
+    details = superpower_details(result, inputs, row)
+  )
+}
+
+# The F test's details from ANOVA_exact()'s output: its degrees of freedom
+# (the ANOVA table) and noncentrality (main_results). Superpower doesn't
+# return the critical F, so it is stats::qf() at those df; the details are
+# given only if they reproduce Superpower's power.
+superpower_details <- function(result, inputs, row) {
+  table <- result$aov_result$anova_table
+  if (is.null(table) || !inputs$effect %in% rownames(table)) {
+    return(NULL)
+  }
+  df <- as.numeric(table[inputs$effect, c("num Df", "den Df")])
+  critical <- stats::qf(1 - inputs$alpha, df[1], df[2])
+  power <- stats::pf(critical, df[1], df[2], ncp = row$non_centrality, lower.tail = FALSE)
+  if (!isTRUE(abs(power - row$power / 100) < 1e-4)) {
+    return(NULL)
+  }
+  list(
+    statistic = "F", df = df, critical = critical, ncp = row$non_centrality,
+    actual_alpha = NA_real_, source = "Superpower::ANOVA_exact (critical F: stats::qf)"
+  )
 }
 
 # Whether the MANOVA approach differs from the univariate F for the target

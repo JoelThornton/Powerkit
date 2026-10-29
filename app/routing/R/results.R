@@ -1018,10 +1018,13 @@ source_note <- function(values) {
 # N. A simulated N comes from a fitted curve, with no simulation at
 # exactly that N, so nothing is shown for it.
 actual_power_sentence <- function(spec, result) {
-  if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
+  if (!identical(result$goal_type, "sample_size")) return(NULL)
   n <- result$n_required$n
-  at_n <- result$curve$power[result$curve$n == n]
-  if (length(at_n) != 1) return(NULL)
+  # A simulated required n: the power the fitted curve gives there, with
+  # its 95% interval (run_spec()'s n_required).
+  fitted <- simulated(result)
+  at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
+  if (length(at_n) != 1 || is.na(at_n)) return(NULL)
   sizes <- group_sizes(spec, n)
   who <- if (is.null(sizes)) {
     sprintf("With %s participants", whole(n))
@@ -1031,7 +1034,63 @@ actual_power_sentence <- function(spec, result) {
   } else {
     sprintf("With %s in group 1 and %s in group 2", whole(sizes[1]), whole(sizes[2]))
   }
+  if (fitted) {
+    return(sprintf(
+      "%s, power is about %.1f%% (95%% interval %.1f%% to %.1f%%, from the curve fitted to the simulations).",
+      who, 100 * at_n, 100 * result$n_required$power_lower, 100 * result$n_required$power_upper
+    ))
+  }
   sprintf("%s, power is %.1f%%.", who, 100 * at_n)
+}
+
+# Technical details, for checking a result against G*Power or R: the
+# test's statistic, degrees of freedom, critical value and noncentrality,
+# as the package reported them at the n analysed (run_spec()'s `details`).
+# powerkit never computes them; where no package reports them, the section
+# says so.
+technical_details_ui <- function(result) {
+  d <- result$details
+  # Generic tests (E50) take the statistic and df from the user.
+  if (is.null(d) && identical(result$goal_type, "power") && is.na(result$curve$n[1])) return(NULL)
+  number <- function(x) trimws(formatC(x, digits = 3, format = "fg", big.mark = ","))
+  lines <- if (simulated(result)) {
+    list("Not applicable: this result was simulated, so there is no single critical value or noncentrality parameter. The reproducibility record gives the seed and replications, and the R script reruns every simulation.")
+  } else if (identical(result$goal_type, "sensitivity")) {
+    list("Not given for a sensitivity analysis, where the effect size is the answer rather than an input; calculate power at that effect to see them.")
+  } else if (is.null(d)) {
+    list(sprintf("Not reported for this design: %s doesn't return them.", result$provenance$backend))
+  } else {
+    stat <- if (d$statistic == "chi-square") "Chi-square" else d$statistic
+    df <- if (all(is.na(d$df))) NULL else if (length(d$df) == 2) {
+      sprintf("Degrees of freedom: %s and %s.", number(d$df[1]), number(d$df[2]))
+    } else {
+      sprintf("Degrees of freedom: %s.", number(d$df))
+    }
+    critical <- if (d$statistic == "count") {
+      sprintf("Critical counts: %s (as %s reports them). Because counts are whole numbers, the test's actual alpha is %.2f%%, not the alpha you set.",
+        paste(number(d$critical), collapse = " and "), d$source, 100 * d$actual_alpha)
+    } else if (length(d$critical) == 2 && isTRUE(all.equal(d$critical[1], -d$critical[2]))) {
+      sprintf("Critical value: %s = ±%s (two-sided).", stat, number(d$critical[2]))
+    } else {
+      sprintf("Critical value: %s = %s.", stat, paste(number(d$critical), collapse = " and "))
+    }
+    ncp <- if (is.na(d$ncp)) NULL else if (d$statistic == "z") {
+      sprintf("Noncentrality: the mean of z under your effect is %s.", number(d$ncp))
+    } else {
+      sprintf("Noncentrality parameter: %s.", number(d$ncp))
+    }
+    c(list(sprintf("Test statistic: %s.", stat)), list(df), list(critical), list(ncp),
+      list(sprintf("Reported by %s at N = %s.", d$source, whole(n_analysed(result)))))
+  }
+  tags$details(class = "result-more result-technical",
+    tags$summary("Technical details (for checking against G*Power or R)"),
+    tags$ul(lapply(Filter(Negate(is.null), lines), tags$li)),
+    p(class = "small", "The R script (under \u201cSave and share\u201d) reproduces the whole calculation with the package alone."))
+}
+
+# The n the result is about: the required n, or the goal's n.
+n_analysed <- function(result) {
+  if (identical(result$goal_type, "sample_size")) result$n_required$n else result$curve$n[1]
 }
 
 # Analysed and to recruit, when the user gave an attrition rate (the
@@ -1305,6 +1364,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep),
+    technical_details_ui(result),
     if (length(departures_in_view)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
