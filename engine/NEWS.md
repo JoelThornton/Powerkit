@@ -1,5 +1,16 @@
 # powerkit 0.23.0
 
+* Moderated regression with a yes/no X or W (E15): template `two_way`
+  takes a binary X or W, simulated with InteractionPoweR's
+  `power_interaction(k.x1 or k.x2 = 2)` (a 50/50 split; the yes/no
+  variable's correlations are those of the observed 0/1 data). A
+  reliability for the yes/no variable is refused; both variables yes/no
+  is pointed to the 2 x 2 ANOVA; sensitivity analysis isn't offered (the
+  fixed-model formula assumes continuous variables, and is used only to
+  bracket the sample-size search). New `implied_group_difference()`: the
+  difference between the groups that the yes/no variable's correlation
+  with Y implies (`psych::r2d()`). Exported scripts and simulated data
+  use the two-level variable. In the app, the E15 card calculates.
 * Simulated data sets for planned contrasts (Spower's `gen_anova.test()`
   with equal SDs), logistic and Poisson regression with one predictor
   (X standardised or a yes/no group, Y from the model pwrss's formulas

@@ -1,0 +1,48 @@
+{
+  "spec_version": "0.1",
+  "design": "regression_interaction",
+  "template": "two_way",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Training",
+      "levels": [
+        "Waitlist",
+        "Mindfulness training"
+      ]
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Trait anxiety",
+      "reliability": 0.85
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r_X_Y": 0.2,
+    "r_W_Y": -0.3,
+    "r_XW_Y": 0.15,
+    "r_X_W": 0
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a training benefit that grows by this much with trait anxiety is the smallest of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "ols_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261029
+  }
+}

@@ -98,7 +98,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A6 | Two independent Pearson r's | GP | E49 | Wired (app PR in review; **checked against G\*Power's manual**, section 27: both of its example figures reproduce; values to transcribe) | Could: AP, PN, S, Co, Cr | **Engine: pwrss `power.z.twocors(rho1, rho2, n2, n.ratio)`** (Fisher's z test; template `two_correlations`). Spower `p_2r(r.ab, r.ab2, n2_n1)` (default test `"fisher1925"`; Example 27.3) | — | [G1][] |
 | A7 | Linear bivariate regression: one group, size of slope | GP; UCLA | E4 (the test of a slope of 0 is the test of r = 0; audit) | Done (validated and wired) | Now: AP, PN (as r). Could: AP, PN, S, Co, Cr | Spower `p_slr(beta, sd_x, sd_y, beta0)` (Example 12.3); pwr `pwr.r.test()` for a slope of 0 | Accept slope and SDs on E4, or a card note; a non-zero null slope needs `p_slr()` | [G3][] |
 | A8 | Linear bivariate regression: two groups, difference between intercepts | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` with a user-written data generator (Examples 17.3 and 18.3 in Spower's vignette write one) | — | [G1][] |
-| A9 | Linear bivariate regression: two groups, difference between slopes | GP | E15 (a yes/no W × continuous X interaction is a difference in slopes) | Planned (phase 3b) | Now: —. Could: AP, PN (InteractionPoweR, by a grid over N) | InteractionPoweR `power_interaction(k.x2 = 2)`: groups split 50/50 only. Spower `p_glm()` as A8 for unequal groups | Phase 3b; G\*Power allows unequal groups, InteractionPoweR doesn't | [E4][] |
+| A9 | Linear bivariate regression: two groups, difference between slopes | GP | E15 (a yes/no W × continuous X interaction is a difference in slopes) | Wired (29 October 2026; simulated, groups 50/50; published value to transcribe) | Now: AP, PN (InteractionPoweR) | InteractionPoweR `power_interaction(k.x2 = 2)`: groups split 50/50 only. Spower `p_glm()` as A8 for unequal groups | Phase 3b; G\*Power allows unequal groups, InteractionPoweR doesn't | [E4][] |
 | A10 | Linear multiple regression: fixed model, R² deviation from zero | GP; UCLA | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | Engine: AP, PN (pwrss). Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: pwrss `power.f.regression(r.squared.change, k.total, k.tested)`** (noncentrality f² × n, from its source). Spower `p_lm.R2(R2, k)` (Example 13.1); pwr `pwr.f2.test()` | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | As A10 | **Engine: pwrss `power.f.regression()`, passed the partial R² (R²full − R²reduced) / (1 − R²reduced), so f² = ΔR² / (1 − R²full)**. Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` (its noncentrality f² × (u + v + 1) differs) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
@@ -181,7 +181,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B1 | Continuous × continuous | ML; BG | E9 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S (by grids over N and effect) | InteractionPoweR `power_interaction()`; `power_interaction_r2()` (analytic, brackets N) | Wire (draft PR from the other thread) | — |
-| B2 | Binary × continuous | ML; BG | E15 | Planned (phase 3b) | Could: AP, PN, S | InteractionPoweR `power_interaction(k.x1 = 2)` (50/50 split only) | Phase 3b | [E4][], [E5][] |
+| B2 | Binary × continuous | ML; BG | E15 | Wired (29 October 2026; simulated, 50/50 split; published value to transcribe) | Now: AP, PN, S | **Engine: InteractionPoweR `power_interaction(k.x1 or k.x2 = 2)`** (50/50 split only); the implied group difference by `psych::r2d()` | Transcribe a published example | [E4][], [E5][] |
 | B3 | Binary × binary | ML | E7 (2 x 2 between ANOVA interaction) | Done (validated and wired) | Now: AP, PN, S | Superpower `ANOVA_exact()`; InteractionPoweR `k.x1 = 2, k.x2 = 2` as a cross-check (build guide, phase 3b c) | — | — |
 | B4 | Categorical moderator with 3+ levels | ML; Audit | E30 | No ready-made tool | — | InteractionPoweR's `k.x1`/`k.x2` make ordered (binary or ordinal) variables, not unordered categories (coverage.md) | — | [A1][] |
 | B5 | Three-way interaction | ML; BG | E31 | Wired (29 October 2026: InteractionPoweR's analytic `power_interaction_3way_r2()`, with reliabilities; matches it called directly; published value to transcribe) | Now: AP, PN | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 24 | 12 | 0 | 36 |
+| Wired (validation not finished) | 25 | 13 | 0 | 38 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 16 | 2 | 19 |
+| Planned | 0 | 15 | 2 | 17 |
 | Foundation tool can do it, not planned | 6 | 8 | 2 | 16 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 1 | 2 |
@@ -587,7 +587,7 @@ expected one, and a downloadable synthetic data set for pre-registration.
 [B3]: judgement-calls.md#b3-one-sided-tests-judgement-call-33
 [B6]: judgement-calls.md#b6-power-for-several-hypotheses-in-one-study-judgement-call-35
 [B7]: judgement-calls.md#b7-simple-effects-as-a-target-judgement-call-34
-[B8]: judgement-calls.md#b8-reliability-for-e15s-score-variable
+[B8]: archive/judgement-calls-decided.md#b8-reliability-for-e15s-score-variable
 [B9]: judgement-calls.md#b9-three-or-more-parallel-mediators-open-question-10
 [B10]: judgement-calls.md#b10-effect-sizes-on-the-input-screens
 [C2]: judgement-calls.md#c2-matched-pairs-vs-dyads-open-question-19

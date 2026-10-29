@@ -140,6 +140,11 @@ fully validated. Validation runs are recorded in
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress.
+- **Moderation with a yes/no X or W (29 October 2026, 0.23.0):** E15
+  calculates with InteractionPoweR (`k.x1` or `k.x2 = 2`, groups 50/50),
+  showing the group difference the correlation implies; reliability for
+  the score and outcome only. Validation in progress (published example
+  to choose). Next: E16 and E17 (`next.md`, item 5).
 - **Unequal group sizes in a 2 x 2 between ANOVA (29 October 2026,
   0.23.0):** E22 calculates, simulated with Superpower's `ANOVA_power()`
   and one n per cell (`options > cell_ratio`), checked against pwrss's

@@ -861,3 +861,57 @@ as the record of the options.
 - **Recommendation:** (a), because the answer then has the power it
   claims, and the sample size for this design is already found that way.
 - **Recorded in:** this entry; [`conventions.md`](../conventions.md), Departure 14; PR #152.
+
+### B8. Reliability for E15's score variable
+
+**Decided 29 October 2026** (`decisions.md`): ask for the score
+variable's reliability only, not the yes/no variable's. E15 asks for the
+reliability of the score and of Y.
+
+- **Question:** E15 (moderated regression, one yes/no variable and one
+  score) no longer asks about reliability (decided 16 October 2026).
+  Should it still ask about the *score's* reliability?
+- **Options:**
+  - no reliability question on E15 (as now);
+  - ask for the score variable only.
+- **What tools and sources do:** InteractionPoweR takes a reliability per
+  variable (`rel.x1`, `rel.x2`; default 1, "perfect reliability")
+  (opened).
+- **Who might disagree, and why:**
+  - The decision's reason (misclassification differs from unreliability)
+    applies to the 0/1 variable, not to the score. Some would ask for the
+    score's reliability.
+  - Others prefer one simple rule per card.
+- **Knock-on effects:** the engine's spec accepts reliabilities for any
+  regression interaction (E5).
+- **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
+  setting.
+
+### E5. The engine still accepts reliabilities for a binary X or W
+
+**Decided 29 October 2026** (`decisions.md`): the engine refuses a
+reliability for a yes/no X or W in a two-way regression interaction, in
+plain English. The fixed-model formula is used only to bracket E15's
+sample-size search (the search widens its grid if the bracket is off),
+and not for the smallest detectable effect, which E15 doesn't offer.
+
+- **Question:** E15 no longer asks about reliability in the prototype,
+  but the engine's spec accepts `variables.*.reliability` for a
+  regression interaction of any variable type. Should the engine refuse
+  it for a binary X or W?
+- **Options:**
+  - refuse it (an engine change);
+  - accept it (as now).
+- **What tools and sources do:** InteractionPoweR's `power_interaction()`
+  takes `rel.x1` (reliability) and `k.x1` (number of discrete values) as
+  separate arguments (help page; opened). The help page doesn't say
+  whether a reliability is meaningful for a binary variable.
+- **Who might disagree, and why:** the same as B8.
+- **Knock-on effects:**
+  - an engine change, for the engine's owner; phase 3b (E4);
+  - separately, InteractionPoweR's `power_interaction_r2()`, which powerkit
+    uses only to narrow the sample-size search for E9, is documented as
+    valid for continuous, normally distributed variables (help page;
+    opened). Whether E15 could reuse it is for phase 3b.
+- **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
+  setting.

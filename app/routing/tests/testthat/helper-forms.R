@@ -21,6 +21,8 @@ form_examples <- list(
                B_level1 = "Standard", B_level2 = "Self-compassion", Y_label = "Self-criticism score", metric = "raw",
                m11 = "20", m12 = "18", m21 = "30", m22 = "24", sd_mode = "one", sd = "8", effect = "interaction",
                n11 = "2", n12 = "2", n21 = "1", n22 = "1"), closing_ok),
+  E15 = c(list(binary_role = "X", X_label = "Training", X_levels = "Waitlist, Mindfulness training", W_label = "Trait anxiety",
+               Y_label = "Wellbeing", r_X_Y = "0.2", r_W_Y = "-0.3", r_XW_Y = "0.15", r_X_W = "0", rel_W = "0.85"), closing_ok),
   E8 = c(list(A_label = "Group", A_level1 = "Waitlist", A_level2 = "Therapy", B_label = "Time",
               B_level1 = "Pre", B_level2 = "Post", Y_label = "Depression score", metric = "standardised",
               m11 = "0", m12 = "0", m21 = "0", m22 = "-0.4", sd = "1", r = "0.6", effect = "interaction", method = "exact"), closing_ok),

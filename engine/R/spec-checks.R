@@ -1042,6 +1042,16 @@ check_regression_interaction <- function(spec) {
   if (identical(spec$template, "three_way")) {
     return(character())
   }
+  # A yes/no variable has no reliability to enter: misclassification in a
+  # 0/1 variable is a different problem from unreliable scores (decided 16
+  # October 2026; for E15, only the score's reliability is asked).
+  binary_rel <- Filter(function(v) identical(spec$variables[[v]]$type, "binary") && !is.null(spec$variables[[v]]$reliability), c("X", "W"))
+  if (length(binary_rel)) {
+    return(sprintf(
+      "'variables > %s > reliability' can't be used for a yes/no variable: misclassification isn't the same as unreliable scores. Remove it.",
+      binary_rel[1]
+    ))
+  }
   # Correlations among X, W and their product, assuming X and W are centred
   # and jointly normal (as InteractionPoweR does): XW is uncorrelated with
   # X and W.
