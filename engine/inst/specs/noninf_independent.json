@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "noninf_independent",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Therapy",
+      "levels": [
+        "Face to face",
+        "Online"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0,
+    "margin": 0.3,
+    "better": "higher"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: online therapy would be acceptable if wellbeing were at most 0.3 SD lower than face to face."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "non_inferiority",
+    "alpha": 0.025
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

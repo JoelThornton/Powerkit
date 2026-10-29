@@ -76,10 +76,10 @@ test_that("F9: the dyadic card says power can be overstated or understated, and 
   expect_match(text, "dyadic methods are needed", fixed = TRUE)
 })
 
-test_that("F13: the equivalence card says non-inferiority isn't in powerkit yet", {
-  # The screening still sends non-inferiority here; the card, not the
-  # analysis's name, says powerkit doesn't do it yet.
-  expect_match(paste(tree$endpoints$E36$card_points, collapse = " "), "non-inferiority", fixed = TRUE)
+test_that("F13: the equivalence card covers non-inferiority (from 0.22.0) and names it on the card", {
+  # The screening sends non-inferiority here; the card says it is covered,
+  # as a choice on the input screen, without changing the card's name.
+  expect_match(paste(tree$endpoints$E36$card_points, collapse = " "), "Non-inferiority, a bound on one side only, is here too", fixed = TRUE)
   expect_no_match(tree$endpoints$E36$plain_name, "non-inferiority", fixed = TRUE)
 })
 

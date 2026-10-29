@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "noninf_paired",
+  "variables": {
+    "X": {
+      "type": "within_factor",
+      "label": "Version",
+      "levels": [
+        "Long form",
+        "Short form"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Recall score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "dz": 0,
+    "margin": 0.25,
+    "better": "higher"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the short form is acceptable if scores are at most 0.25 SD of the differences lower."
+  },
+  "target_test": {
+    "effect": "mean_difference",
+    "method": "non_inferiority",
+    "alpha": 0.025
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

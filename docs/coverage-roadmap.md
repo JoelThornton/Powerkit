@@ -265,7 +265,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B45 | SEM | ML; BG; Audit | E37 | Wired (model fit: the chi-square test of exact fit, power to reject a model with a given RMSEA, for a CFA described by its items and factors or any model given by its df; matches semPower called directly and the noncentral chi-square in base R in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: Co, the test of close fit, simulated power | **Engine: semPower `semPower.postHoc()` and `semPower.getDf()`** (27 October 2026). Also `semPower.aPriori()`, `semPower.compromise()`, `semPower.powerLav()`, `semPower.powerPath()`; simsem `sim()`; power4mome (latent models) | Next: the test of close fit (an open method choice), longitudinal invariance | [C18][] |
 | B46 | CFA | ML; BG | E37 | Wired (the correlation between two factors against zero, and a latent slope against zero through `semPower.powerRegression()`, by the chi-square difference test; match semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower) | **Engine: semPower `semPower.powerCFA()`, `semPower.powerRegression()`** (29 October 2026) | Transcribe published examples (`test-validation-sem-latent.R`) | — |
-| B47 | Measurement invariance | ML; BG | E37 | Wired (multigroup: one factor, two groups, metric against configural or scalar against metric, by the chi-square difference test; matches semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: several factors or groups, longitudinal (`semPower.powerLI()`) | **Engine: semPower `semPower.powerMI()`** (29 October 2026) | Longitudinal invariance; several factors or groups | — |
+| B47 | Measurement invariance | ML; BG | E37 | Wired (multigroup: one factor, two groups; longitudinal: one factor, two occasions, `semPower.powerLI()`, from 29 October 2026; metric against configural or scalar against metric, by the chi-square difference test; matches semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: several factors, groups or occasions | **Engine: semPower `semPower.powerMI()`** (29 October 2026) | Longitudinal invariance; several factors or groups | — |
 | B48 | Latent interactions | ML | none: nearest E9 with reliabilities *(inferred)* | Unknown (no candidate found) | — | unknown | Search | — |
 | B49 | Latent profile/class analysis | ML | none: not reachable | Unknown (no candidate found) | — | unknown | Search | — |
 | B50 | Reliability (ICC) | ML; Audit | none: reaches E41, E4 or E46 | Unknown (decide the card; tools exist) | — | ICC.Sample.Size `calculateIccSampleSize()`; presize `prec_icc()`; MBESS `ss.aipe.reliability()`; kappaSize `PowerBinary()` (agreement) | Decide | [C4][] |
@@ -278,7 +278,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Goal | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; a correlation by `power_z_cor()` and two proportions by `power_twoprop()`, 29 October 2026; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
-| B55 | Non-inferiority | ML; Audit | E36 | Planned (phase 6: equivalence) | Could: AP, PN | candidate: a one-sided test against the margin (Spower `p_t.test(mu = )`, inferred); powertools `prop.2samp(margin = )` (coverage.md) | Phase 6 | — |
+| B55 | Non-inferiority | ML; Audit | E36 | Wired (29 October 2026: two groups, paired, one sample and two proportions, pwrss's one-sided tests against the margin, `power.t.student()` and `power.z.twoprops()`; matches pwrss called directly; published values to transcribe) | Now: AP, PN | **Engine: pwrss `power.t.student(margin, alternative = "one.sided")`, `power.z.twoprops(margin)`** | Transcribe published examples | — |
 | B56 | Precision (CI width) | ML; BG; Audit | E46 | Planned (phase 6: AIPE) | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
 | B57 | Group-sequential designs with interim analyses | ML; BG; Audit | none: not reachable | Planned (later in the build guide; no phase) | — | rpact `getDesignGroupSequential()`, `getSampleSizeMeans()`, `getPowerMeans()`; gsDesign `gsDesign()`; POSSA `sim()`, `pow()` | — | [C13][] |
 
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 24 | 8 | 0 | 32 |
+| Wired (validation not finished) | 24 | 9 | 0 | 33 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 19 | 2 | 22 |
+| Planned | 1 | 18 | 2 | 21 |
 | Foundation tool can do it, not planned | 6 | 10 | 2 | 18 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

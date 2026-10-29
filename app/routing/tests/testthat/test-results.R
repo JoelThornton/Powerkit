@@ -805,6 +805,40 @@ test_that("repeated measures with three or more conditions show the MANOVA appro
   expect_no_match(result_sentences(calc$spec, calc$result)[["detail"]], "MANOVA", fixed = TRUE)
 })
 
+test_that("non-inferiority (E36) runs on pwrss's one-sided tests, worded for one direction", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E36"))
+  expected <- list(noninf_independent = "pwrss::power.t.student", noninf_two_proportions = "pwrss::power.z.twoprops")
+  for (name in names(expected)) {
+    values <- noninf_examples[[name]]
+    expect_equal(form_problems(fields, values), character(), info = name)
+    spec <- build_spec(forms, "E36", fields, values)
+    expect_identical(spec$template, name)
+    expect_identical(spec$target_test$method, "non_inferiority")
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend_function, expected[[name]], info = name)
+    words <- result_sentences(calc$spec, calc$result)
+    expect_match(words[["headline"]], "no worse than the comparison by more than the margin", fixed = TRUE, info = name)
+    expect_no_match(paste(words, collapse = " "), "equivalence bounds", fixed = TRUE)
+    w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
+    expect_match(w[["short"]], "a non-inferiority test (one-sided, against the margin)", fixed = TRUE, info = name)
+  }
+})
+
+test_that("measurement invariance over two occasions (E37) runs on semPower.powerLI()", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E37"))
+  values <- sem_examples$occasions
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E37", fields, values)
+  expect_null(spec$options$allocation_ratio)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "semPower::semPower.powerLI")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "equal loadings on the two occasions", fixed = TRUE)
+  expect_match(words[["detail"]], "on two occasions (the factor correlating 0.6 between them)", fixed = TRUE)
+})
+
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
   skip_without_run()
   for (ep in c("E1", "E2", "E3")) {

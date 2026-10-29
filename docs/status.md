@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 7). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 6). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -90,17 +90,18 @@ fully validated. Validation runs are recorded in
   first two designs. Validation in progress (published examples to
   choose and transcribe); three questions for powertools in
   `upstream-questions.md`. Next: simulated multilevel models wait for a
-  package decision (`next.md`, item 5).
+  package decision (`next.md`, item 4).
 - **Structural equation models (27 to 29 October 2026, 0.13.0 and
   0.21.0):** on the latent variables card (E37), by formula with
   semPower: model fit (the chi-square test of exact fit by RMSEA, for a
   CFA described by its items and factors or any model by its df) and,
   from 0.21.0, measurement invariance of one factor across two groups
-  (metric or scalar, `semPower.powerMI()`), the correlation between two
+  (metric or scalar, `semPower.powerMI()`; over two occasions from
+  0.22.0, `semPower.powerLI()`), the correlation between two
   factors (`semPower.powerCFA()`) and a latent slope
   (`semPower.powerRegression()`), each by the chi-square difference test.
   Validation in progress (published examples to choose and transcribe).
-  Not yet: longitudinal invariance, several factors or groups, and the
+  Not yet: invariance with several factors, groups or occasions, and the
   test of close fit (left out for now, 29 October 2026).
 - **Repeated measures and larger factorial designs (27 to 28 October
   2026, 0.14.0 to 0.19.0):** the one-way repeated-measures ANOVA (the same
@@ -116,7 +117,7 @@ fully validated. Validation runs are recorded in
   univariate F when the effect involves a within factor with three or
   more levels. Validation in progress (published examples to choose and
   transcribe). Next: sphericity corrections and unequal SDs or
-  correlations (`next.md`, item 9); four or more factors go to the safety
+  correlations (`next.md`, item 8); four or more factors go to the safety
   net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
   card from 0.21.0, simulated with Spower.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
@@ -155,9 +156,10 @@ fully validated. Validation runs are recorded in
   run in the app through TOSTER's exact `power_t_TOST()` (E36), with the
   bound and the expected difference as Cohen's d or in the measure's own
   units; from 0.21.0 also a correlation (`power_z_cor()`) and two
-  proportions (`power_twoprop()`, equal groups). Validation in progress:
-  published examples are placeholders. Non-inferiority is `next.md`,
-  item 3.
+  proportions (`power_twoprop()`, equal groups); from 0.22.0
+  non-inferiority for two groups, paired data, one sample and two
+  proportions (pwrss's one-sided tests against a margin). Validation in
+  progress: published examples are placeholders.
 - **Whole-study simulation (27 October 2026, 0.10.0, experimental):** on
   the guided plan, one population model for the whole study, entered
   once as standardised paths; every planned analysis (correlation,

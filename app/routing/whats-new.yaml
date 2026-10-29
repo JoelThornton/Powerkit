@@ -6,6 +6,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Non-inferiority, and invariance over time"
+    text: >-
+      Want to show a new approach is no worse than the usual one? The
+      equivalence screen now plans non-inferiority studies: set the margin,
+      say whether higher or lower scores are better, and powerkit works out
+      the sample size for two groups, the same people twice, one mean or
+      two proportions. The invariance screen also checks whether a
+      questionnaire measures the same thing on two occasions, not only in
+      two groups.
+  - date: "2026-10-29"
     title: "Welch's ANOVA, more equivalence tests, and the MANOVA approach"
     text: >-
       Three or more groups that vary by different amounts? On the one-way

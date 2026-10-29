@@ -161,6 +161,8 @@ group_sizes <- function(spec, n) {
     independent_t = ,
     tost_independent = ,
     tost_two_proportions = ,
+    noninf_independent = ,
+    noninf_two_proportions = ,
     invariance = ,
     two_proportions = ,
     two_correlations = {
@@ -289,7 +291,44 @@ equivalence_test_text <- function(spec, result) {
     alpha_text(spec$target_test$alpha), equivalence_bound(spec, result))
 }
 
+is_noninferiority <- function(spec) startsWith(spec$template %||% "", "noninf_")
+
+# Non-inferiority: one one-sided test against the margin.
+noninf_test_text <- function(spec) {
+  pop <- spec$population
+  unit <- switch(spec$template, noninf_paired = "d_z = ", noninf_two_proportions = "", "d = ")
+  sprintf("a one-sided test at alpha = %s against a non-inferiority margin of %s%s (%s values better)",
+    alpha_text(spec$target_test$alpha), unit, format(pop$margin), pop$better %||% "higher")
+}
+
+noninf_sentences <- function(spec, result) {
+  test <- noninf_test_text(spec)
+  shown <- "show that the new condition is no worse than the comparison by more than the margin"
+  closer <- "The closer the true difference is to the margin, the lower the power; a new condition expected to be a little better needs fewer people."
+  source <- sprintf("calculated for the difference you entered (%s).", exact_source(result))
+  if (identical(result$goal_type, "sample_size")) {
+    est <- result$n_required
+    c(
+      headline = sprintf("You need %s participants in total%s for %s power to %s, if the true difference is the one you entered, with %s.",
+        whole(est$n), group_text(spec, est$n), percent(spec$goal$power), shown, test),
+      detail = paste("This N is", source, closer),
+      reading = plain_reading(spec$goal$power,
+        outcome = "show that the new condition is no worse than the margin allows",
+        if_not = "If the true difference is closer to the margin, fewer would.",
+        condition = "the true difference is the one you entered")
+    )
+  } else {
+    row <- result$curve[1, ]
+    c(
+      headline = sprintf("With %s participants in total%s, the study has %s power: if the true difference is the one you entered, about %d in 100 studies like this would %s, with %s.",
+        whole(row$n), group_text(spec, row$n), percent(row$power), round(100 * row$power), shown, test),
+      detail = paste("This power is", source, closer)
+    )
+  }
+}
+
 equivalence_sentences <- function(spec, result) {
+  if (is_noninferiority(spec)) return(noninf_sentences(spec, result))
   test <- equivalence_test_text(spec, result)
   # A correlation is tested itself, not a difference.
   what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
@@ -381,10 +420,13 @@ sem_test_name <- function(spec) {
   pop <- spec$population
   switch(
     spec$template,
-    invariance = if (identical(pop$level, "metric")) {
-      "the chi-square difference test of metric invariance (equal loadings in the two groups, against the configural model)"
-    } else {
-      "the chi-square difference test of scalar invariance (equal intercepts in the two groups, against the metric model)"
+    invariance = {
+      where <- if (identical(pop$over, "occasions")) "on the two occasions" else "in the two groups"
+      if (identical(pop$level, "metric")) {
+        sprintf("the chi-square difference test of metric invariance (equal loadings %s, against the configural model)", where)
+      } else {
+        sprintf("the chi-square difference test of scalar invariance (equal intercepts %s, against the metric model)", where)
+      }
     },
     factor_correlation = "the chi-square difference test of the correlation between the two factors against zero",
     latent_regression = sprintf("the chi-square difference test of %s against zero",
@@ -397,10 +439,13 @@ sem_model_description <- function(spec) {
   items <- function(k) sprintf("%s item%s", whole(k), if (k == 1) "" else "s")
   switch(
     spec$template,
-    invariance = sprintf("one factor measured by %s (standardised loading %s) in two groups, with %s of them %s in the second group",
-      items(pop$indicators), format(pop$loading), whole(pop$noninvariant),
+    invariance = sprintf("one factor measured by %s (standardised loading %s) %s, with %s of them %s %s",
+      items(pop$indicators), format(pop$loading),
+      if (identical(pop$over, "occasions")) sprintf("on two occasions (the factor correlating %s between them)", format(pop$stability)) else "in two groups",
+      whole(pop$noninvariant),
       if (identical(pop$level, "metric")) sprintf("loading %s", format(pop$loading_group2))
-      else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference)))),
+      else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference))),
+      if (identical(pop$over, "occasions")) "on the second occasion" else "in the second group"),
     factor_correlation = sprintf("two factors measured by %s and %s (standardised loadings %s and %s), correlating %s",
       items(pop$indicators[[1]]), items(pop$indicators[[2]]), format(pop$loadings[[1]]), format(pop$loadings[[2]]), format(pop$r)),
     latent_regression = {
@@ -1394,7 +1439,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (equivalence) {
     name <- paste(name, switch(spec$template, tost_independent = "of two independent groups",
       tost_paired = "of two paired measurements", tost_one_sample = "of one mean against a fixed value",
-      tost_correlation = "of a correlation (z tests on Fisher's z)", tost_two_proportions = "of two independent proportions (z tests)"))
+      tost_correlation = "of a correlation (z tests on Fisher's z)", tost_two_proportions = "of two independent proportions (z tests)",
+      noninf_independent = "of two independent groups", noninf_paired = "of two paired measurements",
+      noninf_one_sample = "of one mean against a reference value", noninf_two_proportions = "of two independent proportions"))
+    if (is_noninferiority(spec)) name <- sub("^an equivalence test \\(two one-sided tests, TOST\\)", "a non-inferiority test (one-sided, against the margin)", name)
   }
   # F and chi-square tests have no sides (forms.yaml, sides: false).
   sides <- if (isFALSE(form$sides)) NULL else writeup_sides(spec)
@@ -1410,8 +1458,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
   }
-  if (equivalence) test <- sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
-  power_line <- if (equivalence) {
+  if (equivalence) test <- if (is_noninferiority(spec)) {
+    sprintf("%s (α = %s, one-sided; margin %s, %s values better)", name, writeup_alpha(spec$target_test$alpha), format(spec$population$margin), spec$population$better %||% "higher")
+  } else sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
+  power_line <- if (equivalence && is_noninferiority(spec)) {
+    "Power to show non-inferiority (the new condition no worse than the margin allows), if the true difference is as expected, is %.1f%%."
+  } else if (equivalence) {
     what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
     sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
   } else "Power to detect this effect is %.1f%%."
@@ -1533,7 +1585,10 @@ ethics_text <- function(spec, result, fields, values) {
     alpha, percent(p), percent(1 - p))
   # Equivalence tests: the aim is to show the difference is too small to
   # matter.
-  if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
+  if (identical(spec$design, "equivalence_test") && is_noninferiority(spec)) chance <- function(p) sprintf(
+    "If the real difference is the one we expect, the chance that a study of this size shows the new approach is no worse than the margin we set (one test, using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to the margin, the chance of failing is higher.",
+    alpha, percent(p), percent(1 - p))
+  else if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
     alpha, percent(p), percent(1 - p))
   # Bayes factor tests: strong evidence, not a significant result.

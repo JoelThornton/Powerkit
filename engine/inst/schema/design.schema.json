@@ -4354,7 +4354,7 @@
       }
     },
     "template_sem_invariance": {
-      "description": "Measurement invariance of one factor across two groups, by semPower::semPower.powerMI(): the power of the chi-square difference (likelihood ratio) test to reject metric invariance (equal loadings; compared with the configural model) or scalar invariance (equal intercepts; compared with the metric model). The factor is measured by 'indicators' items, each with the standardised loading 'loading' in both groups, except that the last 'noninvariant' items have the loading 'loading_group2' in the second group (metric) or intercepts shifted by 'intercept_difference' item SDs in the second group (scalar). Factors are identified by fixing the first group's factor variance (and mean) only, as lavaan does. goal > n is the total number of participants analysed, split between the groups by options > allocation_ratio (default 1).",
+      "description": "Measurement invariance of one factor across two groups (semPower::semPower.powerMI()) or, with population > over 'occasions', the same people on two occasions (semPower::semPower.powerLI()): the power of the chi-square difference (likelihood ratio) test to reject metric invariance (equal loadings; compared with the configural model) or scalar invariance (equal intercepts; compared with the metric model). The factor is measured by 'indicators' items, each with the standardised loading 'loading' in both groups, except that the last 'noninvariant' items have the loading 'loading_group2' in the second group (metric) or intercepts shifted by 'intercept_difference' item SDs in the second group (scalar). Factors are identified by fixing the first group's factor variance (and mean) only, as lavaan does. goal > n is the total number of participants analysed: across two groups, split by options > allocation_ratio (default 1); over two occasions, the people measured both times.",
       "properties": {
         "variables": {
           "type": "object",
@@ -4373,6 +4373,19 @@
           "properties": {
             "metric": {
               "const": "invariance"
+            },
+            "over": {
+              "description": "'groups' (the default): two groups of different people. 'occasions': the same people measured twice, as in a longitudinal study.",
+              "enum": [
+                "groups",
+                "occasions"
+              ]
+            },
+            "stability": {
+              "description": "Occasions only: the correlation between the factor on the two occasions (how stable people's standing is). Required with over 'occasions'.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
             },
             "level": {
               "description": "The level of invariance tested: 'metric' (equal loadings, against the configural model) or 'scalar' (equal intercepts, against the metric model).",
@@ -4401,10 +4414,10 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1,
-              "description": "Metric invariance: the standardised loading of the differing items in the second group."
+              "description": "Metric invariance: the standardised loading of the differing items in the second group (or on the second occasion)."
             },
             "intercept_difference": {
-              "description": "Scalar invariance: how far the differing items' intercepts are shifted in the second group, in item SD units.",
+              "description": "Scalar invariance: how far the differing items' intercepts are shifted in the second group (or on the second occasion), in item SD units.",
               "type": "number"
             }
           }
@@ -5677,6 +5690,274 @@
         }
       }
     },
+    "template_noninf_independent": {
+      "description": "Non-inferiority for two independent groups: is group 2 (the new condition) no worse than group 1 by more than the margin? A one-sided t-test of d against -margin (or +margin when lower is better), by pwrss::power.t.student(alternative = 'one.sided', margin). goal > n is the total number of people, split by options > allocation_ratio.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "standardised"
+              ]
+            },
+            "d": {
+              "description": "The expected true difference, as Cohen's d: (mean of group 2 - mean of group 1) / pooled SD. 0 if the two are expected to be the same.",
+              "type": "number"
+            },
+            "margin": {
+              "description": "The non-inferiority margin: the largest difference in the wrong direction (worse for the new condition) that would still be acceptable, in the same units as the effect. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "better": {
+              "description": "Whether higher values of the outcome are better ('higher', the default) or lower ones are ('lower', for example symptoms or relapse).",
+              "enum": [
+                "higher",
+                "lower"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "mean_difference",
+                "mean",
+                "proportion_difference"
+              ]
+            },
+            "method": {
+              "const": "non_inferiority"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_noninf_paired": {
+      "description": "Non-inferiority for the same people measured twice: is the second condition no worse than the first by more than the margin? A one-sided paired t-test of d_z against the margin, by pwrss::power.t.student(design = 'paired'). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "dz",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "standardised"
+              ]
+            },
+            "dz": {
+              "description": "The expected true difference, as d_z: mean of the differences (second minus first) / SD of the differences.",
+              "type": "number"
+            },
+            "margin": {
+              "description": "The non-inferiority margin: the largest difference in the wrong direction (worse for the new condition) that would still be acceptable, in the same units as the effect. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "better": {
+              "description": "Whether higher values of the outcome are better ('higher', the default) or lower ones are ('lower', for example symptoms or relapse).",
+              "enum": [
+                "higher",
+                "lower"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "mean_difference",
+                "mean",
+                "proportion_difference"
+              ]
+            },
+            "method": {
+              "const": "non_inferiority"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_noninf_one_sample": {
+      "description": "Non-inferiority for one mean against a reference value: is it no worse than the reference by more than the margin? A one-sided one-sample t-test, by pwrss::power.t.student(design = 'one.sample'). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "standardised"
+              ]
+            },
+            "d": {
+              "description": "The expected true difference from the reference value, as Cohen's d: (mean - reference) / SD.",
+              "type": "number"
+            },
+            "margin": {
+              "description": "The non-inferiority margin: the largest difference in the wrong direction (worse for the new condition) that would still be acceptable, in the same units as the effect. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "better": {
+              "description": "Whether higher values of the outcome are better ('higher', the default) or lower ones are ('lower', for example symptoms or relapse).",
+              "enum": [
+                "higher",
+                "lower"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "mean_difference",
+                "mean",
+                "proportion_difference"
+              ]
+            },
+            "method": {
+              "const": "non_inferiority"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_noninf_two_proportions": {
+      "description": "Non-inferiority for two proportions: is group 2's proportion no worse than group 1's by more than the margin? A one-sided z test of p2 - p1 against the margin, by pwrss::power.z.twoprops(alternative = 'one.sided', margin). goal > n is the total number of people, split by options > allocation_ratio.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p1",
+            "p2",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p1": {
+              "description": "The expected proportion in group 1 (the comparison).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "p2": {
+              "description": "The expected proportion in group 2 (the new condition).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "margin": {
+              "description": "The non-inferiority margin: the largest difference in the wrong direction (worse for the new condition) that would still be acceptable, in the same units as the effect. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "better": {
+              "description": "Whether higher values of the outcome are better ('higher', the default) or lower ones are ('lower', for example symptoms or relapse).",
+              "enum": [
+                "higher",
+                "lower"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "enum": [
+                "mean_difference",
+                "mean",
+                "proportion_difference"
+              ]
+            },
+            "method": {
+              "const": "non_inferiority"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
     "design_equivalence_test": {
       "if": {
         "required": [
@@ -5696,7 +5977,11 @@
               "tost_paired",
               "tost_one_sample",
               "tost_correlation",
-              "tost_two_proportions"
+              "tost_two_proportions",
+              "noninf_independent",
+              "noninf_paired",
+              "noninf_one_sample",
+              "noninf_two_proportions"
             ]
           },
           "goal": {
@@ -5800,6 +6085,66 @@
             },
             "then": {
               "$ref": "#/definitions/template_tost_two_proportions"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "noninf_independent"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_noninf_independent"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "noninf_paired"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_noninf_paired"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "noninf_one_sample"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_noninf_one_sample"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "noninf_two_proportions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_noninf_two_proportions"
             }
           }
         ]

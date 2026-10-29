@@ -1119,18 +1119,26 @@ forms:
                        tost_paired: "The same people measured twice (or in two conditions)",
                        tost_one_sample: "One group's mean against a fixed value",
                        tost_correlation: "A correlation between two things you measure",
-                       tost_two_proportions: "Two groups' proportions (a yes/no outcome)"},
+                       tost_two_proportions: "Two groups' proportions (a yes/no outcome)",
+                       noninf_independent: "Non-inferiority (no worse than, one direction): two groups of different people",
+                       noninf_paired: "Non-inferiority: the same people in two conditions",
+                       noninf_one_sample: "Non-inferiority: one group's mean against a reference value",
+                       noninf_two_proportions: "Non-inferiority: two groups' proportions (a yes/no outcome)"},
              sets: {tost_independent: [{path: variables.X.type, value: binary}, {path: target_test.effect, value: mean_difference}],
                     tost_paired: [{path: variables.X.type, value: within_factor}, {path: target_test.effect, value: mean_difference}],
                     tost_one_sample: [{path: target_test.effect, value: mean}],
                     tost_correlation: [{path: variables.X.type, value: continuous}, {path: population.metric, value: r}, {path: target_test.effect, value: correlation}],
-                    tost_two_proportions: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: population.metric, value: proportion}, {path: target_test.effect, value: proportion_difference}]}}
+                    tost_two_proportions: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: population.metric, value: proportion}, {path: target_test.effect, value: proportion_difference}],
+                    noninf_independent: [{path: variables.X.type, value: binary}, {path: population.metric, value: standardised}, {path: target_test.effect, value: mean_difference}, {path: target_test.method, value: non_inferiority}],
+                    noninf_paired: [{path: variables.X.type, value: within_factor}, {path: population.metric, value: standardised}, {path: target_test.effect, value: mean_difference}, {path: target_test.method, value: non_inferiority}],
+                    noninf_one_sample: [{path: population.metric, value: standardised}, {path: target_test.effect, value: mean}, {path: target_test.method, value: non_inferiority}],
+                    noninf_two_proportions: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: population.metric, value: proportion}, {path: target_test.effect, value: proportion_difference}, {path: target_test.method, value: non_inferiority}]}}
           - {id: X_label, label: "What the groups or conditions are (for example, condition)", type: text, path: variables.X.label, required: true,
-             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions, noninf_independent, noninf_paired, noninf_two_proportions]}}
           - {id: X_level1, label: "First group or condition", type: text, path: variables.X.levels.1, required: true,
-             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions, noninf_independent, noninf_paired, noninf_two_proportions]}}
           - {id: X_level2, label: "Second group or condition", type: text, path: variables.X.levels.2, required: true,
-             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions, noninf_independent, noninf_paired, noninf_two_proportions]}}
           - {id: cor_X_label, label: "First variable", type: text, path: variables.X.label, required: true,
              shown_if: {field: comparison, is: tost_correlation}}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true,
@@ -1193,6 +1201,29 @@ forms:
              shown_if: {field: comparison, is: tost_two_proportions}}
           - {id: p2, label: "Expected proportion, second group (0 to 1)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "second group's proportion",
              shown_if: {field: comparison, is: tost_two_proportions}, help: "Equal groups: TOSTER plans for the same number of people in each."}
+      - input: "For non-inferiority: the margin, which direction is better, and the difference you expect"
+        shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions]}
+        note: "The margin is the largest difference in the wrong direction that would still be acceptable: the new condition counts as no worse if it is worse by less than this. Group 2 (the second condition) is the new one."
+        fields:
+          - {id: better, label: "Which values of the outcome are better", type: select, path: population.better, required: true,
+             shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions]},
+             choices: {higher: "Higher values are better (for example wellbeing, recovery)", lower: "Lower values are better (for example symptoms, relapse)"}}
+          - {id: ni_margin, label: "Non-inferiority margin, as Cohen's d (d_z for the same people; more than 0)", type: number, path: population.margin, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "non-inferiority margin",
+             shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_paired, noninf_one_sample]}}
+          - {id: ni_d, label: "Expected true difference, as Cohen's d (0 = no difference)", type: number, path: population.d, effect: true, writeup_label: "expected Cohen's d",
+             shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_one_sample]},
+             help: "Group 2 minus group 1 (or the mean minus the reference value), over the SD. It must be better than minus the margin."}
+          - {id: ni_dz, label: "Expected true difference, as d_z (0 = no difference)", type: number, path: population.dz, effect: true, writeup_label: "expected d_z",
+             shown_if: {field: comparison, is: noninf_paired}}
+          - {id: ni_prop_margin, label: "Non-inferiority margin, as a difference in proportions (between 0 and 1)", type: number, path: population.margin, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "non-inferiority margin",
+             shown_if: {field: comparison, is: noninf_two_proportions}, help: "For example 0.1: a proportion up to 10 percentage points worse counts as no worse."}
+          - {id: ni_p1, label: "Expected proportion, group 1 (the comparison)", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "group 1's proportion",
+             shown_if: {field: comparison, is: noninf_two_proportions}}
+          - {id: ni_p2, label: "Expected proportion, group 2 (the new condition)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "group 2's proportion",
+             shown_if: {field: comparison, is: noninf_two_proportions}}
+          - {id: ni_allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "equal groups, pwrss's default (n.ratio = 1, pwrss 0.3.1)",
+             shown_if: {field: comparison, is_one_of: [noninf_independent, noninf_two_proportions]}}
 
   E48:
     sides: false
@@ -1505,30 +1536,37 @@ forms:
           - {id: rmsea, writeup_label: "RMSEA", label: "RMSEA of the misfit to detect", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: model_fit},
              help: "How wrong the model would have to be for you to want the test to notice. 0 would be a model that fits exactly; larger values are worse fit. Many studies use 0.05. A smaller value needs many more people."}
-      - input: "Measurement invariance: the items, their loadings, and how the second group differs"
+      - input: "Measurement invariance: the items, their loadings, and how the second group or occasion differs"
         shown_if: {field: question, is: invariance}
         fields:
+          - {id: over, label: "Across what", type: select, path: population.over, required: true,
+             shown_if: {field: question, is: invariance},
+             choices: {groups: "Two groups of different people", occasions: "The same people on two occasions (longitudinal)"},
+             default: groups, default_source: "two groups, as in semPower.powerMI() (semPower.powerLI() for occasions, semPower 2.2.0)"}
           - {id: level, label: "What you want to test", type: select, path: population.level, required: true,
              shown_if: {field: question, is: invariance},
              choices: {metric: "Metric invariance: do the items load equally in both groups?",
                        scalar: "Scalar invariance: do the items have the same intercepts (so means can be compared)?"}}
           - {id: mi_indicators, writeup_label: "items", label: "Number of items measuring the factor", type: number, path: population.indicators, required: true, min: 3, integer: true,
              shown_if: {field: question, is: invariance}}
-          - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items in group 1", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items in group 1 (or on the first occasion)", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: invariance},
-             help: "A typical value for your items, for example 0.7. The items that don't differ have this loading in group 2 too."}
-          - {id: noninvariant, writeup_label: "items that differ", label: "How many items differ in group 2", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
+             help: "A typical value for your items, for example 0.7. The items that don't differ have this loading in group 2 (or on the second occasion) too."}
+          - {id: noninvariant, writeup_label: "items that differ", label: "How many items differ in group 2 (or on the second occasion)", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
              shown_if: {field: question, is: invariance},
              help: "At least one item must be the same in both groups."}
-          - {id: loading_group2, writeup_label: "loading in group 2", label: "Their standardised loading in group 2", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: loading_group2, writeup_label: "loading in group 2", label: "Their standardised loading in group 2 (or on the second occasion)", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: question, is: invariance}, {field: level, is: metric}],
              help: "The smallest difference worth detecting: for example 0.5 where group 1's is 0.7."}
-          - {id: intercept_difference, writeup_label: "intercept shift", label: "How far their intercepts are shifted in group 2, in item SDs", type: number, path: population.intercept_difference, effect: true,
+          - {id: intercept_difference, writeup_label: "intercept shift", label: "How far their intercepts are shifted in group 2 (or on the second occasion), in item SDs", type: number, path: population.intercept_difference, effect: true,
              shown_if: [{field: question, is: invariance}, {field: level, is: scalar}],
              help: "The smallest shift worth detecting, for example 0.3 (higher in group 2) or -0.3 (lower)."}
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in semPower's examples (semPower.powerMI(), semPower 2.2.0)",
-             shown_if: {field: question, is: invariance}}
+             shown_if: [{field: question, is: invariance}, {field: over, is_not: occasions}]}
+          - {id: stability, writeup_label: "correlation between occasions", label: "Correlation of the factor between the two occasions", type: number, path: population.stability, required: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: [{field: question, is: invariance}, {field: over, is: occasions}],
+             help: "How stable people's standing on the factor is from one occasion to the next, for example 0.6."}
       - input: "Two factors: the items and loading of each, and their correlation"
         shown_if: {field: question, is: factor_correlation}
         fields:

@@ -3438,3 +3438,22 @@ with the recommended option:
 offers the alternative the literature recommends where assumptions are
 doubtful (unequal variances; sphericity), recorded in `conventions.md`.
 
+## 2026-10-29 · Non-inferiority by pwrss, and invariance over time by semPower
+
+**Decision (maintainer, 29 October 2026).** Non-inferiority is planned
+as a one-sided test against the margin, G\*Power's approach, with
+pwrss's own `power.t.student()` and `power.z.twoprops()`, which take a
+margin; it sits on the equivalence card. Longitudinal measurement
+invariance (the same people on two occasions) uses semPower's
+`semPower.powerLI()`, beside the multigroup invariance of 0.21.0. Both
+in one PR, version 0.22.0.
+
+**Next, decided the same day.** The Pitman-Morgan test and Spearman's
+rho and Kendall's tau, all simulated with Spower (the Pitman-Morgan test
+as the correlation between the sum and the difference of the paired
+scores, with Spower's `p_r()`; the rank correlations with
+`p_r(method = "spearman" / "kendall")`), in one PR; then a downloadable
+simulated data set, both in the R script and as a CSV from the app,
+marked as simulated by a column on every row and by its file name, with
+a note that it is for writing and pre-registering analysis code only.
+

@@ -1,3 +1,22 @@
+# powerkit 0.22.0
+
+* Non-inferiority: templates `noninf_independent`, `noninf_paired`,
+  `noninf_one_sample` and `noninf_two_proportions` for design
+  `equivalence_test`, with `target_test$method = "non_inferiority"`,
+  `population$margin` and `population$better` (`"higher"` or `"lower"`).
+  A one-sided test against the margin, by pwrss's `power.t.student()` and
+  `power.z.twoprops()` (`margin`, `alternative = "one.sided"`). pwrss
+  picks the side from the sign of the effect minus the margin, so the
+  spec checks refuse an expected effect at or beyond the margin, in plain
+  English. Unequal groups through `options$allocation_ratio`. Exported
+  scripts call pwrss alone. In the app, four more choices under "What you
+  are comparing" on the equivalence screen.
+* Measurement invariance over time: `population$over = "occasions"` for
+  template `invariance`, with `population$stability` (the factor's
+  correlation between the two occasions), by semPower's
+  `semPower.powerLI()`, the same people measured twice. In the app, an
+  "Across what" question on the invariance screen.
+
 # powerkit 0.21.0
 
 * Structural equation models: three templates for design `sem`, each the

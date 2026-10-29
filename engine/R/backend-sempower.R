@@ -9,9 +9,12 @@
 #               chi-square's critical value on the model's df.
 #
 #   invariance  sem/invariance: measurement invariance of one factor
-#               across two groups, the chi-square difference test of
-#               metric invariance against the configural model, or of
-#               scalar against metric. semPower::semPower.powerMI().
+#               across two groups (semPower::semPower.powerMI()) or over
+#               two occasions in the same people (population > over
+#               "occasions", semPower::semPower.powerLI(), with the
+#               factor's correlation between occasions as Phi), the
+#               chi-square difference test of metric invariance against
+#               the configural model, or of scalar against metric.
 #   factor_correlation  sem/factor_correlation: the correlation between
 #               two factors of a CFA, against zero (the chi-square
 #               difference test of the model with it fixed at 0).
@@ -151,10 +154,12 @@ sempower_restriction_backend <- function(spec) {
   )
 }
 
+sem_over_time <- function(spec) identical(spec$population$over, "occasions")
+
 sem_function <- function(spec) {
   switch(
     spec$template,
-    invariance = "semPower::semPower.powerMI",
+    invariance = if (sem_over_time(spec)) "semPower::semPower.powerLI" else "semPower::semPower.powerMI",
     factor_correlation = "semPower::semPower.powerCFA",
     latent_regression = "semPower::semPower.powerRegression"
   )
@@ -163,7 +168,7 @@ sem_function <- function(spec) {
 # The share of the total N in each group: two groups in the ratio
 # 1 : allocation_ratio for invariance, one group otherwise.
 sem_group_weights <- function(spec) {
-  if (!identical(spec$template, "invariance")) {
+  if (!identical(spec$template, "invariance") || sem_over_time(spec)) {
     return(1)
   }
   ratio <- spec$options$allocation_ratio %||% 1
@@ -176,7 +181,25 @@ sem_restriction_args <- function(spec) {
   pop <- spec$population
   switch(
     spec$template,
-    invariance = {
+    invariance = if (sem_over_time(spec)) {
+      # Over time: one factor per occasion, correlating by the stability;
+      # the constraints are placed across the two occasions.
+      k <- pop$indicators
+      differ <- seq.int(k - pop$noninvariant + 1, k)
+      phi <- matrix(c(1, pop$stability, pop$stability, 1), 2)
+      if (identical(pop$level, "metric")) {
+        second <- rep(pop$loading, k)
+        second[differ] <- pop$loading_group2
+        list(comparison = "configural", nullEffect = "metric", loadings = list(rep(pop$loading, k), second), Phi = phi)
+      } else {
+        tau2 <- rep(0, k)
+        tau2[differ] <- pop$intercept_difference
+        list(
+          comparison = "metric", nullEffect = "scalar", loadings = list(rep(pop$loading, k), rep(pop$loading, k)),
+          tau = list(rep(0, k), tau2), Alpha = c(0, 0), Phi = phi
+        )
+      }
+    } else {
       k <- pop$indicators
       differ <- seq.int(k - pop$noninvariant + 1, k)
       if (identical(pop$level, "metric")) {
