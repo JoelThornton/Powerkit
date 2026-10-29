@@ -69,6 +69,7 @@ export_script <- function(spec, result, file = NULL) {
     ))
   )
   lines <- add_recruitment_section(lines, spec, result)
+  lines <- c(lines, simulated_data_section(spec, simulated_data_n(spec, result), result$provenance$seed))
   text <- paste(c(lines, ""), collapse = "\n")
   if (is.null(file)) {
     return(text)

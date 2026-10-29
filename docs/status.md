@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 4). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 3). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -117,7 +117,7 @@ fully validated. Validation runs are recorded in
   univariate F when the effect involves a within factor with three or
   more levels. Validation in progress (published examples to choose and
   transcribe). Next: sphericity corrections and unequal SDs or
-  correlations (`next.md`, item 6); four or more factors go to the safety
+  correlations (`next.md`, item 5); four or more factors go to the safety
   net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
   card from 0.21.0, simulated with Spower.
 - **Rank correlations and the Pitman-Morgan test (29 October 2026,
@@ -126,6 +126,14 @@ fully validated. Validation runs are recorded in
   Pitman-Morgan test of two paired variances has its own card (E57),
   simulated with Spower's `p_r()` on the sum and difference of the paired
   scores. Validation in progress.
+- **Simulated data sets (29 October 2026, 0.22.0):** a CSV of one
+  sample of the planned size, drawn from the population entered by the
+  backend's own generator, downloadable from the results screen and
+  rebuilt by a section at the end of the R script (`simulated_data()`).
+  For writing analysis code before the data arrive; marked as simulated
+  in its first column and its file name. The basic tests (not the rank
+  tests), the Superpower ANOVA designs, Welch's ANOVA, regression
+  interactions and mediation; the rest are `next.md`, item 11.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
@@ -135,7 +143,7 @@ fully validated. Validation runs are recorded in
   heavy-tailed). Known difference 5: G\*Power adjusts the t-test by an
   efficiency factor instead; its values are still to transcribe
   (`test-validation-rank-tests.R`). Friedman's test still carries the
-  "only approximates" note (`next.md`, item 9).
+  "only approximates" note (`next.md`, item 8).
 - **Bayes factor t-tests (28 October 2026, 0.20.0):** the one-sample,
   paired and two-group t-test cards offer a Bayes factor t-test as a test
   version, by bfpwr's closed form (Pawel & Held, 2025): the chance the
