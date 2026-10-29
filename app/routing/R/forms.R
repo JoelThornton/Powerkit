@@ -68,6 +68,28 @@ generated_fields <- function(kind, generator, k) {
         optional = TRUE, min = -1, max = 1
       ))
     },
+    # Moderated mediation with parallel mediators (E40): the paths both
+    # PROCESS models share, and those of the model chosen in `stage`.
+    modmed_paths = {
+      first <- list(field = "stage", is = "process_7")
+      second <- list(field = "stage", is = "process_14")
+      only <- function(field, when) c(field, list(shown_if = when))
+      c(
+        unlist(lapply(ms, function(m) list(
+          path_field("X", m),
+          only(path_field("W", m), first),
+          only(path_field("XW", m, sprintf("Path XW -> %s (the interaction)", m)), first),
+          path_field(m, "Y"),
+          only(path_field(paste0(m, "W"), "Y", sprintf("Path %sW -> Y (the interaction)", m)), second)
+        )), recursive = FALSE),
+        list(only(path_field("W", "Y"), second), path_field("X", "Y", "Path X -> Y (direct)"))
+      )
+    },
+    modmed_target = list(list(
+      id = "target_path", label = "Whose index of moderated mediation the hypothesis is about", type = "select",
+      path = "target_test.path", required = TRUE,
+      choices = stats::setNames(as.list(paste0("Through ", ms, " (X -> ", ms, " -> Y)")), paste0("X->", ms, "->Y"))
+    )),
     target_path = {
       choices <- indirect_path_choices(kind, k)
       list(list(
@@ -81,7 +103,7 @@ generated_fields <- function(kind, generator, k) {
 # The names group, for forms whose card doesn't list variable names.
 names_group <- function(form, k) {
   roles <- unlist(form$names)
-  if (!is.null(form$mediators)) roles <- c("X", mediator_roles(k), "Y")
+  if (!is.null(form$mediators)) roles <- c("X", intersect("W", roles), mediator_roles(k), "Y")
   describe <- c(X = "X (the cause or predictor)", W = "W (the moderator)", M = "M (the mediator)", Y = "Y (the outcome)")
   list(
     input = NULL, title = "What you call each variable",
@@ -103,7 +125,8 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   # brought within range.
   if (!is.null(form$mediators)) k <- min(max(k, 2L), max(mediator_choices_for(form$mediators)))
   groups <- lapply(form$groups, function(g) {
-    if (!is.null(g$generated)) g$fields <- generated_fields(form$mediators, g$generated, k)
+    # A generated group can end with fixed fields (`fields_after`).
+    if (!is.null(g$generated)) g$fields <- c(generated_fields(form$mediators, g$generated, k), g$fields_after)
     # The basic tests need no effect size for the smallest detectable
     # effect: the engine solves for it (an empty value counts as zero, or
     # as the field's `when_empty`, and the result is positive). A

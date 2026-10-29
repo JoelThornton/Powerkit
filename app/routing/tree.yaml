@@ -1302,11 +1302,19 @@ endpoints:
   E40:
     doc_name: "Moderated mediation with two or more mediators"
     plain_name: "Moderated mediation with several mediators"
-    status: not_in_powerkit
-    inputs: ["Standardised paths"]
-    packages:
-      - {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any moderated mediation model written in lavaan syntax (no ready-made template)."}
+    template: "moderated_mediation / process_7, process_14 (parallel mediators)"
+    backend: "power4mome: power4test() with test_index_of_mome(), for one chosen mediator"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-modmed-parallel.R, note: "Recovers every path and the mediators' residual correlation in its check run, and its exported script reproduces the result, in the engine's tests. Not yet in the full validation run or checked against a published example."}
+    card_points:
+      - "Two mediators side by side, with W changing either the link from X to each mediator (PROCESS model 7) or the link from each mediator to the outcome (PROCESS model 14)."
+      - "The test is the index of moderated mediation for the mediator you choose: whether that mediator's indirect effect depends on W."
+      - "X, W and the mediators are scores; a yes/no X or W, or a mediator chain, isn't covered yet."
+      - "Simulated with power4mome, as for one mediator: the full run can take a while, so the app gives a quick preview and an R script for the full analysis."
+    inputs: ["Which link W changes", "Standardised paths for each mediator, including the interactions with W", "Correlations between the mediators' residuals, and of X with W", "Which mediator's index of moderated mediation the hypothesis is about"]
     tier: later
+    alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
   E41:
     doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
     plain_name: "Relationships measured within people, or in nested data"
@@ -1667,11 +1675,13 @@ guided:
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
-        - {when: {mediators: several}, endpoint: E40}
         - when: {x: cond3}
           unmapped: "Moderated mediation with a condition of three or more groups has no end point in decision-tree.md."
           package: {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any moderated mediation model written in lavaan syntax (no ready-made template)."}
-        - {when: {moderator: three}, endpoint: E40}
+        - when: {moderator: three}
+          unmapped: "Moderated mediation with a moderator of three or more groups has no end point in decision-tree.md."
+          package: {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any moderated mediation model written in lavaan syntax (no ready-made template)."}
+        - {when: {mediators: several}, endpoint: E40}
         - {when: {x: cond2}, endpoint: E17}
         - {when: {moderator: two}, endpoint: E17}
         - when: {x: score, moderator: score, mediators: one}

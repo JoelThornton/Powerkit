@@ -48,7 +48,7 @@ wired <- unlist(forms$calculates)
 
 test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
   expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31"))
-  for (ep in paste0("E", 10:14)) {
+  for (ep in c(paste0("E", 10:14), "E40")) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
@@ -68,7 +68,7 @@ test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 cal
     expect_true(full_seconds(forms, ep, "power") > 0, label = ep)
   }
   # A preview for power only: a required N goes straight to the R script.
-  for (ep in paste0("E", 10:14)) {
+  for (ep in c(paste0("E", 10:14), "E40")) {
     expect_true(has_preview(forms, ep, "power"), label = ep)
     expect_true(preview_seconds(forms, ep, "power") > 0, label = ep)
     expect_false(has_preview(forms, ep, "sample_size"), label = ep)
@@ -76,7 +76,7 @@ test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 cal
       if (!full_run_in_app(forms, ep, goal)) expect_match(script_run_time(forms, ep, goal), "one core", label = paste(ep, goal))
     }
   }
-  for (ep in c("E13", "E14")) expect_false(full_run_in_app(forms, ep, "power"), label = ep)
+  for (ep in c("E13", "E14", "E40")) expect_false(full_run_in_app(forms, ep, "power"), label = ep)
 })
 
 test_that("E9 in the background: the app's result equals the engine's, and the script reproduces it", {
@@ -296,11 +296,11 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
 })
 
 test_that("mediation shows departures 6 and 8, parallel mediators 7, and the interaction Known difference 1", {
-  for (ep in c("E10", "E11", "E12", "E13", "E14")) {
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E40")) {
     shown <- departures_for(forms, ep, light_spec(ep))
     expect_true(any(grepl("lavaan (maximum likelihood)", shown, fixed = TRUE)), info = ep) # Departure 6
     expect_true(any(grepl("Boos and Zhang", shown, fixed = TRUE)), info = ep)              # Departure 8
-    expect_equal(any(grepl("residuals correlate", shown, fixed = TRUE)), ep == "E11", info = ep) # Departure 7
+    expect_equal(any(grepl("residuals correlate", shown, fixed = TRUE)), ep %in% c("E11", "E40"), info = ep) # Departure 7
     expect_length(known_differences_for(forms, ep), 0)
   }
   expect_match(known_differences_for(forms, "E9"), "Fixed-model calculations", fixed = TRUE)
@@ -1575,4 +1575,27 @@ test_that("the simulated data set: offered where the engine has a generator, wit
   html <- as.character(simulated_data_ui(spec_at("sem_model_fit"), result))
   expect_match(html, "A simulated data set isn't available for this design yet.", fixed = TRUE)
   expect_no_match(html, "download_simulated_data", fixed = TRUE)
+})
+
+test_that("moderated mediation with two mediators (E40) builds a valid spec for either link", {
+  skip_without_run()
+  validate <- engine_function("validate_spec", file.path(repo_dir, "engine"))
+  fields <- form_fields(form_groups(forms, "E40"))
+  expect_equal(form_problems(fields, form_examples$E40), character())
+  spec <- build_spec(forms, "E40", fields, form_examples$E40)
+  expect_identical(spec$template, "process_7")
+  expect_identical(spec$target_test$path, "X->M1->Y")
+  expect_true(all(c("XW->M1", "XW->M2", "W->M1") %in% names(spec$population$paths)))
+  expect_false(any(c("M1W->Y", "W->Y") %in% names(spec$population$paths)))
+  expect_identical(spec$variables$W$label, "Autonomy")
+  expect_s3_class(validate(spec), "powerkit_spec")
+
+  values <- modifyList(form_examples$E40, list(stage = "process_14", p_W_Y = "-0.1", p_M1W_Y = "0.15", p_M2W_Y = "0.1",
+                                               target_path = "X->M2->Y"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E40", fields, values)
+  expect_identical(spec$template, "process_14")
+  expect_true(all(c("M1W->Y", "M2W->Y", "W->Y") %in% names(spec$population$paths)))
+  expect_false(any(c("XW->M1", "W->M1") %in% names(spec$population$paths)))
+  expect_s3_class(validate(spec), "powerkit_spec")
 })

@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Moderated mediation with two mediators"
+    text: >-
+      If your moderator changes a process with two mediators side by side,
+      for example autonomy changing how workload leads to exhaustion and to
+      cynicism, powerkit now works out power for the index of moderated
+      mediation through the mediator you choose, with W on the first or the
+      second link.
+  - date: "2026-10-29"
     title: "Three-way interactions"
     text: >-
       If you expect an interaction between two scores to change with a third

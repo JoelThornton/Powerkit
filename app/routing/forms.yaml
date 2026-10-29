@@ -158,6 +158,10 @@ simulations:
       full_run: []
       preview: {power: 170}
       script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E40:
+      full_run: []
+      preview: {power: 200}
+      script: {power: "about 30 minutes on one core (an estimate: two mediators take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
 
 # Whole-study simulation (experimental; R/whole-study.R, docs/conventions.md
 # Departure 13): the choices of how many simulated studies, and the usual
@@ -748,6 +752,32 @@ forms:
           - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
           - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+
+  E40:
+    methods_name: "a moderated mediation model with parallel mediators (index of moderated mediation)"
+    tool: power4mome
+    departures: ["6", "7", "8"]
+    directional: false
+    mediators: parallel
+    base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: index_of_moderated_mediation, method: monte_carlo_ci}}
+    names: [X, W, "Y"]
+    groups:
+      - input: "Which link W changes"
+        fields:
+          - {id: stage, label: "Which link depends on W", type: select, path: template, required: true, default: process_7,
+             default_source: "the first-stage model (PROCESS model 7), as on the single-mediator cards' first choice",
+             choices: {process_7: "The link from X to each mediator (PROCESS model 7)",
+                       process_14: "The link from each mediator to the outcome (PROCESS model 14)"}}
+      - input: "Standardised paths for each mediator, including the interactions with W"
+        generated: modmed_paths
+      - input: "Correlations between the mediators' residuals, and of X with W"
+        generated: residual_correlations
+        fields_after:
+          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+      - input: "Which mediator's index of moderated mediation the hypothesis is about"
+        generated: modmed_target
 
   # Wave 2 (engine PR #51, 18 October 2026): one-way ANOVA, R-squared, one
   # proportion and McNemar. No smallest detectable effect yet: the engine

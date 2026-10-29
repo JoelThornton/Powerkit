@@ -1,0 +1,65 @@
+{
+  "spec_version": "0.1",
+  "design": "moderated_mediation",
+  "template": "process_7",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Workload"
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Autonomy"
+    },
+    "M1": {
+      "type": "continuous",
+      "label": "Exhaustion"
+    },
+    "M2": {
+      "type": "continuous",
+      "label": "Cynicism"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Turnover intention"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M1": 0.3,
+      "W->M1": -0.1,
+      "XW->M1": -0.15,
+      "X->M2": 0.2,
+      "W->M2": -0.1,
+      "XW->M2": -0.1,
+      "M1->Y": 0.3,
+      "M2->Y": 0.2,
+      "X->Y": 0.05
+    },
+    "residual_correlations": {
+      "M1<->M2": 0.3
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning for the moderated paths.",
+    "adjustment": "none"
+  },
+  "target_test": {
+    "effect": "index_of_moderated_mediation",
+    "path": "X->M1->Y",
+    "method": "monte_carlo_ci",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "ci_draws": 1000,
+    "seed": 20261029
+  }
+}

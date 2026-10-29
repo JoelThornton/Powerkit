@@ -399,14 +399,32 @@ design_description <- function(spec) {
       "serial mediation (PROCESS model 6); indirect effect tested: %s", spec$target_test$path
     ),
     "moderated_mediation/process_7" = sprintf(
-      "first-stage moderated mediation (PROCESS model 7): %s (W) moderates %s (X) -> %s (M); index of moderated mediation for Y = %s",
-      label("W"), label("X"), label("M"), label("Y")
+      "first-stage moderated mediation (PROCESS model 7): %s (W) moderates %s (X) -> %s; index of moderated mediation for Y = %s%s",
+      label("W"), label("X"), mediator_words(spec, label), label("Y"), tested_mediator_words(spec, label)
     ),
     "moderated_mediation/process_14" = sprintf(
-      "second-stage moderated mediation (PROCESS model 14): %s (W) moderates %s (M) -> %s (Y); index of moderated mediation for X = %s",
-      label("W"), label("M"), label("Y"), label("X")
+      "second-stage moderated mediation (PROCESS model 14): %s (W) moderates %s -> %s (Y); index of moderated mediation for X = %s%s",
+      label("W"), mediator_words(spec, label), label("Y"), label("X"), tested_mediator_words(spec, label)
     )
   )
+}
+
+# The mediator, or each parallel mediator, as "Label (M1)".
+mediator_words <- function(spec, label) {
+  ms <- path_model(spec)$mediators
+  words <- vapply(ms, function(m) sprintf("%s (%s)", label(m), m), character(1))
+  if (length(ms) == 1) {
+    return(words)
+  }
+  paste("each of", paste(utils::head(words, -1), collapse = ", "), "and", words[length(words)])
+}
+
+tested_mediator_words <- function(spec, label) {
+  if (length(path_model(spec)$mediators) < 2) {
+    return("")
+  }
+  m <- modmed_mediator(spec)
+  sprintf(", through %s (%s)", label(m), m)
 }
 
 rank_design_description <- function(spec, label, levels) {
@@ -1823,6 +1841,8 @@ power4mome_script <- function(spec, result) {
   role_lines <- vapply(roles, function(r) sprintf("%s = %s,", r, r_code(args[[r]])), character(1))
   tested <- if (spec$design == "mediation") {
     sprintf("# the indirect effect tested: %s", spec$target_test$path)
+  } else if (!is.null(spec$target_test$path)) {
+    sprintf("# the index of moderated mediation through %s", modmed_mediator(spec))
   } else {
     "# the index of moderated mediation"
   }

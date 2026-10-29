@@ -520,7 +520,7 @@ test_that("the analysis list names each analysis without internal codes or PROCE
 })
 
 test_that("the methods paragraph names mediation models without PROCESS numbers", {
-  for (ep in c("E10", "E11", "E12", "E13", "E14")) {
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E40")) {
     expect_no_match(forms$forms[[ep]]$methods_name, "PROCESS", fixed = TRUE, info = ep)
   }
 })
