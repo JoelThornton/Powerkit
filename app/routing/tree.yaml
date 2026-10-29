@@ -1257,7 +1257,7 @@ endpoints:
     backend: "semPower: semPower.postHoc() with an RMSEA for model fit (the chi-square test of exact fit, with semPower.getDf() for a CFA's degrees of freedom); semPower.powerMI() for measurement invariance, semPower.powerCFA() for a factor correlation and semPower.powerRegression() for a latent slope (the chi-square difference test, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, power and required N, for every question on this screen, in the engine's tests; model fit also matches the noncentral chi-square written out in base R, and the degrees of freedom match lavaan's count. Not yet checked against a published worked example in the validation run (test-validation-sem-model-fit.R and test-validation-sem-latent.R)."}
+    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, power and required N, for every question on this screen, in the engine's tests; model fit also matches the noncentral chi-square written out in base R, and the degrees of freedom match lavaan's count. Not yet checked against a published worked example in the validation run."}
     # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
     # card through Q1's "a questionnaire structure" answer.
     card_points:
@@ -1266,7 +1266,7 @@ endpoints:
       - "The other three test one restriction against the model without it (a chi-square difference test), so you describe the model: how many items measure each factor, a typical standardised loading, and the difference you want to detect."
       - "Not calculated here yet: invariance over time (longitudinal), more than one factor or more than two groups for invariance, and the test of close fit (RMSEA no more than 0.05). semPower (https://cran.r-project.org/package=semPower) covers the first three."
       - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."
-    inputs: ["What you want to test", "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom", "Model fit: the misfit to detect, as the model's RMSEA in the population", "Invariance: the items, their loadings, and how the second group differs", "Two factors: the items and loading of each, and their correlation", "Latent regression: the slopes, the predictors' correlation, and the items"]
+    inputs: ["What you want to test", "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom", "Model fit: the misfit to detect, as the model's RMSEA in the population", "Measurement invariance: the items, their loadings, and how the second group differs", "Two factors: the items and loading of each, and their correlation", "Latent regression: the slopes, the predictors' correlation, and the items"]
     tier: v2
     alternatives: ["planning for the precision of the RMSEA (the width of its confidence interval)", "a simulation of the full model (simsem, or semPower's simulated power)"]
   E38:

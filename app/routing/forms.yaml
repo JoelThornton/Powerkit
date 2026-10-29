@@ -1475,7 +1475,7 @@ forms:
           - {id: rmsea, writeup_label: "RMSEA", label: "RMSEA of the misfit to detect", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: model_fit},
              help: "How wrong the model would have to be for you to want the test to notice. 0 would be a model that fits exactly; larger values are worse fit. Many studies use 0.05. A smaller value needs many more people."}
-      - input: "Invariance: the items, their loadings, and how the second group differs"
+      - input: "Measurement invariance: the items, their loadings, and how the second group differs"
         shown_if: {field: question, is: invariance}
         fields:
           - {id: level, label: "What you want to test", type: select, path: population.level, required: true,

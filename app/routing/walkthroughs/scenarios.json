@@ -772,7 +772,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Check that a model or questionnaire structure fits"
+   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
   },
   "guided": {
    "answers": [
@@ -813,7 +813,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Check that a model or questionnaire structure fits"
+   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
   },
   "guided": {
    "answers": [
@@ -854,7 +854,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Check that a model or questionnaire structure fits"
+   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
   },
   "guided": {
    "answers": [
@@ -927,7 +927,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Check that a model or questionnaire structure fits"
+   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
   },
   "guided": {
    "answers": [
@@ -2402,7 +2402,7 @@
     "Independent people",
     "Once"
    ],
-   "pick": "Check that a model or questionnaire structure fits"
+   "pick": "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
   },
   "guided": {
    "answers": [

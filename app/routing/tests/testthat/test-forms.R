@@ -54,8 +54,8 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_no_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    # E24's, E34's, E36's and E51's effect sizes appear once their first question is chosen.
-    start <- switch(ep, E24 = list(question = "r2_increase"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
+    # E24's, E34's, E36's, E37's and E51's effect sizes appear once their first question is chosen.
+    start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
                     E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
