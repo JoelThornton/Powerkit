@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Simulated data sets for contrasts, regressions and cluster trials"
+    text: >-
+      The simulated data set to write your analysis code with is now also
+      available for planned contrasts, logistic and Poisson regression with
+      one predictor, and cluster-randomised and group therapy trials with a
+      score outcome (with a column numbering the groups).
+  - date: "2026-10-29"
     title: "Simulated data sets for more designs"
     text: >-
       The simulated data set you can download to write your analysis code

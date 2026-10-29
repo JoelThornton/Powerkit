@@ -36,7 +36,9 @@ Available for the basic tests of means, correlations, proportions,
 variances, goodness of fit and cross-tabulations (not McNemar's test),
 the rank tests, equivalence and non-inferiority tests, the ANOVA designs
 on Superpower and Welch's one-way ANOVA, regression interactions,
-mediation and moderated mediation, factorial logistic regression and
-ordinal outcomes in two groups; \code{simulated_data_available()} says
+mediation and moderated mediation, factorial logistic regression,
+ordinal outcomes in two groups, planned contrasts, logistic and Poisson
+regression with one predictor (no other predictors) and cluster trials
+with a score outcome (cluster-randomised and group treatment); \code{simulated_data_available()} says
 whether a spec is covered.
 }

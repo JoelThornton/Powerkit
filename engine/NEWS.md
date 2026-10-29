@@ -1,5 +1,13 @@
 # powerkit 0.23.0
 
+* Simulated data sets for planned contrasts (Spower's `gen_anova.test()`
+  with equal SDs), logistic and Poisson regression with one predictor
+  (X standardised or a yes/no group, Y from the model pwrss's formulas
+  assume; only without other predictors) and cluster trials with a score
+  outcome (cluster-randomised and group treatment: a random intercept per
+  group with variance `icc`, total SD 1; a `cluster` column numbers the
+  groups). Multisite trials, yes/no cluster outcomes and a baseline
+  covariate aren't covered yet.
 * Simulated data sets for more designs: the rank tests (scores of the
   chosen shape, shifted by the effect), equivalence and non-inferiority
   tests (drawn as the t-test, two proportions or correlation they test),

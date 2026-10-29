@@ -119,10 +119,49 @@ test_that("equivalence, rank, proportion, correlation, ordinal and factorial log
   expect_equal(median(y[[2]]) - median(y[[1]]), spec$population$d, tolerance = 0.1)
 })
 
+test_that("contrasts, one-predictor regressions and cluster trials recover their populations", {
+  big <- 40000
+  spec <- read_spec(spec_file("anova_oneway_contrast"))
+  data <- simulated_data(spec, big, seed = 3)
+  means <- tapply(data[[4]], data[[3]], mean)[sim_levels(spec, "A")]
+  expect_equal(as.numeric(means), as.numeric(unlist(spec$population$means)), tolerance = 0.03)
+
+  spec <- read_spec(spec_file("logistic_regression"))
+  data <- simulated_data(spec, big, seed = 3)
+  fit <- stats::glm(data[[4]] == sim_levels(spec, "Y")[2] ~ data[[3]], family = stats::binomial())
+  expect_equal(unname(exp(stats::coef(fit)[2])), spec$population$odds_ratio, tolerance = 0.05)
+  expect_equal(unname(stats::plogis(stats::coef(fit)[1])), spec$population$base_prob, tolerance = 0.05)
+
+  spec <- read_spec(spec_file("poisson_regression"))
+  data <- simulated_data(spec, big, seed = 3)
+  fit <- stats::glm(data[[4]] ~ data[[3]], family = stats::poisson())
+  expect_equal(unname(exp(stats::coef(fit))), c(spec$population$base_rate * (spec$population$mean_exposure %||% 1), spec$population$rate_ratio), tolerance = 0.03)
+
+  # A cluster-randomised trial: whole groups of cluster_size in each
+  # condition, with the ICC between groups and total SD 1.
+  spec <- read_spec(spec_file("cluster_randomised"))
+  data <- simulated_data(spec, 8000, seed = 3)
+  expect_true(all(table(data$cluster) == spec$population$cluster_size))
+  expect_true(all(tapply(data[[3]], data$cluster, function(x) length(unique(x))) == 1))
+  cluster_means <- tapply(data[[5]], data$cluster, mean)
+  between <- stats::var(cluster_means) - mean(tapply(data[[5]], data$cluster, stats::var)) / spec$population$cluster_size
+  expect_equal(between, spec$population$icc, tolerance = 0.5)
+  y <- split(data[[5]], data[[3]])[sim_levels(spec, "X")]
+  expect_equal(mean(y[[2]]) - mean(y[[1]]), spec$population$d, tolerance = 0.3)
+
+  spec <- read_spec(spec_file("group_treatment"))
+  data <- simulated_data(spec, 8000, seed = 3)
+  individual <- data[[3]] == sim_levels(spec, "X")[1]
+  expect_true(all(is.na(data$cluster[individual])))
+  expect_equal(mean(data[[5]][!individual]) - mean(data[[5]][individual]), spec$population$d, tolerance = 0.2)
+})
+
 test_that("designs without a generator say so", {
   spec <- read_spec(spec_file("sem_model_fit"))
   expect_false(simulated_data_available(spec))
   expect_false(simulated_data_available(read_spec(spec_file("mcnemar"))))
+  expect_false(simulated_data_available(read_spec(spec_file("multisite"))))
+  expect_false(simulated_data_available(read_spec(spec_file("cluster_randomised_binary"))))
   expect_error(simulated_data(spec, 100), class = "powerkit_not_available")
   expect_true(simulated_data_available(read_spec(spec_file("mediation_simple"))))
 })
