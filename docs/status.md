@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 10). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 9). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -91,16 +91,17 @@ fully validated. Validation runs are recorded in
   choose and transcribe); three questions for powertools in
   `upstream-questions.md`. Next: simulated multilevel models wait for a
   package decision (`next.md`, item 7).
-- **Structural equation model fit (27 October 2026, 0.13.0):** the power
-  of the chi-square test of exact fit to reject a model with a given
-  RMSEA, and the sample size for a target power, by formula with
-  semPower's `semPower.postHoc()` on the "Check that a model or
-  questionnaire structure fits" card (E37). A CFA is described by its
-  items and factors (semPower counts the df with lavaan); any other model
-  by its df. Validation in progress (published examples to choose and
-  transcribe). Next: measurement invariance, then factor correlations,
-  then latent paths (`next.md`, item 9); the test of close fit is an
-  open method choice.
+- **Structural equation models (27 to 29 October 2026, 0.13.0 and
+  0.21.0):** on the latent variables card (E37), by formula with
+  semPower: model fit (the chi-square test of exact fit by RMSEA, for a
+  CFA described by its items and factors or any model by its df) and,
+  from 0.21.0, measurement invariance of one factor across two groups
+  (metric or scalar, `semPower.powerMI()`), the correlation between two
+  factors (`semPower.powerCFA()`) and a latent slope
+  (`semPower.powerRegression()`), each by the chi-square difference test.
+  Validation in progress (published examples to choose and transcribe).
+  Not yet: longitudinal invariance, several factors or groups, and the
+  test of close fit (left out for now, 29 October 2026).
 - **Repeated measures and larger factorial designs (27 to 28 October
   2026, 0.14.0 to 0.19.0):** the one-way repeated-measures ANOVA (the same
   people in three or more conditions, E54), the mixed ANOVA beyond 2 x 2

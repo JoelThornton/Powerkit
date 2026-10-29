@@ -127,3 +127,126 @@ test_that("the exported script reproduces each goal with semPower alone", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$goal$type)
   }
 })
+
+# Invariance, a factor correlation, a latent slope: power is semPower's own
+# function at each n, reached through its F0 and semPower.postHoc().
+
+latent_spec <- function(name, goal, ...) {
+  spec <- example_spec(name)
+  spec$options <- list(seed = 7)
+  spec$goal <- goal
+  changes <- list(...)
+  for (field in names(changes)) spec$population[[field]] <- changes[[field]]
+  spec
+}
+
+scalar_spec <- function(goal, ...) {
+  spec <- latent_spec("sem_invariance", goal, level = "scalar", intercept_difference = 0.3, ...)
+  spec$population$loading_group2 <- NULL
+  spec
+}
+
+test_that("each template runs on its semPower function, exactly, and passes its check run", {
+  functions <- c(
+    sem_invariance = "semPower::semPower.powerMI",
+    sem_factor_correlation = "semPower::semPower.powerCFA",
+    sem_latent_regression = "semPower::semPower.powerRegression"
+  )
+  for (name in names(functions)) {
+    result <- run_spec(latent_spec(name, list(type = "power", n = 300)))
+    expect_equal(result$provenance$backend_function, functions[[name]], info = name)
+    expect_equal(result$provenance$method, "exact", info = name)
+    expect_true(all(result$check_run$ok), info = name)
+    expect_true(all(c("semPower", "lavaan") %in% names(result$provenance$packages)), info = name)
+  }
+})
+
+test_that("power equals semPower's functions called directly", {
+  n <- 300
+  direct <- semPower::semPower.powerMI(
+    type = "post-hoc", comparison = "configural", nullEffect = "metric",
+    loadings = list(list(rep(0.7, 6)), list(c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5))),
+    alpha = 0.05, N = list(150, 150)
+  )
+  result <- run_spec(latent_spec("sem_invariance", list(type = "power", n = n)))
+  expect_equal(result$curve$power, direct$power, tolerance = 1e-8)
+  expect_equal(result$sem$df, direct$df)
+
+  direct <- semPower::semPower.powerMI(
+    type = "post-hoc", comparison = "metric", nullEffect = "scalar",
+    loadings = list(rep(0.7, 6)), tau = list(rep(0, 6), c(0, 0, 0, 0, 0.3, 0.3)),
+    Alpha = list(0, 0), alpha = 0.05, N = list(120, 180)
+  )$power
+  spec <- scalar_spec(list(type = "power", n = n))
+  spec$options$allocation_ratio <- 1.5
+  expect_equal(run_spec(spec)$curve$power, direct, tolerance = 1e-8)
+
+  direct <- semPower::semPower.powerCFA(
+    type = "post-hoc", Phi = 0.2, nIndicator = c(4, 5), loadM = c(0.6, 0.7),
+    alpha = 0.05, N = n
+  )$power
+  expect_equal(run_spec(latent_spec("sem_factor_correlation", list(type = "power", n = n)))$curve$power, direct, tolerance = 1e-8)
+
+  direct <- semPower::semPower.powerRegression(
+    type = "post-hoc", slopes = c(0.2, 0.3), corXX = 0.3, nullWhich = 1,
+    nIndicator = c(4, 4, 4), loadM = 0.6, alpha = 0.05, N = n
+  )$power
+  expect_equal(run_spec(latent_spec("sem_latent_regression", list(type = "power", n = n)))$curve$power, direct, tolerance = 1e-8)
+})
+
+test_that("the required N matches semPower's own a-priori search", {
+  apriori <- semPower::semPower.powerCFA(
+    type = "a-priori", Phi = 0.2, nIndicator = c(4, 5), loadM = c(0.6, 0.7), alpha = 0.05, power = 0.8
+  )$requiredN
+  expect_equal(run_spec(latent_spec("sem_factor_correlation", list(type = "sample_size", power = 0.8)))$n_required$n, apriori)
+  apriori <- semPower::semPower.powerRegression(
+    type = "a-priori", slopes = c(0.2, 0.3), corXX = 0.3, nullWhich = 1,
+    nIndicator = c(4, 4, 4), loadM = 0.6, alpha = 0.05, power = 0.8
+  )$requiredN
+  expect_equal(run_spec(latent_spec("sem_latent_regression", list(type = "sample_size", power = 0.8)))$n_required$n, apriori)
+  # Two equal groups: semPower's search is over whole groups too.
+  apriori <- semPower::semPower.powerMI(
+    type = "a-priori", comparison = "configural", nullEffect = "metric",
+    loadings = list(list(rep(0.7, 6)), list(c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5))),
+    alpha = 0.05, power = 0.8, N = list(1, 1)
+  )$requiredN
+  expect_equal(run_spec(latent_spec("sem_invariance", list(type = "sample_size", power = 0.8)))$n_required$n, apriori)
+})
+
+test_that("with no difference to detect, power is alpha", {
+  power <- run_spec(latent_spec("sem_factor_correlation", list(type = "power", n = 300), r = 0.001))$curve$power
+  expect_lt(abs(power - 0.05), 0.001)
+})
+
+test_that("the spec checks refuse what can't be computed", {
+  goal <- list(type = "power", n = 300)
+  expect_spec_problem(latent_spec("sem_invariance", goal, noninvariant = 6), "At least one item must be the same")
+  spec <- latent_spec("sem_invariance", goal)
+  spec$population$intercept_difference <- 0.3
+  expect_spec_problem(spec, "Metric invariance is about loadings")
+  spec <- scalar_spec(goal)
+  spec$population$loading_group2 <- 0.5
+  expect_spec_problem(spec, "Scalar invariance is about intercepts")
+  expect_spec_problem(latent_spec("sem_invariance", list(type = "sample_size", power = 0.8), loading_group2 = 0.7), "zero in this population")
+  expect_spec_problem(latent_spec("sem_latent_regression", goal, tested = 3), "only 2 slopes")
+  expect_spec_problem(latent_spec("sem_latent_regression", goal, slopes = list(0.7, 0.7)), "impossible")
+  expect_spec_problem(latent_spec("sem_latent_regression", goal, slopes = list(0.1, 0.1, 0.1), predictor_correlation = -0.6), "contradict")
+  expect_spec_problem(latent_spec("sem_factor_correlation", list(type = "power", n = 9)), "at least 10")
+  spec <- latent_spec("sem_factor_correlation", goal)
+  spec$options$allocation_ratio <- 2
+  expect_spec_problem(spec, "only applies to two-group designs")
+})
+
+test_that("the exported script reproduces each template with semPower alone", {
+  specs <- list(
+    latent_spec("sem_invariance", list(type = "sample_size", power = 0.8)),
+    scalar_spec(list(type = "power", n = 250)),
+    latent_spec("sem_factor_correlation", list(type = "power", n = 300)),
+    latent_spec("sem_latent_regression", list(type = "sample_size", power = 0.9), slopes = list(0.25))
+  )
+  for (spec in specs) {
+    result <- run_spec(spec)
+    out <- run_exported_script(spec, result)
+    expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$template)
+  }
+})

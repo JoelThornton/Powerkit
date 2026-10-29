@@ -39,9 +39,10 @@ estimate, with \code{lower} the effect size the calculation used.
 analysed: the number of groups, the design effect and the effective
 sample size;
 \item \code{sem}: \code{NULL} unless the design is a structural equation model
-(design \code{sem}); otherwise \code{\link[=sem_summary]{sem_summary()}}'s list: the RMSEA, the
-model's degrees of freedom and, for a CFA, its items, factors and
-lavaan model;
+(design \code{sem}); otherwise \code{\link[=sem_summary]{sem_summary()}}'s list: for model fit,
+the RMSEA, the model's degrees of freedom and, for a CFA, its
+items, factors and lavaan model; for the other templates, the
+restriction's degrees of freedom;
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and
@@ -178,6 +179,14 @@ in the population is \code{population > rmsea}, by semPower's
 \code{population > df}, or are counted by \code{semPower.getDf()} for a
 confirmatory factor analysis of \code{population > indicators} items on
 \code{population > factors} correlated factors. Goals: power and sample size.
+Three more templates test one restriction against the model without
+it, by the chi-square difference (likelihood ratio) test: measurement
+invariance of one factor across two groups (template \code{invariance},
+metric or scalar, semPower's \code{semPower.powerMI()}; \code{goal > n} is split
+between the groups by \code{options > allocation_ratio}), the correlation
+between two factors against zero (template \code{factor_correlation},
+\code{semPower.powerCFA()}) and one slope of a latent regression against
+zero (template \code{latent_regression}, \code{semPower.powerRegression()}).
 
 \strong{Method.} \code{options > method} chooses how power is computed. For 2x2
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},

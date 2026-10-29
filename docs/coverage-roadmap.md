@@ -263,9 +263,9 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B45 | SEM | ML; BG; Audit | E37 | Wired (model fit: the chi-square test of exact fit, power to reject a model with a given RMSEA, for a CFA described by its items and factors or any model given by its df; matches semPower called directly and the noncentral chi-square in base R in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: Co, the test of close fit, simulated power | **Engine: semPower `semPower.postHoc()` and `semPower.getDf()`** (27 October 2026). Also `semPower.aPriori()`, `semPower.compromise()`, `semPower.powerLav()`, `semPower.powerPath()`; simsem `sim()`; power4mome (latent models) | Next: measurement invariance (B47), then factor correlations (B46), then latent paths | [C18][] |
-| B46 | CFA | ML; BG | E37 | Planned (later in the build guide; no phase) | As B45 | semPower `semPower.powerCFA()` | — | — |
-| B47 | Measurement invariance | ML; BG | E37 | Planned (later in the build guide; no phase) | As B45 | semPower `semPower.powerMI()` (multigroup), `semPower.powerLI()` (longitudinal) | — | — |
+| B45 | SEM | ML; BG; Audit | E37 | Wired (model fit: the chi-square test of exact fit, power to reject a model with a given RMSEA, for a CFA described by its items and factors or any model given by its df; matches semPower called directly and the noncentral chi-square in base R in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: Co, the test of close fit, simulated power | **Engine: semPower `semPower.postHoc()` and `semPower.getDf()`** (27 October 2026). Also `semPower.aPriori()`, `semPower.compromise()`, `semPower.powerLav()`, `semPower.powerPath()`; simsem `sim()`; power4mome (latent models) | Next: the test of close fit (an open method choice), longitudinal invariance | [C18][] |
+| B46 | CFA | ML; BG | E37 | Wired (the correlation between two factors against zero, and a latent slope against zero through `semPower.powerRegression()`, by the chi-square difference test; match semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower) | **Engine: semPower `semPower.powerCFA()`, `semPower.powerRegression()`** (29 October 2026) | Transcribe published examples (`test-validation-sem-latent.R`) | — |
+| B47 | Measurement invariance | ML; BG | E37 | Wired (multigroup: one factor, two groups, metric against configural or scalar against metric, by the chi-square difference test; matches semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: several factors or groups, longitudinal (`semPower.powerLI()`) | **Engine: semPower `semPower.powerMI()`** (29 October 2026) | Longitudinal invariance; several factors or groups | — |
 | B48 | Latent interactions | ML | none: nearest E9 with reliabilities *(inferred)* | Unknown (no candidate found) | — | unknown | Search | — |
 | B49 | Latent profile/class analysis | ML | none: not reachable | Unknown (no candidate found) | — | unknown | Search | — |
 | B50 | Reliability (ICC) | ML; Audit | none: reaches E41, E4 or E46 | Unknown (decide the card; tools exist) | — | ICC.Sample.Size `calculateIccSampleSize()`; presize `prec_icc()`; MBESS `ss.aipe.reliability()`; kappaSize `PowerBinary()` (agreement) | Decide | [C4][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 22 | 6 | 0 | 28 |
+| Wired (validation not finished) | 22 | 8 | 0 | 30 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 21 | 2 | 24 |
+| Planned | 1 | 19 | 2 | 22 |
 | Foundation tool can do it, not planned | 8 | 10 | 2 | 20 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |

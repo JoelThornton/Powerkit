@@ -537,7 +537,7 @@
           "maximum": 100000
         },
         "allocation_ratio": {
-          "description": "Two-group designs only (independent t-test, two proportions, two correlations): size of the second group divided by the size of the first (1 = equal groups).",
+          "description": "Two-group designs only (independent t-test, two proportions, two correlations, measurement invariance): size of the second group divided by the size of the first (1 = equal groups).",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -4184,7 +4184,10 @@
         "properties": {
           "template": {
             "enum": [
-              "model_fit"
+              "model_fit",
+              "invariance",
+              "factor_correlation",
+              "latent_regression"
             ]
           },
           "goal": {
@@ -4218,6 +4221,51 @@
             },
             "then": {
               "$ref": "#/definitions/template_sem_model_fit"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "invariance"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_sem_invariance"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factor_correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_sem_factor_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "latent_regression"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_sem_latent_regression"
             }
           }
         ]
@@ -4276,6 +4324,223 @@
                 },
                 "method": {
                   "const": "chi_square_exact_fit"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_sem_invariance": {
+      "description": "Measurement invariance of one factor across two groups, by semPower::semPower.powerMI(): the power of the chi-square difference (likelihood ratio) test to reject metric invariance (equal loadings; compared with the configural model) or scalar invariance (equal intercepts; compared with the metric model). The factor is measured by 'indicators' items, each with the standardised loading 'loading' in both groups, except that the last 'noninvariant' items have the loading 'loading_group2' in the second group (metric) or intercepts shifted by 'intercept_difference' item SDs in the second group (scalar). Factors are identified by fixing the first group's factor variance (and mean) only, as lavaan does. goal > n is the total number of participants analysed, split between the groups by options > allocation_ratio (default 1).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Needs no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "level",
+            "indicators",
+            "loading",
+            "noninvariant"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "invariance"
+            },
+            "level": {
+              "description": "The level of invariance tested: 'metric' (equal loadings, against the configural model) or 'scalar' (equal intercepts, against the metric model).",
+              "enum": [
+                "metric",
+                "scalar"
+              ]
+            },
+            "indicators": {
+              "description": "The number of items measuring the factor.",
+              "type": "integer",
+              "minimum": 3
+            },
+            "loading": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The standardised loading of every item in the first group (and of the invariant items in the second)."
+            },
+            "noninvariant": {
+              "description": "How many items differ between the groups (at least one item must not).",
+              "type": "integer",
+              "minimum": 1
+            },
+            "loading_group2": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Metric invariance: the standardised loading of the differing items in the second group."
+            },
+            "intercept_difference": {
+              "description": "Scalar invariance: how far the differing items' intercepts are shifted in the second group, in item SD units.",
+              "type": "number"
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "invariance"
+                },
+                "method": {
+                  "const": "chi_square_difference"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_sem_factor_correlation": {
+      "description": "The correlation between two factors of a confirmatory factor analysis, against zero, by semPower::semPower.powerCFA(nullEffect = 'cor = 0'): the power of the chi-square difference (likelihood ratio) test of the model with the correlation fixed at 0 against the model with it free (1 df). Each factor is measured by its own items, all with the same standardised loading. goal > n is the total number of participants analysed.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Needs no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r",
+            "indicators",
+            "loadings"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "factor_correlation"
+            },
+            "r": {
+              "description": "The correlation between the two factors.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "indicators": {
+              "description": "The number of items measuring each factor: two whole numbers.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "integer",
+                "minimum": 2
+              }
+            },
+            "loadings": {
+              "description": "The standardised loading of each factor's items: two numbers.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "factor_correlation"
+                },
+                "method": {
+                  "const": "chi_square_difference"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_sem_latent_regression": {
+      "description": "A latent outcome regressed on one to five latent predictors, by semPower::semPower.powerRegression(): the power of the chi-square difference (likelihood ratio) test of one standardised slope against zero (1 df). Every factor is measured by 'indicators' items with the standardised loading 'loading'; the predictors all correlate 'predictor_correlation' (default 0). goal > n is the total number of participants analysed.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "maxProperties": 0,
+          "description": "Needs no variables; leave this empty ({})."
+        },
+        "population": {
+          "required": [
+            "metric",
+            "slopes",
+            "indicators",
+            "loading"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised_slopes"
+            },
+            "slopes": {
+              "description": "The standardised slope of each latent predictor.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": -1,
+                "exclusiveMaximum": 1
+              }
+            },
+            "predictor_correlation": {
+              "description": "The correlation between every pair of predictors (default 0).",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "tested": {
+              "description": "Which slope is tested, counting from 1 (default 1).",
+              "type": "integer",
+              "minimum": 1
+            },
+            "indicators": {
+              "description": "The number of items measuring each factor (the outcome and every predictor).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "loading": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The standardised loading of every item."
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "latent_slope"
+                },
+                "method": {
+                  "const": "chi_square_difference"
                 }
               }
             }

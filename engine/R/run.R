@@ -113,6 +113,14 @@
 #' `population > df`, or are counted by `semPower.getDf()` for a
 #' confirmatory factor analysis of `population > indicators` items on
 #' `population > factors` correlated factors. Goals: power and sample size.
+#' Three more templates test one restriction against the model without
+#' it, by the chi-square difference (likelihood ratio) test: measurement
+#' invariance of one factor across two groups (template `invariance`,
+#' metric or scalar, semPower's `semPower.powerMI()`; `goal > n` is split
+#' between the groups by `options > allocation_ratio`), the correlation
+#' between two factors against zero (template `factor_correlation`,
+#' `semPower.powerCFA()`) and one slope of a latent regression against
+#' zero (template `latent_regression`, `semPower.powerRegression()`).
 #'
 #' **Method.** `options > method` chooses how power is computed. For 2x2
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
@@ -170,9 +178,10 @@
 #'     analysed: the number of groups, the design effect and the effective
 #'     sample size;
 #'   * `sem`: `NULL` unless the design is a structural equation model
-#'     (design `sem`); otherwise [sem_summary()]'s list: the RMSEA, the
-#'     model's degrees of freedom and, for a CFA, its items, factors and
-#'     lavaan model;
+#'     (design `sem`); otherwise [sem_summary()]'s list: for model fit,
+#'     the RMSEA, the model's degrees of freedom and, for a CFA, its
+#'     items, factors and lavaan model; for the other templates, the
+#'     restriction's degrees of freedom;
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and

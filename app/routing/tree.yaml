@@ -385,7 +385,7 @@ nodes:
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
       - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
          when: {outcome: score, times: once}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
-      - {label: "That a model fits: a questionnaire structure, or a model with latent variables (SEM)", next: E37}
+      - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
 
   # A difference ------------------------------------------------------------
   q2_diff:
@@ -1251,22 +1251,22 @@ endpoints:
     tier: v2
     alternatives: ["a Bayesian region of practical equivalence (ROPE)", "planning for the precision of the difference (the width of its confidence interval)"]
   E37:
-    doc_name: "CFA, SEM model fit, measurement invariance"
-    plain_name: "Check that a model or questionnaire structure fits"
-    template: "sem / model_fit"
-    backend: "semPower: semPower.postHoc() with an RMSEA (the chi-square test of exact model fit, by formula), and semPower.getDf() for a CFA's degrees of freedom"
+    doc_name: "CFA, SEM model fit, measurement invariance, factor correlations and latent paths"
+    plain_name: "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+    template: "sem / model_fit, invariance, factor_correlation, latent_regression"
+    backend: "semPower: semPower.postHoc() with an RMSEA for model fit (the chi-square test of exact fit, with semPower.getDf() for a CFA's degrees of freedom); semPower.powerMI() for measurement invariance, semPower.powerCFA() for a factor correlation and semPower.powerRegression() for a latent slope (the chi-square difference test, by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, and the same noncentral chi-square written out in base R, in the engine's tests; the degrees of freedom match lavaan's count for the same model. Not yet checked against a published worked example in the validation run."}
+    validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, power and required N, for every question on this screen, in the engine's tests; model fit also matches the noncentral chi-square written out in base R, and the degrees of freedom match lavaan's count. Not yet checked against a published worked example in the validation run (test-validation-sem-model-fit.R and test-validation-sem-latent.R)."}
     # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
     # card through Q1's "a questionnaire structure" answer.
     card_points:
-      - "Works out the sample size a confirmatory factor analysis (CFA) or structural equation model (SEM) needs for its test of model fit: the chance that the chi-square test rejects your model if it is wrong by a given amount (an RMSEA you choose)."
-      - "This is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05."
-      - "For a CFA, give the number of items and factors and powerkit counts the model's degrees of freedom (semPower, with lavaan). For any other model, enter its degrees of freedom, which lavaan reports when you fit it."
-      - "Not calculated here yet: measurement invariance across groups or over time, the correlation between two factors, paths between latent variables, and the test of close fit (RMSEA no more than 0.05). semPower (https://cran.r-project.org/package=semPower) covers all of these."
+      - "Four questions about models with latent variables, each by formula with semPower: whether the model fits (a CFA or SEM's test of exact fit), whether a questionnaire measures the same thing in two groups (measurement invariance, metric or scalar), whether two factors are correlated, and whether latent variables predict another (a slope in a latent regression)."
+      - "Model fit is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05. For a CFA, give the number of items and factors and powerkit counts the model's degrees of freedom (semPower, with lavaan); for any other model, enter its degrees of freedom, which lavaan reports when you fit it."
+      - "The other three test one restriction against the model without it (a chi-square difference test), so you describe the model: how many items measure each factor, a typical standardised loading, and the difference you want to detect."
+      - "Not calculated here yet: invariance over time (longitudinal), more than one factor or more than two groups for invariance, and the test of close fit (RMSEA no more than 0.05). semPower (https://cran.r-project.org/package=semPower) covers the first three."
       - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."
-    inputs: ["The model: the number of items and factors (for a CFA), or its degrees of freedom", "The misfit to detect: the model's RMSEA in the population"]
+    inputs: ["What you want to test", "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom", "Model fit: the misfit to detect, as the model's RMSEA in the population", "Invariance: the items, their loadings, and how the second group differs", "Two factors: the items and loading of each, and their correlation", "Latent regression: the slopes, the predictors' correlation, and the items"]
     tier: v2
     alternatives: ["planning for the precision of the RMSEA (the width of its confidence interval)", "a simulation of the full model (simsem, or semPower's simulated power)"]
   E38:

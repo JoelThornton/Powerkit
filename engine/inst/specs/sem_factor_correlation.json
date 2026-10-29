@@ -1,0 +1,34 @@
+{
+  "spec_version": "0.1",
+  "design": "sem",
+  "template": "factor_correlation",
+  "variables": {},
+  "population": {
+    "metric": "factor_correlation",
+    "r": 0.2,
+    "indicators": [
+      4,
+      5
+    ],
+    "loadings": [
+      0.6,
+      0.7
+    ]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: two questionnaire factors, where a correlation of 0.2 between them is the smallest worth detecting."
+  },
+  "target_test": {
+    "effect": "factor_correlation",
+    "method": "chi_square_difference",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

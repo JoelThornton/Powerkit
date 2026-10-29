@@ -1,0 +1,30 @@
+{
+  "spec_version": "0.1",
+  "design": "sem",
+  "template": "invariance",
+  "variables": {},
+  "population": {
+    "metric": "invariance",
+    "level": "metric",
+    "indicators": 6,
+    "loading": 0.7,
+    "noninvariant": 2,
+    "loading_group2": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a six-item scale compared across two groups, where two items loading 0.5 instead of 0.7 in the second group is the smallest difference worth detecting."
+  },
+  "target_test": {
+    "effect": "invariance",
+    "method": "chi_square_difference",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

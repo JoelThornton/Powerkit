@@ -1005,6 +1005,38 @@ test_that("SEM model fit runs on semPower, for a CFA or a model given by its df,
   expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "a model with 24 degrees of freedom", fixed = TRUE)
 })
 
+test_that("E37's other questions run on semPower's own functions, each with its test and model in words", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E37"))
+  expected <- list(
+    invariance = c("semPower::semPower.powerMI", "metric invariance (equal loadings in the two groups", "2 of them loading 0.5 in the second group"),
+    scalar = c("semPower::semPower.powerMI", "scalar invariance (equal intercepts", "having intercepts higher by 0.3 item SDs"),
+    factor_correlation = c("semPower::semPower.powerCFA", "the correlation between the two factors against zero", "two factors measured by 4 items and 5 items"),
+    latent_regression = c("semPower::semPower.powerRegression", "predictor 1's latent slope against zero", "2 latent predictors (standardised slopes 0.2, 0.3; the predictors correlating 0.3)")
+  )
+  for (name in names(expected)) {
+    values <- sem_examples[[name]]
+    expect_length(form_problems(fields, values), 0)
+    spec <- build_spec(forms, "E37", fields, values)
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend_function, expected[[name]][1], label = name)
+    words <- result_sentences(calc$spec, calc$result)
+    expect_match(words[["headline"]], expected[[name]][2], fixed = TRUE, label = name)
+    expect_match(words[["detail"]], expected[[name]][3], fixed = TRUE, label = name)
+    expect_no_match(paste(words, collapse = " "), "misfit|two-sided", label = name)
+    w <- writeup_text(forms$forms$E37, calc$spec, calc$result, fields, modifyList(values, list(just_source = "The smallest difference worth detecting.")))
+    expect_match(w[["short"]], expected[[name]][2], fixed = TRUE, label = name)
+    expect_match(w[["short"]], expected[[name]][3], fixed = TRUE, label = name)
+  }
+  # Unequal groups for invariance: whole groups in the ratio given.
+  spec <- build_spec(forms, "E37", fields, sem_examples$scalar)
+  expect_equal(spec$options$allocation_ratio, 1.5)
+  calc <- run_calculation(spec, run, seed = 1L)
+  n <- calc$result$n_required$n
+  expect_equal(n %% 5, 0)
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], sprintf("(%s in group 1 and %s in group 2)", n * 2 / 5, n * 3 / 5), fixed = TRUE)
+})
+
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E27"))

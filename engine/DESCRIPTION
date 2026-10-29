@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Psychology Designs
-Version: 0.20.1
+Version: 0.21.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
@@ -16,7 +16,8 @@ Description: Reads a single design specification (JSON) for common
     parallel and serial mediation and first- and second-stage moderated
     mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),
     cluster-randomised and multisite trials (via 'powertools'), equivalence
-    tests (via 'TOSTER') and the fit of structural equation models (via
+    tests (via 'TOSTER') and structural equation models: model fit,
+    measurement invariance, factor correlations and latent regression (via
     'semPower').
 License: GPL (>= 3)
 Encoding: UTF-8

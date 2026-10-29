@@ -555,7 +555,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A measured score; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -576,7 +576,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -595,7 +595,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -633,7 +633,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -654,7 +654,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -1349,7 +1349,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 

@@ -98,7 +98,7 @@ answers "a difference", "a relationship", "moderation" and "mediation".
 | Measurement invariance | Honest card (E37) | Honest card (E37) | Not reachable | Unchanged |
 | Reliability or ICC | **Not reachable** | Test–retest reliability entered as a relationship: after S3's "Twice" (how a test–retest study would answer), rel reaches **E41** (relationships measured within people), not E4. Only after "Once" does it reach **E4** (power to detect r > 0, not the precision of a reliability coefficient). Corrected on 16 October 2026 from the walkthroughs (flag F11); routing unchanged. **Judgement needed** on the right card | Not reachable | S4 "Estimate an effect precisely" → E46 catches planning for a CI width. The rel path still reaches E41 after "Twice" (E4 after "Once"). Listed under "What's left" |
 | Factor analysis (exploratory) | **Not reachable** (E37 is confirmatory) | Not reachable. The nearest answer is "That a model or questionnaire structure fits" → E37 | Not reachable | Unchanged; the safety net is available |
-| IRT | **Not reachable** | Q1 "That a model fits: a questionnaire structure, or a model with latent variables (SEM)" → **E37** (the SEM and CFA card). Corrected on 16 October 2026 from the walkthroughs (flag F7). The card now says IRT designs aren't covered | Not reachable | Unchanged routing; E37 now says IRT isn't covered. The safety net is available |
+| IRT | **Not reachable** | Q1 "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)" → **E37** (the SEM and CFA card). Corrected on 16 October 2026 from the walkthroughs (flag F7). The card now says IRT designs aren't covered | Not reachable | Unchanged routing; E37 now says IRT isn't covered. The safety net is available |
 | Meta-analysis | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 | Network models | **Not reachable** | Not reachable | Not reachable | Unchanged; the safety net is available |
 
@@ -186,7 +186,7 @@ study". Verdicts are as defined at the top of this page.
 | --- | --- | --- | --- | --- |
 | One-way MANOVA | Not reachable: users pick one outcome and reach that outcome's end point (e.g. E18) | Not by name | Not offered | **Not reachable.** **Judgement needed** on powering each outcome separately (already in "What's left") |
 | Multivariate multiple regression | As MANOVA | Not by name | Not offered | **Not reachable** (as MANOVA) |
-| Factor analysis | Q1 "That a model fits: a questionnaire structure, or a model with latent variables (SEM)" → E37 (confirmatory). Exploratory factor analysis isn't reachable by name | E37 | Not offered | **Honest card (E37)** for confirmatory; **not reachable** for exploratory (already in the audit) |
+| Factor analysis | Q1 "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)" → E37 (confirmatory). Exploratory factor analysis isn't reachable by name | E37 | Not offered | **Honest card (E37)** for confirmatory; **not reachable** for exploratory (already in the audit) |
 | Canonical correlation | Not reachable | Not by name | Not offered | **Not reachable** (safety net) |
 
 **Result.** Of these analyses:

@@ -68,7 +68,7 @@ form_examples <- list(
   E34 = c(list(assignment = "cluster_randomised", outcome_type = "standardised", adjust_baseline = "no", X_label = "Programme", X_level1 = "Usual lessons", X_level2 = "Wellbeing programme",
                Y_label = "Wellbeing score", d = "0.3", icc = "0.05", cluster_size = "20", cluster_size_sd = "0",
                alternative = "two_sided"), closing_ok),
-  E37 = c(list(model_kind = "cfa", indicators = "12", factors = "3", rmsea = "0.05"), closing_ok),
+  E37 = c(list(question = "model_fit", model_kind = "cfa", indicators = "12", factors = "3", rmsea = "0.05"), closing_ok),
   E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
                Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E50 = c(list(generic_test = "t", ncp = "2.5", df = "30", alternative = "two_sided"),
@@ -99,3 +99,15 @@ form_example_ancova_two <- modifyList(form_examples$E23, list(
   B_label = "Delivery", B_levels = "In person, Online, App",
   cell_means = "20, 20, 20\n16, 17, 18", effect = "interaction"
 ))
+
+# E37's other questions (each sets its own template).
+sem_examples <- list(
+  invariance = c(list(question = "invariance", level = "metric", mi_indicators = "6", mi_loading = "0.7",
+                      noninvariant = "2", loading_group2 = "0.5", allocation_ratio = "1"), closing_ok),
+  scalar = c(list(question = "invariance", level = "scalar", mi_indicators = "6", mi_loading = "0.7",
+                  noninvariant = "2", intercept_difference = "0.3", allocation_ratio = "1.5"), closing_ok),
+  factor_correlation = c(list(question = "factor_correlation", fc_items1 = "4", fc_items2 = "5",
+                              fc_loading1 = "0.6", fc_loading2 = "0.7", fc_r = "0.2"), closing_ok),
+  latent_regression = c(list(question = "latent_regression", slopes = "0.2, 0.3", tested = "1",
+                             predictor_correlation = "0.3", lr_indicators = "4", lr_loading = "0.6"), closing_ok)
+)

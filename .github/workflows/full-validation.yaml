@@ -78,6 +78,7 @@ on:
           - cluster
           - multisite
           - sem_fit
+          - sem_latent
 
 permissions:
   contents: read
