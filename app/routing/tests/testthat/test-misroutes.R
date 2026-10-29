@@ -199,7 +199,7 @@ test_that("equivalence in the guided route reaches the equivalence card", {
 
 test_that("SEM with latent variables is named on Q1 and reaches the SEM card", {
   base <- c(screen_score, "Once")
-  expect_identical(follow_answers(tree, c(base, "That a model fits: a questionnaire structure, or a model with latent variables (SEM)")), "E37")
+  expect_identical(follow_answers(tree, c(base, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)")), "E37")
 })
 
 test_that("a yes/no outcome with two or more factors reaches its own card, not the two-proportions test", {
@@ -267,7 +267,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
     "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),
     "Analysis of covariance" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "One factor different people, the other everyone got both", "Yes: the same number in every group", "Yes: before and after", "Yes, randomly assigned", "ANCOVA: the after score, adjusting for the before score"), "E23"),
-    "Factor analysis (confirmatory)" = list(c(once(score), "That a model fits: a questionnaire structure, or a model with latent variables (SEM)"), "E37")
+    "Factor analysis (confirmatory)" = list(c(once(score), "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"), "E37")
   )
   for (name in names(rows)) expect_identical(follow_answers(tree, rows[[name]][[1]]), rows[[name]][[2]], label = name)
 })

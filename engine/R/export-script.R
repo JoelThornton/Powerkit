@@ -299,6 +299,23 @@ design_description <- function(spec) {
       "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
       spec$population$rmsea, sem_df(spec)
     ),
+    "sem/invariance" = sprintf(
+      "measurement invariance across two groups: chi-square difference test of %s invariance, one factor of %s items (loading %s), %s of them %s in the second group",
+      spec$population$level, spec$population$indicators, spec$population$loading, spec$population$noninvariant,
+      if (identical(spec$population$level, "metric")) sprintf("with loading %s", spec$population$loading_group2)
+      else sprintf("with intercepts shifted by %s SD", spec$population$intercept_difference)
+    ),
+    "sem/factor_correlation" = sprintf(
+      "correlation between two factors (%s and %s items, loadings %s and %s): chi-square difference test of r = %s against 0",
+      spec$population$indicators[[1]], spec$population$indicators[[2]], spec$population$loadings[[1]],
+      spec$population$loadings[[2]], spec$population$r
+    ),
+    "sem/latent_regression" = sprintf(
+      "latent regression: chi-square difference test of slope %s (%s) against 0, %s latent predictor%s, %s items per factor (loading %s)",
+      spec$population$tested %||% 1L, spec$population$slopes[[spec$population$tested %||% 1L]],
+      length(spec$population$slopes), if (length(spec$population$slopes) == 1) "" else "s",
+      spec$population$indicators, spec$population$loading
+    ),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),

@@ -308,6 +308,14 @@ rather than exact fit) is in the methods literature on RMSEA-based power
 but not in semPower; whether powerkit should offer it is a method choice
 for the maintainer, not yet made.
 
+## Measurement invariance, factor correlations and latent slopes (the chi-square difference test)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for structural equation models | — | — |
+| semPower | `semPower.powerMI()`, `semPower.powerCFA()` and `semPower.powerRegression()` build the population covariance matrix (and means, for scalar invariance) from loadings, factor correlations, slopes and intercepts, fit the model with and without the restriction to it with lavaan (ML), and take the minimum of the fit function (F0; one per group for invariance) as the effect. Power is `semPower.postHoc()` on F0 with the restriction's df (`comparison = "restricted"`, or for invariance the previous level: configural for metric, metric for scalar): the chance that the noncentral chi-square exceeds the central critical value. Factors are standardised; for invariance the factor variance (and mean) is fixed in the first group only (`singleGroupIdent = TRUE`), as lavaan does. Item residual variances default to whatever makes each item's variance 1 (semPower 2.2.0 help for the three functions and `semPower.genSigma()`, opened 29 October 2026) | Loadings and the parameter restricted: the second group's loadings or intercepts, the factor correlation, the slope | `alpha` must be given; `comparison = "restricted"`; `singleGroupIdent = TRUE`; `nullWhich = 1` (the first slope) |
+| **powerkit** | semPower's own functions, by formula; no simulation option (E37, from 29 October 2026) [powerkit] | Invariance: the loading of the items that differ in group 2, or their intercept shift in item SDs. Factor correlation: `r`. Latent regression: the tested slope | One factor and two groups for invariance, with the items that differ at the end of the list (their position doesn't change the misfit); the same loading for every item of a factor; for a latent regression, the same number of items and loading for every factor and one correlation for every pair of predictors. powerkit calls each function once and finds power at other n through `semPower.postHoc()` with the same F0 and df, which is what the function computes at that n (unit tests, to 1e-8), so the sample size search doesn't refit the models at each step; the required N agrees with each function's own a-priori `requiredN` (unit tests). Not a departure: semPower's own method and defaults. The latent paths design uses `semPower.powerRegression()`, semPower's convenience function for one latent outcome on several latent predictors, rather than `semPower.powerPath()`, which takes a full matrix of paths |
+
 ## Mediation (PROCESS 4, 6) and moderated mediation (PROCESS 7, 14)
 
 | Tool | Test | Effect size | Settings |

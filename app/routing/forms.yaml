@@ -1440,28 +1440,95 @@ forms:
     tool: semPower
     directional: false
     sides: false
-    base: {spec_version: "0.1", design: sem, template: model_fit, variables: {},
-           population: {metric: rmsea},
-           target_test: {effect: model_fit, method: chi_square_exact_fit}}
+    base: {spec_version: "0.1", design: sem, variables: {}, population: {}, target_test: {}}
     groups:
-      - input: "The model: the number of items and factors (for a CFA), or its degrees of freedom"
+      - input: "What you want to test"
+        fields:
+          - {id: question, label: "What you want to test", type: select, path: template, required: true,
+             choices: {model_fit: "Whether the model fits (the test of exact fit, by RMSEA)",
+                       invariance: "Whether a questionnaire measures the same thing in two groups (measurement invariance)",
+                       factor_correlation: "Whether two factors are correlated",
+                       latent_regression: "Whether latent variables predict another (a path in a structural model)"},
+             sets: {model_fit: [{path: population.metric, value: rmsea}, {path: target_test.effect, value: model_fit}, {path: target_test.method, value: chi_square_exact_fit}],
+                    invariance: [{path: population.metric, value: invariance}, {path: target_test.effect, value: invariance}, {path: target_test.method, value: chi_square_difference}],
+                    factor_correlation: [{path: population.metric, value: factor_correlation}, {path: target_test.effect, value: factor_correlation}, {path: target_test.method, value: chi_square_difference}],
+                    latent_regression: [{path: population.metric, value: standardised_slopes}, {path: target_test.effect, value: latent_slope}, {path: target_test.method, value: chi_square_difference}]}}
+      - input: "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom"
+        shown_if: {field: question, is: model_fit}
         fields:
           - {id: model_kind, label: "What kind of model", type: select, required: true,
+             shown_if: {field: question, is: model_fit},
              choices: {cfa: "A confirmatory factor analysis (CFA): items, each measuring one factor",
                        df: "Another model: I know its degrees of freedom"}}
           - {id: indicators, writeup_label: "items", label: "Number of items (observed variables)", type: number, path: population.indicators, required: true, min: 3, integer: true,
-             shown_if: {field: model_kind, is: cfa},
+             shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
              help: "For example, 12 questionnaire items."}
           - {id: factors, writeup_label: "factors", label: "Number of factors", type: number, path: population.factors, required: true, min: 1, integer: true,
-             shown_if: {field: model_kind, is: cfa},
+             shown_if: [{field: question, is: model_fit}, {field: model_kind, is: cfa}],
              help: "The factors are allowed to correlate, and each item measures one factor. powerkit counts the model's degrees of freedom from these."}
           - {id: df, writeup_label: "degrees of freedom", label: "The model's degrees of freedom", type: number, path: population.df, required: true, min: 1, integer: true,
-             shown_if: {field: model_kind, is: df},
+             shown_if: [{field: question, is: model_fit}, {field: model_kind, is: df}],
              help: "lavaan, Mplus and other SEM software report this when they fit the model (in lavaan, fitMeasures(fit, \"df\")). You can fit it to made-up data to get the number."}
-      - input: "The misfit to detect: the model's RMSEA in the population"
+      - input: "Model fit: the misfit to detect, as the model's RMSEA in the population"
+        shown_if: {field: question, is: model_fit}
         fields:
           - {id: rmsea, writeup_label: "RMSEA", label: "RMSEA of the misfit to detect", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: model_fit},
              help: "How wrong the model would have to be for you to want the test to notice. 0 would be a model that fits exactly; larger values are worse fit. Many studies use 0.05. A smaller value needs many more people."}
+      - input: "Measurement invariance: the items, their loadings, and how the second group differs"
+        shown_if: {field: question, is: invariance}
+        fields:
+          - {id: level, label: "What you want to test", type: select, path: population.level, required: true,
+             shown_if: {field: question, is: invariance},
+             choices: {metric: "Metric invariance: do the items load equally in both groups?",
+                       scalar: "Scalar invariance: do the items have the same intercepts (so means can be compared)?"}}
+          - {id: mi_indicators, writeup_label: "items", label: "Number of items measuring the factor", type: number, path: population.indicators, required: true, min: 3, integer: true,
+             shown_if: {field: question, is: invariance}}
+          - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items in group 1", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: invariance},
+             help: "A typical value for your items, for example 0.7. The items that don't differ have this loading in group 2 too."}
+          - {id: noninvariant, writeup_label: "items that differ", label: "How many items differ in group 2", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
+             shown_if: {field: question, is: invariance},
+             help: "At least one item must be the same in both groups."}
+          - {id: loading_group2, writeup_label: "loading in group 2", label: "Their standardised loading in group 2", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: question, is: invariance}, {field: level, is: metric}],
+             help: "The smallest difference worth detecting: for example 0.5 where group 1's is 0.7."}
+          - {id: intercept_difference, writeup_label: "intercept shift", label: "How far their intercepts are shifted in group 2, in item SDs", type: number, path: population.intercept_difference, effect: true,
+             shown_if: [{field: question, is: invariance}, {field: level, is: scalar}],
+             help: "The smallest shift worth detecting, for example 0.3 (higher in group 2) or -0.3 (lower)."}
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "equal groups, as in semPower's examples (semPower.powerMI(), semPower 2.2.0)",
+             shown_if: {field: question, is: invariance}}
+      - input: "Two factors: the items and loading of each, and their correlation"
+        shown_if: {field: question, is: factor_correlation}
+        fields:
+          - {id: fc_items1, writeup_label: "items on factor 1", label: "Items measuring factor 1", type: number, path: population.indicators.1, required: true, min: 2, integer: true,
+             shown_if: {field: question, is: factor_correlation}}
+          - {id: fc_items2, writeup_label: "items on factor 2", label: "Items measuring factor 2", type: number, path: population.indicators.2, required: true, min: 2, integer: true,
+             shown_if: {field: question, is: factor_correlation}}
+          - {id: fc_loading1, writeup_label: "loading on factor 1", label: "Standardised loading of factor 1's items", type: number, path: population.loadings.1, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: factor_correlation}, help: "A typical value, for example 0.6."}
+          - {id: fc_loading2, writeup_label: "loading on factor 2", label: "Standardised loading of factor 2's items", type: number, path: population.loadings.2, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: factor_correlation}}
+          - {id: fc_r, writeup_label: "correlation", label: "Correlation between the factors", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: question, is: factor_correlation},
+             help: "The correlation between the factors themselves (free of measurement error), not between their sum scores."}
+      - input: "Latent regression: the slopes, the predictors' correlation, and the items"
+        shown_if: {field: question, is: latent_regression}
+        fields:
+          - {id: slopes, writeup_label: "standardised slopes", label: "Standardised slope of each latent predictor, separated by commas", type: numbers, path: population.slopes, effect: true,
+             shown_if: {field: question, is: latent_regression},
+             help: "One to five predictors, for example 0.2, 0.3. The first is the one tested unless you choose another below."}
+          - {id: tested, label: "Which slope is tested (1 = the first)", type: number, path: population.tested, required: true, min: 1, max: 5, integer: true,
+             default: 1, default_source: "the first predictor, as in semPower.powerRegression() (nullWhich = 1, semPower 2.2.0)",
+             shown_if: {field: question, is: latent_regression}}
+          - {id: predictor_correlation, writeup_label: "correlation between the predictors", label: "Correlation between the predictors", type: number, path: population.predictor_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
+             default: 0, default_source: "uncorrelated predictors, as in semPower.powerRegression() (corXX = NULL, semPower 2.2.0)",
+             shown_if: {field: question, is: latent_regression}}
+          - {id: lr_indicators, writeup_label: "items per factor", label: "Items measuring each factor", type: number, path: population.indicators, required: true, min: 2, integer: true,
+             shown_if: {field: question, is: latent_regression}, help: "The same for the outcome and every predictor."}
+          - {id: lr_loading, writeup_label: "loading", label: "Standardised loading of every item", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: latent_regression}, help: "A typical value, for example 0.6."}
 
   # Planned contrast (pwrss's t test of one weighted combination of the
   # group means, k.covariates = 0): equal groups, two-sided only, because

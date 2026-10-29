@@ -3390,3 +3390,31 @@ factor version answers the same question as the t-test). bfpwr's closed
 form is slightly low at small samples (Known difference 6;
 `upstream-questions.md`, bfpwr).
 
+## 2026-10-29 · SEM: measurement invariance, factor correlations and latent slopes on one screen
+
+**What.** The three designs that followed model fit in the maintainer's
+order of 27 October 2026 (measurement invariance across groups, the
+correlation between two factors, paths between latent variables) were
+built together, at the maintainer's request (29 October 2026), on the
+existing card E37, whose input screen now starts with "What you want to
+test" (the template). The design finder's answer that leads there names
+all four questions.
+
+**Method.** semPower 2.2.0's own functions, by formula, each testing one
+restriction against the model without it by the chi-square difference
+test: `semPower.powerMI()` (one factor, two groups; metric invariance
+against the configural model, or scalar against metric),
+`semPower.powerCFA(nullEffect = "cor = 0")` and
+`semPower.powerRegression()` (one slope of a latent outcome on one to five
+latent predictors). Latent paths use `semPower.powerRegression()`, the
+package's convenience function for a latent regression, rather than
+`semPower.powerPath()`, which needs the full matrix of paths, so that a
+psychologist enters slopes and one correlation between the predictors.
+Power at each n comes from one call's F0 through `semPower.postHoc()`,
+identical to calling the function at that n (`conventions.md`).
+
+**Not yet.** Longitudinal invariance (`semPower.powerLI()`), invariance
+with several factors or more than two groups, and the test of close fit:
+the maintainer chose to leave close fit out for now (29 October 2026),
+since semPower doesn't compute it.
+

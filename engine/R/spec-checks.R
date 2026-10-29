@@ -220,13 +220,13 @@ check_allocation_allowed <- function(spec) {
       "size. Remove it, or plan for two equal groups."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance")) {
     return(character())
   }
   paste0(
     "'options > allocation_ratio' only applies to two-group designs ",
     "(independent t-test, two proportions, two correlations, equivalence of ",
-    "two groups); remove it."
+    "two groups, measurement invariance); remove it."
   )
 }
 
@@ -415,6 +415,15 @@ check_cluster_trial <- function(spec) {
 # model needs at least one degree of freedom to be tested.
 check_sem <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "invariance")) {
+    return(check_sem_invariance(spec))
+  }
+  if (identical(spec$template, "latent_regression")) {
+    return(check_sem_latent_regression(spec))
+  }
+  if (identical(spec$template, "factor_correlation")) {
+    return(character())
+  }
   shape <- !is.null(pop$indicators) || !is.null(pop$factors)
   if (!is.null(pop$df) && shape) {
     return(paste0(
@@ -446,6 +455,77 @@ check_sem <- function(spec) {
       ),
       format_number(pop$indicators), format_number(pop$factors),
       if (pop$factors == 1) "" else "s", format_number(df)
+    ))
+  }
+  character()
+}
+
+# Invariance: the values that set the difference belong to the level
+# tested, and at least one item must stay invariant (if every item
+# differed alike, the difference would be one in the factor itself).
+check_sem_invariance <- function(spec) {
+  pop <- spec$population
+  metric <- identical(pop$level, "metric")
+  if (metric && (is.null(pop$loading_group2) || !is.null(pop$intercept_difference))) {
+    return(paste0(
+      "Metric invariance is about loadings: give the loading of the items that differ in ",
+      "the second group ('population > loading_group2'), and no 'intercept_difference'."
+    ))
+  }
+  if (!metric && (is.null(pop$intercept_difference) || !is.null(pop$loading_group2))) {
+    return(paste0(
+      "Scalar invariance is about intercepts: give how far the intercepts of the items that ",
+      "differ are shifted in the second group ('population > intercept_difference'), and no 'loading_group2'."
+    ))
+  }
+  if (pop$noninvariant >= pop$indicators) {
+    return(sprintf(
+      paste0(
+        "%s of %s items differ between the groups. At least one item must be the same in both ",
+        "groups: if every item differed alike, the difference would be one in the factor itself, ",
+        "which invariance testing can't tell apart."
+      ),
+      format_number(pop$noninvariant), format_number(pop$indicators)
+    ))
+  }
+  character()
+}
+
+# Latent regression: the slope tested exists, and the slopes and the
+# predictors' correlation describe a possible population (the explained
+# variance of the outcome below 1, the correlations a valid matrix).
+check_sem_latent_regression <- function(spec) {
+  pop <- spec$population
+  slopes <- unlist(pop$slopes)
+  k <- length(slopes)
+  tested <- pop$tested %||% 1L
+  if (tested > k) {
+    return(sprintf(
+      "'population > tested' is %s, but there %s only %s slope%s.",
+      format_number(tested), if (k == 1) "is" else "are", format_number(k), if (k == 1) "" else "s"
+    ))
+  }
+  r <- pop$predictor_correlation %||% 0
+  if (k > 1) {
+    rxx <- sem_predictor_correlations(k, r)
+    if (min(eigen(rxx, symmetric = TRUE, only.values = TRUE)$values) <= 0) {
+      return(sprintf(
+        "%s predictors can't all correlate %s with each other: below %s, the correlations contradict each other.",
+        format_number(k), format_number(r), format_number(round(-1 / (k - 1), 3))
+      ))
+    }
+  } else {
+    rxx <- matrix(1)
+  }
+  r2 <- as.numeric(t(slopes) %*% rxx %*% slopes)
+  if (r2 >= 1) {
+    return(sprintf(
+      paste0(
+        "These slopes and correlations would explain %s%% of the outcome's variance, which is ",
+        "impossible. Lower the slopes, or the correlation between the predictors if they share ",
+        "the same direction."
+      ),
+      format_number(round(100 * r2))
     ))
   }
   character()
@@ -1317,7 +1397,14 @@ minimum_n <- function(spec) {
     regression_interaction = 6,
     # More participants than items, so that the sample covariance matrix
     # can be positive definite; 2 when only the df are known.
-    sem = if (is.null(spec$population$indicators)) 2 else spec$population$indicators + 1,
+    sem = switch(
+      spec$template,
+      model_fit = if (is.null(spec$population$indicators)) 2 else spec$population$indicators + 1,
+      # Each group needs more people than items.
+      invariance = 2 * (spec$population$indicators + 1),
+      factor_correlation = sum(unlist(spec$population$indicators)) + 1,
+      latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
+    ),
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -1370,7 +1457,7 @@ group_split <- function(spec) {
       valid = function(n) n %% (2 * m) == 0
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance")) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
@@ -1417,8 +1504,15 @@ target_effect_is_zero <- function(spec) {
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
-    # Never 0 in practice: the schema refuses it, as semPower does.
-    sem = pop$rmsea,
+    # Never 0 in practice for model fit: the schema refuses it, as
+    # semPower does.
+    sem = switch(
+      spec$template,
+      model_fit = pop$rmsea,
+      invariance = if (identical(pop$level, "metric")) pop$loading_group2 - pop$loading else pop$intercept_difference,
+      factor_correlation = pop$r,
+      latent_regression = pop$slopes[[pop$tested %||% 1L]]
+    ),
     regression_interaction = pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])

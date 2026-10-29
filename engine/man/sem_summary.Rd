@@ -10,12 +10,16 @@ sem_summary(spec)
 \item{spec}{A validated spec with design \code{sem}.}
 }
 \value{
-\code{NULL} for other designs; otherwise a list with \code{rmsea}, \code{df},
-\code{indicators} and \code{factors} (\code{NULL} when the spec gives the df), and
-\code{model} (the lavaan model, or \code{NULL}).
+\code{NULL} for other designs. For \code{model_fit}, a list with
+\code{template}, \code{rmsea}, \code{df}, \code{indicators} and \code{factors} (\code{NULL} when the
+spec gives the df), and \code{model} (the lavaan model, or \code{NULL}).
+Otherwise a list with \code{template} and \code{df}.
 }
 \description{
-For a model-fit power analysis (design \code{sem}), the model's degrees of
-freedom and, for a confirmatory factor analysis described by its number
-of items and factors, the lavaan model semPower counted them from.
+For a model-fit power analysis (design \code{sem}, template \code{model_fit}),
+the model's degrees of freedom and, for a confirmatory factor analysis
+described by its number of items and factors, the lavaan model semPower
+counted them from. For the other templates (a restriction tested
+against the model without it), the template and the restriction's
+degrees of freedom.
 }

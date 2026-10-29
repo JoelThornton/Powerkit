@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Measurement invariance, factor correlations and latent paths"
+    text: >-
+      The latent variables screen now does more than model fit. Choose what
+      you want to test: whether a questionnaire measures the same thing in
+      two groups (metric or scalar invariance), whether two factors are
+      correlated, or whether latent variables predict another. You describe
+      the items and their loadings, and powerkit works out the sample size
+      or power with semPower.
+  - date: "2026-10-29"
     title: "Names are optional"
     text: >-
       You no longer have to name your groups, conditions and outcome before

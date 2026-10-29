@@ -160,6 +160,7 @@ group_sizes <- function(spec, n) {
     spec$template,
     independent_t = ,
     tost_independent = ,
+    invariance = ,
     two_proportions = ,
     two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
@@ -213,8 +214,11 @@ group_text <- function(spec, n) {
 }
 
 test_text <- function(spec) {
-  if (identical(spec$design, "sem")) {
+  if (is_sem_fit(spec)) {
     return(sprintf("the chi-square test of exact model fit at alpha = %s", alpha_text(spec$target_test$alpha)))
+  }
+  if (identical(spec$design, "sem")) {
+    return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
   if (is_bayes_test(spec)) {
@@ -342,13 +346,61 @@ result_sentences <- function(spec, result) {
     out <- vapply(out, bayes_wording, character(1))
     out[["detail"]] <- paste(c(out[["detail"]], bayes_sentence(spec, result)), collapse = " ")
   }
-  sem <- sem_sentence(result)
+  if (identical(spec$design, "sem") && !is_sem_fit(spec)) {
+    out[["detail"]] <- paste(out[["detail"]], sem_restriction_sentence(spec))
+  }
+  sem <- if (is_sem_fit(spec)) sem_sentence(result)
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
     # Model fit: what is detected is the model's misfit, not an effect.
     out <- vapply(out, sem_wording, character(1))
   }
   out
+}
+
+is_sem_fit <- function(spec) identical(spec$design, "sem") && identical(spec$template, "model_fit")
+
+# Invariance, a factor correlation, a latent slope: the test, and the
+# model it is tested in.
+sem_test_name <- function(spec) {
+  pop <- spec$population
+  switch(
+    spec$template,
+    invariance = if (identical(pop$level, "metric")) {
+      "the chi-square difference test of metric invariance (equal loadings in the two groups, against the configural model)"
+    } else {
+      "the chi-square difference test of scalar invariance (equal intercepts in the two groups, against the metric model)"
+    },
+    factor_correlation = "the chi-square difference test of the correlation between the two factors against zero",
+    latent_regression = sprintf("the chi-square difference test of %s against zero",
+      if (length(pop$slopes) == 1) "the latent slope" else sprintf("predictor %s's latent slope", pop$tested %||% 1))
+  )
+}
+
+sem_model_description <- function(spec) {
+  pop <- spec$population
+  items <- function(k) sprintf("%s item%s", whole(k), if (k == 1) "" else "s")
+  switch(
+    spec$template,
+    invariance = sprintf("one factor measured by %s (standardised loading %s) in two groups, with %s of them %s in the second group",
+      items(pop$indicators), format(pop$loading), whole(pop$noninvariant),
+      if (identical(pop$level, "metric")) sprintf("loading %s", format(pop$loading_group2))
+      else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference)))),
+    factor_correlation = sprintf("two factors measured by %s and %s (standardised loadings %s and %s), correlating %s",
+      items(pop$indicators[[1]]), items(pop$indicators[[2]]), format(pop$loadings[[1]]), format(pop$loadings[[2]]), format(pop$r)),
+    latent_regression = {
+      k <- length(pop$slopes)
+      sprintf("a latent outcome regressed on %s latent predictor%s (standardised slope%s %s%s), every factor measured by %s (standardised loading %s)",
+        whole(k), if (k == 1) "" else "s", if (k == 1) "" else "s", paste(vapply(pop$slopes, format, ""), collapse = ", "),
+        if (k > 1) sprintf("; the predictors correlating %s", format(pop$predictor_correlation %||% 0)) else "",
+        items(pop$indicators), format(pop$loading))
+    }
+  )
+}
+
+sem_restriction_sentence <- function(spec) {
+  sprintf("The model: %s. Power is that of %s, fitted to the whole model by maximum likelihood.",
+    sem_model_description(spec), sem_test_name(spec))
 }
 
 sem_wording <- function(text) {
@@ -1320,6 +1372,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)
+  if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
@@ -1413,7 +1466,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- c(main, bayes_sentence(spec, result))
   }
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, cluster_writeup(result, spec), sem_writeup(result))
+  main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
+            if (identical(spec$design, "sem") && !is_sem_fit(spec)) sprintf("The model was %s.", sem_model_description(spec)))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
@@ -1466,7 +1520,7 @@ ethics_text <- function(spec, result, fields, values) {
     "If that effect is real, the chance that a study of this size finds strong evidence for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
     format(spec$target_test$evidence_threshold %||% 10), percent(p), percent(1 - p))
   # Model fit: the aim is to find out whether the model is wrong.
-  if (identical(spec$design, "sem")) chance <- function(p) sprintf(
+  if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
   include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))

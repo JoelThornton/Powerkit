@@ -34,8 +34,8 @@ test_that("there is an example for every template", {
     "single_predictor_count",
     # Clustered designs (powertools).
     "cluster_randomised", "multisite", "group_treatment",
-    # Structural equation model fit (semPower).
-    "model_fit",
+    # Structural equation models (semPower).
+    "model_fit", "invariance", "factor_correlation", "latent_regression",
     # Planned comparisons (engine only).
     "oneway_contrast",
     # Variance tests, simulated (engine only).

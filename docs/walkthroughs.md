@@ -115,7 +115,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 | [E34](figures/walkthroughs/E34.png): People nested in groups (classes, teams, clinics) | The title is clear and has examples, and the ICC and cluster size now have hints. |
 | [E35](figures/walkthroughs/E35.png): The same people measured three or more times | The title is clear. "Depends on the model" still gives a lay reader nothing to go on, and the package names won't mean much. |
 | [E36](figures/walkthroughs/E36.png): Show that an effect is absent or too small to matter (equivalence, or non-inferiority) | The title is clear and names non-inferiority, and "equivalence bounds" now has a hint. The standard name still says "TOST". |
-| [E37](figures/walkthroughs/E37.png): Check that a model or questionnaire structure fits | The title is clear for someone checking a questionnaire's structure, and RMSEA and model parameters now have hints. The card doesn't mention exploratory factor analysis or IRT, which can reach it. |
+| [E37](figures/walkthroughs/E37.png): Models with latent variables: model fit, measurement invariance, factor correlations and paths | The title is clear for someone checking a questionnaire's structure, and RMSEA and model parameters now have hints. The card doesn't mention exploratory factor analysis or IRT, which can reach it. |
 | [E43](figures/walkthroughs/E43.png): An outcome that is the time until something happens | Clear, and it says why (some people haven't had the event when the study ends). The neutral tools sentence leaves the reader with nowhere to go next. |
 | [E44](figures/walkthroughs/E44.png): Data that come in pairs, such as couples or a parent and child | Clear. It says why dyadic methods are needed: ignoring the pairing can overstate or understate power. |
 | [E45](figures/walkthroughs/E45.png): A trend over time that may change at a known point | Mostly clear. The four points explain the problem in plain words, and breakpoint, level and slope, and autocorrelation now have hints. |
@@ -555,11 +555,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A measured score; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E37 (Check that a model or questionnaire structure fits); Plan my whole study: E4 (Test whether two scores are related). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E4 (Test whether two scores are related). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E4 card](figures/walkthroughs/E4.png)
 
@@ -576,11 +576,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E37 (Check that a model or questionnaire structure fits); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
@@ -595,11 +595,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E37 (Check that a model or questionnaire structure fits); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
@@ -633,11 +633,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E37 (Check that a model or questionnaire structure fits); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
@@ -654,11 +654,11 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E-unsure (None of these fit, or I'm not sure); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 
@@ -1349,11 +1349,11 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *That a model fits: a questionnaire structure, or a model with latent variables (SEM)*
-- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Check that a model or questionnaire structure fits*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
-**End points:** Help me choose: E37 (Check that a model or questionnaire structure fits); I know my analysis: E37 (Check that a model or questionnaire structure fits); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
+**End points:** Help me choose: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); I know my analysis: E37 (Models with latent variables: model fit, measurement invariance, factor correlations and paths); Plan my whole study: E-unsure (None of these fit, or I'm not sure). **The routes differ.**
 
 ![E37 card](figures/walkthroughs/E37.png) ![E-unsure card](figures/walkthroughs/E-unsure.png)
 

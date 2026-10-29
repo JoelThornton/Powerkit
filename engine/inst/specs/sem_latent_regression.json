@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "sem",
+  "template": "latent_regression",
+  "variables": {},
+  "population": {
+    "metric": "standardised_slopes",
+    "slopes": [
+      0.2,
+      0.3
+    ],
+    "predictor_correlation": 0.3,
+    "tested": 1,
+    "indicators": 4,
+    "loading": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: two latent predictors of a latent outcome, where a standardised slope of 0.2 for the first is the smallest worth detecting."
+  },
+  "target_test": {
+    "effect": "latent_slope",
+    "method": "chi_square_difference",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

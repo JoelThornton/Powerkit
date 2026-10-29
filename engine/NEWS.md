@@ -1,3 +1,32 @@
+# powerkit 0.21.0
+
+* Structural equation models: three templates for design `sem`, each the
+  chi-square difference (likelihood ratio) test of one restriction
+  against the model without it, by semPower's own functions. Measurement
+  invariance (template `invariance`, `semPower.powerMI()`): one factor of
+  `population$indicators` items with loading `population$loading` in two
+  groups, the last `population$noninvariant` items having loading
+  `population$loading_group2` (level `"metric"`, against the configural
+  model) or intercepts shifted by `population$intercept_difference` item
+  SDs (level `"scalar"`, against the metric model) in the second group;
+  `options$allocation_ratio` splits n between the groups. The correlation
+  between two factors (template `factor_correlation`,
+  `semPower.powerCFA(nullEffect = "cor = 0")`), from each factor's items
+  and loading. One slope of a latent regression (template
+  `latent_regression`, `semPower.powerRegression()`), with one to five
+  latent predictors, one correlation between every pair, and the items and
+  loading of every factor. Power at each n is `semPower.postHoc()` on the
+  F0 of one call to the function, which is what it computes at that n.
+  Spec checks in plain English (an item must stay invariant; impossible
+  slopes or predictor correlations). `sem_summary()` gains `template`, and
+  gives the restriction's df for these templates. Exported scripts call
+  semPower alone and reproduce the result. Unit tests against each
+  function called directly, power and required N
+  (`test-backend-sempower.R`); validation file
+  `test-validation-sem-latent.R` (chunk `sem_latent`) with published
+  placeholders and checks against semPower's simulated power. In the app,
+  the latent variables card's screen starts with "What you want to test".
+
 # powerkit 0.20.1
 
 * The package description (`DESCRIPTION`), `CITATION.cff` and the README
