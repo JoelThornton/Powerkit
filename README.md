@@ -75,8 +75,8 @@ The ones that run, and the package each one uses:
 | Regression | multiple regression R², logistic and Poisson regression, interactions between two scores | pwrss, InteractionPoweR |
 | Mediation | simple, parallel and serial mediation; first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14) | power4mome (simulation) |
 | Clustered designs | cluster-randomised and multisite trials, score or yes/no outcome | powertools |
-| Equivalence | two groups, paired, one sample, a correlation, two proportions (TOST) | TOSTER |
-| Structural equation models | model fit (RMSEA), measurement invariance, factor correlations, latent regression | semPower |
+| Equivalence and non-inferiority | equivalence (TOST) for two groups, paired, one sample, a correlation, two proportions; non-inferiority for two groups, paired, one sample, two proportions | TOSTER, pwrss |
+| Structural equation models | model fit (RMSEA), measurement invariance (across groups or over time), factor correlations, latent regression | semPower |
 | Generic tests | t, F, chi-square and z from a noncentrality parameter | pwrss |
 
 What "validated" means is defined at the top of the

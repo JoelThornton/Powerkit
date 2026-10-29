@@ -251,7 +251,8 @@ check_allocation_allowed <- function(spec) {
       "size. Remove it, or plan for two equal groups."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance",
+                           "noninf_independent", "noninf_two_proportions")) {
     return(character())
   }
   paste0(
@@ -384,6 +385,9 @@ check_single_predictor_x <- function(spec) {
 # reaches a target power.
 check_equivalence_test <- function(spec) {
   pop <- spec$population
+  if (startsWith(spec$template, "noninf_")) {
+    return(check_noninferiority(spec))
+  }
   effect <- switch(
     spec$template,
     tost_paired = pop$dz,
@@ -405,6 +409,30 @@ check_equivalence_test <- function(spec) {
     "equivalence however many people took part. Check the expected ",
     "difference and the bound: the expected difference has to lie inside the ",
     "bounds (0 means no difference)."
+  )
+}
+
+# Non-inferiority: the expected effect has to be better than the margin
+# (beyond it, the new condition is expected to be worse than allowed, and
+# no study would show non-inferiority; pwrss would also test the wrong
+# side). At the margin itself, power is about alpha.
+check_noninferiority <- function(spec) {
+  effect <- noninf_effect(spec)
+  margin <- spec$population$margin
+  if (is.null(effect) || length(effect) == 0 || is.null(margin)) {
+    return(character())
+  }
+  beyond <- effect < -margin - 1e-12
+  at <- effect <= -margin + 1e-12
+  if (!beyond && !at) {
+    return(character())
+  }
+  paste0(
+    "The difference you expect is ", if (beyond) "worse than" else "exactly at",
+    " the non-inferiority margin, so the study ", if (beyond) "couldn't" else "would be unlikely to",
+    " show non-inferiority however many people took part. The expected difference has to be ",
+    "better than minus the margin (0, no difference, is common); check its direction and ",
+    "whether higher or lower values are better ('population > better')."
   )
 }
 
@@ -503,6 +531,19 @@ check_sem <- function(spec) {
 check_sem_invariance <- function(spec) {
   pop <- spec$population
   metric <- identical(pop$level, "metric")
+  over_time <- identical(pop$over, "occasions")
+  if (over_time && is.null(pop$stability)) {
+    return(paste0(
+      "Invariance over two occasions needs the factor's correlation between them ",
+      "('population > stability'): how stable people's standing is from one occasion to the next."
+    ))
+  }
+  if (!over_time && !is.null(pop$stability)) {
+    return("'population > stability' is only used for invariance over occasions ('population > over' 'occasions'); remove it.")
+  }
+  if (over_time && !is.null(spec$options$allocation_ratio)) {
+    return("Invariance over occasions measures the same people twice, so there are no groups to split: remove 'options > allocation_ratio'.")
+  }
   if (metric && (is.null(pop$loading_group2) || !is.null(pop$intercept_difference))) {
     return(paste0(
       "Metric invariance is about loadings: give the loading of the items that differ in ",
@@ -1400,6 +1441,11 @@ minimum_n <- function(spec) {
       # TOSTER's power_twoprop() needs four people in each of the two
       # equal groups.
       tost_two_proportions = 8,
+      # pwrss's t tests need at least 3 degrees of freedom.
+      noninf_independent = 6,
+      noninf_paired = ,
+      noninf_one_sample = 5,
+      noninf_two_proportions = 4,
       3
     ),
     factorial_anova = switch(
@@ -1448,7 +1494,7 @@ minimum_n <- function(spec) {
       spec$template,
       model_fit = if (is.null(spec$population$indicators)) 2 else spec$population$indicators + 1,
       # Each group needs more people than items.
-      invariance = 2 * (spec$population$indicators + 1),
+      invariance = (if (identical(spec$population$over, "occasions")) 1 else 2) * (spec$population$indicators + 1),
       factor_correlation = sum(unlist(spec$population$indicators)) + 1,
       latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
     ),
@@ -1507,7 +1553,9 @@ group_split <- function(spec) {
       valid = function(n) n %% (2 * m) == 0
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance")) {
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent",
+                           "noninf_independent", "noninf_two_proportions") ||
+      (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions"))) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
@@ -1549,7 +1597,7 @@ target_effect_is_zero <- function(spec) {
     factorial_anova = anova_contrast(spec),
     # An equivalence test has something to show whenever the bound is above
     # 0 (the schema requires it), whatever the expected difference.
-    equivalence_test = pop$bound,
+    equivalence_test = pop$bound %||% pop$margin,
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
     logistic_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),

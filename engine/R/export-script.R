@@ -49,6 +49,8 @@ export_script <- function(spec, result, file = NULL) {
     stats = pwr_script(spec, result),
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
+    } else if (startsWith(spec$template, "noninf_")) {
+      noninf_script(spec, result)
     } else if (pwrss_covers(spec)) {
       pwrss_script(spec, result)
     } else {
@@ -282,6 +284,18 @@ design_description <- function(spec) {
     ),
     "equivalence_test/tost_one_sample" = sprintf(
       "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
+    ),
+    "equivalence_test/noninf_independent" = sprintf(
+      "non-inferiority test (one-sided t-test against the margin) of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
+    ),
+    "equivalence_test/noninf_paired" = sprintf(
+      "non-inferiority test (one-sided paired t-test against the margin) of %s between %s (%s)", label("Y"), label("X"), levels("X")
+    ),
+    "equivalence_test/noninf_one_sample" = sprintf(
+      "non-inferiority test (one-sided one-sample t-test against the margin) of %s against a reference value", label("Y")
+    ),
+    "equivalence_test/noninf_two_proportions" = sprintf(
+      "non-inferiority test (one-sided z test against the margin) of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
     ),
     "equivalence_test/tost_correlation" = sprintf(
       "equivalence test (two one-sided z tests on Fisher's z, TOST) of the correlation between %s and %s", label("X"), label("Y")

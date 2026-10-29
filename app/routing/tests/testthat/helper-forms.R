@@ -102,9 +102,9 @@ form_example_ancova_two <- modifyList(form_examples$E23, list(
 
 # E37's other questions (each sets its own template).
 sem_examples <- list(
-  invariance = c(list(question = "invariance", level = "metric", mi_indicators = "6", mi_loading = "0.7",
+  invariance = c(list(question = "invariance", over = "groups", level = "metric", mi_indicators = "6", mi_loading = "0.7",
                       noninvariant = "2", loading_group2 = "0.5", allocation_ratio = "1"), closing_ok),
-  scalar = c(list(question = "invariance", level = "scalar", mi_indicators = "6", mi_loading = "0.7",
+  scalar = c(list(question = "invariance", over = "groups", level = "scalar", mi_indicators = "6", mi_loading = "0.7",
                   noninvariant = "2", intercept_difference = "0.3", allocation_ratio = "1.5"), closing_ok),
   factor_correlation = c(list(question = "factor_correlation", fc_items1 = "4", fc_items2 = "5",
                               fc_loading1 = "0.6", fc_loading2 = "0.7", fc_r = "0.2"), closing_ok),
@@ -119,3 +119,14 @@ tost_z_examples <- list(
   tost_two_proportions = c(list(comparison = "tost_two_proportions", X_label = "Reminder", X_level1 = "Letter",
                                 X_level2 = "Text", Y_label = "Attended", prop_bound = "0.1", p1 = "0.6", p2 = "0.6"), closing_ok)
 )
+
+# E36's non-inferiority comparisons (pwrss, one-sided against a margin).
+noninf_examples <- list(
+  noninf_independent = c(list(comparison = "noninf_independent", X_label = "Therapy", X_level1 = "Face to face", X_level2 = "Online",
+                              Y_label = "Wellbeing", better = "higher", ni_margin = "0.3", ni_d = "0", ni_allocation_ratio = "1"), closing_ok),
+  noninf_two_proportions = c(list(comparison = "noninf_two_proportions", X_label = "Therapy", X_level1 = "Face to face", X_level2 = "Online",
+                                  Y_label = "Relapse", better = "lower", ni_prop_margin = "0.1", ni_p1 = "0.3", ni_p2 = "0.3",
+                                  ni_allocation_ratio = "1"), closing_ok)
+)
+sem_examples$occasions <- c(list(question = "invariance", over = "occasions", level = "metric", mi_indicators = "6", mi_loading = "0.7",
+                                 noninvariant = "2", loading_group2 = "0.5", stability = "0.6"), closing_ok)

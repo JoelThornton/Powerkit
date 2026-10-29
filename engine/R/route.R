@@ -82,6 +82,10 @@ route_spec <- function(spec, seed = NULL) {
     "equivalence_test/tost_one_sample" = ,
     "equivalence_test/tost_correlation" = ,
     "equivalence_test/tost_two_proportions" = toster_backend(spec, seed),
+    "equivalence_test/noninf_independent" = ,
+    "equivalence_test/noninf_paired" = ,
+    "equivalence_test/noninf_one_sample" = ,
+    "equivalence_test/noninf_two_proportions" = noninf_backend(spec, seed),
     "basic_test/one_variance" = ,
     "basic_test/two_variances" = spower_backend(spec, seed),
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {

@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "noninf_one_sample",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Symptom score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0,
+    "margin": 0.3,
+    "better": "lower"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: symptoms at most 0.3 SD above the reference value are acceptable."
+  },
+  "target_test": {
+    "effect": "mean",
+    "method": "non_inferiority",
+    "alpha": 0.025
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

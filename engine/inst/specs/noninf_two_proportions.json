@@ -1,0 +1,42 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "noninf_two_proportions",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Therapy",
+      "levels": [
+        "Face to face",
+        "Online"
+      ]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Recovered"
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.7,
+    "p2": 0.7,
+    "margin": 0.1,
+    "better": "higher"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a recovery rate at most 10 percentage points lower online is acceptable."
+  },
+  "target_test": {
+    "effect": "proportion_difference",
+    "method": "non_inferiority",
+    "alpha": 0.025
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

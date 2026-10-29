@@ -250,3 +250,32 @@ test_that("the exported script reproduces each template with semPower alone", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = spec$template)
   }
 })
+
+test_that("invariance over two occasions runs on semPower.powerLI() and matches it, power and N", {
+  spec <- latent_spec("sem_invariance", list(type = "power", n = 300), over = "occasions", stability = 0.6)
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "semPower::semPower.powerLI")
+  expect_true(all(result$check_run$ok))
+  phi <- matrix(c(1, 0.6, 0.6, 1), 2)
+  direct <- semPower::semPower.powerLI(
+    type = "post-hoc", comparison = "configural", nullEffect = "metric",
+    loadings = list(rep(0.7, 6), c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5)), Phi = phi, alpha = 0.05, N = 300
+  )$power
+  expect_equal(result$curve$power, direct, tolerance = 1e-8)
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  apriori <- semPower::semPower.powerLI(
+    type = "a-priori", comparison = "configural", nullEffect = "metric",
+    loadings = list(rep(0.7, 6), c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5)), Phi = phi, alpha = 0.05, power = 0.8
+  )$requiredN
+  expect_equal(run_spec(spec)$n_required$n, apriori)
+  # Scalar invariance over occasions, and the script.
+  spec <- scalar_spec(list(type = "power", n = 200), over = "occasions", stability = 0.5)
+  out <- run_exported_script(spec, run_spec(spec))
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
+  # Refusals.
+  expect_spec_problem(latent_spec("sem_invariance", list(type = "power", n = 300), over = "occasions"), "stability")
+  expect_spec_problem(latent_spec("sem_invariance", list(type = "power", n = 300), stability = 0.5), "only used for invariance over occasions")
+  spec <- latent_spec("sem_invariance", list(type = "power", n = 300), over = "occasions", stability = 0.6)
+  spec$options$allocation_ratio <- 2
+  expect_spec_problem(spec, "no groups to split")
+})
