@@ -4557,19 +4557,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
-        "RemoteSha": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
+        "RemoteRef": "95cf0b6609831bf1e08cc50b1ed768313f36e82c",
+        "RemoteSha": "95cf0b6609831bf1e08cc50b1ed768313f36e82c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
-        "GithubSHA1": "a519ab2f3e3cde14bfa3bae73f934ad5a8808392",
+        "GithubRef": "95cf0b6609831bf1e08cc50b1ed768313f36e82c",
+        "GithubSHA1": "95cf0b6609831bf1e08cc50b1ed768313f36e82c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-29 09:09:17 UTC; runner",
+        "Packaged": "2026-10-29 09:41:59 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-29 09:09:25 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-29 09:42:06 UTC; unix"
       }
     },
     "powertools": {
@@ -6255,7 +6255,7 @@
       "checksum": "c6ba4a59348b268fff1bff5a4e7bd7c9"
     },
     "forms.yaml": {
-      "checksum": "cfa78c9c1d63ef0fc1719740938f6afd"
+      "checksum": "fcc58c85c0a18008b86fe9d7ff5d0c2b"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6288,7 +6288,7 @@
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "4732404001c10fd86beed4ac70319f0e"
+      "checksum": "c6e67a09869f3c84ea844f1b2791a6f7"
     },
     "R/whole-study.R": {
       "checksum": "7c93e4bc9af7cbfd4687ba6d43671576"
@@ -6303,7 +6303,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "cc6a4077deae86383a555a7e076f3472"
+      "checksum": "d258f4b16b9ab2e7e3d5cda1fcef6bcd"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6318,7 +6318,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "4ac6ec74a0dce8be48393f93a98f3a76"
+      "checksum": "16879cf9981cfff1d8861d86f1137ea4"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6327,7 +6327,7 @@
       "checksum": "f2c5e8dc75cebcde94496b25aa768d36"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "1366733d955221cd2cbf4e8737ce45cb"
+      "checksum": "498d307b3cbf5614842b753cc7f59ee8"
     },
     "tests/testthat/test-project.R": {
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
@@ -6336,13 +6336,13 @@
       "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "2b8efcd9eed56681d4527e0a83d6de51"
+      "checksum": "d2a5224bfe2f4d11b2b601ec8987aac3"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "81759d544781b6bc220144978d4c9ffe"
+      "checksum": "2dca75ee1ac37a6854693378e9bf917e"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "c92c171e7605860a519402c49dd13229"
+      "checksum": "bcf4d808d303c2329437a0b2215dd0bb"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
       "checksum": "eb24de159f0e5b0df56d8921ce187e2d"
@@ -6357,7 +6357,7 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "087e4bca5f593976266fc4a99fd6b41a"
+      "checksum": "3b55f2b3669f447d2347cebe31cc6177"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -6372,7 +6372,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "7a60f7dfc908294b63a3902a7c792559"
+      "checksum": "54b26effaece1e8a76f7a23d05202e1e"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
