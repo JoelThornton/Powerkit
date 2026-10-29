@@ -221,6 +221,24 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
   independent reference). It must also be validated against an independent
   reference before it is offered (decision N3 in `docs/design-finder.md`).
 
+### Welch's one-way ANOVA and the MANOVA approach (from 29 October 2026, 0.21.0)
+
+- **Welch's F** (groups whose SDs differ) is a test version on the
+  one-way ANOVA card, simulated with Spower's
+  `p_anova.test(var.equal = FALSE)`, which runs `stats::oneway.test()` on
+  groups drawn with each group's mean and SD. G\*Power has no Welch
+  ANOVA, so there is no G\*Power convention to follow; the classic F
+  stays the default (the maintainer's decision, 29 October 2026). Not a
+  departure: Spower's own experiment function. Each group's SD is given in
+  the outcome's own units, since there is no single SD to standardise by.
+- **The MANOVA approach** to a repeated-measures effect (Pillai's trace,
+  no sphericity assumed) is reported beside the univariate F, from the
+  same `Superpower::ANOVA_exact()` run (`manova_results`), when the
+  target effect involves a within factor with three or more levels (with
+  two, the two tests agree). The univariate F stays the headline, as in
+  G\*Power's repeated-measures tests. The sample size is planned for the
+  univariate F; the MANOVA power is at that n.
+
 ## Regression interaction (two-way)
 
 | Tool | Test | Effect size | Settings |
@@ -262,6 +280,18 @@ G\*Power 3.1 has no equivalence test for means, so there is no G\*Power
 convention to follow here (`coverage-roadmap.md`, row B54, found none).
 Only symmetric bounds are offered: TOSTER takes asymmetric ones, and the
 app may add them later.
+
+**A correlation and two proportions (from 29 October 2026, 0.21.0).**
+TOSTER's `power_z_cor(alternative = "equivalence")` is the two one-sided
+z tests of a correlation on Fisher's z scale (an approximation, as the
+correlation test is), and `power_twoprop(alternative = "equivalence")`
+the two one-sided z tests of p2 − p1, with `n` per group (TOSTER 0.8.6
+help). powerkit passes the expected correlation (`rho`) or proportions and
+the bound (`null`, which TOSTER takes as minus and plus), with alpha for
+each one-sided test; two proportions are planned for equal groups,
+because `power_twoprop()` takes one group size. The required n agrees
+with TOSTER's own solution for n, rounded up (unit tests). Not a
+departure: TOSTER's own calculation.
 
 ## Cluster-randomised trials (whole groups assigned to two conditions)
 

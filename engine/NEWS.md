@@ -27,6 +27,24 @@
   placeholders and checks against semPower's simulated power. In the app,
   the latent variables card's screen starts with "What you want to test".
 
+* Welch's one-way ANOVA: `target_test$method = "welch_f"` for template
+  `oneway_between`, simulated with Spower's
+  `p_anova.test(var.equal = FALSE)`, with `population$sds` (each group's
+  SD, in the outcome's own units; `sd` for every group if absent). The
+  check run recovers each group's mean and SD; exported scripts call
+  Spower alone. In the app, a test version on the one-way ANOVA screen.
+* Equivalence for a correlation (template `tost_correlation`,
+  `TOSTER::power_z_cor(alternative = "equivalence")`) and for two
+  proportions (template `tost_two_proportions`,
+  `TOSTER::power_twoprop(alternative = "equivalence")`, equal groups). In
+  the app, two more choices under "What you are comparing" on the
+  equivalence screen.
+* Repeated measures: the result gains `manova` (`manova_summary()`), the
+  MANOVA approach's power (Pillai's trace) at the n analysed, from the
+  same `Superpower::ANOVA_exact()` run, when the target effect involves a
+  within factor with three or more levels. The result screen and the
+  write-up give it beside the univariate F.
+
 # powerkit 0.20.1
 
 * The package description (`DESCRIPTION`), `CITATION.cff` and the README

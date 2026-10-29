@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 9). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 7). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -90,7 +90,7 @@ fully validated. Validation runs are recorded in
   first two designs. Validation in progress (published examples to
   choose and transcribe); three questions for powertools in
   `upstream-questions.md`. Next: simulated multilevel models wait for a
-  package decision (`next.md`, item 7).
+  package decision (`next.md`, item 5).
 - **Structural equation models (27 to 29 October 2026, 0.13.0 and
   0.21.0):** on the latent variables card (E37), by formula with
   semPower: model fit (the chi-square test of exact fit by RMSEA, for a
@@ -111,9 +111,14 @@ fully validated. Validation runs are recorded in
   two-factor between-participants ANOVA beyond 2 x 2 (E21) and, from
   0.19.0, the three-factor ANOVA with any mix of between and within
   factors (E56) run in the app by Superpower's exact data set, with one SD and, for repeated measures,
-  one correlation, so sphericity holds. Validation in progress (published
-  examples to choose and transcribe). Next: the MANOVA approach
-  (`next.md`, item 5); four or more factors go to the safety net.
+  one correlation, so sphericity holds; from 0.21.0 the MANOVA approach's
+  power (Pillai's trace, no sphericity assumed) is shown beside the
+  univariate F when the effect involves a within factor with three or
+  more levels. Validation in progress (published examples to choose and
+  transcribe). Next: sphericity corrections and unequal SDs or
+  correlations (`next.md`, item 9); four or more factors go to the safety
+  net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
+  card from 0.21.0, simulated with Spower.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
@@ -145,12 +150,14 @@ fully validated. Validation runs are recorded in
   t-tests and the correlation can plan with the lower bound of a 60% (or
   90%) confidence interval around it, worked out by psych (Perugini,
   Gallucci & Costantini, 2014). Not yet for other designs.
-- **Equivalence tests (27 October 2026, 0.10.0):** the two one-sided
-  tests (TOST) for two groups, paired data and one sample run in the app
-  through TOSTER's exact `power_t_TOST()` (E36), with the bound and the
-  expected difference as Cohen's d or in the measure's own units.
-  Validation in progress: published examples are placeholders.
-  Correlations, proportions and non-inferiority are `next.md`, item 4.
+- **Equivalence tests (27 and 29 October 2026, 0.10.0 and 0.21.0):** the
+  two one-sided tests (TOST) for two groups, paired data and one sample
+  run in the app through TOSTER's exact `power_t_TOST()` (E36), with the
+  bound and the expected difference as Cohen's d or in the measure's own
+  units; from 0.21.0 also a correlation (`power_z_cor()`) and two
+  proportions (`power_twoprop()`, equal groups). Validation in progress:
+  published examples are placeholders. Non-inferiority is `next.md`,
+  item 3.
 - **Whole-study simulation (27 October 2026, 0.10.0, experimental):** on
   the guided plan, one population model for the whole study, entered
   once as standardised paths; every planned analysis (correlation,

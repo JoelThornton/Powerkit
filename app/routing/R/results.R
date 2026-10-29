@@ -352,6 +352,7 @@ result_sentences <- function(spec, result) {
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) {
     out[["detail"]] <- paste(out[["detail"]], sem_restriction_sentence(spec))
   }
+  if (!is.null(result$manova)) out[["detail"]] <- paste(out[["detail"]], manova_sentence(result))
   sem <- if (is_sem_fit(spec)) sem_sentence(result)
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
@@ -362,6 +363,17 @@ result_sentences <- function(spec, result) {
 }
 
 is_sem_fit <- function(spec) identical(spec$design, "sem") && identical(spec$template, "model_fit")
+
+# Repeated measures: the MANOVA approach's power beside the univariate F's
+# (the engine's manova_summary(), from the same Superpower run).
+manova_sentence <- function(result) {
+  m <- result$manova
+  sprintf(paste0(
+    "This assumes sphericity (equal variances of the differences between conditions). ",
+    "The MANOVA approach, which doesn't, has %s power with %s participants; ",
+    "if you plan to report it instead, plan for it."),
+    percent(m$power), whole(m$n))
+}
 
 # Invariance, a factor correlation, a latent slope: the test, and the
 # model it is tested in.
@@ -1475,6 +1487,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
+            if (!is.null(result$manova)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power),
             if (identical(spec$design, "sem") && !is_sem_fit(spec)) sprintf("The model was %s.", sem_model_description(spec)))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",

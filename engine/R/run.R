@@ -182,6 +182,10 @@
 #'     the RMSEA, the model's degrees of freedom and, for a CFA, its
 #'     items, factors and lavaan model; for the other templates, the
 #'     restriction's degrees of freedom;
+#'   * `manova`: `NULL` unless the design is a factorial ANOVA computed
+#'     exactly whose target effect involves a within-participants factor
+#'     with three or more levels; otherwise the MANOVA approach's power at
+#'     the n analysed (`power`, `n`), from the same Superpower run;
 #'   * `recruitment`: `NA` unless `options > attrition` is above 0;
 #'     otherwise a list with the `attrition`, `n_analysed` (the required n,
 #'     or the goal's n) and its `groups_analysed`, and `n_recruit` and
@@ -297,6 +301,7 @@ run_spec <- function(spec) {
       clusters = cluster_summary(spec, n_analysed),
       sem = sem_summary(spec),
       bayes = bayes_summary(spec, n_analysed),
+      manova = manova_summary(spec, backend, method, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),

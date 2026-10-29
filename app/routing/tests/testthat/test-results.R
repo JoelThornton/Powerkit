@@ -789,6 +789,22 @@ test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER
   expect_match(result_sentences(spec, result)[["headline"]], sprintf("(%s per group)", result$n_required$n / 2), fixed = TRUE)
 })
 
+test_that("repeated measures with three or more conditions show the MANOVA approach beside the univariate F", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E54"))
+  spec <- build_spec(forms, "E54", fields, form_examples$E54)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_false(is.null(calc$result$manova))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "The MANOVA approach, which doesn't, has", fixed = TRUE)
+  w <- writeup_text(forms$forms$E54, calc$spec, calc$result, fields, form_examples$E54)
+  expect_match(w[["full"]], "the MANOVA approach (Pillai's trace)", fixed = TRUE)
+  # A between-participants design has no MANOVA sentence.
+  spec <- build_spec(forms, "E18", form_fields(form_groups(forms, "E18")), form_examples$E18)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_no_match(result_sentences(calc$spec, calc$result)[["detail"]], "MANOVA", fixed = TRUE)
+})
+
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
   skip_without_run()
   for (ep in c("E1", "E2", "E3")) {

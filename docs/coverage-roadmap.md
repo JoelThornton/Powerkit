@@ -134,9 +134,9 @@ Departure 10 in [`conventions.md`](conventions.md).
 | A25 | Repeated measures: between factors, ANOVA-approach | GP | E8 (the group effect in a 2 x 2 mixed design) | Done (validated and wired) | Now: AP, PN, S (2 x 2 mixed) | Superpower `ANOVA_exact()` (`"2b*2w"` and larger designs) | Larger designs: E21 | [G1][] |
 | A26 | Repeated measures: between factors, MANOVA-approach | GP | none: not reachable | Unknown (check whether Superpower's `manova_results` includes the between-factor effect; its help says only that MANOVA results are given "if a within-subjects factor is included") | — | Superpower `ANOVA_exact()` / `ANOVA_power()`, element `manova_results` (candidate) | Check | [G1][] |
 | A27 | Repeated measures: within factors, ANOVA-approach | GP; UCLA | E8 (2 x 2 mixed); E54 (one within factor, three or more levels; in the app 27 October 2026, validation in progress); E20 (two within factors, 2 x 2 or larger; in the app 28 October 2026, validation in progress) | Done (validated and wired) | Now: AP, PN, S (2 x 2 mixed's within effect); AP, PN (E54, E20) | Superpower `ANOVA_design("kw")` + `ANOVA_exact()` (E54; `power_oneway_within()` agrees in the engine's tests), `"kw*mw"` (E20); sphericity `correction` (GG, HF) in `ANOVA_power()`, not needed while one SD and one correlation give sphericity | E54, E20: published values to transcribe. Three within factors still to come | [G1][] |
-| A28 | Repeated measures: within factors, MANOVA-approach | GP | none: not reachable | Foundation tool can do it, not planned | Could: PN | Superpower `ANOVA_exact()` / `ANOVA_power()`, element `manova_results` (given when a within factor is included) | Report `manova_results`, which E8 already computes | [G1][] |
+| A28 | Repeated measures: within factors, MANOVA-approach | GP | E54, E20, E56 (beside the univariate F) | Wired (29 October 2026: the MANOVA approach's power, Pillai's trace, is shown beside the univariate F when the target effect involves a within factor with three or more levels, from the same `ANOVA_exact()` run; matches Superpower called directly; published values to transcribe) | Now: PN at the n planned for the univariate F | **Engine: Superpower `ANOVA_exact()`, element `manova_results`** | A sample size planned for the MANOVA approach itself | [G1][] |
 | A29 | Repeated measures: within-between interactions, ANOVA-approach | GP | E8 (2 x 2); E55 (beyond 2 x 2, in the app 28 October 2026, validation in progress) | Done (validated and wired) | Now: AP, PN, S (2 x 2); AP, PN (E55) | Superpower `ANOVA_exact()` (`"2b*2w"`; `"kb*mw"` for E55) | E55: published value to transcribe | — |
-| A30 | Repeated measures: within-between interactions, MANOVA-approach | GP | none: not reachable | Foundation tool can do it, not planned | Could: PN | As A28 | As A28 | [G1][] |
+| A30 | Repeated measures: within-between interactions, MANOVA-approach | GP | E55, E56 (beside the univariate F) | Wired (as A28, for an interaction with a within factor of three or more levels) | As A28 | As A28 | As A28 | [G1][] |
 | A31 | Hotelling T², one group | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown (none found in the foundation tools' help) | — | [G1][] |
 | A32 | Hotelling T², two groups | GP | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown in the foundation tools. BUCSS `ss_buc_manova()` (two-group multivariate comparison, with bias correction) is a candidate | — | [G1][] |
 | A33 | MANOVA: global effects | GP; UCLA | none: not reachable | G\*Power covers it, powerkit doesn't | — | unknown (Superpower's MANOVA output is for within factors only) | — | [C14][], [G1][] |
@@ -277,7 +277,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Goal | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; correlations and proportions to come; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
+| B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; a correlation by `power_z_cor()` and two proportions by `power_twoprop()`, 29 October 2026; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
 | B55 | Non-inferiority | ML; Audit | E36 | Planned (phase 6: equivalence) | Could: AP, PN | candidate: a one-sided test against the margin (Spower `p_t.test(mu = )`, inferred); powertools `prop.2samp(margin = )` (coverage.md) | Phase 6 | — |
 | B56 | Precision (CI width) | ML; BG; Audit | E46 | Planned (phase 6: AIPE) | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
 | B57 | Group-sequential designs with interim analyses | ML; BG; Audit | none: not reachable | Planned (later in the build guide; no phase) | — | rpact `getDesignGroupSequential()`, `getSampleSizeMeans()`, `getPowerMeans()`; gsDesign `gsDesign()`; POSSA `sim()`, `pow()` | — | [C13][] |
@@ -427,10 +427,10 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 22 | 8 | 0 | 30 |
+| Wired (validation not finished) | 24 | 8 | 0 | 32 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 19 | 2 | 22 |
-| Foundation tool can do it, not planned | 8 | 10 | 2 | 20 |
+| Foundation tool can do it, not planned | 6 | 10 | 2 | 18 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
 | G\*Power covers it, powerkit doesn't | 7 | 0 | 0 | 7 |
@@ -442,9 +442,6 @@ and fails if a line here disagrees.
 **Cheapest additions** (a foundation tool already does it, and powerkit
 needs only a routing change, a new field or an output it already has):
 
-- **A28, A30: the MANOVA approach for within factors.** E8 already runs
-  Superpower's `ANOVA_exact()`, which returns `manova_results` when a
-  within factor is included. Reporting it is an output change.
 - **A2, A7: point-biserial r and the slope of a simple regression.** The
   same tests as E2 and E4 with the effect entered differently; an
   effect-size conversion on the existing cards.
@@ -531,7 +528,7 @@ until it goes through
 - **Competing risks (Fine–Gray)** beside the survival rows.
 - **Comparing two ROC curves** (DeLong's test), where the ROC row covers
   one curve against a benchmark.
-- **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F.
+- **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F: in the app as E18's test version since 29 October 2026 (Spower, by simulation).
 - **Average power under FDR control** (Jung; Liu and Hwang): the sample
   size at which a stated share of truly active channels or voxels is
   detected at q = .05. Different in kind from the per-test corrections in

@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Welch's ANOVA, more equivalence tests, and the MANOVA approach"
+    text: >-
+      Three or more groups that vary by different amounts? On the one-way
+      ANOVA screen, choose Welch's F and give each group's SD. The
+      equivalence screen now also covers a correlation and two groups'
+      proportions. And for repeated measures with three or more
+      conditions, the result also gives the power of the MANOVA approach,
+      which doesn't assume sphericity.
+  - date: "2026-10-29"
     title: "Measurement invariance, factor correlations and latent paths"
     text: >-
       The latent variables screen now does more than model fit. Choose what
