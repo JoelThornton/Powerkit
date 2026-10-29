@@ -199,7 +199,7 @@ settings:
     question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
     value: name
-    shown_at: [E43, E44, E46, E47]
+    shown_at: [E43, E44, E46]
   - key: other_analyses_note
     ref: "Open question 20"
     question: "Show a note on covered cards that other defensible analyses exist for the design (listed per card, e.g. Student's vs Welch's t), and that they can need different sample sizes? The drafts are in docs/routing-audit.md, 'Other defensible analyses'. Off while undecided."
@@ -327,7 +327,7 @@ nodes:
     refs: "decision D1"
     options:
       - {label: "As a score (for example, comparing mean ratings)", next: s2, sets: {outcome: score}, help: "This treats the rating as an interval scale, which is debated."}
-      - {label: "As ordered categories", next: E29}
+      - {label: "As ordered categories", next: s2, sets: {outcome: ordinal}}
   s2:
     doc_id: S2
     text: "How are the data grouped?"
@@ -392,7 +392,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: f1, yesno: q3_cat, count: q3_count}
+    routes: {score: f1, yesno: q3_cat, count: q3_count, ordinal: q3_ord}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
@@ -533,12 +533,22 @@ nodes:
     branch_on: times
     routes: {once: E28, twice: E-unsure, many_conditions: E-unsure}
 
+  # An outcome in ordered categories, analysed as ordinal: two groups of
+  # different people, each measured once (E29, whose card says it compares
+  # two groups only); repeated ordinal measurements need a model powerkit
+  # doesn't have.
+  q3_ord:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E29, twice: E-unsure, many_conditions: E-unsure}
+
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count}
+    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count, ordinal: E-unsure}
   q2_rel_cat:
     doc_id: Q2
     text: "Which kind of categorical outcome?"
@@ -565,7 +575,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_mod, yesno: E32, count: E32}
+    routes: {score: q3_mod, yesno: E32, count: E32, ordinal: E32}
   q3_mod:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -604,7 +614,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_med, yesno: E32, count: E32}
+    routes: {score: q3_med, yesno: E32, count: E32, ordinal: E32}
   q3_med:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -663,7 +673,7 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_modmed, yesno: E32, count: E32}
+    routes: {score: q3_modmed, yesno: E32, count: E32, ordinal: E32}
   q3_modmed:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -1173,12 +1183,19 @@ endpoints:
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
-    status: not_in_powerkit
-    inputs: ["The expected proportion in each category", "The odds ratio between groups"]
-    packages:
-      - {name: Hmisc, url: "https://cran.r-project.org/package=Hmisc", what: "popower() and posamsize(): power and sample size for comparing two groups on an ordinal outcome (proportional odds)."}
-      - {name: powertools, url: "https://cran.r-project.org/package=powertools", what: "propodds(): power for proportional-odds comparisons."}
+    template: "ordinal_regression / ordinal_two_groups"
+    backend: "powertools: propodds() (proportional odds, Whitehead's method)"
+    method: Formula
+    status: runs_validation_in_progress
+    validation: {file: test-validation-ordinal.R, note: "Matches powertools called directly, and Hmisc's popower(), an independent implementation of the same method, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Compares two groups of different people on an outcome in ordered categories, such as one rating item or a severity grade, without treating it as a score."
+      - "You give the share of group 1 in each category and the odds ratio: how much more likely group 2 is to be in a higher category, the same at every step (proportional odds)."
+      - "Power comes from a formula (Whitehead's method, as powertools and Hmisc compute it), two-sided; groups can differ in size."
+      - "Two groups only, for now: more groups, a measured predictor or the same people twice aren't covered yet."
+    inputs: ["Names of the groups, the outcome and its categories in order", "The share of group 1 in each category, and the odds ratio", "The size of group 2 relative to group 1 (1 = equal)"]
     tier: v2
+    alternatives: ["the Mann-Whitney test, if you analyse the rating as ranks", "a t-test, if you analyse the rating as a score"]
   E30:
     doc_name: "Moderator with three or more groups"
     plain_name: "Moderation where X or W has three or more groups"
@@ -1385,15 +1402,21 @@ endpoints:
     card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
     tier: later
   E47:
-    tools:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "p_glm() with family = binomial(), simulated power for logistic regression with crossed factors."}
     doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
     plain_name: "Two or more factors crossed, with a yes/no outcome"
-    status: not_in_powerkit
-    generic: true
-    established_tools: true
-    card_text: "powerkit doesn't cover designs with two or more crossed factors and a yes/no outcome yet (for example, whether people book a flu jab after a gain or loss message from a doctor or a friend)."
+    template: "logistic_regression / factorial"
+    backend: "Spower: p_glm(family = binomial()), the Wald test of the effect's coefficients (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-logistic-factorial.R, note: "Recovers every cell's proportion in its check run, matches Spower called directly, and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Two factors crossed, with different people in every combination, and a yes/no outcome: for example, whether people book a flu jab after a gain or loss message from a doctor, a friend or a celebrity."
+      - "You give the expected proportion of 'yes' in each combination, and choose the effect: either factor, or their interaction."
+      - "The effects are tested as a logistic regression tests them, on the log-odds scale: an interaction there can differ from one on the proportions themselves."
+      - "Simulated, so the answer carries a little random error; groups are equal in size, and only two factors, both between participants, for now."
+    inputs: ["Names of the two factors, their levels and the yes/no outcome", "The expected proportion of 'yes' in each combination", "Which effect"]
     tier: later
+    alternatives: ["a chi-square test, for one factor and a yes/no outcome", "logistic regression with one predictor, for a single comparison"]
   E48:
     doc_name: "Chi-square goodness-of-fit test"
     plain_name: "Compare one categorical variable with expected proportions"
@@ -1615,7 +1638,8 @@ guided:
         - {when: {outcome: yesno}, endpoint: E27}
         - {when: {outcome: count, times: once}, endpoint: E28}
         - {when: {outcome: count}, endpoint: E-unsure}
-        - {when: {outcome: ordinal}, endpoint: E29}
+        - {when: {outcome: ordinal, x: cond2, times: once}, endpoint: E29}
+        - {when: {outcome: ordinal}, endpoint: E-unsure}
         - when: {x: cond2, covariate: baseline}
           ask:
             doc_id: PP2

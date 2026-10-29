@@ -314,7 +314,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "power_interval",
     "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {
@@ -368,7 +368,7 @@ test_that("the note on other defensible analyses is off until the maintainer tur
     expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
     expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
   }
-  expect_no_match(as.character(card_ui(t2, "E29")), "Other defensible analyses exist", fixed = TRUE)
+  expect_no_match(as.character(card_ui(t2, "E43")), "Other defensible analyses exist", fixed = TRUE)
 })
 
 test_that("the safety-net card says what to write down for a statistician, using the screening answers", {

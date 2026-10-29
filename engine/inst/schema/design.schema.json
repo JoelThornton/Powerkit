@@ -35,7 +35,8 @@
         "generic_test",
         "equivalence_test",
         "cluster_trial",
-        "sem"
+        "sem",
+        "ordinal_regression"
       ]
     },
     "template": {
@@ -144,6 +145,9 @@
           }
         }
       }
+    },
+    {
+      "$ref": "#/definitions/design_ordinal_regression"
     }
   ],
   "definitions": {
@@ -3148,31 +3152,9 @@
         "properties": {
           "template": {
             "enum": [
-              "single_predictor"
+              "single_predictor",
+              "factorial"
             ]
-          },
-          "variables": {
-            "required": [
-              "X",
-              "Y"
-            ],
-            "additionalProperties": false,
-            "properties": {
-              "X": {
-                "$ref": "#/definitions/variable_continuous_or_binary"
-              },
-              "Y": {
-                "$ref": "#/definitions/variable_binary"
-              }
-            }
-          },
-          "target_test": {
-            "properties": {
-              "path": false,
-              "method": {
-                "const": "wald_z"
-              }
-            }
           }
         },
         "allOf": [
@@ -3188,7 +3170,53 @@
               }
             },
             "then": {
-              "$ref": "#/definitions/template_single_predictor"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/template_single_predictor"
+                },
+                {
+                  "properties": {
+                    "variables": {
+                      "required": [
+                        "X",
+                        "Y"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "X": {
+                          "$ref": "#/definitions/variable_continuous_or_binary"
+                        },
+                        "Y": {
+                          "$ref": "#/definitions/variable_binary"
+                        }
+                      }
+                    },
+                    "target_test": {
+                      "properties": {
+                        "path": false,
+                        "method": {
+                          "const": "wald_z"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "factorial"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_logistic_factorial"
             }
           }
         ]
@@ -6355,6 +6383,193 @@
             }
           }
         ]
+      }
+    },
+    "design_ordinal_regression": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "ordinal_regression"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "ordinal_two_groups"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "ordinal_two_groups"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_ordinal_two_groups"
+            }
+          }
+        ]
+      }
+    },
+    "template_ordinal_two_groups": {
+      "description": "Two groups compared on an outcome in ordered categories, under proportional odds (Whitehead's method, via powertools::propodds()).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "description": "The outcome: categorical, with its categories listed in order, lowest first.",
+              "$ref": "#/definitions/variable_categorical"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "probabilities",
+            "odds_ratio"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "probabilities": {
+              "description": "The share of group 1 in each category of Y, in the order of Y's levels; they must sum to 1.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/definitions/proportion"
+              }
+            },
+            "odds_ratio": {
+              "description": "Odds of a higher category in group 2 relative to group 1, the same at every cut-point (proportional odds). 1 is no effect.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "odds_ratio"
+                },
+                "method": {
+                  "const": "proportional_odds"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_logistic_factorial": {
+      "description": "A yes/no outcome Y in a two-factor design with different people in every cell: logistic regression with both factors and their interaction (effect coding), the Wald chi-square test of one effect's coefficients on the log-odds scale, simulated with Spower's p_glm().",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "B",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "probabilities"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "probabilities": {
+              "description": "Proportion with Y = yes (Y's second level) in each cell: one row per level of A, one value per level of B, in the order of their levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "$ref": "#/definitions/proportion"
+                }
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "enum": [
+                    "main_effect_A",
+                    "main_effect_B",
+                    "interaction"
+                  ]
+                },
+                "method": {
+                  "const": "wald_chi_square"
+                }
+              }
+            }
+          ]
+        }
       }
     }
   }

@@ -386,6 +386,7 @@ cluster_summary <- function(spec, n) {
 # The R script for a clustered design: the same powertools call as
 # powerkit's, with the values written out.
 powertools_script <- function(spec, result) {
+  if (identical(spec$design, "ordinal_regression")) return(propodds_script(spec, result))
   if (is_group_treatment(spec)) return(powertools_script_group_treatment(spec, result))
   if (is_binary_cluster(spec)) return(powertools_script_binary(spec, result))
   pop <- spec$population
@@ -596,6 +597,106 @@ powertools_script_group_treatment <- function(spec, result) {
     power_fun,
     "",
     goal_lines,
+    comparison_section()
+  )
+}
+
+# Ordinal outcome, two groups (ordinal_regression/ordinal_two_groups):
+# powertools::propodds(), the proportional-odds comparison of two groups by
+# Whitehead's method (its help, Details), two-sided. powertools wants
+# group 1's shares ordered from best to worst and an odds ratio above 1;
+# power depends on the odds ratio only through |log(OR)|, so an odds ratio
+# below 1 is passed as its reciprocal, and the shares are passed as given
+# (the order only fixes which direction "higher" means, and power is the
+# same either way). Group 1's size is n1, with n.ratio = n2 / n1.
+propodds_backend <- function(spec) {
+  inputs <- propodds_inputs(spec)
+  step <- valid_n_step(spec)
+  power_at <- function(n) propodds_power(inputs, n)
+  list(
+    name = "powertools",
+    packages = c("powertools", "Hmisc"),
+    methods = "exact",
+    default_method = "exact",
+    functions = c(exact = "powertools::propodds"),
+    n_step = step,
+    exact_min_n = step * ceiling(minimum_n(spec) / step),
+    exact_power = power_at,
+    bracket_power = power_at,
+    simulate = NULL,
+    sensitivity = NULL,
+    check_run = function() propodds_check_run(spec, inputs)
+  )
+}
+
+propodds_inputs <- function(spec) {
+  pop <- spec$population
+  or <- pop$odds_ratio
+  list(
+    pC = as.numeric(unlist(pop$probabilities)),
+    OR = if (or < 1) 1 / or else or,
+    ratio = spec$options$allocation_ratio %||% 1,
+    alpha = spec$target_test$alpha
+  )
+}
+
+propodds_power <- function(inputs, n) {
+  n1 <- round(n / (1 + inputs$ratio))
+  call_backend("powertools", quietly(powertools::propodds(
+    pC = inputs$pC, OR = inputs$OR, n1 = n1, n.ratio = (n - n1) / n1, alpha = inputs$alpha
+  )))
+}
+
+# Check run: there is no simulated data, so the check confirms the odds
+# ratio powertools works with, recovered from its own verbose output: the
+# cumulative odds of group 2's shares (pT, from Hmisc::pomodm()) against
+# group 1's, at every cut-point.
+propodds_check_run <- function(spec, inputs) {
+  out <- call_backend("powertools", quietly(powertools::propodds(
+    pC = inputs$pC, OR = inputs$OR, n1 = 100, alpha = inputs$alpha, v = TRUE
+  )))
+  cum <- function(p) cumsum(p)[-length(p)]
+  odds <- function(q) q / (1 - q)
+  # powertools' group 2 is shifted towards the first categories (its "best").
+  recovered <- odds(cum(out$pT)) / odds(cum(inputs$pC))
+  data.frame(
+    parameter = c(
+      "shares of group 1 (sum)",
+      sprintf("odds ratio at cut-point %d (powertools' group 2)", seq_along(recovered))
+    ),
+    specified = c(1, rep(inputs$OR, length(recovered))),
+    recovered = c(sum(out$pC), recovered),
+    # pT is rounded to 3 decimals in powertools' output.
+    ok = c(abs(sum(out$pC) - 1) < 1e-9, abs(log(recovered) - log(inputs$OR)) < 0.05)
+  )
+}
+
+# The R script for an ordinal outcome in two groups: powertools::propodds().
+propodds_script <- function(spec, result) {
+  inputs <- propodds_inputs(spec)
+  levels <- comment_text(unlist(spec$variables$Y$levels))
+  c(
+    script_header(spec, result, "powertools", "powertools::propodds"),
+    "library(powertools)",
+    "",
+    "# Inputs ----",
+    sprintf("pC <- %s # group 1's share in each category: %s", r_code(inputs$pC), paste(levels, collapse = ", ")),
+    sprintf(
+      "OR <- %s # the odds ratio between the groups%s",
+      r_code(inputs$OR),
+      if (spec$population$odds_ratio < 1) sprintf(" (you gave %s; power is the same for an odds ratio and its reciprocal, and powertools needs one above 1)", format_number(spec$population$odds_ratio)) else ""
+    ),
+    sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(inputs$ratio)),
+    goal_inputs(spec, result),
+    "",
+    "# Power of the proportional-odds comparison (Whitehead's method, two-sided)",
+    "# at a total sample size.",
+    "power_at <- function(n_total) {",
+    "  n1 <- round(n_total / (1 + ratio))",
+    "  propodds(pC = pC, OR = OR, n1 = n1, n.ratio = (n_total - n1) / n1, alpha = alpha)",
+    "}",
+    "",
+    pwr_goal_section(spec, result),
     comparison_section()
   )
 }

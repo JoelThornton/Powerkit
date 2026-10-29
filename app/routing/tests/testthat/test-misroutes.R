@@ -39,7 +39,12 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
 })
 
 test_that("answers other than the simple ones leave at an honest end point", {
-  expect_all_routes(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29")
+  # Ordered categories go through the grouping questions: two groups of
+  # different people, measured once, reach the ordinal card; repeated
+  # ordinal measurements the safety net.
+  ordinal <- c("Ordered categories (e.g. a single rating item)", "As ordered categories", "Independent people")
+  expect_identical(follow_answers(tree, c(ordinal, "Once", "A difference between groups or conditions")), "E29")
+  expect_identical(follow_answers(tree, c(ordinal, "Twice", "A difference between groups or conditions")), "E-unsure")
   expect_all_routes("The time until something happens", "E43")
   # People within groups: the goal is asked before the cluster-randomised
   # trial (which calculates) is suggested.
@@ -53,9 +58,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E29", "E33", "E35", "E43", "E44", "E45", "E46")) {
+  for (id in c("E33", "E35", "E43", "E44", "E45", "E46")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
+  # Ordered categories in two groups calculate (powertools' propodds()).
+  expect_identical(tree$endpoints$E29$status, "runs_validation_in_progress")
   # People within groups: the cluster-randomised trial calculates (powertools).
   expect_identical(tree$endpoints$E34$status, "runs_validation_in_progress")
 })
@@ -267,7 +274,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Two-factor within ANOVA, 2 x 2" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: everyone got both"), "E20"),
     "Two-factor between ANOVA, 2 x 3" = list(c(once(score), diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "Both factors: different people"), "E21"),
     "Factorial ANOVA" = list(c(once(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: different people", "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
-    "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories"), "E29"),
+    "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories", "Independent people", "Once", diff), "E29"),
     "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E47"),
     "Correlation and simple linear regression" = list(c(once(score), rel, "A score or scale"), "E4"),
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),

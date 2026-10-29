@@ -17,6 +17,7 @@ analysed_groups <- function(spec, n) {
     two_proportions = ,
     two_correlations = ,
     two_variances = ,
+    ordinal_two_groups = ,
     tost_independent = {
       ratio <- spec$options$allocation_ratio %||% 1
       n1 <- round(n / (1 + ratio))
@@ -25,6 +26,7 @@ analysed_groups <- function(spec, n) {
     "2x2_between" = rep(n / 4, 4),
     "2x2_mixed" = rep(n / 2, 2),
     factorial_between = ,
+    factorial = ,
     factorial_ancova = {
       cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
       rep(n / cells, cells)

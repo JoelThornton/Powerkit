@@ -10,7 +10,7 @@
 # What a screening answer an automatic node routes on means, in words.
 map_branch_text <- list(
   outcome = list(question = "It depends on your outcome",
-    values = list(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count")),
+    values = list(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count", ordinal = "Ordered categories")),
   times = list(question = "It depends on how often each person is measured",
     values = list(once = "Once", twice = "Twice", many_conditions = "In three or more conditions")),
   goal = list(question = "It depends on your goal",
@@ -29,7 +29,7 @@ map_status <- list(
 
 # The filters down the side: each group's values and how they read.
 map_filters <- list(
-  outcome = c(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count", other = "Not fixed by the questions"),
+  outcome = c(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count", ordinal = "Ordered categories", other = "Not fixed by the questions"),
   times = c(once = "Once", twice = "Twice", many_conditions = "Three or more times", other = "Not fixed by the questions"),
   status = c(runs = "Calculates in powerkit", soon = "Coming", not = "Not in powerkit yet")
 )

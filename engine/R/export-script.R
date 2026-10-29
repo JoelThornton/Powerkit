@@ -262,6 +262,14 @@ design_description <- function(spec) {
       "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
     ),
+    "ordinal_regression/ordinal_two_groups" = sprintf(
+      "ordinal outcome: %s (%s, in order) compared between the groups of %s (%s), proportional odds",
+      label("Y"), levels("Y"), label("X"), levels("X")
+    ),
+    "logistic_regression/factorial" = sprintf(
+      "logistic regression of %s (%s) on %s (%s) by %s (%s), different people in every cell; effect tested: %s",
+      label("Y"), levels("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
     "logistic_regression/single_predictor" = sprintf(
       "logistic regression of %s (%s) on %s%s: Wald z test of %s",
       label("Y"), levels("Y"), label("X"),
@@ -657,6 +665,7 @@ add_recruitment_section <- function(lines, spec, result) {
     independent_t = ,
     two_proportions = ,
     two_correlations = ,
+    ordinal_two_groups = ,
     tost_independent = c(
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
@@ -674,6 +683,7 @@ add_recruitment_section <- function(lines, spec, result) {
     ),
     "2x2_between" = "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells",
     factorial_between = ,
+    factorial = ,
     factorial_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal cells",
       length(spec$variables$A$levels) * length(spec$variables$B$levels)
@@ -1088,6 +1098,18 @@ spower_script_inputs <- function(spec) {
       r_code(c(pop$var1, pop$var2)), comment_text(v$Y$label),
       comment_text(unlist(v$G$levels)[1]), comment_text(unlist(v$G$levels)[2])
     ),
+    factorial = c(
+      sprintf(
+        "# Proportion with %s = %s in each cell: rows are %s (%s), columns %s (%s).",
+        comment_text(v$Y$label), lv("Y", 2),
+        comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", "),
+        comment_text(v$B$label), paste(comment_text(unlist(v$B$levels)), collapse = ", ")
+      ),
+      sprintf(
+        "probabilities <- matrix(%s, nrow = %d, byrow = TRUE)",
+        r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
+      )
+    ),
     chi_square_independence = c(
       sprintf(
         "# Probability of each combination: rows are %s (%s), columns %s (%s).",
@@ -1119,6 +1141,12 @@ spower_group_size_lines <- function(spec) {
     return(c(
       "  # Spower's n is the size of one group; the two groups are equal.",
       "  n_group1 <- round(batch_n / 2)"
+    ))
+  }
+  if (spec$template == "factorial") {
+    return(c(
+      "  # p_glm() takes the design itself: the same number of people in every cell.",
+      "  X <- cells[rep(seq_len(nrow(cells)), each = batch_n / nrow(cells)), ]"
     ))
   }
   character()
@@ -1185,6 +1213,13 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
     two_variances = c(
       "n = n_group1, # size of each group",
       "vars = variances # two variances: p_var.test() then runs the F test (var.test)"
+    ),
+    factorial = c(
+      "formula = y ~ A * B, # both factors and their interaction",
+      "X = X, # the design (above)",
+      "betas = betas, # coefficients that give each cell's proportion (above)",
+      sprintf("test = test, # %s", logistic_factorial_effect_words(spec)),
+      "family = binomial() # logistic regression"
     ),
     chi_square_independence = c(
       "n = batch_n, # total sample size",
@@ -1260,6 +1295,19 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    factorial = c(
+      "# The cells, with sum-to-zero (effect) coding, so that each factor's",
+      "# coefficients are its main effect averaged over the other factor.",
+      "cells <- expand.grid(A = factor(seq_len(nrow(probabilities))), B = factor(seq_len(ncol(probabilities))))",
+      "contrasts(cells$A) <- contr.sum(nrow(probabilities))",
+      "contrasts(cells$B) <- contr.sum(ncol(probabilities))",
+      "# The logistic model's coefficients that give each cell's proportion exactly",
+      "# (all terms, solved on the log-odds scale).",
+      "model <- model.matrix(~ A * B, cells)",
+      "betas <- drop(solve(model, qlogis(probabilities[cbind(as.integer(cells$A), as.integer(cells$B))])))",
+      sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
+      sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
+    ),
     paired_variances = c(
       "# The Pitman-Morgan test: two paired variances are equal exactly when the",
       "# sum and the difference of the two measurements are uncorrelated, so",
@@ -1951,4 +1999,13 @@ cluster_test_words <- function(spec, score_words) {
   } else {
     score_words
   }
+}
+
+logistic_factorial_effect_words <- function(spec) {
+  switch(
+    spec$target_test$effect,
+    main_effect_A = sprintf("the main effect of %s", comment_text(spec$variables$A$label)),
+    main_effect_B = sprintf("the main effect of %s", comment_text(spec$variables$B$label)),
+    interaction = "the interaction"
+  )
 }

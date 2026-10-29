@@ -9,7 +9,10 @@ population_problems <- function(spec) {
     basic_test = check_basic_test,
     factorial_anova = check_factorial_anova,
     multiple_regression = check_multiple_regression,
-    logistic_regression = check_single_predictor_x,
+    logistic_regression = function(spec) {
+      if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
+    },
+    ordinal_regression = check_ordinal_two_groups,
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -203,7 +206,8 @@ check_score_shape_allowed <- function(spec) {
 # Tests powerkit computes with pwrss's formulas only (and clustered
 # designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
-  spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem") ||
+  (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
+    !identical(spec$template, "factorial")) ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -257,7 +261,7 @@ check_allocation_allowed <- function(spec) {
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance",
-                           "noninf_independent", "noninf_two_proportions")) {
+                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups")) {
     return(character())
   }
   paste0(
@@ -1523,8 +1527,16 @@ minimum_n <- function(spec) {
     multiple_regression = (spec$population$predictors %||% spec$population$predictors_total) + 2,
     # pwrss's own search for n starts at 2; at least the intercept and X's
     # coefficient, plus one.
-    logistic_regression = ,
+    # A logistic factorial design: ten in every cell, so that most simulated
+    # data sets have both answers in each cell.
+    logistic_regression = if (identical(spec$template, "factorial")) {
+      10 * length(spec$variables$A$levels) * length(spec$variables$B$levels)
+    } else {
+      3
+    },
     poisson_regression = 3,
+    # powertools::propodds() needs at least 2 in group 1; 2 in each group.
+    ordinal_regression = 4,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -1562,7 +1574,7 @@ group_split <- function(spec) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
-  if (spec$template %in% c("factorial_between", "factorial_ancova")) {
+  if (spec$template %in% c("factorial_between", "factorial_ancova", "factorial")) {
     cells <- length(spec$variables$A$levels) * length(spec$variables$B$levels)
     return(list(rule = sprintf("split into %d equal groups, one per cell", cells), valid = function(n) n %% cells == 0))
   }
@@ -1644,7 +1656,13 @@ target_effect_is_zero <- function(spec) {
     # 0 (the schema requires it), whatever the expected difference.
     equivalence_test = pop$bound %||% pop$margin,
     multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
-    logistic_regression = log(pop$odds_ratio),
+    logistic_regression = if (identical(spec$template, "factorial")) {
+      design <- logistic_factorial_design(spec)
+      max(abs(design$betas[design$tested]))
+    } else {
+      log(pop$odds_ratio)
+    },
+    ordinal_regression = log(pop$odds_ratio),
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice for model fit: the schema refuses it, as
@@ -1689,4 +1707,43 @@ modmed_mediator <- function(spec) {
   }
   nodes <- trimws(strsplit(path, "->", fixed = TRUE)[[1]])
   nodes[2]
+}
+
+# Ordinal outcome, two groups ------------------------------------------------
+
+# One share per category of Y, summing to 1 (powertools::propodds() needs
+# both).
+check_ordinal_two_groups <- function(spec) {
+  p <- as.numeric(unlist(spec$population$probabilities))
+  levels <- unlist(spec$variables$Y$levels)
+  problems <- character()
+  if (length(p) != length(levels)) {
+    problems <- c(problems, sprintf(
+      "'population > probabilities' has %d values, but %s has %d categories; give one share for each category, in the same order.",
+      length(p), var_label(spec, "Y"), length(levels)
+    ))
+  }
+  if (abs(sum(p) - 1) > 1e-6) {
+    problems <- c(problems, sprintf(
+      "The shares of group 1 in each category must add up to 1; they add up to %s.",
+      format_number(round(sum(p), 4))
+    ))
+  }
+  problems
+}
+
+# Logistic factorial ---------------------------------------------------------
+
+# One row of proportions per level of A, one value per level of B.
+check_logistic_factorial <- function(spec) {
+  rows <- spec$population$probabilities
+  a <- length(spec$variables$A$levels)
+  b <- length(spec$variables$B$levels)
+  if (length(rows) == a && all(lengths(rows) == b)) {
+    return(character())
+  }
+  sprintf(
+    "'population > probabilities' needs %d rows (one per level of %s), each with %d proportions (one per level of %s).",
+    a, var_label(spec, "A"), b, var_label(spec, "B")
+  )
 }

@@ -25,7 +25,9 @@ spower_backend <- function(spec, seed = NULL) {
     # p_var.test() calls, so its version belongs in the provenance.
     packages = c(
       "Spower", "SimDesign",
-      if (identical(spec$template, "one_variance")) "EnvStats"
+      if (identical(spec$template, "one_variance")) "EnvStats",
+      # p_glm() tests the coefficients with car::lht().
+      if (identical(spec$template, "factorial")) "car"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -138,7 +140,21 @@ spower_inputs <- function(spec) {
     two_variances = list(
       experiment = "p_var.test", generator = "gen_var.test",
       args = function(n) list(n = first_group(n), vars = c(pop$var1, pop$var2))
-    )
+    ),
+    # A yes/no outcome with two crossed factors: p_glm() draws Y from the
+    # logistic model with both factors and their interaction (effect
+    # coding), whose coefficients reproduce the cell proportions exactly,
+    # and tests the effect's coefficients jointly (car::lht(), the Wald
+    # chi-square test, as car::Anova(type = 3) would).
+    factorial = {
+      design <- logistic_factorial_design(spec)
+      list(
+        experiment = "p_glm", generator = "gen_glm",
+        args = function(n) {
+          list(formula = y ~ A * B, X = design$X(n), betas = design$betas, test = design$test, family = stats::binomial())
+        }
+      )
+    }
   )
   alternative <- spec$target_test$alternative %||% "two_sided"
   test$template <- template
@@ -146,6 +162,8 @@ spower_inputs <- function(spec) {
   test$alternative <- alternative
   test$description <- if (rank_test(spec)) {
     rank_test_description(test, template, alternative)
+  } else if (identical(template, "factorial")) {
+    "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
   } else if (identical(template, "paired_variances")) {
@@ -327,6 +345,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   if (!is.null(inputs$rank)) {
     return(rank_check_run(spec, args, seed))
   }
+  if (identical(spec$template, "factorial")) {
+    return(logistic_factorial_check_run(spec, args, seed))
+  }
   generator <- inputs$generate %||% getExportedValue("Spower", inputs$generator)
   data <- call_backend("Spower", with_seed(seed, do.call(generator, args)))
   pop <- spec$population
@@ -480,5 +501,63 @@ rank_check_run <- function(spec, args, seed) {
         (mean(g2) - mean(g1)) / pooled, sqrt(1 / length(g1) + 1 / length(g2))
       )
     }
+  )
+}
+
+# A two-factor design with a yes/no outcome: the cells (one row per
+# combination of A's and B's levels, A varying fastest, both factors with
+# sum-to-zero contrasts), the logistic model's coefficients that give each
+# cell's proportion exactly (the saturated model, solved on the log-odds
+# scale), the Wald test's hypotheses for the effect tested, and the design
+# for n participants, the same number in every cell.
+logistic_factorial_design <- function(spec) {
+  a <- length(spec$variables$A$levels)
+  b <- length(spec$variables$B$levels)
+  cells <- expand.grid(A = factor(seq_len(a)), B = factor(seq_len(b)))
+  stats::contrasts(cells$A) <- stats::contr.sum(a)
+  stats::contrasts(cells$B) <- stats::contr.sum(b)
+  p <- logistic_factorial_probabilities(spec)
+  model <- stats::model.matrix(~ A * B, cells)
+  betas <- drop(solve(model, stats::qlogis(p[cbind(as.integer(cells$A), as.integer(cells$B))])))
+  pattern <- switch(spec$target_test$effect, main_effect_A = "^A[0-9]+$", main_effect_B = "^B[0-9]+$", interaction = ":")
+  tested <- grep(pattern, names(betas), value = TRUE)
+  list(
+    cells = cells,
+    betas = betas,
+    tested = tested,
+    test = paste(tested, "= 0"),
+    X = function(n) {
+      X <- cells[rep(seq_len(nrow(cells)), each = n / nrow(cells)), , drop = FALSE]
+      rownames(X) <- NULL
+      X
+    }
+  )
+}
+
+# The cell proportions as a matrix: rows are A's levels, columns B's.
+logistic_factorial_probabilities <- function(spec) {
+  rows <- spec$population$probabilities
+  matrix(as.numeric(unlist(rows)), nrow = length(rows), byrow = TRUE)
+}
+
+# Check run: one large data set drawn and fitted by p_glm(); each cell's
+# proportion of 'yes' must match the spec within 5 standard errors.
+logistic_factorial_check_run <- function(spec, args, seed) {
+  fit <- call_backend("Spower", with_seed(seed, quietly(do.call(
+    Spower::p_glm, c(args, list(return_analysis = TRUE))
+  ))))
+  data <- fit$model
+  p <- logistic_factorial_probabilities(spec)
+  a_levels <- unlist(spec$variables$A$levels)
+  b_levels <- unlist(spec$variables$B$levels)
+  cells <- expand.grid(i = seq_len(nrow(p)), j = seq_len(ncol(p)))
+  recovered <- vapply(seq_len(nrow(cells)), function(k) {
+    mean(data$y[as.integer(data$A) == cells$i[k] & as.integer(data$B) == cells$j[k]])
+  }, numeric(1))
+  per_cell <- nrow(data) / nrow(cells)
+  specified <- p[cbind(cells$i, cells$j)]
+  check_run_rows(
+    sprintf("P(yes), %s %s, %s %s", spec$variables$A$label, a_levels[cells$i], spec$variables$B$label, b_levels[cells$j]),
+    specified, recovered, sqrt(specified * (1 - specified) / per_cell)
   )
 }

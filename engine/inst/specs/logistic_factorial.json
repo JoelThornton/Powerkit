@@ -1,0 +1,45 @@
+{
+  "spec_version": "0.1",
+  "design": "logistic_regression",
+  "template": "factorial",
+  "variables": {
+    "A": {
+      "type": "between_factor",
+      "label": "Message frame",
+      "levels": ["Gain", "Loss"]
+    },
+    "B": {
+      "type": "between_factor",
+      "label": "Messenger",
+      "levels": ["Doctor", "Friend", "Celebrity"]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Booked a flu jab",
+      "levels": ["No", "Yes"]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "probabilities": [[0.3, 0.4, 0.25], [0.4, 0.45, 0.3]]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning for the cell proportions.",
+    "adjustment": "none"
+  },
+  "target_test": {
+    "effect": "main_effect_A",
+    "method": "wald_chi_square",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 600
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261029
+  }
+}

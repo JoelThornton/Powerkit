@@ -338,19 +338,35 @@
   "example": "After using one of two versions of an app, participants will rate one statement, 'I would recommend this app', from 1 (strongly disagree) to 5 (strongly agree). We plan to analyse the ratings as ordered categories.",
   "choose": [
    "Ordered categories (e.g. a single rating item)",
-   "As ordered categories"
+   "As ordered categories",
+   "Independent people",
+   "Once",
+   "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
     "Ordered categories (e.g. a single rating item)",
-    "As ordered categories"
-   ]
+    "As ordered categories",
+    "Independent people",
+    "Once"
+   ],
+   "pick": "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
   },
   "guided": {
    "answers": [
     "Ordered categories (e.g. a single rating item)",
-    "As ordered categories"
-   ]
+    "As ordered categories",
+    "Independent people",
+    "Once"
+   ],
+   "vars": {
+    "x": "cond2",
+    "outcome": "ordinal",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
   },
   "reaches": {
    "choose": "E29",
@@ -1891,24 +1907,40 @@
   "example": "We will test whether age group and training condition predict a single confidence rating from 1 to 5, analysed as ordered categories. Each person rates once.",
   "choose": [
    "Ordered categories (e.g. a single rating item)",
-   "As ordered categories"
+   "As ordered categories",
+   "Independent people",
+   "Once",
+   "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
     "Ordered categories (e.g. a single rating item)",
-    "As ordered categories"
-   ]
+    "As ordered categories",
+    "Independent people",
+    "Once"
+   ],
+   "pick": "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
   },
   "guided": {
    "answers": [
     "Ordered categories (e.g. a single rating item)",
-    "As ordered categories"
-   ]
+    "As ordered categories",
+    "Independent people",
+    "Once"
+   ],
+   "vars": {
+    "x": "cond3",
+    "outcome": "ordinal",
+    "mediators": "none",
+    "moderator": "none",
+    "covariate": "none"
+   },
+   "analysis": "compare"
   },
   "reaches": {
    "choose": "E29",
    "known": "E29",
-   "guided": "E29"
+   "guided": "E-unsure"
   }
  },
  {

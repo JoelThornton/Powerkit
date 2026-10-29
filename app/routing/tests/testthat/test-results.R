@@ -25,6 +25,8 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E50") return(spec)
   # A cluster-randomised trial's size is a whole number of groups.
   if (ep == "E34" && !is.null(goal$n)) goal$n <- 80L
+  # A factorial logistic regression needs ten people in every cell.
+  if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
   spec$goal <- goal
   if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
   spec
@@ -47,7 +49,7 @@ script_reproduces <- function(text) {
 wired <- unlist(forms$calculates)
 
 test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31"))
+  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47"))
   for (ep in c(paste0("E", 10:14), "E40")) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)

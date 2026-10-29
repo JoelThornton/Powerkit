@@ -1,0 +1,40 @@
+{
+  "spec_version": "0.1",
+  "design": "ordinal_regression",
+  "template": "ordinal_two_groups",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": ["Usual care", "Intervention"]
+    },
+    "Y": {
+      "type": "categorical",
+      "label": "Symptom severity",
+      "levels": ["None", "Mild", "Moderate", "Severe"]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "probabilities": [0.1, 0.3, 0.4, 0.2],
+    "odds_ratio": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning for the odds ratio.",
+    "adjustment": "none"
+  },
+  "target_test": {
+    "effect": "odds_ratio",
+    "method": "proportional_odds",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "attrition": 0.1,
+    "seed": 20261029
+  }
+}
