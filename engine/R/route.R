@@ -94,6 +94,8 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
+    "ordinal_regression/ordinal_two_groups" = propodds_backend(spec),
+    "logistic_regression/factorial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = interactionpower_backend(spec, seed),
     "regression_interaction/three_way" = interactionpower_3way_backend(spec),
     "mediation/process_4" = ,

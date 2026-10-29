@@ -1,5 +1,27 @@
 # powerkit 0.23.0
 
+* Factorial logistic regression: template `factorial` for design
+  `logistic_regression` (A and B between-participants factors, a yes/no
+  Y, and `population$probabilities`, the proportion of 'yes' in each
+  cell, one row per level of A; `target_test$method` `"wald_chi_square"`
+  and `effect` one main effect or the interaction). Simulated with
+  Spower's `p_glm(family = binomial())`: the logistic model with both
+  factors and their interaction in effect (sum-to-zero) coding, its
+  coefficients solved so that every cell's proportion is reproduced
+  exactly, and the Wald test of the effect's coefficients through
+  `car::lht()`. Equal cells. The check run recovers every cell's
+  proportion; exported scripts call Spower alone. In the app, the
+  factorial logistic regression card now calculates.
+* Ordinal outcomes in two groups: design `ordinal_regression`, template
+  `ordinal_two_groups` (X, the two groups; Y, categorical with its levels
+  in order; `population$probabilities`, group 1's share in each
+  category, and `population$odds_ratio`, group 2 against group 1 under
+  proportional odds). Power is powertools' `propodds()` (Whitehead's
+  method, two-sided), which matches Hmisc's `popower()`; an odds ratio
+  below 1 is passed as its reciprocal, which gives the same power. Groups
+  may differ in size (`options$allocation_ratio`). Shares that don't
+  match the categories or don't add up to 1 are refused in plain
+  English. In the app, the ordinal outcome card now calculates.
 * Moderated mediation with parallel mediators: templates `process_7` and
   `process_14` take mediators M1, M2, ... as well as a single M, with
   `population$residual_correlations` between them and

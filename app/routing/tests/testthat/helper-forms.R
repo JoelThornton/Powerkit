@@ -147,3 +147,13 @@ form_examples$E40 <- c(list(n_mediators = "2", X_label = "Workload", W_label = "
                             p_X_M1 = "0.3", p_W_M1 = "-0.1", p_XW_M1 = "-0.15", p_M1_Y = "0.3",
                             p_X_M2 = "0.2", p_W_M2 = "-0.1", p_XW_M2 = "-0.1", p_M2_Y = "0.2", p_X_Y = "0.05",
                             rc_M1_M2 = "0.3", target_path = "X->M1->Y"), closing_ok)
+
+# E29: an ordinal outcome in two groups.
+form_examples$E29 <- c(list(X_label = "Condition", X_level1 = "Usual care", X_level2 = "Intervention",
+                            Y_label = "Symptom severity", Y_levels = "None, Mild, Moderate, Severe",
+                            probabilities = "0.1, 0.3, 0.4, 0.2", odds_ratio = "0.5", allocation_ratio = "1"), closing_ok)
+
+# E47: a yes/no outcome with two crossed factors.
+form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", B_label = "Messenger", B_levels = "Doctor, Friend, Celebrity",
+                            Y_label = "Booked a flu jab", probabilities = "0.3, 0.4, 0.25\n0.4, 0.45, 0.3",
+                            effect = "main_effect_A"), closing_ok)

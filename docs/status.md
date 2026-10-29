@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 9). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 7). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -90,7 +90,7 @@ fully validated. Validation runs are recorded in
   first two designs. Validation in progress (published examples to
   choose and transcribe); three questions for powertools in
   `upstream-questions.md`. Next: simulated multilevel models wait for a
-  package decision (`next.md`, item 7).
+  package decision (`next.md`, item 5).
 - **Structural equation models (27 to 29 October 2026, 0.13.0 and
   0.21.0):** on the latent variables card (E37), by formula with
   semPower: model fit (the chi-square test of exact fit by RMSEA, for a
@@ -117,7 +117,7 @@ fully validated. Validation runs are recorded in
   univariate F when the effect involves a within factor with three or
   more levels. Validation in progress (published examples to choose and
   transcribe). Next: sphericity corrections and unequal SDs or
-  correlations (`next.md`, item 11); four or more factors go to the safety
+  correlations (`next.md`, item 9); four or more factors go to the safety
   net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
   card from 0.21.0, simulated with Spower.
 - **Rank correlations and the Pitman-Morgan test (29 October 2026,
@@ -134,7 +134,13 @@ fully validated. Validation runs are recorded in
   the index through a chosen mediator) runs on power4mome, with a preview
   and an R script. PROCESS model 8 is blocked by an upstream question to
   manymome, and models 58 and 59 need a decision on what to power
-  (`next.md`, item 1).
+  (`next.md`, item 2).
+- **Ordinal outcomes and factorial logistic regression (29 October 2026,
+  0.23.0):** two groups compared on ordered categories (E29), by
+  powertools' `propodds()`, which matches Hmisc's `popower()`; and two
+  crossed factors with a yes/no outcome (E47), simulated with Spower's
+  `p_glm()`. Validation in progress. Unequal cells in a 2 x 2 ANOVA (E22)
+  need a decision (`next.md`, item 3).
 - **Simulated data sets (29 October 2026, 0.22.0):** a CSV of one
   sample of the planned size, drawn from the population entered by the
   backend's own generator, downloadable from the results screen and
@@ -142,7 +148,7 @@ fully validated. Validation runs are recorded in
   For writing analysis code before the data arrive; marked as simulated
   in its first column and its file name. The basic tests (not the rank
   tests), the Superpower ANOVA designs, Welch's ANOVA, regression
-  interactions and mediation; the rest are `next.md`, item 5.
+  interactions and mediation; the rest are `next.md`, item 1.
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
@@ -152,7 +158,7 @@ fully validated. Validation runs are recorded in
   heavy-tailed). Known difference 5: G\*Power adjusts the t-test by an
   efficiency factor instead; its values are still to transcribe
   (`test-validation-rank-tests.R`). Friedman's test still carries the
-  "only approximates" note (`next.md`, item 14).
+  "only approximates" note (`next.md`, item 12).
 - **Bayes factor t-tests (28 October 2026, 0.20.0):** the one-sample,
   paired and two-group t-test cards offer a Bayes factor t-test as a test
   version, by bfpwr's closed form (Pawel & Held, 2025): the chance the
@@ -192,7 +198,7 @@ fully validated. Validation runs are recorded in
   simulated studies); the full run and the sample size search (0.11.0)
   run on the user's computer from an R script
   (`export_whole_study_script()`). Waiting for a
-  statistician's check (`next.md`, item 6); the method note for it is
+  statistician's check (`next.md`, item 4); the method note for it is
   `docs/whole-study-method.md`. Since 0.10.1 it is the plan's first
   step when it covers the plan, with the separate calculations folded
   below. Next: a quick run in the app, an R script for the full run, and
@@ -266,7 +272,7 @@ fully validated. Validation runs are recorded in
   combined sample size (the largest N among the main analyses, named,
   from the calculations made from the plan) and asks for shared values
   once: an input two analyses both ask for fills the second's input
-  screen. Whole-study simulation is queued ([`next.md`](next.md), item 6)
+  screen. Whole-study simulation is queued ([`next.md`](next.md), item 4)
   and needs a statistician's check.
 - **Effect in the measure's own units (27 October 2026, 0.8.0):** the
   three t-tests take the means and SD instead of Cohen's d (or d_z); the
@@ -332,10 +338,10 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-**The ordered queue is [`next.md`](next.md)** — 26 items, Ready ones
+**The ordered queue is [`next.md`](next.md)** — 24 items, Ready ones
 first. Since 29 October 2026 every card the app marks "not in powerkit"
 has an item, and the queue was checked against a list of the tests
-psychologists most often report: the gaps it found are items 21 to 26. What follows is the direction those items serve.
+psychologists most often report: the gaps it found are items 19 to 24. What follows is the direction those items serve.
 
 
 In priority order (agreed direction, 18 October 2026: a working web app

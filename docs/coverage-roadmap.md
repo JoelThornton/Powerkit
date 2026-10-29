@@ -231,8 +231,8 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B25 | Kruskal–Wallis | ML; UCLA | E18 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN | **Engine: Spower `p_kruskal.test(n, k, means, gen_fun)`**, normal, skewed or heavy-tailed scores | Choose a published example | — |
 | B26 | Friedman | ML; UCLA | none: reaches E54 | Unknown (no Friedman power function in the foundation tools or the 47 other packages opened; check further) | — | unknown | Search | [C10][] |
 | B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found. **Candidate, not checked:** DescTools' `CochranQTest()` is the test, not its power, so it would support a custom simulation only, and a published power method would still be needed (coverage.md) | Check the candidate against its own help files | [C6][] |
-| B28 | Factorial logistic regression | ML; UCLA | E47 | Planned (phase 6: GLMs) | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
-| B29 | Ordinal regression | ML; UCLA | E29 | Planned (phase 6: GLMs include ordinal outcomes) | Could: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
+| B28 | Factorial logistic regression | ML; UCLA | E47 | Wired (29 October 2026: two between-participants factors, equal cells, Spower's `p_glm(family = binomial())`, the Wald test of one effect with effect coding; matches Spower called directly and holds alpha; published value to transcribe) | Now: AP, PN | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
+| B29 | Ordinal regression | ML; UCLA | E29 | Wired (29 October 2026: two groups, powertools' `propodds()`; matches Hmisc's `popower()`; published value to transcribe. More groups or a measured predictor: not yet) | Now: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
 | B30 | Negative binomial and zero-inflated counts | ML | E28 | Unknown (check whether Spower `p_glm()` accepts a negative-binomial family; zero-inflated: no candidate found) | — | MKpower `power.nb.test()` (negative binomial; not a foundation tool) | Check | — |
 | B31 | Partial correlation | ML | none: reaches E4 or E24 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` (one coefficient with covariates); pwr `pwr.f2.test(u = 1)`. That this is the same test as a partial correlation is inferred | — | [D7][] |
 | B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders) | [B7][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 24 | 10 | 0 | 34 |
+| Wired (validation not finished) | 24 | 12 | 0 | 36 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 18 | 2 | 21 |
+| Planned | 1 | 16 | 2 | 19 |
 | Foundation tool can do it, not planned | 6 | 8 | 2 | 16 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 1 | 2 |
@@ -533,7 +533,7 @@ until it goes through
   one curve against a benchmark.
 - **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F: in the app as E18's test version since 29 October 2026 (Spower, by simulation).
 - **From a review of the tests psychologists most often report (29
-  October 2026; `next.md` items 21 to 26):** the Brunner-Munzel test,
+  October 2026; `next.md` items 19 to 24):** the Brunner-Munzel test,
   the aligned rank transform for factorial designs, Quade's
   non-parametric ANCOVA, PERMANOVA; pairwise follow-ups after an ANOVA
   (Tukey's HSD, Games-Howell, Dunnett, simple effects; see C1); robust

@@ -105,7 +105,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -1309,6 +1309,55 @@ forms:
         fields:
           - {id: probabilities, writeup_label: "expected proportions", label: "Expected proportions: one for each category, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
           - {id: null_probabilities, writeup_label: "proportions under the null hypothesis", label: "Fixed proportions to compare with (the null hypothesis), in the same order (optional; equal proportions if left empty)", type: numbers, per_levels: Y_levels, path: population.null_probabilities, optional: true}
+
+  E29:
+    methods_name: "a proportional-odds comparison of two groups on an ordinal outcome"
+    tool: powertools
+    directional: false
+    base: {spec_version: "0.1", design: ordinal_regression, template: ordinal_two_groups,
+           variables: {X: {type: binary}, "Y": {type: categorical}}, population: {metric: proportion},
+           target_test: {effect: odds_ratio, method: proportional_odds}}
+    groups:
+      - input: "Names of the groups, the outcome and its categories in order"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
+          - {id: Y_label, label: "Outcome (for example, symptom severity)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_levels, label: "Its categories in order, lowest first, separated by commas", type: levels, path: variables.Y.levels, required: true}
+      - input: "The share of group 1 in each category, and the odds ratio"
+        fields:
+          - {id: probabilities, writeup_label: "shares of group 1 in each category", label: "Share of group 1 in each category: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
+          - {id: odds_ratio, label: "Odds ratio: how many times higher the odds of a higher category are in group 2 than in group 1", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
+             help: "Below 1 if group 2 tends to be in lower categories. Power is the same for an odds ratio and its reciprocal (2 and 0.5)."}
+      - input: "The size of group 2 relative to group 1 (1 = equal)"
+        fields:
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "equal groups, as in powertools' propodds(n.ratio = 1) (powertools 1.0.0)"}
+
+  E47:
+    methods_name: "a factorial logistic regression (Wald test of one effect)"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: logistic_regression, template: factorial,
+           variables: {A: {type: between_factor}, B: {type: between_factor}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
+           target_test: {method: wald_chi_square}}
+    groups:
+      - input: "Names of the two factors, their levels and the yes/no outcome"
+        fields:
+          - {id: A_label, label: "First factor (for example, message frame)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The first factor's levels, separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: B_label, label: "Second factor (for example, messenger)", type: text, path: variables.B.label, required: true}
+          - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true}
+          - {id: Y_label, label: "Yes/no outcome (for example, booked a flu jab)", type: text, path: variables.Y.label, required: true}
+      - input: "The expected proportion of 'yes' in each combination"
+        fields:
+          - {id: probabilities, writeup_label: "proportions of 'yes' in each cell", label: "Proportions of 'yes' (0 to 1): one line per level of the first factor, with one number per level of the second, separated by commas", type: table, path: population.probabilities, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
+      - input: "Which effect"
+        fields:
+          - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
 
   E49:
     methods_name: "a test of two independent correlations (Fisher's z)"
