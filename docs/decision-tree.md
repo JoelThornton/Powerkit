@@ -466,9 +466,9 @@ flowchart TD
   MM4 -->|M to Y| E14["E14 Second-stage<br/>(PROCESS model 14)"]
   MM4 -->|Both links, or also<br/>the direct path| E38["E38 PROCESS models<br/>8, 58, 59"]
   class Q2,Q3,MM1,MM3,MM4 q
-  class E13,E14 avail
+  class E13,E14,E40 avail
   class E17 spec
-  class E32,E38,E40,E41 later
+  class E32,E38,E41 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -626,6 +626,7 @@ the two in step.
 | E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E13 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E14 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E40 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E15 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -709,7 +710,7 @@ taken from coverage.md, where they are proposals.
 | E37 | CFA, SEM model fit, measurement invariance, factor correlations and latent paths | `sem / model_fit, invariance, factor_correlation, latent_regression` | Model fit: `semPower::semPower.postHoc()` with `effect.measure = "RMSEA"`, the chi-square test of exact fit (noncentrality (N − 1) × RMSEA² × df), with `semPower::semPower.getDf()` counting a CFA's df through lavaan. Measurement invariance of one factor across two groups (metric against configural, scalar against metric): `semPower::semPower.powerMI()`; the correlation between two factors against 0: `semPower::semPower.powerCFA()`; one latent slope against 0: `semPower::semPower.powerRegression()`; each the chi-square difference test, power at each n through the model's F0 and `semPower.postHoc()`. Not yet: longitudinal invariance, invariance of several factors or groups, the test of close fit | Formula (no simulation) | Model fit: items and factors (a CFA) or the df, and the RMSEA. Invariance: items, loading, how many items differ and by how much, the group ratio. Factor correlation: items and loading per factor, the correlation. Latent regression: slopes, the predictors' correlation, items and loading | No: matches semPower called directly, power and required N, in `test-backend-sempower.R` (published values TODO in `test-validation-sem-model-fit.R` and `test-validation-sem-latent.R`) | v2 | Runs |
 | E38 | Moderated mediation with W on both links or the direct link (PROCESS models 8, 58, 59) | — | Candidate: power4mome as a general lavaan model (no template); WebPower `wp.modmed.m8()`, `m58()` | — | Standardised paths | No | v2 (build guide) | Not in spec |
 | E39 | Mediation with a yes/no or categorical mediator | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
-| E40 | Moderated mediation with two or more mediators | — | power4mome as a general lavaan model → R script export | — | Standardised paths | No | later | Not in spec |
+| E40 | Moderated mediation with two or more mediators | `moderated_mediation / process_7, process_14` (parallel mediators M1, M2) | `power4mome::power4test()` with `test_index_of_mome()` for the chosen mediator; residual correlations between the mediators are passed as correlations (power4mome reads them so in a model with a product term). Reached from MM3 and the guided route when there are several mediators | Simulation | Which link W changes; standardised paths for each mediator, including the interactions; the mediators' residual correlation; the mediator whose index is tested | No: recovers the population in its check run and its script reproduces the result in `test-backend-modmed-parallel.R` (not yet in the full validation run; published value TODO) | later | Runs |
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
 | E43 | Time-to-event (survival) outcome | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18) | — | — | No | later | Not in spec |

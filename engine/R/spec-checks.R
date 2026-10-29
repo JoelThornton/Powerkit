@@ -1050,18 +1050,31 @@ path_model <- function(spec) {
         list(Y = c("X", mediators))
       )
     ),
+    # Moderated mediation with one mediator (M) or parallel mediators (M1,
+    # M2, ...). Model 7: W moderates X -> each mediator. Model 14: W
+    # moderates each mediator -> Y (the product of mediator Mk and W is
+    # MkW, or MW for a single mediator).
     process_7 = list(
       exogenous = c("X", "W"),
-      mediators = "M",
+      mediators = mediators,
       products = list(XW = c("X", "W")),
-      equations = list(M = c("X", "W", "XW"), Y = c("X", "M"))
+      equations = c(
+        stats::setNames(rep(list(c("X", "W", "XW")), length(mediators)), mediators),
+        list(Y = c("X", mediators))
+      )
     ),
-    process_14 = list(
-      exogenous = c("X", "W"),
-      mediators = "M",
-      products = list(MW = c("M", "W")),
-      equations = list(M = "X", Y = c("X", "M", "W", "MW"))
-    )
+    process_14 = {
+      products <- stats::setNames(lapply(mediators, function(m) c(m, "W")), paste0(mediators, "W"))
+      list(
+        exogenous = c("X", "W"),
+        mediators = mediators,
+        products = products,
+        equations = c(
+          stats::setNames(rep(list("X"), length(mediators)), mediators),
+          list(Y = c("X", mediators, "W", names(products)))
+        )
+      )
+    }
   )
 }
 
@@ -1093,7 +1106,9 @@ check_mediator_names <- function(spec, model) {
   numbered <- paste0("M", seq_along(mediators))
   ok <- switch(
     spec$template,
-    process_4 = identical(mediators, "M") ||
+    process_4 = ,
+    process_7 = ,
+    process_14 = identical(mediators, "M") ||
       (length(mediators) >= 2 && setequal(mediators, numbered)),
     process_6 = length(mediators) >= 2 && setequal(mediators, numbered),
     TRUE
@@ -1101,7 +1116,7 @@ check_mediator_names <- function(spec, model) {
   if (ok) {
     return(character())
   }
-  advice <- if (spec$template == "process_4") {
+  advice <- if (spec$template != "process_6") {
     "Name a single mediator 'M', or several mediators M1, M2, M3, ... with no gaps"
   } else {
     "Name the mediators M1, M2, ... in causal order, with no gaps"
@@ -1139,13 +1154,23 @@ template_name <- function(template) {
 }
 
 check_correlation_names <- function(spec, model) {
-  field <- if (spec$design == "mediation") "residual_correlations" else "correlations"
+  if (spec$design == "moderated_mediation") {
+    return(c(
+      check_correlation_field(spec, model, "correlations", c("X", "W")),
+      check_correlation_field(spec, model, "residual_correlations", model$mediators)
+    ))
+  }
+  check_correlation_field(spec, model, "residual_correlations", model$mediators)
+}
+
+# One map of correlations ('A<->B': r) among `allowed_vars`. Residual
+# correlations are only for two or more (parallel) mediators.
+check_correlation_field <- function(spec, model, field, allowed_vars) {
   correlations <- spec$population[[field]]
   if (length(correlations) == 0) {
     return(character())
   }
-  allowed_vars <- if (spec$design == "mediation") model$mediators else c("X", "W")
-  if (spec$design == "mediation" && length(model$mediators) < 2) {
+  if (field == "residual_correlations" && length(model$mediators) < 2) {
     return(sprintf(
       "'population > %s' is only used when there are two or more mediators; remove it.",
       field
@@ -1193,6 +1218,12 @@ indirect_paths <- function(model) {
 check_target_path <- function(spec, model) {
   path <- spec$target_test$path
   if (is.null(path)) {
+    if (spec$design == "moderated_mediation" && length(model$mediators) > 1) {
+      return(sprintf(
+        "With several mediators, say which mediator's index of moderated mediation to test in 'target_test > path': one of %s.",
+        quote_list(indirect_paths(model))
+      ))
+    }
     return(character())
   }
   normalised <- paste(trimws(strsplit(path, "->", fixed = TRUE)[[1]]), collapse = "->")
@@ -1320,7 +1351,7 @@ check_implied_variances <- function(spec, model) {
 
 check_residual_correlation_matrix <- function(spec, model) {
   mediators <- model$mediators
-  if (spec$design != "mediation" || length(mediators) < 3 ||
+  if (length(mediators) < 3 ||
     length(spec$population$residual_correlations) == 0) {
     return(character())
   }
@@ -1634,8 +1665,8 @@ target_effect_is_zero <- function(spec) {
     },
     moderated_mediation = switch(
       spec$template,
-      process_7 = paths[["XW->M"]] * paths[["M->Y"]],
-      process_14 = paths[["X->M"]] * paths[["MW->Y"]]
+      process_7 = paths[[paste0("XW->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "->Y")]],
+      process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]]
     )
   )
   isTRUE(abs(value) < 1e-12)
@@ -1647,4 +1678,15 @@ three_factor_groups <- function(spec) {
   as.integer(prod(vapply(c("A", "B", "C"), function(v) {
     if (identical(spec$variables[[v]]$type, "within_factor")) 1L else length(spec$variables[[v]]$levels)
   }, integer(1))))
+}
+
+# The mediator whose index of moderated mediation is tested: the middle of
+# 'target_test > path' (X->Mk->Y) with several mediators, else M.
+modmed_mediator <- function(spec) {
+  path <- spec$target_test$path
+  if (is.null(path)) {
+    return("M")
+  }
+  nodes <- trimws(strsplit(path, "->", fixed = TRUE)[[1]])
+  nodes[2]
 }

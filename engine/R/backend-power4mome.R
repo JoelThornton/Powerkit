@@ -79,23 +79,30 @@ power4mome_inputs <- function(spec) {
   covariances <- character()
   pop_covariances <- character()
   lookup <- correlation_lookup(spec)
-  if (spec$design == "mediation" && !isTRUE(model$serial) && length(model$mediators) > 1) {
-    # The spec gives residual correlations; power4mome's value for
-    # 'M1 ~~ M2' between endogenous variables is their residual covariance
+  if (!isTRUE(model$serial) && length(model$mediators) > 1) {
+    # The spec gives residual correlations; without a product term,
+    # power4mome's value for 'M1 ~~ M2' between endogenous variables is
+    # their residual covariance
     # (with all observed variables standardised). So each correlation is
     # multiplied by the residual SDs, sqrt(1 - R-squared), from the same
     # implied model the validator uses.
     residual_var <- 1 - implied_r_squared(spec, model)$r_squared
     pairs <- utils::combn(model$mediators, 2, simplify = FALSE)
     covariances <- vapply(pairs, function(p) paste(p, collapse = " ~~ "), character(1))
+    # In a model with a product term (moderated mediation), power4mome
+    # standardises the population by Monte Carlo and its 'M1 ~~ M2' value
+    # is the residual correlation itself: checked by simulation with
+    # power4mome 0.2.1 (100,000 cases: 0.3 and 0.6 came back as 0.30 and
+    # 0.60, while the covariance 0.27 came back as 0.27, a correlation).
+    # The check run recovers the residual correlation either way.
     pop_covariances <- vapply(pairs, function(p) {
-      covariance <- lookup(p[1], p[2], residual = TRUE) *
-        sqrt(residual_var[[p[1]]] * residual_var[[p[2]]])
+      scale <- if (length(model$products) > 0) 1 else sqrt(residual_var[[p[1]]] * residual_var[[p[2]]])
+      covariance <- lookup(p[1], p[2], residual = TRUE) * scale
       sprintf("%s ~~ %s: %s", p[1], p[2], format_pop_value(covariance))
     }, character(1))
   }
   if (spec$design == "moderated_mediation") {
-    pop_covariances <- sprintf("X ~~ W: %s", format_pop_value(lookup("X", "W")))
+    pop_covariances <- c(sprintf("X ~~ W: %s", format_pop_value(lookup("X", "W"))), pop_covariances)
   }
 
   if (spec$design == "mediation") {
@@ -104,7 +111,7 @@ power4mome_inputs <- function(spec) {
     test_args <- list(x = "X", m = nodes[-c(1, length(nodes))], y = "Y")
   } else {
     test_name <- "test_index_of_mome"
-    test_args <- list(x = "X", m = "M", y = "Y", w = "W")
+    test_args <- list(x = "X", m = modmed_mediator(spec), y = "Y", w = "W")
   }
   monte_carlo <- spec$target_test$method == "monte_carlo_ci"
   test_args$mc_ci <- monte_carlo
@@ -242,16 +249,19 @@ power4mome_check_run <- function(spec, inputs, seed) {
     correlation_rows <- list(correlation_row("X<->W", lookup("X", "W"), stats::cor(data$X, data$W)))
   }
   model <- path_model(spec)
-  if (spec$design == "mediation" && !isTRUE(model$serial) && length(model$mediators) > 1) {
-    residuals <- lapply(model$mediators, function(m) stats::residuals(stats::lm(data[[m]] ~ data$X)))
+  if (!isTRUE(model$serial) && length(model$mediators) > 1) {
+    residuals <- lapply(model$mediators, function(m) {
+      terms <- vapply(inputs$equations[[m]], inputs$term, character(1))
+      stats::residuals(stats::lm(stats::reformulate(backtick(terms), response = backtick(m)), data = data))
+    })
     names(residuals) <- model$mediators
-    correlation_rows <- lapply(utils::combn(model$mediators, 2, simplify = FALSE), function(p) {
+    correlation_rows <- c(correlation_rows, lapply(utils::combn(model$mediators, 2, simplify = FALSE), function(p) {
       correlation_row(
         sprintf("residual %s<->%s", p[1], p[2]),
         lookup(p[1], p[2], residual = TRUE),
         stats::cor(residuals[[p[1]]], residuals[[p[2]]])
       )
-    })
+    }))
   }
   check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows))
   rownames(check) <- NULL

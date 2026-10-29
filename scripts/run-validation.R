@@ -107,6 +107,7 @@ validation_chunks <- function() {
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
     process_14 = "test-validation-modmed-process14.R",
+    modmed_parallel = "test-validation-modmed-parallel.R",
     mediation_crosscheck = "test-validation-mediation-crosscheck.R",
     mediation_crosscheck_parallel = "test-validation-mediation-crosscheck-parallel.R",
     mediation_crosscheck_serial = "test-validation-mediation-crosscheck-serial.R",
@@ -130,7 +131,7 @@ validation_chunks <- function() {
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
   c(basic = 0.3, variances = 2, rank = 2, bayes = 1, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60,
-    process_6 = 60, process_7 = 120, process_14 = 120,
+    process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3,
     contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3,

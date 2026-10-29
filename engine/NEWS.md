@@ -1,5 +1,19 @@
 # powerkit 0.23.0
 
+* Moderated mediation with parallel mediators: templates `process_7` and
+  `process_14` take mediators M1, M2, ... as well as a single M, with
+  `population$residual_correlations` between them and
+  `target_test$path` (`"X->Mk->Y"`) naming the mediator whose index of
+  moderated mediation is tested. In model 14 the product of Mk and W is
+  `MkW`. power4mome fits every mediator's equation and the residual
+  covariance; in a model with a product term power4mome reads that value
+  as the residual correlation (checked by simulation), so it is passed
+  as given. The check run recovers every path and the residual
+  correlation. In the app, the moderated mediation card for several
+  mediators calculates (a preview, then an R script), with the link W
+  changes chosen on its input screen; the guided route sends a moderator
+  of three or more groups to the "no end point" note rather than to that
+  card.
 * Three-way regression interactions: template `three_way` for design
   `regression_interaction` (variables X, W, Z and Y; the correlations of
   X, W, Z and the products XW, XZ and WZ with Y, the correlations among

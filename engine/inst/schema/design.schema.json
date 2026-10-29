@@ -2646,7 +2646,6 @@
             "required": [
               "X",
               "W",
-              "M",
               "Y"
             ],
             "additionalProperties": false,
@@ -2657,10 +2656,13 @@
               "W": {
                 "$ref": "#/definitions/variable_continuous_or_binary"
               },
-              "M": {
-                "$ref": "#/definitions/variable_continuous"
-              },
               "Y": {
+                "$ref": "#/definitions/variable_continuous"
+              }
+            },
+            "patternProperties": {
+              "^M[1-9]?$": {
+                "description": "mediators named M (one mediator) or M1, M2, ... (parallel mediators)",
                 "$ref": "#/definitions/variable_continuous"
               }
             }
@@ -2681,6 +2683,10 @@
               "correlations": {
                 "description": "Correlation between X and W, keyed 'X<->W'. Omitted means 0 (e.g. X randomised).",
                 "$ref": "#/definitions/correlation_map"
+              },
+              "residual_correlations": {
+                "description": "Parallel mediators only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
+                "$ref": "#/definitions/correlation_map"
               }
             }
           },
@@ -2691,7 +2697,10 @@
               },
               {
                 "properties": {
-                  "path": false,
+                  "path": {
+                    "description": "With several mediators: whose index of moderated mediation is tested, as 'X->Mk->Y'.",
+                    "type": "string"
+                  },
                   "effect": {
                     "const": "index_of_moderated_mediation"
                   },

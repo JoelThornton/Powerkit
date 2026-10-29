@@ -65,6 +65,7 @@ on:
           - process_6
           - process_7
           - process_14
+          - modmed_parallel
           - mediation_crosscheck
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial

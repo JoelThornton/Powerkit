@@ -219,7 +219,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B18 | PROCESS 7 (first stage) | ML; BG | E13 | Done (validated and wired: a preview, then an R script for the full run) | Now: AP, PN. Could: AP, PN, S | power4mome `power4test()` with `test_index_of_mome()`; template `mome_obs_a` | Wire | — |
 | B19 | PROCESS 14 (second stage) | ML; BG | E14 | Done (validated and wired: a preview, then an R script for the full run) | As B18 | As B18; template `mome_obs_b` | Wire | — |
 | B20 | PROCESS 8, 58, 59 | BG | E38 | Planned (v2 in the build guide, section 2; no phase named) | Could: AP, PN, S | power4mome `power4test(model = )` (no template). WebPower `wp.modmed.m8()`, `wp.modmed.m58()` (not foundation tools) | Name a phase | — |
-| B21 | Other PROCESS models | ML | E40 (two or more mediators); otherwise none | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test(model = )` (no template) | — | [E2][] |
+| B21 | Other PROCESS models | ML | E40 (two or more mediators); otherwise none | Partly working (29 October 2026: models 7 and 14 with two parallel mediators, the index through a chosen mediator, power4mome; models 8, 58 and 59 wait on an upstream question and a decision, E38) | Could: AP, PN, S | power4mome `power4test(model = )` (no template) | — | [E2][] |
 | B22 | Moderated mediation with a binary X or W | BG | E17 | Planned (phase 3b) | Could: AP, PN, S | power4mome `x_fun` with `rbinary_rs()` | Phase 3b | [E4][] |
 | B23 | Conditional indirect effects at chosen W | BG | none: reaches E13 or E14, which test the index | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `test_cond_indirect()`, `test_cond_indirect_effects()` | Needed for the Donnelly et al. (2023) benchmark | [B7][] |
 
@@ -430,9 +430,9 @@ and fails if a line here disagrees.
 | Wired (validation not finished) | 24 | 10 | 0 | 34 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 18 | 2 | 21 |
-| Foundation tool can do it, not planned | 6 | 9 | 2 | 17 |
+| Foundation tool can do it, not planned | 6 | 8 | 2 | 16 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
-| Partly working | 0 | 0 | 1 | 1 |
+| Partly working | 0 | 1 | 1 | 2 |
 | G\*Power covers it, powerkit doesn't | 7 | 0 | 0 | 7 |
 | Unknown | 1 | 19 | 2 | 22 |
 | Out of scope | 0 | 0 | 0 | 0 |
@@ -533,7 +533,7 @@ until it goes through
   one curve against a benchmark.
 - **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F: in the app as E18's test version since 29 October 2026 (Spower, by simulation).
 - **From a review of the tests psychologists most often report (29
-  October 2026; `next.md` items 22 to 27):** the Brunner-Munzel test,
+  October 2026; `next.md` items 21 to 26):** the Brunner-Munzel test,
   the aligned rank transform for factorial designs, Quade's
   non-parametric ANCOVA, PERMANOVA; pairwise follow-ups after an ANOVA
   (Tukey's HSD, Games-Howell, Dunnett, simple effects; see C1); robust
