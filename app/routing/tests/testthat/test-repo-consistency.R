@@ -109,6 +109,17 @@ test_that("the version in DESCRIPTION, CITATION.cff and the About page agree", {
   expect_match(as.character(about_ui(tree, forms)), paste("powerkit", version), fixed = TRUE)
 })
 
+test_that("_dependencies.R names every package the engine imports", {
+  # scripts/setup-cloud-session-apt.sh installs exactly this list, so a
+  # missing import leaves the engine uninstallable on that route.
+  description <- read.dcf(file.path(repo_dir, "engine", "DESCRIPTION"), fields = "Imports")
+  imports <- trimws(sub("\\(.*", "", strsplit(description[1, "Imports"], ",")[[1]]))
+  base <- rownames(installed.packages(priority = "base"))
+  declared <- sub("^library\\(([^)]+)\\).*", "\\1",
+                  grep("^library\\(", readLines(file.path(repo_dir, "_dependencies.R")), value = TRUE))
+  expect_equal(setdiff(setdiff(imports, base), declared), character(0))
+})
+
 test_that("every analysis the app calculates is listed on the About page", {
   html <- as.character(about_ui(tree, forms))
   calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints %||% list()))

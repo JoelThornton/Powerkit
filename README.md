@@ -11,13 +11,17 @@ terms, and powerkit routes it to a validated R package to work out the power,
 the sample size you need, or the smallest effect you could detect.
 
 powerkit does not reimplement the statistics. It builds on established,
-peer-reviewed R packages:
+peer-reviewed R packages, among them
 [pwr](https://cran.r-project.org/package=pwr),
 [pwrss](https://cran.r-project.org/package=pwrss),
 [Superpower](https://cran.r-project.org/package=Superpower),
 [Spower](https://cran.r-project.org/package=Spower),
-[power4mome](https://cran.r-project.org/package=power4mome) and
+[power4mome](https://cran.r-project.org/package=power4mome),
 [InteractionPoweR](https://cran.r-project.org/package=InteractionPoweR),
+[powertools](https://cran.r-project.org/package=powertools),
+[TOSTER](https://cran.r-project.org/package=TOSTER),
+[semPower](https://cran.r-project.org/package=semPower) and
+[bfpwr](https://cran.r-project.org/package=bfpwr),
 and is grateful to their authors. Every result records which package
 computed it. On top of those packages, powerkit adds:
 
@@ -54,36 +58,38 @@ An optional AI assistant may come last.
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
-> yet.** Every design below has passed its full validation run against
-> direct calls to its backend package and Type I error, but most
-> published-value checks are still to come, and the interface may change.
+> yet.** Most published-value checks are still to come, and the interface
+> may change.
 
-| Design | Status |
-| --- | --- |
-| 2 x 2 between-participants ANOVA | **Working** (via Superpower) |
-| 2 x 2 mixed ANOVA (one factor between, one within) | **Working** (via Superpower) |
-| Basic tests (t-tests, correlation, proportions, chi-square) | **Working** (by formula via pwr; two proportions via base R's `power.prop.test()` and pwrss, matching G*Power's z test; Spower simulation on request); validated against analytic results, direct Spower calls and Type I error; the two-proportions z test is to be revalidated; G*Power's published t-test examples pass, the correlation and two-proportions examples to come |
-| Regression interactions | **Working** (via InteractionPoweR); validated against analytic results, direct InteractionPoweR calls and Type I error, with and without measurement error; the InteractionPoweR tutorial's two published examples without measurement error pass, the one with it to come |
-| Simple, parallel and serial mediation (PROCESS 4, 6) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (parallel and serial: with two mediators; three or more not yet tested); simple mediation also cross-checked against two independent tools, pwrss and simsem, and parallel and serial mediation against simsem (joint test only); checks against published examples to come |
-| Moderated mediation (PROCESS 7, 14) | **Working** (via power4mome); validated against direct power4mome calls and Type I error (rerun on 17 October 2026 after a fix to how power4mome calls are seeded); no independent cross-check yet; checks against published examples to come |
-| Shiny app and design finder | **Prototype** (`app/routing/`): the four screens above; every design above calculates in the app; mediation designs give a quick preview, then a full run or an R script; a plan can be saved as a project file and reopened |
+The app lists every analysis it knows, about 60, from **runs in powerkit
+(validated)** and **runs, validation in progress** to **coming soon** and
+**not in powerkit yet** (those cards point to the tools that do the job).
+The ones that run, and the package each one uses:
+
+| Family | Analyses | Package |
+| --- | --- | --- |
+| t-tests | one sample, paired, two groups (Student's or Welch's), with the rank-based and Bayes factor versions | pwr, pwrss, Spower, bfpwr |
+| Correlations and proportions | Pearson's r; two independent or two dependent correlations; one or two proportions, Fisher's exact test, McNemar's test; chi-square tests of independence and goodness of fit | pwr, pwrss |
+| Variances | one variance against a value, two groups' variances | Spower (simulation) |
+| ANOVA | one-way (between or within), 2 x 2 and larger factorial designs (between, within or mixed), three factors, planned contrasts, ANCOVA | Superpower, pwrss |
+| Regression | multiple regression R², logistic and Poisson regression, interactions between two scores | pwrss, InteractionPoweR |
+| Mediation | simple, parallel and serial mediation; first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14) | power4mome (simulation) |
+| Clustered designs | cluster-randomised and multisite trials, score or yes/no outcome | powertools |
+| Equivalence | two groups, paired, one sample (TOST) | TOSTER |
+| Structural equation models | model fit (RMSEA) | semPower |
+| Generic tests | t, F, chi-square and z from a noncentrality parameter | pwrss |
 
 What "validated" means is defined at the top of the
-[validation log](docs/validation-log.md). Not available yet for these
-designs: binary X or W, measurement error in
-mediation designs, and (except for the basic tests and the 2 x 2 designs)
-the smallest detectable effect.
+[validation log](docs/validation-log.md); where each design stands, and
+what comes next, is in [`docs/status.md`](docs/status.md).
 
-powerkit can:
-
-- compute power at a given sample size;
-- find the sample size that reaches a target power;
-- for the basic tests and the 2 x 2 designs, find the smallest detectable
-  effect at a fixed sample size.
-
-Power is computed exactly by default for the basic tests (by formula) and
-the 2 x 2 designs (or by simulation on request), and by simulation for
-regression interactions and mediation.
+For each design except the generic tests, powerkit can find the sample
+size that reaches a target power, or the power at a given sample size. For the t-tests, Pearson's r,
+two proportions, the chi-square test of independence, the 2 x 2 ANOVAs,
+regression interactions and clustered designs it can also find the
+smallest effect you could detect at a given sample size. Power is computed
+by formula where one exists, and by simulation otherwise (mediation, the
+variance tests and the rank-based tests) or on request.
 
 ## Try the app (no R experience needed)
 
@@ -107,7 +113,7 @@ remotes::install_github("JoelThornton/Powerkit", subdir = "engine")
 ```
 
 This also installs its dependencies, including the backend packages
-pwr, pwrss, Superpower, Spower, InteractionPoweR and power4mome.
+listed above.
 
 ## Try it
 

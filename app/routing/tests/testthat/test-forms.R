@@ -99,7 +99,8 @@ test_that("the screen catches empty, non-numeric and out-of-range values, naming
   problems <- form_problems(fields_for("E4"), v)
   expect_true(any(grepl("“Correlation r” should be a number written with a decimal point", problems, fixed = TRUE)))
   expect_true(any(grepl("“Significance level (alpha)” must be at most 0.5.", problems, fixed = TRUE)))
-  expect_true(any(grepl("“First variable” is empty.", problems, fixed = TRUE)))
+  # Names may stay empty (they only label the result).
+  expect_false(any(grepl("“First variable” is empty.", problems, fixed = TRUE)))
   v <- values_for("E4"); v$r <- "1.5"
   expect_match(form_problems(fields_for("E4"), v), "“Correlation r” must be at most 1.", fixed = TRUE)
   # What the goal needs: power for a sample size, n for power.
@@ -143,6 +144,37 @@ test_that("a valid set of answers passes validate_spec() for every screen", {
   for (ep in form_ids) {
     v <- values_for(ep)
     fields <- fields_for(ep, as.integer(v$n_mediators %||% 2))
+    check <- check_spec(build_spec(forms, ep, fields, v), fields, validate)
+    expect_identical(check$status, "ok", label = paste(ep, paste(check$problems, collapse = "; ")))
+  }
+})
+
+test_that("names may stay empty: each gets a neutral default, distinct within its screen", {
+  for (ep in form_ids) {
+    v <- values_for(ep)
+    fields <- fields_for(ep, as.integer(v$n_mediators %||% 2))
+    named <- Filter(function(f) !is.null(f$name_default), fields)
+    for (f in named) v[[f$id]] <- ""
+    expect_length(form_problems(fields, v), 0)
+    spec <- build_spec(forms, ep, fields, v)
+    labels <- unlist(lapply(spec$variables, `[[`, "label"))
+    expect_false(anyDuplicated(labels) > 0, label = paste(ep, paste(labels, collapse = ", ")))
+    for (var in spec$variables) if (!is.null(var$levels)) expect_false(anyDuplicated(unlist(var$levels)) > 0, label = ep)
+    # The default shows in the empty box, and the label says optional.
+    for (f in named) expect_match(as.character(field_ui(f, NULL)), sprintf('placeholder="%s"', f$name_default), fixed = TRUE)
+  }
+  e2 <- Filter(function(f) !is.null(f$name_default), fields_for("E2"))
+  expect_identical(vapply(e2, `[[`, "", "name_default"), c("Group", "Group 1", "Group 2", "Outcome"))
+  # A list of level names sets how many levels there are, so it stays needed.
+  expect_true(any(vapply(fields_for("E6"), function(f) identical(f$type, "levels") && is.null(f$name_default), logical(1))))
+})
+
+test_that("with every name left empty, each screen's spec still passes validate_spec()", {
+  skip_without_engine()
+  for (ep in form_ids) {
+    v <- values_for(ep)
+    fields <- fields_for(ep, as.integer(v$n_mediators %||% 2))
+    for (f in Filter(function(f) !is.null(f$name_default), fields)) v[[f$id]] <- ""
     check <- check_spec(build_spec(forms, ep, fields, v), fields, validate)
     expect_identical(check$status, "ok", label = paste(ep, paste(check$problems, collapse = "; ")))
   }

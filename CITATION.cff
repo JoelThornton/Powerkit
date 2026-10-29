@@ -1,12 +1,12 @@
 cff-version: 1.2.0
 message: >-
   If you use powerkit, please cite it as below. Please also cite the package
-  that computed your power analysis (Spower, Superpower, InteractionPoweR or
-  power4mome) and its method paper: powerkit's citations export
+  that computed your power analysis (such as pwr, pwrss, Superpower, Spower,
+  InteractionPoweR or power4mome) and its method paper: powerkit's citations export
   (export_citations()) lists them for each result.
 type: software
 title: "powerkit: Unified Power Analysis for Psychology Designs"
-version: 0.20.0
+version: 0.20.1
 authors:
   - family-names: Thornton
     given-names: Joel
@@ -15,8 +15,9 @@ license: GPL-3.0-or-later
 abstract: >-
   powerkit reads a single design specification for common psychology
   designs, checks that it describes a possible population, and routes it to
-  established power analysis packages (Spower, Superpower, InteractionPoweR
-  and power4mome) to estimate power, required sample size and sensitivity.
+  established power analysis packages (among them pwr, pwrss, Superpower,
+  Spower, InteractionPoweR, power4mome, powertools, TOSTER, semPower and
+  bfpwr) to estimate power, required sample size and sensitivity.
 keywords:
   - power analysis
   - sample size

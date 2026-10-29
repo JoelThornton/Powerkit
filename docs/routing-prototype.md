@@ -4,18 +4,20 @@ A clickable prototype of how a psychologist gets from their study to the
 right power analysis, built from [`decision-tree.md`](decision-tree.md).
 
 **It shows which analysis a study needs**, what the user would enter,
-which backend would run it and whether powerkit runs it yet. For E1–E9 the
-input screen also calculates: it passes the checked spec to the engine's
-`run_spec()` and shows the result (phase 5). E9 runs in the background,
-with a progress bar and a Cancel button. The app never computes power
-itself. Every other end point is guidance only for now. Every screen
-carries the banner *"Prototype: calculations are available for E1–E9;
-other designs show guidance only for now."* It is not deployed
-anywhere.
+which backend would run it and whether powerkit runs it yet. For every
+design marked as running, the input screen also calculates: it passes the
+checked spec to the engine's `run_spec()` and shows the result. Long
+calculations run in the background, with a progress bar and a Cancel
+button; mediation and moderated mediation (E10-E14) give a quick preview,
+then a full run or an R script to run yourself. The app never computes
+power itself. Every other end point is guidance only for now. The online
+version is at <https://joelthornton-powerkit.share.connect.posit.cloud>
+([`hosting-options.md`](hosting-options.md)).
 
-Everything it shows comes from one data file,
-[`app/routing/tree.yaml`](../app/routing/tree.yaml). A test checks that this
-file and `decision-tree.md` agree, so they can't drift apart.
+The routes and cards come from one data file,
+[`app/routing/tree.yaml`](../app/routing/tree.yaml), and the input screens
+from [`app/routing/forms.yaml`](../app/routing/forms.yaml). A test checks that `tree.yaml`
+and `decision-tree.md` agree, so they can't drift apart.
 
 ## Run it (step by step)
 
@@ -30,30 +32,28 @@ You need R and RStudio. You don't need to know Shiny.
 1. **Open the project.** In RStudio: *File → Open Project…* and choose
    `Powerkit.Rproj` in the repository folder. (This also starts renv, which
    keeps the project's packages separate from your others.)
-2. **Install the packages it needs, once.** `shiny`, `bslib` and `yaml`
-   are all recorded in `renv.lock`, so in the RStudio *Console* (bottom
-   left) you can paste this and press Enter:
+2. **Install the packages it needs, once.** They are all recorded in
+   `renv.lock`, so in the RStudio *Console* (bottom left) you can paste
+   this and press Enter:
 
    ```r
    renv::restore()
    ```
 
-   That installs the versions the project records (it installs the
-   engine's packages too, which takes a while the first time). If you only
-   want the prototype, this is enough:
-
-   ```r
-   install.packages(c("shiny", "bslib", "yaml"))
-   ```
+   That installs the versions the project records, the engine's packages
+   included, which takes a while the first time. With only `shiny`,
+   `bslib` and `yaml` installed, the design finder works but nothing
+   calculates: the input screens need the engine and its packages.
 3. **Start the prototype.** In the Console:
 
    ```r
    source("run_routing_prototype.R")
    ```
 
-   A browser window (or RStudio's viewer) opens with the prototype. If a
-   package is missing, the script stops and prints the install line from
-   step 2; it never installs anything itself.
+   A browser window (or RStudio's viewer) opens with the prototype. If
+   `shiny`, `bslib` or `yaml` is missing, the script stops and prints an
+   install line; if the engine can't be loaded, it warns that nothing will
+   calculate. It never installs anything itself.
 4. **Stop it** by pressing *Esc* in the Console, or the red *Stop* button
    at the top of the Console.
 

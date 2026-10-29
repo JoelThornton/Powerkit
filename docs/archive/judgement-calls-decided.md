@@ -138,7 +138,7 @@ records this (22 October 2026). The entry is kept below as the record of the opt
   every departure to be stated in the methods paragraph (opened).
   pwr's results carry the arguments, power, "method" and "note"; none of
   powerkit's backends returns a noncentrality parameter or critical
-  value for E1–E6 or E9–E14 ([`gpower-parity.md`](gpower-parity.md)).
+  value for E1–E6 or E9–E14 ([`gpower-parity.md`](../gpower-parity.md)).
   What G\*Power's output shows needs the maintainer's screenshots.
 - **Who might disagree, and why:**
   - Reviewers used to G\*Power reports look for the noncentrality
@@ -147,7 +147,7 @@ records this (22 October 2026). The entry is kept below as the record of the opt
     the effect-size justification.
 - **Knock-on effects:** `export_script()` and the methods text; which
   outputs need to be added to the result object.
-- **Recorded in:** this entry; [`gpower-parity.md`](gpower-parity.md).
+- **Recorded in:** this entry; [`gpower-parity.md`](../gpower-parity.md).
 
 ### G5. Showing the actual power at the rounded N
 
@@ -763,7 +763,7 @@ other "not covered" card.
   established tools (for example simr, or G\*Power's logistic and Poisson
   routines)? Now the generic cards (E43, E44, E46, E47) say only
   "Established tools exist for this design; powerkit hasn't checked them".
-  Cards built from [`coverage.md`](coverage.md) already list its tools.
+  Cards built from [`coverage.md`](../coverage.md) already list its tools.
 - **Options:**
   - name the tools, as `coverage.md` does;
   - the neutral sentence only, on every "not covered" card.

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 28 October 2026. This page says where the project is now
+*Last updated: 29 October 2026. This page says where the project is now
 and what comes next; keep it short and replace old entries rather than
 adding to them. History is in git, [`engine/NEWS.md`](../engine/NEWS.md)
 and [`archive/status-history.md`](archive/status-history.md) (everything
@@ -133,6 +133,12 @@ fully validated. Validation runs are recorded in
   maintainer: Departure 15 (plan for exactly the effect entered, not
   bfpwr's spread-out default). Known difference 6: bfpwr is slightly low
   in small samples. Sequential designs (BFDA) and other designs later.
+- **Housekeeping (29 October 2026, 0.20.1):** the README, the package
+  description and `CITATION.cff` name every backend and design family
+  that runs; `_dependencies.R` declares every package the engine imports
+  (a test now checks it); the app says how to get the engine when it is
+  missing; names of variables and levels are optional, with neutral
+  defaults. No change to any result.
 - **Safeguard power (27 October 2026, 0.9.0):** for an effect size from
   one previous study or pilot, the one-sample, paired and independent
   t-tests and the correlation can plan with the lower bound of a 60% (or
