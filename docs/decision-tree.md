@@ -407,9 +407,9 @@ flowchart TD
   MO1 -->|One two groups,<br/>one a score| E15["E15 Moderated regression,<br/>yes/no X or W"]
   MO1 -->|Three or more groups| E30["E30 Moderator with<br/>three or more groups"]
   class Q2,Q3,MO1,MO3 q
-  class E9 avail
+  class E9,E31 avail
   class E15 spec
-  class E30,E31,E32,E41 later
+  class E30,E32,E41 later
   class A2 jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -620,6 +620,7 @@ the two in step.
 | E7 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E8 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E9 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E31 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E10 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E11 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E12 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -699,7 +700,7 @@ taken from coverage.md, where they are proposals.
 | E28 | Count outcome (Poisson or negative binomial) | `poisson_regression / single_predictor_count` | `pwrss::power.z.poisson(method = "demidenko(vc)")` (the Wald z test of one predictor, a score or a yes/no group, over a mean exposure; other predictors through its R² with them). Also Spower `p_glm(family = poisson())`; WebPower. Negative binomial and zero-inflated counts: still no candidate in powerkit (coverage-roadmap B30) | Formula (no simulation) | Rate ratio; starting rate; mean exposure; R² with the other predictors | No: matches pwrss called directly in `test-backend-formula-tests.R` (G\*Power and published value TODO) | v2 | Runs |
 | E29 | Ordinal outcome (ordered categories) | — | Candidates: Hmisc `popower()`; powertools `propodds()`; PAMLj | — | Category proportions and odds ratio | No | v2 | Not in spec |
 | E30 | Moderator with three or more groups | — | No ready-made tool: custom simulation in R (e.g. with Spower; power4mome as a general lavaan model) or advice from a statistician | — | — | No | later | Not in spec |
-| E31 | Three-way interaction | — | Candidate: InteractionPoweR `power_interaction_3way_r2()` (analytic only) | — | Correlations among x1, x2, x3, products and y | No | v2 | Not in spec |
+| E31 | Three-way interaction | `regression_interaction / three_way` | `InteractionPoweR::power_interaction_3way_r2()` (analytic: the change in R² when XWZ is added, predictors treated as fixed; no simulation exists for three-way models). Reached from MO3 | Formula (no simulation) | Correlations of X, W, Z and Y and of the products XW, XZ and WZ with Y; the standardised coefficient of XWZ; optional reliabilities | No: matches InteractionPoweR called directly and holds alpha in `test-backend-three-way.R` and `test-validation-three-way.R` (published value TODO) | v2 | Runs |
 | E32 | Moderation or mediation with a yes/no, count or categorical outcome | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
 | E33 | Crossed participants and stimuli | — | Candidates: simr; mixpower | — | Fixed effects and variance components | No | v2 | Not in spec |
 | E34 | Multilevel or cluster design (cluster-randomised or multisite trial) | `cluster_trial / cluster_randomised, multisite, group_treatment` | `powertools::crt.parallel.cont()` for whole groups assigned (the design-effect approximation, design-finder P4, with degrees of freedom from the number of groups; varying group sizes through `re.clustsize.cont()`), and `powertools::multisite.cont()` for people randomised within each group (df = groups - 1); `crt.parallel.bin()` and `multisite.bin()` for a yes/no outcome (z test of the log odds ratio, groups of equal size); `irgtt.cont()` and `irgtt.bin()` when people are randomised one by one and only one condition is delivered in groups. A baseline score (one covariate) for a score outcome in the first two designs. Not yet: other covariates, predictors at both levels (mlmpower; simr). PowerUpR and clusterPower, earlier candidates, have been removed from CRAN | Formula (no simulation) | Cohen's d over the total SD; ICC; for a multisite trial, the ICC of the effect; group size and its SD. Yes/no: the proportion in each condition and the SD on the log-odds scale | No: matches powertools called directly, and the design-effect calculation with pwrss's generic t test, in `test-backend-powertools.R` (published values TODO) | v2 | Runs |

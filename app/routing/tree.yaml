@@ -711,7 +711,7 @@ closing_questions:
   # Not E15 (a yes/no X or W): misclassification in a 0/1 variable is a
   # different problem from unreliable scores (maintainer decision,
   # 16 October 2026; docs/decisions.md).
-  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9]}
+  - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31]}
   - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57]}
   - doc_id: Q-test
     text: "Which version of the test?"
@@ -1191,11 +1191,19 @@ endpoints:
   E31:
     doc_name: "Three-way interaction"
     plain_name: "Does an interaction itself depend on a third variable?"
-    status: not_in_powerkit
-    inputs: ["Correlations among x1, x2, x3, their products and y", "Optional reliabilities"]
-    packages:
-      - {name: InteractionPoweR, url: "https://cran.r-project.org/package=InteractionPoweR", what: "power_interaction_3way_r2(): analytic power for three-way interactions, with reliabilities."}
+    template: "regression_interaction / three_way"
+    backend: "InteractionPoweR: power_interaction_3way_r2() (analytic, with reliabilities)"
+    method: Formula
+    status: runs_validation_in_progress
+    validation: {file: test-validation-three-way.R, note: "Matches InteractionPoweR called directly, and gives power equal to alpha with no three-way effect, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Tests whether the interaction of X and W on Y changes with a third score, Z: the three-way product XWZ, in a regression with every lower-order term."
+      - "You give the correlations among the true scores and the three-way effect as a standardised regression coefficient, as InteractionPoweR asks; reliabilities below 1 allow for measurement error."
+      - "Power comes from InteractionPoweR's formula, which treats the predictors as fixed; there is no simulation for three-way models, so power may be slightly optimistic, as for G*Power's fixed-model calculations."
+      - "All four variables are scores; a yes/no X, W or Z isn't covered yet."
+    inputs: ["Correlations of X, W, Z and Y, and of the products XW, XZ and WZ with Y", "The three-way effect (standardised coefficient of XWZ)", "Optional: reliability of X, W, Z and Y"]
     tier: v2
+    alternatives: ["a two-way interaction, if the third variable is a covariate rather than a moderator"]
   E32:
     doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
     plain_name: "Moderation or mediation when the outcome isn't a score"
@@ -1741,6 +1749,7 @@ glossary:
   - {term: "interaction", pattern: "\\binteractions?\\b", hint: "Whether the effect of one factor or variable depends on the level of another."}
   - {term: "reliability", pattern: "\\breliabilit(y|ies)\\b", hint: "How consistently a measure gives the same result; 1 means no measurement error."}
   - {term: "standardised paths", pattern: "standardised paths|fully standardised", hint: "The strength of each arrow in the model (for example, X to M), expressed in standard deviations so that arrows between differently scaled measures can be compared."}
+  - {term: "standardised coefficient", pattern: "standardised coefficient", hint: "A regression coefficient with every variable measured in standard deviations: how many SDs the outcome changes when the predictor (here, the three-way product) is one SD higher."}
   - {term: "Monte Carlo draws per CI", pattern: "Monte Carlo draws", hint: "How many random draws are used to build each confidence interval for the indirect effect; more draws give a more stable interval."}
   - {term: "residuals", pattern: "residuals", hint: "The part of each mediator that X doesn't explain; their correlation says how much the mediators overlap beyond X."}
   - {term: "indirect path", pattern: "indirect (path|effect)", hint: "The route from X to the outcome through a mediator (X to M to Y)."}

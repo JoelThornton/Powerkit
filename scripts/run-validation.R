@@ -102,6 +102,7 @@ validation_chunks <- function() {
       "test-validation-anova-factorial.R", "test-validation-anova-three.R"
     ),
     interactions = "test-validation-regression-interaction.R",
+    three_way = "test-validation-three-way.R",
     process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
@@ -128,7 +129,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, variances = 2, rank = 2, bayes = 1, anova = 15, interactions = 1.5, process_4 = 60,
+  c(basic = 0.3, variances = 2, rank = 2, bayes = 1, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60,
     process_6 = 60, process_7 = 120, process_14 = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, poisson = 0.3,

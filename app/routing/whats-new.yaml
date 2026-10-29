@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Three-way interactions"
+    text: >-
+      If you expect an interaction between two scores to change with a third
+      (for example, whether social support buffers stress differently at
+      different ages), powerkit now works out power and sample size for the
+      three-way interaction, with measurement error allowed for.
+  - date: "2026-10-29"
     title: "A simulated data set to write your analysis code"
     text: >-
       For most designs, the results screen now offers a made-up data set of

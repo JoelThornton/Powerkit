@@ -184,7 +184,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B2 | Binary × continuous | ML; BG | E15 | Planned (phase 3b) | Could: AP, PN, S | InteractionPoweR `power_interaction(k.x1 = 2)` (50/50 split only) | Phase 3b | [E4][], [E5][] |
 | B3 | Binary × binary | ML | E7 (2 x 2 between ANOVA interaction) | Done (validated and wired) | Now: AP, PN, S | Superpower `ANOVA_exact()`; InteractionPoweR `k.x1 = 2, k.x2 = 2` as a cross-check (build guide, phase 3b c) | — | — |
 | B4 | Categorical moderator with 3+ levels | ML; Audit | E30 | No ready-made tool | — | InteractionPoweR's `k.x1`/`k.x2` make ordered (binary or ordinal) variables, not unordered categories (coverage.md) | — | [A1][] |
-| B5 | Three-way interaction | ML; BG | E31 | Foundation tool can do it, not planned | Could: PN, AP (by grid) | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
+| B5 | Three-way interaction | ML; BG | E31 | Wired (29 October 2026: InteractionPoweR's analytic `power_interaction_3way_r2()`, with reliabilities; matches it called directly; published value to transcribe) | Now: AP, PN | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
 | B6 | Simple slopes | ML | none: no card asks (E9's target is the interaction) | Foundation tool can do it, not planned | Could: PN | InteractionPoweR `power_interaction(detailed_results = TRUE)`, `plot_simple_slope()`, `simple.slopes.3way()` | — | [B7][] |
 | B7 | Curvilinear/quadratic effects | ML; Audit | none: reaches E4 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | candidate: Spower `p_glm()` with a squared term in `formula` (inferred: `p_glm()` takes any formula) | Decide the card | [C12][] |
 
@@ -427,10 +427,10 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 24 | 9 | 0 | 33 |
+| Wired (validation not finished) | 24 | 10 | 0 | 34 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 18 | 2 | 21 |
-| Foundation tool can do it, not planned | 6 | 10 | 2 | 18 |
+| Foundation tool can do it, not planned | 6 | 9 | 2 | 17 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 0 | 1 | 1 |
 | G\*Power covers it, powerkit doesn't | 7 | 0 | 0 | 7 |

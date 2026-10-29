@@ -81,7 +81,7 @@ simulated_data_code <- function(spec, n, seed) {
     } else if (spec$template %in% superpower) {
       sim_superpower_code(spec, n)
     },
-    regression_interaction = sim_interaction_code(spec, n),
+    regression_interaction = if (identical(spec$template, "two_way")) sim_interaction_code(spec, n),
     mediation = ,
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL

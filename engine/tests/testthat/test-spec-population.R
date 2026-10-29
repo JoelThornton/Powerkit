@@ -253,6 +253,7 @@ zero_effect_cases <- list(
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
   process_7 = function(s) within(s, population$paths[["XW->M"]] <- 0),
   process_14 = function(s) within(s, population$paths[["MW->Y"]] <- 0),
+  regression_three_way = function(s) within(s, population$b_XWZ <- 0),
   anova_oneway_between = function(s) within(s, population$means <- list(12, 12, 12)),
   anova_oneway_within = function(s) within(s, population$means <- list(620, 620, 620)),
   # Parallel lines over time: no interaction, though both main effects exist.

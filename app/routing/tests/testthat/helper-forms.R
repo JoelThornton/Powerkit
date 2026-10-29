@@ -135,3 +135,8 @@ sem_examples$occasions <- c(list(question = "invariance", over = "occasions", le
 form_examples$E57 <- c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training",
                             Y_label = "Reaction time (ms)", var1 = "2500", var2 = "1600", pm_r = "0.6",
                             alternative = "two_sided"), closing_ok)
+
+# E31: a three-way regression interaction.
+form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
+                            r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",
+                            r_X_W = "-0.1", r_X_Z = "0.1", r_W_Z = "0", b_XWZ = "0.1", rel_X = "0.8"), closing_ok)

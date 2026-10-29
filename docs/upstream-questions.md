@@ -61,7 +61,17 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    groups in mediation and moderated mediation? If so, how should it be
    specified (`model`, `pop_es` and `x_fun`), and which test function
    applies?
-3. Two earlier questions are in `docs/decisions.md` (15 October 2026,
+3. **The index of moderated mediation for PROCESS model 8.** In model 8,
+   W moderates X -> M and the direct path X -> Y; the indirect effect
+   (a1 + a3 W) b is linear in W, so its index a3 b is defined, as for
+   model 7. `manymome::index_of_mome()` (0.3.7), which
+   `test_index_of_mome()` calls, refuses it ("The index cannot be computed
+   when there are more than one moderators"), for a lavaan fit and for
+   `lm2list()` alike, while `cond_indirect_effects()` on the same fit
+   gives the right formula, (b.M~X + b.X:W W) b.Y~M. Is the refusal
+   intended when X:W also appears in Y's equation? powerkit can't offer
+   model 8 until this is answered (`next.md`).
+4. Two earlier questions are in `docs/decisions.md` (15 October 2026,
    "Published values: InteractionPoweR notes"): whether a binary X can be
    correlated with W, and whether the Monte Carlo CI test has been checked
    with a binary X.

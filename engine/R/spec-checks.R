@@ -988,6 +988,12 @@ check_multiple_regression <- function(spec) {
 
 check_regression_interaction <- function(spec) {
   pop <- spec$population
+  # Three-way interactions: InteractionPoweR builds the full correlation
+  # matrix of the seven terms itself, and the backend refuses an impossible
+  # one in plain English (interactionpower_3way_power()).
+  if (identical(spec$template, "three_way")) {
+    return(character())
+  }
   # Correlations among X, W and their product, assuming X and W are centred
   # and jointly normal (as InteractionPoweR does): XW is uncorrelated with
   # X and W.
@@ -1492,7 +1498,9 @@ minimum_n <- function(spec) {
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
     cluster_trial = (if (identical(spec$template, "multisite")) 2 else 4) * spec$population$cluster_size,
-    regression_interaction = 6,
+    # The intercept and every term (3 for two-way, 7 for three-way), plus
+    # at least two residual df.
+    regression_interaction = if (identical(spec$template, "three_way")) 10 else 6,
     # More participants than items, so that the sample covariance matrix
     # can be positive definite; 2 when only the df are known.
     sem = switch(
@@ -1617,7 +1625,7 @@ target_effect_is_zero <- function(spec) {
       factor_correlation = pop$r,
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
-    regression_interaction = pop$r_XW_Y,
+    regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {

@@ -181,3 +181,97 @@ interactionpower_check_run <- function(spec, inputs, seed) {
     )
   )
 }
+
+# Three-way interactions (Y ~ X + W + Z + XW + XZ + WZ + XWZ), by
+# InteractionPoweR::power_interaction_3way_r2(): analytic power from the
+# change in R-squared when XWZ is added, valid for continuous, normally
+# distributed variables (its help). InteractionPoweR has no simulation for
+# three-way models, so this is the fixed-model formula alone, which gives
+# slightly higher power than simulating with random predictors (as for
+# two-way models: docs/conventions.md, Known difference 1).
+#
+# The spec uses InteractionPoweR's own parametrisation: X is x1, W is x2,
+# Z is x3; correlations among the true scores, with the three-way effect
+# as the standardised coefficient of x1x2x3 (b.x1x2x3).
+interactionpower_3way_backend <- function(spec) {
+  inputs <- interactionpower_3way_inputs(spec)
+  power_at <- function(n) interactionpower_3way_power(spec, inputs, n)$pwr
+  list(
+    name = "InteractionPoweR",
+    packages = "InteractionPoweR",
+    methods = "exact",
+    default_method = "exact",
+    functions = c(exact = "InteractionPoweR::power_interaction_3way_r2"),
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    exact_power = power_at,
+    bracket_power = power_at,
+    simulate = NULL,
+    sensitivity = NULL,
+    check_run = function() interactionpower_3way_check_run(spec, inputs)
+  )
+}
+
+interactionpower_3way_inputs <- function(spec) {
+  pop <- spec$population
+  reliability <- function(role) spec$variables[[role]]$reliability %||% 1
+  list(
+    b.x1x2x3 = pop$b_XWZ,
+    r.x1.y = pop$r_X_Y,
+    r.x2.y = pop$r_W_Y,
+    r.x3.y = pop$r_Z_Y,
+    r.x1x2.y = pop$r_XW_Y,
+    r.x1x3.y = pop$r_XZ_Y,
+    r.x2x3.y = pop$r_WZ_Y,
+    r.x1.x2 = pop$r_X_W,
+    r.x1.x3 = pop$r_X_Z,
+    r.x2.x3 = pop$r_W_Z,
+    rel.x1 = reliability("X"),
+    rel.x2 = reliability("W"),
+    rel.x3 = reliability("Z"),
+    rel.y = reliability("Y"),
+    alpha = spec$target_test$alpha
+  )
+}
+
+# InteractionPoweR returns no rows (with a warning) when the correlations
+# can't hold together; that is refused here in plain English.
+interactionpower_3way_power <- function(spec, inputs, n, detailed_results = FALSE) {
+  out <- call_backend("InteractionPoweR", quietly(do.call(
+    InteractionPoweR::power_interaction_3way_r2,
+    c(list(N = n, detailed_results = detailed_results), inputs)
+  )))
+  if (!is.data.frame(out) || nrow(out) == 0) {
+    abort_run(sprintf(
+      paste0(
+        "These correlations and the three-way effect are impossible together: ",
+        "InteractionPoweR can't build a valid correlation matrix for %s, %s, %s, ",
+        "their products and %s from them. Make the three-way effect or the ",
+        "correlations with %s smaller, or change the correlations among the predictors."
+      ),
+      var_label(spec, "X"), var_label(spec, "W"), var_label(spec, "Z"),
+      var_label(spec, "Y"), var_label(spec, "Y")
+    ))
+  }
+  out
+}
+
+# Check run: there is no simulated data, so the check confirms that
+# InteractionPoweR received the correlations and the three-way coefficient
+# the spec gives (they come back in its detailed results).
+interactionpower_3way_check_run <- function(spec, inputs) {
+  out <- interactionpower_3way_power(spec, inputs, 1000, detailed_results = TRUE)
+  received <- c(
+    b_XWZ = "b.x1x2x3", r_X_Y = "r.y.x1", r_W_Y = "r.y.x2", r_Z_Y = "r.y.x3",
+    r_XW_Y = "r.y.x1x2", r_XZ_Y = "r.y.x1x3", r_WZ_Y = "r.y.x2x3",
+    r_X_W = "r.x1.x2", r_X_Z = "r.x1.x3", r_W_Z = "r.x2.x3"
+  )
+  specified <- vapply(names(received), function(k) as.numeric(spec$population[[k]]), numeric(1))
+  recovered <- vapply(received, function(k) as.numeric(out[[k]][1]), numeric(1))
+  data.frame(
+    parameter = names(received),
+    specified = unname(specified),
+    recovered = unname(recovered),
+    ok = abs(unname(recovered) - unname(specified)) < 1e-12
+  )
+}

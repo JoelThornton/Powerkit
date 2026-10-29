@@ -126,6 +126,12 @@ fully validated. Validation runs are recorded in
   Pitman-Morgan test of two paired variances has its own card (E57),
   simulated with Spower's `p_r()` on the sum and difference of the paired
   scores. Validation in progress.
+- **Three-way interactions (29 October 2026, 0.23.0):** the three-way
+  interaction card (E31) calculates, by InteractionPoweR's analytic
+  `power_interaction_3way_r2()` with reliabilities (predictors treated as
+  fixed; there is no three-way simulation). Validation in progress.
+  PROCESS model 8 is blocked by an upstream question to manymome, and
+  models 58 and 59 need a decision on what to power (`next.md`, item 2).
 - **Simulated data sets (29 October 2026, 0.22.0):** a CSV of one
   sample of the planned size, drawn from the population entered by the
   backend's own generator, downloadable from the results screen and
