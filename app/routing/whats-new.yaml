@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Names are optional"
+    text: >-
+      You no longer have to name your groups, conditions and outcome before
+      calculating. Leave a name empty and powerkit uses a neutral one, such
+      as "Group 1" or "Outcome", shown greyed in the box; type your own to
+      make the result and the write-up read naturally.
+  - date: "2026-10-29"
     title: "Clearer help when something is missing"
     text: >-
       If you run powerkit on your own computer and its calculation engine

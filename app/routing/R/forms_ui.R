@@ -9,7 +9,7 @@ field_ui <- function(f, value, described_by = character()) {
   id <- field_input_id(f)
   # One convention (22 October 2026): everything is needed unless marked
   # optional. Effect sizes start empty; the box itself shows that.
-  label <- if (field_is_optional(f)) paste0(f$label, " (optional)") else f$label
+  label <- if (field_is_optional(f) || !is.null(f$name_default)) paste0(f$label, " (optional)") else f$label
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
@@ -20,7 +20,7 @@ field_ui <- function(f, value, described_by = character()) {
     select = selectInput(id, label, choices = c("Choose one" = "", stats::setNames(names(f$choices), unlist(f$choices))),
                          selected = current, selectize = FALSE, width = "100%"),
     table = textAreaInput(id, label, value = current, rows = 4, width = "100%"),
-    textInput(id, label, value = current, width = "100%")
+    textInput(id, label, value = current, width = "100%", placeholder = f$name_default)
   )
   # Attributes on the input element itself.
   attrs <- list(`aria-describedby` = if (length(described_by)) paste(described_by, collapse = " "))

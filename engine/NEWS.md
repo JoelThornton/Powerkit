@@ -17,6 +17,11 @@
   start-up when the engine can't be loaded. The "How you adjusted it"
   field for an effect from a previous study now asks for the reason when
   the effect was kept as published.
+* In the app, names of variables and their levels (groups, conditions,
+  the outcome) are optional: they only label the result and the write-up.
+  An empty name stands for a neutral one taken from the field's label
+  ("Group 1", "Outcome"), shown greyed in the box. Lists of level names,
+  which set how many levels there are, are still needed.
 * Documentation: the app's READMEs and header comments no longer say the
   app calculates nothing, and five relative links in `docs/archive/` that
   broke when those pages moved there now resolve.

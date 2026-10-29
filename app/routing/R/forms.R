@@ -135,10 +135,42 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     groups <- if (isTRUE(form$generic)) c(groups, list(direction)) else c(list(direction), groups)
   }
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
+  groups <- lapply(groups, function(g) { g$fields <- lapply(g$fields, with_name_default); g })
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
   c(groups, closing_groups(forms, ep_id, start))
+}
+
+# Names of variables and their levels only label the result and the
+# write-up, so they may stay empty: an empty name stands for a neutral one
+# taken from the field's label ("Group 1", "Outcome"), shown in the box.
+# Fields of type "levels" are not names alone: they set how many levels
+# there are, so they stay required.
+name_field <- function(f) {
+  identical(f$type, "text") && !is.null(f$path) &&
+    grepl("^variables\\.[^.]+\\.(label|levels\\.[0-9]+)$", f$path)
+}
+
+name_default_text <- function(f) {
+  text <- trimws(sub("\\s*\\(.*$", "", f$label))
+  text <- sub(",\\s*the .*$", "", text)
+  if (grepl("^The [a-z]+ factor$", text)) text <- sub("^The (.)", "\\U\\1", text, perl = TRUE)
+  if (grepl("^(What|The groups)", text)) {
+    role <- sub("^variables\\.([^.]+)\\..*$", "\\1", f$path)
+    text <- if (grepl("conditions are", text)) "Condition"
+      else if (grepl("groups", text)) "Group"
+      else if (role %in% c("A", "B", "C")) paste("Factor", role)
+      else role
+  }
+  text
+}
+
+with_name_default <- function(f) {
+  if (!name_field(f) || !isTRUE(f$required)) return(f)
+  f$required <- FALSE
+  f$name_default <- name_default_text(f)
+  f
 }
 
 # The direction, asked first and not filled in: the choice of a one- or
@@ -592,6 +624,7 @@ build_spec <- function(forms, ep_id, fields, values) {
     # A field left empty may stand for another field's value (E34: the
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
+    if (blank(v) && !is.null(f$name_default)) v <- f$name_default
     if (blank(v)) next
     if (!is.null(f$path)) spec <- set_path(spec, split_path(f$path), field_value(f, v, values))
     # `sets`: further spec values that follow from a choice (E24's
