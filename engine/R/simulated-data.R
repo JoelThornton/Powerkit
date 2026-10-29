@@ -3,8 +3,9 @@
 # (Spower's gen_*() functions, Superpower's ANOVA_design(),
 # InteractionPoweR's generate_interaction() and power4mome's power4test()),
 # or, where the backend has no generator, from the same population by base
-# R's draws (one proportion, rank tests, factorial logistic regression and
-# ordinal outcomes, with Hmisc::pomodm() for the second group's shares).
+# R's draws (one proportion, rank tests, factorial logistic regression,
+# ordinal outcomes with Hmisc::pomodm() for the second group's shares,
+# one-predictor logistic and Poisson regression, and cluster trials).
 # It is for writing and checking analysis code before the real data
 # arrive, never evidence or a pilot. The data are built by R code that
 # simulated_data_code() writes; simulated_data() runs that code and the R
@@ -25,8 +26,10 @@
 #' variances, goodness of fit and cross-tabulations (not McNemar's test),
 #' the rank tests, equivalence and non-inferiority tests, the ANOVA designs
 #' on Superpower and Welch's one-way ANOVA, regression interactions,
-#' mediation and moderated mediation, factorial logistic regression and
-#' ordinal outcomes in two groups; `simulated_data_available()` says
+#' mediation and moderated mediation, factorial logistic regression,
+#' ordinal outcomes in two groups, planned contrasts, logistic and Poisson
+#' regression with one predictor (no other predictors) and cluster trials
+#' with a score outcome (cluster-randomised and group treatment); `simulated_data_available()` says
 #' whether a spec is covered.
 #'
 #' @param spec A design specification (see [read_spec()]).
@@ -79,12 +82,16 @@ simulated_data_code <- function(spec, n, seed) {
     spec$design,
     basic_test = sim_basic_code(spec, n) %||% sim_more_basic_code(spec, n),
     equivalence_test = sim_equivalence_code(spec, n),
-    logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n),
+    logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n) else sim_glm_code(spec, n),
     ordinal_regression = sim_ordinal_code(spec, n),
+    poisson_regression = sim_glm_code(spec, n),
+    cluster_trial = sim_cluster_code(spec, n),
     factorial_anova = if (welch_anova(spec)) {
       sim_basic_code(spec, n)
     } else if (spec$template %in% superpower) {
       sim_superpower_code(spec, n)
+    } else if (identical(spec$template, "oneway_contrast")) {
+      sim_contrast_code(spec, n)
     },
     regression_interaction = if (identical(spec$template, "two_way")) sim_interaction_code(spec, n),
     mediation = ,
@@ -404,6 +411,106 @@ sim_ordinal_code <- function(spec, n) {
       "  %s = c(sample(%s, %d, replace = TRUE, prob = p1), sample(%s, %d, replace = TRUE, prob = p2))",
       sim_label(spec, "Y"), r_code(levels), groups[1], r_code(levels), groups[2]
     ),
+    ")"
+  )
+}
+
+# A planned contrast: equal groups drawn with each group's mean and the
+# one SD (Spower's gen_anova.test(), as for Welch's ANOVA but with equal
+# SDs), in the outcome's units when the means are.
+sim_contrast_code <- function(spec, n) {
+  pop <- spec$population
+  levels <- sim_levels(spec, "A")
+  k <- length(levels)
+  c(
+    sprintf(
+      "sim <- Spower::gen_anova.test(n = %d, k = %d, means = %s, sds = %s)",
+      n %/% k, k, r_code(as.numeric(unlist(pop$means))), r_code(rep(pop$sd, k))
+    ),
+    sprintf(
+      "simulated <- data.frame(%s = %s[as.integer(sim$group)], %s = sim$DV)",
+      sim_label(spec, "A"), r_code(levels), sim_label(spec, "Y")
+    )
+  )
+}
+
+# Logistic and Poisson regression with one predictor: X standardised
+# (normal) or a yes/no group (X's second level with probability x_prob),
+# then Y from the model pwrss's formulas assume. Logistic: the odds of
+# 'yes' are base_prob's odds times odds_ratio per unit of X. Poisson: the
+# count over the mean exposure, with rate base_rate times rate_ratio per
+# unit of X. Only when no other predictors are entered (r2_other_predictors
+# 0 or absent): the spec doesn't say what they are.
+sim_glm_code <- function(spec, n) {
+  pop <- spec$population
+  if (!identical(spec$template %in% c("single_predictor", "single_predictor_count"), TRUE) ||
+      (pop$r2_other_predictors %||% 0) > 0) {
+    return(NULL)
+  }
+  binary_x <- identical(spec$variables$X$type, "binary")
+  x_line <- if (binary_x) {
+    sprintf("x <- stats::rbinom(%d, 1, %s) # 1 = %s", n, r_code(pop$x_prob %||% 0.5), sim_levels(spec, "X")[2])
+  } else {
+    sprintf("x <- stats::rnorm(%d) # standardised", n)
+  }
+  y_line <- if (identical(spec$design, "logistic_regression")) {
+    sprintf(
+      "y <- %s[stats::rbinom(%d, 1, stats::plogis(stats::qlogis(%s) + log(%s) * x)) + 1]",
+      r_code(sim_levels(spec, "Y")), n, r_code(pop$base_prob), r_code(pop$odds_ratio)
+    )
+  } else {
+    sprintf(
+      "y <- stats::rpois(%d, %s * %s * %s^x) # events over the mean exposure",
+      n, r_code(pop$mean_exposure %||% 1), r_code(pop$base_rate), r_code(pop$rate_ratio)
+    )
+  }
+  x_column <- if (binary_x) sprintf("%s[x + 1]", r_code(sim_levels(spec, "X"))) else "x"
+  c(x_line, y_line, sprintf("simulated <- data.frame(%s = %s, %s = y)", sim_label(spec, "X"), x_column, sim_label(spec, "Y")))
+}
+
+# Cluster trials with a score outcome, in SD units: each group's
+# participants share a random intercept with variance icc, and the rest of
+# the variance (1 - icc) is each person's own, so the total SD is 1 and d
+# is the difference between conditions. Cluster-randomised: whole groups
+# in each condition. Group treatment: only the second condition in groups;
+# the first takes part individually. Not yet for multisite trials, yes/no
+# outcomes or a baseline covariate.
+sim_cluster_code <- function(spec, n) {
+  pop <- spec$population
+  if (!spec$template %in% c("cluster_randomised", "group_treatment") ||
+      !identical(spec$variables$Y$type, "continuous") || !is.null(pop$baseline_r2_within)) {
+    return(NULL)
+  }
+  m <- pop$cluster_size
+  levels <- sim_levels(spec, "X")
+  x <- sim_label(spec, "X")
+  y <- sim_label(spec, "Y")
+  grouped <- function(groups, offset, condition, effect) {
+    sprintf(
+      "  data.frame(%s = %s, cluster = rep(%d + seq_len(%d), each = %s), %s = %s + rep(stats::rnorm(%d, sd = sqrt(icc)), each = %s) + stats::rnorm(%d, sd = sqrt(1 - icc)))",
+      x, r_code(condition), offset, groups, r_code(m), y, r_code(effect), groups, r_code(m), groups * m
+    )
+  }
+  head <- sprintf("icc <- %s # share of the variance between groups", r_code(pop$icc))
+  if (spec$template == "cluster_randomised") {
+    per_condition <- (n / 2) %/% m
+    return(c(
+      head,
+      "simulated <- rbind(",
+      paste0(grouped(per_condition, 0, levels[1], 0), ","),
+      grouped(per_condition, per_condition, levels[2], pop$d),
+      ")"
+    ))
+  }
+  groups <- (n / 2) %/% m
+  c(
+    head,
+    "simulated <- rbind(",
+    sprintf(
+      "  data.frame(%s = %s, cluster = NA, %s = stats::rnorm(%d)),",
+      x, r_code(levels[1]), y, n %/% 2
+    ),
+    grouped(groups, 0, levels[2], pop$d),
     ")"
   )
 }

@@ -159,9 +159,11 @@ fully validated. Validation runs are recorded in
   For writing analysis code before the data arrive; marked as simulated
   in its first column and its file name. The basic tests (not McNemar's),
   the rank tests, equivalence and non-inferiority, the Superpower ANOVA
-  designs, Welch's ANOVA, regression interactions, mediation, factorial
-  logistic regression and ordinal outcomes (0.23.0 added the rank tests
-  onwards); the rest are `next.md`, item 1.
+  designs, Welch's ANOVA, planned contrasts, regression interactions,
+  mediation, one-predictor logistic and Poisson regression, factorial
+  logistic regression, ordinal outcomes and cluster trials with a score
+  outcome (0.23.0 added the rank tests onwards); the rest need data
+  choices (`next.md`, item 1).
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
