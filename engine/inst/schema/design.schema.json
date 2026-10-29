@@ -545,6 +545,21 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "cell_ratio": {
+          "description": "2 x 2 between-participants ANOVA only: the relative size of each cell, two rows (levels of A) of two positive whole numbers (levels of B); for example [[1, 1], [2, 2]] puts twice as many people at A's second level. goal > n is split in this ratio, so it must give whole cells. Unequal cells are simulated with Superpower::ANOVA_power() (ANOVA_exact() takes equal cells only), with Superpower's Type III sums of squares.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
         "proportions_formula": {
           "description": "Two proportions only, with method exact: z_test (the default) is the z test of two proportions with pooled variance under the null and no continuity correction, as in G*Power, via stats::power.prop.test() for equal groups and pwrss::power.z.twoprops() for unequal groups; arcsine is pwr's formula with Cohen's h (pwr.2p2n.test()).",
           "enum": [
@@ -1743,7 +1758,7 @@
       }
     },
     "template_2x2_between": {
-      "description": "Two between-participants factors, each with two levels. Cell sizes are equal.",
+      "description": "Two between-participants factors, each with two levels. Cell sizes are equal unless options > cell_ratio gives their relative sizes.",
       "properties": {
         "variables": {
           "required": [

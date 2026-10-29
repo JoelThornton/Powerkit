@@ -423,10 +423,15 @@ Not sure? Choose this if you expect different numbers in the groups, for
 example because you record a characteristic of whoever takes part rather than
 recruiting fixed numbers. Examples: *a manipulation crossed with the gender
 of whoever signs up; more patients than controls.*
-→ **Coming later (not in spec):** *2 x 2 between-participants ANOVA with
-unequal group sizes* or *2 x 2 mixed ANOVA with unequal group sizes*, for any
-effect (main effect or interaction), until validated (decision N3). The card
-says: *"powerkit doesn't cover unequal group sizes in 2 x 2 designs yet."* For a main effect, powerkit does
+→ Both factors between: `factorial_anova / 2x2_between` with
+`options > cell_ratio`, **Available** (29 October 2026): *2 x 2
+between-participants ANOVA with unequal group sizes*, simulated with
+Superpower's `ANOVA_power()` and checked against pwrss's Shieh formula
+with a null covariate, the independent reference decision N3 asks for
+(`decisions.md`, 29 October 2026).
+→ One factor within: the safety net. Superpower's simulation stops for
+unequal groups with a within factor, so powerkit doesn't cover the *2 x 2
+mixed ANOVA with unequal group sizes* yet. For a main effect, powerkit does
 not offer a simpler test that ignores the other factor (such as an
 independent-samples t-test) as a stand-in (decision N2).
 

@@ -3457,3 +3457,17 @@ simulated data set, both in the R script and as a CSV from the app,
 marked as simulated by a column on every row and by its file name, with
 a note that it is for writing and pre-registering analysis code only.
 
+
+## 2026-10-29 · Unequal group sizes in a 2 x 2 between-participants ANOVA (E22)
+
+**Method.** Superpower's `ANOVA_power()` with one `n` per cell (simulated;
+Type III sums of squares, afex's default), set by `options > cell_ratio`.
+`ANOVA_exact()` takes equal cells only, so the exact method and the
+smallest detectable effect are refused with unequal cells. Mixed designs
+with unequal groups stay out: `ANOVA_power()` stops for them.
+
+**Independent reference (decision N3).** pwrss's `power.f.ancova.shieh()`
+with one covariate that explains nothing, which differs from the ANOVA by
+one error degree of freedom (a difference far below the simulation's own
+error at the sample sizes checked). A published example is still to be
+transcribed (`test-validation-anova-unequal.R`).

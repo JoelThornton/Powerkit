@@ -468,9 +468,10 @@ nodes:
   f4a_mixed:
     doc_id: F4a
     text: "Will the groups be equal in size?"
+    help: "Superpower's simulation can't take groups of different sizes when one factor is within participants, so powerkit can't plan for them yet."
     options:
       - {label: "Yes: the same number in every group", next: f4b}
-      - {label: "No: the groups will differ in size", next: E22}
+      - {label: "No: the groups will differ in size", next: E-unsure}
   f4b:
     doc_id: F4b
     text: "Is the within-participants factor a 'before and after' measurement?"
@@ -1095,12 +1096,20 @@ endpoints:
   E22:
     doc_name: "2 x 2 ANOVA with unequal group sizes"
     plain_name: "A 2 x 2 design where the groups differ in size"
-    status: not_in_powerkit
-    inputs: ["The four expected cell means and SD", "The size of each group"]
-    packages:
-      - {name: Superpower, url: "https://cran.r-project.org/package=Superpower", what: "Documents unequal group sizes for ANOVA_power() only: ANOVA_design() help, argument n (\"If unequal n is entered then the design can only be passed onto ANOVA_power\"), and NEWS for 0.0.3. ANOVA_power() stops for designs with a within factor, so this covers the 2 x 2 between design, not the mixed one. The intro vignette still calls unequal sizes a planned future option. powerkit hasn't validated this use."}
+    template: "factorial_anova / 2x2_between, options > cell_ratio"
+    backend: "Superpower: ANOVA_power() with one n per cell (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-anova-unequal.R, note: "Agrees with pwrss's Shieh formula with one covariate that explains nothing (the independent check chosen for unequal cells) and with Superpower called directly, in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    card_points:
+      - "Two factors crossed, with different people in each of the four groups, and groups of different sizes: for example, a clinical sample half the size of a community sample, each split between two sets of instructions."
+      - "You give the four expected means, the SD and each group's size (or their ratio, such as 2, 2, 1, 1); the total is split in that ratio."
+      - "Effects are tested with Type III sums of squares, as Superpower, SPSS and jamovi do by default; with unequal groups, main effects can differ from a Type II analysis."
+      - "Simulated, so the answer carries a little random error. Only designs where both factors are between participants: Superpower's simulation can't take unequal groups when one factor is within participants."
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The size of each group"]
     refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
+    alternatives: ["tests of the simple effects", "a planned contrast"]
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"

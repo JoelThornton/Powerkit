@@ -207,7 +207,7 @@ sim_basic_code <- function(spec, n) {
 # condition, as SPSS, JASP and jamovi expect for repeated measures.
 sim_superpower_code <- function(spec, n) {
   inputs <- superpower_inputs(spec)
-  per_group <- ceiling(n / inputs$groups)
+  per_group <- if (is.null(inputs$cell_ratio)) ceiling(n / inputs$groups) else round(superpower_cell_n(inputs, n))
   roles <- intersect(c("A", "B", "C"), names(spec$variables))
   factor_of <- c(A = "a", B = "b", C = "c")
   within <- vapply(roles, function(v) identical(spec$variables[[v]]$type, "within_factor"), logical(1))
@@ -221,6 +221,11 @@ sim_superpower_code <- function(spec, n) {
     sim_args(list(design = inputs$design, n = per_group, mu = inputs$mu, sd = inputs$sd, r = inputs$r, plot = FALSE)),
     ")",
     "long <- design$dataframe",
+    if (!is.null(inputs$cell_ratio)) c(
+      "# ANOVA_design() builds every cell at the largest size; keep each cell's own n.",
+      "cell_n <- stats::setNames(design$n, unique(long$cond))",
+      "long <- long[stats::ave(seq_along(long$cond), long$cond, FUN = seq_along) <= cell_n[long$cond], ]"
+    ),
     "level <- function(x) as.integer(sub(\"^.*[a-z]\", \"\", as.character(x)))"
   )
   between <- roles[!within]

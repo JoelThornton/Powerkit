@@ -186,7 +186,8 @@ power while matching G\*Power) is folded there instead
 
 ### Superpower and unequal group sizes (2 x 2 between and mixed)
 
-Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
+Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src], and again
+with Superpower 0.2.4.1 under R 4.5.3 on 29 October 2026.
 
 - **`ANOVA_design()`** accepts unequal `n` for `"2b*2w"` (e.g.
   `n = c(20, 30)`) and for `"2b*2b"` (e.g. `n = c(10, 20, 30, 40)`), with no
@@ -208,18 +209,29 @@ Checked by running Superpower 0.2.4.1 under R 4.3.3 [SP-src].
   any of Superpower's power functions. The balanced-at-the-largest-size
   behaviour is in `ANOVA_design()`, and would reach a result only through
   code that used the design object's data or `n` directly.
-- **powerkit today:** this cannot reach Superpower. The `factorial_anova`
-  spec has no group sizes: `goal.n` is split into 4 equal cells
-  (`2x2_between`) or 2 equal groups (`2x2_mixed`), an `n` that doesn't split
-  evenly is rejected, and `options > allocation_ratio` is rejected for any
-  design other than the two-group tests [powerkit, `engine/R/spec-checks.R`].
-  The engine passes Superpower a single per-cell `n` [powerkit,
-  `engine/R/backend-superpower.R`].
-- **Requirement for any future unequal-n support:** it must include a test
-  proving that the unequal sizes are actually used (for example, that the
-  result differs from the balanced design at `max(n)` and matches the
-  independent reference). It must also be validated against an independent
-  reference before it is offered (decision N3 in `docs/design-finder.md`).
+- **powerkit (from 29 October 2026, 0.23.0):** the 2 x 2 between design
+  takes `options > cell_ratio`, the relative size of each cell; `goal.n` is
+  split in that ratio and must give whole cells. Power is simulated with
+  `ANOVA_power()` and one `n` per cell, which tests each effect with
+  Superpower's Type III sums of squares (afex's default), as SPSS and
+  jamovi do; the exact method and the smallest detectable effect are
+  refused, because `ANOVA_exact()` takes equal cells only. The check run
+  reads the means and SDs back from an equal-cell data set (the sizes
+  don't change them), and the simulated data download keeps each cell's
+  own size rather than `ANOVA_design()`'s largest one [powerkit,
+  `engine/R/backend-superpower.R`, `engine/R/simulated-data.R`]. A mixed
+  design with unequal groups is still refused (`cell_ratio` applies to
+  `2x2_between` only) and reaches the safety net in the app. Equal cells
+  are unchanged: one per-cell `n`, `ANOVA_exact()` by default.
+- **Validation (decision N3):** the independent reference is pwrss's
+  `power.f.ancova.shieh()` with one covariate that explains nothing
+  (`r.squared = 0`; pwrss requires at least one covariate), which differs
+  from the ANOVA by one error degree of freedom. With means 20, 18, 30 and
+  24, SD 8 and cells of 100, 100, 50 and 50, Superpower gave 53.6% for the
+  interaction (2,000 simulations) and Shieh's formula 52.8%; balanced
+  cells of 100 would give more, so the unequal sizes are used
+  (`test-backend-anova-unequal.R`; at 10,000 replications in
+  `test-validation-anova-unequal.R`).
 
 ### Rank correlations and the Pitman-Morgan test (from 29 October 2026, 0.22.0)
 

@@ -1,5 +1,17 @@
 # powerkit 0.23.0
 
+* Unequal group sizes in a 2 x 2 between-participants ANOVA:
+  `options$cell_ratio`, the relative size of each cell (two rows of two
+  positive whole numbers), for template `2x2_between`. `goal$n` is split
+  in that ratio and must give whole cells. Power is simulated with
+  Superpower's `ANOVA_power()` and one n per cell (Type III sums of
+  squares); the exact method and sensitivity analysis are refused, since
+  `ANOVA_exact()` takes equal cells only, and `cell_ratio` is refused for
+  any other template. Checked against pwrss's `power.f.ancova.shieh()`
+  with one covariate that explains nothing. Recruitment, exported scripts
+  and the simulated data download use the unequal cells. In the app, the
+  unequal-groups card (E22) now calculates; a mixed design with unequal
+  groups goes to the safety net.
 * Technical details: `run_spec()` results have `details`, the test's
   statistic, degrees of freedom, critical value(s) and noncentrality at
   the n analysed, read from the backend package's own output (pwrss's

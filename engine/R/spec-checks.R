@@ -27,6 +27,7 @@ population_problems <- function(spec) {
     check_labels(spec),
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
+    check_cell_ratio_allowed(spec),
     check_method_allowed(spec),
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
@@ -102,13 +103,55 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) &&
+  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !identical(spec$template, "paired_variances") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
       identical(spec$target_test$method, "welch_t")
   )
+}
+
+# A 2 x 2 between-participants ANOVA with unequal cells (options >
+# cell_ratio): Superpower's ANOVA_exact() takes equal cells only, so these
+# are simulated with ANOVA_power() (docs/conventions.md, "Superpower and
+# unequal group sizes").
+unequal_cells <- function(spec) {
+  !is.null(spec$options$cell_ratio)
+}
+
+# The relative cell sizes in Superpower's order (a1_b1, a1_b2, a2_b1,
+# a2_b2): the spec's rows read in turn.
+cell_ratio_vector <- function(spec) {
+  as.numeric(unlist(spec$options$cell_ratio))
+}
+
+check_cell_ratio_allowed <- function(spec) {
+  if (!unequal_cells(spec)) {
+    return(character())
+  }
+  if (!identical(spec$template, "2x2_between")) {
+    return(paste0(
+      "'options > cell_ratio' only applies to the 2 x 2 between-participants ",
+      "ANOVA (template 2x2_between): Superpower can simulate unequal groups ",
+      "only when every factor is between participants. Remove it."
+    ))
+  }
+  if (identical(spec$goal$type, "sensitivity")) {
+    return(paste0(
+      "The smallest detectable effect isn't available with unequal cells: it ",
+      "uses Superpower's exact method, which takes equal cells only. Use goal ",
+      "type 'power' or 'sample_size'."
+    ))
+  }
+  if (identical(spec$options$method, "exact")) {
+    return(paste0(
+      "'options > method' 'exact' isn't available with unequal cells: ",
+      "Superpower's exact method takes equal cells only, so power is ",
+      "simulated. Remove 'options > method'."
+    ))
+  }
+  character()
 }
 
 # Tests with no simulation in powerkit yet: they are computed by formula
@@ -278,7 +321,8 @@ check_method_allowed <- function(spec) {
       "its power is calculated by formula. Remove 'options > method'."
     ))
   }
-  if (!identical(spec$options$method, "exact") || exact_available(spec)) {
+  # Unequal cells: check_cell_ratio_allowed() explains.
+  if (!identical(spec$options$method, "exact") || exact_available(spec) || unequal_cells(spec)) {
     return(character())
   }
   if (spower_only(spec)) {
@@ -1496,7 +1540,13 @@ minimum_n <- function(spec) {
     ),
     factorial_anova = switch(
       spec$template,
-      "2x2_between" = 8,
+      # Two participants in the smallest cell.
+      "2x2_between" = if (unequal_cells(spec)) {
+        w <- cell_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      } else {
+        8
+      },
       "2x2_mixed" = 4,
       # Two participants per between-participants group.
       mixed = 2 * length(spec$variables$A$levels),
@@ -1561,6 +1611,13 @@ minimum_n <- function(spec) {
 
 group_split <- function(spec) {
   whole <- function(x) abs(x - round(x)) < 1e-9
+  if (spec$template == "2x2_between" && unequal_cells(spec)) {
+    w <- cell_ratio_vector(spec)
+    return(list(
+      rule = sprintf("split into 4 whole cells in the ratio %s", paste(format_number(w), collapse = " : ")),
+      valid = function(n) all(whole(n * w / sum(w)))
+    ))
+  }
   if (spec$template == "2x2_between") {
     return(list(rule = "split into 4 equal cells for a 2x2 between-participants design", valid = function(n) n %% 4 == 0))
   }
