@@ -1,3 +1,26 @@
+# powerkit 0.20.1
+
+* The package description (`DESCRIPTION`), `CITATION.cff` and the README
+  now name every backend powerkit calls (pwrss, powertools, TOSTER,
+  semPower and bfpwr were missing) and every family of designs it runs.
+  The README's status table, which still listed only the first seven
+  designs, now groups everything that runs by family and package.
+* `_dependencies.R` declares bfpwr, TOSTER and psych, which the engine
+  imports, and pkgload, which the app uses to load the engine from source.
+  `scripts/setup-cloud-session-apt.sh` installs exactly this list, so
+  without them the engine couldn't be installed on that route. A test in
+  the app's suite (`test-repo-consistency.R`) now checks that every
+  package the engine imports is declared there.
+* In the app, when the engine isn't available, the input screen now says
+  how to get it (start with `run_powerkit.R`, or use the online app)
+  instead of only that it is missing; `run_routing_prototype.R` warns at
+  start-up when the engine can't be loaded. The "How you adjusted it"
+  field for an effect from a previous study now asks for the reason when
+  the effect was kept as published.
+* Documentation: the app's READMEs and header comments no longer say the
+  app calculates nothing, and five relative links in `docs/archive/` that
+  broke when those pages moved there now resolve.
+
 # powerkit 0.20.0
 
 * Bayes factor t-tests (one sample, paired, two groups): templates

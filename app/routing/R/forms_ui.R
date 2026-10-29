@@ -146,7 +146,9 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
   if (identical(check$status, "unavailable")) {
     return(div(class = "form-problems", role = "status", tabindex = "-1",
       h3(class = "h5", "The spec is complete, but it couldn't be checked here"),
-      p("Checking needs powerkit's engine, which isn't installed where this prototype is running.")))
+      p("Checking and calculating need powerkit's engine, which isn't installed where this prototype is running. ",
+        "To install it with everything it needs, start powerkit with run_powerkit.R instead ",
+        "(the steps are in docs/run-it-yourself.md), or use the online app.")))
   }
   if (identical(check$status, "problems")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",

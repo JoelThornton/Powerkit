@@ -1,10 +1,10 @@
-# powerkit routing prototype: a clickable version of docs/decision-tree.md.
+# powerkit app: the design finder (docs/decision-tree.md), the input
+# screens and the results.
 #
-# ROUTING ONLY: it shows which analysis a study needs, and calculates
-# nothing; the maths is wired in at build phase 5. Everything it shows comes
-# from tree.yaml in this folder. The input screens (forms.yaml) build a design
-# spec and check it with the engine's validate_spec(), read-only; no power
-# calculation is run.
+# The routes and cards come from tree.yaml in this folder, the input screens
+# from forms.yaml. The app never computes power itself: an input screen
+# builds a design spec, checks it with the engine's validate_spec() and
+# passes it to the engine's run_spec() (R/results.R, R/simulations.R).
 #
 # Run: source("run_routing_prototype.R") from the project folder, or open
 # this file in RStudio and click "Run App". See docs/routing-prototype.md.

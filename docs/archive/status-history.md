@@ -134,7 +134,7 @@
   [`validation-log.md`](../validation-log.md).
 - **G\*Power screenshots checked (17 October 2026; docs only).** The
   maintainer's G\*Power 3.1.9.7 screenshots are in
-  [`figures/gpower/`](figures/gpower/) and recorded in
+  [`figures/gpower/`](../figures/gpower/) and recorded in
   [`gpower-parity.md`](../gpower-parity.md). E5: G\*Power's z test equals
   base R's `power.prop.test(strict = TRUE)` to seven decimals, so the E5
   switch can go ahead once the maintainer says yes. E8: Superpower's
@@ -563,7 +563,7 @@
   [`design-finder.md`](../design-finder.md), whose status labels are now up
   to date. The flowcharts, including a single full chart for
   presentations, are rendered in
-  [`figures/decision-tree/`](figures/decision-tree/).
+  [`figures/decision-tree/`](../figures/decision-tree/).
   Section 4 proposes how to handle studies with several hypotheses: an
   optional guided "plan my whole study" route (variables defined once,
   one card per analysis, the combined N for the primary analyses, and

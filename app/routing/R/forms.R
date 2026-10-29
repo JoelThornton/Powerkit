@@ -243,7 +243,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
            help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
            type = "text", path = "effect_justification.source", optional = TRUE),
-      list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias.",
+      list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias. If you kept it as published, say so and why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
            shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
     ), safeguard_fields(form$base$template))),

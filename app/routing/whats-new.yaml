@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-29"
+    title: "Clearer help when something is missing"
+    text: >-
+      If you run powerkit on your own computer and its calculation engine
+      isn't installed, the input screen now tells you how to get it rather
+      than only that it is missing. When your effect size comes from a
+      previous study and you kept it as published, the screen now asks you
+      to say why, so the write-up records it.
   - date: "2026-10-28"
     title: "Planning a Bayes factor t-test"
     text: >-
