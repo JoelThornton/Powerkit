@@ -54,6 +54,7 @@ superpower_backend <- function(spec, seed = NULL) {
     exact_min_n = exact_min_n,
     exact_power = function(n) exact_at(n)$power,
     bracket_power = function(n) exact_at(n)$power,
+    manova_power = function(n) exact_at(n)$manova_power,
     simulate = function(n, nrep, seed, cores) {
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
@@ -188,7 +189,60 @@ superpower_exact <- function(design, inputs, seed = NULL) {
     Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, verbose = FALSE)
   ))
   row <- result$main_results[inputs$effect, ]
-  list(power = row$power / 100, cohen_f = row$cohen_f)
+  # The MANOVA approach (Pillai's trace), which doesn't assume sphericity:
+  # ANOVA_exact() reports it for designs with a within factor.
+  manova <- result$manova_results
+  manova_power <- if (!is.null(manova) && inputs$effect %in% rownames(manova)) manova[inputs$effect, "power"] / 100 else NA_real_
+  list(power = row$power / 100, cohen_f = row$cohen_f, manova_power = manova_power)
+}
+
+# Whether the MANOVA approach differs from the univariate F for the target
+# effect: it involves a within factor with three or more levels (with two,
+# sphericity can't fail and the two tests agree).
+manova_applies <- function(spec) {
+  if (!identical(spec$design, "factorial_anova")) {
+    return(FALSE)
+  }
+  effect <- spec$target_test$effect %||% ""
+  factors <- if (identical(effect, "interaction")) {
+    c("A", "B")
+  } else if (startsWith(effect, "main_effect_")) {
+    sub("^main_effect_", "", effect)
+  } else if (startsWith(effect, "interaction_")) {
+    strsplit(sub("^interaction_", "", effect), "")[[1]]
+  } else {
+    character()
+  }
+  any(vapply(factors, function(f) {
+    v <- spec$variables[[f]]
+    identical(v$type, "within_factor") && length(v$levels) >= 3
+  }, logical(1)))
+}
+
+#' The MANOVA approach to a repeated-measures effect
+#'
+#' For a factorial ANOVA whose target effect involves a within-participants
+#' factor with three or more levels, computed exactly: the power of the
+#' MANOVA approach (Pillai's trace), which doesn't assume sphericity, from
+#' the same `Superpower::ANOVA_exact()` run as the univariate F.
+#'
+#' @param spec A validated spec.
+#' @param backend The backend [run_spec()] used.
+#' @param method The method used ("exact" or "simulation").
+#' @param n The total number of participants analysed.
+#'
+#' @return `NULL` when it doesn't apply; otherwise a list with `power` (the
+#'   MANOVA approach's power at `n`) and `n`.
+#' @keywords internal
+manova_summary <- function(spec, backend, method, n) {
+  if (!identical(method, "exact") || is.null(backend$manova_power) || !manova_applies(spec) || is.null(n) || is.na(n)) {
+    return(NULL)
+  }
+  power <- backend$manova_power(n)
+  if (is.na(power)) {
+    return(NULL)
+  }
+  list(power = power, n = n)
 }
 
 # Sensitivity: keep the shape of the specified pattern of cell means and

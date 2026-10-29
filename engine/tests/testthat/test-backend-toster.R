@@ -105,3 +105,53 @@ test_that("the exported script reproduces each equivalence result", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, label = name)
   }
 })
+
+# A correlation and two proportions: TOSTER's z tests.
+
+tz_spec <- function(name, goal, ...) {
+  spec <- tost_spec(name, goal = goal)
+  spec$population <- utils::modifyList(spec$population, list(...))
+  spec
+}
+
+test_that("the equivalence of a correlation or two proportions gives TOSTER's power", {
+  spec <- tz_spec("tost_correlation", list(type = "power", n = 150), r = 0.05)
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "TOSTER::power_z_cor")
+  direct <- TOSTER::power_z_cor(n = 150, rho = 0.05, null = 0.2, alpha = 0.05, alternative = "equivalence")$power
+  expect_equal(result$curve$power, direct)
+  expect_true(all(result$check_run$ok))
+
+  spec <- tz_spec("tost_two_proportions", list(type = "power", n = 400), p2 = 0.65)
+  result <- run_spec(spec)
+  expect_equal(result$provenance$backend_function, "TOSTER::power_twoprop")
+  direct <- TOSTER::power_twoprop(p1 = 0.6, p2 = 0.65, n = 200, null = 0.1, alpha = 0.05, alternative = "equivalence")$power
+  expect_equal(result$curve$power, direct)
+  expect_true(all(result$check_run$ok))
+})
+
+test_that("the required n agrees with TOSTER's own, in whole people and equal groups", {
+  n <- run_spec(tost_spec("tost_correlation", goal = list(type = "sample_size", power = 0.8)))$n_required$n
+  expect_equal(n, ceiling(TOSTER::power_z_cor(rho = 0, null = 0.2, alpha = 0.05, power = 0.8, alternative = "equivalence")$n))
+  n <- run_spec(tost_spec("tost_two_proportions", goal = list(type = "sample_size", power = 0.8)))$n_required$n
+  per_group <- TOSTER::power_twoprop(p1 = 0.6, p2 = 0.6, null = 0.1, alpha = 0.05, power = 0.8, alternative = "equivalence")$n
+  expect_equal(n, 2 * ceiling(per_group))
+})
+
+test_that("an expected effect outside the bound is refused for these too", {
+  goal <- list(type = "sample_size", power = 0.8)
+  expect_spec_problem(tz_spec("tost_correlation", goal, r = 0.3), "larger than")
+  expect_spec_problem(tz_spec("tost_two_proportions", goal, p2 = 0.75), "larger than")
+  spec <- tost_spec("tost_two_proportions", goal = list(type = "power", n = 400))
+  spec$options$allocation_ratio <- 2
+  expect_spec_problem(spec, "only applies to two-group designs")
+})
+
+test_that("the exported script reproduces the correlation and proportions results", {
+  for (name in c("tost_correlation", "tost_two_proportions")) {
+    spec <- tost_spec(name, goal = list(type = "sample_size", power = 0.9))
+    result <- run_spec(spec)
+    out <- run_exported_script(spec, result)
+    expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, info = name)
+  }
+})

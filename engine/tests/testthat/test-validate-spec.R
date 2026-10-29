@@ -43,7 +43,7 @@ test_that("there is an example for every template", {
     # Generic tests (engine only).
     "t", "f", "chi_square", "z",
     # Equivalence tests (TOST).
-    "tost_independent", "tost_paired", "tost_one_sample"
+    "tost_independent", "tost_paired", "tost_one_sample", "tost_correlation", "tost_two_proportions"
   ))
 })
 

@@ -91,6 +91,16 @@ spower_inputs <- function(spec) {
         )
       }
     ),
+    # Welch's one-way ANOVA: p_anova.test() runs stats::oneway.test() with
+    # var.equal = FALSE, on groups of equal size drawn with each group's
+    # mean and SD.
+    oneway_between = list(
+      experiment = "p_anova.test", generator = "gen_anova.test",
+      args = function(n) {
+        k <- length(spec$variables$A$levels)
+        list(n = n / k, k = k, means = as.numeric(unlist(pop$means)), sds = welch_sds(spec), var.equal = FALSE)
+      }
+    ),
     chi_square_independence = list(
       experiment = "p_chisq.test", generator = "gen_chisq.test",
       args = function(n) list(n = n, P = probability_matrix(spec), correct = FALSE)
@@ -120,6 +130,8 @@ spower_inputs <- function(spec) {
   test$alternative <- alternative
   test$description <- if (rank_test(spec)) {
     rank_test_description(test, template, alternative)
+  } else if (welch_anova(spec)) {
+    "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
   } else if (alternative == "two_sided") {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
   } else {
@@ -208,6 +220,12 @@ rank_test_description <- function(test, template, alternative) {
     if (alternative != "two_sided") sprintf("alternative = \"%s\"", spower_alternative(template, alternative))
   )
   sprintf("Spower::Spower(Spower::%s(%s))", test$experiment, paste(arguments, collapse = ", "))
+}
+
+# Each group's SD for Welch's F: population > sds, or sd in every group.
+welch_sds <- function(spec) {
+  pop <- spec$population
+  if (is.null(pop$sds)) rep(pop$sd, length(spec$variables$A$levels)) else as.numeric(unlist(pop$sds))
 }
 
 probability_matrix <- function(spec) {
@@ -331,6 +349,20 @@ spower_check_run <- function(spec, inputs, n, seed) {
       v <- stats::var(data$DV)
       check_run_rows(
         "variance of Y", pop$var, v, pop$var * sqrt(2 / (nrow(data) - 1))
+      )
+    },
+    # Welch's F: each group's mean and SD, in the means' units.
+    oneway_between = {
+      by_group <- split(data$DV, data$group)
+      means <- as.numeric(unlist(pop$means))
+      sds <- welch_sds(spec)
+      sizes <- unname(lengths(by_group))
+      k <- length(means)
+      rbind(
+        check_run_rows(paste("mean of group", seq_len(k)), means,
+          vapply(by_group, mean, numeric(1), USE.NAMES = FALSE), sds / sqrt(sizes)),
+        check_run_rows(paste("SD of group", seq_len(k)), sds,
+          vapply(by_group, stats::sd, numeric(1), USE.NAMES = FALSE), sds / sqrt(2 * (sizes - 1)))
       )
     },
     two_variances = {

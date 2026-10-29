@@ -243,8 +243,9 @@ design_description <- function(spec) {
       label("Y"), comment_text(unlist(v$Y$levels)[2]), label("X"), levels("X")
     ),
     "factorial_anova/oneway_between" = sprintf(
-      "one-way between-participants ANOVA of %s across the %d groups of %s (%s); omnibus F test",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "one-way between-participants ANOVA of %s across the %d groups of %s (%s); %s",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      if (welch_anova(spec)) "Welch's F test (variances not assumed equal)" else "omnibus F test"
     ),
     "factorial_anova/oneway_within" = sprintf(
       "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
@@ -281,6 +282,13 @@ design_description <- function(spec) {
     ),
     "equivalence_test/tost_one_sample" = sprintf(
       "equivalence test (two one-sided one-sample t-tests, TOST) of %s against a fixed value", label("Y")
+    ),
+    "equivalence_test/tost_correlation" = sprintf(
+      "equivalence test (two one-sided z tests on Fisher's z, TOST) of the correlation between %s and %s", label("X"), label("Y")
+    ),
+    "equivalence_test/tost_two_proportions" = sprintf(
+      "equivalence test (two one-sided z tests, TOST) of the difference in %s between the groups of %s (%s)",
+      label("Y"), label("X"), levels("X")
     ),
     "cluster_trial/cluster_randomised" = sprintf(
       "cluster-randomised trial: %s compared between the conditions of %s (%s), whole groups of %s assigned to each; %s",
@@ -608,7 +616,8 @@ add_recruitment_section <- function(lines, spec, result) {
       sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
       "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
     ),
-    two_variances = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    two_variances = ,
+    tost_two_proportions = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     cluster_randomised = ,
     multisite = c(
       sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),
@@ -992,6 +1001,13 @@ spower_script_inputs <- function(spec) {
     "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
     r_code(ratio), lv("X", 2), lv("X", 1)
   )
+  if (welch_anova(spec)) {
+    groups <- paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    return(c(
+      sprintf("means <- %s # mean of %s in each group (%s)", r_code(as.numeric(unlist(pop$means))), comment_text(v$Y$label), groups),
+      sprintf("sds <- %s # SD in each group, in the same units", r_code(welch_sds(spec)))
+    ))
+  }
   switch(
     spec$template,
     one_sample_t = sprintf(
@@ -1037,7 +1053,7 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
-  if (rank_test(spec) && spec$template == "oneway_between") {
+  if (spec$template == "oneway_between") {
     return(c(
       "  # Spower's n is the size of each group; the groups are equal.",
       "  n_group <- batch_n / length(means)"
@@ -1067,6 +1083,13 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
   welch <- identical(spec$target_test$method, "welch_t")
   args <- switch(
     spec$template,
+    oneway_between = c(
+      "n = n_group, # size of each group",
+      "k = length(means), # number of groups",
+      "means = means,",
+      "sds = sds,",
+      "var.equal = FALSE # Welch's F test (stats::oneway.test())"
+    ),
     one_sample_t = c(
       "n = batch_n, # sample size",
       "d = d, # Cohen's d",

@@ -43,6 +43,10 @@ sample size;
 the RMSEA, the model's degrees of freedom and, for a CFA, its
 items, factors and lavaan model; for the other templates, the
 restriction's degrees of freedom;
+\item \code{manova}: \code{NULL} unless the design is a factorial ANOVA computed
+exactly whose target effect involves a within-participants factor
+with three or more levels; otherwise the MANOVA approach's power at
+the n analysed (\code{power}, \code{n}), from the same Superpower run;
 \item \code{recruitment}: \code{NA} unless \code{options > attrition} is above 0;
 otherwise a list with the \code{attrition}, \code{n_analysed} (the required n,
 or the goal's n) and its \code{groups_analysed}, and \code{n_recruit} and

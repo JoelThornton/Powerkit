@@ -1,0 +1,41 @@
+{
+  "spec_version": "0.1",
+  "design": "equivalence_test",
+  "template": "tost_two_proportions",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Reminder",
+      "levels": [
+        "Letter",
+        "Text message"
+      ]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Attended"
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.6,
+    "p2": 0.6,
+    "bound": 0.1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a difference in attendance of less than 10 percentage points would not matter."
+  },
+  "target_test": {
+    "effect": "proportion_difference",
+    "method": "tost",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261029
+  }
+}

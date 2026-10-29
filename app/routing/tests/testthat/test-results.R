@@ -740,6 +740,71 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
   expect_false("skewed" %in% names(shape$choices))
 })
 
+test_that("Welch's F (E18's test version) is simulated with Spower from each group's SD", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", sds = "4, 6, 9", sd = NULL, method = NULL))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_equal(unlist(spec$population$sds), c(4, 6, 9))
+  expect_null(spec$population[["sd"]])
+  expect_null(spec$options$method)
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))")
+  expect_true(all(calc$result$check_run$ok))
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_no_match(html, "exact dataset is built", fixed = TRUE) # Departure 3
+  w <- writeup_text(forms$forms$E18, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "Welch's one-way ANOVA", fixed = TRUE)
+  # Each group's SD is asked only for Welch's F; the F test keeps one SD.
+  sds <- Filter(function(f) identical(f$id, "sds"), fields)[[1]]
+  expect_false(field_applies(sds, form_examples$E18))
+})
+
+test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER's z tests, in its own words", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E36"))
+  expected <- list(
+    tost_correlation = c("TOSTER::power_z_cor", "show that the true correlation lies inside", "r = \u00b10.2", "of a correlation"),
+    tost_two_proportions = c("TOSTER::power_twoprop", "show that the true difference lies inside", "p2 \u2212 p1 = \u00b10.1", "of two independent proportions")
+  )
+  for (name in names(expected)) {
+    values <- tost_z_examples[[name]]
+    expect_equal(form_problems(fields, values), character(), info = name)
+    spec <- build_spec(forms, "E36", fields, values)
+    expect_identical(spec$template, name)
+    calc <- run_calculation(spec, run, seed = 1L)
+    expect_identical(calc$result$provenance$backend_function, expected[[name]][1], info = name)
+    words <- result_sentences(calc$spec, calc$result)
+    expect_match(words[["headline"]], expected[[name]][2], fixed = TRUE, info = name)
+    expect_match(words[["headline"]], expected[[name]][3], fixed = TRUE, info = name)
+    w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
+    expect_match(w[["short"]], expected[[name]][4], fixed = TRUE, info = name)
+  }
+  # Two equal groups.
+  spec <- build_spec(forms, "E36", fields, tost_z_examples$tost_two_proportions)
+  result <- run_calculation(spec, run, seed = 1L)$result
+  expect_match(result_sentences(spec, result)[["headline"]], sprintf("(%s per group)", result$n_required$n / 2), fixed = TRUE)
+})
+
+test_that("repeated measures with three or more conditions show the MANOVA approach beside the univariate F", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E54"))
+  spec <- build_spec(forms, "E54", fields, form_examples$E54)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_false(is.null(calc$result$manova))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "The MANOVA approach, which doesn't, has", fixed = TRUE)
+  w <- writeup_text(forms$forms$E54, calc$spec, calc$result, fields, form_examples$E54)
+  expect_match(w[["full"]], "the MANOVA approach (Pillai's trace)", fixed = TRUE)
+  # A between-participants design has no MANOVA sentence.
+  spec <- build_spec(forms, "E18", form_fields(form_groups(forms, "E18")), form_examples$E18)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_no_match(result_sentences(calc$spec, calc$result)[["detail"]], "MANOVA", fixed = TRUE)
+})
+
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
   skip_without_run()
   for (ep in c("E1", "E2", "E3")) {

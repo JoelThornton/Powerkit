@@ -111,3 +111,11 @@ sem_examples <- list(
   latent_regression = c(list(question = "latent_regression", slopes = "0.2, 0.3", tested = "1",
                              predictor_correlation = "0.3", lr_indicators = "4", lr_loading = "0.6"), closing_ok)
 )
+
+# E36's correlation and proportions comparisons (TOSTER's z tests).
+tost_z_examples <- list(
+  tost_correlation = c(list(comparison = "tost_correlation", cor_X_label = "Screen time", cor_Y_label = "Loneliness",
+                            cor_bound = "0.2", cor_r = "0"), closing_ok),
+  tost_two_proportions = c(list(comparison = "tost_two_proportions", X_label = "Reminder", X_level1 = "Letter",
+                                X_level2 = "Text", Y_label = "Attended", prop_bound = "0.1", p1 = "0.6", p2 = "0.6"), closing_ok)
+)

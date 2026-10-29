@@ -71,12 +71,12 @@ The ones that run, and the package each one uses:
 | t-tests | one sample, paired, two groups (Student's or Welch's), with the rank-based and Bayes factor versions | pwr, pwrss, Spower, bfpwr |
 | Correlations and proportions | Pearson's r; two independent or two dependent correlations; one or two proportions, Fisher's exact test, McNemar's test; chi-square tests of independence and goodness of fit | pwr, pwrss |
 | Variances | one variance against a value, two groups' variances | Spower (simulation) |
-| ANOVA | one-way (between or within), 2 x 2 and larger factorial designs (between, within or mixed), three factors, planned contrasts, ANCOVA | Superpower, pwrss |
+| ANOVA | one-way (between or within; Welch's F and the Kruskal-Wallis test as options), 2 x 2 and larger factorial designs (between, within or mixed, with the MANOVA approach beside the F), three factors, planned contrasts, ANCOVA | Superpower, pwrss, Spower |
 | Regression | multiple regression R², logistic and Poisson regression, interactions between two scores | pwrss, InteractionPoweR |
 | Mediation | simple, parallel and serial mediation; first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14) | power4mome (simulation) |
 | Clustered designs | cluster-randomised and multisite trials, score or yes/no outcome | powertools |
-| Equivalence | two groups, paired, one sample (TOST) | TOSTER |
-| Structural equation models | model fit (RMSEA) | semPower |
+| Equivalence | two groups, paired, one sample, a correlation, two proportions (TOST) | TOSTER |
+| Structural equation models | model fit (RMSEA), measurement invariance, factor correlations, latent regression | semPower |
 | Generic tests | t, F, chi-square and z from a noncentrality parameter | pwrss |
 
 What "validated" means is defined at the top of the
@@ -89,7 +89,7 @@ two proportions, the chi-square test of independence, the 2 x 2 ANOVAs,
 regression interactions and clustered designs it can also find the
 smallest effect you could detect at a given sample size. Power is computed
 by formula where one exists, and by simulation otherwise (mediation, the
-variance tests and the rank-based tests) or on request.
+variance tests, the rank-based tests and Welch's F) or on request.
 
 ## Try the app (no R experience needed)
 

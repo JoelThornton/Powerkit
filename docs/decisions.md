@@ -3418,3 +3418,23 @@ with several factors or more than two groups, and the test of close fit:
 the maintainer chose to leave close fit out for now (29 October 2026),
 since semPower doesn't compute it.
 
+## 2026-10-29 · Welch's ANOVA, equivalence for correlations and proportions, and the MANOVA approach
+
+**Decisions (maintainer, 29 October 2026).** Three queue items, each
+with the recommended option:
+
+- **Welch's one-way ANOVA** is a test version on the one-way ANOVA card
+  (E18), simulated with Spower's `p_anova.test(var.equal = FALSE)`; the
+  classic F stays the default, so nothing changes for users who don't
+  choose it. No package powerkit uses has a formula for Welch's F.
+- **Equivalence** next covers a correlation and two proportions, with
+  TOSTER's own `power_z_cor()` and `power_twoprop()`. Non-inferiority
+  waits for a method (`next.md`).
+- **Repeated measures** show the MANOVA approach's power beside the
+  univariate F, from Superpower's output; the univariate F stays the
+  headline.
+
+**Why.** Each follows an established tool's default by default and
+offers the alternative the literature recommends where assumptions are
+doubtful (unequal variances; sphericity), recorded in `conventions.md`.
+

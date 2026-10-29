@@ -739,11 +739,15 @@ forms:
           - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
-      - input: "The ANOVA or the Kruskal-Wallis test"
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: test_version, is_not: welch_f}}
+          - {id: sds, writeup_label: "group SDs", label: "SDs: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.sds, effect: true,
+             shown_if: {field: test_version, is: welch_f},
+             help: "In the same units as the means. Welch's F doesn't assume the groups vary equally."}
+      - input: "The ANOVA, Welch's F or the Kruskal-Wallis test"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "One-way ANOVA (F test)", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated"},
+             choices: {anova_f: "One-way ANOVA (F test)", welch_f: "Welch's F test (the groups' SDs may differ), simulated", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated"},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: kruskal_wallis},
@@ -1098,7 +1102,8 @@ forms:
   E36:
     # Equivalence tests: two one-sided tests (TOST) by TOSTER's exact
     # formula. One screen for the three comparisons TOSTER's power_t_TOST()
-    # covers; the comparison sets the template.
+    # covers, and for a correlation (power_z_cor()) and two proportions
+    # (power_twoprop()); the comparison sets the template.
     methods_name: "an equivalence test (two one-sided tests, TOST)"
     sides: false
     tool: TOSTER
@@ -1112,57 +1117,82 @@ forms:
           - {id: comparison, label: "What you are comparing", type: select, path: template, required: true,
              choices: {tost_independent: "Two groups of different people",
                        tost_paired: "The same people measured twice (or in two conditions)",
-                       tost_one_sample: "One group's mean against a fixed value"},
+                       tost_one_sample: "One group's mean against a fixed value",
+                       tost_correlation: "A correlation between two things you measure",
+                       tost_two_proportions: "Two groups' proportions (a yes/no outcome)"},
              sets: {tost_independent: [{path: variables.X.type, value: binary}, {path: target_test.effect, value: mean_difference}],
                     tost_paired: [{path: variables.X.type, value: within_factor}, {path: target_test.effect, value: mean_difference}],
-                    tost_one_sample: [{path: target_test.effect, value: mean}]}}
+                    tost_one_sample: [{path: target_test.effect, value: mean}],
+                    tost_correlation: [{path: variables.X.type, value: continuous}, {path: population.metric, value: r}, {path: target_test.effect, value: correlation}],
+                    tost_two_proportions: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: population.metric, value: proportion}, {path: target_test.effect, value: proportion_difference}]}}
           - {id: X_label, label: "What the groups or conditions are (for example, condition)", type: text, path: variables.X.label, required: true,
-             shown_if: {field: comparison, is_not: tost_one_sample}}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
           - {id: X_level1, label: "First group or condition", type: text, path: variables.X.levels.1, required: true,
-             shown_if: {field: comparison, is_not: tost_one_sample}}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
           - {id: X_level2, label: "Second group or condition", type: text, path: variables.X.levels.2, required: true,
-             shown_if: {field: comparison, is_not: tost_one_sample}}
-          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_two_proportions]}}
+          - {id: cor_X_label, label: "First variable", type: text, path: variables.X.label, required: true,
+             shown_if: {field: comparison, is: tost_correlation}}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true,
+             shown_if: {field: comparison, is_not: tost_correlation}}
+          - {id: cor_Y_label, label: "Second variable", type: text, path: variables.Y.label, required: true,
+             shown_if: {field: comparison, is: tost_correlation}}
       - input: "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units"
+        shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}
         note: "The bound is the smallest difference that would matter: a true difference between minus and plus the bound counts as too small to matter. The expected difference is what you think the true difference is; 0 (no difference at all) is the most optimistic case, and the closer it is to the bound, the more people you need."
         fields:
           - {id: effect_units, label: "How you'll give the bound and the difference", type: select, path: population.metric,
              choices: {standardised: "As Cohen's d (d_z for the same people measured twice)", raw: "In my measure's own units: the bound, the expected means and the SD"},
-             default: standardised, default_source: "standardised units, which TOSTER's power_t_TOST() takes with sd = 1 (TOSTER 0.8.6); powerkit works them out from the means and SD if you give those"}
+             default: standardised, default_source: "standardised units, which TOSTER's power_t_TOST() takes with sd = 1 (TOSTER 0.8.6); powerkit works them out from the means and SD if you give those",
+             shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}}
           - {id: bound, label: "Equivalence bound (more than 0)", type: number, path: population.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: {field: effect_units, is_not: raw}}
+             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: d, label: "Expected true difference, as Cohen's d (0 = no difference)", type: number, path: population.d, effect: true, writeup_label: "expected Cohen's d",
-             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_not: tost_paired}]}
+             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_paired}]}
           - {id: dz, label: "Expected true difference, as d_z (0 = no difference)", type: number, path: population.dz, effect: true, writeup_label: "expected d_z",
-             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is: tost_paired}]}
+             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}]}
           - {id: raw_bound, label: "Equivalence bound, in your measure's units (more than 0)", type: number, path: population.raw.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: {field: effect_units, is: raw}}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: raw_mean, label: "Expected mean", type: number, path: population.raw.mean, effect: true, writeup_label: "expected mean",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_one_sample}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_one_sample}]}
           - {id: raw_test_value, label: "The fixed value it is compared with", type: number, path: population.raw.test_value, required: true, in_effect_text: true, writeup_label: "fixed value",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_one_sample}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_one_sample}]}
           - {id: raw_mean_1, label: "Expected mean, first group or condition", type: number, path: population.raw.mean_1, effect: true, writeup_label: "first mean",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_not: tost_one_sample}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_one_sample}]}
           - {id: raw_mean_2, label: "Expected mean, second group or condition", type: number, path: population.raw.mean_2, effect: true, writeup_label: "second mean",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_not: tost_one_sample}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_one_sample}]}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure (within a group)", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_not: tost_paired}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_paired}]}
           - {id: raw_sd_kind, label: "Which SD you know", type: select,
              choices: {difference: "The SD of people's changes (second minus first)", each: "The SD of the measure, and how strongly the two measurements correlate"},
              default: each, default_source: "the values researchers usually have from earlier studies (the SD of the measure and the test-retest correlation)",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_paired}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}]}
           - {id: raw_sd_difference, label: "SD of people's changes (second minus first)", type: number, path: population.raw.sd_difference, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD of the differences",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is: difference}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is: difference}]}
           - {id: raw_sd_paired, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is_not: difference}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is_not: difference}]}
           - {id: raw_r, label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is_not: difference}]}
+             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}, {field: raw_sd_kind, is_not: difference}]}
       - input: "For two groups: the size of group 2 relative to group 1 (1 = equal)"
         shown_if: {field: comparison, is: tost_independent}
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in TOSTER's power_t_TOST() (one n for both groups, TOSTER 0.8.6)",
              shown_if: {field: comparison, is: tost_independent}}
+      - input: "For a correlation or two proportions: the equivalence bound and the value you expect"
+        shown_if: {field: comparison, is_one_of: [tost_correlation, tost_two_proportions]}
+        note: "The bound is the smallest difference that would matter; the expected value is what you think the truth is. The closer it is to the bound, the more people you need."
+        fields:
+          - {id: cor_bound, label: "Equivalence bound, as a correlation (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±r)",
+             shown_if: {field: comparison, is: tost_correlation}, help: "For example 0.2: a correlation between -0.2 and 0.2 counts as too small to matter."}
+          - {id: cor_r, label: "Expected true correlation (0 = none)", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1, writeup_label: "expected correlation",
+             shown_if: {field: comparison, is: tost_correlation}}
+          - {id: prop_bound, label: "Equivalence bound, as a difference in proportions (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±)",
+             shown_if: {field: comparison, is: tost_two_proportions}, help: "For example 0.1: a difference of less than 10 percentage points either way counts as too small to matter."}
+          - {id: p1, label: "Expected proportion, first group (0 to 1)", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "first group's proportion",
+             shown_if: {field: comparison, is: tost_two_proportions}}
+          - {id: p2, label: "Expected proportion, second group (0 to 1)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "second group's proportion",
+             shown_if: {field: comparison, is: tost_two_proportions}, help: "Equal groups: TOSTER plans for the same number of people in each."}
 
   E48:
     sides: false

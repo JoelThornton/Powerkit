@@ -1539,7 +1539,8 @@
                       "anova_f",
                       "ancova_f",
                       "contrast_t",
-                      "kruskal_wallis"
+                      "kruskal_wallis",
+                      "welch_f"
                     ]
                   }
                 }
@@ -2693,8 +2694,7 @@
         "population": {
           "required": [
             "metric",
-            "means",
-            "sd"
+            "means"
           ],
           "additionalProperties": false,
           "properties": {
@@ -2717,6 +2717,15 @@
               "type": "number",
               "exclusiveMinimum": 0
             },
+            "sds": {
+              "description": "Welch's F only (target_test > method 'welch_f'): the SD of each group, in the order of the factor's levels, in the means' units. Give this or 'sd' (the same SD in every group).",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
             "score_shape": {
               "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
@@ -2725,7 +2734,19 @@
                 "heavy_tailed"
               ]
             }
-          }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "sd"
+              ]
+            },
+            {
+              "required": [
+                "sds"
+              ]
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -2735,7 +2756,8 @@
             "method": {
               "enum": [
                 "anova_f",
-                "kruskal_wallis"
+                "kruskal_wallis",
+                "welch_f"
               ]
             }
           }
@@ -5536,6 +5558,125 @@
         }
       }
     },
+    "template_tost_correlation": {
+      "description": "Equivalence (TOST) for a correlation: is the correlation between -bound and +bound? Two one-sided z tests on Fisher's z scale, by TOSTER::power_z_cor(alternative = 'equivalence') (an approximation, as for the correlation test). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r",
+            "bound"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "r"
+            },
+            "r": {
+              "description": "The expected true correlation (0 if none is expected, the most favourable case).",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "bound": {
+              "description": "The equivalence bound, as a correlation. The equivalence bound: the effect is equivalent to none when it lies between -bound and +bound. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation"
+            },
+            "method": {
+              "const": "tost"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
+    "template_tost_two_proportions": {
+      "description": "Equivalence (TOST) for two proportions: is the difference p2 - p1 between -bound and +bound? Two one-sided z tests, by TOSTER::power_twoprop(alternative = 'equivalence'). Equal groups (TOSTER takes one group size). goal > n is the total number of people, split equally.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p1",
+            "p2",
+            "bound"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p1": {
+              "description": "The expected proportion in group 1 (X's first level).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "p2": {
+              "description": "The expected proportion in group 2 (X's second level).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "bound": {
+              "description": "The equivalence bound, as a difference in proportions. The equivalence bound: the effect is equivalent to none when it lies between -bound and +bound. Above 0.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "proportion_difference"
+            },
+            "method": {
+              "const": "tost"
+            },
+            "alternative": false
+          }
+        }
+      }
+    },
     "design_equivalence_test": {
       "if": {
         "required": [
@@ -5553,7 +5694,9 @@
             "enum": [
               "tost_independent",
               "tost_paired",
-              "tost_one_sample"
+              "tost_one_sample",
+              "tost_correlation",
+              "tost_two_proportions"
             ]
           },
           "goal": {
@@ -5627,6 +5770,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_tost_one_sample"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "tost_correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_tost_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "tost_two_proportions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_tost_two_proportions"
             }
           }
         ]

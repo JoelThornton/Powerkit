@@ -26,6 +26,7 @@ population_problems <- function(spec) {
     check_allocation_allowed(spec),
     check_method_allowed(spec),
     check_score_shape_allowed(spec),
+    check_welch_sds(spec),
     check_bayes_factor(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
@@ -98,7 +99,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || !rank_test(spec) && (
+  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
@@ -118,7 +119,7 @@ simulation_available <- function(spec) {
 # maths itself (CLAUDE.md), so these are simulated with Spower. The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances") || rank_test(spec)
+  spec$template %in% c("one_variance", "two_variances") || rank_test(spec) || welch_anova(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -127,6 +128,10 @@ spower_only <- function(spec) {
 rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
 }
+
+# Welch's one-way ANOVA (unequal variances), simulated with Spower's
+# p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
+welch_anova <- function(spec) identical(spec$target_test$method, "welch_f")
 
 # Bayes factor t-tests (bfpwr, backend-bfpwr.R): bfpwr takes equal groups
 # only, and the uncertainty about the effect is an input to them alone.
@@ -147,6 +152,32 @@ check_bayes_factor <- function(spec) {
       "only (bfpwr takes one group size), so 'options > allocation_ratio' ",
       "must be 1."
     ))
+  }
+  character()
+}
+
+# Each group's SD is an input to Welch's F only, and needs one per group.
+check_welch_sds <- function(spec) {
+  sds <- spec$population$sds
+  if (welch_anova(spec) && identical(spec$population$metric, "standardised")) {
+    return(paste0(
+      "Welch's F is for groups whose SDs differ, so there is no single SD to put the means ",
+      "in units of: give the means and each group's SD in the outcome's own units (metric 'raw')."
+    ))
+  }
+  if (is.null(sds)) {
+    return(character())
+  }
+  if (!welch_anova(spec)) {
+    return(paste0(
+      "'population > sds' (an SD for each group) is only used by Welch's F ",
+      "('target_test > method' 'welch_f'); the F test assumes the same SD in every group. ",
+      "Remove it, or choose Welch's F."
+    ))
+  }
+  k <- length(spec$variables$A$levels)
+  if (length(sds) != k) {
+    return(sprintf("'population > sds' has %d SDs, but there are %d groups: give one SD for each group, in the same order.", length(sds), k))
   }
   character()
 }
@@ -353,7 +384,13 @@ check_single_predictor_x <- function(spec) {
 # reaches a target power.
 check_equivalence_test <- function(spec) {
   pop <- spec$population
-  effect <- if (identical(spec$template, "tost_paired")) pop$dz else pop$d
+  effect <- switch(
+    spec$template,
+    tost_paired = pop$dz,
+    tost_correlation = pop$r,
+    tost_two_proportions = if (!is.null(pop$p1) && !is.null(pop$p2)) pop$p2 - pop$p1,
+    pop$d
+  )
   if (is.null(effect) || is.null(pop$bound)) {
     return(character())
   }
@@ -680,7 +717,7 @@ check_probability_table <- function(spec) {
 
 check_factorial_anova <- function(spec) {
   pop <- spec$population
-  if (identical(pop$metric, "standardised") && any(unlist(pop$sd) != 1)) {
+  if (identical(pop$metric, "standardised") && any(unlist(pop[["sd"]]) != 1)) {
     return(paste0(
       "With metric 'standardised' the means are in SD units, so ",
       "'population > sd' must be 1. To use your own units, set metric to 'raw'."
@@ -1354,7 +1391,17 @@ minimum_n <- function(spec) {
     # TOSTER's power_t_TOST() needs two people per group (one in a
     # one-sample or paired design); powerkit asks for one more, as for the
     # t-tests.
-    equivalence_test = if (identical(spec$template, "tost_independent")) 4 else 3,
+    equivalence_test = switch(
+      spec$template,
+      tost_independent = 4,
+      # TOSTER's z test of a correlation uses Fisher's z, whose SE is
+      # 1 / sqrt(n - 3).
+      tost_correlation = 5,
+      # TOSTER's power_twoprop() needs four people in each of the two
+      # equal groups.
+      tost_two_proportions = 8,
+      3
+    ),
     factorial_anova = switch(
       spec$template,
       "2x2_between" = 8,
@@ -1417,6 +1464,9 @@ group_split <- function(spec) {
   }
   if (spec$template == "2x2_mixed") {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
+  }
+  if (spec$template == "tost_two_proportions") {
+    return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
   }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed")) {
     k <- length(spec$variables$A$levels)
