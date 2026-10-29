@@ -1,5 +1,24 @@
 # powerkit 0.23.0
 
+* Technical details: `run_spec()` results have `details`, the test's
+  statistic, degrees of freedom, critical value(s) and noncentrality at
+  the n analysed, read from the backend package's own output (pwrss's
+  `df`, `ncp` and `t.alpha` / `f.alpha` / `z.alpha` / `chisq.alpha`;
+  for z tests, the mean of z under the alternative; for the exact test of
+  one proportion, its critical counts and actual alpha). pwr returns
+  none, so for Student's t-tests, the two-proportions z test and the
+  chi-square test of independence pwrss's own version of the same test
+  supplies them, only when its power equals pwr's. Superpower's exact
+  ANOVAs give df (the ANOVA table) and noncentrality (`main_results`),
+  with the critical F from `stats::qf()`, kept only if they reproduce
+  Superpower's power. `NULL` for simulated results, sensitivity analyses
+  and backends that don't report them. In the app, a folded section
+  "Technical details (for checking against G*Power or R)" under "How it
+  was calculated" shows them, or says why they aren't given.
+* A simulated required sample size now reports the power reached there:
+  `n_required$power`, with `power_lower` and `power_upper`, the fitted
+  probit curve's power at the required n and its 95% interval. The app
+  shows it under the result, as it already did for exact results.
 * Factorial logistic regression: template `factorial` for design
   `logistic_regression` (A and B between-participants factors, a yes/no
   Y, and `population$probabilities`, the proportion of 'yes' in each

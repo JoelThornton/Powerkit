@@ -25,7 +25,9 @@
 #' @param cores Cores to spread replications over.
 #' @param level Confidence level for the interval around the required n.
 #'
-#' @return A list with `n_required` (list of `n`, `lower`, `upper`),
+#' @return A list with `n_required` (list of `n`, `lower`, `upper`, and
+#'   `power`, `power_lower` and `power_upper`: the fitted curve's power at
+#'   `n` and its interval),
 #'   `curve` (data frame of `n`, `power` and `mcse` at each simulated n) and
 #'   `simulations` (data frame of `n`, `seed`, `rejections`, `nrep` and
 #'   `fitted`: whether the final probit curve was fitted to that n).
@@ -162,10 +164,17 @@ n_from_curve <- function(points, target, step, level) {
     hit <- which(p >= target)
     if (length(hit) == 0) NA_real_ else candidates$n[hit[1]]
   }
+  n <- first_reaching(stats::pnorm(link$fit))
+  # The power the fitted curve gives at that n, with its interval: the
+  # power reached, which is a little above the target.
+  at <- if (is.na(n)) NULL else lapply(stats::predict(fit, data.frame(n = n), se.fit = TRUE), unname)
   list(
-    n = first_reaching(stats::pnorm(link$fit)),
+    n = n,
     lower = first_reaching(stats::pnorm(link$fit + z * link$se.fit)),
-    upper = first_reaching(stats::pnorm(link$fit - z * link$se.fit))
+    upper = first_reaching(stats::pnorm(link$fit - z * link$se.fit)),
+    power = if (is.null(at)) NA_real_ else stats::pnorm(at$fit),
+    power_lower = if (is.null(at)) NA_real_ else stats::pnorm(at$fit - z * at$se.fit),
+    power_upper = if (is.null(at)) NA_real_ else stats::pnorm(at$fit + z * at$se.fit)
   )
 }
 

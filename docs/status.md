@@ -141,6 +141,13 @@ fully validated. Validation runs are recorded in
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress. Unequal cells in a 2 x 2 ANOVA (E22)
   need a decision (`next.md`, item 3).
+- **Technical details (29 October 2026, 0.23.0):** a folded section
+  under "How it was calculated" gives the test's df, critical value and
+  noncentrality, read from pwrss (and through pwrss for pwr's t-tests,
+  two proportions and chi-square) and from Superpower's exact ANOVAs; a
+  simulated required n now shows the power reached there with its
+  interval. Other backends and the critical effect size: `next.md`,
+  item 25.
 - **Simulated data sets (29 October 2026, 0.22.0):** a CSV of one
   sample of the planned size, drawn from the population entered by the
   backend's own generator, downloadable from the results screen and

@@ -157,7 +157,9 @@
 #'     sensitivity goal;
 #'   * `n_required`: list of `n`, `lower` and `upper` (95% interval for
 #'     simulation; all equal for exact results), or `NA` unless the goal is
-#'     `sample_size`;
+#'     `sample_size`. For simulation it also has `power`, `power_lower` and
+#'     `power_upper`: the power the fitted curve gives at `n`, with its 95%
+#'     interval;
 #'   * `sensitivity`: `NA` unless the goal is `sensitivity`; otherwise a list
 #'     with the smallest detectable `effect` (with an `effect_description`)
 #'     and the `power` reached there. For 2x2 ANOVAs it also has the `scale`
@@ -192,6 +194,14 @@
 #'     `groups_recruit`: each group's analysed n divided by
 #'     (1 - attrition) and rounded up. This common heuristic ignores how
 #'     missing data will be handled (Rubin, 2025, doi:10.1002/ijop.70017);
+#'   * `details`: `NULL` for a simulated result, a sensitivity analysis or
+#'     a backend that doesn't report them; otherwise the test at the n
+#'     analysed, as the backend package reports it: its `statistic` ("t",
+#'     "F", "z", "chi-square", or "count" for an exact test of counts),
+#'     `df` (two values for F), `critical` value(s), `ncp` (noncentrality;
+#'     for a z test, the mean of z under the alternative), `actual_alpha`
+#'     (for an exact test of counts) and `source`, the function that
+#'     reported them;
 #'   * `check_run`: data frame comparing specified and recovered population
 #'     values;
 #'   * `provenance`: spec hash, method, seed, replications, cores, batch
@@ -302,6 +312,7 @@ run_spec <- function(spec) {
       sem = sem_summary(spec),
       bayes = bayes_summary(spec, n_analysed),
       manova = manova_summary(spec, backend, method, n_analysed),
+      details = test_details(backend, goal$type, simulating, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),
@@ -336,6 +347,17 @@ power_at_n <- function(backend, n, simulating, nrep, seed, cores) {
     curve = data.frame(n = n, power = p, mcse = sqrt(p * (1 - p) / sim$nrep)),
     simulations = simulation_record(n, seed, sim$rejections, sim$nrep)
   )
+}
+
+# The test's technical details at the n reported (see test-details.R), or
+# NULL: for a simulated result, a sensitivity analysis (the effect is the
+# answer, not an input) or a backend that doesn't report them. They never
+# stop a run.
+test_details <- function(backend, goal_type, simulating, n) {
+  if (simulating || identical(goal_type, "sensitivity") || is.null(backend$details)) {
+    return(NULL)
+  }
+  tryCatch(backend$details(n), error = function(e) NULL)
 }
 
 package_versions <- function(packages) {

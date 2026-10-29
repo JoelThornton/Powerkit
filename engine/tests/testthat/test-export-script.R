@@ -186,7 +186,7 @@ test_that("a simulated required n is reproduced, with its interval and every sim
   result <- run_for_export(spec)
   run <- run_exported_script(spec, result)
   expect_n_near(result$n_required, run$reproduced$n)
-  expect_equal(run$reproduced[c("n", "lower", "upper")], result$n_required)
+  expect_equal(run$reproduced[c("n", "lower", "upper")], result$n_required[c("n", "lower", "upper")])
   expect_equal(run$reproduced$power, result$curve$power, tolerance = 1e-10)
 })
 
