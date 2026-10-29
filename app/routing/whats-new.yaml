@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Simulated data sets for more designs"
+    text: >-
+      The simulated data set you can download to write your analysis code
+      before collecting data now covers the rank tests, equivalence and
+      non-inferiority tests, one proportion, goodness of fit, comparisons of
+      correlations, ordinal outcomes and two factors with a yes/no outcome.
+  - date: "2026-10-29"
     title: "A 2 x 2 design with groups of different sizes"
     text: >-
       If your four groups won't be the same size, for example a clinical

@@ -53,9 +53,76 @@ test_that("a large simulated data set recovers the population, in the spec's ori
   expect_equal(stats::cor(data$Daily_stress, data$Sleep_quality), spec$population$r_X_Y * sqrt(rel), tolerance = 0.05)
 })
 
+test_that("equivalence, rank, proportion, correlation, ordinal and factorial logistic designs recover their populations", {
+  big <- 20000
+  spec <- validate_spec(read_spec(spec_file("tost_paired")))
+  data <- simulated_data(spec, big, seed = 2)
+  diff <- data[[4]] - data[[3]]
+  expect_lt(abs(mean(diff) / stats::sd(diff) - spec$population$dz), 0.03)
+
+  spec <- read_spec(spec_file("noninf_two_proportions"))
+  data <- simulated_data(spec, big, seed = 2)
+  yes <- sim_levels(spec, "Y")[2]
+  p <- as.numeric(tapply(data[[4]] == yes, data[[3]], mean)[sim_levels(spec, "X")])
+  expect_equal(unname(p), c(spec$population$p1, spec$population$p2), tolerance = 0.02)
+
+  spec <- read_spec(spec_file("tost_correlation"))
+  data <- simulated_data(spec, big, seed = 2)
+  expect_equal(stats::cor(data[[3]], data[[4]]), spec$population$r, tolerance = 0.03)
+
+  spec <- read_spec(spec_file("one_proportion"))
+  data <- simulated_data(spec, big, seed = 2)
+  expect_equal(mean(data[[3]] == unlist(spec$variables$Y$levels)[2]), spec$population$p, tolerance = 0.02)
+
+  spec <- read_spec(spec_file("chi_square_gof"))
+  data <- simulated_data(spec, big, seed = 2)
+  shares <- prop.table(table(factor(data[[3]], levels = unlist(spec$variables$Y$levels))))
+  expect_equal(as.numeric(shares), as.numeric(unlist(spec$population$probabilities)), tolerance = 0.03)
+
+  spec <- read_spec(spec_file("two_correlations"))
+  data <- simulated_data(spec, big, seed = 2)
+  r <- vapply(split(data, data[[3]])[unlist(spec$variables$G$levels)], function(d) stats::cor(d[[4]], d[[5]]), numeric(1))
+  expect_equal(unname(r), c(spec$population$r1, spec$population$r2), tolerance = 0.05)
+
+  spec <- read_spec(spec_file("nonoverlapping_correlations"))
+  data <- simulated_data(spec, big, seed = 2)
+  expect_equal(stats::cor(data[[3]], data[[4]]), spec$population$r_X1_Y1, tolerance = 0.1)
+  expect_equal(stats::cor(data[[5]], data[[6]]), spec$population$r_X2_Y2, tolerance = 0.1)
+
+  spec <- read_spec(spec_file("logistic_factorial"))
+  data <- simulated_data(spec, big, seed = 2)
+  yes <- unlist(spec$variables$Y$levels)[2]
+  first <- data[[3]] == unlist(spec$variables$A$levels)[1] & data[[4]] == unlist(spec$variables$B$levels)[1]
+  expect_equal(mean(data[[5]][first] == yes), spec$population$probabilities[[1]][[1]], tolerance = 0.03)
+
+  # Group 2's shares follow from group 1's and the odds ratio: here (an odds
+  # ratio below 1) group 2 is in lower categories.
+  spec <- read_spec(spec_file("ordinal_two_groups"))
+  data <- simulated_data(spec, big, seed = 2)
+  groups <- unlist(spec$variables$X$levels)
+  levels <- unlist(spec$variables$Y$levels)
+  shares <- prop.table(table(factor(data[[3]], levels = groups), factor(data[[4]], levels = levels)), 1)
+  expect_equal(as.numeric(shares[1, ]), as.numeric(unlist(spec$population$probabilities)), tolerance = 0.03)
+  cum_odds <- function(p) {
+    q <- cumsum(p)[-length(p)]
+    (1 - q) / q
+  }
+  expect_equal(cum_odds(shares[2, ]) / cum_odds(shares[1, ]), rep(spec$population$odds_ratio, length(levels) - 1), tolerance = 0.15, ignore_attr = TRUE)
+
+  # Rank tests: the effect shifts scores of the chosen shape.
+  spec <- read_spec(spec_file("independent_t"))
+  spec$target_test$method <- "mann_whitney"
+  spec$population$score_shape <- "heavy_tailed"
+  spec$options$method <- NULL
+  data <- simulated_data(spec, big, seed = 2)
+  y <- split(data$Recall_score, data$Condition)[unlist(spec$variables$X$levels)]
+  expect_equal(median(y[[2]]) - median(y[[1]]), spec$population$d, tolerance = 0.1)
+})
+
 test_that("designs without a generator say so", {
   spec <- read_spec(spec_file("sem_model_fit"))
   expect_false(simulated_data_available(spec))
+  expect_false(simulated_data_available(read_spec(spec_file("mcnemar"))))
   expect_error(simulated_data(spec, 100), class = "powerkit_not_available")
   expect_true(simulated_data_available(read_spec(spec_file("mediation_simple"))))
 })

@@ -33,8 +33,10 @@ columns are named after the variables' labels.
 }
 \details{
 Available for the basic tests of means, correlations, proportions,
-variances and cross-tabulations (not the rank tests), the ANOVA designs
-on Superpower and Welch's one-way ANOVA, regression interactions, and
-mediation and moderated mediation; \code{simulated_data_available()} says
+variances, goodness of fit and cross-tabulations (not McNemar's test),
+the rank tests, equivalence and non-inferiority tests, the ANOVA designs
+on Superpower and Welch's one-way ANOVA, regression interactions,
+mediation and moderated mediation, factorial logistic regression and
+ordinal outcomes in two groups; \code{simulated_data_available()} says
 whether a spec is covered.
 }
