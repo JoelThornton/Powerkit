@@ -337,8 +337,9 @@ fully validated. Validation runs are recorded in
   changed in the last day, the short validation chunks and the long chunks
   whose tests or backend changed; every Sunday, every chunk
   (`scripts/validation-plan.R`, `nightly-validation.yaml`, each chunk as its
-  own `full-validation.yaml` job). A pull request runs its own design's
-  chunk before merging.
+  own `full-validation.yaml` job, each within GitHub's six-hour limit;
+  the yes/no-X mediation tests are their own chunk, `process_4_binary`).
+  A pull request runs its own design's chunk before merging.
 - **CI time:** the engine's test files run in parallel, four at a time
   (37 minutes on one core, under 10 on four; the longest are the tests
   that run an exported script against powerkit, and the whole-study
