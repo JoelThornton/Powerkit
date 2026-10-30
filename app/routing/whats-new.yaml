@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Latent profile and latent class analysis"
+    text: >-
+      Planning to find types or profiles of people? A new card explains
+      what decides whether a study can find them, from published
+      simulation studies: how far apart the profiles are matters more than
+      the sample size. powerkit can't calculate this, and the card says how
+      to simulate your own model.
+  - date: "2026-10-30"
     title: "A study plan for several analyses"
     text: >-
       After any result, you can add the analysis to your study plan, then

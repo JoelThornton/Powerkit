@@ -1,5 +1,9 @@
 # powerkit 0.24.0
 
+* `refs.bib` adds the four sources of the app's new latent profile and
+  latent class guidance card: Tein, Coxe and Cham (2013), Nylund,
+  Asparouhov and Muthén (2007), Nylund-Gibson and Choi (2018) and Spurk
+  et al. (2020).
 * `write_study_plan()` and `read_study_plan()`: several analyses in one
   file (format "powerkit-study-plan"), each stored as a project, so each
   reopens and reproduces on its own with `reproduce_project()`. The app's

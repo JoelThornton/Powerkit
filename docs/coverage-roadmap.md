@@ -267,7 +267,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B46 | CFA | ML; BG | E37 | Wired (the correlation between two factors against zero, and a latent slope against zero through `semPower.powerRegression()`, by the chi-square difference test; match semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower) | **Engine: semPower `semPower.powerCFA()`, `semPower.powerRegression()`** (29 October 2026) | Transcribe published examples (`test-validation-sem-latent.R`) | — |
 | B47 | Measurement invariance | ML; BG | E37 | Wired (multigroup: one factor, two groups; longitudinal: one factor, two occasions, `semPower.powerLI()`, from 29 October 2026; metric against configural or scalar against metric, by the chi-square difference test; matches semPower called directly in the engine's tests; published values to transcribe) | Now: AP, PN (semPower). Could: several factors, groups or occasions | **Engine: semPower `semPower.powerMI()`** (29 October 2026) | Longitudinal invariance; several factors or groups | — |
 | B48 | Latent interactions | ML | none: nearest E9 with reliabilities *(inferred)* | Unknown (no candidate found) | — | unknown | Search | — |
-| B49 | Latent profile/class analysis | ML | none: not reachable | Unknown (no candidate found) | — | unknown | Search | — |
+| B49 | Latent profile/class analysis | ML | E58 (guidance card, 30 October 2026) | No ready-made tool | — | none: planned from published simulations (Tein, Coxe and Cham, 2013; Nylund, Asparouhov and Muthén, 2007) or a custom simulation (Mplus Monte Carlo; Spower) | — | — |
 | B50 | Reliability (ICC) | ML; Audit | none: reaches E41, E4 or E46 | Unknown (decide the card; tools exist) | — | ICC.Sample.Size `calculateIccSampleSize()`; presize `prec_icc()`; MBESS `ss.aipe.reliability()`; kappaSize `PowerBinary()` (agreement) | Decide | [C4][] |
 | B51 | IRT | ML; Audit | E37 (says IRT isn't covered) | Unknown (decide scope; tools exist) | — | irtpwr `irtpwr()`; irtsim `irt_simulate()` | Decide | — |
 | B52 | Factor analysis sample size | ML; Audit | E37 (confirmatory); exploratory not reachable | Unknown (exploratory: no candidate found) | — | Confirmatory: semPower `semPower.powerCFA()`; the power of a CFA's test of fit is computed (B45, E37) | — | — |
@@ -431,10 +431,10 @@ and fails if a line here disagrees.
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 4 | 12 | 2 | 18 |
 | Foundation tool can do it, not planned | 6 | 8 | 1 | 15 |
-| No ready-made tool | 0 | 5 | 0 | 5 |
+| No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 4 | 5 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 18 | 0 | 19 |
+| Unknown | 1 | 17 | 0 | 18 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
@@ -461,16 +461,16 @@ needs only a routing change, a new field or an output it already has):
 **What the current question tree can't reach.** Of the 118 rows in Parts
 A and B:
 
-- 69 (22 in Part A, 47 in Part B) reach a card for their own analysis:
+- 70 (22 in Part A, 48 in Part B) reach a card for their own analysis:
   a running end point or an honest card, counting E2 and E4 for A2 and A7,
   which are the same tests entered differently;
 - 18 (9 and 9) reach a card for a different analysis, for example a rank
   test reaching a t-test, a goodness-of-fit test reaching E6, or
   mediation with covariates reaching E10, which has none;
-- 31 (18 and 13) aren't reachable: no answer names them, and only the
+- 30 (18 and 12) aren't reachable: no answer names them, and only the
   safety net applies.
 
-So 49 of the 118 rows (18 + 31) can't be reached as themselves. Rows marked
+So 48 of the 118 rows (18 + 30) can't be reached as themselves. Rows marked
 *(inferred)* were worked out for this page, not walked through.
 
 **Multilevel and longitudinal candidates (added 17 October 2026).** The

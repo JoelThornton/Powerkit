@@ -394,6 +394,7 @@ nodes:
       - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
          when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
+      - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
   q2_diff:
@@ -1385,6 +1386,21 @@ endpoints:
     inputs: ["Depends on the model you write (relative indirect effects for each comparison with a reference group)"]
     packages:
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    tier: later
+  E58:
+    doc_name: "Latent profile or latent class analysis (how many types of people, and who belongs to which)"
+    plain_name: "Finding types or profiles of people (latent profile or latent class analysis)"
+    status: not_in_powerkit
+    no_ready_made_tool: true
+    packages:
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    card_points:
+      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration) and sort people into them reliably. No power formula answers that, so it is planned from published simulation studies, or from a simulation of your own model."
+      - "Separation between profiles matters more than sample size. In Tein, Coxe and Cham's (2013) simulations, no sample size up to 1,000 reliably found the right number of profiles when profiles differed by a small or medium amount on each indicator (Cohen's d of .2 or .5); at d = .8, it took at least 500 people and 10 or more indicators; at d = 1.5, 250 people were enough for most criteria."
+      - "As a working range, Nylund-Gibson and Choi (2018) suggest that about 300 to 1,000 people is where the usual criteria work adequately; the median sample in published latent profile studies was 377 in Tein and colleagues' review and 494 in Spurk and colleagues' (2020). A small profile needs more people: with a class of 5% of 200 people, its estimates were poor (Nylund, Asparouhov and Muthén, 2007)."
+      - "Choose the number of profiles with the BIC and the bootstrap likelihood ratio test (BLRT), which did best in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013). Entropy describes how cleanly people are classified (above .80 is usually called good) but is not a way to choose the number of profiles."
+      - "For a plan of your own, simulate data from the profiles you expect and fit the models you will fit: Mplus's Monte Carlo facility does this (Nylund-Gibson and Choi, 2018, point to example 12.4 of its user's guide)."
+    inputs: ["The number of profiles you expect", "How far apart they are on each indicator", "The number of indicators", "The size of the smallest profile"]
     tier: later
   E43:
     tools:
