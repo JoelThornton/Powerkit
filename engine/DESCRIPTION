@@ -40,6 +40,7 @@ Imports:
     pwr,
     powertools,
     pwrss,
+    PUMP,
     semPower,
     simr,
     Spower (>= 0.7),

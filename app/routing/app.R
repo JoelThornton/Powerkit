@@ -883,6 +883,24 @@ server <- function(input, output, session) {
   })
   observeEvent(input$plan_view, { cancel_job(); state$screen <- "study_plan" })
   observeEvent(input$plan_clear, state$study_plan <- list())
+  observeEvent(input$plan_joint, {
+    entries <- state$study_plan
+    joint <- engine_function("joint_power")
+    rho <- suppressWarnings(as.numeric(input$plan_rho))
+    out <- if (is.null(joint)) {
+      "Joint power needs powerkit's engine, which isn't installed where this prototype is running."
+    } else if (is.na(rho)) {
+      "Enter the correlation between the outcomes first."
+    } else {
+      tryCatch(joint(plan_specs(entries), rho = rho, n = plan_largest_n(entries)), error = function(e) {
+        if (inherits(e, "powerkit_error")) conditionMessage(e) else "Joint power couldn't be calculated for this plan."
+      })
+    }
+    output$plan_joint_result <- renderUI(if (is.character(out)) div(class = "form-problems", role = "alert", out) else {
+      words <- joint_power_sentence(out, entries)
+      div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
+    })
+  })
   observeEvent(input$plan_more, {
     # The next analysis, found by "Help me choose" from the start.
     state$start <- list(); state$route <- "choose"; state$history <- list(); state$ctx <- list()

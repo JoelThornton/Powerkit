@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "The chance that every outcome is significant"
+    text: >-
+      When your study plan compares the same randomised groups on several
+      outcomes, it can now tell you the chance that all of them are
+      significant in the same study, given how strongly the outcomes are
+      correlated. It is lower than each outcome's own power.
+  - date: "2026-10-30"
     title: "Latent profile and latent class analysis"
     text: >-
       Planning to find types or profiles of people? A new card explains

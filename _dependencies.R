@@ -20,6 +20,7 @@ library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
 library(power4mome)
 library(powertools)
+library(PUMP)      # joint power for several outcomes in the study plan
 library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
 library(semPower)

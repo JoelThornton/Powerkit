@@ -3641,3 +3641,20 @@ planned from published simulation studies rather than a power function.
 A card explaining this and pointing to that guidance, once the sources are
 in `refs.bib`, unless a package turns up. Queued in `next.md`.
 
+
+## 2026-10-30 · Joint power in the study plan, and MANOVA's convention
+
+**Joint power.** PUMP (Hunter, Miratrix and Porter, 2024) gives the
+chance that every outcome is significant, but only for several outcomes
+of the same randomised comparison: individually randomised, cluster
+randomised or multisite designs. The study plan offers it narrowly: when
+every analysis is an independent t-test, or every one a
+cluster-randomised trial, compared on different outcomes, it asks for the
+correlation between the outcomes and calculates at the plan's largest N,
+each test at its own level (PUMP's complete power uses the unadjusted
+p-values). Every other plan keeps the note. Plans that mix designs need a
+whole-study simulation, queued in `next.md`.
+
+**MANOVA and Hotelling's T-squared** follow G\*Power's approach (Pillai's
+trace for MANOVA, and its effect-size input), so researchers comparing
+tools see the same answer; any departure is recorded as usual.

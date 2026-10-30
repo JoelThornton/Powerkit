@@ -153,8 +153,12 @@ fully validated. Validation runs are recorded in
   sample size counted in people (cluster trials apart), says that joint
   power isn't calculated, and saves and opens one file (the engine's
   `write_study_plan()` and `read_study_plan()`). "Add another analysis"
-  starts "Help me choose". Joint power where a package computes it is
-  `next.md`, item 1.
+  starts "Help me choose". When every analysis compares the same
+  randomised groups on different outcomes (independent t-tests, or
+  cluster-randomised trials), the plan asks for the outcomes' correlation
+  and gives the chance that all are significant, with PUMP's
+  `pump_power()` (the engine's `joint_power()`); other plans keep the
+  note. Plans that mix designs are `next.md`, item 1.
 - **Mixed models, first design (30 October 2026, 0.23.0):** E33
   (participants responding to many items in two conditions) calculates
   with simr and lmerTest's Satterthwaite test (Departure 16); the required
@@ -418,7 +422,7 @@ fully validated. Validation runs are recorded in
 
 **The ordered queue is [`next.md`](next.md)** — 27 items. The maintainer's
 order for the next work (30 October 2026): every card taking the effect
-size researchers have, joint power for the study plan,
+size researchers have, joint power for study plans that mix designs,
 MANOVA and Hotelling's T-squared, more multilevel
 models starting with E41, Bayes factors beyond the t-tests, justified
 alpha, then precision
