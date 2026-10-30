@@ -417,6 +417,34 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:40:29 UTC; unix"
       }
     },
+    "RLRsim": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "RLRsim",
+        "Type": "Package",
+        "Title": "Exact (Restricted) Likelihood Ratio Tests for Mixed and Additive\nModels",
+        "Version": "3.1-9",
+        "Authors@R": "c(person(\"Fabian\", \"Scheipl\", role = c(\"aut\", \"cre\"),\n\t   email = \"fabian.scheipl@stat.uni-muenchen.de\",\n\t   comment=c(ORCID=\"0000-0001-8172-3603\")),\n\t   person(\"Ben\", \"Bolker\", role = \"ctb\",\n\t   comment=c(ORCID=\"0000-0002-2127-0443\")))",
+        "Maintainer": "Fabian Scheipl <fabian.scheipl@stat.uni-muenchen.de>",
+        "Description": "Rapid, simulation-based exact (restricted) likelihood ratio tests\n    for testing the presence of variance components/nonparametric terms for\n    models fit with nlme::lme(),lme4::lmer(), lmerTest::lmer(), gamm4::gamm4() and\n    mgcv::gamm().",
+        "License": "GPL",
+        "URL": "https://github.com/fabian-s/RLRsim",
+        "BugReports": "https://github.com/fabian-s/RLRsim/issues",
+        "Depends": "R (>= 2.14.0)",
+        "Imports": "Rcpp (>= 0.11.1), lme4 (>= 1.1), mgcv, nlme",
+        "LinkingTo": "Rcpp",
+        "Enhances": "lmerTest",
+        "RoxygenNote": "7.1.2",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-11-28 12:25:07 UTC; fabians",
+        "Author": "Fabian Scheipl [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-8172-3603>),\n  Ben Bolker [ctb] (ORCID: <https://orcid.org/0000-0002-2127-0443>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-11-28 13:00:48 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 13:24:44 UTC; unix"
+      }
+    },
     "Rcpp": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1039,6 +1067,28 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-09-02 16:10:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-23 20:52:26 UTC; unix"
+      }
+    },
+    "binom": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "binom",
+        "Title": "Binomial Confidence Intervals for Several Parameterizations",
+        "Version": "1.1-2",
+        "Date": "2026-07-06",
+        "Authors@R": "c(person(given = \"Sundar\",\n                    family = \"Dorai-Raj\",\n                    role = \"aut\",\n                    email = \"sdorairaj@gmail.com\"),\n             person(given = c(\"Arianna\", \"D.\"),\n                    family = \"Cascone\",\n                    role = c(\"aut\", \"cre\"),\n                    email = \"ariannacascone4@gmail.com\"))",
+        "Description": "Constructs confidence intervals on the probability of\n        success in a binomial experiment via several parameterizations.",
+        "Suggests": "lattice, polynom, tcltk, ggplot2",
+        "License": "GPL",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-07-06 15:00:13 UTC; ariannacascone",
+        "Author": "Sundar Dorai-Raj [aut],\n  Arianna D. Cascone [aut, cre]",
+        "Maintainer": "Arianna D. Cascone <ariannacascone4@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-07 18:00:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-08 04:57:34 UTC; unix"
       }
     },
     "bit": {
@@ -4429,6 +4479,30 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:53:39 UTC; unix"
       }
     },
+    "plotrix": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "plotrix",
+        "Version": "3.8-14",
+        "Title": "Various Plotting Functions",
+        "Authors@R": "c(\n  person(\"Jim\", \"Lemon\", role = \"aut\"),\n  person(\"Ben\", \"Bolker\", role = \"ctb\"),\n  person(\"Sander\", \"Oom\", role = \"ctb\"),\n  person(\"Eduardo\", \"Klein\", role = \"ctb\"),\n  person(\"Barry\", \"Rowlingson\", role = \"ctb\"),\n  person(\"Hadley\", \"Wickham\", role = \"ctb\"),\n  person(\"Anupam\", \"Tyagi\", role = \"ctb\"),\n  person(\"Olivier\", \"Eterradossi\", role = \"ctb\"),\n  person(\"Gabor\", \"Grothendieck\", role = \"ctb\"),\n  person(\"Michael\", \"Toews\", role = \"ctb\"),\n  person(\"John\", \"Kane\", role = \"ctb\"),\n  person(\"Rolf\", \"Turner\", role = \"ctb\"),\n  person(\"Carl\", \"Witthoft\", role = \"ctb\"),\n  person(\"Julian\", \"Stander\", role = \"ctb\"),\n  person(\"Thomas\", \"Petzoldt\", role = \"ctb\"),\n  person(\"Remko\", \"Duursma\", role = \"ctb\"),\n  person(\"Elisa\", \"Biancotto\", role = \"ctb\"),\n  person(\"Ofir\", \"Levy\", role = \"ctb\"),\n  person(\"Christophe\", \"Dutang\", role = \"ctb\"),\n  person(\"Peter\", \"Solymos\", role = \"ctb\"),\n  person(\"Robby\", \"Engelmann\", role = \"ctb\"),\n  person(\"Michael\", \"Hecker\", role = \"ctb\"),\n  person(\"Felix\", \"Steinbeck\", role = \"ctb\"),\n  person(\"Hans\", \"Borchers\", role = \"ctb\"),\n  person(\"Henrik\", \"Singmann\", role = \"ctb\"),\n  person(\"Ted\", \"Toal\", role = \"ctb\"),\n  person(\"Derek\", \"Ogle\", role = \"ctb\"),\n  person(\"Darshan\", \"Baral\", role = \"ctb\"),\n  person(\"Ulrike\", \"Groemping\", role = \"ctb\"),\n  person(\"Bill\", \"Venables\", role = \"ctb\"),\n  person(family = \"The CRAN Team\", role = \"ctb\"),\n  person(\"Duncan\", \"Murdoch\", email = \"murdoch.duncan@gmail.com\",\n         role = c(\"ctb\", \"cre\")))",
+        "Imports": "grDevices, graphics, stats, utils",
+        "Description": "Lots of plots, various labeling, axis and color scaling functions. The author/maintainer died in September 2023.",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "no",
+        "Depends": "R (>= 3.5.0)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-02-13 17:10:03 UTC",
+        "URL": "https://plotrix.github.io/plotrix/,\nhttps://github.com/plotrix/plotrix",
+        "BugReports": "https://github.com/plotrix/plotrix/issues",
+        "Packaged": "2026-02-13 14:29:51 UTC; murdoch",
+        "Author": "Jim Lemon [aut],\n  Ben Bolker [ctb],\n  Sander Oom [ctb],\n  Eduardo Klein [ctb],\n  Barry Rowlingson [ctb],\n  Hadley Wickham [ctb],\n  Anupam Tyagi [ctb],\n  Olivier Eterradossi [ctb],\n  Gabor Grothendieck [ctb],\n  Michael Toews [ctb],\n  John Kane [ctb],\n  Rolf Turner [ctb],\n  Carl Witthoft [ctb],\n  Julian Stander [ctb],\n  Thomas Petzoldt [ctb],\n  Remko Duursma [ctb],\n  Elisa Biancotto [ctb],\n  Ofir Levy [ctb],\n  Christophe Dutang [ctb],\n  Peter Solymos [ctb],\n  Robby Engelmann [ctb],\n  Michael Hecker [ctb],\n  Felix Steinbeck [ctb],\n  Hans Borchers [ctb],\n  Henrik Singmann [ctb],\n  Ted Toal [ctb],\n  Derek Ogle [ctb],\n  Darshan Baral [ctb],\n  Ulrike Groemping [ctb],\n  Bill Venables [ctb],\n  The CRAN Team [ctb],\n  Duncan Murdoch [ctb, cre]",
+        "Maintainer": "Duncan Murdoch <murdoch.duncan@gmail.com>",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 22:02:22 UTC; unix"
+      }
+    },
     "plyr": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4549,27 +4623,27 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, InteractionPoweR, jsonlite, jsonvalidate (>=\n1.3.0), manymome, parallel, psych, power4mome, pwr, powertools,\npwrss, semPower, Spower (>= 0.7), stats, Superpower, TOSTER,\nutils",
-        "Suggests": "lavaan, simsem, testthat (>= 3.0.0)",
+        "Imports": "bfpwr, digest, InteractionPoweR, jsonlite, jsonvalidate (>=\n1.3.0), lme4, lmerTest, manymome, parallel, psych, power4mome,\npwr, powertools, pwrss, semPower, simr, Spower (>= 0.7), stats,\nSuperpower, TOSTER, utils",
+        "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/roxygen2/version": "8.1.1",
         "RemoteType": "github",
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
-        "RemoteSha": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
+        "RemoteRef": "16f0afa69538c63009862f80a0a051f92908adfa",
+        "RemoteSha": "16f0afa69538c63009862f80a0a051f92908adfa",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
-        "GithubSHA1": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
+        "GithubRef": "16f0afa69538c63009862f80a0a051f92908adfa",
+        "GithubSHA1": "16f0afa69538c63009862f80a0a051f92908adfa",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-30 05:34:02 UTC; runner",
+        "Packaged": "2026-10-30 06:05:43 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-30 05:34:11 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 06:05:48 UTC; unix"
       }
     },
     "powertools": {
@@ -5506,6 +5580,35 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:52:29 UTC; unix"
       }
     },
+    "simr": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "simr",
+        "Type": "Package",
+        "Title": "Power Analysis for Generalised Linear Mixed Models by Simulation",
+        "Description": "Calculate power for generalised linear mixed models, using\n    simulation. Designed to work with models fit using the 'lme4' package.\n    Described in Green and MacLeod, 2016 <doi:10.1111/2041-210X.12504>.",
+        "Version": "1.0.11",
+        "Authors@R": "c(\n    person(\"Peter\", \"Green\", role=c(\"aut\", \"cre\"), email=\"simr.peter@gmail.com\",\n        comment=c(ORCID=\"0000-0002-0238-9852\")),\n    person(\"Catriona\", \"MacLeod\", role=\"aut\"),\n    person(\"Phillip\", \"Alday\", role=\"ctb\"))",
+        "URL": "https://github.com/pitakakariki/simr",
+        "BugReports": "https://github.com/pitakakariki/simr/issues",
+        "License": "GPL (>= 2)",
+        "Depends": "R (>= 4.1.0), lme4 (>= 1.1-16)",
+        "Imports": "binom,car,graphics,grDevices,iterators,lmerTest (>=\n3.0-0),methods,pbkrtest,plotrix,plyr,reformulas,RLRsim,stringr,stats,utils",
+        "Suggests": "testthat,knitr,rmarkdown",
+        "LazyData": "true",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-09-11 06:16:52 UTC; pete",
+        "Author": "Peter Green [aut, cre] (ORCID: <https://orcid.org/0000-0002-0238-9852>),\n  Catriona MacLeod [aut],\n  Phillip Alday [ctb]",
+        "Maintainer": "Peter Green <simr.peter@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-11 07:40:02 UTC",
+        "Built": "R 4.5.0; ; 2026-09-12 04:05:42 UTC; unix"
+      }
+    },
     "sourcetools": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6255,7 +6358,7 @@
       "checksum": "2031d449f5ac1c25b31d297539852018"
     },
     "forms.yaml": {
-      "checksum": "4a78f5df69472302f55164a7b80d8ad7"
+      "checksum": "4aecb3c942f63273231c301866dd3445"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6273,7 +6376,7 @@
       "checksum": "defe8fc51eb2151ecfbb75ab14bde431"
     },
     "R/map.R": {
-      "checksum": "0b77d8ef8c5d2094c32223dd72a851cb"
+      "checksum": "e3a660258e01a7e2a6df1fb73af8a366"
     },
     "R/project.R": {
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
@@ -6300,10 +6403,10 @@
       "checksum": "3d9842b2a978788150823956f93ba0bd"
     },
     "tests/testthat/helper-docs.R": {
-      "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
+      "checksum": "72df4a7ccfdbde23452a92aae65311d0"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "3e5d17fa0ca198585d32cc439df53b21"
+      "checksum": "d19964c09a6c8eee1e150665ad50f8ea"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6318,7 +6421,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "8b0141144c3e52015483c27d7db45bae"
+      "checksum": "65e1e424028234b4da4fe6cdbd21ee5d"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6327,7 +6430,7 @@
       "checksum": "f35ce203732fd8ebf97d01f57bf26873"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "1575a4b20db3c5045f3a5c8d5f969df9"
+      "checksum": "f88f9e55184a74f69193a7619f2d82ea"
     },
     "tests/testthat/test-project.R": {
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
@@ -6336,13 +6439,13 @@
       "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "fe3681f63163a5e6d372cbbfed0c4342"
+      "checksum": "790cee61d2d390df4557dffeb27f357f"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "3aa81bf93bf2294da3f3105ca41dc420"
+      "checksum": "9d9289c42f4da0b393db92a38bc07ca4"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "bcf4d808d303c2329437a0b2215dd0bb"
+      "checksum": "4a39a62e579032c0e4b1058407964aed"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
       "checksum": "1560fb51f75d093840e8a9d52ff6d6b1"
@@ -6357,13 +6460,13 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "085d2cd536985a2328b61eecbe0374b5"
+      "checksum": "5c8191b38246ad1f8a0b517ce4d61372"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
     },
     "walkthroughs/scenarios.json": {
-      "checksum": "eb18979286533c3a4e3e15a0dadfdaf9"
+      "checksum": "92329660232c161127262de314be62f2"
     },
     "walkthroughs/screenshots.js": {
       "checksum": "802c48435b6593e32184e35aea1c38b0"
@@ -6372,7 +6475,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "da8d89dcf61fbde0a25763689dc1af55"
+      "checksum": "bfe253c522d13f32db09d3410d89866a"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
