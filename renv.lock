@@ -228,6 +228,20 @@
       ],
       "Hash": "45f0398006e83a5b10b72a90663d8d8c"
     },
+    "RLRsim": {
+      "Package": "RLRsim",
+      "Version": "3.1-9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "lme4",
+        "mgcv",
+        "nlme"
+      ],
+      "Hash": "910537b70663088e7522740db2abe4e8"
+    },
     "Rcpp": {
       "Package": "Rcpp",
       "Version": "1.1.2",
@@ -307,6 +321,27 @@
         "utils"
       ],
       "Hash": "6a72e94a8c9be4ef719af3aa3628f2dc"
+    },
+    "binom": {
+      "Package": "binom",
+      "Version": "1.1-2",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "c8acb7636aeab8b86c2730925bd4ec98"
+    },
+    "plotrix": {
+      "Package": "plotrix",
+      "Version": "3.8-14",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Hash": "10f65572350427cd4ba39973c9b95f3b"
     },
     "semPower": {
       "Package": "semPower",
@@ -2753,6 +2788,32 @@
         "xtable"
       ],
       "Hash": "e71fb3fcf73db153eccd8afed293984f"
+    },
+    "simr": {
+      "Package": "simr",
+      "Version": "1.0.11",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "RLRsim",
+        "binom",
+        "car",
+        "grDevices",
+        "graphics",
+        "iterators",
+        "lme4",
+        "lmerTest",
+        "methods",
+        "pbkrtest",
+        "plotrix",
+        "plyr",
+        "reformulas",
+        "stats",
+        "stringr",
+        "utils"
+      ],
+      "Hash": "cc999fc728eacc143c7891a292c72337"
     },
     "simsem": {
       "Package": "simsem",

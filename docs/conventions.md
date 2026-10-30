@@ -402,6 +402,14 @@ for the maintainer, not yet made.
 | Spower | to check (the build guide says Spower covers mediation) | to check | to check |
 | **powerkit** | power4mome's `power4test()` with its test functions, CI level 1 - alpha, CI rule (`test_method = "ci"`); lavaan ML fit (Departure 6) [powerkit] | Standardised paths keyed `From->To`; residual **correlations** for parallel mediators (converted to power4mome's covariance) [powerkit] | `options > ci_draws`, default power4mome's 1,000 (`q_power_mediation()`); parallel mediators' residuals always free to correlate, as in PROCESS (Departure 7); Boos and Zhang off (Departure 8). Binary X or W and measurement error: not available yet |
 
+## Participants and items in two conditions (crossed random effects, E33)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for crossed random effects | — | — |
+| simr | `powerSim()` simulates data sets from a model built with `makeLmer()` (fixed effects, `VarCorr`, `sigma`) and refits each with lme4; `fixed(xname, method)` tests one fixed effect [simr help] | The model's own parameters, in the outcome's units | `fixed()`'s default `method = "z"` treats the t statistic as normal (its help calls it an asymptotic approximation for models not fitted with `glmer`); `"sa"` is lmerTest's Satterthwaite t test, `"kr"` Kenward-Roger. A data set whose fit or test fails counts as not significant |
+| **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E33, from 30 October 2026) [powerkit] | The difference between conditions and the SDs of participants' intercepts and condition slopes (with their correlation), items' intercepts (and slopes, with items in both conditions) and the residual, in the outcome's units; the condition coded -0.5 and 0.5 | `y ~ cond + (1 + cond \| participant) + (1 \| item)`, every participant responding to every item; items in one condition each (half per condition) or in both. `goal.n` is the number of participants, the number of items fixed. The Satterthwaite test is Departure 16 |
+
 ## Departures
 
 Each departure must also be shown on the results screen, stated in the
@@ -867,6 +875,27 @@ as an experimental option, for a statistician's check
   screens when the Bayes factor t-test is chosen and the SD is left at 0
   (`app/routing/forms.yaml`, `departures`, key "15"), and in the methods
   paragraph's full version.
+
+### 16. Mixed models: Satterthwaite's t test, not simr's default z test
+
+Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
+
+- **Established convention:** simr's `fixed()` tests a fixed effect with
+  `method = "z"` by default, treating the t statistic as standard normal,
+  which its help calls an asymptotic approximation for models fitted with
+  `lmer`.
+- **powerkit:** `fixed("cond", "sa")`, lmerTest's Satterthwaite t test,
+  which is the p-value most lme4 users report (through lmerTest) and
+  allows for the small number of participants or items.
+- **Size:** with powerkit's example (a 20 ms difference, SDs 60, 25, 30
+  and 120 ms, 40 items in one condition each), on the same 1,000
+  simulated data sets: at 20 participants, 25.0% with Satterthwaite and
+  27.7% with z; at 40 participants, 39.6% and 42.0% (simr 1.0.11).
+- **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
+  powerSim() with the Satterthwaite test, replication for replication";
+  the size above is from `powerSim()` with each method on the same seed.
+- **Shown to users:** on E33's result screen (`app/routing/forms.yaml`,
+  `departures`, key "16"), and in the methods paragraph's full version.
 
 ## Known differences
 

@@ -242,15 +242,15 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B33 | Crossover and counterbalanced designs | ML | E3 or E8 *(inferred)* | Unknown (check whether an AB/BA crossover analysed with order as a factor matches E8's 2 x 2 mixed design) | — | candidate: Superpower `"2b*2w"`. powertools `crt.xo.cont()` covers cluster crossover trials only | Check | — |
-| B34 | Many trials per participant (trials vs participants trade-off) | ML; BG | E33 | Planned (phase 6: mixed-effects) | Could: AP, PN | simr `powerSim()`, `powerCurve()`; mixpower `mp_power()`, `mp_solve_sample_size()`; faux `sim_mixed_cc()` (data only); mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Phase 6 | — |
-| B35 | Stimuli as a random factor | ML; BG | E33 | Planned (phase 6: mixed-effects) | As B34 | As B34 | Phase 6 | — |
+| B34 | Many trials per participant (trials vs participants trade-off) | ML; BG | E33 | Wired (30 October 2026: two conditions within participants, items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (conditions between people, more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; simr `powerSim()`, `powerCurve()`; mixpower `mp_power()`, `mp_solve_sample_size()`; faux `sim_mixed_cc()` (data only); mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Transcribe a published example; more designs (E41) | — |
+| B35 | Stimuli as a random factor | ML; BG | E33 | Wired (30 October 2026: two conditions within participants, items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (conditions between people, more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; As B34 | Transcribe a published example; more designs (E41) | — |
 
 ### Dependence
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B36 | Multilevel/nested | ML; BG; Audit | E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mlmpower `power_analysis()`; simr `powerSim()`; mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Phase 6 | — |
-| B37 | Crossed random effects | ML; BG; Audit | E33 | Planned (phase 6: mixed-effects) | As B34 | As B34 | Phase 6 | — |
+| B37 | Crossed random effects | ML; BG; Audit | E33 | Wired (30 October 2026: two conditions within participants, items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (conditions between people, more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; As B34 | Transcribe a published example; more designs (E41) | — |
 | B38 | Mixed models with binary outcomes | ML | E33 or E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mixpower `mp_scenario_lme4_binomial()`; simr `powerSim()` (glmer models) | Phase 6 | — |
 | B39 | Cluster-randomised | ML; Audit | E34 | Wired (score or yes/no outcome, two conditions, equal numbers of groups, a baseline score optional for a score; also multisite trials, people randomised within groups, and group treatment trials, only one condition in groups; matches powertools called directly and the design-effect calculation in the engine's tests; published values to transcribe) | Now: AP, PN, S (powertools). Could: more covariates, unequal numbers of groups | **Engine: powertools `crt.parallel.cont()` and `multisite.cont()`** (27 October 2026), `crt.parallel.bin()` and `multisite.bin()` (yes/no outcome, 28 October 2026), `irgtt.cont()` and `irgtt.bin()` (only one condition in groups, 28 October 2026). Also WebPower `wp.crt2arm()`, `wp.crt3arm()` | Next: simulated models (package decision) | — |
 | B40 | Dyadic (APIM) | ML; Audit | E44 | Unknown (no APIM power function in the packages opened; check for a dedicated tool) | — | unknown | Search | [A5][], [C2][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 25 | 14 | 0 | 39 |
+| Wired (validation not finished) | 25 | 17 | 0 | 42 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 0 | 14 | 2 | 16 |
+| Planned | 0 | 11 | 2 | 13 |
 | Foundation tool can do it, not planned | 6 | 8 | 2 | 16 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 1 | 2 |

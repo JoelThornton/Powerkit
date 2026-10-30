@@ -335,7 +335,15 @@ nodes:
       - {label: "Independent people", next: s3, sets: {grouping: independent}, help: "Each person's data are separate from everyone else's. If your data come from one person or one unit (for example, a school's monthly averages), choose this too."}
       - {label: "People within groups", next: s4, sets: {grouping: clusters}, help: "e.g. pupils in classes or patients in clinics, including designs where whole groups were assigned to conditions."}
       - {label: "Pairs", next: E44, help: "e.g. couples, or a parent and child, whose scores are related."}
-      - {label: "Many trials or stimuli per person", next: E33, help: "e.g. each person rates 40 faces or completes 200 trials."}
+      - {label: "Many trials or stimuli per person", next: s2_trials, help: "e.g. each person rates 40 faces or completes 200 trials."}
+  s2_trials:
+    doc_id: S2a
+    text: "What does your main hypothesis compare?"
+    help: "powerkit calculates the commonest design: two conditions that every participant responds in, with a score on each trial."
+    options:
+      - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: score}, help: "e.g. emotional and neutral words, each person reading both kinds."}
+      - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "Something else: three or more conditions, conditions given to different people, or a predictor measured on each trial", next: E41}
   s3:
     doc_id: S3
     text: "How many times is each person measured on the outcome?"
@@ -1252,12 +1260,20 @@ endpoints:
   E33:
     doc_name: "Crossed participants and stimuli"
     plain_name: "Each person responds to many items or stimuli"
-    status: not_in_powerkit
-    inputs: ["Fixed effects", "Variance components for participants and stimuli"]
-    packages:
-      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for (generalised) linear mixed models fitted with lme4, including models built without pilot data (makeLmer())."}
-      - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for linear and generalised linear mixed models (newer, released 2026)."}
+    template: "mixed_model / crossed_two_condition"
+    backend: "simr: powerSim() on a model built by makeLmer(), with lmerTest's Satterthwaite t test (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-mixed-model.R, note: "Matches simr called directly, replication for replication, recovers every population value in its check run, and agrees with an independent simulation and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Each participant responds to many items (words, faces, trials) in two conditions, and both participants and items vary: for example, response times to emotional and neutral words."
+      - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
+      - "The model has random intercepts for participants and items and a random condition effect for participants; items can be in one condition each or in both."
+      - "Simulated with simr, testing the condition with Satterthwaite's t test rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
+    inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect), in the outcome's units", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
+    refs: "decisions, 30 October 2026 (docs/decisions.md); Departure 16"
     tier: v2
+    alternatives: ["averaging over items and using a paired t-test, which ignores the variation between items and overstates power", "a model with random slopes for items too"]
   E34:
     doc_name: "Multilevel or cluster design (cluster-randomised or multisite trial)"
     plain_name: "People nested in groups (classes, teams, clinics)"
@@ -1815,7 +1831,7 @@ glossary:
   - {term: "odds ratio", pattern: "odds ratio", hint: "How many times higher the odds of 'yes' (the chance of yes divided by the chance of no) are in one group than in another; 1 means no difference."}
   - {term: "rate ratio", pattern: "rate ratio", hint: "How many times higher the average count is in one group than in another; 1 means no difference."}
   - {term: "product terms", pattern: "products", hint: "Two predictors multiplied together (for example, x1 times x2), which is how a regression represents an interaction."}
-  - {term: "fixed effects", pattern: "fixed effects", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
+  - {term: "fixed effects", pattern: "fixed effects?", hint: "The effects you're testing (for example, of a condition), taken to be the same for everyone."}
   - {term: "variance", pattern: "\\bvariances?\\b(?! components)", hint: "How spread out the scores are: the SD squared."}
   - {term: "variance components", pattern: "variance components", hint: "How much scores vary because some participants, and some stimuli, score higher or lower than others overall."}
   - {term: "intraclass correlation (ICC)", pattern: "intraclass correlation|\\bICC\\b", hint: "How similar people in the same group (for example, the same class) are, compared with people in different groups, from 0 to 1."}

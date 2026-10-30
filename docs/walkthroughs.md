@@ -149,13 +149,13 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 <a id="crossed"></a>
 #### Crossed random effects (participants × stimuli)
 
-> Participants will rate 40 faces for trustworthiness after a happy or a neutral mood induction. Every participant rates every face, and we want to know whether mood shifts the ratings.
+> Participants will rate 40 faces for trustworthiness in two sessions, one after a happy and one after a neutral mood induction. Every participant rates every face in both sessions, and we want to know whether mood shifts the ratings.
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Many trials or stimuli per person*
-- **I know my analysis:** *A score or scale* → *Many trials or stimuli per person*
-- **Plan my whole study:** *A score or scale* → *Many trials or stimuli per person*
+- **Help me choose:** *A score or scale* → *Many trials or stimuli per person* → *Two conditions, and each person responds in both*
+- **I know my analysis:** *A score or scale* → *Many trials or stimuli per person* → *Two conditions, and each person responds in both*
+- **Plan my whole study:** *A score or scale* → *Many trials or stimuli per person* → *Two conditions, and each person responds in both*
 
 **End point:** E33 (Each person responds to many items or stimuli) in all three routes.
 

@@ -83,6 +83,7 @@ on:
           - multisite
           - sem_fit
           - sem_latent
+          - mixed_model
 
 permissions:
   contents: read

@@ -84,6 +84,7 @@ simulated_data_code <- function(spec, n, seed) {
     equivalence_test = sim_equivalence_code(spec, n),
     logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n) else sim_glm_code(spec, n),
     ordinal_regression = sim_ordinal_code(spec, n),
+    mixed_model = sim_mixed_code(spec, n),
     poisson_regression = sim_glm_code(spec, n),
     cluster_trial = sim_cluster_code(spec, n),
     factorial_anova = if (welch_anova(spec)) {
@@ -105,7 +106,8 @@ simulated_data_code <- function(spec, n, seed) {
     body,
     "simulated <- data.frame(",
     "  SIMULATED_NOT_REAL_DATA = \"simulated by powerkit\",",
-    "  participant = seq_len(nrow(simulated)),",
+    # Long data (one row per trial) number their participants themselves.
+    if (!identical(spec$design, "mixed_model")) "  participant = seq_len(nrow(simulated)),",
     "  simulated, check.names = FALSE, row.names = NULL",
     ")"
   )
@@ -511,6 +513,43 @@ sim_cluster_code <- function(spec, n) {
       x, r_code(levels[1]), y, n %/% 2
     ),
     grouped(groups, 0, levels[2], pop$d),
+    ")"
+  )
+}
+
+# Participants and items in two conditions (E33): one data set simulated
+# from simr's model, one row per trial (participant, item, condition), the
+# long format a mixed model is fitted to. The outcome is centred: the
+# model's intercept is 0, as the difference is all the power depends on.
+sim_mixed_code <- function(spec, n) {
+  inputs <- simr_inputs(spec)
+  levels <- sim_levels(spec, "X")
+  item_var <- if (length(inputs$VarCorr$item) > 1) {
+    sprintf("diag(%s)", r_code(diag(inputs$VarCorr$item)))
+  } else {
+    r_code(inputs$VarCorr$item)
+  }
+  c(
+    if (inputs$within) {
+      sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d), cond = c(-0.5, 0.5))", n, inputs$items)
+    } else {
+      c(
+        sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
+        sprintf("design$cond <- ifelse(design$item <= %d, -0.5, 0.5) # the first half of the items in the first condition", inputs$items %/% 2)
+      )
+    },
+    "design$participant <- factor(design$participant)",
+    "design$item <- factor(design$item)",
+    sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant))),
+    sprintf(
+      "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
+      deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma)
+    ),
+    "simulated <- data.frame(",
+    "  participant = design$participant,",
+    "  item = design$item,",
+    sprintf("  %s = %s[(design$cond > 0) + 1],", sim_label(spec, "X"), r_code(levels)),
+    sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
     ")"
   )
 }

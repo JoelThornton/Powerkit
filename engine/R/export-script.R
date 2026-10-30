@@ -64,6 +64,7 @@ export_script <- function(spec, result, file = NULL) {
     bfpwr = bfpwr_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
+    simr = simr_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -2031,5 +2032,75 @@ logistic_factorial_effect_words <- function(spec) {
     main_effect_A = sprintf("the main effect of %s", comment_text(spec$variables$A$label)),
     main_effect_B = sprintf("the main effect of %s", comment_text(spec$variables$B$label)),
     interaction = "the interaction"
+  )
+}
+
+# simr ----------------------------------------------------------------------------
+
+# Participants responding to many items in two conditions (E33): simr's
+# powerSim() on the model makeLmer() builds, testing the condition with
+# lmerTest's Satterthwaite t test.
+simr_script <- function(spec, result) {
+  inputs <- simr_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  levels <- comment_text(unlist(v$X$levels))
+  item_slope <- length(inputs$VarCorr$item) > 1
+  c(
+    script_header(spec, result, "simr", "simr::powerSim() with fixed(\"cond\", \"sa\")"),
+    "library(simr)",
+    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    "",
+    "# Inputs ----",
+    sprintf("# The outcome, %s, in its own units; cond is %s coded -0.5 (%s) and 0.5 (%s),", comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),
+    "# so its coefficient is the difference between the conditions.",
+    sprintf("difference <- %s # mean in %s minus mean in %s", r_code(pop$difference), levels[2], levels[1]),
+    sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
+    sprintf("sd_participant_slope <- %s # SD of participants' condition slopes", r_code(pop$sd_participant_slope)),
+    sprintf("r_participant <- %s # correlation of participants' intercepts and slopes", r_code(pop$r_participant %||% 0)),
+    sprintf("sd_item <- %s # SD of items' intercepts", r_code(pop$sd_item)),
+    if (item_slope) sprintf("sd_item_slope <- %s # SD of items' condition slopes", r_code(pop$sd_item_slope)),
+    sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    sprintf("items <- %s # number of items", r_code(pop$items)),
+    sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
+      if (inputs$within) "every item in both conditions" else "each item in one condition: the first half in the first"),
+    goal_inputs(spec, result),
+    "",
+    "# One data set's design: every participant responds to every item.",
+    "design_for <- function(n_participants) {",
+    "  if (item_design == \"within\") {",
+    "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items), cond = c(-0.5, 0.5))",
+    "  } else {",
+    "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
+    "    data$cond <- ifelse(data$item <= items / 2, -0.5, 0.5)",
+    "  }",
+    "  data$participant <- factor(data$participant)",
+    "  data$item <- factor(data$item)",
+    "  data",
+    "}",
+    "",
+    "# The population model: fixed effects, random-effect variances and residual SD.",
+    "model_for <- function(n_participants) {",
+    "  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
+    "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)",
+    sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
+    "    fixef = c(0, difference),",
+    sprintf("    VarCorr = list(participant = participant, item = %s),", if (item_slope) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
+    "    sigma = sd_residual, data = design_for(n_participants))",
+    "}",
+    "",
+    "# One batch of simulated data sets: significant results and data sets.",
+    "# simr counts a data set whose fit or test fails as not significant.",
+    "# powerkit tests with Satterthwaite's t test (\"sa\"), not simr's default",
+    "# \"z\", an asymptotic approximation (powerkit's Departure 16).",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"sa\"),",
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, 1),
+    comparison_section()
   )
 }

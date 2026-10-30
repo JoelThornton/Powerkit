@@ -13,6 +13,7 @@ population_problems <- function(spec) {
       if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
     },
     ordinal_regression = check_ordinal_two_groups,
+    mixed_model = check_crossed_two_condition,
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -412,6 +413,30 @@ check_direction_allowed <- function(spec) {
     ),
     alternative
   )
+}
+
+# Participants and items in two conditions (mixed_model) ------------------------
+
+# Items between conditions are split in half, so their number must be
+# even; a by-item condition slope exists only when every item is in both
+# conditions.
+check_crossed_two_condition <- function(spec) {
+  pop <- spec$population
+  within <- identical(pop$item_design %||% "between", "within")
+  problems <- character()
+  if (!within && pop$items %% 2 == 1) {
+    problems <- c(problems, sprintf(
+      "'population > items' is %s, but with each item in one condition half the items go in each, so the number must be even.",
+      format_number(pop$items)
+    ))
+  }
+  if (!within && !is.null(pop$sd_item_slope)) {
+    problems <- c(problems, paste0(
+      "'population > sd_item_slope' only applies when every item appears in both conditions ",
+      "('population > item_design' \"within\"); remove it, or set item_design to \"within\"."
+    ))
+  }
+  problems
 }
 
 # Logistic and Poisson regression ----------------------------------------------
@@ -1597,6 +1622,8 @@ minimum_n <- function(spec) {
     poisson_regression = 3,
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
+    # Enough participants to estimate a random intercept and slope.
+    mixed_model = 6,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -1730,6 +1757,7 @@ target_effect_is_zero <- function(spec) {
       log(pop$odds_ratio)
     },
     ordinal_regression = log(pop$odds_ratio),
+    mixed_model = pop$difference,
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice for model fit: the schema refuses it, as

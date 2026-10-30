@@ -3510,3 +3510,24 @@ test checks against a large simulated data set. E16 takes one mediator;
 for two or more, the parallel and serial screens (E11, E12) ask whether X
 is a score or two groups, and the yes/no-X routes lead there. The Monte
 Carlo CI with a binary X is checked against an independent simulation.
+
+## 2026-10-30 · Mixed models: the first design (E33), via simr
+
+**Package.** simr (Green & MacLeod, 2016; `citation("simr")`): power by
+simulation from a model built with `makeLmer()`, refitted with lme4. Added
+with lmerTest (for the test) to `engine/DESCRIPTION`, `_dependencies.R`
+and `renv.lock`.
+
+**Design.** Two conditions, varying within participants; every participant
+responds to every item; items in one condition each by default (half per
+condition), or in both. Random intercepts for participants and items and a
+random condition slope for participants (a by-item slope too when items
+are in both conditions and its SD is given). Inputs in the outcome's units;
+the number of items is fixed and `goal > n` is the number of participants.
+
+**Test.** lmerTest's Satterthwaite t test (simr's `method = "sa"`), not
+simr's default `"z"`: Departure 16, sized in `conventions.md`.
+
+**Running it.** Power at a given number of participants in the app (a
+preview, then the full run); the required number of participants from the
+R script, since each sample size takes minutes.

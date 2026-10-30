@@ -140,6 +140,11 @@ fully validated. Validation runs are recorded in
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress.
+- **Mixed models, first design (30 October 2026, 0.23.0):** E33
+  (participants responding to many items in two conditions) calculates
+  with simr and lmerTest's Satterthwaite test (Departure 16); the required
+  number of participants comes from the R script. Validation in progress.
+  More models need decisions (`next.md`, item 4).
 - **Mediation with a yes/no X (29 October 2026, 0.23.0):** E16 (one
   mediator) calculates with power4mome's `rbinary_rs()`, the group split an
   input, showing the group difference in M the path implies; the parallel
