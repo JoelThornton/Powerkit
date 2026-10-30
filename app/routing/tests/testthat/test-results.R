@@ -1476,6 +1476,43 @@ test_that("effect-size conversion: the form offers each card's forms, and the en
   expect_equal(plain$population$d, 0.4)
 })
 
+test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {
+  for (ep in c("E7", "E18", "E21")) {
+    fields <- form_fields(form_groups(forms, ep))
+    ids <- vapply(fields, `[[`, "", "id")
+    expect_identical(ids[match("metric", ids) + 1], "eta_squared", label = ep)
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    expect_true("eta_squared" %in% names(by_id("metric")$choices), label = ep)
+    # The means give way to the effect size.
+    effect_values <- list(metric = "eta_squared", goal = "power")
+    for (id in intersect(c("means", "m11", "sd", "sd_mode"), ids)) {
+      expect_false(field_applies(by_id(id), effect_values), label = paste(ep, id))
+    }
+    expect_true(field_applies(by_id("eta_squared"), effect_values), label = ep)
+    expect_true(field_applies(by_id("conv_df1"), c(effect_values, list(conv_from = "F"))), label = ep)
+  }
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(metric = "eta_squared", eta_squared = "0.06", test_version = "anova_f",
+    goal = "sample_size", power = "0.8"))
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_null(spec$population$means)
+  expect_equal(spec$population$eta_squared, 0.06)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.ancova")
+  text <- paste(writeup_text(forms$forms$E18, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "The effect size, partial eta-squared = 0.06", fixed = TRUE)
+  expect_match(text, "pwrss::power.f.ancova()", fixed = TRUE)
+  # A published F(2, 114) for the factorial card's interaction.
+  fields <- form_fields(form_groups(forms, "E21"))
+  values <- modifyList(form_examples$E21, list(metric = "eta_squared", effect = "interaction", conv_from = "F",
+    conv_value = "4.2", conv_df1 = "2", conv_df = "114", goal = "power", n = "120", just_type = "meta_analysis"))
+  calc <- run_calculation(build_spec(forms, "E21", fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$effect_conversion$converted, effectsize::F_to_eta2(4.2, 2, 114)[[1]])
+})
+
 test_that("three effects side by side: conservative, the plan's and optimistic", {
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$target_test$method <- "student_t"

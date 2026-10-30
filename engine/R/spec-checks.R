@@ -836,6 +836,9 @@ check_probability_table <- function(spec) {
 
 check_factorial_anova <- function(spec) {
   pop <- spec$population
+  if (identical(pop$metric, "eta_squared")) {
+    return(check_eta_squared_anova(spec))
+  }
   if (identical(pop$metric, "standardised") && any(unlist(pop[["sd"]]) != 1)) {
     return(paste0(
       "With metric 'standardised' the means are in SD units, so ",
@@ -992,6 +995,9 @@ three_factor_effect_size <- function(spec) {
 }
 
 anova_contrast <- function(spec) {
+  if (identical(spec$population$metric, "eta_squared")) {
+    return(spec$population$eta_squared)
+  }
   if (identical(spec$template, "oneway_contrast")) {
     # The contrast itself: zero when the weighted means cancel out, which
     # includes every mean being equal.
@@ -1841,4 +1847,28 @@ check_logistic_factorial <- function(spec) {
     "'population > probabilities' needs %d rows (one per level of %s), each with %d proportions (one per level of %s).",
     a, var_label(spec, "A"), b, var_label(spec, "B")
   )
+}
+
+# An ANOVA given by its partial eta-squared (pwrss's F test, as in G*Power):
+# equal groups and the ANOVA F test only, since the group means that
+# Welch's F, the Kruskal-Wallis test and unequal cells need aren't given.
+check_eta_squared_anova <- function(spec) {
+  if (!spec$template %in% c("oneway_between", "2x2_between", "factorial_between")) {
+    return(paste0(
+      "An effect given as partial eta-squared ('population > metric' \"eta_squared\") is available for ",
+      "between-participants ANOVA (templates oneway_between, 2x2_between and factorial_between) only."))
+  }
+  method <- spec$target_test$method %||% "anova_f"
+  if (!identical(method, "anova_f")) {
+    return(sprintf(paste0(
+      "With partial eta-squared the test is the ANOVA F test; '%s' needs the group means and SDs. ",
+      "Give the means instead ('population > metric' \"raw\" or \"standardised\")."), method))
+  }
+  if (!is.null(spec$options$cell_ratio) && length(unique(as.numeric(unlist(spec$options$cell_ratio)))) > 1) {
+    return("With partial eta-squared the groups are equal in size; for unequal groups, give the cell means instead.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    return("With partial eta-squared power is worked out by formula (pwrss); simulation needs the group means.")
+  }
+  character()
 }

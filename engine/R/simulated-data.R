@@ -74,6 +74,9 @@ simulated_data_available <- function(spec) {
 # population, or NULL when the design has no generator here yet. The code
 # names its packages (pkg::fun) so it runs without powerkit.
 simulated_data_code <- function(spec, n, seed) {
+  # An ANOVA given by its partial eta-squared has no group means to draw
+  # data from.
+  if (eta_squared_anova(spec)) return(NULL)
   superpower <- c(
     "oneway_between", "oneway_within", "2x2_between", "2x2_mixed", "mixed",
     "factorial_between", "factorial_within", "factorial_three"

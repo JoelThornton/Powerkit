@@ -1,5 +1,20 @@
 # powerkit 0.24.0
 
+* Between-participants ANOVA by its effect size: templates
+  `oneway_between`, `2x2_between` and `factorial_between` take
+  `population > metric` "eta_squared" with `population > eta_squared`, the
+  partial eta-squared of the effect tested (for one factor, its
+  eta-squared), as G*Power takes it, instead of group means. Power comes
+  from pwrss's `power.f.ancova()` (no covariates, equal groups, the ANOVA F
+  test; Welch's F, rank tests and unequal cells still need means, and say
+  so). `convert_effect()` also turns a published F (with both dfs, new
+  `conversion > df`) or Cohen's f into it. The check run confirms pwrss's
+  df and its f^2 (noncentrality / N); the R script reproduces the result;
+  no simulated data set (there are no means to draw from); the smallest
+  detectable effect isn't available on this route yet. The app's one-way,
+  2 x 2 and factorial input screens offer "An effect size: partial
+  eta-squared, as in G*Power" beside the means. Validation placeholders in
+  `test-validation-anova-eta.R` (anova chunk).
 * Effect-size conversion: `effect_justification > conversion` gives the
   effect as published in another form (`from`: "t", "F" with one
   numerator df, "r", "d" or "odds_ratio"; `value`; `df_error` for t and F;
