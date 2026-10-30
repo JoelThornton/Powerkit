@@ -139,7 +139,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       })
       if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
     }
-    g
+    with_conversion(g, form$base$template)
   })
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -348,6 +348,58 @@ safeguard_fields <- function(template) {
          help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
+}
+
+# Effect-size conversion: a published effect in another form (a t or F
+# statistic, r, d or an odds ratio), converted by the engine with the
+# effectsize package into the card's own effect size. The forms each card
+# accepts follow the engine's (powerkit:::conversion_templates; a test
+# checks they agree). The fields go straight after the effect field, which
+# is hidden while a conversion is chosen.
+conversion_choices <- list(
+  independent_t = c("t", "F", "r", "odds_ratio"),
+  one_sample_t = "t",
+  paired_t = c("t", "F"),
+  correlation = c("t", "F", "d", "odds_ratio")
+)
+
+conversion_labels <- list(
+  t = "A t statistic", F = "An F statistic with one numerator df (two groups or two conditions)",
+  r = "A correlation r", d = "Cohen's d (two groups)", odds_ratio = "An odds ratio"
+)
+
+# `when`: the effect field's own conditions (for example, not while the
+# effect is given in the measure's own units).
+conversion_fields <- function(template, when = list()) {
+  from <- conversion_choices[[template]]
+  choices <- c(list(none = "No: I'll enter the effect size myself"), conversion_labels[from])
+  sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
+  planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))))
+  converting <- c(planning, list(list(field = "conv_from", is_one_of = from)))
+  list(
+    list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
+         choices = choices, sets = sets, shown_if = planning,
+         help = paste("powerkit converts it with the effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows",
+                      "the result and the function used. Published effects tend to be larger than the true effect: say how you",
+                      "adjusted it, or use safeguard power below if it comes from one study.")),
+    list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
+         path = "effect_justification.conversion.value", shown_if = converting),
+    list(id = "conv_df", label = "Its error degrees of freedom (the second df of F, or the df of t)", type = "number", integer = TRUE, min = 1, conversion = TRUE,
+         required = TRUE, path = "effect_justification.conversion.df_error",
+         shown_if = c(converting, list(list(field = "conv_from", is_one_of = c("t", "F")))))
+  )
+}
+
+with_conversion <- function(group, template) {
+  if (is.null(conversion_choices[[template %||% ""]])) return(group)
+  at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && grepl("^population\\.(d|dz|r)$", f$path %||% ""), logical(1)))
+  if (length(at) != 1) return(group)
+  effect <- group$fields[[at]]
+  when <- shown_if_conditions(effect)
+  effect$shown_if <- c(when, list(list(field = "conv_from", is_one_of = c("none", ""))))
+  group$fields[[at]] <- effect
+  group$fields <- append(group$fields, conversion_fields(template, when), after = at)
+  group
 }
 
 guess_note <- paste(

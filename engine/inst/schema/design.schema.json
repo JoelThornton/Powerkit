@@ -298,6 +298,78 @@
               "type": "number"
             }
           }
+        },
+        "conversion": {
+          "description": "The effect size as published in another form, converted with the effectsize package into the effect this design uses (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
+          "type": "object",
+          "required": [
+            "from",
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "description": "The form of the published effect: a t statistic, an F statistic with one numerator degree of freedom, r, Cohen's d or an odds ratio. Which forms a design accepts: independent t-test t, F, r, odds_ratio; one-sample t-test t; paired t-test t, F; correlation t, F, d, odds_ratio.",
+              "enum": [
+                "t",
+                "F",
+                "r",
+                "d",
+                "odds_ratio"
+              ]
+            },
+            "value": {
+              "description": "The published value.",
+              "type": "number"
+            },
+            "df_error": {
+              "description": "The error (denominator) degrees of freedom, for t and F.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "n1": {
+              "description": "Optional: group 1's size, for r and d with two groups of unequal size (equal groups are assumed without it).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "n2": {
+              "description": "Optional: group 2's size, with n1.",
+              "type": "integer",
+              "minimum": 2
+            },
+            "result": {
+              "description": "Filled in by powerkit: the converted effect, which is also the population value.",
+              "type": "number"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "from"
+                ],
+                "properties": {
+                  "from": {
+                    "enum": [
+                      "t",
+                      "F"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "df_error"
+                ]
+              }
+            },
+            {
+              "dependencies": {
+                "n1": ["n2"],
+                "n2": ["n1"]
+              }
+            }
+          ]
         }
       },
       "allOf": [

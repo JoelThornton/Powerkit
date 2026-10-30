@@ -396,7 +396,7 @@ power 0.80 unless said; menu names as in the maintainer's list, Part A):
 | C6 | Non-normal data and unequal variances (simulation option) | Unequal variances: Welch (E2), cell SDs (E7, E8). Non-normal data: none | Done (validated and wired; unequal variances only) | Spower `parent1`/`parent2` (Wilcoxon), `gen_fun`; power4mome `x_fun`/`e_fun` with `rbeta_rs()`, `rexp_rs()`, `rlnorm_rs()`, `rt_rs()`, `runif_rs()`, `rpgnorm_rs()` | [G3][] |
 | C7 | Covariates | One-way ANCOVA (E23, one or more covariates as an R-squared) | Planned (v2 in the build guide for ANCOVA; no phase) | Superpower `ANCOVA_analytic()`; InteractionPoweR `power_interaction_r2_covs()`; power4mome lavaan models; Spower `p_glm()` | [D7][], [C15][] |
 | C8 | One- vs two-tailed | Two-sided default; one-sided for basic tests | Done (validated and wired) | Spower `alternative`; pwr `alternative` | [B3][] |
-| C9 | Effect-size input formats and conversion | One format per end point (d, d_z, r, proportions, cell probabilities, means and SDs, standardised paths, correlations) | Planned (`next.md` item 1, first in the maintainer's order of 30 October 2026; needs a decision on the package and the conversions) | pwr `ES.h()`, `ES.w1()`, `ES.w2()`; Superpower `mu_from_ES()`; pwrss `means.to.d()`, `etasq.to.f()`, `f.to.rsq()` and others (cross-check package) | [B10][], [G3][] |
+| C9 | Effect-size input formats and conversion | One format per end point (d, d_z, r, proportions, cell probabilities, means and SDs, standardised paths, correlations) | Partly working (30 October 2026: a published t, F, r, d or odds ratio converted with effectsize on the one-sample, paired and two-group t-tests and the correlation; the ANOVA cards' f next, `next.md` item 1) | pwr `ES.h()`, `ES.w1()`, `ES.w2()`; Superpower `mu_from_ES()`; pwrss `means.to.d()`, `etasq.to.f()`, `f.to.rsq()` and others (cross-check package) | [B10][], [G3][] |
 | C10 | Effect sizes from pilots or the literature (bias correction) | Safeguard power (Perugini, Gallucci and Costantini, 2014) for the one-sample, paired and two-group t-tests and the correlation: plan with the lower bound of a confidence interval around one earlier study's estimate (`engine/R/safeguard.R`, intervals from psych). Other designs: warnings only | Partly working (safeguard power for four designs) | BUCSS `ss_buc_*()`; mixpower `mp_safeguard_effect()` | [B2][], [A8][] |
 | C11 | Power curves and sensitivity plots | `curve` in the result (power by N); a sensitivity goal on E1 to E9; the result screen's "explore" plot draws power against N (`explore_curve()`, `plotOutput("explore_plot")` in `app/routing/R/results.R`) | Done (validated and wired), except that whether a power curve is shown by default is still an undecided setting (`power_curve`) | Spower `SpowerCurve()`; power4mome `power_curve()`; InteractionPoweR `plot_power_curve()`; Superpower `plot_power()`, `morey_plot()`; pwr `plot.power.htest()` | [G3][] |
 | C12 | Frequentist vs Bayesian framework | Frequentist only | Planned (later in the build guide: Bayesian design analysis; no phase) | See B58–B62 | [D3][], [G2][] |
@@ -429,10 +429,10 @@ and fails if a line here disagrees.
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
 | Wired (validation not finished) | 25 | 17 | 0 | 42 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 4 | 12 | 3 | 19 |
+| Planned | 4 | 12 | 2 | 18 |
 | Foundation tool can do it, not planned | 6 | 8 | 1 | 15 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
-| Partly working | 0 | 1 | 3 | 4 |
+| Partly working | 0 | 1 | 4 | 5 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
 | Unknown | 1 | 18 | 0 | 19 |
 | Out of scope | 0 | 0 | 0 | 0 |

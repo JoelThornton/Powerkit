@@ -209,6 +209,11 @@ fully validated. Validation runs are recorded in
   t-tests and the correlation can plan with the lower bound of a 60% (or
   90%) confidence interval around it, worked out by psych (Perugini,
   Gallucci & Costantini, 2014). Not yet for other designs.
+- **Effect-size conversion (30 October 2026, 0.24.0):** the same four
+  cards take an effect as published (a t statistic, an F with one
+  numerator df, r, d or an odds ratio), converted with effectsize and
+  recorded in the spec; the result and the write-up say what was
+  converted and how. The ANOVA cards' f is next (`next.md`, item 1).
 - **Equivalence tests (27 and 29 October 2026, 0.10.0 and 0.21.0):** the
   two one-sided tests (TOST) for two groups, paired data and one sample
   run in the app through TOSTER's exact `power_t_TOST()` (E36), with the

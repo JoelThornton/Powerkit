@@ -3554,3 +3554,33 @@ cannot change the results of chunks whose code it doesn't touch.
 
 Each chunk runs as its own job (`full-validation.yaml`), so the long
 mediation chunks run side by side within GitHub's six-hour limit.
+
+## 2026-10-30 · Effect-size conversion
+
+**Decision.** Researchers usually start from an effect published in
+another form, so a card can take it as published and powerkit converts it.
+
+- **Package:** effectsize (Ben-Shachar, Lüdecke & Makowski, 2020; cited
+  from its own `citation()`). It exists for these conversions and
+  documents each one; pwrss and psych, already installed, cover fewer.
+- **First conversions:** only those that land unambiguously in a card's
+  own effect size. A t statistic, an F with one numerator df, r, d or an
+  odds ratio into d (one-sample and two-group t-tests), d_z (paired) or r
+  (correlation). Partial eta-squared from a within-participants or mixed
+  design gets a warning rather than a conversion when the ANOVA cards
+  follow, because turning it into a between-participants f depends on the
+  correlation between conditions.
+- **Where:** beside each card's effect input ("Is your effect size
+  published in another form?"), filling in the effect; the result and the
+  write-up say what was converted and with which function.
+- **Published effects:** the help beside the choice says that published
+  effects tend to be too large and points to safeguard power where the
+  card has it; nothing is adjusted automatically.
+
+**How.** The spec records the conversion (`effect_justification >
+conversion`), so a saved plan, its hash and its R script reproduce it;
+`validate_spec()` converts it before the schema is checked and then
+applies safeguard power to the converted value if asked. Each conversion
+is effectsize's own function, which uses the error df for t and F (for
+the one-sample t-test, `t_to_d(paired = TRUE)`, d = t / sqrt(df)).
+

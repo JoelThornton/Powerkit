@@ -66,6 +66,13 @@ validate_spec <- function(spec) {
   }
   if (length(problems) == 0) {
     spec <- normalise_spec(spec)
+    # Before the schema: a converted effect fills the population field the
+    # schema requires.
+    conversion <- apply_conversion(spec)
+    spec <- conversion$spec
+    problems <- conversion$problems
+  }
+  if (length(problems) == 0) {
     problems <- schema_problems(spec)
   }
   if (length(problems) == 0) {

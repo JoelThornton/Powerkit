@@ -172,6 +172,11 @@
 #'     or "d_z") and `value`, the `difference` in the outcome's units, and
 #'     the `sd` it was divided by (with its `sd_name`), and for a
 #'     sensitivity goal the `smallest_difference` in the outcome's units;
+#'   * `effect_conversion`: `NULL` unless the effect justification converts
+#'     the effect from another form; otherwise the form (`from`,
+#'     `from_name`), the published `value` and its `df_error`, and the
+#'     `converted` effect with its `effect_name`, `function_used` and
+#'     `package`.
 #'   * `safeguard`: `NULL` unless the effect justification uses safeguard
 #'     power; otherwise [safeguard_effect()]'s list for the earlier study's
 #'     estimate, with `lower` the effect size the calculation used.
@@ -307,6 +312,7 @@ run_spec <- function(spec) {
       sensitivity = outcome$sensitivity,
       effect_from_units = units,
       safeguard = safeguard_record(spec),
+      effect_conversion = conversion_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),
       sem = sem_summary(spec),
@@ -326,7 +332,8 @@ run_spec <- function(spec) {
         backend_function = backend$functions[[method]],
         r_version = R.version.string,
         packages = package_versions(c("powerkit", backend$packages,
-          if (!is.null(spec$effect_justification$safeguard)) "psych")),
+          if (!is.null(spec$effect_justification$safeguard)) "psych",
+          if (!is.null(spec$effect_justification$conversion)) "effectsize")),
         started = format(started, "%Y-%m-%d %H:%M:%S %Z"),
         run_time_seconds = as.numeric(difftime(Sys.time(), started, units = "secs"))
       )

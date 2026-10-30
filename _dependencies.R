@@ -6,6 +6,7 @@
 
 # Engine
 library(digest)
+library(effectsize) # converting a published effect size into the one a card uses
 library(jsonlite)
 library(jsonvalidate)
 library(psych)     # safeguard power's confidence interval
