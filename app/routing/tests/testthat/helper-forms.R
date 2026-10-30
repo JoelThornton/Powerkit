@@ -147,6 +147,11 @@ form_examples$E57 <- c(list(X_label = "Session", X_level1 = "Before training", X
                             Y_label = "Reaction time (ms)", var1 = "2500", var2 = "1600", pm_r = "0.6",
                             alternative = "two_sided"), closing_ok)
 
+# E59: three groups compared on three outcomes (one-way MANOVA).
+form_examples$E59 <- c(list(A_label = "Condition", A_levels = "Waiting list, Online course, Group course",
+                            Y_labels = "Anxiety, Depression, Stress", means = "20, 18, 22\n18, 16.5, 20\n17, 16, 19",
+                            sds = "6, 5, 7", manova_r = "0.5"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",

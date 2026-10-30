@@ -100,6 +100,15 @@ spower_inputs <- function(spec) {
         list(n = n, r = 0, gen_fun = pitman_morgan_scores, var1 = pop$var1, var2 = pop$var2, rho12 = pop$r)
       }
     ),
+    # One-way MANOVA: powerkit's own experiment for Spower, p_manova(),
+    # draws multivariate normal scores for each group (manova_scores()) and
+    # returns the p-value of Pillai's trace from stats::manova().
+    manova = list(
+      experiment = "p_manova", own = TRUE, generator = "manova_scores", generate = manova_scores,
+      args = function(n) {
+        list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r)
+      }
+    ),
     two_proportions = list(
       experiment = "p_prop.test", generator = "gen_prop.test",
       args = function(n) {
@@ -166,6 +175,8 @@ spower_inputs <- function(spec) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
+  } else if (identical(template, "manova")) {
+    "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)"
   } else if (identical(template, "paired_variances")) {
     sprintf("Spower::Spower(Spower::p_r(gen_fun = <sum and difference of paired scores>%s)) (the Pitman-Morgan test)",
       if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
@@ -309,7 +320,7 @@ spower_rejections <- function(inputs, n, nrep, seed) {
   if (inputs$alternative != "two_sided") {
     args$alternative <- spower_alternative(inputs$template, inputs$alternative)
   }
-  head <- call("::", as.name("Spower"), as.name(inputs$experiment))
+  head <- if (isTRUE(inputs$own)) as.name(inputs$experiment) else call("::", as.name("Spower"), as.name(inputs$experiment))
   result <- spower_eval(head, args, nrep, inputs$alpha, seed)
   round(result$power * nrep)
 }
@@ -419,6 +430,28 @@ spower_check_run <- function(spec, inputs, n, seed) {
       cor_row <- check_run_rows("correlation between the measurements", pop$r, r, NA)
       cor_row$ok <- abs(atanh(r) - atanh(pop$r)) <= 5 / sqrt(size - 3)
       rbind(rows, cor_row)
+    },
+    # MANOVA: each group's mean on each outcome, each outcome's SD within
+    # the groups, and the correlation between each pair of outcomes.
+    manova = {
+      means <- manova_means(spec)
+      sds <- as.numeric(unlist(pop$sds))
+      size <- args$n
+      y <- as.matrix(data[, -1])
+      groups <- split(seq_len(nrow(data)), data$group)
+      centred <- do.call(rbind, lapply(groups, function(i) scale(y[i, , drop = FALSE], scale = FALSE)))
+      within_sd <- sqrt(colSums(centred^2) / (nrow(y) - length(groups)))
+      within_r <- stats::cor(centred)[upper.tri(diag(ncol(y)))]
+      cells <- expand.grid(g = seq_len(nrow(means)), j = seq_len(ncol(means)))
+      r_rows <- check_run_rows("correlation between two outcomes (average)", pop$r, mean(within_r), NA)
+      r_rows$ok <- abs(atanh(mean(within_r)) - atanh(pop$r)) <= 5 / sqrt(nrow(y) - 3)
+      rbind(
+        check_run_rows(sprintf("mean of Y%d in group %d", cells$j, cells$g), means[cbind(cells$g, cells$j)],
+          vapply(seq_len(nrow(cells)), function(i) mean(y[groups[[cells$g[i]]], cells$j[i]]), numeric(1)),
+          sds[cells$j] / sqrt(size)),
+        check_run_rows(sprintf("SD of Y%d within groups", seq_along(sds)), sds, within_sd, sds / sqrt(2 * (nrow(y) - length(groups)))),
+        r_rows
+      )
     },
     # Welch's F: each group's mean and SD, in the means' units.
     oneway_between = {
@@ -560,4 +593,33 @@ logistic_factorial_check_run <- function(spec, args, seed) {
     sprintf("P(yes), %s %s, %s %s", spec$variables$A$label, a_levels[cells$i], spec$variables$B$label, b_levels[cells$j]),
     specified, recovered, sqrt(specified * (1 - specified) / per_cell)
   )
+}
+
+# MANOVA: the means as a matrix, one row per group and one column per
+# outcome.
+manova_means <- function(spec) {
+  do.call(rbind, lapply(spec$population$means, function(row) as.numeric(unlist(row))))
+}
+
+# Multivariate normal scores for a one-way MANOVA: n people in each group,
+# with that group's means, the outcomes' SDs and one correlation r between
+# every pair of outcomes (SimDesign::rmvnorm(), as Spower's own generators
+# use). Returns a data frame with the group and one column per outcome.
+manova_scores <- function(n, means, sds, r) {
+  p <- ncol(means)
+  correlation <- matrix(r, p, p)
+  diag(correlation) <- 1
+  sigma <- diag(sds, p) %*% correlation %*% diag(sds, p)
+  y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) SimDesign::rmvnorm(n, means[g, ], sigma)))
+  colnames(y) <- paste0("Y", seq_len(p))
+  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)
+}
+
+# Spower experiment for a one-way MANOVA: the p-value of Pillai's trace
+# from stats::manova() on scores drawn by manova_scores(). With two groups
+# every MANOVA statistic gives the same, exact test (Hotelling's T-squared).
+p_manova <- function(n, means, sds, r) {
+  data <- manova_scores(n, means, sds, r)
+  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)
+  summary(fit, test = "Pillai")$stats[1, "Pr(>F)"]
 }

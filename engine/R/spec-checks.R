@@ -105,7 +105,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
-    !identical(spec$template, "paired_variances") && (
+    !spec$template %in% c("paired_variances", "manova") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
@@ -167,7 +167,7 @@ simulation_available <- function(spec) {
 # maths itself (CLAUDE.md), so these are simulated with Spower. The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances", "paired_variances") || rank_test(spec) || welch_anova(spec) ||
+  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova") || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 
@@ -217,7 +217,8 @@ check_welch_sds <- function(spec) {
       "in units of: give the means and each group's SD in the outcome's own units (metric 'raw')."
     ))
   }
-  if (is.null(sds)) {
+  # MANOVA's sds are one per outcome (check_manova()).
+  if (is.null(sds) || identical(spec$template, "manova")) {
     return(character())
   }
   if (!welch_anova(spec)) {
@@ -695,10 +696,45 @@ check_basic_test <- function(spec) {
     chi_square_independence = check_probability_table(spec),
     chi_square_gof = check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
+    manova = check_manova(spec),
     overlapping_correlations = ,
     nonoverlapping_correlations = check_dependent_correlations(spec),
     character()
   )
+}
+
+# MANOVA: one row of means per group and one mean per outcome, outcomes
+# named Y1, Y2, ... in order, one SD per outcome, and a correlation that
+# gives a valid covariance matrix (with the same correlation between every
+# pair of p outcomes, it must be above -1 / (p - 1)).
+manova_outcomes <- function(spec) {
+  sort(grep("^Y[1-9]$", names(spec$variables), value = TRUE))
+}
+
+check_manova <- function(spec) {
+  pop <- spec$population
+  outcomes <- manova_outcomes(spec)
+  p <- length(outcomes)
+  k <- length(spec$variables$A$levels)
+  problems <- character()
+  if (!identical(outcomes, paste0("Y", seq_len(p)))) {
+    problems <- c(problems, sprintf("The outcomes should be named Y1 to Y%d, with none missing.", p))
+  }
+  if (length(pop$means) != k) {
+    problems <- c(problems, sprintf("'population > means' should have one row per group of A (%d); it has %d.", k, length(pop$means)))
+  }
+  if (any(lengths(pop$means) != p)) {
+    problems <- c(problems, sprintf("Each row of 'population > means' should have one mean per outcome (%d).", p))
+  }
+  if (length(pop$sds) != p) {
+    problems <- c(problems, sprintf("'population > sds' should have one SD per outcome (%d); it has %d.", p, length(pop$sds)))
+  }
+  if (p > 1 && pop$r <= -1 / (p - 1)) {
+    problems <- c(problems, sprintf(
+      "With %d outcomes, the correlation between every pair can't be %s or lower (it must be above %s), or the outcomes couldn't all be correlated that way at once.",
+      p, format_number(-1 / (p - 1)), format_number(round(-1 / (p - 1), 3))))
+  }
+  problems
 }
 
 # Dependent correlations (one group): X with Y against X with Z
@@ -1575,6 +1611,9 @@ minimum_n <- function(spec) {
       # people per group for the F test of two.
       one_variance = 2,
       two_variances = 4,
+      # Pillai's trace needs more people than outcomes in the residual
+      # degrees of freedom: at least p + 2 people in each group.
+      manova = length(spec$variables$A$levels) * (length(manova_outcomes(spec)) + 2),
       4
     ),
     # TOSTER's power_t_TOST() needs two people per group (one in a
@@ -1687,7 +1726,7 @@ group_split <- function(spec) {
   if (spec$template == "tost_two_proportions") {
     return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
@@ -1758,6 +1797,11 @@ target_effect_is_zero <- function(spec) {
       one_variance = pop$var - pop$var0,
       two_variances = ,
       paired_variances = pop$var1 - pop$var2,
+      # The largest difference between two groups on any outcome.
+      manova = {
+        means <- do.call(rbind, lapply(pop$means, as.numeric))
+        max(apply(means, 2, function(x) diff(range(x))))
+      },
       chi_square_gof = {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))

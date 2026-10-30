@@ -25,6 +25,7 @@ library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
 library(semPower)
 library(simr)
+library(SimDesign) # MANOVA's multivariate normal scores (rmvnorm())
 library(Spower)
 library(Superpower)
 library(TOSTER)

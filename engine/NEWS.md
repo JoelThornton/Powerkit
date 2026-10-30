@@ -1,5 +1,13 @@
 # powerkit 0.24.0
 
+* One-way MANOVA: template `basic_test/manova` (two or more groups, two to
+  nine outcomes named `Y1` to `Y9`) with `population > means` (one row per
+  group), `sds` (one per outcome) and `r` (between every pair of outcomes),
+  tested with Pillai's trace (`target_test > method` "pillai_trace"; with
+  two groups, Hotelling's T-squared). Simulated with Spower and powerkit's
+  own experiment, `p_manova()` (multivariate normal scores from
+  SimDesign's `rmvnorm()`, `stats::manova()`); SimDesign is a new import.
+  Exported scripts carry the experiment. Known difference 8.
 * `joint_power()`: the chance that every one of several outcomes of the
   same randomised comparison is significant, with PUMP's `pump_power()`
   (designs `d1.1_m1c` for independent t-tests and `d2.2_m2rc` for

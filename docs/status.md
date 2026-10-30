@@ -140,6 +140,12 @@ fully validated. Validation runs are recorded in
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress.
+- **MANOVA (30 October 2026, 0.24.0):** E59, two or more groups compared
+  on several outcomes at once (Pillai's trace; Hotelling's T-squared with
+  two groups), reached from F2. Simulated with Spower and powerkit's
+  `p_manova()` experiment; matches the exact two-group answer (pwrss) and
+  a separate simulation, and holds alpha. G\*Power values to transcribe
+  (Known difference 8). Validation in progress.
 - **Latent profile and latent class analysis (30 October 2026, 0.24.0):**
   a guidance card (E58), reached from Q1's "That people fall into
   distinct types or profiles". No package computes this power, so the
@@ -423,7 +429,7 @@ fully validated. Validation runs are recorded in
 **The ordered queue is [`next.md`](next.md)** — 27 items. The maintainer's
 order for the next work (30 October 2026): every card taking the effect
 size researchers have, joint power for study plans that mix designs,
-MANOVA and Hotelling's T-squared, more multilevel
+MANOVA follow-ups, more multilevel
 models starting with E41, Bayes factors beyond the t-tests, justified
 alpha, then precision
 planning and the number of items for E33, meta-analysis, and an

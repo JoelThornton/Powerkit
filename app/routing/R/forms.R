@@ -769,6 +769,12 @@ build_spec <- function(forms, ep_id, fields, values) {
   if (!is.null(form$mediators)) {
     for (m in mediator_roles(as.integer(values$n_mediators %||% 2))) spec$variables[[m]] <- list(type = "continuous")
   }
+  # Several outcomes named in one field (E59): one score variable each, Y1
+  # to Yp.
+  if (!is.null(form$outcomes) && !blank(values[[form$outcomes]])) {
+    labels <- parse_levels(values[[form$outcomes]])
+    for (j in seq_along(labels)) spec$variables[[paste0("Y", j)]] <- list(type = "continuous", label = labels[[j]])
+  }
   for (f in fields) {
     # A field with no path may still set spec values through `sets` (E56:
     # which factors are measured in everyone).
