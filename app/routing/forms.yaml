@@ -234,6 +234,7 @@ known_differences:
   "4": "Variance tests: powerkit simulates power (Spower's p_var.test()), because no package it builds on has a formula for these tests; G*Power computes them exactly. The simulated answer carries a little random error: about 0.013 in power at 1,000 replications and about 0.004 at 10,000, so the sample size can differ from G*Power's by a participant or two."
   "5": "Rank tests: powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
+  "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -245,6 +246,7 @@ known_differences_methods:
   "4": "Power was estimated by simulation, so it carries Monte Carlo error, whereas G*Power computes this test exactly."
   "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency as G*Power does, so the two can give slightly different sample sizes."
   "6": "The probability of strong evidence was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
+  "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
 
 forms:
   E1:
@@ -680,7 +682,10 @@ forms:
   E9:
     methods_name: "a moderated regression (continuous × continuous interaction)"
     tool: InteractionPoweR
-    known_differences: ["1"]
+    known_differences: ["1", "7"]
+    # Known difference 1 is the simulation's (correlations); 7 is the
+    # R-squared change route's (pwrss's fixed-model formula).
+    known_differences_if_metric: {"1": correlation, "7": r2_change}
     # The smallest detectable effect: the interaction's correlation with Y,
     # by InteractionPoweR's fixed-model formula (the engine's
     # interactionpower_sensitivity()); labelled on the result screen.
@@ -693,15 +698,27 @@ forms:
     groups:
       - input: "Correlations: X with Y, W with Y, the interaction XW with Y, and X with W"
         fields:
-          - {id: r_X_Y, label: "Correlation of X with Y", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
-          - {id: r_W_Y, label: "Correlation of W with Y", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
-          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
-          - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
+          - {id: interaction_metric, label: "How you'll give the interaction", type: select, path: population.metric,
+             choices: {correlation: "As correlations (X, W and the interaction XW with Y, and X with W)", r2_change: "As the R-squared the interaction adds, as in G*Power"},
+             default: correlation, default_source: "InteractionPoweR's correlations (power_interaction(), InteractionPoweR 0.2.4); the R-squared change is how papers usually report an interaction"}
+          - {id: r_X_Y, label: "Correlation of X with Y", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1, shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: r_W_Y, label: "Correlation of W with Y", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1, shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1, shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: r_X_W, label: "Correlation of X with W", type: number, path: population.r_X_W, effect: true, min: -1, max: 1, shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: r2_change, writeup_label: "R-squared change for the interaction", label: "R-squared the interaction adds (its R-squared change)", type: number, path: population.r2_change, effect: true,
+             min_exclusive: 0, max_exclusive: 1, shown_if: {field: interaction_metric, is: r2_change},
+             help: "The increase in R-squared when the product of X and W is added to a model with X and W. A published value tends to be too large."}
+          - {id: r2_main, writeup_label: "R-squared of X and W", label: "R-squared of X and W without the interaction (0 if you don't know)", type: number, path: population.r2_main, in_effect_text: true,
+             optional: true, min: 0, max_exclusive: 1, shown_if: {field: interaction_metric, is: r2_change},
+             help: "Leaving it at 0 gives a slightly smaller effect size, so a slightly larger sample: the safe side."}
       - input: "Optional: reliability of X, W and Y"
         fields:
-          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1}
-          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1}
-          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1}
+          - {id: rel_X, label: "Reliability of X (optional; empty = perfectly reliable)", type: number, path: variables.X.reliability, optional: true, min_exclusive: 0, max: 1,
+             shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: rel_W, label: "Reliability of W (optional; empty = perfectly reliable)", type: number, path: variables.W.reliability, optional: true, min_exclusive: 0, max: 1,
+             shown_if: {field: interaction_metric, is_not: r2_change}}
+          - {id: rel_Y, label: "Reliability of Y (optional; empty = perfectly reliable)", type: number, path: variables.Y.reliability, optional: true, min_exclusive: 0, max: 1,
+             shown_if: {field: interaction_metric, is_not: r2_change}}
 
   E15:
     methods_name: "a moderated regression with a yes/no predictor or moderator"

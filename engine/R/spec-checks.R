@@ -1073,6 +1073,23 @@ check_regression_interaction <- function(spec) {
   if (identical(spec$template, "three_way")) {
     return(character())
   }
+  # Given by its R-squared change (pwrss's F test, as in G*Power): no
+  # correlations to check; the reliability adjustment and yes/no variables
+  # need InteractionPoweR's correlations.
+  if (identical(pop$metric, "r2_change")) {
+    problems <- character()
+    if ((pop$r2_main %||% 0) + pop$r2_change >= 1) {
+      problems <- c(problems, "'population > r2_main' plus 'r2_change' must be below 1: together they are the model's R-squared.")
+    }
+    if (any(vapply(c("X", "W", "Y"), function(v) !is.null(spec$variables[[v]]$reliability), logical(1)))) {
+      problems <- c(problems, paste0("Reliability is used with the correlations (InteractionPoweR); with the R-squared change ",
+        "the measures are taken as measured. Remove 'reliability', or give the correlations instead."))
+    }
+    if (any(vapply(c("X", "W"), function(v) identical(spec$variables[[v]]$type, "binary"), logical(1)))) {
+      problems <- c(problems, "The R-squared change route is for two scores; for a yes/no X or W, give the correlations.")
+    }
+    return(problems)
+  }
   # A yes/no variable has no reliability to enter: misclassification in a
   # 0/1 variable is a different problem from unreliable scores (decided 16
   # October 2026; for E15, only the score's reliability is asked).
@@ -1775,7 +1792,7 @@ target_effect_is_zero <- function(spec) {
       factor_correlation = pop$r,
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
-    regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else pop$r_XW_Y,
+    regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {

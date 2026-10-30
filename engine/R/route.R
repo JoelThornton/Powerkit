@@ -102,7 +102,12 @@ route_spec <- function(spec, seed = NULL) {
     "ordinal_regression/ordinal_two_groups" = propodds_backend(spec),
     "mixed_model/crossed_two_condition" = simr_backend(spec, seed),
     "logistic_regression/factorial" = spower_backend(spec, seed),
-    "regression_interaction/two_way" = interactionpower_backend(spec, seed),
+    "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
+      # Given by its R-squared change, as G*Power takes it: pwrss's F test.
+      pwrss_backend(spec, seed)
+    } else {
+      interactionpower_backend(spec, seed)
+    },
     "regression_interaction/three_way" = interactionpower_3way_backend(spec),
     "mediation/process_4" = ,
     "mediation/process_6" = ,
