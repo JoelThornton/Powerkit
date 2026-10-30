@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Repeated-measures ANOVA from an effect size"
+    text: >-
+      For a repeated-measures or mixed ANOVA, you can now give the effect as
+      partial eta-squared. Because a published value and a G*Power-style
+      effect size are different numbers for the same study, powerkit asks
+      which one you have, so the sample size comes out right either way.
+  - date: "2026-10-30"
     title: "Labs: plan from a published result"
     text: >-
       A new Labs tool takes an effect as a paper reported it, such as

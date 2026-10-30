@@ -1,5 +1,16 @@
 # powerkit 0.24.0
 
+* Repeated-measures and mixed ANOVA by effect size: templates
+  `oneway_within`, `2x2_mixed` and `mixed` take `population > metric`
+  "eta_squared" with `eta_squared` and `eta_source`: "published" (as a
+  repeated-measures ANOVA reports it, already reflecting the correlation
+  between measurements) or "planned" (G*Power's default, with the
+  correlation in `population > r`). Power from pwrss's
+  `power.f.mixed.anova()` (`rho.within = NA` for the published kind;
+  sphericity assumed). A published F converts only into the published
+  kind. The app's input screens ask which kind it is, required, with no
+  default. Validation placeholder for the G*Power manual's repeated-measures
+  example (`test-validation-anova-eta.R`).
 * App, Labs: "Plan from a published result" takes an effect as a paper
   reported it (a t or F statistic, r, d, an odds ratio or f, or the
   effect size itself, for two groups, paired data, one group, a

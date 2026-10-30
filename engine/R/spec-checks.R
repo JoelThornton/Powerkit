@@ -1853,10 +1853,11 @@ check_logistic_factorial <- function(spec) {
 # equal groups and the ANOVA F test only, since the group means that
 # Welch's F, the Kruskal-Wallis test and unequal cells need aren't given.
 check_eta_squared_anova <- function(spec) {
-  if (!spec$template %in% c("oneway_between", "2x2_between", "factorial_between")) {
+  if (!spec$template %in% c("oneway_between", "2x2_between", "factorial_between", eta_squared_mixed_templates)) {
     return(paste0(
       "An effect given as partial eta-squared ('population > metric' \"eta_squared\") is available for ",
-      "between-participants ANOVA (templates oneway_between, 2x2_between and factorial_between) only."))
+      "between-participants ANOVA (templates oneway_between, 2x2_between and factorial_between) and repeated-measures ",
+      "or mixed ANOVA with one within factor (oneway_within, 2x2_mixed, mixed) only."))
   }
   method <- spec$target_test$method %||% "anova_f"
   if (!identical(method, "anova_f")) {

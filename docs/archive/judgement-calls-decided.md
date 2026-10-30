@@ -915,3 +915,31 @@ and not for the smallest detectable effect, which E15 doesn't offer.
     opened). Whether E15 could reuse it is for phase 3b.
 - **Recorded in:** [`decisions.md`](decisions.md) (16 October 2026). No
   setting.
+
+### D5. What the guided route covers (open question 14)
+
+- **Question:** what does the guided route do with repeated measures,
+  many stimuli or nested data? Now the screening stops nested data,
+  stimuli and measurements over time before it, and three or more
+  conditions per person go to "Help me choose".
+- **Options:**
+  - send users to "Help me choose" (as now);
+  - extend the guided route;
+  - say on the start screen that it is for single-session,
+    between-person studies.
+- **What tools and sources do:** no source applies (unsourced).
+- **Who might disagree, and why:**
+  - Extending it covers more studies but multiplies the routes to keep
+    consistent (C8).
+- **Knock-on effects:** C18 (SEM in the guided route).
+- **Recorded in:** open question 14; setting `guided_scope`.
+- **Decided 30 October 2026** ([`decisions.md`](../decisions.md)): extend
+  it, by making the study plan something any card can join. "Help me
+  choose" stays the way to find each analysis; every card it reaches can
+  be added to a study plan, so nested, repeated-measures and dyadic
+  studies can plan several analyses, each powered on its own card. The
+  joint power that all the main analyses are significant is given only
+  where a package computes it (PUMP for multilevel randomised trials with
+  several outcomes is the candidate), and otherwise left out with a note
+  (`next.md`).
+

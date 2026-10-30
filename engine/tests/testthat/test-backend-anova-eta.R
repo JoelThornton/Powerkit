@@ -82,3 +82,38 @@ test_that("the exported script reproduces the result", {
   spec <- validate_spec(eta_spec("factorial_between", 0.06, effect = "interaction", goal = list(type = "power", n = 120L)))
   expect_script_reproduces_power(spec, run_for_export(spec))
 })
+
+test_that("repeated-measures and mixed ANOVA take either kind of partial eta-squared, on pwrss's power.f.mixed.anova()", {
+  rm_spec <- function(template, population, effect = NULL) {
+    spec <- example_spec(paste0("anova_", template))
+    spec$population <- population
+    if (!is.null(effect)) spec$target_test$effect <- effect
+    spec$goal <- list(type = "power", n = 90L)
+    spec
+  }
+  # pwrss's own example (its help for power.f.mixed.anova()): a pretest and
+  # post-test with d = 0.30 is eta-squared .022 without the correlation and
+  # .08255 with it (r = .5); both describe the same study.
+  planned <- run_spec(rm_spec("2x2_mixed", list(metric = "eta_squared", eta_squared = 0.022, eta_source = "planned", r = 0.5), "main_effect_B"))
+  published <- run_spec(rm_spec("2x2_mixed", list(metric = "eta_squared", eta_squared = 0.08255, eta_source = "published"), "main_effect_B"))
+  expect_identical(planned$provenance$backend_function, "pwrss::power.f.mixed.anova")
+  expect_true(all(planned$check_run$ok))
+  expect_true(all(published$check_run$ok))
+  expect_equal(planned$curve$power, published$curve$power, tolerance = 1e-4)
+  direct <- pwrss::power.f.mixed.anova(eta.squared = 0.022, factor.levels = c(2, 2), rho.within = 0.5, effect = "within",
+    n.total = 90, alpha = 0.05, ceil.n = FALSE, verbose = 0)
+  expect_equal(planned$curve$power, direct$power)
+  # One within factor: one group, its levels within.
+  within <- run_spec(rm_spec("oneway_within", list(metric = "eta_squared", eta_squared = 0.06, eta_source = "published")))
+  expect_equal(within$curve$power, pwrss::power.f.mixed.anova(eta.squared = 0.06, factor.levels = c(1, 3), rho.within = NA,
+    effect = "within", n.total = 90, alpha = 0.05, ceil.n = FALSE, verbose = 0)$power)
+  # The planned kind needs the correlation; the published kind refuses one.
+  expect_error(validate_spec(rm_spec("mixed", list(metric = "eta_squared", eta_squared = 0.06, eta_source = "planned"))), class = "powerkit_spec_error")
+  expect_error(validate_spec(rm_spec("mixed", list(metric = "eta_squared", eta_squared = 0.06, eta_source = "published", r = 0.5))), class = "powerkit_spec_error")
+  # A published F converts only into the published kind.
+  conv <- rm_spec("mixed", list(metric = "eta_squared", eta_source = "planned", r = 0.5))
+  conv$effect_justification <- list(type = "meta_analysis", conversion = list(from = "F", value = 6, df = 2L, df_error = 88L))
+  expect_spec_problem(conv, "set 'population > eta_source' to \"published\"")
+  conv$population <- list(metric = "eta_squared", eta_source = "published")
+  expect_equal(validate_spec(conv)$population$eta_squared, effectsize::F_to_eta2(6, 2, 88)[[1]])
+})

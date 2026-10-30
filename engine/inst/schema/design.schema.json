@@ -1953,17 +1953,15 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd",
-            "r"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
+                "standardised",
+                "eta_squared"
               ]
             },
             "means": {
@@ -1975,8 +1973,74 @@
             "r": {
               "description": "Correlation between the two repeated measurements (levels of B) within a participant.",
               "$ref": "#/definitions/correlation"
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "eta_source": {
+              "description": "With metric 'eta_squared': where the partial eta-squared comes from. 'published': as a repeated-measures or mixed ANOVA reports it (SPSS, R, JASP), which already reflects the correlation between measurements, so 'r' isn't needed. 'planned': an effect size without the correlation, as G*Power takes it by default; give the correlation between measurements in 'r'. Both describe the same study when they agree.",
+              "enum": [
+                "published",
+                "planned"
+              ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared",
+                  "eta_source"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "eta_source": {
+                          "const": "planned"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "r"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "r": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd",
+                  "r"
+                ],
+                "properties": {
+                  "eta_squared": false,
+                  "eta_source": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -2025,17 +2089,15 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd",
-            "r"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
+                "standardised",
+                "eta_squared"
               ]
             },
             "means": {
@@ -2058,8 +2120,74 @@
             "r": {
               "description": "Correlation between any two levels of B within a participant (the same for every pair).",
               "$ref": "#/definitions/correlation"
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "eta_source": {
+              "description": "With metric 'eta_squared': where the partial eta-squared comes from. 'published': as a repeated-measures or mixed ANOVA reports it (SPSS, R, JASP), which already reflects the correlation between measurements, so 'r' isn't needed. 'planned': an effect size without the correlation, as G*Power takes it by default; give the correlation between measurements in 'r'. Both describe the same study when they agree.",
+              "enum": [
+                "published",
+                "planned"
+              ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared",
+                  "eta_source"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "eta_source": {
+                          "const": "planned"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "r"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "r": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd",
+                  "r"
+                ],
+                "properties": {
+                  "eta_squared": false,
+                  "eta_source": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -3158,17 +3286,15 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd",
-            "r"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
+                "standardised",
+                "eta_squared"
               ]
             },
             "means": {
@@ -3187,8 +3313,74 @@
             "r": {
               "description": "Correlation between any two conditions' measurements within a participant (the same for every pair).",
               "$ref": "#/definitions/correlation"
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "eta_source": {
+              "description": "With metric 'eta_squared': where the partial eta-squared comes from. 'published': as a repeated-measures or mixed ANOVA reports it (SPSS, R, JASP), which already reflects the correlation between measurements, so 'r' isn't needed. 'planned': an effect size without the correlation, as G*Power takes it by default; give the correlation between measurements in 'r'. Both describe the same study when they agree.",
+              "enum": [
+                "published",
+                "planned"
+              ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared",
+                  "eta_source"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "eta_source": {
+                          "const": "planned"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "r"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "r": false
+                      }
+                    }
+                  }
+                ]
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd",
+                  "r"
+                ],
+                "properties": {
+                  "eta_squared": false,
+                  "eta_source": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
