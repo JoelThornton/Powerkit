@@ -4830,19 +4830,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "a99074a499dc9ce3f5a9b482b6a2c829c1d11a5a",
-        "RemoteSha": "a99074a499dc9ce3f5a9b482b6a2c829c1d11a5a",
+        "RemoteRef": "32f7e1a54197ac1039d5be33b9def79747d49458",
+        "RemoteSha": "32f7e1a54197ac1039d5be33b9def79747d49458",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "a99074a499dc9ce3f5a9b482b6a2c829c1d11a5a",
-        "GithubSHA1": "a99074a499dc9ce3f5a9b482b6a2c829c1d11a5a",
+        "GithubRef": "32f7e1a54197ac1039d5be33b9def79747d49458",
+        "GithubSHA1": "32f7e1a54197ac1039d5be33b9def79747d49458",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-30 20:03:26 UTC; runner",
+        "Packaged": "2026-10-30 20:26:43 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-30 20:03:36 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 20:26:49 UTC; unix"
       }
     },
     "powertools": {
@@ -6665,7 +6665,7 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "5c8191b38246ad1f8a0b517ce4d61372"
+      "checksum": "c2349cd172ee3542150007785e17cf3a"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -6680,7 +6680,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "3840334fcd2987fc13f45195871f7151"
+      "checksum": "9652f5f836b3668aa6d2e5f1fb0e9771"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
