@@ -139,7 +139,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       })
       if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
     }
-    with_conversion(g, form$base$template)
+    with_conversion(with_eta_squared(g, form$base$template), form$base$template)
   })
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -350,6 +350,42 @@ safeguard_fields <- function(template) {
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
 
+# Between-participants ANOVA by its effect size: the "Units of the means"
+# choice gains "an effect size" (partial eta-squared, as G*Power takes it;
+# the engine then uses pwrss's F test), which hides the means and the SDs
+# and shows the partial eta-squared instead. The test version stays: the
+# engine explains that Welch's F and the Kruskal-Wallis test need means.
+eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between")
+
+with_eta_squared <- function(group, template) {
+  if (!isTRUE(template %in% eta_squared_templates)) return(group)
+  by_means <- list(field = "metric", is_not = "eta_squared")
+  hide <- function(f) {
+    if (isTRUE(f$effect) || isTRUE(f$in_effect_text) || identical(f$id, "sd_mode")) {
+      f$shown_if <- c(shown_if_conditions(f), list(by_means))
+    }
+    f
+  }
+  fields <- list()
+  for (f in group$fields) {
+    if (identical(f$id, "metric")) {
+      f$choices <- c(f$choices, list(eta_squared = "An effect size: partial eta-squared, as in G*Power"))
+      fields <- c(fields, list(f, list(
+        id = "eta_squared", label = "Partial eta-squared of the effect you test", writeup_label = "partial eta-squared",
+        type = "number", path = "population.eta_squared", effect = TRUE, min_exclusive = 0, max_exclusive = 1,
+        shown_if = list(field = "metric", is = "eta_squared"),
+        help = paste("For one factor, its eta-squared. powerkit treats it as the true effect, as G*Power does. A published value",
+                     "is that study's estimate and tends to be too large; omega-squared, if reported, is less biased. Groups are",
+                     "taken as equal in size, and the test is the ANOVA F test (Welch's F and rank tests need the means).")
+      )))
+    } else {
+      fields <- c(fields, list(hide(f)))
+    }
+  }
+  group$fields <- fields
+  group
+}
+
 # Effect-size conversion: a published effect in another form (a t or F
 # statistic, r, d or an odds ratio), converted by the engine with the
 # effectsize package into the card's own effect size. The forms each card
@@ -360,23 +396,29 @@ conversion_choices <- list(
   independent_t = c("t", "F", "r", "odds_ratio"),
   one_sample_t = "t",
   paired_t = c("t", "F"),
-  correlation = c("t", "F", "d", "odds_ratio")
+  correlation = c("t", "F", "d", "odds_ratio"),
+  oneway_between = c("F", "f"),
+  "2x2_between" = c("F", "f"),
+  factorial_between = c("F", "f")
 )
 
 conversion_labels <- list(
   t = "A t statistic", F = "An F statistic with one numerator df (two groups or two conditions)",
-  r = "A correlation r", d = "Cohen's d (two groups)", odds_ratio = "An odds ratio"
+  r = "A correlation r", d = "Cohen's d (two groups)", odds_ratio = "An odds ratio",
+  f = "Cohen's f"
 )
 
 # `when`: the effect field's own conditions (for example, not while the
 # effect is given in the measure's own units).
 conversion_fields <- function(template, when = list()) {
   from <- conversion_choices[[template]]
-  choices <- c(list(none = "No: I'll enter the effect size myself"), conversion_labels[from])
+  labels <- conversion_labels[from]
+  if (isTRUE(template %in% eta_squared_templates)) labels$F <- "An F statistic, with its two degrees of freedom"
+  choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))))
   converting <- c(planning, list(list(field = "conv_from", is_one_of = from)))
-  list(
+  Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
          help = paste("powerkit converts it with the effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows",
@@ -384,15 +426,20 @@ conversion_fields <- function(template, when = list()) {
                       "adjusted it, or use safeguard power below if it comes from one study.")),
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
          path = "effect_justification.conversion.value", shown_if = converting),
+    if (isTRUE(template %in% eta_squared_templates)) {
+      list(id = "conv_df1", label = "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", type = "number",
+           integer = TRUE, min = 1, conversion = TRUE, required = TRUE, path = "effect_justification.conversion.df",
+           shown_if = c(converting, list(list(field = "conv_from", is = "F"))))
+    },
     list(id = "conv_df", label = "Its error degrees of freedom (the second df of F, or the df of t)", type = "number", integer = TRUE, min = 1, conversion = TRUE,
          required = TRUE, path = "effect_justification.conversion.df_error",
          shown_if = c(converting, list(list(field = "conv_from", is_one_of = c("t", "F")))))
-  )
+  ))
 }
 
 with_conversion <- function(group, template) {
   if (is.null(conversion_choices[[template %||% ""]])) return(group)
-  at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && grepl("^population\\.(d|dz|r)$", f$path %||% ""), logical(1)))
+  at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && grepl("^population\\.(d|dz|r|eta_squared)$", f$path %||% ""), logical(1)))
   if (length(at) != 1) return(group)
   effect <- group$fields[[at]]
   when <- shown_if_conditions(effect)

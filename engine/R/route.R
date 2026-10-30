@@ -22,6 +22,11 @@
 
 route_spec <- function(spec, seed = NULL) {
   key <- paste(spec$design, spec$template, sep = "/")
+  # A between-participants ANOVA given by its partial eta-squared (as
+  # G*Power takes it), not by group means: pwrss's F test.
+  if (eta_squared_anova(spec)) {
+    return(pwrss_backend(spec, seed))
+  }
   switch(
     key,
     "factorial_anova/2x2_between" = ,

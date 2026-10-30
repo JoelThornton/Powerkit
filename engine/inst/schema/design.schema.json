@@ -300,7 +300,7 @@
           }
         },
         "conversion": {
-          "description": "The effect size as published in another form, converted with the effectsize package into the effect this design uses (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
+          "description": "The effect size as published in another form, converted with the effectsize package into the effect this design uses (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
           "type": "object",
           "required": [
             "from",
@@ -309,18 +309,24 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "description": "The form of the published effect: a t statistic, an F statistic with one numerator degree of freedom, r, Cohen's d or an odds ratio. Which forms a design accepts: independent t-test t, F, r, odds_ratio; one-sample t-test t; paired t-test t, F; correlation t, F, d, odds_ratio.",
+              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio or Cohen's f. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f.",
               "enum": [
                 "t",
                 "F",
                 "r",
                 "d",
-                "odds_ratio"
+                "odds_ratio",
+                "f"
               ]
             },
             "value": {
               "description": "The published value.",
               "type": "number"
+            },
+            "df": {
+              "description": "The numerator degrees of freedom of an F statistic converted into an ANOVA's partial eta-squared.",
+              "type": "integer",
+              "minimum": 1
             },
             "df_error": {
               "description": "The error (denominator) degrees of freedom, for t and F.",
@@ -365,8 +371,12 @@
             },
             {
               "dependencies": {
-                "n1": ["n2"],
-                "n2": ["n1"]
+                "n1": [
+                  "n2"
+                ],
+                "n2": [
+                  "n1"
+                ]
               }
             }
           ]
@@ -1854,25 +1864,61 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "$ref": "#/definitions/matrix_2x2_numbers"
             },
             "sd": {
               "$ref": "#/definitions/cell_sd"
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect; for one factor, its eta-squared), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "sds": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd"
+                ],
+                "properties": {
+                  "eta_squared": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -2069,17 +2115,17 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "description": "Expected cell means: one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
@@ -2097,8 +2143,44 @@
               "description": "Standard deviation in every cell (the same in every cell).",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect; for one factor, its eta-squared), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "sds": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd"
+                ],
+                "properties": {
+                  "eta_squared": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -2942,16 +3024,17 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "description": "Expected mean of each group, in the order of the factor's levels.",
@@ -2982,18 +3065,53 @@
                 "skewed",
                 "heavy_tailed"
               ]
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect; for one factor, its eta-squared), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
           },
-          "anyOf": [
+          "allOf": [
             {
-              "required": [
-                "sd"
-              ]
-            },
-            {
-              "required": [
-                "sds"
-              ]
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "sds": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means"
+                ],
+                "properties": {
+                  "eta_squared": false
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "sd"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "sds"
+                    ]
+                  }
+                ]
+              }
             }
           ]
         },

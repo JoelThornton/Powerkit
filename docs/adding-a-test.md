@@ -44,6 +44,10 @@ Every box ticked, in one PR:
    (`test-docs-match.R`).
 5. It has an input screen in `app/routing/forms.yaml`, so the result
    screen, the write-up, the R script and the saved project all work.
+   The screen takes the effect in a form researchers have: the effect
+   size papers usually report for that analysis (as G\*Power asks for it),
+   or a published statistic converted into it, besides any more detailed
+   input the backend needs. If that isn't possible, the card says why.
 6. A plain-words entry is in `app/routing/whats-new.yaml` — no internal
    codes, name the analysis. `test-whats-new.R` checks the shape of
    entries (date, title, text, newest first, no codes) but **cannot tell

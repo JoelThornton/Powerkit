@@ -35,6 +35,11 @@
 #   regression         z test of one predictor, pwrss::power.z.poisson()
 #                      (Demidenko's method with its variance correction,
 #                      as for logistic regression)
+#   ANOVA from an      factorial_anova/oneway_between, 2x2_between and
+#   effect size        factorial_between with population > metric
+#                      "eta_squared": the F test of the effect tested from
+#                      its partial eta-squared, as G*Power takes it,
+#                      pwrss::power.f.ancova() with no covariates
 #   contrast           factorial_anova/oneway_contrast: a planned
 #                      comparison between the levels of one factor, the t
 #                      test of a weighted combination of the group means,
@@ -46,6 +51,7 @@
 # Templates this adapter runs (Welch's t-test only on request).
 pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
+  if (eta_squared_anova(spec)) return(TRUE)
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
@@ -91,6 +97,33 @@ pwrss_backend <- function(spec, seed = NULL) {
   )
 }
 
+# A between-participants ANOVA given by the partial eta-squared of the
+# effect tested (G*Power's input) rather than by group means.
+eta_squared_anova <- function(spec) {
+  identical(spec$design, "factorial_anova") && identical(spec$population$metric, "eta_squared") &&
+    spec$template %in% c("oneway_between", "2x2_between", "factorial_between")
+}
+
+# The key each switch in this adapter dispatches on: the template, or
+# "anova_eta_squared" for an ANOVA given by its partial eta-squared.
+pwrss_key <- function(spec) if (eta_squared_anova(spec)) "anova_eta_squared" else spec$template
+
+# The factor levels and pwrss's name for the effect tested, for
+# power.f.ancova(): one factor (no target needed), or two (A, B or A:B).
+eta_anova_design <- function(spec) {
+  k <- length(spec$variables$A$levels)
+  if (identical(spec$template, "oneway_between")) {
+    return(list(levels = k, target = NULL, df = k - 1))
+  }
+  m <- length(spec$variables$B$levels)
+  effect <- spec$target_test$effect %||% "interaction"
+  list(
+    levels = c(k, m),
+    target = switch(effect, main_effect_A = "A", main_effect_B = "B", interaction = "A:B"),
+    df = switch(effect, main_effect_A = k - 1, main_effect_B = m - 1, interaction = (k - 1) * (m - 1))
+  )
+}
+
 # pwrss's alternative: its one-sided tests run in the direction of the
 # specified effect (validate_spec() refuses a one-sided test pointing the
 # other way for these templates).
@@ -119,7 +152,19 @@ pwrss_inputs <- function(spec) {
   alpha <- spec$target_test$alpha
   alternative <- pwrss_alternative(spec)
   call <- switch(
-    spec$template,
+    pwrss_key(spec),
+    anova_eta_squared = {
+      design <- eta_anova_design(spec)
+      list(
+        fun = "power.f.ancova",
+        design = design,
+        args = function(n) c(
+          list(eta.squared = pop$eta_squared, factor.levels = design$levels),
+          if (!is.null(design$target)) list(target.effect = design$target),
+          list(k.covariates = 0, n.total = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
+        )
+      )
+    },
     one_proportion = list(
       fun = "power.exact.oneprop",
       args = function(n) list(
@@ -343,7 +388,18 @@ pwrss_check_run <- function(spec, inputs) {
     )
   }
   switch(
-    spec$template,
+    pwrss_key(spec),
+    anova_eta_squared = {
+      # pwrss's own result: the df of the effect it tested, and Cohen's f^2
+      # recovered from its noncentrality (lambda = f^2 * N, as in G*Power).
+      out <- pwrss_output(inputs$fun, args)
+      rbind(
+        row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
+        row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
+        row("Cohen's f^2 = eta^2 / (1 - eta^2), from pwrss's noncentrality / N",
+            pop$eta_squared / (1 - pop$eta_squared), out$ncp / args$n.total)
+      )
+    },
     one_proportion = rbind(
       row("p passed to pwrss (prob)", pop$p, args$prob),
       row("p0 passed to pwrss (null.prob)", pop$p0, args$null.prob)

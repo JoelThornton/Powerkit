@@ -12,11 +12,17 @@ conversion_templates <- list(
   independent_t = list(effect = "d", name = "Cohen's d", from = c("t", "F", "r", "odds_ratio")),
   one_sample_t = list(effect = "d", name = "Cohen's d", from = "t"),
   paired_t = list(effect = "dz", name = "d_z", from = c("t", "F")),
-  correlation = list(effect = "r", name = "r", from = c("t", "F", "d", "odds_ratio"))
+  correlation = list(effect = "r", name = "r", from = c("t", "F", "d", "odds_ratio")),
+  # Between-participants ANOVA given by partial eta-squared (population >
+  # metric "eta_squared"): a published F with its two dfs, or Cohen's f.
+  oneway_between = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
+  "2x2_between" = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
+  factorial_between = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f"))
 )
 
 conversion_from_names <- c(
-  t = "a t statistic", F = "an F statistic", r = "r", d = "Cohen's d", odds_ratio = "an odds ratio"
+  t = "a t statistic", F = "an F statistic", r = "r", d = "Cohen's d", odds_ratio = "an odds ratio",
+  f = "Cohen's f"
 )
 
 or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], collapse = ", "), "or", x[length(x)])
@@ -27,16 +33,22 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' powerkit design takes, with the effectsize package: a t statistic, an F
 #' statistic with one numerator degree of freedom, r, Cohen's d or an odds
 #' ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
-#' t-test) or r (correlation).
+#' t-test) or r (correlation); and an F statistic (with both its degrees of
+#' freedom) or Cohen's f into the partial eta-squared of a
+#' between-participants ANOVA (`"oneway_between"`, `"2x2_between"`,
+#' `"factorial_between"`).
 #'
 #' @param from The form of the published effect: `"t"`, `"F"`, `"r"`,
-#'   `"d"` or `"odds_ratio"`.
+#'   `"d"`, `"odds_ratio"` or `"f"`.
 #' @param value The published value.
 #' @param template The design's template: `"independent_t"`,
-#'   `"one_sample_t"`, `"paired_t"` or `"correlation"`.
+#'   `"one_sample_t"`, `"paired_t"`, `"correlation"`, `"oneway_between"`,
+#'   `"2x2_between"` or `"factorial_between"`.
 #' @param df_error The error (denominator) degrees of freedom, for t and F.
 #' @param n1,n2 Optional group sizes, for r and d with two groups of
 #'   unequal size; equal groups are assumed without them.
+#' @param df The numerator degrees of freedom, for an F statistic converted
+#'   into an ANOVA's partial eta-squared.
 #'
 #' @return A list: `effect_name` and `value` (the converted effect),
 #'   `function_used` (the effectsize call) and `package` (name and
@@ -44,7 +56,7 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' @export
 #' @examples
 #' convert_effect("t", 2.5, "independent_t", df_error = 58)
-convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2 = NULL) {
+convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2 = NULL, df = NULL) {
   rule <- conversion_templates[[template]]
   if (is.null(rule)) {
     abort_spec(sprintf("Converting an effect size isn't available for the '%s' design yet.", template))
@@ -56,10 +68,20 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
   if (from %in% c("t", "F") && is.null(df_error)) {
     abort_spec(sprintf("Converting %s needs its error degrees of freedom ('df_error').", conversion_from_names[[from]]))
   }
+  anova <- identical(rule$effect, "eta_squared")
+  if (anova && identical(from, "F") && is.null(df)) {
+    abort_spec("Converting an F statistic for an ANOVA needs its numerator degrees of freedom ('df') as well as 'df_error'.")
+  }
   paired <- template %in% c("one_sample_t", "paired_t")
   sizes <- if (!is.null(n1) && !is.null(n2)) sprintf(", n1 = %s, n2 = %s", n1, n2) else ""
   call <- switch(
     paste(rule$effect, from),
+    "eta_squared F" = list(
+      value = effectsize::F_to_eta2(value, df, df_error)[[1]],
+      used = sprintf("effectsize::F_to_eta2(f = %s, df = %s, df_error = %s)", value, df, df_error)),
+    "eta_squared f" = list(
+      value = effectsize::f_to_eta2(value),
+      used = sprintf("effectsize::f_to_eta2(f = %s)", value)),
     "d t" = , "dz t" = list(
       value = effectsize::t_to_d(value, df_error, paired = paired)[[1]],
       used = sprintf("effectsize::t_to_d(t = %s, df_error = %s%s)", value, df_error, if (paired) ", paired = TRUE" else "")),
@@ -101,10 +123,13 @@ apply_conversion <- function(spec) {
   if (!is.list(conv) || !is.null(conv$result)) return(none)
   if (!is.character(conv$from) || !is.numeric(conv$value)) return(none)
   rule <- conversion_templates[[spec$template %||% ""]]
-  if (!identical(spec$design, "basic_test") || is.null(rule)) {
+  anova <- identical(spec$design, "factorial_anova") && identical(rule$effect, "eta_squared") &&
+    identical(spec$population$metric, "eta_squared")
+  if (is.null(rule) || !(identical(spec$design, "basic_test") || anova)) {
     return(list(spec = spec, problems = paste0(
       "Converting an effect size ('effect_justification > conversion') is available for the one-sample, paired and ",
-      "independent t-tests and the correlation, not for this design yet.")))
+      "independent t-tests, the correlation, and between-participants ANOVA given by partial eta-squared ",
+      "('population > metric' \"eta_squared\"), not for this design yet.")))
   }
   if (!is.null(spec$population[[rule$effect]])) {
     return(list(spec = spec, problems = sprintf(paste0(
@@ -116,7 +141,7 @@ apply_conversion <- function(spec) {
       "An effect in the outcome's own units ('population > raw') can't also be converted from another form. Give one.")))
   }
   out <- tryCatch(
-    convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2),
+    convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]]),
     powerkit_spec_error = function(e) e
   )
   if (inherits(out, "powerkit_spec_error")) return(list(spec = spec, problems = out$problems %||% conditionMessage(out)))
@@ -133,8 +158,8 @@ apply_conversion <- function(spec) {
 conversion_record <- function(spec) {
   conv <- spec$effect_justification$conversion
   if (is.null(conv$result)) return(NULL)
-  out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2)
+  out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]])
   list(from = conv$from, from_name = conversion_from_names[[conv$from]], value = conv$value,
-       df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, effect_name = out$effect_name,
+       df = conv[["df"]], df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, effect_name = out$effect_name,
        converted = out$value, function_used = out$function_used, package = out$package)
 }

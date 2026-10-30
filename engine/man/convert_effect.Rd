@@ -4,21 +4,33 @@
 \alias{convert_effect}
 \title{Convert a published effect size into the one a design uses}
 \usage{
-convert_effect(from, value, template, df_error = NULL, n1 = NULL, n2 = NULL)
+convert_effect(
+  from,
+  value,
+  template,
+  df_error = NULL,
+  n1 = NULL,
+  n2 = NULL,
+  df = NULL
+)
 }
 \arguments{
 \item{from}{The form of the published effect: \code{"t"}, \code{"F"}, \code{"r"},
-\code{"d"} or \code{"odds_ratio"}.}
+\code{"d"}, \code{"odds_ratio"} or \code{"f"}.}
 
 \item{value}{The published value.}
 
 \item{template}{The design's template: \code{"independent_t"},
-\code{"one_sample_t"}, \code{"paired_t"} or \code{"correlation"}.}
+\code{"one_sample_t"}, \code{"paired_t"}, \code{"correlation"},
+\code{"oneway_between"}, \code{"2x2_between"} or \code{"factorial_between"}.}
 
 \item{df_error}{The error (denominator) degrees of freedom, for t and F.}
 
 \item{n1, n2}{Optional group sizes, for r and d with two groups of
 unequal size; equal groups are assumed without them.}
+
+\item{df}{The numerator degrees of freedom, for an F statistic converted
+into an ANOVA's partial eta-squared.}
 }
 \value{
 A list: \code{effect_name} and \code{value} (the converted effect),
@@ -30,7 +42,10 @@ Turns an effect reported in another form into the effect size a
 powerkit design takes, with the effectsize package: a t statistic, an F
 statistic with one numerator degree of freedom, r, Cohen's d or an odds
 ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
-t-test) or r (correlation).
+t-test) or r (correlation); and an F statistic (with both its degrees of
+freedom) or Cohen's f into the partial eta-squared of a
+between-participants ANOVA (\code{"oneway_between"}, \code{"2x2_between"},
+\code{"factorial_between"}).
 }
 \examples{
 convert_effect("t", 2.5, "independent_t", df_error = 58)

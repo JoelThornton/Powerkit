@@ -35,7 +35,22 @@ pwrss_script_inputs <- function(spec) {
     if (alternative == "two.sided") "two-sided test" else "one-sided, in the direction of the specified effect"
   )
   switch(
-    spec$template,
+    pwrss_key(spec),
+    anova_eta_squared = {
+      design <- eta_anova_design(spec)
+      factors <- if (length(design$levels) == 1) {
+        sprintf("levels <- %d # groups of %s", design$levels, comment_text(v$A$label))
+      } else {
+        sprintf("levels <- c(%d, %d) # levels of %s (A) and %s (B)", design$levels[1], design$levels[2],
+          comment_text(v$A$label), comment_text(v$B$label))
+      }
+      c(
+        sprintf("eta_squared <- %s # partial eta-squared of the effect tested, taken as the population value (as in G*Power)",
+          r_code(pop$eta_squared)),
+        factors,
+        if (!is.null(design$target)) sprintf("effect <- %s # the effect tested: A, B or the interaction A:B", r_code(design$target))
+      )
+    },
     one_proportion = c(
       sprintf("p <- %s # expected proportion with %s = %s", r_code(pop$p), comment_text(v$Y$label), lv("Y", 2)),
       sprintf("p0 <- %s # the fixed value it is compared with (the null hypothesis)", r_code(pop$p0)),
@@ -193,7 +208,13 @@ pwrss_script_inputs <- function(spec) {
 
 pwrss_script_call_lines <- function(spec, inputs) {
   call <- switch(
-    spec$template,
+    pwrss_key(spec),
+    anova_eta_squared = list(head = "power.f.ancova( # the ANOVA F test from its partial eta-squared", args = c(
+      "eta.squared = eta_squared", "factor.levels = levels",
+      if (!is.null(eta_anova_design(spec)$target)) "target.effect = effect",
+      "k.covariates = 0 # no covariates", "n.total = n_total # equal groups", "alpha = alpha",
+      "ceil.n = FALSE", "verbose = 0"
+    )),
     one_proportion = list(head = "power.exact.oneprop( # exact binomial test", args = c(
       "prob = p", "null.prob = p0", "n = n_total", "alpha = alpha",
       "alternative = alternative", "verbose = 0"

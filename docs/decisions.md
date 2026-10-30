@@ -3584,3 +3584,32 @@ applies safeguard power to the converted value if asked. Each conversion
 is effectsize's own function, which uses the error df for t and F (for
 the one-sample t-test, `t_to_d(paired = TRUE)`, d = t / sqrt(df)).
 
+## 2026-10-30 · ANOVA from its effect size
+
+**Decision.** The ANOVA cards asked only for group or cell means and the
+SD (Superpower's input), but papers report partial eta-squared or F, so
+researchers had to invent means. Between-participants ANOVA (one-way,
+2 x 2 and larger factorial designs) can now be given by the partial
+eta-squared of the effect tested, as G\*Power takes it, and a published
+F(df1, df2) or f is converted into it with effectsize.
+
+**How.** pwrss's `power.f.ancova()`, already a powerkit backend, with no
+covariates. Before building, it was checked against G\*Power's one-way
+example (f = .25, three groups, 80% power: N = 159) and against
+Superpower's exact calculation for a 2 x 3 interaction from cell means:
+the same population effect gives the same power (28.83% at N = 180).
+pwrss rounds N up to equal cells, as powerkit does. The partial
+eta-squared entered is treated as the population value, as G\*Power and
+pwrss do; the input's help says a published value is a sample estimate
+that tends to be too large, and that omega-squared is less biased. This
+follows the usual convention, so it isn't a departure.
+
+**Not yet.** Repeated-measures and mixed ANOVA (pwrss's
+`power.f.mixed.anova()`), until it is checked which definition of partial
+eta-squared pwrss expects there; Welch's F, rank tests and unequal cells,
+which need means; the smallest detectable effect on this route.
+
+**Also decided:** every new card takes the effect in a form researchers
+have, or says why it can't (`adding-a-test.md`, "What added means",
+item 5).
+
