@@ -32,7 +32,8 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       if (!is_endpoint_id(end)) next
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped card.
-      screened <- "s3" %in% p || ("s2" %in% p && end == "E34")
+      # Many trials per person leave after S2's follow-up for E33.
+      screened <- "s3" %in% p || ("s2" %in% p && end == "E34") || ("s2_trials" %in% p && end == "E33")
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -53,12 +54,12 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # separate people; the grouped card says it isn't covered yet.
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
   expect_all_routes(c("A score or scale", "Pairs"), "E44")
-  expect_all_routes(c("A score or scale", "Many trials or stimuli per person"), "E33")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E33", "E35", "E43", "E44", "E45", "E46")) {
+  for (id in c("E35", "E43", "E44", "E45", "E46")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
   # Ordered categories in two groups calculate (powertools' propodds()).
@@ -177,8 +178,11 @@ test_that("cluster-randomised designs reach the multilevel card", {
 test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's test", {
   # On main: diff > Yes/no > The same people in every condition > E26; and
   # rel > score > measured once > score > E4.
-  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person"), "E33")
-  expect_all_routes(c("A score or scale", "Many trials or stimuli per person"), "E33")
+  # A yes/no outcome per trial reaches the honest multilevel card, not E33
+  # (which takes a score on each trial).
+  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E41")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: three or more conditions, conditions given to different people, or a predictor measured on each trial"), "E41")
 })
 
 test_that("dyadic data no longer reach a test that treats partners as independent", {

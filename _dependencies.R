@@ -14,12 +14,15 @@ library(psych)     # safeguard power's confidence interval
 library(bfpwr)
 library(InteractionPoweR)
 library(lavaan)
+library(lme4)      # E33's mixed model (with simr)
+library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
 library(power4mome)
 library(powertools)
 library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
 library(semPower)
+library(simr)
 library(Spower)
 library(Superpower)
 library(TOSTER)

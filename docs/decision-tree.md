@@ -244,7 +244,9 @@ flowchart TD
   S1 -->|A score, or yes/no<br/>or categories| S2{"S2 How are the<br/>data grouped?"}
   S2 -->|People within groups, then S4: detect an effect| E34["E34 Multilevel or<br/>cluster design"]
   S2 -->|Pairs| E44["E44 Paired or<br/>dyadic data"]
-  S2 -->|Many trials or<br/>stimuli per person| E33["E33 Crossed participants<br/>and stimuli"]
+  S2 -->|Many trials or<br/>stimuli per person| S2A{"S2a What does the<br/>hypothesis compare?"}
+  S2A -->|Two conditions, each person<br/>in both; a score| E33["E33 Crossed participants<br/>and stimuli"]
+  S2A -->|Anything else| E41["E41 Within-person or<br/>multilevel analysis"]
   S2 -->|Independent people| S3{"S3 How many times is<br/>each person measured?"}
   S3 -->|Many times| T1{"T1 What are the<br/>repeated measurements?"}
   T1 -->|Over time: does a trend<br/>change at a known point?| E45["E45 Segmented regression,<br/>interrupted time series"]
@@ -255,8 +257,9 @@ flowchart TD
   S4 -->|Estimate an effect<br/>precisely| E46["E46 Precision planning"]
   S4 -->|Detect an effect| R["The route continues: the shortcut<br/>list, Q1 (chart 0) or the guided planner"]
   ANY["Every question also offers<br/>'None of these fit / I'm not sure'"] --> EU["E-unsure: powerkit can't advise<br/>on this design yet; discuss it<br/>with a statistician"]
-  class S0,S1,O5a,S2,S3,T1,S4 q
-  class E28,E43,E34,E44,E33,E45,E35,E36,E46,EU later
+  class S0,S1,O5a,S2,S2A,S3,T1,S4 q
+  class E28,E43,E34,E44,E45,E35,E36,E46,E41,EU later
+  class E33 avail
   class R,ANY jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -521,7 +524,8 @@ engine can use the answer today.
 | --- | --- | --- | --- | --- |
 | S0 | Do you already know which analysis you want? | Yes (searchable list) / No | `design`, `template` directly | Yes |
 | S1 | What kind of outcome will you measure? (screening, every route) | A score or scale / yes-no, or one of several categories / a count / ordered categories (e.g. a single rating item) / the time until something happens | `variables.Y.type`: `continuous`, `binary`, `categorical` | Score, yes/no and categories: yes, and the route continues. Count → E28, ordered categories → O5a, time until an event → E43: **no (flag)**. Sets Q2's answer, which isn't asked again |
-| S2 | How are the data grouped? (screening) | Independent people / people within groups (including whole groups assigned) / pairs (e.g. couples) / many trials or stimuli per person | — | Independent people: routing only, the route continues. Within groups → E34, pairs → E44, trials or stimuli → E33: **no (flag)** |
+| S2 | How are the data grouped? (screening) | Independent people / people within groups (including whole groups assigned) / pairs (e.g. couples) / many trials or stimuli per person | — | Independent people: routing only, the route continues. Within groups → E34, pairs → E44, trials or stimuli → S2a |
+| S2a | What does your main hypothesis compare? (many trials or stimuli) | Two conditions, each person responds in both / something else | `mixed_model / crossed_two_condition` | Two conditions with a score → E33: yes. A yes/no or count outcome, or anything else → E41 |
 | S3 | How many times is each person measured on the outcome? (screening) | Once / twice / many times (→ T1) | Once: `between_factor`; twice: `within_factor` (as Q3) | Once and twice: yes. Sets Q3's answer, which isn't asked again, and hides options that contradict it (e.g. "the same people" after "once") |
 | T1 | What are the repeated measurements? (after S3 "many times") | The same people in three or more conditions / over time, to see whether a trend changes at a known point / over time, to see how people change | — | Three or more conditions: routing only, the route continues (E18–E21 and E26 are reached later). A trend that changes → E45, how people change → E35: **no (flag)** |
 | S4 | What's your goal? (answered by the aim screen since 28 October 2026, not asked again) | Detect an effect / show there's no meaningful effect (from the aim) | `goal` | Detect: the route continues (people within groups → E34). No meaningful effect → E36 (people within groups → E34). Estimating precisely leaves at the aim screen → E46 |
@@ -643,6 +647,7 @@ the two in step.
 | E28 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E29 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E47 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E33 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E34 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E48 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E49 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -706,7 +711,7 @@ taken from coverage.md, where they are proposals.
 | E30 | Moderator with three or more groups | — | No ready-made tool: custom simulation in R (e.g. with Spower; power4mome as a general lavaan model) or advice from a statistician | — | — | No | later | Not in spec |
 | E31 | Three-way interaction | `regression_interaction / three_way` | `InteractionPoweR::power_interaction_3way_r2()` (analytic: the change in R² when XWZ is added, predictors treated as fixed; no simulation exists for three-way models). Reached from MO3 | Formula (no simulation) | Correlations of X, W, Z and Y and of the products XW, XZ and WZ with Y; the standardised coefficient of XWZ; optional reliabilities | No: matches InteractionPoweR called directly and holds alpha in `test-backend-three-way.R` and `test-validation-three-way.R` (published value TODO) | v2 | Runs |
 | E32 | Moderation or mediation with a yes/no, count or categorical outcome | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
-| E33 | Crossed participants and stimuli | — | Candidates: simr; mixpower | — | Fixed effects and variance components | No | v2 | Not in spec |
+| E33 | Crossed participants and stimuli | `mixed_model / crossed_two_condition` | `simr::powerSim()` on `makeLmer(y ~ cond + (1 + cond \| participant) + (1 \| item))` (a by-item slope with items in both conditions), the condition tested with lmerTest's Satterthwaite t test (`fixed("cond", "sa")`; Departure 16), simulated | Simulation | The difference between conditions and the SDs of participants' intercepts and slopes, items' intercepts and the residual, in the outcome's units; the number of items; items in one condition or both | No: matches simr replication for replication and agrees with an independent simulation in `test-backend-mixed-model.R` and `test-validation-mixed-model.R` (published value TODO) | v2 | Runs |
 | E34 | Multilevel or cluster design (cluster-randomised or multisite trial) | `cluster_trial / cluster_randomised, multisite, group_treatment` | `powertools::crt.parallel.cont()` for whole groups assigned (the design-effect approximation, design-finder P4, with degrees of freedom from the number of groups; varying group sizes through `re.clustsize.cont()`), and `powertools::multisite.cont()` for people randomised within each group (df = groups - 1); `crt.parallel.bin()` and `multisite.bin()` for a yes/no outcome (z test of the log odds ratio, groups of equal size); `irgtt.cont()` and `irgtt.bin()` when people are randomised one by one and only one condition is delivered in groups. A baseline score (one covariate) for a score outcome in the first two designs. Not yet: other covariates, predictors at both levels (mlmpower; simr). PowerUpR and clusterPower, earlier candidates, have been removed from CRAN | Formula (no simulation) | Cohen's d over the total SD; ICC; for a multisite trial, the ICC of the effect; group size and its SD. Yes/no: the proportion in each condition and the SD on the log-odds scale | No: matches powertools called directly, and the design-effect calculation with pwrss's generic t test, in `test-backend-powertools.R` (published values TODO) | v2 | Runs |
 | E35 | Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling) | — | Candidates: longpower; powRICLPM; semPower; PowerAnalysisIL | — | Model-specific | No | later | Not in spec |
 | E36 | Equivalence test (TOST) | `equivalence_test / tost_independent, tost_paired, tost_one_sample, tost_correlation, tost_two_proportions, noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions` | `TOSTER::power_t_TOST()` (the two one-sided tests for two independent groups, paired data or one sample; exact formula); `TOSTER::power_z_cor()` (a correlation, z tests on Fisher's z) and `TOSTER::power_twoprop()` (two proportions, z tests, equal groups). Non-inferiority: `pwrss::power.t.student()` and `pwrss::power.z.twoprops()` with `margin` and `alternative = "one.sided"`. Minimum-effect tests are not yet covered | Formula (no simulation) | The equivalence bound and the expected difference (Cohen's d, d_z or the measure's own units), correlation, or proportions; group sizes for two groups | No: matches TOSTER called directly, a large-sample approximation and Type I error in the engine's tests; published examples to come | v2 | Runs |

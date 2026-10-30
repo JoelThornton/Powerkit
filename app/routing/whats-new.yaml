@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-30"
+    title: "Many trials or stimuli per person"
+    text: >-
+      If each participant responds to many items, such as words, faces or
+      trials, in two conditions, powerkit now works out power with a mixed
+      model that lets both participants and items vary. Give the difference
+      you expect and how much participants and items vary, in your outcome's
+      own units.
   - date: "2026-10-29"
     title: "Mediation with an experimental condition"
     text: >-

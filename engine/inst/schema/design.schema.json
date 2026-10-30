@@ -36,7 +36,8 @@
         "equivalence_test",
         "cluster_trial",
         "sem",
-        "ordinal_regression"
+        "ordinal_regression",
+        "mixed_model"
       ]
     },
     "template": {
@@ -6406,6 +6407,145 @@
             }
           }
         ]
+      }
+    },
+    "design_mixed_model": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "mixed_model"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "crossed_two_condition"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "crossed_two_condition"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_crossed_two_condition"
+            }
+          }
+        ]
+      }
+    },
+    "template_crossed_two_condition": {
+      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants: a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "difference",
+            "sd_participant",
+            "sd_participant_slope",
+            "sd_item",
+            "sd_residual",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "difference": {
+              "description": "The mean in X's second condition minus the mean in its first, in the outcome's units (the fixed effect of the condition). 0 is allowed, to check the Type I error rate.",
+              "type": "number"
+            },
+            "sd_participant": {
+              "description": "SD of the participants' random intercepts: how much participants' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_participant_slope": {
+              "description": "SD of the participants' random condition slopes: how much the difference between conditions varies across participants.",
+              "type": "number",
+              "minimum": 0
+            },
+            "r_participant": {
+              "description": "Correlation between participants' intercepts and condition slopes. 0 if omitted.",
+              "$ref": "#/definitions/correlation"
+            },
+            "sd_item": {
+              "description": "SD of the items' random intercepts: how much items' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_slope": {
+              "description": "Items in both conditions only (item_design 'within'): SD of the items' random condition slopes. 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_residual": {
+              "description": "SD of the residual: trial-to-trial variation within a participant and item.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "items": {
+              "description": "Total number of items. With items between conditions, half are in each condition, so the number must be even.",
+              "type": "integer",
+              "minimum": 4
+            },
+            "item_design": {
+              "description": "'between' (the default): each item appears in one condition only. 'within': every participant responds to every item in both conditions.",
+              "enum": [
+                "between",
+                "within"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "const": "condition"
+                },
+                "method": {
+                  "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
+        }
       }
     },
     "design_ordinal_regression": {

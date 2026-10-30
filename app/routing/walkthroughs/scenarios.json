@@ -32,21 +32,24 @@
   "part": "A",
   "section": "Dependence",
   "design": "Crossed random effects (participants × stimuli)",
-  "example": "Participants will rate 40 faces for trustworthiness after a happy or a neutral mood induction. Every participant rates every face, and we want to know whether mood shifts the ratings.",
+  "example": "Participants will rate 40 faces for trustworthiness in two sessions, one after a happy and one after a neutral mood induction. Every participant rates every face in both sessions, and we want to know whether mood shifts the ratings.",
   "choose": [
    "A score or scale",
-   "Many trials or stimuli per person"
+   "Many trials or stimuli per person",
+   "Two conditions, and each person responds in both"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "Many trials or stimuli per person"
+    "Many trials or stimuli per person",
+    "Two conditions, and each person responds in both"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "Many trials or stimuli per person"
+    "Many trials or stimuli per person",
+    "Two conditions, and each person responds in both"
    ]
   },
   "reaches": {

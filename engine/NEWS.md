@@ -1,5 +1,21 @@
 # powerkit 0.23.0
 
+* Participants responding to many items in two conditions (E33): design
+  `mixed_model`, template `crossed_two_condition`. The condition varies
+  within participants; items are in one condition each (`item_design`
+  "between", the default) or in both ("within", with an optional by-item
+  slope). Inputs in the outcome's units: the difference, the SDs of
+  participants' intercepts and slopes (and their correlation), of items'
+  intercepts and of the residual, and the number of items; `goal$n` is the
+  number of participants. Simulated with simr's `powerSim()` on a
+  `makeLmer()` model, the condition tested with lmerTest's Satterthwaite t
+  test (`fixed("cond", "sa")`, Departure 16, not simr's default `"z"`). The
+  check run refits a large simulated data set and recovers every value;
+  exported scripts call simr alone; the simulated data set is long (one
+  row per trial). New dependencies: simr and lmerTest (and lme4,
+  already installed). In the app, the E33 card calculates (power in the
+  app, the number of participants from the R script), reached through a
+  new question after "Many trials or stimuli per person".
 * Mediation with a yes/no X (E16): templates `process_4` and `process_6`
   take a binary X, drawn by power4mome's `rbinary_rs()` with
   `population$x_prob`, the share in X's second level (0.5 if omitted), and
