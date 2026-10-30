@@ -1,5 +1,9 @@
 # powerkit 0.24.0
 
+* `write_study_plan()` and `read_study_plan()`: several analyses in one
+  file (format "powerkit-study-plan"), each stored as a project, so each
+  reopens and reproduces on its own with `reproduce_project()`. The app's
+  study plan saves and opens through them.
 * `refs.bib` adds Brysbaert and Stevens (2018), whose Table 2 (a
   masked-priming lexical-decision study) gives the example values the app
   now shows beside each input of the crossed participants-and-items model.

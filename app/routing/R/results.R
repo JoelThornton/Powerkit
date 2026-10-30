@@ -1395,6 +1395,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
       if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+    if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,

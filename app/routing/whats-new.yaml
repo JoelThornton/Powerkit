@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "A study plan for several analyses"
+    text: >-
+      After any result, you can add the analysis to your study plan, then
+      find the next one with "Help me choose". The plan lists every
+      analysis with its sample size, names the largest, and saves as one
+      file you can open again from the start screen.
+  - date: "2026-10-30"
     title: "Example values for participants and items"
     text: >-
       The mixed model for participants responding to many items now shows

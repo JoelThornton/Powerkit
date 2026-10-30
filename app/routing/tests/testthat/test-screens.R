@@ -315,7 +315,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "power_interval",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
-    "convert_effect", "safeguard_effect"))
+    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15"))
 })

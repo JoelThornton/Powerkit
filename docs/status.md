@@ -140,6 +140,14 @@ fully validated. Validation runs are recorded in
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress.
+- **A study plan any card can join (30 October 2026, 0.24.0):** after a
+  result, "Add this to my study plan" keeps the analysis in one plan for
+  the session; the plan screen lists each analysis, names the largest
+  sample size counted in people (cluster trials apart), says that joint
+  power isn't calculated, and saves and opens one file (the engine's
+  `write_study_plan()` and `read_study_plan()`). "Add another analysis"
+  starts "Help me choose". Joint power where a package computes it is
+  `next.md`, item 1.
 - **Mixed models, first design (30 October 2026, 0.23.0):** E33
   (participants responding to many items in two conditions) calculates
   with simr and lmerTest's Satterthwaite test (Departure 16); the required
@@ -403,7 +411,7 @@ fully validated. Validation runs are recorded in
 
 **The ordered queue is [`next.md`](next.md)** — 28 items. The maintainer's
 order for the next work (30 October 2026): every card taking the effect
-size researchers have, a study plan any card can join, a latent profile card,
+size researchers have, joint power for the study plan, a latent profile card,
 MANOVA and Hotelling's T-squared, more multilevel
 models starting with E41, Bayes factors beyond the t-tests, justified
 alpha, then precision
