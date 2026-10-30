@@ -606,11 +606,23 @@ sim_power4mome_code <- function(spec, n, seed) {
       nrep = 1L, model = inputs$model, pop_es = inputs$pop_es, n = n,
       do_the_test = FALSE, iseed = seed, parallel = FALSE, progress = FALSE
     )),
+    if (!is.null(inputs$x_prob)) sprintf(
+      "  , x_fun = list(X = list(power4mome::rbinary_rs, p1 = %s))", r_code(inputs$x_prob)
+    ),
     ")",
     "pooled <- as.data.frame(power4mome::pool_sim_data(sim))",
     "simulated <- data.frame(",
     paste0(
-      "  ", vapply(roles, function(v) sim_label(spec, v), character(1)), " = pooled[[", r_code_each(roles), "]]",
+      "  ", vapply(roles, function(v) sim_label(spec, v), character(1)), " = ",
+      vapply(roles, function(v) {
+        # A yes/no X as its level names (rbinary_rs() puts the second
+        # level above X's mean).
+        if (identical(spec$variables[[v]]$type, "binary")) {
+          sprintf("%s[(pooled[[%s]] > 0) + 1]", r_code(sim_levels(spec, v)), r_code(v))
+        } else {
+          sprintf("pooled[[%s]]", r_code(v))
+        }
+      }, character(1)),
       c(rep(",", length(roles) - 1), "")
     ),
     ")"

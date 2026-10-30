@@ -2591,6 +2591,10 @@
             "paths": {
               "$ref": "#/definitions/paths"
             },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level (power4mome's rbinary_rs(p1 =)). 0.5 (equal groups) if omitted. The paths from X are per SD of X, as power4mome rescales X to SD 1.",
+              "$ref": "#/definitions/proportion"
+            },
             "residual_correlations": {
               "description": "Parallel mediation only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
               "$ref": "#/definitions/correlation_map"
@@ -2637,6 +2641,10 @@
             },
             "paths": {
               "$ref": "#/definitions/paths"
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level (power4mome's rbinary_rs(p1 =)). 0.5 (equal groups) if omitted. The paths from X are per SD of X, as power4mome rescales X to SD 1.",
+              "$ref": "#/definitions/proportion"
             }
           }
         }

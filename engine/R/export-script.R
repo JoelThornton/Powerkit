@@ -1967,6 +1967,10 @@ power4mome_script <- function(spec, result) {
     "    model = model,",
     "    pop_es = pop_es,",
     "    n = batch_n, # sample size",
+    if (!is.null(inputs$x_prob)) sprintf(
+      "    x_fun = list(X = list(rbinary_rs, p1 = %s)), # X is yes/no: %s in its second level, rescaled to SD 1",
+      r_code(inputs$x_prob), r_code(inputs$x_prob)
+    ),
     "    R = ci_draws,",
     sprintf(
       "    ci_type = %s, # %s", r_code(inputs$ci_type),

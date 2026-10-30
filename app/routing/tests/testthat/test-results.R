@@ -50,7 +50,7 @@ wired <- unlist(forms$calculates)
 
 test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
   expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15"))
-  for (ep in c(paste0("E", 10:14), "E40")) {
+  for (ep in c(paste0("E", 10:14), "E40", "E16")) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
@@ -64,13 +64,13 @@ test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 cal
   # replications; the full run in the app for mediation power at a fixed N
   # only; the R script for everything else.
   expect_identical(preview_nrep(forms), 100L)
-  for (ep in paste0("E", 10:12)) {
+  for (ep in c(paste0("E", 10:12), "E16")) {
     expect_true(full_run_in_app(forms, ep, "power"), label = ep)
     expect_false(full_run_in_app(forms, ep, "sample_size"), label = ep)
     expect_true(full_seconds(forms, ep, "power") > 0, label = ep)
   }
   # A preview for power only: a required N goes straight to the R script.
-  for (ep in c(paste0("E", 10:14), "E40")) {
+  for (ep in c(paste0("E", 10:14), "E40", "E16")) {
     expect_true(has_preview(forms, ep, "power"), label = ep)
     expect_true(preview_seconds(forms, ep, "power") > 0, label = ep)
     expect_false(has_preview(forms, ep, "sample_size"), label = ep)
@@ -319,7 +319,7 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
 })
 
 test_that("mediation shows departures 6 and 8, parallel mediators 7, and the interaction Known difference 1", {
-  for (ep in c("E10", "E11", "E12", "E13", "E14", "E40")) {
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E40", "E16")) {
     shown <- departures_for(forms, ep, light_spec(ep))
     expect_true(any(grepl("lavaan (maximum likelihood)", shown, fixed = TRUE)), info = ep) # Departure 6
     expect_true(any(grepl("Boos and Zhang", shown, fixed = TRUE)), info = ep)              # Departure 8

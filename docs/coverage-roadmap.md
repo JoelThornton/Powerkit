@@ -196,7 +196,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B9 | Parallel mediation | ML; BG | E11 | Done (validated and wired, as B8; two mediators) | As B8 | power4mome `q_power_mediation_parallel()` | Wire | — |
 | B10 | Serial mediation | ML; BG | E12 | Done (validated and wired, as B8; two mediators) | As B8 | power4mome `q_power_mediation_serial()` | Wire | — |
 | B11 | 3+ mediators | ML | E11, E12 (the spec takes up to M9 parallel, M4 serial) | Planned (validation; status.md "What's next", item 1; no phase) | As B8 | As B9, B10 | Validate with three or more | [B9][] |
-| B12 | Binary X | ML; BG | E16 | Planned (phase 3b) | Could: AP, PN, S | power4mome `x_fun` with `rbinary_rs()`; Spower `p_mediation(dichotomous.X = TRUE)` (Sobel/Wald test) | Phase 3b | [E4][] |
+| B12 | Binary X | ML; BG | E16 (one mediator); E11, E12 (two or more) | Wired (29 October 2026; simulated, the group split an input; published value to transcribe) | Now: AP, PN, S | **Engine: power4mome `x_fun` with `rbinary_rs(p1 = )`**; Spower `p_mediation(dichotomous.X = TRUE)` (Sobel/Wald test) | Transcribe a published example | [E4][] |
 | B13 | Multi-category X | ML | E42 | No ready-made tool | — | none found (coverage.md) | — | — |
 | B14 | Binary or count outcome | ML; Audit | E32 | No ready-made tool | — | none found among the five: `x_fun` on an endogenous variable sets its error term, so a binary Y isn't covered (build guide, phase 3b a). **Candidate, not checked:** powerMediation's Vittinghoff, Sen and McCulloch (2009) logistic and Poisson mediation functions (coverage.md) | Check the candidate against its own help files | — |
 | B15 | With covariates | ML | none: reaches E10–E12, which have no covariates | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test(model = )`: any lavaan model, so covariates can be added as predictors | Add covariates to the spec | [D7][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 25 | 13 | 0 | 38 |
+| Wired (validation not finished) | 25 | 14 | 0 | 39 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 0 | 15 | 2 | 17 |
+| Planned | 0 | 14 | 2 | 16 |
 | Foundation tool can do it, not planned | 6 | 8 | 2 | 16 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 1 | 2 |

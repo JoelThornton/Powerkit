@@ -1,5 +1,15 @@
 # powerkit 0.23.0
 
+* Mediation with a yes/no X (E16): templates `process_4` and `process_6`
+  take a binary X, drawn by power4mome's `rbinary_rs()` with
+  `population$x_prob`, the share in X's second level (0.5 if omitted), and
+  rescaled to SD 1, so the paths stay standardised. The check run recovers
+  the split; exported scripts pass `x_fun`; simulated data show X as its
+  level names. `implied_group_difference()` now returns one entry per
+  difference and covers each mediator that X alone predicts (the general
+  relation for an unequal split, `psych::r2d()` for equal groups). In the
+  app, the E16 card calculates (one mediator), and the parallel and serial
+  mediation screens ask whether X is a score or two groups.
 * Moderated regression with a yes/no X or W (E15): template `two_way`
   takes a binary X or W, simulated with InteractionPoweR's
   `power_interaction(k.x1 or k.x2 = 2)` (a 50/50 split; the yes/no
