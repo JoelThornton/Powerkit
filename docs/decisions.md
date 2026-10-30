@@ -3531,3 +3531,27 @@ simr's default `"z"`: Departure 16, sized in `conventions.md`.
 **Running it.** Power at a given number of participants in the app (a
 preview, then the full run); the required number of participants from the
 R script, since each sample size takes minutes.
+
+## 2026-10-30 · When the validation runs
+
+**Decision.** The full validation no longer runs before every merge:
+with about 30 chunks, a full run takes most of a day, and a new design
+cannot change the results of chunks whose code it doesn't touch.
+
+- **Each PR** that adds or changes a design runs that design's chunk
+  (`scripts/run-validation.R --only <chunk>`) before it merges, and says
+  which chunk and the result.
+- **Every night that the engine changed** in the last day, GitHub runs
+  the short chunks (minutes each) and every long chunk whose own tests or
+  backend changed; a change to something every chunk depends on
+  (`renv.lock`, the CI image, `run.R`, `search_n.R`, the validation
+  helpers) runs them all. `scripts/validation-plan.R` decides.
+- **Every Sunday** GitHub runs every chunk, whatever changed: the regular
+  complete check, which also catches a shared change the nightly mapping
+  missed.
+- **Before a release**, the maintainer may also run the full validation
+  locally and record it in `validation-log.md`.
+
+Each chunk runs as its own job (`full-validation.yaml`), so the long
+mediation chunks run side by side within GitHub's six-hour limit.
+
