@@ -1,5 +1,13 @@
 # powerkit 0.24.0
 
+* App, Labs: "Plan from a published result" takes an effect as a paper
+  reported it (a t or F statistic, r, d, an odds ratio or f, or the
+  effect size itself, for two groups, paired data, one group, a
+  correlation or a between-participants ANOVA) and shows the converted
+  effect size (`convert_effect()`) and the safeguard effect size
+  (`safeguard_effect()`, for the t-tests and the correlation), with a note
+  that published effects tend to be too large. The app only calls the
+  engine.
 * Between-participants ANOVA by its effect size: templates
   `oneway_between`, `2x2_between` and `factorial_between` take
   `population > metric` "eta_squared" with `population > eta_squared`, the

@@ -955,6 +955,22 @@ server <- function(input, output, session) {
     if (is.null(calc)) return(NULL)
     list(sentence = labs_sde_sentence(tree, calc, calc$spec$goal$power), provenance = labs_provenance(calc))
   }
+  # Labs: plan from a published result (R/labs.R). The engine converts and
+  # gives the safeguard value; the app only shows them.
+  output$pub_from_ui <- renderUI({
+    if (!nzchar(input$pub_design %||% "")) return(NULL)
+    selectInput("pub_from", "What did the paper report?", choices = published_from_choices(input$pub_design), selectize = FALSE, width = "100%")
+  })
+  observeEvent(input$pub_run, {
+    values <- lapply(stats::setNames(nm = c("pub_design", "pub_from", "pub_value", "pub_df1", "pub_df", "pub_n", "pub_n1", "pub_n2", "pub_protection")),
+      function(id) input[[id]])
+    out <- published_result(values, engine_function("convert_effect"), engine_function("safeguard_effect"))
+    output$pub_result <- renderUI(if (length(out$problems)) {
+      div(class = "form-problems", role = "alert", tags$ul(lapply(out$problems, tags$li)))
+    } else {
+      div(class = "result-panel mt-2", role = "status", lapply(out$lines, p))
+    })
+  })
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
