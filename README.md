@@ -170,9 +170,10 @@ devtools::test()   # unit tests
 devtools::check()  # R CMD check
 ```
 
-High-replication validation tests are skipped by default. A fast subset
-(basic tests and regression interactions) runs nightly on GitHub Actions.
-The full validation runs on demand, on a local machine, with
+High-replication validation tests are skipped by default. On GitHub
+Actions they run every night that the engine changed (the short chunks,
+and the long chunks whose code changed) and in full every Sunday
+(`scripts/validation-plan.R`). They also run on demand, on a local machine, with
 `scripts/run-validation.R` (see the instructions at the top of that file);
 it can be stopped and resumed, and run one design at a time. Package versions for development are pinned with
 [renv](https://rstudio.github.io/renv/) (`renv.lock` at the repository root).

@@ -333,9 +333,19 @@ fully validated. Validation runs are recorded in
   touches. powerkit's version is `engine/DESCRIPTION`'s, major.minor.patch:
   fixes raise the last number, each batch of features the middle one (by
   one, however many pull requests), a big shift the first.
-- **Nightly validation:** fixed on 25 October 2026 (testthat's JUnit
-  reporter needed xml2, missing from `renv.lock`, and the report's path
-  was relative); it had failed on every run since 12 October.
+- **Scheduled validation:** on GitHub, every night that the engine
+  changed in the last day, the short validation chunks and the long chunks
+  whose tests or backend changed; every Sunday, every chunk
+  (`scripts/validation-plan.R`, `nightly-validation.yaml`, each chunk as its
+  own `full-validation.yaml` job). A pull request runs its own design's
+  chunk before merging.
+- **CI time:** the engine's test files run in parallel, four at a time
+  (37 minutes on one core, under 10 on four; the longest are the tests
+  that run an exported script against powerkit, and the whole-study
+  sample-size search). App tests run once per pull request push (not also on the
+  branch push), a newer push cancels the run it replaces, and the
+  Windows and macOS install test runs only when the launcher, the app's
+  start-up file, the lockfile or its instructions change (and weekly).
 - **R in cloud sessions:** `scripts/setup-cloud-session.sh`, run as the
   cloud environment's setup script, copies R and every locked package out
   of the CI image (about a minute; the environment then caches it) when

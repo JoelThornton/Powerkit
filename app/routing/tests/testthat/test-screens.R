@@ -11,7 +11,7 @@ test_that("the banner says in plain words which designs calculate (judgement cal
 })
 
 test_that("only cards that don't calculate say 'No numbers are calculated'", {
-  for (id in c(unlist(forms$calculates), paste0("E", 10:14), "E16", "E33")) {
+  for (id in c(unlist(forms$calculates), names(forms$simulations$endpoints))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
   for (id in c("E43", "E45")) {
