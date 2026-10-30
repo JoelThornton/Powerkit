@@ -28,7 +28,7 @@ fully validated. Validation runs are recorded in
   still to be checked. Six cards are now marked validated on the
   strength of these runs (planned contrasts, logistic regression, the
   generic tests, two dependent correlations and the two variance tests);
-  eight still say "validation in progress" (`next.md`, item 11). Wave 2 (one-way
+  eight still say "validation in progress" (`next.md`, item 13). Wave 2 (one-way
   ANOVA, R², one proportion, McNemar, Welch by formula) matches G\*Power
   in the engine's tests; it isn't in the full validation run yet.
 - **Batch 1: designs the engine computes, being wired into the app**
@@ -117,7 +117,7 @@ fully validated. Validation runs are recorded in
   univariate F when the effect involves a within factor with three or
   more levels. Validation in progress (published examples to choose and
   transcribe). Next: sphericity corrections and unequal SDs or
-  correlations (`next.md`, item 13); four or more factors go to the safety
+  correlations (`next.md`, item 15); four or more factors go to the safety
   net. Welch's F (unequal SDs) is a test version on the one-way ANOVA
   card from 0.21.0, simulated with Spower.
 - **Rank correlations and the Pitman-Morgan test (29 October 2026,
@@ -134,7 +134,7 @@ fully validated. Validation runs are recorded in
   the index through a chosen mediator) runs on power4mome, with a preview
   and an R script. PROCESS model 8 is blocked by an upstream question to
   manymome, and models 58 and 59 need a decision on what to power
-  (`next.md`, item 8).
+  (`next.md`, item 10).
 - **Ordinal outcomes and factorial logistic regression (29 October 2026,
   0.23.0):** two groups compared on ordered categories (E29), by
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
@@ -149,7 +149,7 @@ fully validated. Validation runs are recorded in
   mediator) calculates with power4mome's `rbinary_rs()`, the group split an
   input, showing the group difference in M the path implies; the parallel
   and serial screens take a yes/no X too. Validation in progress. Next:
-  E17, waiting on a power4mome question (`next.md`, item 10).
+  E17, waiting on a power4mome question (`next.md`, item 12).
 - **Moderation with a yes/no X or W (29 October 2026, 0.23.0):** E15
   calculates with InteractionPoweR (`k.x1` or `k.x2 = 2`, groups 50/50),
   showing the group difference the correlation implies; reliability for
@@ -159,7 +159,7 @@ fully validated. Validation runs are recorded in
   0.23.0):** E22 calculates, simulated with Superpower's `ANOVA_power()`
   and one n per cell (`options > cell_ratio`), checked against pwrss's
   Shieh formula with a null covariate (decision N3). A mixed design with
-  unequal groups reaches the safety net (`next.md`, item 13).
+  unequal groups reaches the safety net (`next.md`, item 15).
 - **Technical details (29 October 2026, 0.23.0):** a folded section
   under "How it was calculated" gives the test's df, critical value and
   noncentrality, read from pwrss (and through pwrss for pwr's t-tests,
@@ -178,7 +178,7 @@ fully validated. Validation runs are recorded in
   mediation, one-predictor logistic and Poisson regression, factorial
   logistic regression, ordinal outcomes and cluster trials with a score
   outcome (0.23.0 added the rank tests onwards); the rest need data
-  choices (`next.md`, item 7).
+  choices (`next.md`, item 9).
 - **Rank tests (28 October 2026, 0.18.0):** the Wilcoxon signed-rank
   test (one sample, or pairs), the Mann-Whitney test and the
   Kruskal-Wallis test are a test version on the one-sample, paired,
@@ -188,7 +188,7 @@ fully validated. Validation runs are recorded in
   heavy-tailed). Known difference 5: G\*Power adjusts the t-test by an
   efficiency factor instead; its values are still to transcribe
   (`test-validation-rank-tests.R`). Friedman's test still carries the
-  "only approximates" note (`next.md`, item 15).
+  "only approximates" note (`next.md`, item 17).
 - **Bayes factor t-tests (28 October 2026, 0.20.0):** the one-sample,
   paired and two-group t-test cards offer a Bayes factor t-test as a test
   version, by bfpwr's closed form (Pawel & Held, 2025): the chance the
@@ -228,7 +228,7 @@ fully validated. Validation runs are recorded in
   simulated studies); the full run and the sample size search (0.11.0)
   run on the user's computer from an R script
   (`export_whole_study_script()`). Waiting for a
-  statistician's check (`next.md`, item 9); the method note for it is
+  statistician's check (`next.md`, item 11); the method note for it is
   `docs/whole-study-method.md`. Since 0.10.1 it is the plan's first
   step when it covers the plan, with the separate calculations folded
   below. Next: a quick run in the app, an R script for the full run, and
@@ -302,7 +302,7 @@ fully validated. Validation runs are recorded in
   combined sample size (the largest N among the main analyses, named,
   from the calculations made from the plan) and asks for shared values
   once: an input two analyses both ask for fills the second's input
-  screen. Whole-study simulation is queued ([`next.md`](next.md), item 9)
+  screen. Whole-study simulation is queued ([`next.md`](next.md), item 11)
   and needs a statistician's check.
 - **Effect in the measure's own units (27 October 2026, 0.8.0):** the
   three t-tests take the means and SD instead of Cohen's d (or d_z); the
@@ -379,13 +379,14 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-**The ordered queue is [`next.md`](next.md)** — 26 items. The maintainer's
+**The ordered queue is [`next.md`](next.md)** — 27 items. The maintainer's
 order for the next work (30 October 2026): effect-size conversion on every
 card, MANOVA and Hotelling's T-squared, more multilevel models starting
 with E41, Bayes factors beyond the t-tests, justified alpha, then precision
-planning and the number of items for E33. Every card the app marks "not in
+planning and the number of items for E33, meta-analysis, and an
+interactive picture of power for Labs. Every card the app marks "not in
 powerkit" has an item, and the queue was checked against a list of the
-tests psychologists most often report (items 22 to 26). What follows is
+tests psychologists most often report (items 24 to 27). What follows is
 the direction those items serve.
 
 
