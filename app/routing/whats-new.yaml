@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Labs: plan from a published result"
+    text: >-
+      A new Labs tool takes an effect as a paper reported it, such as
+      t(58) = 2.5, an F or an odds ratio, and shows it as the effect size a
+      power analysis uses, with a safeguard value to plan with instead,
+      because published effects tend to be too large.
+  - date: "2026-10-30"
     title: "ANOVA from an effect size, as in G*Power"
     text: >-
       For a one-way or factorial ANOVA with different people in each group,

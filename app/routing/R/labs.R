@@ -16,7 +16,9 @@ labs_tools <- list(
   list(id = "map", title = "A map of the methods",
        text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
   list(id = "prereplication", title = "Pre-replication notes",
-       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.")
+       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
+  list(id = "published", title = "Plan from a published result",
+       text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
 labs_ref_key <- "Karhulahti2025_prereplication"
 
@@ -189,6 +191,7 @@ labs_ui <- function(tree) {
       div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
         "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
       map_ui(tree)),
+    published_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note",
@@ -362,3 +365,114 @@ labs_js <- "
     };
   })();
 "
+
+# Plan from a published result (Labs): the effect as a paper reported it,
+# converted by the engine (convert_effect(), with effectsize) into the
+# effect size a card uses, and the safeguard effect size (safeguard_effect(),
+# Perugini, Gallucci & Costantini, 2014) where the design has one. The app
+# only calls the engine. The forms each kind of study takes follow the
+# cards' (conversion_choices, R/forms.R).
+published_designs <- list(
+  independent_t = list(label = "Two separate groups compared on a score (t-test)", effect = "Cohen's d"),
+  paired_t = list(label = "The same people measured twice (paired t-test)", effect = "d_z"),
+  one_sample_t = list(label = "One group compared with a fixed value", effect = "Cohen's d"),
+  correlation = list(label = "Two scores and how they are related (correlation)", effect = "r"),
+  oneway_between = list(label = "Different groups in an ANOVA", effect = "partial eta-squared")
+)
+
+published_from_choices <- function(design) {
+  d <- published_designs[[design]]
+  own <- stats::setNames(list("as_is"), sprintf("%s itself", d$effect))
+  from <- conversion_choices[[design]]
+  labels <- conversion_labels[from]
+  if (identical(design, "oneway_between")) labels$F <- "An F statistic, with its two degrees of freedom"
+  c(own, stats::setNames(as.list(from), unname(unlist(labels))))
+}
+
+# What the tool shows, from its inputs: list(lines, problems). `convert`
+# and `safeguard` are the engine's convert_effect() and safeguard_effect().
+published_result <- function(values, convert, safeguard) {
+  num <- function(x) suppressWarnings(as.numeric(trimws(as.character(x %||% ""))))
+  whole <- function(x) { v <- num(x); if (is.na(v) || v != round(v)) NA else as.integer(v) }
+  design <- values$pub_design %||% ""
+  from <- values$pub_from %||% "as_is"
+  value <- num(values$pub_value)
+  problems <- character()
+  if (!design %in% names(published_designs)) problems <- c(problems, "Choose the kind of study first.")
+  if (is.na(value)) problems <- c(problems, "Enter the published value as a number.")
+  if (from %in% c("t", "F") && is.na(whole(values$pub_df))) {
+    problems <- c(problems, "Enter its error degrees of freedom as a whole number (the df of t, or the second df of F).")
+  }
+  if (identical(from, "F") && identical(design, "oneway_between") && is.na(whole(values$pub_df1))) {
+    problems <- c(problems, "Enter the F statistic's first degrees of freedom (the effect's df) as a whole number.")
+  }
+  if (length(problems)) return(list(lines = character(), problems = problems))
+  d <- published_designs[[design]]
+  lines <- character()
+  estimate <- value
+  if (!identical(from, "as_is")) {
+    out <- tryCatch(
+      convert(from, value, design, df_error = if (from %in% c("t", "F")) whole(values$pub_df),
+              df = if (identical(from, "F") && identical(design, "oneway_between")) whole(values$pub_df1)),
+      error = function(e) e)
+    if (inherits(out, "error")) {
+      return(list(lines = character(), problems = sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out))))
+    }
+    estimate <- out$value
+    lines <- c(lines, sprintf("Converted: %s = %s, with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020).",
+      d$effect, format(round(estimate, 3), nsmall = 2), sub("\\(.*", "", sub("^effectsize::", "", out$function_used))))
+  }
+  sizes <- safeguard_sizes[[design]]
+  if (is.null(sizes)) {
+    lines <- c(lines, sprintf("Safeguard power isn't available for %s yet: use the value above, adjusted down for publication bias.", d$effect))
+  } else {
+    n <- if (identical(sizes, "n")) list(n = whole(values$pub_n)) else list(n1 = whole(values$pub_n1), n2 = whole(values$pub_n2))
+    protection <- num(values$pub_protection %||% "0.8")
+    if (any(vapply(n, function(x) is.na(x) || is.null(x), logical(1)))) {
+      lines <- c(lines, "For a safeguard value, enter how many people the published study had.")
+    } else {
+      sg <- tryCatch(do.call(safeguard, c(list(estimate = estimate, template = design), n, list(protection = protection))), error = function(e) e)
+      if (inherits(sg, "error") || is.na(sg$lower) || sign(sg$lower) != sign(estimate) || sg$lower == 0) {
+        lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval around this estimate includes zero, so this study ",
+          "can't tell you how large the effect is. Plan from the smallest effect that would matter instead."), round(100 * (2 * protection - 1))))
+      } else {
+        lines <- c(lines, sprintf(paste0("Safeguard: plan with %s = %s, the lower end of the %d%% confidence interval around it, ",
+          "for %s %d%% chance that the true effect is at least that large if the published estimate is unbiased ",
+          "(Perugini, Gallucci & Costantini, 2014)."), d$effect, format(round(sg$lower, 3), nsmall = 2),
+          round(100 * sg$conf_level), if (round(100 * sg$protection) %in% c(8, 11, 18, 80:89)) "an" else "a", round(100 * sg$protection)))
+      }
+    }
+  }
+  lines <- c(lines, paste("Published effects tend to be larger than the true effect, because studies with larger effects are",
+    "more likely to be published. A single study's estimate is also uncertain. The safeguard value allows for the",
+    "second; neither number corrects for the first."))
+  list(lines = lines, problems = character())
+}
+
+published_ui <- function() {
+  designs <- stats::setNames(names(published_designs), vapply(published_designs, `[[`, "", "label"))
+  conditionalPanel("input.labs_tool == 'published'",
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
+    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
+      "The numbers come from powerkit's engine (effectsize for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
+    h3("Plan from a published result"),
+    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, where it can, a safeguard value to plan with instead."),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
+      selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
+      uiOutput("pub_from_ui"),
+      textInput("pub_value", "The published value", width = "100%"),
+      conditionalPanel("input.pub_from == 'F' && input.pub_design == 'oneway_between'",
+        textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
+      conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",
+        textInput("pub_df", "Its error degrees of freedom (the second df of F, or the df of t)", width = "100%"))),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "For the safeguard value"),
+      conditionalPanel("input.pub_design == 'independent_t'",
+        textInput("pub_n1", "People in group 1 of the published study", width = "100%"),
+        textInput("pub_n2", "People in group 2 of the published study", width = "100%")),
+      conditionalPanel("input.pub_design == 'paired_t' || input.pub_design == 'one_sample_t' || input.pub_design == 'correlation'",
+        textInput("pub_n", "People in the published study", width = "100%")),
+      selectInput("pub_protection", "Protection against the estimate being too large", selectize = FALSE, width = "100%",
+        choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95"))),
+    actionButton("pub_run", "Work it out", class = "btn btn-primary"),
+    uiOutput("pub_result"))
+}

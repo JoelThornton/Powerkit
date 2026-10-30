@@ -100,7 +100,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 2)
+  expect_length(labs_tools, 3)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 
@@ -161,3 +161,35 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   expect_match(as.character(labs_ui(tree)), "Open A map of the methods", fixed = TRUE)
   expect_no_match(paste(deparse(map_ui), collapse = "\n"), "engine_function", fixed = TRUE)
 })
+
+test_that("plan from a published result: the engine converts and gives the safeguard value", {
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "Open Plan from a published result", fixed = TRUE)
+  expect_match(html, "data-display-if=\"input.labs_tool == &#39;published&#39;\"|data-display-if=\"input.labs_tool == 'published'\"")
+  # Each kind of study offers its own effect size and the forms its card converts.
+  for (design in names(published_designs)) {
+    expect_setequal(unlist(published_from_choices(design)), c("as_is", conversion_choices[[design]]))
+  }
+  convert <- engine_function("convert_effect")
+  safeguard <- engine_function("safeguard_effect")
+  out <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "2.5", pub_df = "58",
+    pub_n1 = "30", pub_n2 = "30", pub_protection = "0.8"), convert, safeguard)
+  expect_length(out$problems, 0)
+  expect_match(out$lines[1], "Converted: Cohen's d = 0.657, with the effectsize package's t_to_d()", fixed = TRUE)
+  lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
+  expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(out$lines[2], "for an 80% chance", fixed = TRUE)
+  expect_match(out$lines[3], "Published effects tend to be larger", fixed = TRUE)
+  # An ANOVA's F, with both dfs; no safeguard there yet.
+  anova <- published_result(list(pub_design = "oneway_between", pub_from = "F", pub_value = "4.2", pub_df1 = "2", pub_df = "57"), convert, safeguard)
+  expect_match(anova$lines[1], "partial eta-squared = 0.128", fixed = TRUE)
+  expect_match(anova$lines[2], "Safeguard power isn't available for partial eta-squared yet", fixed = TRUE)
+  # Plain problems, no stack traces.
+  expect_match(published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5"), convert, safeguard)$problems,
+    "Enter its error degrees of freedom", fixed = TRUE)
+  expect_match(published_result(list(pub_value = "2.5"), convert, safeguard)$problems[1], "Choose the kind of study first.", fixed = TRUE)
+  # A wide interval: no safeguard value, and the reason.
+  wide <- published_result(list(pub_design = "correlation", pub_from = "as_is", pub_value = "0.1", pub_n = "20"), convert, safeguard)
+  expect_match(wide$lines[1], "includes zero", fixed = TRUE)
+})
+
