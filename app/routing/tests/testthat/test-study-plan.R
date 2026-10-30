@@ -61,3 +61,32 @@ test_that("results from two cards save as one plan file and open again", {
   expect_identical(vapply(reopened, function(e) e$n, numeric(1)), vapply(entries, function(e) e$n, numeric(1)))
   expect_match(as.character(study_plan_ui(reopened)), "Sample size from the saved result", fixed = TRUE)
 })
+
+test_that("joint power is offered only for one randomised comparison on several outcomes", {
+  t_entry <- function(d) c(fake_entry("A t-test", 266), list(spec = list(template = "independent_t", goal = list(type = "power", n = 266))))
+  r_entry <- c(fake_entry("A correlation", 194), list(spec = list(template = "correlation")))
+  expect_true(joint_power_offered(list(t_entry(), t_entry())))
+  expect_false(joint_power_offered(list(t_entry())))
+  expect_false(joint_power_offered(list(t_entry(), r_entry)))
+  offered <- as.character(study_plan_ui(list(t_entry(), t_entry())))
+  expect_match(offered, "Calculate joint power", fixed = TRUE)
+  expect_no_match(offered, "doesn't calculate it for these designs yet", fixed = TRUE)
+  expect_match(as.character(study_plan_ui(list(t_entry(), r_entry))), "doesn't calculate it for these designs yet", fixed = TRUE)
+})
+
+test_that("the joint power from the engine is stated with each outcome's power and its source", {
+  skip_without_engine_plan()
+  joint <- engine_function("joint_power", file.path(repo_dir, "engine"))
+  spec_for <- function(d) {
+    spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]])
+    spec$population <- list(metric = "standardised", d = d)
+    spec
+  }
+  entries <- list(list(label = "Recall", spec = spec_for(0.4), n = 266), list(label = "Mood", spec = spec_for(0.3), n = 200))
+  expect_identical(plan_largest_n(entries), 266)
+  calc <- joint(plan_specs(entries), rho = 0.3, n = plan_largest_n(entries))
+  words <- joint_power_sentence(calc, entries)
+  expect_match(words[["headline"]], "With N = 266 and outcomes correlated 0.3, the chance that every analysis is significant is", fixed = TRUE)
+  expect_match(words[["detail"]], "for Recall;", fixed = TRUE)
+  expect_match(words[["detail"]], "Calculated by PUMP", fixed = TRUE)
+})

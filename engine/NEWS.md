@@ -1,5 +1,11 @@
 # powerkit 0.24.0
 
+* `joint_power()`: the chance that every one of several outcomes of the
+  same randomised comparison is significant, with PUMP's `pump_power()`
+  (designs `d1.1_m1c` for independent t-tests and `d2.2_m2rc` for
+  cluster-randomised trials), given each outcome's effect, one correlation
+  between the outcomes and the study's N. PUMP is a new import (1.0.5, in
+  `renv.lock` with the packages it needs). The app's study plan offers it.
 * `refs.bib` adds the four sources of the app's new latent profile and
   latent class guidance card: Tein, Coxe and Cham (2013), Nylund,
   Asparouhov and Muthén (2007), Nylund-Gibson and Choi (2018) and Spurk
