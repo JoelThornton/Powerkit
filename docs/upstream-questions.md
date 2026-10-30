@@ -6,6 +6,22 @@ an issue on the package's repository. Questions that were raised and
 answered are recorded in `docs/conventions.md` (Departures 4 and 8) and
 `docs/decisions.md` ("Upstream reports fixed; upstream watch").
 
+## InteractionPoweR
+
+Questions about InteractionPoweR 0.2.4, from its source (opened 30 October 2026).
+
+1. **`power_interaction_r2()`'s effect size and degrees of freedom.** It
+   computes f^2 = (R2_full - R2_reduced) / (1 - R2_reduced) and lambda =
+   f^2 (N - 3) on N - 3 denominator df. Cohen's f^2 for an R-squared
+   increase divides by 1 - R2_full, G*Power uses lambda = f^2 N, and a model
+   Y ~ X + W + XW leaves N - 4 df. The result is slightly less power than
+   G*Power's for the same interaction (Known difference 7 in
+   `docs/conventions.md`: 58.3% against 59.9% at N = 200). Are these
+   choices intended (for example, to approximate the random-predictor
+   case), and is N - 3 meant to be N - 4? powerkit uses the function as it
+   is for the smallest detectable effect (Known difference 1) and states
+   the difference.
+
 ## powertools
 
 Questions about powertools 1.0.0, from its source (opened 28 October

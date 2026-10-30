@@ -1107,6 +1107,33 @@ Wired into the app on 18 October 2026 (E25, E26).*
   simulating the Bayes factor itself." (`known_differences_methods`, key
   "6").
 
+### 7. Moderation by its R-squared change: G*Power's fixed-model formula, slightly above InteractionPoweR's
+
+- **What differs:** given by its R-squared change, a two-way interaction's
+  power comes from pwrss's `power.f.regression()`, the F test of the
+  product term with Cohen's f^2 = R2_change / (1 - R2_full) and
+  lambda = f^2 N on F(1, N - 4), as G*Power's R² increase test computes it
+  [GP-man, 14, 14.5, pp. 36-38]. InteractionPoweR's own formula,
+  `power_interaction_r2()`, divides the R-squared change by 1 - R2_reduced
+  instead, and uses lambda = f^2 (N - 3) on N - 3 denominator df (its
+  source, InteractionPoweR 0.2.4), so it gives slightly less power for the
+  same interaction. Given by its correlations, powerkit simulates instead
+  (Known difference 1), which is slightly lower again.
+- **Size:** for r(X,Y) = r(W,Y) = r(X,W) = .2 and r(XW,Y) = .15 (an
+  R-squared change of .0225 over .0667): 59.9% against 58.3% at N = 200,
+  34.3% against 32.8% at N = 100 and 88.0% against 87.0% at N = 400.
+- **Test:** `engine/tests/testthat/test-backend-interaction-r2.R`, "the
+  R-squared change gives G*Power's fixed-model power, a little above
+  InteractionPoweR's formula".
+- **Shown to users:** on the moderation result screen when the interaction
+  is given by its R-squared change (`app/routing/forms.yaml`,
+  `known_differences`, key "7").
+- **Methods paragraph:** "Power was calculated by the fixed-model formula
+  for an R-squared increase, as in G*Power; InteractionPoweR's formula,
+  and simulation with the predictors drawn afresh in each sample, give
+  slightly lower power for the same interaction."
+  (`known_differences_methods`, key "7").
+
 ## Not departures, but worth stating
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with

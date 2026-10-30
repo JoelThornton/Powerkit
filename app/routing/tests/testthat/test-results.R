@@ -1538,6 +1538,27 @@ test_that("repeated-measures and mixed ANOVA by effect size: the screen asks whi
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.mixed.anova")
 })
 
+test_that("moderation by its R-squared change: pwrss's fixed-model test, with its own known difference", {
+  fields <- form_fields(form_groups(forms, "E9"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  r2 <- list(interaction_metric = "r2_change", goal = "power")
+  for (id in c("r_X_Y", "r_XW_Y", "rel_X")) expect_false(field_applies(by_id(id), r2), label = id)
+  expect_true(field_applies(by_id("r2_change"), r2))
+  values <- modifyList(form_examples$E9, list(interaction_metric = "r2_change", r2_change = "0.0225", r2_main = "0.0667",
+    rel_X = NULL, rel_W = NULL, goal = "power", n = "200"))
+  spec <- build_spec(forms, "E9", fields, values)
+  expect_identical(spec$population$metric, "r2_change")
+  expect_null(spec$population$r_XW_Y)
+  expect_null(spec$variables$X$reliability)
+  # Known difference 7 on this route, 1 (the simulation's) on the correlations.
+  expect_identical(known_difference_keys(forms, "E9", spec), "7")
+  expect_identical(known_difference_keys(forms, "E9", build_spec(forms, "E9", fields, form_examples$E9)), "1")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.regression")
+})
+
 test_that("three effects side by side: conservative, the plan's and optimistic", {
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$target_test$method <- "student_t"

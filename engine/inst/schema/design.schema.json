@@ -2611,16 +2611,16 @@
         },
         "population": {
           "required": [
-            "metric",
-            "r_X_Y",
-            "r_W_Y",
-            "r_XW_Y",
-            "r_X_W"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "correlation"
+              "description": "'correlation': the interaction is given by InteractionPoweR's correlations. 'r2_change': by its R-squared change, as G*Power takes it ('r2_change', with 'r2_main'); power then comes from pwrss's F test of the product term, a fixed-model formula.",
+              "enum": [
+                "correlation",
+                "r2_change"
+              ]
             },
             "r_X_Y": {
               "$ref": "#/definitions/correlation"
@@ -2634,8 +2634,54 @@
             },
             "r_X_W": {
               "$ref": "#/definitions/correlation"
+            },
+            "r2_change": {
+              "description": "With metric 'r2_change': the R-squared the product term XW adds to a model with X and W (the interaction's R-squared change).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "r2_main": {
+              "description": "With metric 'r2_change': the R-squared of X and W without the interaction. 0 if not given, which gives a slightly smaller effect size, so a slightly larger sample.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "r2_change"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "r2_change"
+                ],
+                "properties": {
+                  "r_X_Y": false,
+                  "r_W_Y": false,
+                  "r_XW_Y": false,
+                  "r_X_W": false
+                }
+              },
+              "else": {
+                "required": [
+                  "r_X_Y",
+                  "r_W_Y",
+                  "r_XW_Y",
+                  "r_X_W"
+                ],
+                "properties": {
+                  "r2_change": false,
+                  "r2_main": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "allOf": [

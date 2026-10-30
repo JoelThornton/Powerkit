@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Moderation from the R-squared change"
+    text: >-
+      For an interaction between two scores, you can now give the R-squared
+      the interaction adds, as papers usually report it and as G*Power asks
+      for it, instead of correlations. The result says how this compares
+      with the correlation route.
+  - date: "2026-10-30"
     title: "Repeated-measures ANOVA from an effect size"
     text: >-
       For a repeated-measures or mixed ANOVA, you can now give the effect as

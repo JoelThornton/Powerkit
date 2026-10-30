@@ -51,7 +51,7 @@
 # Templates this adapter runs (Welch's t-test only on request).
 pwrss_covers <- function(spec) {
   key <- paste(spec$design, spec$template, sep = "/")
-  if (eta_squared_anova(spec)) return(TRUE)
+  if (eta_squared_anova(spec) || interaction_r2_change(spec)) return(TRUE)
   key %in% c("basic_test/one_proportion", "basic_test/mcnemar",
              "basic_test/chi_square_gof", "basic_test/two_correlations",
              "basic_test/overlapping_correlations", "basic_test/nonoverlapping_correlations",
@@ -108,9 +108,22 @@ eta_squared_anova <- function(spec) {
 # within factor): pwrss's power.f.mixed.anova().
 eta_squared_mixed_templates <- c("oneway_within", "2x2_mixed", "mixed")
 
+# A two-way interaction given by its R-squared change (G*Power's input)
+# rather than by InteractionPoweR's correlations: the F test of the
+# product term in a model with X, W and XW.
+interaction_r2_change <- function(spec) {
+  identical(spec$design, "regression_interaction") && identical(spec$template, "two_way") &&
+    identical(spec$population$metric, "r2_change")
+}
+
 # The key each switch in this adapter dispatches on: the template, or
-# "anova_eta_squared" for an ANOVA given by its partial eta-squared.
-pwrss_key <- function(spec) if (eta_squared_anova(spec)) "anova_eta_squared" else spec$template
+# "anova_eta_squared" for an ANOVA given by its partial eta-squared, or
+# "interaction_r2_change" for an interaction given by its R-squared change.
+pwrss_key <- function(spec) {
+  if (eta_squared_anova(spec)) return("anova_eta_squared")
+  if (interaction_r2_change(spec)) return("interaction_r2_change")
+  spec$template
+}
 
 # The factor levels and pwrss's name for the effect tested, for
 # power.f.ancova(): one factor (no target needed), or two (A, B or A:B).
@@ -365,6 +378,19 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
+    interaction_r2_change = {
+      # pwrss turns r.squared.change into f^2 = r / (1 - r); passing the
+      # partial R-squared change, R2_change / (1 - R2_main), gives Cohen's
+      # f^2 = R2_change / (1 - R2_full), as G*Power uses.
+      partial <- pop$r2_change / (1 - (pop$r2_main %||% 0))
+      list(
+        fun = "power.f.regression",
+        args = function(n) list(
+          r.squared.change = partial, k.total = 3, k.tested = 1,
+          n = n, alpha = alpha, verbose = 0
+        )
+      )
+    },
     r2_zero = ,
     r2_increase = {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
@@ -521,6 +547,14 @@ pwrss_check_run <- function(spec, inputs) {
       row("contrast weights passed to pwrss (contrast.matrix)", inputs$weights, as.numeric(args$contrast.matrix)),
       row("covariates pwrss used (k.covariates)", 0, args$k.covariates)
     ),
+    interaction_r2_change = {
+      r <- args$r.squared.change
+      r2_main <- pop$r2_main %||% 0
+      rbind(
+        row("Cohen's f^2 pwrss will use, R2_change / (1 - R2_full)", pop$r2_change / (1 - r2_main - pop$r2_change), r / (1 - r)),
+        row("predictors in the model (X, W, XW) and tested (XW)", c(3, 1), c(args$k.total, args$k.tested))
+      )
+    },
     r2_zero = ,
     r2_increase = {
       r <- args$r.squared.change

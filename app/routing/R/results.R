@@ -1297,6 +1297,10 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   keys <- unlist(form$known_differences)
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  # Some apply to one way of giving the effect (E9: Known difference 1 to
+  # the correlations, which are simulated; 7 to the R-squared change).
+  by_metric <- form$known_differences_if_metric
+  keys <- Filter(function(k) is.null(by_metric[[k]]) || identical(spec$population$metric %||% "correlation", by_metric[[k]]), keys)
   # Some apply only when a population value is above 0 (E27's Known
   # difference 3, logistic regression with other predictors).
   above <- form$known_differences_if_above_zero

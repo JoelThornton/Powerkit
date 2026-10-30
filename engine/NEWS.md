@@ -1,5 +1,14 @@
 # powerkit 0.24.0
 
+* Moderation by its R-squared change: template `two_way` takes
+  `population > metric` "r2_change" with `r2_change` (the R-squared the
+  product term adds) and optional `r2_main` (X and W's R-squared, 0 if not
+  given), instead of InteractionPoweR's correlations. Power from pwrss's
+  `power.f.regression()` with Cohen's f^2 = R2_change / (1 - R2_full), the
+  fixed-model test G*Power uses; slightly above InteractionPoweR's own
+  formula (Known difference 7, sized in `conventions.md`). Reliability and
+  yes/no X or W still need the correlations, and say so; no simulated data
+  set. The moderation input screen asks how the interaction is given.
 * Repeated-measures and mixed ANOVA by effect size: templates
   `oneway_within`, `2x2_mixed` and `mixed` take `population > metric`
   "eta_squared" with `eta_squared` and `eta_source`: "published" (as a

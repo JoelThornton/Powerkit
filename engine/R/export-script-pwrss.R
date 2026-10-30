@@ -36,6 +36,13 @@ pwrss_script_inputs <- function(spec) {
   )
   switch(
     pwrss_key(spec),
+    interaction_r2_change = c(
+      sprintf("r2_change <- %s # R-squared the interaction %s x %s adds", r_code(pop$r2_change), comment_text(v$X$label), comment_text(v$W$label)),
+      sprintf("r2_main <- %s # R-squared of %s and %s without the interaction", r_code(pop$r2_main %||% 0), comment_text(v$X$label), comment_text(v$W$label)),
+      "# pwrss turns r.squared.change into f^2 = r / (1 - r); the partial R-squared",
+      "# change gives Cohen's f^2 = r2_change / (1 - r2_main - r2_change), as in G*Power.",
+      "partial <- r2_change / (1 - r2_main)"
+    ),
     anova_eta_squared = {
       design <- eta_anova_design(spec)
       factors <- if (length(design$levels) == 1) {
@@ -222,6 +229,10 @@ pwrss_script_inputs <- function(spec) {
 pwrss_script_call_lines <- function(spec, inputs) {
   call <- switch(
     pwrss_key(spec),
+    interaction_r2_change = list(head = "power.f.regression( # F test of the interaction term, a fixed model as in G*Power", args = c(
+      "r.squared.change = partial", "k.total = 3 # X, W and their product", "k.tested = 1 # the product",
+      "n = n_total", "alpha = alpha", "verbose = 0"
+    )),
     anova_eta_squared = if (isTRUE(eta_anova_design(spec)$mixed)) {
       list(head = "power.f.mixed.anova( # repeated-measures or mixed ANOVA from its partial eta-squared", args = c(
         "eta.squared = eta_squared", "factor.levels = levels", "rho.within = rho",
