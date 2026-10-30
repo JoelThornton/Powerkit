@@ -353,7 +353,7 @@ safeguard_fields <- function(template) {
 # Effect-size conversion: a published effect in another form (a t or F
 # statistic, r, d or an odds ratio), converted by the engine with the
 # effectsize package into the card's own effect size. The forms each card
-# accepts follow the engine's (powerkit:::conversion_templates; a test
+# accepts follow the engine's list of conversions (a test in test-results.R
 # checks they agree). The fields go straight after the effect field, which
 # is hidden while a conversion is chosen.
 conversion_choices <- list(
