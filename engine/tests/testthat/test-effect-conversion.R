@@ -1,5 +1,5 @@
 conversion_spec <- function(template, conversion, type = "meta_analysis") {
-  spec <- read_spec(test_path("..", "..", "inst", "specs", paste0(template, ".json")), validate = FALSE)
+  spec <- read_spec(example_path(template), validate = FALSE)
   spec$population[[conversion_templates[[template]]$effect]] <- NULL
   spec$effect_justification <- list(type = type, source = "A published result", conversion = conversion)
   spec
@@ -61,7 +61,7 @@ test_that("conversion problems are explained in plain words", {
   both <- conversion_spec("independent_t", list(from = "t", value = 2.5, df_error = 58L))
   both$population$d <- 0.5
   expect_spec_problem(both, "Give one: the conversion fills in the effect size.")
-  other <- read_spec(test_path("..", "..", "inst", "specs", "anova_2x2_between.json"), validate = FALSE)
+  other <- read_spec(example_path("anova_2x2_between"), validate = FALSE)
   other$effect_justification$conversion <- list(from = "t", value = 2.5, df_error = 58L)
   expect_spec_problem(other, "not for this design yet")
 })
