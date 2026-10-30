@@ -1338,10 +1338,11 @@ Setting `consistency_approach` records it.
   entered as a standardised path or correlation, with the group
   difference it implies shown beside it (option B; a Cohen's d input
   later, as a departure); the split is asked on the mediation cards
-  (50/50 by default) and fixed at 50/50 for interactions. E15 is built on
-  these. Still open for E16 and E17: how power4mome standardises a binary
-  W in moderated mediation, and whether its Monte Carlo CI has been
-  checked with a binary X (questions for power4mome's author).
+  (50/50 by default) and fixed at 50/50 for interactions. E15 and E16 are
+  built on these (E16's Monte Carlo CI with a binary X agrees with an
+  independent simulation in `test-validation-mediation-binary.R`). Still
+  open for E17: how power4mome standardises a binary W in moderated
+  mediation (a question for power4mome's author).
 
 ### E6. Saving projects
 

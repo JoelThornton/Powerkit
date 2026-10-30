@@ -104,7 +104,7 @@ validation_chunks <- function() {
     ),
     interactions = c("test-validation-regression-interaction.R", "test-validation-interaction-binary.R"),
     three_way = "test-validation-three-way.R",
-    process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
+    process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R", "test-validation-mediation-binary.R"),
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
     process_14 = "test-validation-modmed-process14.R",

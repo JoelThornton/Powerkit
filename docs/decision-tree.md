@@ -430,7 +430,9 @@ flowchart TD
   ME1 -->|Conditions you assigned<br/>or two groups| ME4B{"ME4 Are your<br/>mediators scores?"}
   ME4B -->|No| E39
   ME4B -->|Yes| ME2B{"ME2 How many mediators?<br/>ME3 How do they connect?"}
-  ME2B -->|One, side by side<br/>or in a chain| E16["E16 Mediation<br/>with yes/no X"]
+  ME2B -->|One| E16["E16 Mediation<br/>with yes/no X"]
+  ME2B -->|Two or more, side by side<br/>(X: two groups on the screen)| E11
+  ME2B -->|Two to four, in a chain<br/>(X: two groups on the screen)| E12
   ME1 -->|A measured score| ME4{"ME4 Are your<br/>mediators scores?"}
   ME4 -->|No| E39["E39 Yes/no or<br/>categorical mediator"]
   ME4 -->|Yes| ME2{"ME2 How many mediators?<br/>ME3 How do they connect?"}
@@ -438,8 +440,7 @@ flowchart TD
   ME2 -->|Two or more,<br/>side by side| E11["E11 Parallel mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two to four,<br/>in a chain| E12["E12 Serial mediation<br/>(PROCESS model 6)"]
   class Q2,Q3,ME1,ME2,ME4,ME2B,ME4B q
-  class E10,E11,E12 avail
-  class E16 spec
+  class E10,E11,E12,E16 avail
   class E32,E39,E41,E42 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -688,7 +689,7 @@ taken from coverage.md, where they are proposals.
 | E13 | First-stage moderated mediation (PROCESS model 7), index of moderated mediation | `moderated_mediation / process_7` | `power4mome::power4test()` with `test_index_of_mome()` | Simulation | Standardised paths, including XW→M | Yes: `test-validation-modmed-process7.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
 | E14 | Second-stage moderated mediation (PROCESS model 14) | `moderated_mediation / process_14` | As E13 | Simulation | Standardised paths, including MW→Y | Yes: `test-validation-modmed-process14.R` (full run passed 17 Oct 2026, the rerun after the seeding fix; published values TODO) | MVP | Runs |
 | E15 | Moderated regression with a yes/no X or W | `regression_interaction / two_way`, X or W `type = binary` | `InteractionPoweR::power_interaction(k.x1 / k.x2 = 2)`: a 50/50 split coded -1 and 1, correlations of the observed yes/no data (point-biserial with Y), simulated; the implied group difference shown by `psych::r2d()`. Both yes/no: pointed to the 2 x 2 ANOVA | Simulation | Which variable is yes/no; the four correlations; reliability of the score and Y only (decided 29 October 2026) | No: matches InteractionPoweR called directly and an independent simulation, and holds alpha, in `test-backend-interaction-binary.R` and `test-validation-interaction-binary.R` (published value TODO) | MVP | Runs |
-| E16 | Mediation with a yes/no X | `mediation / process_4` or `process_6`, X `binary` | `power4test()` with `x_fun` = `rbinary_rs()` (planned) | Simulation | Fully standardised paths; group split via `p1` | No | MVP: phase 3b | Spec only |
+| E16 | Mediation with a yes/no X | `mediation / process_4`, X `binary`, `population > x_prob` (two or more mediators: E11 and E12, whose screens take a yes/no X) | `power4test()` with `x_fun = list(X = list(rbinary_rs, p1 = x_prob))` and `test_indirect_effect()`, Monte Carlo CI; paths per SD of X, the group difference in M shown | Simulation | X's two groups and the share in each; standardised paths; CI draws | No: matches power4mome called directly and an independent simulation, recovers the split, and holds alpha in `test-backend-mediation-binary.R` and `test-validation-mediation-binary.R` (published value TODO) | MVP | Runs |
 | E17 | Moderated mediation with a yes/no X or W | `moderated_mediation / process_7` or `process_14` | As E16 | Simulation | As E16; X or W uncorrelated with the other predictors (maintainer decision) | No | MVP: phase 3b | Spec only |
 | E18 | One-way ANOVA (different people), omnibus | `factorial_anova / oneway_between` | `Superpower::ANOVA_design("kb")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen; Welch's F (unequal SDs): `Spower::p_anova.test(var.equal = FALSE)`; the Kruskal-Wallis test: `Spower::p_kruskal.test()`. The same people in every condition: E54 | Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test | Group means (raw or in SD units) and one SD, or each group's SD for Welch's F | No: matches G\*Power in `test-backend-wave2.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E19 | Planned contrast | `factorial_anova / oneway_contrast` | `pwrss::power.t.contrasts()` (one contrast, equal groups, two-sided; `k.covariates = 0`). Also Superpower's emmeans contrasts, which agree with it; pwranova `pwrcontrast()` unchecked | Formula (no simulation) | Group means and SD; contrast weights | Yes: matches the G\*Power 3.1 manual's three contrast examples in the full validation run (27 October 2026) | v2 | Runs |
@@ -1399,7 +1400,7 @@ flowchart LR
   `ANCOVA_analytic()`; pwrss.
 - **H2 → E15 (moderated regression with a yes/no X):** runs (29 October
   2026).
-- **H3 → E16 (mediation with a yes/no X):** spec only until phase 3b.
+- **H3 → E16 (mediation with a yes/no X):** runs (29 October 2026).
 
 So none of the three runs in powerkit yet; the example is about what
 the forms would ask.
@@ -1411,7 +1412,7 @@ all three marked primary and "each stands alone":
 | --- | --- | --- | --- | --- |
 | H1 | ANCOVA: effect of condition on the outcome, adjusting for baseline | Adjusted mean difference (or d), SD, correlation between baseline and outcome | Superpower `ANCOVA_analytic()` or pwrss (candidates) | Not in powerkit yet (E23) |
 | H2 | Moderated regression: condition × moderator | r_X_Y, r_W_Y, r_XW_Y; r_X_W = 0 (randomised) | InteractionPoweR `power_interaction()` with `k.x1 = 2` | Runs (E15) |
-| H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Spec only until phase 3b (E16) |
+| H3 | Simple mediation: condition → mediator → outcome | Paths a, b, c'; CI draws | power4mome `power4test()` with `rbinary_rs()` and `test_indirect_effect()` | Runs (E16) |
 | Study | Combined N for H1–H3 | — | — | Incomplete: no primary analysis runs yet |
 
 **Warning shown:** "The condition's effect on the outcome is entered in

@@ -17,7 +17,7 @@ population_problems <- function(spec) {
     cluster_trial = check_cluster_trial,
     sem = check_sem,
     regression_interaction = check_regression_interaction,
-    mediation = check_path_model,
+    mediation = function(spec) c(check_path_model(spec), check_single_predictor_x(spec)),
     moderated_mediation = check_path_model,
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test

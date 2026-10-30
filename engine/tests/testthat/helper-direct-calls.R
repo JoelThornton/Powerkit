@@ -227,7 +227,7 @@ direct_interactionpower_simulation <- function(n, r_x_y, r_w_y, r_xw_y, r_x_w,
 
 direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
                               method = "monte_carlo_ci", ci_draws, nrep, seed,
-                              batch_size = power4mome_batch_size(ci_draws)) {
+                              batch_size = power4mome_batch_size(ci_draws), x_fun = NULL) {
   test_fun <- switch(
     test,
     indirect = power4mome::test_indirect_effect,
@@ -251,7 +251,7 @@ direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
     # a product term power4test() standardises the population by Monte Carlo
     # before iseed takes effect.
     set.seed(seed + i - 1)
-    result <- power4mome::power4test(
+    result <- do.call(power4mome::power4test, c(list(
       nrep = sizes[i],
       model = model,
       pop_es = pop_es,
@@ -263,7 +263,7 @@ direct_power4mome <- function(model, pop_es, n, test, x, m, y, w = NULL,
       iseed = seed + i - 1,
       parallel = FALSE,
       progress = FALSE
-    )
+    ), if (!is.null(x_fun)) list(x_fun = x_fun)))
     rates <- power4mome::rejection_rates(result)
     valid <- round(rates$pvalid[1] * sizes[i])
     c(round(rates$reject[1] * valid), valid)

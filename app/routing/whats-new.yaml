@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-29"
+    title: "Mediation with an experimental condition"
+    text: >-
+      If X is a condition or two groups, such as self-affirmation or control,
+      powerkit now works out power for its indirect effect through one or
+      more mediators. You can give the share of people in each group, and the
+      result shows the difference between the groups in the mediator that
+      your path means.
+  - date: "2026-10-29"
     title: "Moderation with a condition or two groups"
     text: >-
       If your predictor is a condition, such as training or a waitlist, and

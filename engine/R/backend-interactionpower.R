@@ -282,37 +282,66 @@ interactionpower_3way_check_run <- function(spec, inputs) {
   )
 }
 
-#' The group difference a yes/no predictor's correlation implies
+#' The group difference a yes/no predictor's effect implies
 #'
-#' For a regression interaction with a yes/no X or W (split 50/50, as
-#' InteractionPoweR draws it), the standardised mean difference in Y between
-#' its two groups that its correlation with Y implies, by psych::r2d()
-#' (d = 2r / sqrt(1 - r^2), for equal groups). The correlation is what the
-#' design takes; the difference is shown beside it so that it can be read
-#' in familiar units. It describes the groups' difference averaged over the
-#' other predictor, not the interaction.
+#' For a design with a yes/no predictor entered as a correlation or a
+#' standardised path, the standardised mean difference between its two
+#' groups that the value implies, shown beside it so that it can be read in
+#' familiar units (decided 29 October 2026). It applies to:
+#' * a two-way regression interaction with a yes/no X or W (E15): its
+#'   correlation with Y, for the 50/50 split InteractionPoweR draws; the
+#'   difference is averaged over the other predictor, not the interaction;
+#' * mediation with a yes/no X (E16): the path from X to each mediator that
+#'   X alone predicts, which is then their point-biserial correlation, for
+#'   the split in `population$x_prob`.
+#'
+#' For two equal groups the difference is psych::r2d(), d = 2r /
+#' sqrt(1 - r^2); for a share p in the second group it is the same
+#' relation between a point-biserial correlation and the difference in
+#' pooled-SD units, d = r / sqrt(p (1 - p) (1 - r^2)), which equals
+#' psych::r2d() at p = 0.5.
 #'
 #' @param spec A validated design specification.
-#' @return `NULL` unless the spec is a two-way regression interaction with a
-#'   yes/no X or W; otherwise a list with the `role` ("X" or "W"), its
-#'   `label` and `levels`, the correlation `r` with Y and the implied `d`
-#'   (the second level minus the first, in SDs of Y).
+#' @return `NULL` unless the design has such a predictor; otherwise a list
+#'   with one entry per difference: the predictor's `role`, `label` and
+#'   `levels`, the `outcome` role, the value `r` it was entered as, the
+#'   share `p` in the second level, the implied `d` (the second level minus
+#'   the first, in SDs of the outcome) and `kind` ("correlation" or
+#'   "path").
 #' @export
 implied_group_difference <- function(spec) {
-  if (!identical(spec$design, "regression_interaction") || !identical(spec$template, "two_way")) {
-    return(NULL)
+  entry <- function(role, outcome, r, p, kind) {
+    list(
+      role = role, label = spec$variables[[role]]$label %||% role,
+      levels = as.character(unlist(spec$variables[[role]]$levels)),
+      outcome = outcome, r = r, p = p, d = d_from_point_biserial(r, p), kind = kind
+    )
   }
-  binary <- interaction_binary(spec)
-  if (sum(binary) != 1) {
-    return(NULL)
+  if (identical(spec$design, "regression_interaction") && identical(spec$template, "two_way")) {
+    binary <- interaction_binary(spec)
+    if (sum(binary) != 1) {
+      return(NULL)
+    }
+    role <- names(binary)[binary]
+    return(list(entry(role, "Y", spec$population[[paste0("r_", role, "_Y")]], 0.5, "correlation")))
   }
-  role <- names(binary)[binary]
-  r <- spec$population[[paste0("r_", role, "_Y")]]
-  list(
-    role = role,
-    label = var_label(spec, role),
-    levels = as.character(unlist(spec$variables[[role]]$levels)),
-    r = r,
-    d = psych::r2d(r)
-  )
+  if (identical(spec$design, "mediation") && identical(spec$variables$X$type, "binary")) {
+    model <- path_model(spec)
+    alone <- Filter(function(m) identical(model$equations[[m]], "X"), model$mediators)
+    if (length(alone) == 0) {
+      return(NULL)
+    }
+    p <- spec$population$x_prob %||% 0.5
+    return(lapply(alone, function(m) entry("X", m, as.numeric(spec$population$paths[[paste0("X->", m)]]), p, "path")))
+  }
+  NULL
+}
+
+# Cohen's d (pooled within-group SD) from a point-biserial correlation r,
+# with a share p in the second group: psych::r2d() for equal groups.
+d_from_point_biserial <- function(r, p) {
+  if (isTRUE(all.equal(p, 0.5))) {
+    return(psych::r2d(r))
+  }
+  r / sqrt(p * (1 - p) * (1 - r^2))
 }

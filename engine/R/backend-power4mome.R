@@ -30,13 +30,15 @@ power4mome_backend <- function(spec, seed = NULL) {
   )
 }
 
-# A binary X or W, and measurement error (reliability), are methodological
-# choices still to be made for these designs (docs/decisions.md, open
-# questions; for binary X or W, docs/build-guide.md, section 8), so they
-# aren't offered yet. Treating a binary variable as continuous isn't
-# suggested: it may give an inaccurate power estimate.
+# A yes/no X in mediation (E16) is drawn by power4mome's rbinary_rs(),
+# rescaled to mean 0 and SD 1, so its paths are per SD of X (decided 29
+# October 2026). A yes/no X or W in moderated mediation (E17) and
+# measurement error (reliability) aren't offered yet. Treating a binary
+# variable as continuous isn't suggested: it may give an inaccurate power
+# estimate.
 check_power4mome_supported <- function(spec) {
   binary <- names(Filter(function(v) identical(v$type, "binary"), spec$variables))
+  if (spec$design == "mediation") binary <- setdiff(binary, "X")
   if (length(binary) > 0) {
     abort_not_available(sprintf(
       "Mediation designs with a yes/no (binary) variable aren't available yet (%s %s yes/no). Treating %s as continuous may give an inaccurate power estimate.",
@@ -124,6 +126,8 @@ power4mome_inputs <- function(spec) {
   list(
     model = paste(c(regressions, covariances), collapse = "\n"),
     pop_es = paste(c(pop_paths, pop_covariances), collapse = "\n"),
+    # A yes/no X: the proportion in its second level, for rbinary_rs().
+    x_prob = if (identical(spec$variables$X$type, "binary")) spec$population$x_prob %||% 0.5,
     equations = model$equations,
     term = term,
     test_name = test_name,
@@ -171,6 +175,7 @@ format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = 
 power4mome_call <- function(inputs, n, nrep, seed, ...) {
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
+    if (!is.null(inputs$x_prob)) list(x_fun = list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob))),
     list(...),
     list(iseed = seed, parallel = FALSE, progress = FALSE)
   )
@@ -243,6 +248,15 @@ power4mome_check_run <- function(spec, inputs, seed) {
       ok = abs(atanh(recovered) - atanh(specified)) <= 5 / sqrt(n - 3)
     )
   }
+  # A yes/no X: the share of people in its second level (rbinary_rs()
+  # puts them above X's mean).
+  if (!is.null(inputs$x_prob)) {
+    share <- mean(data$X > 0)
+    split_row <- data.frame(
+      parameter = "proportion in X's second level", specified = inputs$x_prob, recovered = share,
+      ok = abs(share - inputs$x_prob) <= 5 * sqrt(inputs$x_prob * (1 - inputs$x_prob) / n)
+    )
+  }
   lookup <- correlation_lookup(spec)
   correlation_rows <- list()
   if (spec$design == "moderated_mediation") {
@@ -263,7 +277,7 @@ power4mome_check_run <- function(spec, inputs, seed) {
       )
     }))
   }
-  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows))
+  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows, if (!is.null(inputs$x_prob)) list(split_row)))
   rownames(check) <- NULL
   check
 }

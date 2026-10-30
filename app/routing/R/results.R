@@ -1047,14 +1047,24 @@ actual_power_sentence <- function(spec, result) {
 # its groups (E15): the engine works it out (implied_group_difference(),
 # psych::r2d() for equal groups); this only words it.
 group_difference_note <- function(spec) {
-  d <- tryCatch(engine_function("implied_group_difference")(spec), error = function(e) NULL)
-  if (is.null(d)) return(NULL)
-  label <- spec$variables[[d$role]]$label %||% d$role
-  sprintf(
-    "A correlation of %s between %s and %s means that %s differs from %s by d = %s SDs of %s, averaged over the other predictor (two equal groups). The interaction is what is tested.",
-    formatC(d$r, digits = 2, format = "f"), label, spec$variables$Y$label %||% "Y",
-    d$levels[2], d$levels[1], formatC(d$d, digits = 2, format = "f"), spec$variables$Y$label %||% "Y"
-  )
+  entries <- tryCatch(engine_function("implied_group_difference")(spec), error = function(e) NULL)
+  if (!length(entries)) return(NULL)
+  label <- function(role) spec$variables[[role]]$label %||% role
+  number <- function(x) formatC(x, digits = 2, format = "f")
+  vapply(entries, function(d) {
+    split <- if (isTRUE(all.equal(d$p, 0.5))) "two equal groups" else sprintf("%s%% in %s", round(100 * d$p), d$levels[2])
+    if (identical(d$kind, "correlation")) {
+      sprintf(
+        "A correlation of %s between %s and %s means that %s differs from %s by d = %s SDs of %s, averaged over the other predictor (%s). The interaction is what is tested.",
+        number(d$r), d$label, label(d$outcome), d$levels[2], d$levels[1], number(d$d), label(d$outcome), split
+      )
+    } else {
+      sprintf(
+        "A standardised path of %s from %s to %s means that %s differs from %s by d = %s SDs of %s (%s).",
+        number(d$r), d$label, label(d$outcome), d$levels[2], d$levels[1], number(d$d), label(d$outcome), split
+      )
+    }
+  }, character(1))
 }
 
 # Technical details, for checking a result against G*Power or R: the

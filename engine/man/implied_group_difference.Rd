@@ -2,7 +2,7 @@
 % Please edit documentation in R/backend-interactionpower.R
 \name{implied_group_difference}
 \alias{implied_group_difference}
-\title{The group difference a yes/no predictor's correlation implies}
+\title{The group difference a yes/no predictor's effect implies}
 \usage{
 implied_group_difference(spec)
 }
@@ -10,17 +10,31 @@ implied_group_difference(spec)
 \item{spec}{A validated design specification.}
 }
 \value{
-\code{NULL} unless the spec is a two-way regression interaction with a
-yes/no X or W; otherwise a list with the \code{role} ("X" or "W"), its
-\code{label} and \code{levels}, the correlation \code{r} with Y and the implied \code{d}
-(the second level minus the first, in SDs of Y).
+\code{NULL} unless the design has such a predictor; otherwise a list
+with one entry per difference: the predictor's \code{role}, \code{label} and
+\code{levels}, the \code{outcome} role, the value \code{r} it was entered as, the
+share \code{p} in the second level, the implied \code{d} (the second level minus
+the first, in SDs of the outcome) and \code{kind} ("correlation" or
+"path").
 }
 \description{
-For a regression interaction with a yes/no X or W (split 50/50, as
-InteractionPoweR draws it), the standardised mean difference in Y between
-its two groups that its correlation with Y implies, by psych::r2d()
-(d = 2r / sqrt(1 - r^2), for equal groups). The correlation is what the
-design takes; the difference is shown beside it so that it can be read
-in familiar units. It describes the groups' difference averaged over the
-other predictor, not the interaction.
+For a design with a yes/no predictor entered as a correlation or a
+standardised path, the standardised mean difference between its two
+groups that the value implies, shown beside it so that it can be read in
+familiar units (decided 29 October 2026). It applies to:
+\itemize{
+\item a two-way regression interaction with a yes/no X or W (E15): its
+correlation with Y, for the 50/50 split InteractionPoweR draws; the
+difference is averaged over the other predictor, not the interaction;
+\item mediation with a yes/no X (E16): the path from X to each mediator that
+X alone predicts, which is then their point-biserial correlation, for
+the split in \code{population$x_prob}.
+}
+}
+\details{
+For two equal groups the difference is psych::r2d(), d = 2r /
+sqrt(1 - r^2); for a share p in the second group it is the same
+relation between a point-biserial correlation and the difference in
+pooled-SD units, d = r / sqrt(p (1 - p) (1 - r^2)), which equals
+psych::r2d() at p = 0.5.
 }

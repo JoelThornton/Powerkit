@@ -11,7 +11,7 @@ test_that("the banner says in plain words which designs calculate (judgement cal
 })
 
 test_that("only cards that don't calculate say 'No numbers are calculated'", {
-  for (id in c(unlist(forms$calculates), paste0("E", 10:14))) {
+  for (id in c(unlist(forms$calculates), paste0("E", 10:14), "E16")) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
   for (id in c("E43", "E45")) {
@@ -249,7 +249,9 @@ test_that("the plan's combined sample size is the largest N among the main analy
   html <- plan(list(compare = list(endpoint = "E2", goal = "sample_size", n = 50)))
   expect_false(grepl("N = 50", html, fixed = TRUE))
   # A main analysis powerkit can't calculate is named as one to work out elsewhere.
-  med <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "none", covariate = "none", times = "once")
+  # (A yes/no mediator, E39: a yes/no X with a score mediator calculates
+  # since 29 October 2026.)
+  med <- list(x = "cond2", outcome = "score", mediators = "notscore", moderator = "none", covariate = "none", times = "once")
   html <- as.character(guided_plan_ui(tree, med, c("compare", "mediation"), c("compare", "mediation"), list(), "each", forms = forms,
     results = list(compare = list(endpoint = "E2", goal = "sample_size", n = 128))))
   expect_match(html, "work out their sample size elsewhere", fixed = TRUE)

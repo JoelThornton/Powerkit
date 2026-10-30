@@ -26,8 +26,9 @@ test_that("a yes/no X agrees with InteractionPoweR called directly", {
 })
 
 test_that("the yes/no variable's correlation is shown as the group difference it implies", {
-  d <- implied_group_difference(validate_spec(binary_example()))
+  d <- implied_group_difference(validate_spec(binary_example()))[[1]]
   expect_identical(d$role, "X")
+  expect_identical(d$kind, "correlation")
   expect_equal(d$d, psych::r2d(0.2))
   expect_null(implied_group_difference(read_spec(system.file("specs", "regression_interaction.json", package = "powerkit"))))
 })

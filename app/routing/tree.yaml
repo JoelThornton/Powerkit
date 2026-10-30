@@ -645,11 +645,11 @@ nodes:
   me3_xbin:
     doc_id: ME3
     text: "How do the mediators connect?"
-    help: "With a yes/no X, both arrangements are coming soon."
-    refs: "phase 3b"
+    help: "On the next screen, choose two groups or conditions for X."
+    refs: "phase 3b decisions, 29 October 2026"
     options:
-      - {label: "Side by side: X affects each one separately", next: E16}
-      - {label: "In a chain: X affects the first, which affects the next", next: E16}
+      - {label: "Side by side: X affects each one separately", next: E11}
+      - {label: "In a chain: X affects the first, which affects the next", next: E12}
   me4:
     doc_id: ME4
     text: "Are your mediators scores?"
@@ -956,7 +956,7 @@ endpoints:
     template: "mediation / process_4 (mediators M1, M2, ...)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
-    inputs: ["Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
+    inputs: ["Whether X is a score or two groups or conditions", "Standardised paths for each mediator", "Correlations between the mediators' residuals", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-parallel.R, note: "Full validation run passed on 16 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
@@ -967,7 +967,7 @@ endpoints:
     template: "mediation / process_6 (M1 to M4)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
-    inputs: ["Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
+    inputs: ["Whether X is a score or two groups or conditions", "Standardised paths, every forward path", "Which indirect path the hypothesis is about"]
     status: runs_validated
     validation: {file: test-validation-mediation-serial.R, note: "Full validation run passed on 15 October 2026, with two mediators; three or more not yet tested. A check against a published example is still to come."}
     tier: MVP
@@ -1015,13 +1015,18 @@ endpoints:
   E16:
     doc_name: "Mediation with a yes/no X"
     plain_name: "Mediation where X is two conditions or two groups"
-    template: "mediation / process_4 or process_6 (X yes/no)"
-    backend: "power4mome: power4test() with x_fun = rbinary_rs() (planned)"
+    template: "mediation / process_4 (X yes/no, mediator M)"
+    backend: "power4mome: power4test() with x_fun = rbinary_rs() and test_indirect_effect(), Monte Carlo CI"
     method: Simulation
-    inputs: ["Fully standardised paths", "The group split (50/50 by default)"]
-    status: coming_soon
-    coming_soon_note: "Planned next: a yes/no X or W."
-    refs: "phase 3b (build guide, section 8)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-mediation-binary.R, note: "Matches power4mome called directly, recovers the paths and the group split in its check run, and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "X is two conditions or two groups, such as a self-affirmation or control condition, and it affects Y through one go-between (M)."
+      - "You give standardised paths, as for a score X (per SD of X); the result shows the difference between the groups in M that the path from X means."
+      - "You can give the share of people in each group (equal by default)."
+      - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
+    inputs: ["X's two groups or conditions, and the share in each", "Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    refs: "phase 3b decisions, 29 October 2026 (docs/decisions.md)"
     tier: MVP
     alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
   E17:
@@ -1696,9 +1701,9 @@ guided:
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
         - {when: {mediators: notscore}, endpoint: E39}
         - {when: {x: cond3}, endpoint: E42}
-        - {when: {x: cond2}, endpoint: E16}
+        - {when: {x: cond2, mediators: one}, endpoint: E16}
         - {when: {x: score, mediators: one}, endpoint: E10}
-        - when: {x: score, mediators: several}
+        - when: {x: [score, cond2], mediators: several}
           ask:
             doc_id: ME3
             text: "How do the mediators connect?"

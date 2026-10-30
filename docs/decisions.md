@@ -3497,3 +3497,16 @@ brackets the sample-size search only; the smallest detectable effect isn't
 offered, because the formula assumes continuous variables. Validated
 against InteractionPoweR called directly and an independent simulation
 (orthogonal predictors, so the coefficients equal the correlations).
+
+## 2026-10-29 · E16: mediation with a yes/no X
+
+Built on the phase 3b decisions above. X is drawn by power4mome's
+`rbinary_rs()` with the share in its second level (`population$x_prob`,
+0.5 by default) and rescaled to SD 1, so the paths stay standardised per SD
+of X. The group difference in a mediator that X alone predicts is shown
+beside its path: `psych::r2d()` for equal groups, and for a share p the
+same point-biserial relation, d = r / sqrt(p (1 - p) (1 - r^2)), which a
+test checks against a large simulated data set. E16 takes one mediator;
+for two or more, the parallel and serial screens (E11, E12) ask whether X
+is a score or two groups, and the yes/no-X routes lead there. The Monte
+Carlo CI with a binary X is checked against an independent simulation.
