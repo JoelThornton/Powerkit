@@ -13,6 +13,12 @@ on:
   push:
   workflow_dispatch:
 
+# A newer push to the same branch or pull request cancels the run it
+# replaces; runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 permissions:
   contents: read
 
@@ -41,6 +47,9 @@ jobs:
       RENV_ACTIVATE_PROJECT: "FALSE"
       # Runs the engine tests that call skip_on_cran().
       NOT_CRAN: "true"
+      # The engine's test files run in parallel (engine/DESCRIPTION,
+      # Config/testthat/parallel), one per runner core.
+      TESTTHAT_CPUS: "4"
     steps:
       - uses: actions/checkout@v4
 

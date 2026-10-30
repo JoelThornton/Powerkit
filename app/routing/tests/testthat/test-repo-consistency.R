@@ -32,6 +32,21 @@ test_that("every chunk of run-validation.R can be chosen in the full-validation 
   expect_setequal(setdiff(names(script$validation_chunks()), "interaction_grid"), offered)
 })
 
+test_that("the scheduled validation knows every chunk and what each long chunk depends on", {
+  old <- setwd(repo_dir)
+  on.exit(setwd(old))
+  plan <- new.env()
+  sys.source(file.path("scripts", "validation-plan.R"), envir = plan)
+  scheduled <- setdiff(names(plan$validation_chunks()), "interaction_grid")
+  expect_setequal(names(plan$validation_minutes()), scheduled)
+  expect_setequal(names(plan$chunk_sources()), plan$long_chunks())
+  for (path in c(unlist(plan$chunk_sources()), plan$shared_sources)) {
+    expect_true(file.exists(path), label = path)
+  }
+  expect_setequal(plan$plan_chunks(all = TRUE), scheduled)
+  expect_length(plan$plan_chunks("docs/status.md"), 0)
+})
+
 test_that("every test named in conventions.md exists, with the name it is given", {
   text <- read_doc("conventions.md")
   lines <- strsplit(text, "\n", fixed = TRUE)[[1]]

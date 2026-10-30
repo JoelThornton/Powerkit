@@ -10,9 +10,10 @@
 # RStudio isn't installed: the page's RStudio and plain-R routes run the
 # same file.
 #
-# Runs when the page, the launcher, the app, the lockfile or this file
-# change, weekly (packages can disappear from the package server), and on
-# demand.
+# Runs when the page, the launcher, the app's start-up file, the lockfile
+# or this file change (the app's screens are tested on every pull request
+# by routing-prototype-tests), weekly (packages can disappear from the
+# package server), and on demand.
 name: run-it-yourself
 
 on:
@@ -22,7 +23,7 @@ on:
       - run_powerkit.R
       - renv.lock
       - renv/**
-      - app/routing/**
+      - app/routing/app.R
       - engine/DESCRIPTION
       - engine/NAMESPACE
       - .github/workflows/run-it-yourself.yaml

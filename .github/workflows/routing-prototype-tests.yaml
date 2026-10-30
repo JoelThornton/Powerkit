@@ -1,13 +1,21 @@
 # Tests for the routing prototype (app/routing/), on every pull request and
-# push. The job runs in the CI image (ci-image.yaml): R and the package
-# versions in renv.lock are already installed, so the app is tested with
-# the versions recorded there. See docs/routing-prototype.md.
+# on pushes to main (a pull request's own pushes are covered by its
+# pull_request runs, so they aren't tested twice). The job runs in the CI
+# image (ci-image.yaml): R and the package versions in renv.lock are
+# already installed, so the app is tested with the versions recorded there. See docs/routing-prototype.md.
 name: routing-prototype-tests
 
 on:
   pull_request:
   push:
+    branches: [main]
   workflow_dispatch:
+
+# A newer push to the same branch or pull request cancels the run it
+# replaces; runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read

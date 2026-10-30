@@ -47,10 +47,11 @@ script_reproduces <- function(text) {
 }
 
 wired <- unlist(forms$calculates)
+simulated <- names(forms$simulations$endpoints)
 
-test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 calculate; E10-E14 preview first, then a full run or an R script", {
-  expect_setequal(wired, c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15"))
-  for (ep in c(paste0("E", 10:14), "E40", "E16", "E33")) {
+test_that("calculating designs calculate; simulated designs preview first, then a full run or an R script", {
+  expect_setequal(c(wired, simulated), names(forms$forms))
+  for (ep in simulated) {
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
@@ -70,7 +71,7 @@ test_that("E1-E9, E18-E21, E23-E28, E34, E36, E37, E48-E53, E54, E55 and E56 cal
     expect_true(full_seconds(forms, ep, "power") > 0, label = ep)
   }
   # A preview for power only: a required N goes straight to the R script.
-  for (ep in c(paste0("E", 10:14), "E40", "E16", "E33")) {
+  for (ep in simulated) {
     expect_true(has_preview(forms, ep, "power"), label = ep)
     expect_true(preview_seconds(forms, ep, "power") > 0, label = ep)
     expect_false(has_preview(forms, ep, "sample_size"), label = ep)

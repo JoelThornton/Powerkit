@@ -1,5 +1,5 @@
-# Full validation, one chunk per run, on demand only (never on a push or a
-# schedule). Runs scripts/run-validation.R --only <chunk> --cores 4 on
+# Full validation, one chunk per run, on demand; also called by the
+# scheduled validation (nightly-validation.yaml), once per chunk. Runs scripts/run-validation.R --only <chunk> --cores 4 on
 # GitHub's standard Linux runner (4 cores, about 16 GB of memory; free for
 # public repositories), with the package versions in renv.lock, and uploads
 # validation-results/ (summary.txt and each test's .rds and .log) as an
@@ -47,6 +47,16 @@
 name: full-validation
 
 on:
+  workflow_call:
+    inputs:
+      chunk:
+        description: "Validation chunk, or several separated by commas"
+        required: true
+        type: string
+      name:
+        description: "Name for the job and its artifact (default: the chunk)"
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       chunk:
@@ -96,7 +106,7 @@ jobs:
       packages: write
 
   validation:
-    name: validation (${{ inputs.chunk }})
+    name: validation (${{ inputs.name || inputs.chunk }})
     needs: image
     runs-on: ubuntu-latest
     timeout-minutes: 360
@@ -145,7 +155,7 @@ jobs:
         if: always() && steps.run.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: validation-results-${{ inputs.chunk }}-run-${{ github.run_number }}
+          name: validation-results-${{ inputs.name || inputs.chunk }}-run-${{ github.run_number }}
           path: validation-results/
           if-no-files-found: warn
           retention-days: 30

@@ -1,25 +1,29 @@
-# Nightly validation: the unit tests plus the fast subset of the
-# high-replication validation tests (POWERKIT_FULL_VALIDATION=true):
-# basic tests (Spower) and regression interactions (InteractionPoweR),
-# which take minutes. Scheduled runs use the default branch.
+# Scheduled validation of the high-replication validation tests
+# (POWERKIT_FULL_VALIDATION=true), on GitHub's runners, with the package
+# versions in renv.lock (the CI image, ci-image.yaml):
+#   * every night that main changed in the last day: the short chunks, and
+#     each long chunk whose tests, backend or shared code changed;
+#   * every Sunday: every chunk, whatever changed.
+# scripts/validation-plan.R decides which chunks run. Each runs as its own
+# job through full-validation.yaml (one job for all the short chunks), so
+# the long chunks run side by side, and each job uploads its
+# validation-results/ as an artifact. Unit tests are not repeated here:
+# R-CMD-check runs them on every push.
 #
-# The 2x2 ANOVA, mediation and moderated-mediation validation tests are
-# not run here: together they take more than a day of CPU time at 10,000
-# replications. They are run on demand, before merges and releases, on the
-# maintainer's machine with scripts/run-validation.R (docs/decisions.md,
-# phase 3 maintainer decisions).
-#
-# Validation tests for designs whose backend isn't built yet are skipped
-# with a clear message, so a red run means a real problem.
-#
-# Packages come from renv.lock, as in R-CMD-check.yaml: the job runs in the
-# CI image (ci-image.yaml), where they are already installed.
+# The maintainer still runs scripts/run-validation.R locally when they
+# want results on their own machine, and before a release; the weekly run
+# is the regular complete check (docs/decisions.md).
 name: nightly-validation
 
 on:
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
+    inputs:
+      all:
+        description: "Run every chunk (otherwise: chunks for the last day's changes)"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -31,10 +35,10 @@ jobs:
       contents: read
       packages: write
 
-  full-validation:
+  plan:
     needs: image
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 15
     permissions:
       contents: read
       packages: read
@@ -44,41 +48,44 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      POWERKIT_FULL_VALIDATION: "true"
-      # Spread simulation replications over the runner's 4 cores.
-      POWERKIT_CORES: "4"
       RENV_ACTIVATE_PROJECT: "FALSE"
-      NOT_CRAN: "true"
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-
-      # xml2, for the JUnit report below, is in the CI image (it isn't a
-      # project dependency, so renv.lock doesn't carry it).
-      - name: Run unit tests and the fast validation subset
-        shell: Rscript {0}
-        run: |
-          options(warn = 1)
-          # test_local() runs with the working directory set to
-          # engine/tests/testthat, so the report's path has to be absolute:
-          # a relative one is resolved there, and write_xml() then fails at
-          # the end of the run, after every test has already run.
-          report <- file.path(getwd(), "engine", "validation-results.xml")
-          reporter <- testthat::MultiReporter$new(list(
-            testthat::ProgressReporter$new(show_praise = FALSE),
-            testthat::JunitReporter$new(file = report)
-          ))
-          # Every test file except the slow validation files (matched
-          # against the file's path, so the pattern is not anchored).
-          testthat::test_local(
-            "engine", filter = "validation-(anova|mediation|modmed)", invert = TRUE,
-            reporter = reporter, stop_on_failure = TRUE
-          )
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: validation-results
-          path: engine/validation-results.xml
-          if-no-files-found: ignore
+          fetch-depth: 0
+
+      - name: Choose the chunks
+        id: plan
+        env:
+          ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.all }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ "$ALL" = "true" ] || [ "$(date -u +%u)" = "7" ]; then
+            matrix=$(Rscript scripts/validation-plan.R --all)
+          else
+            since=$(git rev-list -1 --before="24 hours ago" HEAD)
+            if [ -z "$since" ]; then
+              matrix=$(Rscript scripts/validation-plan.R --all)
+            else
+              matrix=$(git diff --name-only "$since" HEAD | Rscript scripts/validation-plan.R)
+            fi
+          fi
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "Chunks to run: $matrix"
+
+  validation:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/full-validation.yaml
+    with:
+      chunk: ${{ matrix.only }}
+      name: ${{ matrix.name }}
+    permissions:
+      contents: read
+      packages: write
