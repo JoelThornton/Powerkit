@@ -35,7 +35,9 @@ Every box ticked, in one PR:
 2. Its example spec is in `engine/inst/specs/` and its unit tests pass.
 3. A validation file exists, with `TODO_PUBLISHED_VALUE` placeholders for
    the maintainer, and a chunk in `scripts/run-validation.R` and in
-   `.github/workflows/full-validation.yaml`.
+   `.github/workflows/full-validation.yaml` (a long chunk also needs its
+   backend file in `scripts/validation-plan.R`). The PR runs that chunk
+   before it merges and says so.
 4. It has a card in `app/routing/tree.yaml`, and a row in
    [`decision-tree.md`](decision-tree.md) and
    [`card-sources.md`](card-sources.md) — *tests check these two*

@@ -73,10 +73,12 @@ engine-side change alone will fail the app suite.
 - tidyverse style guide; small, pure functions where possible.
 - Design specs are JSON validated against engine/inst/schema/design.schema.json.
 - High-replication validation tests are skipped by default (skip unless
-  env var POWERKIT_FULL_VALIDATION=true). Nightly CI runs a fast subset
-  (basic tests, regression interactions); the full validation runs on
-  demand, before merges and releases, on the maintainer's machine, with
-  scripts/run-validation.R.
+  env var POWERKIT_FULL_VALIDATION=true). A PR that adds or changes a
+  design runs that design's chunk of scripts/run-validation.R before it
+  merges, and says which. GitHub runs the short chunks and the changed
+  long chunks every night the engine changed, and every chunk every
+  Sunday (scripts/validation-plan.R). A full local run is the
+  maintainer's choice, and comes before a release.
 
 ## Working process (maintainer, 18 October 2026)
 The maintainer is the only reviewer and decider, so keep what they have
