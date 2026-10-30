@@ -140,6 +140,13 @@ fully validated. Validation runs are recorded in
   powertools' `propodds()`, which matches Hmisc's `popower()`; and two
   crossed factors with a yes/no outcome (E47), simulated with Spower's
   `p_glm()`. Validation in progress.
+- **Latent profile and latent class analysis (30 October 2026, 0.24.0):**
+  a guidance card (E58), reached from Q1's "That people fall into
+  distinct types or profiles". No package computes this power, so the
+  card gives the published simulation results (Tein, Coxe and Cham,
+  2013; Nylund, Asparouhov and Muthén, 2007), the usual working range
+  (Nylund-Gibson and Choi, 2018; Spurk et al., 2020) and how to simulate
+  one's own model; sources in `card-sources.md` and `refs.bib`.
 - **A study plan any card can join (30 October 2026, 0.24.0):** after a
   result, "Add this to my study plan" keeps the analysis in one plan for
   the session; the plan screen lists each analysis, names the largest
@@ -154,7 +161,7 @@ fully validated. Validation runs are recorded in
   number of participants comes from the R script. Its inputs show example
   values from Brysbaert and Stevens (2018, Table 2), a masked-priming
   response-time study (0.24.0). Validation in progress. More models need
-  decisions (`next.md`, item 4).
+  decisions (`next.md`, item 3).
 - **Mediation with a yes/no X (29 October 2026, 0.23.0):** E16 (one
   mediator) calculates with power4mome's `rbinary_rs()`, the group split an
   input, showing the group difference in M the path implies; the parallel
@@ -409,9 +416,9 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-**The ordered queue is [`next.md`](next.md)** — 28 items. The maintainer's
+**The ordered queue is [`next.md`](next.md)** — 27 items. The maintainer's
 order for the next work (30 October 2026): every card taking the effect
-size researchers have, joint power for the study plan, a latent profile card,
+size researchers have, joint power for the study plan,
 MANOVA and Hotelling's T-squared, more multilevel
 models starting with E41, Bayes factors beyond the t-tests, justified
 alpha, then precision
