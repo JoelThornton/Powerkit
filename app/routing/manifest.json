@@ -4626,24 +4626,26 @@
         "Imports": "bfpwr, digest, InteractionPoweR, jsonlite, jsonvalidate (>=\n1.3.0), lme4, lmerTest, manymome, parallel, psych, power4mome,\npwr, powertools, pwrss, semPower, simr, Spower (>= 0.7), stats,\nSuperpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
         "Config/roxygen2/version": "8.1.1",
         "RemoteType": "github",
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "16f0afa69538c63009862f80a0a051f92908adfa",
-        "RemoteSha": "16f0afa69538c63009862f80a0a051f92908adfa",
+        "RemoteRef": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
+        "RemoteSha": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "16f0afa69538c63009862f80a0a051f92908adfa",
-        "GithubSHA1": "16f0afa69538c63009862f80a0a051f92908adfa",
+        "GithubRef": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
+        "GithubSHA1": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-30 06:05:43 UTC; runner",
+        "Packaged": "2026-10-30 10:10:48 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-30 06:05:48 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 10:10:54 UTC; unix"
       }
     },
     "powertools": {
@@ -6421,7 +6423,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "65e1e424028234b4da4fe6cdbd21ee5d"
+      "checksum": "97a507962ad702b5ab8c22fa5d08478e"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6436,13 +6438,13 @@
       "checksum": "df7a44a4dcf5564e3a54ad62b779a838"
     },
     "tests/testthat/test-repo-consistency.R": {
-      "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
+      "checksum": "a320b2d0c5e285572549990e2551db58"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "790cee61d2d390df4557dffeb27f357f"
+      "checksum": "5017f1cc62f642bf64a6630f1fb58b79"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "9d9289c42f4da0b393db92a38bc07ca4"
+      "checksum": "a8c178649cec2c2538245d5b4f82ef35"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "4a39a62e579032c0e4b1058407964aed"
