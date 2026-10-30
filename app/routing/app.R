@@ -22,6 +22,7 @@ source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
+source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
@@ -378,7 +379,8 @@ server <- function(input, output, session) {
     plan_filled = character(), # guided route: shared values filled in on the open input screen
     ws_values = list(),      # whole-study simulation: the values typed on its screen
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
-    ws_spec = NULL           # whole-study simulation: the spec of the last run, for its download
+    ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
+    study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
   )
 
   # Keep the guided route's inputs in state as they change.
@@ -865,6 +867,35 @@ server <- function(input, output, session) {
       export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type))
     }
   )
+  # The study plan any card can join (R/study-plan.R).
+  output$study_plan_bar <- renderUI({
+    calc <- state$calc
+    if (is.null(calc) || !identical(calc$status, "ok")) return(NULL)
+    hash <- calc$result$provenance$spec_hash
+    in_plan <- any(vapply(state$study_plan, function(e) identical(e$result$provenance$spec_hash, hash), logical(1)))
+    study_plan_bar_ui(state$study_plan, in_plan)
+  })
+  observeEvent(input$plan_add, {
+    calc <- state$calc
+    if (is.null(calc) || !identical(calc$status, "ok")) return()
+    route <- project_route(reactiveValuesToList(state), current_form_values())
+    state$study_plan <- c(state$study_plan, list(plan_entry(tree, state$endpoint, calc, route)))
+  })
+  observeEvent(input$plan_view, { cancel_job(); state$screen <- "study_plan" })
+  observeEvent(input$plan_clear, state$study_plan <- list())
+  observeEvent(input$plan_more, {
+    # The next analysis, found by "Help me choose" from the start.
+    state$start <- list(); state$route <- "choose"; state$history <- list(); state$ctx <- list()
+    state$skip_screening <- FALSE; state$calc <- NULL
+    state$screen <- "aim"
+  })
+  output$download_study_plan <- downloadHandler(
+    filename = function() study_plan_file_name(),
+    content = function(file) {
+      write <- engine_function("write_study_plan")
+      write(plan_analyses(state$study_plan), file = file)
+    }
+  )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
   output$download_project <- downloadHandler(
@@ -877,6 +908,14 @@ server <- function(input, output, session) {
   )
   observeEvent(input$open_project, {
     path <- input$open_project$datapath
+    # A study plan file opens as the plan; anything else as a project.
+    read_plan <- engine_function("read_study_plan")
+    plan <- if (!is.null(read_plan)) tryCatch(read_plan(path), error = function(e) NULL)
+    if (!is.null(plan)) {
+      state$study_plan <- lapply(plan$analyses, function(p) plan_entry_from_project(tree, p))
+      state$screen <- "study_plan"
+      return()
+    }
     read <- engine_function("read_project")
     project <- if (is.null(read)) {
       "Opening a project needs powerkit's engine, which isn't installed where this prototype is running."
@@ -1112,6 +1151,7 @@ server <- function(input, output, session) {
           tags$summary("Have a saved project, or one someone shared with you?"),
           div(class = "saved-projects-grid", open_project_ui(), check_project_ui()))),
       check = plan_check_ui(tree, forms, state$checked_project),
+      study_plan = tagList(screen_nav_ui(back = NULL), study_plan_ui(state$study_plan)),
       known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route),
       card = tagList(
