@@ -1603,7 +1603,7 @@
     },
     "insight": {
       "Package": "insight",
-      "Version": "1.7.0",
+      "Version": "1.6.0",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -1612,7 +1612,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "2134d2006eb23cf6775c18d52b83ed8a"
+      "Hash": "905197372cabf2fd54c14525d7ff2810"
     },
     "isoband": {
       "Package": "isoband",

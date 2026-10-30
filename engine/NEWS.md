@@ -15,7 +15,8 @@
   those four cards ask "Is your effect size published in another form?",
   with the conversion shown beside the result and in the write-up.
   effectsize 1.0.3 and its dependencies (bayestestR, datawizard, insight,
-  parameters, performance) are added to `renv.lock`.
+  parameters, performance) are added to `renv.lock`, with insight 1.6.0:
+  1.7.0, released the same day, was not yet on the package server CI uses.
 
 # powerkit 0.23.0
 
