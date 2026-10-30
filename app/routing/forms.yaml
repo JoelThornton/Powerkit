@@ -850,14 +850,20 @@ forms:
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
       - input: "The difference between conditions (the fixed effect), in the outcome's units"
         fields:
-          - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true}
+          - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true,
+             help: "For example, 16 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
       - input: "How much participants and items vary (the variance components)"
         fields:
-          - {id: sd_participant, label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
-          - {id: sd_participant_slope, label: "SD of the condition difference across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
-          - {id: r_participant, label: "Correlation of participants' averages and differences (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
-          - {id: sd_item, label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0}
-          - {id: sd_residual, label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+          - {id: sd_participant, label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0,
+             help: "For example, 100 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: sd_participant_slope, label: "SD of the condition difference across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0,
+             help: "For example, 5.3 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: r_participant, label: "Correlation of participants' averages and differences (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1,
+             help: "For example, -0.40 in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: sd_item, label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0,
+             help: "For example, 43.6 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: sd_residual, label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             help: "For example, 148.8 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
       - input: "The items: how many, and whether each appears in one condition or both"
         fields:
           - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true}
@@ -865,7 +871,8 @@ forms:
              choices: {between: "In one condition each (half the items in each)", within: "In both conditions (every participant sees every item twice)"},
              default: between, default_source: "the design as decided on 30 October 2026 (docs/decisions.md)"}
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
-             shown_if: {field: item_design, is: within}}
+             shown_if: {field: item_design, is: within},
+             help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
 
   E11:
     methods_name: "a parallel mediation model"

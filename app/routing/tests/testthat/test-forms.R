@@ -678,3 +678,19 @@ test_that("a choice's default note names only its source, and an empty draws set
   draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
   expect_equal(setting_value_text(draws, ""), "1,000 (power4mome's default)")
 })
+
+test_that("example values in the help cite a source in refs.bib, by author and year", {
+  bib <- paste(readLines(file.path(repo_dir, "engine", "inst", "citations", "refs.bib"), encoding = "UTF-8"), collapse = "\n")
+  helps <- unlist(lapply(form_ids, function(ep) vapply(fields_for(ep), function(f) f$help %||% "", "")))
+  cited <- regmatches(helps, regexpr("[A-Z][a-z]+ (&|and) [A-Z][a-z]+, [0-9]{4}", helps))
+  expect_true(length(cited) > 0)
+  for (c in unique(cited)) {
+    first <- sub(" .*", "", c)
+    year <- sub(".*, ", "", c)
+    entries <- strsplit(bib, "\n@")[[1]]
+    expect_true(any(grepl(paste0("author = [^\n]*", first), entries) & grepl(sprintf("year = {%s}", year), entries, fixed = TRUE)), info = c)
+  }
+  e33 <- vapply(fields_for("E33"), function(f) f$help %||% "", "")
+  names(e33) <- vapply(fields_for("E33"), function(f) f$id, "")
+  expect_true(all(grepl("Brysbaert & Stevens, 2018, Table 2", e33[c("difference", "sd_participant", "sd_item", "sd_residual")])))
+})

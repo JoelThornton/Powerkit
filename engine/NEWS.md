@@ -1,5 +1,8 @@
 # powerkit 0.24.0
 
+* `refs.bib` adds Brysbaert and Stevens (2018), whose Table 2 (a
+  masked-priming lexical-decision study) gives the example values the app
+  now shows beside each input of the crossed participants-and-items model.
 * Moderation by its R-squared change: template `two_way` takes
   `population > metric` "r2_change" with `r2_change` (the R-squared the
   product term adds) and optional `r2_main` (X and W's R-squared, 0 if not

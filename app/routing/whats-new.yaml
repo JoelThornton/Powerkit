@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Example values for participants and items"
+    text: >-
+      The mixed model for participants responding to many items now shows
+      example values beside each of its inputs, from a published
+      response-time study, with the source named. Few papers report these
+      numbers, so they give you a starting point; your own task's values are
+      better where you have them.
+  - date: "2026-10-30"
     title: "Moderation from the R-squared change"
     text: >-
       For an interaction between two scores, you can now give the R-squared

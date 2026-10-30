@@ -95,7 +95,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # Two method papers copied from their packages' citation(), five
   # sources the maintainer checked in full text, and four on test
   # direction and multiple tests (19 October 2026), and the safeguard
-  # power paper (27 October 2026).
+  # power paper (27 October 2026), and the example values for the
+  # crossed mixed model (30 October 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -106,7 +107,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Rubin2022_twosided = "verified", Rubin2024_typeI = "verified",
       FrancisThunell2021_reversing = "verified", Mayo2018_severe = "verified",
       Perugini2014_safeguard = "verified", semPower_method = "verified",
-      bfpwr_method = "citation"
+      bfpwr_method = "citation", Brysbaert2018_mixed = "verified"
     )
   )
 })

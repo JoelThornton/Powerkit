@@ -143,8 +143,10 @@ fully validated. Validation runs are recorded in
 - **Mixed models, first design (30 October 2026, 0.23.0):** E33
   (participants responding to many items in two conditions) calculates
   with simr and lmerTest's Satterthwaite test (Departure 16); the required
-  number of participants comes from the R script. Validation in progress.
-  More models need decisions (`next.md`, item 5).
+  number of participants comes from the R script. Its inputs show example
+  values from Brysbaert and Stevens (2018, Table 2), a masked-priming
+  response-time study (0.24.0). Validation in progress. More models need
+  decisions (`next.md`, item 4).
 - **Mediation with a yes/no X (29 October 2026, 0.23.0):** E16 (one
   mediator) calculates with power4mome's `rbinary_rs()`, the group split an
   input, showing the group difference in M the path implies; the parallel
@@ -399,9 +401,9 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-**The ordered queue is [`next.md`](next.md)** — 29 items. The maintainer's
+**The ordered queue is [`next.md`](next.md)** — 28 items. The maintainer's
 order for the next work (30 October 2026): every card taking the effect
-size researchers have (typical values for the mixed model next), a study plan any card can join, a latent profile card,
+size researchers have, a study plan any card can join, a latent profile card,
 MANOVA and Hotelling's T-squared, more multilevel
 models starting with E41, Bayes factors beyond the t-tests, justified
 alpha, then precision
