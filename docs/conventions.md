@@ -1210,3 +1210,29 @@ Wired into the app on 18 October 2026 (E25, E26).*
   backend's. It adds no method of its own, so it gives powerkit's numbers
   with the same package versions. Tests: `test-export-script.R`, one per
   end point E1-E14 [powerkit].
+
+### 8. MANOVA: simulated, where G\*Power uses a formula
+
+- **What differs:** G\*Power computes Hotelling's T-squared for two groups
+  exactly and MANOVA's global effect (Pillai's V) for three or more groups
+  with an F approximation. powerkit simulates both with Spower and its own
+  `p_manova()` experiment (multivariate normal scores, `stats::manova()`,
+  Pillai's trace), because no package powerkit builds on has a formula
+  and powerkit doesn't write the maths itself (CLAUDE.md). The answer
+  carries Monte Carlo error.
+- **Size:** with two groups, the Monte Carlo error alone: 0.393 simulated
+  against 0.392 exact (pwrss's F test of R-squared, which equals two-group
+  Hotelling's T-squared) for three outcomes correlated 0.4 and N = 100.
+  With three or more groups, the gap between G\*Power's approximation and
+  the simulated power is not measured yet; the G\*Power example in the
+  validation file will measure it once transcribed.
+- **Test:** `engine/tests/testthat/test-validation-manova.R` (two G\*Power
+  examples to transcribe; the exact two-group check; a separately written
+  simulation; Type I error) and `test-backend-manova-oneway.R`.
+- **Shown to users:** on the MANOVA result screen (E59), under "Where
+  other established tools give a different answer"
+  (`app/routing/forms.yaml`, `known_differences`, key "8").
+- **Methods paragraph:** "Power was estimated by simulation, so it carries
+  Monte Carlo error; G\*Power computes Hotelling's T-squared exactly and
+  Pillai's trace with an F approximation." (`known_differences_methods`,
+  key "8").

@@ -242,6 +242,11 @@ design_description <- function(spec) {
       "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
       label("Y"), label("G"), levels("G")
     ),
+    "basic_test/manova" = sprintf(
+      "one-way MANOVA of %s across the %d groups of %s (%s); Pillai's trace%s",
+      paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
+      if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
+    ),
     "basic_test/paired_variances" = sprintf(
       "Pitman-Morgan test of two paired variances: does the variance of %s differ between %s (%s), in the same people?",
       label("Y"), label("X"), levels("X")
@@ -1082,6 +1087,14 @@ spower_script_inputs <- function(spec) {
       r_code(pop$dz), lv("X", 2), lv("X", 1)
     ),
     correlation = sprintf("r <- %s # population correlation (Pearson's r of the scores)", r_code(pop$r)),
+    manova = c(
+      sprintf("# Mean of each outcome (columns: %s) in each group (rows: %s).",
+        paste(vapply(manova_outcomes(spec), function(y) comment_text(v[[y]]$label), character(1)), collapse = ", "),
+        paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
+      sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE)", r_code(as.numeric(t(manova_means(spec)))), length(pop$means)),
+      sprintf("sds <- %s # SD of each outcome within the groups", r_code(as.numeric(unlist(pop$sds)))),
+      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
+    ),
     paired_variances = c(
       sprintf("var1 <- %s # variance of %s in %s", r_code(pop$var1), comment_text(v$Y$label), lv("X", 1)),
       sprintf("var2 <- %s # variance of %s in %s", r_code(pop$var2), comment_text(v$Y$label), lv("X", 2)),
@@ -1134,6 +1147,12 @@ spower_group_size_lines <- function(spec) {
     return(c(
       "  # Spower's n is the size of each group; the groups are equal.",
       "  n_group <- batch_n / length(means)"
+    ))
+  }
+  if (spec$template == "manova") {
+    return(c(
+      "  # The experiment's n is the size of each group; the groups are equal.",
+      "  n_group <- batch_n / nrow(means)"
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions")) {
@@ -1218,6 +1237,12 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
     two_variances = c(
       "n = n_group1, # size of each group",
       "vars = variances # two variances: p_var.test() then runs the F test (var.test)"
+    ),
+    manova = c(
+      "n = n_group, # size of each group",
+      "means = means,",
+      "sds = sds,",
+      "r = r"
     ),
     factorial = c(
       "formula = y ~ A * B, # both factors and their interaction",
@@ -1312,6 +1337,24 @@ spower_derived_lines <- function(spec) {
       "betas <- drop(solve(model, qlogis(probabilities[cbind(as.integer(cells$A), as.integer(cells$B))])))",
       sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
       sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
+    ),
+    manova = c(
+      "# The experiment, as powerkit runs it: multivariate normal scores for each",
+      "# group, then the p-value of Pillai's trace from stats::manova().",
+      "manova_scores <- function(n, means, sds, r) {",
+      "  p <- ncol(means)",
+      "  correlation <- matrix(r, p, p)",
+      "  diag(correlation) <- 1",
+      "  sigma <- diag(sds, p) %*% correlation %*% diag(sds, p)",
+      "  y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) SimDesign::rmvnorm(n, means[g, ], sigma)))",
+      "  colnames(y) <- paste0(\"Y\", seq_len(p))",
+      "  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)",
+      "}",
+      "p_manova <- function(n, means, sds, r) {",
+      "  data <- manova_scores(n, means, sds, r)",
+      "  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)",
+      "  summary(fit, test = \"Pillai\")$stats[1, \"Pr(>F)\"]",
+      "}"
     ),
     paired_variances = c(
       "# The Pitman-Morgan test: two paired variances are equal exactly when the",

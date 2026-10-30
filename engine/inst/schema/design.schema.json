@@ -816,7 +816,8 @@
               "nonoverlapping_correlations",
               "one_variance",
               "two_variances",
-              "paired_variances"
+              "paired_variances",
+              "manova"
             ]
           },
           "target_test": {
@@ -1049,6 +1050,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_paired_variances"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "manova"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_manova"
             }
           }
         ]
@@ -4526,6 +4542,92 @@
             },
             "method": {
               "const": "pitman_morgan"
+            }
+          }
+        }
+      }
+    },
+    "template_manova": {
+      "description": "Two or more independent groups compared on several continuous outcomes at once (one-way MANOVA, the omnibus test of Pillai's trace; with two groups it is Hotelling's T-squared, and every MANOVA statistic gives the same test). Simulated with Spower: multivariate normal scores with each group's means, the outcomes' SDs and one correlation between every pair of outcomes, the same in every group, analysed with stats::manova(). Group sizes are equal; goal > n is the total number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "A",
+            "Y1",
+            "Y2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            }
+          },
+          "patternProperties": {
+            "^Y[1-9]$": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sds",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "means": {
+              "description": "Expected mean of each outcome in each group: one row per group, in the order of A's levels, each with one mean per outcome, in the order Y1, Y2, ...",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 9,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "sds": {
+              "description": "The SD of each outcome within each group (the same in every group), in the order Y1, Y2, ..., in the means' units.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 9,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "r": {
+              "description": "The correlation between every pair of outcomes within a group (the same for every pair and in every group). Equal means in every group (no effect) are allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "main_effect_A"
+            },
+            "method": {
+              "const": "pillai_trace"
+            },
+            "alternative": {
+              "const": "two_sided"
             }
           }
         }

@@ -43,6 +43,7 @@ Imports:
     PUMP,
     semPower,
     simr,
+    SimDesign,
     Spower (>= 0.7),
     stats,
     Superpower,

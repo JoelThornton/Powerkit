@@ -109,7 +109,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -118,6 +118,7 @@ calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E
 background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
   E15: {power: 5, sample_size: 80}
+  E59: {power: 4, sample_size: 30}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with
@@ -235,6 +236,7 @@ known_differences:
   "5": "Rank tests: powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
+  "8": "MANOVA: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Hotelling's T-squared (two groups) exactly and Pillai's trace (three or more groups) with an F approximation. With two groups the two agree within the simulation's random error (about 0.013 in power at 1,000 replications); with three or more, how far G*Power's approximation sits from the simulated power hasn't been measured yet."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -247,6 +249,7 @@ known_differences_methods:
   "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency as G*Power does, so the two can give slightly different sample sizes."
   "6": "The probability of strong evidence was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
   "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
+  "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Hotelling's T-squared exactly and Pillai's trace with an F approximation."
 
 forms:
   E1:
@@ -1671,6 +1674,36 @@ forms:
           - {id: var2, writeup_label: "variance at the second measurement", label: "Variance at the second measurement (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
           - {id: pm_r, writeup_label: "correlation between the measurements", label: "Correlation between the two measurements", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
              help: "How strongly people's scores at the two measurements go together, for example a test-retest correlation of 0.6."}
+
+  # One-way MANOVA (Pillai's trace; Hotelling's T-squared with two groups),
+  # simulated with Spower. The outcomes are named in one field; R/forms.R
+  # (build_spec()) makes one variable of each, Y1 to Yp.
+  E59:
+    methods_name: "a one-way MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)"
+    tool: Spower
+    directional: false
+    known_differences: ["8"]
+    outcomes: Y_labels
+    base: {spec_version: "0.1", design: basic_test, template: manova,
+           variables: {A: {type: between_factor}}, population: {metric: raw},
+           target_test: {effect: main_effect_A, method: pillai_trace}}
+    groups:
+      - input: "The groups and the outcomes"
+        fields:
+          - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: Y_labels, label: "The outcomes (two to nine), separated by commas", type: levels, required: true,
+             help: "The scores compared together, for example anxiety, depression, stress."}
+      - input: "The expected means on each outcome"
+        fields:
+          - {id: means, writeup_label: "group means", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
+             rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome"}
+      - input: "Each outcome's SD, and the correlation between the outcomes"
+        fields:
+          - {id: sds, writeup_label: "outcome SDs", label: "SDs: one for each outcome, in the same order, separated by commas", type: numbers, per_levels: Y_labels, path: population.sds, effect: true,
+             help: "Within a group, in the means' units; the same in every group."}
+          - {id: manova_r, writeup_label: "correlation between the outcomes", label: "Correlation between any two outcomes within a group (the same for every pair)", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
+             help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires."}
 
   # Logistic regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its odds ratio is per SD; a yes/no X compares

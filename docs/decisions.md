@@ -3658,3 +3658,21 @@ whole-study simulation, queued in `next.md`.
 **MANOVA and Hotelling's T-squared** follow G\*Power's approach (Pillai's
 trace for MANOVA, and its effect-size input), so researchers comparing
 tools see the same answer; any departure is recorded as usual.
+
+**MANOVA's package.** No package on CRAN computes MANOVA or Hotelling
+power (checked 30 October 2026: pwrss covers only repeated-measures
+MANOVA, which the repeated-measures cards already show; WebPower and
+MKpower don't cover it). powerkit simulates it with Spower and its own
+experiment function: multivariate normal scores with each group's means,
+the outcomes' SDs and one correlation between every pair, analysed with
+`stats::manova()` and Pillai's trace, as G\*Power uses. With two groups
+this is Hotelling's T-squared, exact in G\*Power; a simulation of 5,000
+replications agreed with pwrss's exact F test of R-squared (0.393 against
+0.392), which equals two-group Hotelling's T-squared. With three or more
+groups G\*Power's F approximation to Pillai's V may differ slightly from
+the simulated power: Known difference 8, sized once the G\*Power example is
+transcribed. MetricGate's MANOVA calculator was looked at and not used: it
+cites no source, ignores the outcomes' correlation, and uses p(N - k) as
+the second degrees of freedom rather than the standard approximation's
+s(N - k - p + s).
+

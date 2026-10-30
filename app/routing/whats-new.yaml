@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "MANOVA and Hotelling's T-squared"
+    text: >-
+      You can now plan a study that compares two or more groups on several
+      outcomes at once (a one-way MANOVA, or Hotelling's T-squared for two
+      groups). Give each group's expected means, the outcomes' SDs and how
+      strongly the outcomes are correlated.
+  - date: "2026-10-30"
     title: "The chance that every outcome is significant"
     text: >-
       When your study plan compares the same randomised groups on several

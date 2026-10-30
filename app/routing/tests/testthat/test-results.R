@@ -56,7 +56,7 @@ test_that("calculating designs calculate; simulated designs preview first, then 
     expect_true(runs_long(forms, ep), label = ep)
   }
   # E9 and E15 run in the background with no preview, with their usual run times.
-  expect_identical(names(forms$background), c("E9", "E15"))
+  expect_identical(names(forms$background), c("E9", "E15", "E59"))
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)

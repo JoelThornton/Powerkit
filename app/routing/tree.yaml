@@ -419,6 +419,8 @@ nodes:
       - {label: "Two, with different people in each", next: E2, when: {times: once}}
       - {label: "Two, with the same people in both (or one group measured twice)", next: E3, when: {times: twice}}
       - {label: "Three or more", next: f2a, when: {times: [once, many_conditions]}}
+      - {label: "Two or more, compared on several outcomes at once", next: E59, when: {times: once},
+         help: "e.g. three therapy groups compared on anxiety, depression and stress together (MANOVA; Hotelling's T-squared for two groups)."}
   f2a:
     doc_id: F2a
     text: "What does your hypothesis say about the groups?"
@@ -1569,6 +1571,22 @@ endpoints:
     inputs: ["Names of the two measurements and the outcome", "The expected variance at each measurement, and how strongly the two correlate"]
     tier: v2
     alternatives: ["the paired t-test, if your hypothesis is about the average rather than the spread"]
+  E59:
+    doc_name: "Several outcomes compared across groups (one-way MANOVA; Hotelling's T-squared for two groups)"
+    plain_name: "Do two or more groups differ on several outcomes at once?"
+    template: "basic_test / manova"
+    backend: "Spower: powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
+    card_points:
+      - "Compares groups on several outcomes together, in one test, for example three therapy groups on anxiety, depression and stress. With two groups this is Hotelling's T-squared."
+      - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
+      - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
+      - "The answer is simulated, so it carries a little random error. G*Power computes Hotelling's T-squared exactly and Pillai's trace with an approximation."
+    inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
+    tier: v2
+    alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups"]
   E54:
     rank_test: "Friedman's test"
     doc_name: "One-way repeated-measures ANOVA, omnibus"
