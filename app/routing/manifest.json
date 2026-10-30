@@ -261,6 +261,34 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:44:59 UTC; unix"
       }
     },
+    "PUMP": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "PUMP",
+        "Type": "Package",
+        "Title": "Power Under Multiplicity Project",
+        "Version": "1.0.5",
+        "Authors@R": "c(\n  person(\"Luke\", \"Miratrix\", email = \"luke_miratrix@gse.harvard.edu\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-0078-1906\")),\n  person(\"Kristen\", \"Hunter\", email = \"kristen.hunter@unsw.edu.au\", role = c(\"aut\"), comment = c(ORCID = \"0000-0002-5678-4620\")),\n  person(\"Zarni\", \"Htet\", role = \"aut\"),\n  person(\"Kristin\", \"Porter\", email = \"kristin.porter@keporterconsulting.com\", role = \"aut\"),\n  person(\"MDRC\", role = \"cph\"),\n  person(\"Institute of Education Sciences\", role = \"fnd\")\n  )",
+        "Description": "Estimates power, minimum detectable effect size (MDES) and sample size requirements. The context is multilevel randomized experiments with multiple outcomes. The estimation takes into account the use of multiple testing procedures. Development of this package was supported by a grant from the Institute of Education Sciences (R305D170030). For a full package description, including a detailed technical appendix, see <doi:10.18637/jss.v108.i06>.",
+        "URL": "https://github.com/MDRCNY/PUMP, https://mdrcny.github.io/PUMP/",
+        "BugReports": "https://github.com/MDRCNY/PUMP/issues",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "dplyr, ggthemes, ggplot2, ggpubr, glue, future, lme4,\nmagrittr, methods, mvtnorm, parallel, purrr, randomizr, readr,\nrlang, stats, stringr, tibble, tidyr, tidyselect",
+        "Suggests": "furrr, here, kableExtra, knitr, testthat",
+        "License": "GPL-3",
+        "Encoding": "UTF-8",
+        "VignetteBuilder": "knitr",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-09-17 01:19:52 UTC; khunter",
+        "Author": "Luke Miratrix [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-0078-1906>),\n  Kristen Hunter [aut] (ORCID: <https://orcid.org/0000-0002-5678-4620>),\n  Zarni Htet [aut],\n  Kristin Porter [aut],\n  MDRC [cph],\n  Institute of Education Sciences [fnd]",
+        "Maintainer": "Luke Miratrix <luke_miratrix@gse.harvard.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-20 09:10:13 UTC",
+        "Built": "R 4.5.0; ; 2026-09-21 04:00:10 UTC; unix"
+      }
+    },
     "PowerTOST": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1693,6 +1721,33 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:30 UTC; unix"
       }
     },
+    "corrplot": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "corrplot",
+        "Type": "Package",
+        "Title": "Visualization of a Correlation Matrix",
+        "Version": "0.95",
+        "Date": "2024-10-14",
+        "Authors@R": "c(\n  person('Taiyun', 'Wei', email = 'weitaiyun@gmail.com', role = c('cre', 'aut')),\n  person('Viliam', 'Simko', email = 'viliam.simko@gmail.com', role = 'aut'),\n  person('Michael', 'Levy', email = 'michael.levy@healthcatalyst.com', role = 'ctb'),\n  person('Yihui', 'Xie', email = 'xie@yihui.name', role = 'ctb'),\n  person('Yan', 'Jin', email = 'jyfeather@gmail.com', role = 'ctb'),\n  person('Jeff', 'Zemla', email = 'zemla@wisc.edu', role = 'ctb'),\n  person('Moritz', 'Freidank', email = 'freidankm@googlemail.com', role = 'ctb'),\n  person('Jun', 'Cai', email = 'cai-j12@mails.tsinghua.edu.cn', role = 'ctb'),\n  person('Tomas', 'Protivinsky', email = 'tomas.protivinsky@gmail.com', role = 'ctb')\n  )",
+        "Maintainer": "Taiyun Wei <weitaiyun@gmail.com>",
+        "Suggests": "seriation, knitr, RColorBrewer, rmarkdown, magrittr,\nprettydoc, testthat",
+        "Description": "Provides a visual exploratory tool on correlation matrix that supports automatic variable reordering to help detect hidden patterns among variables.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/taiyun/corrplot",
+        "BugReports": "https://github.com/taiyun/corrplot/issues",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.2.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-10-14 05:38:35 UTC; weita",
+        "Author": "Taiyun Wei [cre, aut],\n  Viliam Simko [aut],\n  Michael Levy [ctb],\n  Yihui Xie [ctb],\n  Yan Jin [ctb],\n  Jeff Zemla [ctb],\n  Moritz Freidank [ctb],\n  Jun Cai [ctb],\n  Tomas Protivinsky [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-10-14 12:11:18 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:34 UTC; unix"
+      }
+    },
     "cowplot": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2705,6 +2760,155 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-04-22 09:10:03 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:48:24 UTC; unix"
+      }
+    },
+    "ggpubr": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ggpubr",
+        "Type": "Package",
+        "Title": "'ggplot2' Based Publication Ready Plots",
+        "Version": "1.0.0",
+        "Date": "2026-07-06",
+        "Authors@R": "c(\n    person(\"Alboukadel\", \"Kassambara\", role = c(\"aut\", \"cre\"), email = \"alboukadel.kassambara@gmail.com\"),\n    person(\"Laszlo\", \"Erdey\", role = \"ctb\", email = \"erdey.laszlo@econ.unideb.hu\",\n           comment = \"Faculty of Economics and Business, University of Debrecen, Hungary\"))",
+        "Author": "Alboukadel Kassambara [aut, cre],\n  Laszlo Erdey [ctb] (Faculty of Economics and Business, University of\n    Debrecen, Hungary)",
+        "Maintainer": "Alboukadel Kassambara <alboukadel.kassambara@gmail.com>",
+        "Description": "The 'ggplot2' package is excellent and flexible for elegant data\n    visualization in R. However the default generated plots require some formatting\n    before we can send them for publication. Furthermore, to customize a 'ggplot',\n    the syntax is opaque and this raises the level of difficulty for researchers\n    with no advanced R programming skills. 'ggpubr' provides some easy-to-use\n    functions for creating and customizing 'ggplot2'-based publication ready plots.\n    This version includes modern R ecosystem compatibility updates and customizable\n    p-value formatting presets (APA, AMA, NEJM, Lancet, GraphPad, and scientific\n    notation) for publication workflows, plus robust sparse-subset handling in\n    statistical annotation layers such as 'stat_compare_means()' and 'geom_pwc()',\n    with informative per-group skip diagnostics for non-comparable subsets.",
+        "License": "GPL (>= 2)",
+        "LazyData": "TRUE",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 4.1.0), ggplot2 (>= 3.5.2)",
+        "Imports": "ggrepel (>= 0.9.2), grid, ggsci, stats, utils, tidyr (>=\n1.3.2), purrr, dplyr (>= 1.2.0), cowplot (>= 1.2.0), ggsignif,\nscales, gridExtra, glue, polynom, rlang (>= 1.1.7), rstatix (>=\n1.0.0), tibble, magrittr",
+        "Suggests": "grDevices, knitr, RColorBrewer, gtable, testthat",
+        "URL": "https://rpkgs.datanovia.com/ggpubr/,\nhttps://github.com/kassambara/ggpubr",
+        "BugReports": "https://github.com/kassambara/ggpubr/issues",
+        "RoxygenNote": "7.3.3",
+        "Collate": "'utilities_color.R' 'utilities_base.R' 'desc_statby.R'\n'utilities.R' 'add_summary.R' 'annotate_figure.R' 'as_ggplot.R'\n'as_npc.R' 'axis_scale.R' 'background_image.R' 'bgcolor.R'\n'border.R' 'p_format_utils.R' 'compare_means.R' 'create_aes.R'\n'diff_express.R' 'facet.R' 'font.R' 'gene_citation.R'\n'gene_expression.R' 'geom_bracket.R' 'geom_exec.R'\n'utils-aes.R' 'utils_stat_test_label.R' 'geom_pwc.R'\n'get_breaks.R' 'get_coord.R' 'get_legend.R' 'get_palette.R'\n'ggadd.R' 'ggadjust_pvalue.R' 'ggarrange.R' 'ggballoonplot.R'\n'ggpar.R' 'ggbarplot.R' 'ggboxplot.R' 'ggdensity.R' 'ggpie.R'\n'ggdonutchart.R' 'stat_conf_ellipse.R' 'stat_chull.R'\n'ggdotchart.R' 'ggdotplot.R' 'ggecdf.R' 'ggerrorplot.R'\n'ggexport.R' 'gghistogram.R' 'ggline.R' 'ggmaplot.R'\n'ggpaired.R' 'ggparagraph.R' 'ggpubr-package.R' 'ggpubr_args.R'\n'ggpubr_options.R' 'ggqqplot.R' 'utilities_label.R'\n'stat_cor.R' 'stat_stars.R' 'ggscatter.R' 'ggscatterhist.R'\n'ggstripchart.R' 'ggsummarystats.R' 'ggtext.R' 'ggtexttable.R'\n'ggviolin.R' 'gradient_color.R' 'grids.R' 'npc_to_data_coord.R'\n'reexports.R' 'rotate.R' 'rotate_axis_text.R' 'rremove.R'\n'set_palette.R' 'shared_docs.R' 'show_line_types.R'\n'show_point_shapes.R' 'stat_anova_test.R'\n'stat_central_tendency.R' 'stat_compare_means.R'\n'stat_friedman_test.R' 'stat_kruskal_test.R' 'stat_mean.R'\n'stat_overlay_normal_density.R' 'stat_pvalue_manual.R'\n'stat_regline_equation.R' 'stat_welch_anova_test.R'\n'text_grob.R' 'theme_pubr.R' 'theme_transparent.R'\n'utils-geom-signif.R' 'utils-pipe.R' 'utils-tidyr.R' 'zzz.R'",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-06 10:18:45 UTC; kassambara",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-06 15:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-08-12 20:11:08 UTC; unix"
+      }
+    },
+    "ggrepel": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ggrepel",
+        "Version": "0.9.8",
+        "Authors@R": "c(\n    person(\"Kamil\", \"Slowikowski\", email = \"kslowikowski@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-2843-6370\")),\n    person(\"Teun\", \"van den Brand\", role = \"ctb\", comment = c(ORCID = \"0000-0002-9335-7468\")),\n    person(\"Alicia\", \"Schep\", role = \"ctb\", comment = c(ORCID = \"0000-0002-3915-0618\")),\n    person(\"Sean\", \"Hughes\", role = \"ctb\", comment = c(ORCID = \"0000-0002-9409-9405\")),\n    person(\"Trung Kien\", \"Dang\", role = \"ctb\", comment = c(ORCID = \"0000-0001-7562-6495\")),\n    person(\"Saulius\", \"Lukauskas\", role = \"ctb\"),\n    person(\"Jean-Olivier\", \"Irisson\", role = \"ctb\", comment = c(ORCID = \"0000-0003-4920-3880\")),\n    person(\"Zhian N\", \"Kamvar\", role = \"ctb\", comment = c(ORCID = \"0000-0003-1458-7108\")),\n    person(\"Thompson\", \"Ryan\", role = \"ctb\", comment = c(ORCID = \"0000-0002-0450-8181\")),\n    person(\"Dervieux\", \"Christophe\", role = \"ctb\", comment = c(ORCID = \"0000-0003-4474-2498\")),\n    person(\"Yutani\", \"Hiroaki\", role = \"ctb\"),\n    person(\"Pierre\", \"Gramme\", role = \"ctb\"),\n    person(\"Amir Masoud\", \"Abdol\", role = \"ctb\"),\n    person(\"Malcolm\", \"Barrett\", role = \"ctb\", comment = c(ORCID = \"0000-0003-0299-5825\")),\n    person(\"Robrecht\", \"Cannoodt\", role = \"ctb\", comment = c(ORCID = \"0000-0003-3641-729X\")),\n    person(\"Michał\", \"Krassowski\", role = \"ctb\", comment = c(ORCID = \"0000-0002-9638-7785\")),\n    person(\"Michael\", \"Chirico\", role = \"ctb\", comment = c(ORCID = \"0000-0003-0787-087X\")),\n    person(\"Pedro\", \"Aphalo\", role = \"ctb\", comment = c(ORCID = \"0000-0003-3385-972X\")),\n    person(\"Francis\", \"Barton\", role = \"ctb\")\n    )",
+        "Title": "Automatically Position Non-Overlapping Text Labels with\n'ggplot2'",
+        "Description": "Provides text and label geoms for 'ggplot2' that help to avoid\n    overlapping text labels. Labels repel away from each other and away from the\n    data points.",
+        "Depends": "R (>= 4.1.0), ggplot2 (>= 3.5.2)",
+        "Imports": "grid, Rcpp, rlang (>= 1.1.6), S7, scales (>= 1.4.0), withr (>=\n3.0.2)",
+        "Suggests": "knitr, rmarkdown, testthat, svglite, vdiffr, gridExtra, ggpp,\npatchwork, devtools, prettydoc, ggbeeswarm, dplyr, magrittr,\nreadr, stringr, marquee, rsvg, sf",
+        "VignetteBuilder": "knitr",
+        "License": "GPL-3 | file LICENSE",
+        "URL": "https://ggrepel.slowkow.com/, https://github.com/slowkow/ggrepel",
+        "BugReports": "https://github.com/slowkow/ggrepel/issues",
+        "RoxygenNote": "7.3.3",
+        "LinkingTo": "Rcpp",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-03-16 17:37:05 UTC; ks38",
+        "Author": "Kamil Slowikowski [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-2843-6370>),\n  Teun van den Brand [ctb] (ORCID:\n    <https://orcid.org/0000-0002-9335-7468>),\n  Alicia Schep [ctb] (ORCID: <https://orcid.org/0000-0002-3915-0618>),\n  Sean Hughes [ctb] (ORCID: <https://orcid.org/0000-0002-9409-9405>),\n  Trung Kien Dang [ctb] (ORCID: <https://orcid.org/0000-0001-7562-6495>),\n  Saulius Lukauskas [ctb],\n  Jean-Olivier Irisson [ctb] (ORCID:\n    <https://orcid.org/0000-0003-4920-3880>),\n  Zhian N Kamvar [ctb] (ORCID: <https://orcid.org/0000-0003-1458-7108>),\n  Thompson Ryan [ctb] (ORCID: <https://orcid.org/0000-0002-0450-8181>),\n  Dervieux Christophe [ctb] (ORCID:\n    <https://orcid.org/0000-0003-4474-2498>),\n  Yutani Hiroaki [ctb],\n  Pierre Gramme [ctb],\n  Amir Masoud Abdol [ctb],\n  Malcolm Barrett [ctb] (ORCID: <https://orcid.org/0000-0003-0299-5825>),\n  Robrecht Cannoodt [ctb] (ORCID:\n    <https://orcid.org/0000-0003-3641-729X>),\n  Michał Krassowski [ctb] (ORCID:\n    <https://orcid.org/0000-0002-9638-7785>),\n  Michael Chirico [ctb] (ORCID: <https://orcid.org/0000-0003-0787-087X>),\n  Pedro Aphalo [ctb] (ORCID: <https://orcid.org/0000-0003-3385-972X>),\n  Francis Barton [ctb]",
+        "Maintainer": "Kamil Slowikowski <kslowikowski@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-17 08:30:38 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:51:17 UTC; unix"
+      }
+    },
+    "ggsci": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ggsci",
+        "Type": "Package",
+        "Title": "Scientific Journal and Sci-Fi Themed Color Palettes for\n'ggplot2'",
+        "Version": "5.2.0",
+        "Authors@R": "c(\n    person(\"Nan\", \"Xiao\", email = \"me@nanx.me\", role = c(\"aut\", \"cre\", \"cph\"),\n           comment = c(ORCID = \"0000-0002-0250-5673\")),\n    person(\"Joshua\", \"Cook\", email = \"joshuacook0023@gmail.com\", role = \"ctb\"),\n    person(\"Clara\", \"Jégousse\", email = \"cat3@hi.is\", role = \"ctb\"),\n    person(\"Hui\", \"Chen\", email = \"huichen@zju.edu.cn\", role = \"ctb\"),\n    person(\"Miaozhu\", \"Li\", email = \"miaozhu.li@duke.edu\", role = \"ctb\"),\n    person(\"iTerm2-Color-Schemes contributors\", role = c(\"ctb\", \"cph\"),\n           comment = \"iTerm2-Color-Schemes project\"),\n    person(\"Winston\", \"Chang\", role = c(\"ctb\", \"cph\"),\n           comment = \"staticimports.R\")\n    )",
+        "Maintainer": "Nan Xiao <me@nanx.me>",
+        "Description": "A collection of 'ggplot2' color palettes inspired by\n    plots in scientific journals, data visualization libraries,\n    science fiction movies, and TV shows.",
+        "License": "GPL (>= 3)",
+        "URL": "https://nanx.me/ggsci/, https://github.com/nanxstats/ggsci",
+        "BugReports": "https://github.com/nanxstats/ggsci/issues",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "ggplot2 (>= 2.0.0), grDevices, rlang, scales",
+        "Suggests": "gridExtra, knitr, ragg, rmarkdown",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-30 05:46:42 UTC; nanx",
+        "Author": "Nan Xiao [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0002-0250-5673>),\n  Joshua Cook [ctb],\n  Clara Jégousse [ctb],\n  Hui Chen [ctb],\n  Miaozhu Li [ctb],\n  iTerm2-Color-Schemes contributors [ctb, cph] (iTerm2-Color-Schemes\n    project),\n  Winston Chang [ctb, cph] (staticimports.R)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-30 14:00:08 UTC",
+        "Built": "R 4.5.0; ; 2026-08-12 19:52:38 UTC; unix"
+      }
+    },
+    "ggsignif": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "ggsignif",
+        "Title": "Significance Brackets for 'ggplot2'",
+        "Version": "0.6.4",
+        "Authors@R": "\n  c(\n    person(given = \"Constantin\",\n           family = \"Ahlmann-Eltze\",\n           role = c(\"aut\", \"cre\", \"ctb\"),\n           email = \"artjom31415@googlemail.com\",\n           comment = c(ORCID = \"0000-0002-3762-068X\", Twitter = \"@const_ae\")),\n    person(given = \"Indrajeet\",\n           family = \"Patil\",\n           role = c(\"aut\", \"ctb\"),\n           email = \"patilindrajeet.science@gmail.com\",\n           comment = c(ORCID = \"0000-0003-1995-6531\", Twitter = \"@patilindrajeets\"))\n  )",
+        "Description": "Enrich your 'ggplots' with group-wise comparisons.\n    This package provides an easy way to indicate if two groups are\n    significantly different. Commonly this is shown by a bracket on top\n    connecting the groups of interest which itself is annotated with the\n    level of significance (NS, *, **, ***).  The package provides a single\n    layer (geom_signif()) that takes the groups for comparison and the\n    test (t.test(), wilcox.text() etc.) as arguments and adds the\n    annotation to the plot.",
+        "License": "GPL-3 | file LICENSE",
+        "URL": "https://const-ae.github.io/ggsignif/,\nhttps://github.com/const-ae/ggsignif",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Imports": "ggplot2 (>= 3.3.5)",
+        "Suggests": "knitr, rmarkdown, testthat, vdiffr (>= 1.0.2)",
+        "RoxygenNote": "7.2.1",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-10-13 13:31:09 UTC; ahlmanne",
+        "Author": "Constantin Ahlmann-Eltze [aut, cre, ctb]\n    (<https://orcid.org/0000-0002-3762-068X>, @const_ae),\n  Indrajeet Patil [aut, ctb] (<https://orcid.org/0000-0003-1995-6531>,\n    @patilindrajeets)",
+        "Maintainer": "Constantin Ahlmann-Eltze <artjom31415@googlemail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2022-10-13 14:41:57 UTC",
+        "Built": "R 4.5.0; ; 2026-08-12 19:51:10 UTC; unix"
+      }
+    },
+    "ggthemes": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ggthemes",
+        "Version": "7.0.0",
+        "Title": "Extra Themes, Scales and Geoms for 'ggplot2'",
+        "Authors@R": "c(person(\"Jeffrey B.\", \"Arnold\", role = c(\"aut\", \"cre\", \"cph\"),\n    email = \"jeffrey.arnold@gmail.com\", \n    comment = \"<https://orcid.org/0000-0001-9953-3904>\"),\n    person(\"Gergely\", \"Daroczi\", role = \"ctb\"),\n    person(\"Bo\", \"Werth\", role = \"ctb\"),\n    person(\"Brian\", \"Weitzner\", role = \"ctb\"),\n    person(\"Joshua\", \"Kunst\", role = \"ctb\"),\n    person(\"Baptiste\", \"Auguie\", role = \"ctb\"),\n    person(\"Bob\", \"Rudis\", role = \"ctb\"),\n    person(\"Hadley\", \"Wickham\", role = c(\"ctb\"),\n    comment = \"Code from the ggplot2 package.\"),\n    person(\"Justin\",  \"Talbot\", role = \"ctb\",\n    comment = \"Code from the labeling package\"),\n    person(\"Joshua\", \"London\", role = \"ctb\"))",
+        "Depends": "R (>= 4.1.0)",
+        "Imports": "cli, ggplot2 (>= 3.5.2), graphics, grDevices, grid, lifecycle,\nmethods, purrr, rlang, scales (>= 1.4.0), stats, tibble",
+        "Suggests": "dplyr, farver, lattice, maps, mapproj, pander, quantreg,\nspelling, systemfonts, testthat (>= 3.2.0), tidyr, vdiffr (>=\n1.0.6), withr",
+        "Description": "Some extra themes, geoms, and scales for 'ggplot2'.\n    Provides 'ggplot2' themes and scales that replicate the look of plots\n    by Edward Tufte, Stephen Few, 'Fivethirtyeight', 'The Economist', 'Stata',\n    'Excel', and 'The Wall Street Journal', among others.\n    Provides 'geoms' for Tufte's box plot and range frame.",
+        "License": "GPL-2",
+        "URL": "https://jrnold.github.io/ggthemes/,\nhttps://github.com/jrnold/ggthemes",
+        "BugReports": "https://github.com/jrnold/ggthemes/issues",
+        "LazyData": "true",
+        "Language": "en-US",
+        "Encoding": "UTF-8",
+        "Config/testthat/edition": "3",
+        "Config/Needs/coverage": "covr",
+        "Config/Needs/data": "stringr",
+        "Config/Needs/lint": "lintr",
+        "Config/Needs/readme": "knitr, rmarkdown",
+        "Config/Needs/website": "pkgdown",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-03 18:18:53 UTC; jrnold",
+        "Author": "Jeffrey B. Arnold [aut, cre, cph]\n    (<https://orcid.org/0000-0001-9953-3904>),\n  Gergely Daroczi [ctb],\n  Bo Werth [ctb],\n  Brian Weitzner [ctb],\n  Joshua Kunst [ctb],\n  Baptiste Auguie [ctb],\n  Bob Rudis [ctb],\n  Hadley Wickham [ctb] (Code from the ggplot2 package.),\n  Justin Talbot [ctb] (Code from the labeling package),\n  Joshua London [ctb]",
+        "Maintainer": "Jeffrey B. Arnold <jeffrey.arnold@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-03 19:10:02 UTC",
+        "Built": "R 4.5.0; ; 2026-10-04 04:54:21 UTC; unix"
       }
     },
     "glmnet": {
@@ -4820,7 +5024,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, parallel,\npsych, power4mome, pwr, powertools, pwrss, semPower, simr,\nSpower (>= 0.7), stats, Superpower, TOSTER, utils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, parallel,\npsych, power4mome, pwr, powertools, pwrss, PUMP, semPower,\nsimr, Spower (>= 0.7), stats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -4830,19 +5034,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "32f7e1a54197ac1039d5be33b9def79747d49458",
-        "RemoteSha": "32f7e1a54197ac1039d5be33b9def79747d49458",
+        "RemoteRef": "a4c685be512e2318673bdff2651f28514f55d002",
+        "RemoteSha": "a4c685be512e2318673bdff2651f28514f55d002",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "32f7e1a54197ac1039d5be33b9def79747d49458",
-        "GithubSHA1": "32f7e1a54197ac1039d5be33b9def79747d49458",
+        "GithubRef": "a4c685be512e2318673bdff2651f28514f55d002",
+        "GithubSHA1": "a4c685be512e2318673bdff2651f28514f55d002",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-30 20:26:43 UTC; runner",
+        "Packaged": "2026-10-30 21:32:59 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-30 20:26:49 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 21:33:07 UTC; unix"
       }
     },
     "powertools": {
@@ -5293,6 +5497,34 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:46:50 UTC; unix"
       }
     },
+    "randomizr": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "randomizr",
+        "Title": "Easy-to-Use Tools for Common Forms of Random Assignment and\nSampling",
+        "Version": "2.0.1",
+        "Authors@R": "c(person(\"Alexander\", \"Coppock\", email = \"acoppock@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-5733-2386\")),\n             person(\"Jasper\", \"Cooper\", email = \"jaspercooper@gmail.com\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0002-8639-3188\")),\n             person(\"Neal\", \"Fultz\", email = \"nfultz@gmail.com\", role = c(\"ctb\"), comment = \"C version of restricted partitions\"),\n             person(\"Graeme\", \"Blair\", email = \"graeme.blair@gmail.com\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0001-9164-2102\")),\n             person(\"Macartan\", \"Humphreys\", email = \"macartan@gmail.com\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0001-7029-2326\")))",
+        "Description": "Generates random assignments for common experimental designs and \n\t    random samples for common sampling designs.",
+        "URL": "https://declaredesign.org/r/randomizr/,\nhttps://github.com/DeclareDesign/randomizr",
+        "BugReports": "https://github.com/DeclareDesign/randomizr/issues",
+        "Imports": "Rcpp, stats, utils",
+        "LinkingTo": "Rcpp",
+        "Depends": "R (>= 3.6.0)",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "Suggests": "knitr, dplyr, tidyr, purrr, readr, ggplot2, blockTools,\nestimatr, DeclareDesign, fabricatr, BalancedSampling, sampling,\ntestthat, rmarkdown",
+        "VignetteBuilder": "knitr",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-08-27 00:16:37 UTC; alexandercoppock",
+        "Author": "Alexander Coppock [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-5733-2386>),\n  Jasper Cooper [ctb] (ORCID: <https://orcid.org/0000-0002-8639-3188>),\n  Neal Fultz [ctb] (C version of restricted partitions),\n  Graeme Blair [ctb] (ORCID: <https://orcid.org/0000-0001-9164-2102>),\n  Macartan Humphreys [ctb] (ORCID:\n    <https://orcid.org/0000-0001-7029-2326>)",
+        "Maintainer": "Alexander Coppock <acoppock@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-08-27 05:10:15 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-28 07:18:05 UTC; unix"
+      }
+    },
     "rappdirs": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5556,6 +5788,37 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-08-26 16:20:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-23 22:17:23 UTC; unix"
+      }
+    },
+    "rstatix": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "rstatix",
+        "Type": "Package",
+        "Title": "Pipe-Friendly Framework for Basic Statistical Tests",
+        "Version": "1.1.0",
+        "Date": "2026-07-23",
+        "Authors@R": "c(\n    person(\"Alboukadel\", \"Kassambara\", role = c(\"aut\", \"cre\"), email = \"alboukadel.kassambara@gmail.com\"))",
+        "Description": "Provides a simple and intuitive pipe-friendly framework, coherent with the 'tidyverse' design philosophy, \n    for performing basic statistical tests, including t-test, Wilcoxon test, ANOVA, Kruskal-Wallis and correlation analyses. \n    The output of each test is automatically transformed into a tidy data frame to facilitate visualization. \n    Additional functions are available for reshaping, reordering, manipulating and visualizing correlation matrix.  \n    Functions are also included to facilitate the analysis of factorial experiments, including purely 'within-Ss' designs \n    (repeated measures), purely 'between-Ss' designs, and mixed 'within-and-between-Ss' designs. \n    It's also possible to compute several effect size metrics, including \"eta squared\" for ANOVA, \"Cohen's d\" for t-test and \n    'Cramer V' for the association between categorical variables. \n    The package contains helper functions for identifying univariate and multivariate outliers, assessing normality and homogeneity of variances.",
+        "License": "GPL-2",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 3.3.0)",
+        "Imports": "stats, utils, tidyr (>= 1.0.0), purrr, broom (>= 0.7.4), rlang\n(>= 0.3.1), tibble (>= 2.1.3), dplyr (>= 0.7.1), magrittr,\ncorrplot, tidyselect (>= 1.2.0), car, generics (>= 0.0.2)",
+        "Suggests": "knitr, rmarkdown, ggpubr, graphics, emmeans, coin, boot,\ntestthat (>= 3.1.7), spelling",
+        "VignetteBuilder": "knitr",
+        "URL": "https://rpkgs.datanovia.com/rstatix/",
+        "BugReports": "https://github.com/kassambara/rstatix/issues",
+        "Collate": "'utilities.R' 'add_cld.R' 'add_significance.R'\n'adjust_pvalue.R' 'factorial_design.R'\n'utilities_two_sample_test.R' 'anova_summary.R' 'anova_test.R'\n'as_cor_mat.R' 'binom_test.R' 'box_m.R' 'posthoc_test.R'\n'check_test_assumptions.R' 'chisq_test.R' 'cliff_delta.R'\n'cochran_qtest.R' 'cohens_d.R' 't_test.R' 'dunn_test.R'\n'conover_test.R' 'cor_as_symbols.R' 'replace_triangle.R'\n'pull_triangle.R' 'cor_mark_significant.R' 'cor_mat.R'\n'cor_plot.R' 'cor_reorder.R' 'cor_reshape.R' 'cor_select.R'\n'cor_test.R' 'counts_to_cases.R' 'cramer_v.R' 'df.R' 'doo.R'\n'emmeans_test.R' 'dunnett_test.R' 'eta_squared.R' 'factors.R'\n'fisher_test.R' 'fligner_test.R' 'freq_table.R'\n'friedman_test.R' 'friedman_conover_test.R'\n'friedman_effsize.R' 'friedman_nemenyi_test.R'\n'games_howell_test.R' 'get_comparisons.R' 'get_mode.R'\n'get_pvalue_position.R' 'get_summary_stats.R'\n'get_test_label.R' 'kruskal_effesize.R' 'kruskal_test.R'\n'ks_test.R' 'levene_test.R' 'mahalanobis_distance.R'\n'make_clean_names.R' 'mcnemar_test.R' 'multinom_test.R'\n'omega_squared.R' 'outliers.R' 'p_value.R' 'prop_test.R'\n'prop_trend_test.R' 'reexports.R' 'remove_ns.R'\n'rstatix-programming.R' 'rstatix-references.R' 'sample_n_by.R'\n'shapiro_test.R' 'sign_test.R' 'tidy_glance.R' 'tukey_hsd.R'\n'utils-manova.R' 'utils-pipe.R' 'welch_anova_test.R'\n'wilcox_effsize.R' 'wilcox_test.R'",
+        "Language": "en-US",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-23 20:46:22 UTC; kassambara",
+        "Author": "Alboukadel Kassambara [aut, cre]",
+        "Maintainer": "Alboukadel Kassambara <alboukadel.kassambara@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-23 21:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-08-12 20:06:45 UTC; unix"
       }
     },
     "rstudioapi": {
@@ -6554,7 +6817,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "46976ef9b8b7cbe2a39502a1ea29a829"
+      "checksum": "20f6300b0ddccc510d679821b332b21f"
     },
     "forms.yaml": {
       "checksum": "142ec05e11a8013464106070c88598a7"
@@ -6587,7 +6850,7 @@
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
     },
     "R/study-plan.R": {
-      "checksum": "2a3614e2b6cdfe815a12b32a3abe870a"
+      "checksum": "93c33938eeb1f9582d1a8f5f4edba74a"
     },
     "R/tree.R": {
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
@@ -6644,10 +6907,10 @@
       "checksum": "98b63d706c07eb7cccb4bcd56def5703"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "84b601a487dba0536c201d6fc169050e"
+      "checksum": "57ed7401bc0f170ba2c72996a0d43a71"
     },
     "tests/testthat/test-study-plan.R": {
-      "checksum": "02e551e2e52401b5f1e7984d1cd82601"
+      "checksum": "72e7435089b837ddaeaf1597c2201ce3"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "4a39a62e579032c0e4b1058407964aed"
@@ -6680,7 +6943,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "9652f5f836b3668aa6d2e5f1fb0e9771"
+      "checksum": "087ec87801d5b4f6bcc2c6085ad25c3b"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
