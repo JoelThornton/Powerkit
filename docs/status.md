@@ -379,7 +379,7 @@ fully validated. Validation runs are recorded in
 
 ## What's next
 
-**The ordered queue is [`next.md`](next.md)** — 28 items. The maintainer's
+**The ordered queue is [`next.md`](next.md)** — 26 items. The maintainer's
 order for the next work (30 October 2026): effect-size conversion on every
 card, MANOVA and Hotelling's T-squared, more multilevel models starting
 with E41, Bayes factors beyond the t-tests, justified alpha, then precision
