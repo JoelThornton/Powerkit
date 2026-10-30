@@ -723,12 +723,27 @@ safeguard_sentence <- function(result) {
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
 }
 
+# An effect converted from another form, in words beside the result: what
+# was published, what it became and the effectsize function that did it
+# (worked out by the engine).
+conversion_sentence <- function(result) {
+  conv <- result$effect_conversion
+  if (is.null(conv)) return(NULL)
+  sprintf(paste0("Effect size converted: the published %s of %s%s gives %s = %s, with the effectsize package's %s() ",
+    "(Ben-Shachar, L\u00fcdecke & Makowski, 2020)."),
+    sub("^an? ", "", conv$from_name), format(conv$value),
+    if (!is.null(conv$df_error)) sprintf(" (error df %s)", conv$df_error) else "",
+    conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_function(conv))
+}
+
+conversion_function <- function(conv) sub("\\(.*", "", sub("^effectsize::", "", conv$function_used))
+
 # "Does this still apply?" (the new design, 18 October 2026): if the effect
 # size changes after the reasoning was written, the reasoning is kept but
 # flagged until the user confirms it or edits it. app.R keeps the effect
 # values the reasoning was written for; these helpers compare and word them.
 effect_snapshot <- function(fields, values) {
-  ids <- vapply(Filter(function(f) (isTRUE(f$effect) || isTRUE(f$in_effect_text)) && field_applies(f, values), fields), `[[`, "", "id")
+  ids <- vapply(Filter(function(f) (isTRUE(f$effect) || isTRUE(f$in_effect_text) || isTRUE(f$conversion)) && field_applies(f, values), fields), `[[`, "", "id")
   vapply(ids, function(id) trimws(paste(as.character(values[[id]] %||% ""), collapse = ", ")), character(1))
 }
 
@@ -829,7 +844,7 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
 explore_ui <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  planned <- result$safeguard$lower %||% result$effect_from_units$value %||% spec$population[[e$field]]
+  planned <- result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
     h4(class = "h6", "Explore: what if the effect were different?"),
@@ -851,7 +866,7 @@ scenario_names <- c(conservative = "Conservative", expected = "Your plan's effec
 scenario_planned <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  result$safeguard$lower %||% result$effect_from_units$value %||% spec$population[[e$field]]
+  result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
 }
 
 scenario_effects <- function(spec, result = NULL, conservative = NA, optimistic = NA) {
@@ -1353,6 +1368,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
+    if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
@@ -1553,6 +1569,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
   } else "Power to detect this effect is %.1f%%."
   effect <- writeup_effect(fields, values)
+  # A converted effect: the published value, what it became and how.
+  if (is.null(effect) && !is.null(conv <- result$effect_conversion)) {
+    effect <- sprintf("%s = %s, converted from the published %s of %s%s with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)",
+      conv$effect_name, format(round(conv$converted, 3), nsmall = 2), sub("^an? ", "", conv$from_name), format(conv$value),
+      if (!is.null(conv$df_error)) sprintf(" (error df %s)", conv$df_error) else "", conversion_function(conv))
+  }
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units
   if (!is.null(effect) && !is.null(u) && !identical(result$goal_type, "sensitivity")) {

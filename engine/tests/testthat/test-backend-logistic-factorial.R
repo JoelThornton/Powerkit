@@ -24,6 +24,10 @@ test_that("the coefficients give back every cell's proportion, with effect codin
 })
 
 test_that("it runs on Spower's p_glm(), passes its check run, and equals a direct Spower call", {
+  # On one core, as the direct call is: spread over cores (POWERKIT_CORES),
+  # the replications draw from other random streams.
+  old <- options(powerkit.cores = 1)
+  on.exit(options(old))
   spec <- validate_quietly(factorial_logit_spec())
   result <- suppressWarnings(run_spec(spec))
   expect_equal(result$provenance$backend, "Spower")

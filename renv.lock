@@ -556,6 +556,22 @@
       ],
       "Hash": "5edb675b7baa6e9a0d86dd2c28de1676"
     },
+    "bayestestR": {
+      "Package": "bayestestR",
+      "Version": "0.20.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "datawizard",
+        "graphics",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "ea08522d8a9d75cec9500b626d643648"
+    },
     "beepr": {
       "Package": "beepr",
       "Version": "2.0",
@@ -944,6 +960,19 @@
       ],
       "Hash": "c0ce0fcc27807c5a19d135914fdc0359"
     },
+    "datawizard": {
+      "Package": "datawizard",
+      "Version": "1.4.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "insight",
+        "stats",
+        "utils"
+      ],
+      "Hash": "2a962359baa054a15db82231821f8326"
+    },
     "desc": {
       "Package": "desc",
       "Version": "1.4.3",
@@ -1078,6 +1107,23 @@
         "utils"
       ],
       "Hash": "9d516dde384526d4784166f888cd2c6c"
+    },
+    "effectsize": {
+      "Package": "effectsize",
+      "Version": "1.0.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "insight",
+        "parameters",
+        "performance",
+        "stats",
+        "utils"
+      ],
+      "Hash": "db434d7b3a263fdbe2c77bf63549cb98"
     },
     "emmeans": {
       "Package": "emmeans",
@@ -1554,6 +1600,19 @@
         "vctrs"
       ],
       "Hash": "7ca97d2380d14228aaa4ae1a201dde69"
+    },
+    "insight": {
+      "Package": "insight",
+      "Version": "1.6.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "905197372cabf2fd54c14525d7ff2810"
     },
     "isoband": {
       "Package": "isoband",
@@ -2131,6 +2190,23 @@
       ],
       "Hash": "a21defc75d66882933d80b7ae824a7b1"
     },
+    "parameters": {
+      "Package": "parameters",
+      "Version": "0.30.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "graphics",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "8b8090247468826de888156efa7abc8e"
+    },
     "pbapply": {
       "Package": "pbapply",
       "Version": "1.7-5",
@@ -2166,6 +2242,22 @@
         "numDeriv"
       ],
       "Hash": "b21709e9689035a7e1a3fa828ac3e058"
+    },
+    "performance": {
+      "Package": "performance",
+      "Version": "0.19.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "120d1b34ad8d551f0d75d29cd14d7410"
     },
     "pgnorm": {
       "Package": "pgnorm",

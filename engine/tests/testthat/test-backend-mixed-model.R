@@ -19,6 +19,10 @@ test_that("the design reaches simr as the specified model, and the check run rec
 })
 
 test_that("powerkit's simulation is simr's powerSim() with the Satterthwaite test, replication for replication", {
+  # On one core, as the direct call is: spread over cores (POWERKIT_CORES),
+  # the replications draw from other random streams.
+  old <- options(powerkit.cores = 1)
+  on.exit(options(old))
   spec <- crossed_example(nrep = 100, seed = 11)
   result <- suppressWarnings(run_spec(spec))
   inputs <- simr_inputs(validate_spec(spec))

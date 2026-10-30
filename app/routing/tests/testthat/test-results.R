@@ -1440,6 +1440,42 @@ test_that("safeguard power: the form asks for the earlier study's size, and the 
   expect_null(plain$effect_justification$safeguard)
 })
 
+test_that("effect-size conversion: the form offers each card's forms, and the engine converts with effectsize", {
+  # The app offers the forms the engine converts from.
+  for (template in names(conversion_choices)) {
+    expect_setequal(conversion_choices[[template]], powerkit:::conversion_templates[[template]]$from)
+  }
+  fields <- form_fields(form_groups(forms, "E2"))
+  ids <- vapply(fields, `[[`, "", "id")
+  expect_identical(ids[match("d", ids) + 1], "conv_from")
+  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  values <- modifyList(form_examples$E2, list(goal = "power", n = 64, conv_from = "t", conv_value = 2.5, conv_df = 58,
+    just_type = "meta_analysis", just_source = "A published trial"))
+  # Cohen's d gives way to the published value and its df.
+  expect_false(field_applies(by_id("d"), values))
+  expect_true(field_applies(by_id("conv_df"), values))
+  expect_false(field_applies(by_id("conv_df"), modifyList(values, list(conv_from = "odds_ratio"))))
+  # Not for the smallest detectable effect, nor with the measure's own units.
+  expect_false(field_applies(by_id("conv_from"), modifyList(values, list(goal = "sensitivity"))))
+  expect_false(field_applies(by_id("conv_from"), modifyList(values, list(effect_units = "raw"))))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_null(spec$population$d)
+  expect_identical(spec$effect_justification$conversion$from, "t")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$effect_conversion$converted, effectsize::t_to_d(2.5, 58)[[1]])
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "Effect size converted: the published t statistic of 2.5 (error df 58) gives Cohen's d = 0.657, with the effectsize package's t_to_d()", fixed = TRUE)
+  text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "converted from the published t statistic of 2.5 (error df 58) with the effectsize package's t_to_d()", fixed = TRUE)
+  # "No" leaves the card as it was.
+  plain <- build_spec(forms, "E2", fields, modifyList(values, list(conv_from = "none", d = "0.4")))
+  expect_null(plain$effect_justification$conversion)
+  expect_equal(plain$population$d, 0.4)
+})
+
 test_that("three effects side by side: conservative, the plan's and optimistic", {
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$target_test$method <- "student_t"

@@ -124,6 +124,9 @@ supporting_software <- function(backend, used = character()) {
     },
     list()
   )
+  if ("effectsize" %in% used) {
+    packages <- c(packages, list(s("effectsize", "which converted the effect size entered into the one the calculation uses")))
+  }
   # stats is part of R and citation("stats") is R's own citation, so R
   # isn't listed a second time.
   if (identical(backend, "stats")) {

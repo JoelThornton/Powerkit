@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-30"
+    title: "Use a published t, F, r or odds ratio"
+    text: >-
+      On the one-sample, paired and two-group t-tests and the correlation,
+      you can now enter an effect the way a paper reported it, such as
+      t(58) = 2.5 or an odds ratio, instead of working out Cohen's d or r
+      yourself. powerkit converts it, shows the result and the function
+      that did it, and puts the conversion in the write-up.
+  - date: "2026-10-30"
     title: "Many trials or stimuli per person"
     text: >-
       If each participant responds to many items, such as words, faces or

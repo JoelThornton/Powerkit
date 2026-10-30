@@ -1,3 +1,23 @@
+# powerkit 0.24.0
+
+* Effect-size conversion: `effect_justification > conversion` gives the
+  effect as published in another form (`from`: "t", "F" with one
+  numerator df, "r", "d" or "odds_ratio"; `value`; `df_error` for t and F;
+  optional `n1`, `n2` for r and d with unequal groups), instead of the
+  population effect. `validate_spec()` converts it with the effectsize
+  package before the schema is checked, puts the result in the population
+  (d for the one-sample and independent t-tests, d_z for the paired t-test,
+  r for the correlation) and records it as `conversion > result`; it then
+  feeds safeguard power if that is asked for. New exported
+  `convert_effect()`. The result gains `effect_conversion` (the published
+  value, the converted effect and the effectsize call), the provenance and
+  the citations export list effectsize, and the app's input screens for
+  those four cards ask "Is your effect size published in another form?",
+  with the conversion shown beside the result and in the write-up.
+  effectsize 1.0.3 and its dependencies (bayestestR, datawizard, insight,
+  parameters, performance) are added to `renv.lock`, with insight 1.6.0:
+  1.7.0, released the same day, was not yet on the package server CI uses.
+
 # powerkit 0.23.0
 
 * Participants responding to many items in two conditions (E33): design
