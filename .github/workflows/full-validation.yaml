@@ -6,7 +6,8 @@
 # artifact. How to start it and download the results: docs/validation-log.md,
 # "Running the full validation on GitHub".
 #
-# The mediation chunks (process_4, process_6, process_7, process_14) have a
+# The mediation chunks (process_4, process_4_binary, process_6, process_7,
+# process_14) have a
 # few long tests, so they run one test at a time with all 4 cores
 # (--cores-per-test 4): each simulation's replications are split into
 # batches (simulate_in_chunks()) and the batches spread over the cores. The
@@ -24,8 +25,10 @@
 #                         minutes each, 4 at a time; the one-way
 #                         within, larger mixed and two-factor tests are
 #                         estimated, not yet timed)
-#   process_4             about 2.5 hours (8 simulations of 10,000
-#                         replications at about 0.4 s each)
+#   process_4             about 3.5 hours on a runner (7 tests; a direct-call
+#                         test took 44 minutes on 30 October 2026)
+#   process_4_binary      about 2 hours (4 tests: independent, direct and
+#                         Type I checks of a yes/no X)
 #   process_6             about 1 hour (3 simulations, about 0.4 s each)
 #   mediation_crosscheck  about 1.5 hours (4 tests at a time, one core
 #                         each; the longest is a powerkit simulation of
@@ -72,6 +75,7 @@ on:
           - rank
           - bayes
           - process_4
+          - process_4_binary
           - process_6
           - process_7
           - process_14

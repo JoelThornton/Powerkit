@@ -64,7 +64,8 @@
 # under another name or position is ignored, and that test runs anyway.
 #
 # Chunks: basic, anova, interactions, process_4 (simple and parallel
-# mediation), process_6 (serial mediation), process_7, process_14,
+# mediation), process_4_binary (simple mediation with a yes/no X; its own
+# chunk so each stays within GitHub's six-hour job), process_6 (serial mediation), process_7, process_14,
 # mediation_crosscheck (simple mediation against pwrss and simsem, two
 # tools written independently of power4mome; both are in Suggests and
 # renv.lock), mediation_crosscheck_parallel and mediation_crosscheck_serial
@@ -104,7 +105,8 @@ validation_chunks <- function() {
     ),
     interactions = c("test-validation-regression-interaction.R", "test-validation-interaction-binary.R"),
     three_way = "test-validation-three-way.R",
-    process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R", "test-validation-mediation-binary.R"),
+    process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
+    process_4_binary = "test-validation-mediation-binary.R",
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
     process_14 = "test-validation-modmed-process14.R",
@@ -134,7 +136,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, variances = 2, rank = 2, bayes = 1, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60,
+  c(basic = 0.3, variances = 2, rank = 2, bayes = 1, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
