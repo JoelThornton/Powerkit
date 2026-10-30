@@ -990,6 +990,40 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:44 UTC; unix"
       }
     },
+    "bayestestR": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "bayestestR",
+        "Title": "Understand and Describe Bayesian Models and Posterior\nDistributions",
+        "Version": "0.20.0",
+        "Authors@R": "\n    c(person(given = \"Dominique\",\n             family = \"Makowski\",\n             role = c(\"aut\", \"cre\"),\n             email = \"officialeasystats@gmail.com\",\n             comment = c(ORCID = \"0000-0001-5375-9967\")),\n      person(given = \"Daniel\",\n             family = \"Lüdecke\",\n             role = \"aut\",\n             email = \"d.luedecke@uke.de\",\n             comment = c(ORCID = \"0000-0002-8895-3206\")),\n      person(given = \"Mattan S.\",\n             family = \"Ben-Shachar\",\n             role = \"aut\",\n             email = \"matanshm@post.bgu.ac.il\",\n             comment = c(ORCID = \"0000-0002-4287-4801\")),\n      person(given = \"Indrajeet\",\n             family = \"Patil\",\n             role = \"aut\",\n             email = \"patilindrajeet.science@gmail.com\",\n             comment = c(ORCID = \"0000-0003-1995-6531\")),\n      person(given = \"Micah K.\",\n             family = \"Wilson\",\n             role = \"aut\",\n             email = \"micah.k.wilson@curtin.edu.au\",\n             comment = c(ORCID = \"0000-0003-4143-7308\")),\n      person(given = \"Brenton M.\",\n             family = \"Wiernik\",\n             role = \"aut\",\n             email = \"brenton@wiernik.org\",\n             comment = c(ORCID = \"0000-0001-9560-6336\")),\n      person(given = \"Paul-Christian\",\n             family = \"Bürkner\",\n             role = \"rev\",\n             email = \"paul.buerkner@gmail.com\"),\n      person(given = \"Tristan\",\n             family = \"Mahr\",\n             role = \"rev\",\n             email = \"tristan.mahr@wisc.edu\",\n             comment = c(ORCID = \"0000-0002-8890-5116\")),\n      person(given = \"Henrik\",\n             family = \"Singmann\",\n             role = \"ctb\",\n             email = \"singmann@gmail.com\",\n             comment = c(ORCID = \"0000-0002-4842-3657\")),\n      person(given = \"Quentin F.\",\n             family = \"Gronau\",\n             role = \"ctb\",\n             comment = c(ORCID = \"0000-0001-5510-6943\")),\n      person(given = \"Sam\",\n             family = \"Crawley\",\n             role = \"ctb\",\n             email = \"sam@crawley.nz\",\n             comment = c(ORCID = \"0000-0002-7847-0411\")),\n      person(given = \"Miura\",\n             family = \"Meng\",\n             role = \"ctb\",\n             email = \"haomeng797@gmail.com\",\n             comment = c(ORCID = \"0009-0004-1522-1997\")))",
+        "Maintainer": "Dominique Makowski <officialeasystats@gmail.com>",
+        "Description": "Provides utilities to describe posterior\n    distributions and Bayesian models. It includes point-estimates such as\n    Maximum A Posteriori (MAP), measures of dispersion (Highest Density\n    Interval - HDI; Kruschke, 2015 <doi:10.1016/C2012-0-00477-2>) and\n    indices used for null-hypothesis testing (such as ROPE percentage, pd\n    and Bayes factors). References: Makowski et al. (2021) <doi:10.21105/joss.01541>.",
+        "Depends": "R (>= 3.6)",
+        "Imports": "insight (>= 1.5.4), datawizard (>= 1.4.0), graphics, methods,\nstats, utils",
+        "Suggests": "BayesFactor (>= 0.9.12-4.4), bayesQR, bayesplot, betareg, BH,\nblavaan, boot, bridgesampling (>= 1.2-1), brms, collapse, curl,\neffectsize, emmeans, gamm4, ggdist, ggplot2, glmmTMB, httr2,\nKernSmooth, knitr, lavaan, lme4, lmerTest, logspline (>=\n2.1.21), marginaleffects (>= 0.29.0), MASS, mclust, mediation,\nmodelbased, ordbetareg, parameters, patchwork, performance,\nposterior, quadprog, RcppEigen, rmarkdown, rstan, rstanarm, see\n(>= 0.8.5), testthat, tinytable, tweedie, withr",
+        "License": "GPL-3",
+        "URL": "https://easystats.github.io/bayestestR/",
+        "BugReports": "https://github.com/easystats/bayestestR/issues",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/rcmdcheck/ignore-inconsequential-notes": "true",
+        "Config/Needs/website": "easystats/easystatstemplate",
+        "Config/Needs/check": "stan-dev/cmdstanr",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-16 05:27:45 UTC; DL",
+        "Author": "Dominique Makowski [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Daniel Lüdecke [aut] (ORCID: <https://orcid.org/0000-0002-8895-3206>),\n  Mattan S. Ben-Shachar [aut] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>),\n  Micah K. Wilson [aut] (ORCID: <https://orcid.org/0000-0003-4143-7308>),\n  Brenton M. Wiernik [aut] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Paul-Christian Bürkner [rev],\n  Tristan Mahr [rev] (ORCID: <https://orcid.org/0000-0002-8890-5116>),\n  Henrik Singmann [ctb] (ORCID: <https://orcid.org/0000-0002-4842-3657>),\n  Quentin F. Gronau [ctb] (ORCID:\n    <https://orcid.org/0000-0001-5510-6943>),\n  Sam Crawley [ctb] (ORCID: <https://orcid.org/0000-0002-7847-0411>),\n  Miura Meng [ctb] (ORCID: <https://orcid.org/0009-0004-1522-1997>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-16 07:00:08 UTC",
+        "Built": "R 4.5.0; ; 2026-10-17 04:20:24 UTC; unix"
+      }
+    },
     "beepr": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1855,6 +1889,38 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-25 04:20:11 UTC; unix"
       }
     },
+    "datawizard": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "datawizard",
+        "Title": "Easy Data Wrangling and Statistical Transformations",
+        "Version": "1.4.1",
+        "Authors@R": "c(\n    person(\"Jeffrey\", \"Girard\", , \"me@jmgirard.com\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-7359-3746\")),\n    person(\"Indrajeet\", \"Patil\", , \"patilindrajeet.science@gmail.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0003-1995-6531\")),\n    person(\"Etienne\", \"Bacher\", , \"etienne.bacher@protonmail.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-9271-5075\")),\n    person(\"Dominique\", \"Makowski\", , \"dom.makowski@gmail.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0001-5375-9967\")),\n    person(\"Daniel\", \"Lüdecke\", , \"d.luedecke@uke.de\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-8895-3206\")),\n    person(\"Mattan S.\", \"Ben-Shachar\", , \"matanshm@post.bgu.ac.il\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-4287-4801\")),\n    person(\"Brenton M.\", \"Wiernik\", , \"brenton@wiernik.org\", role = \"aut\",\n           comment = c(ORCID = \"0000-0001-9560-6336\")),\n    person(\"Rémi\", \"Thériault\", , \"remi.theriault@mail.mcgill.ca\", role = \"ctb\",\n           comment = c(ORCID = \"0000-0003-4315-6788\")),\n    person(\"Elin\", \"Waring\", , \"elin.waring@gmail.com\", role = \"ctb\"),\n    person(\"Thomas J.\", \"Faulkenberry\", , \"faulkenberry@tarleton.edu\", role = \"rev\"),\n    person(\"Robert\", \"Garrett\", , \"rcg4@illinois.edu\", role = \"rev\")\n  )",
+        "Description": "A lightweight package to assist in key steps involved in any data\n    analysis workflow: (1) wrangling the raw data to get it in the needed form,\n    (2) applying preprocessing steps and statistical transformations, and\n    (3) compute statistical summaries of data properties and distributions.\n    It is also the data wrangling backend for packages in 'easystats' ecosystem.\n    References: Patil et al. (2022) <doi:10.21105/joss.04684>.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://easystats.github.io/datawizard/",
+        "BugReports": "https://github.com/easystats/datawizard/issues",
+        "Depends": "R (>= 4.0)",
+        "Imports": "insight (>= 1.5.4), stats, utils",
+        "Suggests": "bayestestR, boot, BH, brms, curl, data.table, discovr, dplyr\n(>= 1.1), effectsize, emmeans, fixest, gamm4, ggplot2 (>=\n3.5.0), gt, haven, httr, knitr, lme4, mediation, modelbased,\nnanoparquet, openssl, parameters (>= 0.21.7), performance (>=\n0.14.0), poorman (>= 0.2.7), psych, readxl, readr, rio,\nrmarkdown, rstanarm, see, testthat (>= 3.2.1), tibble, tidyr,\ntinytable (>= 0.13.0), withr",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/Needs/website": "easystats/easystatstemplate",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-17 19:18:19 UTC; jmgirard",
+        "Author": "Jeffrey Girard [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-7359-3746>),\n  Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>),\n  Etienne Bacher [aut] (ORCID: <https://orcid.org/0000-0002-9271-5075>),\n  Dominique Makowski [aut] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Daniel Lüdecke [aut] (ORCID: <https://orcid.org/0000-0002-8895-3206>),\n  Mattan S. Ben-Shachar [aut] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Brenton M. Wiernik [aut] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Rémi Thériault [ctb] (ORCID: <https://orcid.org/0000-0003-4315-6788>),\n  Elin Waring [ctb],\n  Thomas J. Faulkenberry [rev],\n  Robert Garrett [rev]",
+        "Maintainer": "Jeffrey Girard <me@jmgirard.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-17 23:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-10-18 07:39:07 UTC; unix"
+      }
+    },
     "desc": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2077,6 +2143,38 @@
         "Date/Publication": "2025-12-18 13:06:03 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:42:28 UTC; unix"
+      }
+    },
+    "effectsize": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "effectsize",
+        "Title": "Indices of Effect Size",
+        "Version": "1.0.3",
+        "Authors@R": "\n    c(person(given = \"Mattan S.\",\n             family = \"Ben-Shachar\",\n             role = c(\"aut\", \"cre\"),\n             email = \"mattansb@msbstats.info\",\n             comment = c(ORCID = \"0000-0002-4287-4801\")),\n      person(given = \"Dominique\",\n             family = \"Makowski\",\n             role = \"aut\",\n             email = \"dom.makowski@gmail.com\",\n             comment = c(ORCID = \"0000-0001-5375-9967\")),\n      person(given = \"Daniel\",\n             family = \"Lüdecke\",\n             role = \"aut\",\n             email = \"d.luedecke@uke.de\",\n             comment = c(ORCID = \"0000-0002-8895-3206\")),\n      person(given = \"Indrajeet\",\n             family = \"Patil\",\n             role = \"aut\",\n             email = \"patilindrajeet.science@gmail.com\",\n             comment = c(ORCID = \"0000-0003-1995-6531\")),\n      person(given = \"Brenton M.\",\n             family = \"Wiernik\",\n             role = \"aut\",\n             email = \"brenton@wiernik.org\",\n             comment = c(ORCID = \"0000-0001-9560-6336\")),\n      person(given = \"Rémi\",\n             family = \"Thériault\",\n             role = \"aut\",\n             email = \"remi.theriault@mail.mcgill.ca\",\n             comment = c(ORCID = \"0000-0003-4315-6788\")),\n      person(given = \"Ken\",\n             family = \"Kelley\",\n             role = \"ctb\"),\n      person(given = \"David\",\n             family = \"Stanley\",\n             role = \"ctb\"),\n      person(given = \"Aaron\",\n             family = \"Caldwell\",\n             role = \"ctb\",\n             email = \"arcaldwell49@gmail.com\",\n             comment = c(ORCID = \"0000-0002-4541-6283\")),\n      person(given = \"Jessica\",\n             family = \"Burnett\",\n             role = \"rev\",\n             email = \"jburnett@usgs.gov\",\n             comment = c(ORCID = \"0000-0002-0896-5099\")),\n      person(given = \"Johannes\",\n             family = \"Karreth\",\n             role = \"rev\",\n             email = \"jkarreth@ursinus.edu\",\n             comment = c(ORCID = \"0000-0003-4586-7153\")),\n      person(given = \"Philip\",\n             family = \"Waggoner\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"philip.waggoner@gmail.com\",\n             comment = c(ORCID = \"0000-0002-7825-7573\")))",
+        "Maintainer": "Mattan S. Ben-Shachar <mattansb@msbstats.info>",
+        "Description": "Provide utilities to work with indices of effect size for a wide\n    variety of models and hypothesis tests (see list of supported models using\n    the function 'insight::supported_models()'), allowing computation of and\n    conversion between indices such as Cohen's d, r, odds, etc.\n    References: Ben-Shachar et al. (2020) <doi:10.21105/joss.02815>.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://easystats.github.io/effectsize/",
+        "BugReports": "https://github.com/easystats/effectsize/issues/",
+        "Depends": "R (>= 4.0)",
+        "Imports": "bayestestR (>= 0.18.1), insight (>= 1.5.2), parameters (>=\n0.29.2), performance (>= 0.17.1), datawizard (>= 1.3.1), stats,\nutils",
+        "Suggests": "correlation (>= 0.8.7), see (>= 0.11.0), afex, BayesFactor,\nboot, brms, car, emmeans, gt, knitr, lavaan, lme4, lmerTest,\nmgcv, parsnip, pwr, rmarkdown, rms, rstanarm, rstantools,\ntestthat (>= 3.1.0)",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/Needs/website": "rstudio/bslib, r-lib/pkgdown,\neasystats/easystatstemplate",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-07 12:01:49 UTC; user",
+        "Author": "Mattan S. Ben-Shachar [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Dominique Makowski [aut] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Daniel Lüdecke [aut] (ORCID: <https://orcid.org/0000-0002-8895-3206>),\n  Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>),\n  Brenton M. Wiernik [aut] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Rémi Thériault [aut] (ORCID: <https://orcid.org/0000-0003-4315-6788>),\n  Ken Kelley [ctb],\n  David Stanley [ctb],\n  Aaron Caldwell [ctb] (ORCID: <https://orcid.org/0000-0002-4541-6283>),\n  Jessica Burnett [rev] (ORCID: <https://orcid.org/0000-0002-0896-5099>),\n  Johannes Karreth [rev] (ORCID: <https://orcid.org/0000-0003-4586-7153>),\n  Philip Waggoner [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-7825-7573>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-07 14:30:02 UTC",
+        "Built": "R 4.5.0; ; 2026-07-08 04:57:39 UTC; unix"
       }
     },
     "emmeans": {
@@ -3028,6 +3126,39 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-09-30 15:40:02 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-01 04:33:02 UTC; unix"
+      }
+    },
+    "insight": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "insight",
+        "Title": "Easy Access to Model Information for Various Model Objects",
+        "Version": "1.6.0",
+        "Authors@R": "\n    c(person(given = \"Daniel\",\n             family = \"Lüdecke\",\n             role = c(\"aut\", \"cre\"),\n             email = \"officialeasystats@gmail.com\",\n             comment = c(ORCID = \"0000-0002-8895-3206\")),\n      person(given = \"Dominique\",\n             family = \"Makowski\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"dom.makowski@gmail.com\",\n             comment = c(ORCID = \"0000-0001-5375-9967\")),\n      person(given = \"Indrajeet\",\n             family = \"Patil\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"patilindrajeet.science@gmail.com\",\n             comment = c(ORCID = \"0000-0003-1995-6531\")),\n      person(given = \"Philip\",\n             family = \"Waggoner\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"philip.waggoner@gmail.com\",\n             comment = c(ORCID = \"0000-0002-7825-7573\")),\n      person(given = \"Mattan S.\",\n             family = \"Ben-Shachar\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"matanshm@post.bgu.ac.il\",\n             comment = c(ORCID = \"0000-0002-4287-4801\")),\n      person(given = \"Brenton M.\",\n             family = \"Wiernik\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"brenton@wiernik.org\",\n             comment = c(ORCID = \"0000-0001-9560-6336\")),\n      person(given = \"Vincent\",\n             family = \"Arel-Bundock\",\n             email = \"vincent.arel-bundock@umontreal.ca\",\n             role = c(\"aut\", \"ctb\"),\n             comment = c(ORCID = \"0000-0003-2042-7063\")),\n      person(given = \"Etienne\",\n             family = \"Bacher\",\n             email = \"etienne.bacher@protonmail.com\",\n             role = c(\"aut\", \"ctb\"),\n             comment = c(ORCID = \"0000-0002-9271-5075\")),\n      person(given = \"Alex\",\n             family = \"Hayes\",\n             role = c(\"rev\"),\n             email = \"alexpghayes@gmail.com\",\n             comment = c(ORCID = \"0000-0002-4985-5160\")),\n      person(given = \"Grant\",\n             family = \"McDermott\",\n             role = c(\"ctb\"),\n             email = \"grantmcd@uoregon.edu\",\n             comment = c(ORCID = \"0000-0001-7883-8573\")),\n      person(given = \"Rémi\",\n             family = \"Thériault\",\n             role = \"ctb\",\n             email = \"remi.theriault@mail.mcgill.ca\",\n             comment = c(ORCID = \"0000-0003-4315-6788\")),\n      person(given = \"Alex\",\n             family = \"Reinhart\",\n             role = \"ctb\",\n             email = \"areinhar@stat.cmu.edu\",\n             comment = c(ORCID = \"0000-0002-6658-514X\")),\n      person(given = \"Jeffrey\",\n             family = \"Girard\",\n             role = \"ctb\",\n             email = \"me@jmgirard.com\",\n             comment = c(ORCID = \"0000-0002-7359-3746\")))",
+        "Maintainer": "Daniel Lüdecke <officialeasystats@gmail.com>",
+        "Description": "A tool to provide an easy, intuitive and consistent\n    access to information contained in various R models, like model\n    formulas, model terms, information about random effects, data that was\n    used to fit the model or data from response variables. 'insight'\n    mainly revolves around two types of functions: Functions that find\n    (the names of) information, starting with 'find_', and functions that\n    get the underlying data, starting with 'get_'. The package has a\n    consistent syntax and works with many different model objects, where\n    otherwise functions to access these information are missing.",
+        "License": "GPL-3",
+        "URL": "https://easystats.github.io/insight/",
+        "BugReports": "https://github.com/easystats/insight/issues",
+        "Depends": "R (>= 3.6)",
+        "Imports": "methods, stats, utils",
+        "Suggests": "AER, afex, aod, ape, BayesFactor, bayestestR, bbmle, BSDA,\nbdsmatrix, betareg, biglm, BH, blavaan (>= 0.5-5), blme, boot,\nbrms, broom, car, carData, censReg, cgam, clubSandwich, cobalt,\ncoxme, cplm, crch, curl, datawizard (>= 1.2.0), dbarts,\neffectsize, emmeans, epiR, estimatr, feisr, fixest (>= 0.11.2),\nfungible, fwb, gam, gamlss, gamlss.data, gamlss.dist, gamm4,\ngbm, gee, geepack, geoR, GLMMadaptive, glmmTMB (>= 1.1.12),\nglmtoolbox, gmnl, grDevices, gt, httptest2, httr2, interp,\nivreg, JM, knitr, lavaan, lavaSearch2, lcmm, lfe, lme4,\nlmerTest, lmtest, logistf, logitr, marginaleffects (>= 0.29.0),\nMASS, Matrix, mclogit, mclust, MCMCglmm, merTools, metaBMA,\nmetadat, metafor, metaplus, mgcv, mhurdle, mice (>= 3.17.0),\nmlogit, mmrm, modelbased (>= 0.9.0), multgee, MuMIn, mvtnorm,\nnestedLogit, nlme, nnet, nonnest2, ordinal, panelr, parameters\n(>= 0.28.0), parsnip, pbkrtest, performance, phylolm, plm,\nPROreg (>= 1.3.0), pscl, psych, quantreg, Rcpp, RcppEigen,\nreformulas, recipes, rmarkdown, rms, robustbase, robustlmm,\nrpart, rstan, rstanarm (>= 2.21.1), rstantools (>= 2.1.0),\nrstpm2, rstudioapi, RWiener, sandwich, sdmTMB, sampleSelection,\nserp, speedglm, splines, statmod, survey, survival, svylme,\ntestthat, tidymodels, tinytable (>= 0.13.0), TMB, truncreg,\ntune, tweedie, VGAM, WeightIt, withr, workflows",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "false",
+        "Config/Needs/website": "easystats/easystatstemplate",
+        "Config/Needs/check": "stan-dev/cmdstanr",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-13 14:08:48 UTC; mail",
+        "Author": "Daniel Lüdecke [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8895-3206>),\n  Dominique Makowski [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Indrajeet Patil [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0003-1995-6531>),\n  Philip Waggoner [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-7825-7573>),\n  Mattan S. Ben-Shachar [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Brenton M. Wiernik [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Vincent Arel-Bundock [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0003-2042-7063>),\n  Etienne Bacher [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-9271-5075>),\n  Alex Hayes [rev] (ORCID: <https://orcid.org/0000-0002-4985-5160>),\n  Grant McDermott [ctb] (ORCID: <https://orcid.org/0000-0001-7883-8573>),\n  Rémi Thériault [ctb] (ORCID: <https://orcid.org/0000-0003-4315-6788>),\n  Alex Reinhart [ctb] (ORCID: <https://orcid.org/0000-0002-6658-514X>),\n  Jeffrey Girard [ctb] (ORCID: <https://orcid.org/0000-0002-7359-3746>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-13 15:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-10-14 04:08:37 UTC; unix"
       }
     },
     "isoband": {
@@ -4236,6 +4367,40 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:34 UTC; unix"
       }
     },
+    "parameters": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "parameters",
+        "Title": "Processing of Model Parameters",
+        "Version": "0.30.0",
+        "Authors@R": "\n    c(person(given = \"Daniel\",\n             family = \"Lüdecke\",\n             role = c(\"aut\", \"cre\"),\n             email = \"officialeasystats@gmail.com\",\n             comment = c(ORCID = \"0000-0002-8895-3206\")),\n      person(given = \"Dominique\",\n             family = \"Makowski\",\n             role = \"aut\",\n             email = \"dom.makowski@gmail.com\",\n             comment = c(ORCID = \"0000-0001-5375-9967\")),\n      person(given = \"Mattan S.\",\n             family = \"Ben-Shachar\",\n             role = \"aut\",\n             email = \"matanshm@post.bgu.ac.il\",\n             comment = c(ORCID = \"0000-0002-4287-4801\")),\n      person(given = \"Indrajeet\",\n             family = \"Patil\",\n             role = \"aut\",\n             email = \"patilindrajeet.science@gmail.com\",\n             comment = c(ORCID = \"0000-0003-1995-6531\")),\n      person(given = \"Søren\",\n             family = \"Højsgaard\",\n             role = \"aut\",\n             email = \"sorenh@math.aau.dk\"),\n      person(given = \"Brenton M.\",\n             family = \"Wiernik\",\n             role = \"aut\",\n             email = \"brenton@wiernik.org\",\n             comment = c(ORCID = \"0000-0001-9560-6336\")),\n      person(given = \"Zen J.\",\n             family = \"Lau\",\n             role = \"ctb\",\n             email = \"zenjuen.lau@ntu.edu.sg\"),\n      person(given = \"Vincent\",\n             family = \"Arel-Bundock\",\n             role = \"ctb\",\n             email = \"vincent.arel-bundock@umontreal.ca\",\n             comment = c(ORCID = \"0000-0003-2042-7063\")),\n      person(given = \"Jeffrey\",\n             family = \"Girard\",\n             role = \"ctb\",\n             email = \"me@jmgirard.com\",\n             comment = c(ORCID = \"0000-0002-7359-3746\")),\n      person(given = \"Christina\",\n             family = \"Maimone\",\n             role = \"rev\",\n             email = \"christina.maimone@northwestern.edu\"),\n      person(given = \"Niels\",\n             family = \"Ohlsen\",\n             role = \"rev\"),\n      person(given = \"Douglas Ezra\",\n             family = \"Morrison\",\n             role = \"ctb\",\n             email = \"dmorrison01@ucla.edu\",\n             comment = c(ORCID = \"0000-0002-7195-830X\")),\n      person(given = \"Joseph\",\n             family = \"Luchman\",\n             role = \"ctb\",\n             email = \"jluchman@gmail.com\",\n             comment = c(ORCID = \"0000-0002-8886-9717\")),\n      person(given = \"Miura\",\n             family = \"Meng\",\n             role = \"ctb\",\n             email = \"meng10@upenn.edu\",\n             comment = c(ORCID = \"0009-0004-1522-1997\")))",
+        "Maintainer": "Daniel Lüdecke <officialeasystats@gmail.com>",
+        "Description": "Utilities for processing the parameters of various\n    statistical models. Beyond computing p values, CIs, and other indices\n    for a wide variety of models (see list of supported models using the\n    function 'insight::supported_models()'), this package implements\n    features like bootstrapping or simulating of parameters and models,\n    feature reduction (feature extraction and variable selection) as well\n    as functions to describe data and variable characteristics (e.g.\n    skewness, kurtosis, smoothness or distribution).",
+        "License": "GPL-3",
+        "URL": "https://easystats.github.io/parameters/",
+        "BugReports": "https://github.com/easystats/parameters/issues",
+        "Depends": "R (>= 3.6)",
+        "Imports": "bayestestR (>= 0.19.0), datawizard (>= 1.4.0), insight (>=\n1.5.4), graphics, methods, stats, utils",
+        "Suggests": "AER, afex, aod, BayesFactor (>= 0.9.12-4.7), BayesFM, bbmle,\nBSDA, betareg, BH, biglm, blavaan, blme, boot, brglm2, brms,\nbroom, broom.mixed, cAIC4, car, carData, cgam, ClassDiscovery,\nclubSandwich, cluster, cobalt, coda, correlation (>= 0.8.8),\ncoxme, cplm, curl, dbscan, did, discovr, distributional, domir\n(>= 0.2.0), drc, DRR, effectsize (>= 1.0.1), EGAnet, emmeans\n(>= 1.7.0), epiR, estimatr, factoextra, FactoMineR, faraway,\nfastICA, fixest, fpc, gam, gamlss, gee, geepack, ggplot2,\nGLMMadaptive, glmmTMB (>= 1.1.12), glmtoolbox, GPArotation, gt,\nhaven, httr2, Hmisc, ivreg, knitr, lavaan, lavaan.mi, lcmm,\nlfe, lm.beta, lme4, lmerTest, lmtest, logistf, logitr,\nlogspline, lqmm, M3C, marginaleffects (>= 0.29.0), modelbased\n(>= 0.9.0), MASS, Matrix, mclogit, mclust, MCMCglmm, mediation,\nmerDeriv, merTools, metaBMA, metafor, mfx, mgcv, mice (>=\n3.17.0), mmrm, multcomp, MuMIn, mvtnorm, NbClust, nFactors,\nnestedLogit, nlme, nnet, openxlsx, ordinal, panelr, pbkrtest,\nPCDimension, performance (>= 0.14.0), plm, PMCMRplus, poorman,\nposterior, PROreg (>= 1.3.0), pscl, psych, pvclust, quantreg,\nrandomForest, RcppEigen, rmarkdown, rms, rstan, rstanarm,\nsampleSelection, sandwich, see (>= 0.8.1), serp, sparsepca,\nsurvey, survival, svylme, testthat (>= 3.2.1), tidyselect,\ntinyplot (>= 0.7.0), tinytable (>= 0.13.0), TMB, truncreg,\nvdiffr, VGAM, WeightIt (>= 1.2.0), withr, WRS2",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "false",
+        "Config/Needs/website": "easystats/easystatstemplate",
+        "Config/Needs/check": "stan-dev/cmdstanr",
+        "Config/rcmdcheck/ignore-inconsequential-notes": "true",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-15 15:20:48 UTC; mail",
+        "Author": "Daniel Lüdecke [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8895-3206>),\n  Dominique Makowski [aut] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Mattan S. Ben-Shachar [aut] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Indrajeet Patil [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>),\n  Søren Højsgaard [aut],\n  Brenton M. Wiernik [aut] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Zen J. Lau [ctb],\n  Vincent Arel-Bundock [ctb] (ORCID:\n    <https://orcid.org/0000-0003-2042-7063>),\n  Jeffrey Girard [ctb] (ORCID: <https://orcid.org/0000-0002-7359-3746>),\n  Christina Maimone [rev],\n  Niels Ohlsen [rev],\n  Douglas Ezra Morrison [ctb] (ORCID:\n    <https://orcid.org/0000-0002-7195-830X>),\n  Joseph Luchman [ctb] (ORCID: <https://orcid.org/0000-0002-8886-9717>),\n  Miura Meng [ctb] (ORCID: <https://orcid.org/0009-0004-1522-1997>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-15 17:10:02 UTC",
+        "Built": "R 4.5.0; ; 2026-10-16 04:02:55 UTC; unix"
+      }
+    },
     "pbapply": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4310,6 +4475,38 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-07-18 03:20:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:59:31 UTC; unix"
+      }
+    },
+    "performance": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "performance",
+        "Title": "Assessment of Regression Models Performance",
+        "Version": "0.19.0",
+        "Authors@R": "\n    c(person(given = \"Daniel\",\n             family = \"Lüdecke\",\n             role = c(\"aut\", \"cre\"),\n             email = \"officialeasystats@gmail.com\",\n             comment = c(ORCID = \"0000-0002-8895-3206\")),\n      person(given = \"Dominique\",\n             family = \"Makowski\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"dom.makowski@gmail.com\",\n             comment = c(ORCID = \"0000-0001-5375-9967\")),\n     person(given = \"Mattan S.\",\n             family = \"Ben-Shachar\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"matanshm@post.bgu.ac.il\",\n             comment = c(ORCID = \"0000-0002-4287-4801\")),\n      person(given = \"Indrajeet\",\n             family = \"Patil\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"patilindrajeet.science@gmail.com\",\n             comment = c(ORCID = \"0000-0003-1995-6531\")),\n      person(given = \"Philip\",\n             family = \"Waggoner\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"philip.waggoner@gmail.com\",\n             comment = c(ORCID = \"0000-0002-7825-7573\")),\n      person(given = \"Brenton M.\",\n             family = \"Wiernik\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"brenton@wiernik.org\",\n             comment = c(ORCID = \"0000-0001-9560-6336\")),\n      person(given = \"Rémi\",\n             family = \"Thériault\",\n             role = c(\"aut\", \"ctb\"),\n             email = \"remi.theriault@mail.mcgill.ca\",\n             comment = c(ORCID = \"0000-0003-4315-6788\")),\n      person(given = \"Vincent\",\n             family = \"Arel-Bundock\",\n             email = \"vincent.arel-bundock@umontreal.ca\",\n             role = \"ctb\",\n             comment = c(ORCID = \"0000-0003-2042-7063\")),\n      person(given = \"Martin\",\n             family = \"Jullum\",\n             role = \"rev\"),\n      person(given = \"gjo11\",\n             role = \"rev\"),\n      person(given = \"Etienne\",\n             family = \"Bacher\",\n             email = \"etienne.bacher@protonmail.com\",\n             role = \"ctb\",\n             comment = c(ORCID = \"0000-0002-9271-5075\")),\n      person(given = \"Joseph\",\n             family = \"Luchman\",\n             role = \"ctb\",\n             comment = c(ORCID = \"0000-0002-8886-9717\")),\n      person(given = \"Julius\",\n             family = \"Bogomolovas\",\n             role = \"ctb\",\n             comment = c(ORCID = \"0000-0001-8344-1909\")))",
+        "Maintainer": "Daniel Lüdecke <officialeasystats@gmail.com>",
+        "Description": "Utilities for computing measures to assess model quality,\n    which are not directly provided by R's 'base' or 'stats' packages.\n    These include e.g. measures like r-squared, intraclass correlation\n    coefficient (Nakagawa, Johnson & Schielzeth (2017)\n    <doi:10.1098/rsif.2017.0213>), root mean squared error or functions to\n    check models for overdispersion, singularity or zero-inflation and\n    more. Functions apply to a large variety of regression models,\n    including generalized linear models, mixed effects models and Bayesian\n    models. References: Lüdecke et al. (2021) <doi:10.21105/joss.03139>.",
+        "License": "GPL-3",
+        "URL": "https://easystats.github.io/performance/",
+        "BugReports": "https://github.com/easystats/performance/issues",
+        "Depends": "R (>= 4.0)",
+        "Imports": "bayestestR (>= 0.19.0), insight (>= 1.5.4), datawizard (>=\n1.4.0), stats, methods, utils",
+        "Suggests": "AER, afex, BayesFactor, bayesplot, betareg, BH, bigutilsr,\nblavaan, boot, brglm2, brms, car, carData, CompQuadForm,\ncorrelation (>= 0.8.8), cplm, curl, dagitty, dbscan, DHARMa (>=\n0.4.7), discovr, effectsize, estimatr, fixest, flextable,\nforecast, ftExtra, gamm4, ggdag, glmmTMB (>= 1.1.12), glmx,\nGPArotation, graphics, Hmisc, httr2, ICS, ICSOutlier, ISLR,\nivreg, lavaan, lavaan.mi, lme4, lmtest, loo, MASS, Matrix,\nmclogit, mclust, metadat, metafor, mgcv, mlogit, modelbased (>=\n0.12.0), multimode, nestedLogit, nlme, nnet, nonnest2, ordinal,\nparallel, parameters (>= 0.28.0), patchwork, pscl, psych,\npsychTools, quantreg, qqplotr (>= 0.0.6), randomForest,\nRcppEigen, reformulas, rempsyc, rmarkdown, rstanarm,\nrstantools, sandwich, see (>= 0.13.0), survey, survival,\ntestthat (>= 3.2.1), tweedie, VGAM, withr (>= 3.0.0)",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "false",
+        "Config/Needs/website": "rstudio/bslib, r-lib/pkgdown,\neasystats/easystatstemplate",
+        "Config/rcmdcheck/ignore-inconsequential-notes": "true",
+        "Config/roxygen2/version": "8.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-18 10:01:17 UTC; DL",
+        "Author": "Daniel Lüdecke [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8895-3206>),\n  Dominique Makowski [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0001-5375-9967>),\n  Mattan S. Ben-Shachar [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-4287-4801>),\n  Indrajeet Patil [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0003-1995-6531>),\n  Philip Waggoner [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0002-7825-7573>),\n  Brenton M. Wiernik [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0001-9560-6336>),\n  Rémi Thériault [aut, ctb] (ORCID:\n    <https://orcid.org/0000-0003-4315-6788>),\n  Vincent Arel-Bundock [ctb] (ORCID:\n    <https://orcid.org/0000-0003-2042-7063>),\n  Martin Jullum [rev],\n  gjo11 [rev],\n  Etienne Bacher [ctb] (ORCID: <https://orcid.org/0000-0002-9271-5075>),\n  Joseph Luchman [ctb] (ORCID: <https://orcid.org/0000-0002-8886-9717>),\n  Julius Bogomolovas [ctb] (ORCID:\n    <https://orcid.org/0000-0001-8344-1909>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-18 11:00:15 UTC",
+        "Built": "R 4.5.0; ; 2026-10-19 04:12:44 UTC; unix"
       }
     },
     "pgnorm": {
@@ -4616,14 +4813,14 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.23.0",
+        "Version": "0.24.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, InteractionPoweR, jsonlite, jsonvalidate (>=\n1.3.0), lme4, lmerTest, manymome, parallel, psych, power4mome,\npwr, powertools, pwrss, semPower, simr, Spower (>= 0.7), stats,\nSuperpower, TOSTER, utils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, parallel,\npsych, power4mome, pwr, powertools, pwrss, semPower, simr,\nSpower (>= 0.7), stats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -4633,19 +4830,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
-        "RemoteSha": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
+        "RemoteRef": "32d4a9be30deb8847f258710f91228293abc9516",
+        "RemoteSha": "32d4a9be30deb8847f258710f91228293abc9516",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
-        "GithubSHA1": "3939b4b0dd274c6e26342cf0bbc0add60d711d05",
+        "GithubRef": "32d4a9be30deb8847f258710f91228293abc9516",
+        "GithubSHA1": "32d4a9be30deb8847f258710f91228293abc9516",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-30 10:10:48 UTC; runner",
+        "Packaged": "2026-10-30 15:16:27 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-30 10:10:54 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 15:16:33 UTC; unix"
       }
     },
     "powertools": {
@@ -6372,7 +6569,7 @@
       "checksum": "f8d04b8589f94a830b4d38258b87454a"
     },
     "R/forms.R": {
-      "checksum": "6b7a86b77391898e43013002ebb58784"
+      "checksum": "72b50df0703ca2292fd1d51c5dab6d1d"
     },
     "R/labs.R": {
       "checksum": "defe8fc51eb2151ecfbb75ab14bde431"
@@ -6384,7 +6581,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "45a61bf554ea7dea5a46d72bea90f359"
+      "checksum": "d973ff8d56550d77c7cf9788b3c849e2"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6441,7 +6638,7 @@
       "checksum": "a320b2d0c5e285572549990e2551db58"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "5017f1cc62f642bf64a6630f1fb58b79"
+      "checksum": "ad98b882970c32b340968c0345cc0b07"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "a8c178649cec2c2538245d5b4f82ef35"
@@ -6477,7 +6674,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "bfe253c522d13f32db09d3410d89866a"
+      "checksum": "3c51cd663817361cc09522cfbabae7fd"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
