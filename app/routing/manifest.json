@@ -4557,19 +4557,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "da8b20e1bb8fedd5d9c04da9fb19646d6f4aeac3",
-        "RemoteSha": "da8b20e1bb8fedd5d9c04da9fb19646d6f4aeac3",
+        "RemoteRef": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
+        "RemoteSha": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "da8b20e1bb8fedd5d9c04da9fb19646d6f4aeac3",
-        "GithubSHA1": "da8b20e1bb8fedd5d9c04da9fb19646d6f4aeac3",
+        "GithubRef": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
+        "GithubSHA1": "eee38c63144fa4c9036bc23a57bf42ef65fec38c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-29 23:44:15 UTC; runner",
+        "Packaged": "2026-10-30 05:34:02 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-29 23:44:22 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-30 05:34:11 UTC; unix"
       }
     },
     "powertools": {
@@ -6255,7 +6255,7 @@
       "checksum": "2031d449f5ac1c25b31d297539852018"
     },
     "forms.yaml": {
-      "checksum": "52f1c63f42d96fd7437adc09bf2c5e7a"
+      "checksum": "4a78f5df69472302f55164a7b80d8ad7"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6279,7 +6279,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "de780b49aa5b52444f3233f90897e880"
+      "checksum": "45a61bf554ea7dea5a46d72bea90f359"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6303,7 +6303,7 @@
       "checksum": "4a5faf5a3f91af5bd964461e1f916b43"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "03d583b4dfa73077c064a5b09f6598ea"
+      "checksum": "3e5d17fa0ca198585d32cc439df53b21"
     },
     "tests/testthat/setup.R": {
       "checksum": "866c64e247cc3cb02f696a9f33f44925"
@@ -6318,7 +6318,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "b9c9a7fa4694bb1daefbe243260b8378"
+      "checksum": "8b0141144c3e52015483c27d7db45bae"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "b48434bc13478afec945f14373895fed"
@@ -6336,10 +6336,10 @@
       "checksum": "a9a31998e47d1aadda8f3b0841c2f727"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "975de53c8ce59ce5b3de0e9ed9c2dd10"
+      "checksum": "fe3681f63163a5e6d372cbbfed0c4342"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "e4a15053cafae0c232f96d1aa0583258"
+      "checksum": "3aa81bf93bf2294da3f3105ca41dc420"
     },
     "tests/testthat/test-tree.R": {
       "checksum": "bcf4d808d303c2329437a0b2215dd0bb"
@@ -6357,7 +6357,7 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "abc611bc69d2e58ab006e9894fb085dc"
+      "checksum": "085d2cd536985a2328b61eecbe0374b5"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -6372,7 +6372,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "a14019888ce02380253b9d6baca4151f"
+      "checksum": "da8d89dcf61fbde0a25763689dc1af55"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
