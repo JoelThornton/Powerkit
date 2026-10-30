@@ -44,11 +44,24 @@ pwrss_script_inputs <- function(spec) {
         sprintf("levels <- c(%d, %d) # levels of %s (A) and %s (B)", design$levels[1], design$levels[2],
           comment_text(v$A$label), comment_text(v$B$label))
       }
+      if (isTRUE(design$mixed)) {
+        factors <- sprintf("levels <- c(%d, %d) # groups (between participants) and measurements (within): %s, %s",
+          design$levels[1], design$levels[2],
+          if (design$levels[1] == 1) "one group" else comment_text(v$A$label),
+          comment_text(if (identical(spec$template, "oneway_within")) v$A$label else v$B$label))
+      }
       c(
         sprintf("eta_squared <- %s # partial eta-squared of the effect tested, taken as the population value (as in G*Power)",
           r_code(pop$eta_squared)),
         factors,
-        if (!is.null(design$target)) sprintf("effect <- %s # the effect tested: A, B or the interaction A:B", r_code(design$target))
+        if (isTRUE(design$mixed)) {
+          if (identical(pop$eta_source, "published")) {
+            "rho <- NA # NA: the eta-squared is as a repeated-measures ANOVA reports it, so it already reflects the correlation"
+          } else {
+            sprintf("rho <- %s # correlation between measurements (the eta-squared doesn't include it, as in G*Power)", r_code(pop$r))
+          }
+        },
+        if (!is.null(design$target)) sprintf("effect <- %s # the effect tested", r_code(design$target))
       )
     },
     one_proportion = c(
@@ -209,12 +222,20 @@ pwrss_script_inputs <- function(spec) {
 pwrss_script_call_lines <- function(spec, inputs) {
   call <- switch(
     pwrss_key(spec),
-    anova_eta_squared = list(head = "power.f.ancova( # the ANOVA F test from its partial eta-squared", args = c(
-      "eta.squared = eta_squared", "factor.levels = levels",
-      if (!is.null(eta_anova_design(spec)$target)) "target.effect = effect",
-      "k.covariates = 0 # no covariates", "n.total = n_total # equal groups", "alpha = alpha",
-      "ceil.n = FALSE", "verbose = 0"
-    )),
+    anova_eta_squared = if (isTRUE(eta_anova_design(spec)$mixed)) {
+      list(head = "power.f.mixed.anova( # repeated-measures or mixed ANOVA from its partial eta-squared", args = c(
+        "eta.squared = eta_squared", "factor.levels = levels", "rho.within = rho",
+        "epsilon = 1 # sphericity assumed", "n.total = n_total # equal groups", "alpha = alpha",
+        "effect = effect", "ceil.n = FALSE", "verbose = 0"
+      ))
+    } else {
+      list(head = "power.f.ancova( # the ANOVA F test from its partial eta-squared", args = c(
+        "eta.squared = eta_squared", "factor.levels = levels",
+        if (!is.null(eta_anova_design(spec)$target)) "target.effect = effect",
+        "k.covariates = 0 # no covariates", "n.total = n_total # equal groups", "alpha = alpha",
+        "ceil.n = FALSE", "verbose = 0"
+      ))
+    },
     one_proportion = list(head = "power.exact.oneprop( # exact binomial test", args = c(
       "prob = p", "null.prob = p0", "n = n_total", "alpha = alpha",
       "alternative = alternative", "verbose = 0"

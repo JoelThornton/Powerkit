@@ -355,7 +355,12 @@ safeguard_fields <- function(template) {
 # the engine then uses pwrss's F test), which hides the means and the SDs
 # and shows the partial eta-squared instead. The test version stays: the
 # engine explains that Welch's F and the Kruskal-Wallis test need means.
-eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between")
+eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between", "oneway_within", "2x2_mixed", "mixed")
+# Repeated-measures and mixed ANOVA: partial eta-squared means different
+# things there, so the screen asks which kind it is (required, no default)
+# and, for an effect size planned the G*Power way, the correlation between
+# measurements.
+eta_squared_mixed_templates <- c("oneway_within", "2x2_mixed", "mixed")
 
 with_eta_squared <- function(group, template) {
   if (!isTRUE(template %in% eta_squared_templates)) return(group)
@@ -366,11 +371,20 @@ with_eta_squared <- function(group, template) {
     }
     f
   }
+  mixed <- template %in% eta_squared_mixed_templates
+  by_effect <- list(field = "metric", is = "eta_squared")
   fields <- list()
   for (f in group$fields) {
     if (identical(f$id, "metric")) {
       f$choices <- c(f$choices, list(eta_squared = "An effect size: partial eta-squared, as in G*Power"))
-      fields <- c(fields, list(f, list(
+      source <- if (mixed) list(list(
+        id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
+        path = "population.eta_source", shown_if = by_effect,
+        choices = list(published = "A published repeated-measures or mixed ANOVA (as SPSS, R or JASP report it)",
+                       planned = "An effect size planned the G*Power way, without the correlation"),
+        help = paste("The two are different numbers for the same study. A published value already includes the correlation",
+                     "between measurements. G*Power's default effect size doesn't, so you then give the correlation as well.")))
+      fields <- c(fields, list(f), source, list(list(
         id = "eta_squared", label = "Partial eta-squared of the effect you test", writeup_label = "partial eta-squared",
         type = "number", path = "population.eta_squared", effect = TRUE, min_exclusive = 0, max_exclusive = 1,
         shown_if = list(field = "metric", is = "eta_squared"),
@@ -380,6 +394,18 @@ with_eta_squared <- function(group, template) {
       )))
     } else {
       fields <- c(fields, list(hide(f)))
+    }
+  }
+  if (mixed) {
+    at <- which(vapply(fields, function(f) identical(f$id, "eta_squared"), logical(1)))
+    if (length(at) == 1) {
+      fields[[at]]$help <- paste("The partial eta-squared of the effect you test. powerkit treats it as the true effect, as G*Power does;",
+        "a published value tends to be too large. Groups are equal in size, and sphericity is assumed.")
+      fields <- append(fields, list(list(
+        id = "eta_r", label = "Correlation between measurements (the same for every pair)", writeup_label = "correlation between measurements",
+        type = "number", path = "population.r", required = TRUE, min = -1, max = 1, in_effect_text = TRUE,
+        shown_if = list(by_effect, list(field = "eta_source", is = "planned"))
+      )), after = at)
     }
   }
   group$fields <- fields
@@ -399,7 +425,10 @@ conversion_choices <- list(
   correlation = c("t", "F", "d", "odds_ratio"),
   oneway_between = c("F", "f"),
   "2x2_between" = c("F", "f"),
-  factorial_between = c("F", "f")
+  factorial_between = c("F", "f"),
+  oneway_within = "F",
+  "2x2_mixed" = "F",
+  mixed = "F"
 )
 
 conversion_labels <- list(
@@ -416,7 +445,10 @@ conversion_fields <- function(template, when = list()) {
   if (isTRUE(template %in% eta_squared_templates)) labels$F <- "An F statistic, with its two degrees of freedom"
   choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
-  planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))))
+  planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
+    # A published F from a repeated-measures ANOVA gives its own kind of
+    # partial eta-squared, so it is offered only for that kind.
+    if (isTRUE(template %in% eta_squared_mixed_templates)) list(list(field = "eta_source", is = "published")))
   converting <- c(planning, list(list(field = "conv_from", is_one_of = from)))
   Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",

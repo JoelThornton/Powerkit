@@ -67,3 +67,30 @@ test_that("factorial ANOVA interaction from its effect size: matches the G*Power
   # up to a multiple of the number of cells.
   expect_equal(engine_n_required(spec)$n, prod(levels) * ceiling(published_n / prod(levels)))
 })
+
+test_that("repeated-measures ANOVA from its effect size: matches the G*Power 3.1 manual example (published)", {
+  skip_unless_full_validation()
+  # Source to transcribe: the G*Power 3.1 manual's "F test: Repeated measures,
+  # within factors" example (its effect size f, number of groups, number of
+  # measurements, correlation among repeated measures, nonsphericity
+  # correction 1, alpha, power and total sample size). G*Power's f there
+  # leaves out the correlation, so the spec uses eta_source "planned" with r.
+  f <- TODO_PUBLISHED_VALUE # effect size f
+  measurements <- TODO_PUBLISHED_VALUE # number of measurements
+  r <- TODO_PUBLISHED_VALUE # corr among rep measures
+  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
+  target_power <- TODO_PUBLISHED_VALUE # power (1 - beta err prob)
+  published_n <- TODO_PUBLISHED_VALUE # total sample size
+  skip_if_todo(f, measurements, r, alpha, target_power, published_n)
+
+  v <- validation_variable
+  spec <- validation_spec(
+    design = "factorial_anova", template = "oneway_within",
+    variables = list(A = v("within_factor", "Condition", levels = lapply(seq_len(measurements), function(i) paste("Time", i))),
+                     Y = v("continuous", "Outcome")),
+    population = list(metric = "eta_squared", eta_squared = f^2 / (1 + f^2), eta_source = "planned", r = r),
+    target_test = list(effect = "main_effect_A", method = "anova_f", alpha = alpha),
+    seed = 303, target_power = target_power
+  )
+  expect_equal(engine_n_required(spec)$n, published_n)
+})

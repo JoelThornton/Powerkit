@@ -3613,3 +3613,31 @@ which need means; the smallest detectable effect on this route.
 have, or says why it can't (`adding-a-test.md`, "What added means",
 item 5).
 
+## 2026-10-30 · Repeated-measures and mixed ANOVA from its effect size, and the study plan
+
+**Repeated measures.** The one-way repeated-measures, 2 x 2 mixed and
+larger mixed ANOVA cards also take partial eta-squared, through pwrss's
+`power.f.mixed.anova()`. Partial eta-squared means different things here:
+as a repeated-measures ANOVA reports it (SPSS, R, JASP) it already
+reflects the correlation between measurements; G\*Power's default effect
+size doesn't. pwrss takes both (`rho.within = NA` for the first, the
+correlation for the second), and on its own example the two give the same
+answer for the same study. The screen asks which kind it is, required and
+with no default, so neither tool's default is followed silently; a
+published F converts only into the published kind. Sphericity is assumed
+(the corrections are a separate queue item).
+
+**The study plan (judgement call D5).** "Plan my whole study" and "Help me
+choose" stay separate jobs, but the plan becomes something any card can
+join: "Add this to a study plan" on every card, so studies with nested or
+repeated data can plan several analyses, each on its own card. The joint
+power is given only where a package computes it, otherwise left out with
+a note. Queued in `next.md`.
+
+**Latent profile and class analysis.** Not the latent regression powerkit
+runs (semPower); its sample-size question is whether the right number of
+profiles can be found and people assigned to them reliably, usually
+planned from published simulation studies rather than a power function.
+A card explaining this and pointing to that guidance, once the sources are
+in `refs.bib`, unless a package turns up. Queued in `next.md`.
+

@@ -1513,6 +1513,31 @@ test_that("between-participants ANOVA by its effect size: partial eta-squared, o
   expect_equal(calc$result$effect_conversion$converted, effectsize::F_to_eta2(4.2, 2, 114)[[1]])
 })
 
+test_that("repeated-measures and mixed ANOVA by effect size: the screen asks which kind of partial eta-squared", {
+  for (ep in c("E54", "E8", "E55")) {
+    fields <- form_fields(form_groups(forms, ep))
+    ids <- vapply(fields, `[[`, "", "id")
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    expect_identical(ids[match("metric", ids) + 1:2], c("eta_source", "eta_squared"), label = ep)
+    source <- by_id("eta_source")
+    expect_true(isTRUE(source$required), label = ep)
+    expect_null(source$default, label = ep)
+    effect <- list(metric = "eta_squared", goal = "power")
+    expect_false(field_applies(by_id("eta_r"), c(effect, list(eta_source = "published"))), label = ep)
+    expect_true(field_applies(by_id("eta_r"), c(effect, list(eta_source = "planned"))), label = ep)
+    # A published F only for the published kind.
+    expect_false(field_applies(by_id("conv_from"), c(effect, list(eta_source = "planned"))), label = ep)
+    expect_true(field_applies(by_id("conv_from"), c(effect, list(eta_source = "published"))), label = ep)
+  }
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E8"))
+  values <- modifyList(form_examples$E8, list(metric = "eta_squared", eta_source = "planned", eta_squared = "0.022", eta_r = "0.5",
+    effect = "interaction", goal = "power", n = "90"))
+  calc <- run_calculation(build_spec(forms, "E8", fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.mixed.anova")
+})
+
 test_that("three effects side by side: conservative, the plan's and optimistic", {
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
   spec$target_test$method <- "student_t"

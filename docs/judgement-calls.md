@@ -1222,21 +1222,7 @@ Setting `guided_route` records it.
 
 ### D5. What the guided route covers (open question 14)
 
-- **Question:** what does the guided route do with repeated measures,
-  many stimuli or nested data? Now the screening stops nested data,
-  stimuli and measurements over time before it, and three or more
-  conditions per person go to "Help me choose".
-- **Options:**
-  - send users to "Help me choose" (as now);
-  - extend the guided route;
-  - say on the start screen that it is for single-session,
-    between-person studies.
-- **What tools and sources do:** no source applies (unsourced).
-- **Who might disagree, and why:**
-  - Extending it covers more studies but multiplies the routes to keep
-    consistent (C8).
-- **Knock-on effects:** C18 (SEM in the guided route).
-- **Recorded in:** open question 14; setting `guided_scope`.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#d5-what-the-guided-route-covers-open-question-14). Setting `guided_scope`.
 
 ### D6. Consistency between hypotheses (open question 12)
 

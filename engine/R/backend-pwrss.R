@@ -101,8 +101,12 @@ pwrss_backend <- function(spec, seed = NULL) {
 # effect tested (G*Power's input) rather than by group means.
 eta_squared_anova <- function(spec) {
   identical(spec$design, "factorial_anova") && identical(spec$population$metric, "eta_squared") &&
-    spec$template %in% c("oneway_between", "2x2_between", "factorial_between")
+    spec$template %in% c("oneway_between", "2x2_between", "factorial_between", eta_squared_mixed_templates)
 }
+
+# Repeated-measures and mixed ANOVA (factor A between, B within, or one
+# within factor): pwrss's power.f.mixed.anova().
+eta_squared_mixed_templates <- c("oneway_within", "2x2_mixed", "mixed")
 
 # The key each switch in this adapter dispatches on: the template, or
 # "anova_eta_squared" for an ANOVA given by its partial eta-squared.
@@ -112,6 +116,19 @@ pwrss_key <- function(spec) if (eta_squared_anova(spec)) "anova_eta_squared" els
 # power.f.ancova(): one factor (no target needed), or two (A, B or A:B).
 eta_anova_design <- function(spec) {
   k <- length(spec$variables$A$levels)
+  if (identical(spec$template, "oneway_within")) {
+    return(list(levels = c(1, k), target = "within", df = k - 1, mixed = TRUE))
+  }
+  if (spec$template %in% eta_squared_mixed_templates) {
+    m <- length(spec$variables$B$levels)
+    effect <- spec$target_test$effect %||% "interaction"
+    return(list(
+      levels = c(k, m),
+      target = switch(effect, main_effect_A = "between", main_effect_B = "within", interaction = "interaction"),
+      df = switch(effect, main_effect_A = k - 1, main_effect_B = m - 1, interaction = (k - 1) * (m - 1)),
+      mixed = TRUE
+    ))
+  }
   if (identical(spec$template, "oneway_between")) {
     return(list(levels = k, target = NULL, df = k - 1))
   }
@@ -153,7 +170,23 @@ pwrss_inputs <- function(spec) {
   alternative <- pwrss_alternative(spec)
   call <- switch(
     pwrss_key(spec),
-    anova_eta_squared = {
+    anova_eta_squared = if (isTRUE(eta_anova_design(spec)$mixed)) {
+      design <- eta_anova_design(spec)
+      # 'published': partial eta-squared as a repeated-measures ANOVA reports
+      # it (SPSS, R, JASP), which already reflects the correlation between
+      # measurements, so pwrss doesn't adjust it (rho.within = NA).
+      # 'planned': G*Power's default, without the correlation, which pwrss
+      # then takes from rho.within.
+      rho <- if (identical(pop$eta_source, "published")) NA else pop$r
+      list(
+        fun = "power.f.mixed.anova",
+        design = design,
+        args = function(n) list(
+          eta.squared = pop$eta_squared, factor.levels = design$levels, rho.within = rho, epsilon = 1,
+          n.total = n, alpha = alpha, effect = design$target, ceil.n = FALSE, verbose = 0
+        )
+      )
+    } else {
       design <- eta_anova_design(spec)
       list(
         fun = "power.f.ancova",
@@ -393,12 +426,21 @@ pwrss_check_run <- function(spec, inputs) {
       # pwrss's own result: the df of the effect it tested, and Cohen's f^2
       # recovered from its noncentrality (lambda = f^2 * N, as in G*Power).
       out <- pwrss_output(inputs$fun, args)
-      rbind(
-        row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
-        row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
-        row("Cohen's f^2 = eta^2 / (1 - eta^2), from pwrss's noncentrality / N",
-            pop$eta_squared / (1 - pop$eta_squared), out$ncp / args$n.total)
-      )
+      if (isTRUE(eta_anova_design(spec)$mixed)) {
+        rbind(
+          row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
+          row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
+          row("correlation between measurements passed to pwrss (rho.within; NA = already in the eta-squared)",
+              if (identical(pop$eta_source, "published")) NA_real_ else pop$r, as.numeric(args$rho.within))
+        )
+      } else {
+        rbind(
+          row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
+          row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
+          row("Cohen's f^2 = eta^2 / (1 - eta^2), from pwrss's noncentrality / N",
+              pop$eta_squared / (1 - pop$eta_squared), out$ncp / args$n.total)
+        )
+      }
     },
     one_proportion = rbind(
       row("p passed to pwrss (prob)", pop$p, args$prob),
