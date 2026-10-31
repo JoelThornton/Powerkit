@@ -10,12 +10,12 @@ exists.** Engine code alone is not an added test. Everything in "What
 'added' means" below happens in the same pull request, so the app is never
 behind the engine.
 
-`CLAUDE.md` also asks for one design per PR and a few hundred lines where
-possible. If a batch is too big, **split it by design, never by layer**:
-two complete designs in two PRs, not one PR of engine code and another of
-cards. Splitting by layer is what left five designs in the engine with no
-way to reach them. Where the two rules pull against each other,
-completeness wins and the PR is a little longer.
+`CLAUDE.md` asks for one pull request per group of related work (several
+related designs can share one). If a batch is too big to review in one,
+**split it by design, never by layer**: two complete designs in two PRs,
+not one PR of engine code and another of cards. Splitting by layer is what
+left five designs in the engine with no way to reach them. Completeness
+always wins over size.
 
 "Run it" does not always mean "in the browser". For a design whose power
 has to be simulated, the honest answer is often a short R script the

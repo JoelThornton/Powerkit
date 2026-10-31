@@ -10,7 +10,8 @@ project is, this says what to do.*
 2. If an item says *Needs a decision*, it is not yours to start: say what
    the decision is and move to the next Ready item, or ask the maintainer.
 3. Follow [`adding-a-test.md`](adding-a-test.md) for anything that adds a
-   power analysis. One item per PR.
+   power analysis. One item, or a group of closely related ones, per PR
+   (`CLAUDE.md`, "Working process").
 4. When an item lands, delete its row and say so in `status.md`.
 5. **Check the top item still makes sense before starting.** This page is
    dated; a queue written three weeks ago can be stale, and the

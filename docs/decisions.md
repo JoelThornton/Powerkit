@@ -3682,7 +3682,7 @@ s(N - k - p + s).
 
 **t and F into d or d_z.** From 0.24.1 these use psych's `t2d()`, the
 exact relation (d = t / sqrt(n) for one group or pairs, t sqrt(1 / n1 +
-1 / n2) for two groups), not effectsize's `t_to_d()` and `F_to_d()`, which
+1 / n2) for two groups; Lakens, 2013, equations 7 and 2), not effectsize's `t_to_d()` and `F_to_d()`, which
 put the error df where n belongs and assume equal groups: 2.6% larger d
 for one group of 20, and 11% smaller for groups of 10 and 30
 (`conventions.md`, "Effect-size conversion"). The independent t-test's
@@ -3697,6 +3697,13 @@ needs the population, and an effect size doesn't determine one. With two
 groups the power depends only on the Mahalanobis distance, so a distance
 input could be built as the validation tests build their populations;
 left for the follow-up in `next.md`.
+
+**Pull requests: one group of related work, not one item.** A pull
+request holds one group of related work that can be described in a
+sentence: a queue item, a design with its follow-ups, or one review's
+fixes (such as 0.24.1). Unrelated changes still go apart, docs go with
+the change they describe, and a group too big to review is split by
+design or fix, never by layer (`CLAUDE.md`, "Working process").
 
 **Reproducing a saved project.** A simulation that isn't run in batches
 (Spower, simr, InteractionPoweR) draws one random stream per core, so the same seed gives a
