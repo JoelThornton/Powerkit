@@ -373,7 +373,23 @@ nodes:
     doc_id: S4
     text: "How are the data grouped? (answered by S2)"
     branch_on: grouping
-    routes: {independent: continue, clusters: E34}
+    routes: {independent: continue, clusters: s4_clusters_outcome}
+  # E62 takes a score outcome; other outcomes go straight to E34, which
+  # also covers yes/no outcomes.
+  s4_clusters_outcome:
+    doc_id: S4
+    text: "What is your outcome like? (answered by S1)"
+    branch_on: outcome
+    routes: {score: c1, yesno: E34, count: E34, ordinal: E34}
+  # People within groups (31 October 2026): conditions given to groups or to
+  # people in them (E34), or relationships with predictors measured on the
+  # people and on the groups (E62).
+  c1:
+    doc_id: C1
+    text: "What does your main hypothesis involve?"
+    options:
+      - {label: "Conditions or treatments given to whole groups, or to people within the groups", next: E34, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
+      - {label: "Something measured on each person, or on each group, and how it relates to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
   # Equivalence for grouped data goes to the grouped card, which says it
   # isn't covered yet: the equivalence card assumes separate people.
   s4_equivalence:
@@ -1408,6 +1424,22 @@ endpoints:
       - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
     tier: later
+  E62:
+    doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
+    plain_name: "People in groups: how something measured on each person, or on each group, relates to the outcome"
+    template: "mixed_model / two_level"
+    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | group), each effect tested with lmerTest's Satterthwaite t test (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-two-level.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each effect, recovers every effect and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "People nested in groups, such as pupils in classes or employees in teams, with a predictor measured on each person (X) and one measured on each group (W)."
+      - "Tests X's effect within groups, W's effect between groups, or the cross-level interaction: whether X's effect depends on W."
+      - "You give each effect in the outcome's units per SD of the predictor, how much groups differ in their average and in X's effect, the residual SD, and the number of people in each group."
+      - "Simulated with simr, as for crossed participants and items, so the answer carries a little random error. X is centred within each group; the groups are the same size."
+    inputs: ["The outcome, the person-level predictor and the group-level predictor", "Each effect, how much the groups differ, and the residual SD", "The number of people in each group, and the effect to test"]
+    tier: v2
+    alternatives: ["a cluster-randomised or multisite trial, if groups or people were assigned to conditions", "a regression ignoring the groups, which overstates the evidence when people in a group are alike"]
   E42:
     doc_name: "Mediation with a condition of three or more groups (multi-category X)"
     plain_name: "Mediation where X has three or more conditions or groups"
@@ -1917,7 +1949,7 @@ analysis_families:
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E33, E34, E41, E35, E45, E44]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E34, E41, E35, E45, E44]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}

@@ -13,7 +13,7 @@ population_problems <- function(spec) {
       if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
     },
     ordinal_regression = check_ordinal_two_groups,
-    mixed_model = check_crossed_two_condition,
+    mixed_model = function(spec) if (identical(spec$template, "two_level")) character() else check_crossed_two_condition(spec),
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -1856,7 +1856,8 @@ minimum_n <- function(spec) {
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
-    mixed_model = 6,
+    # Two-level: at least ten groups, for the groups' variances.
+    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     meta_analysis = 2,
@@ -1899,6 +1900,10 @@ group_split <- function(spec) {
   }
   if (spec$template == "tost_two_proportions") {
     return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
+  }
+  if (identical(spec$template, "two_level")) {
+    m <- spec$population$cluster_size
+    return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
     k <- length(spec$variables$A$levels)
@@ -2007,7 +2012,11 @@ target_effect_is_zero <- function(spec) {
       log(pop$odds_ratio)
     },
     ordinal_regression = log(pop$odds_ratio),
-    mixed_model = pop$difference,
+    mixed_model = if (identical(spec$template, "two_level")) {
+      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+    } else {
+      pop$difference
+    },
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice for model fit: the schema refuses it, as

@@ -70,6 +70,21 @@ Fixes from a review of 0.25.0, and its follow-ups.
 
 # powerkit 0.25.0
 
+* Two-level model (E62, design `mixed_model`, template `two_level`):
+  people within groups, with a predictor measured on each person (X), one
+  measured on each group (W) and their cross-level interaction, fitted
+  by simr's `powerSim()` on `y ~ x + w + x:w + (1 + x | group)` and each
+  effect tested by lmerTest's Satterthwaite t test (`target_test >
+  effect` "within_effect", "between_effect" or
+  "cross_level_interaction"). The inputs are each effect per SD of its
+  predictor, the SDs of the groups' averages and of their X effects and
+  the correlation between them, the residual SD and the group size; n is
+  the number of people, a whole number of groups. Agrees with a
+  separately written simulation (MASS and lmerTest), with the Type I
+  error near alpha; published value to come. App: a new question for
+  people within groups (C1) separates conditions given to groups (E34)
+  from measured predictors at either level (E62); outcomes other than
+  scores still go to E34.
 * Whole-study simulation (experimental): X may be two groups or
   conditions (`variables > X > type` "binary", `population > x_prob`, the
   share in the second group, 0.5 by default), drawn by power4mome's

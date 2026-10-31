@@ -7,18 +7,21 @@
   "example": "We will compare a new reading programme with usual teaching in 20 primary-school classes, about 25 pupils per class. Each pupil's reading score is measured once, at the end of the year.",
   "choose": [
    "A score or scale",
-   "People within groups"
+   "People within groups",
+   "Conditions or treatments given to whole groups, or to people within the groups"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "People within groups"
+    "People within groups",
+    "Conditions or treatments given to whole groups, or to people within the groups"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "People within groups"
+    "People within groups",
+    "Conditions or treatments given to whole groups, or to people within the groups"
    ]
   },
   "reaches": {
@@ -66,18 +69,21 @@
   "example": "Twelve GP practices will be randomly assigned to offer a brief anxiety leaflet or not, and patients' anxiety will be measured a month later. Whole practices, not individual patients, are assigned.",
   "choose": [
    "A score or scale",
-   "People within groups"
+   "People within groups",
+   "Conditions or treatments given to whole groups, or to people within the groups"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "People within groups"
+    "People within groups",
+    "Conditions or treatments given to whole groups, or to people within the groups"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "People within groups"
+    "People within groups",
+    "Conditions or treatments given to whole groups, or to people within the groups"
    ]
   },
   "reaches": {
