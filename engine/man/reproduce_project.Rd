@@ -18,5 +18,7 @@ and \code{differences} (plain-English lines, empty when the same).
 }
 \description{
 Runs the project's spec with \code{\link[=run_spec]{run_spec()}} (same seed) and compares the
-numbers with those saved in the file.
+numbers with those saved in the file. A simulation that isn't run in
+batches draws its replications in one stream per core, so it is run on
+the number of cores the file records, whatever \code{powerkit.cores} says.
 }

@@ -151,7 +151,9 @@ read_project <- function(x) {
 #' Run a saved project again and compare with its saved result
 #'
 #' Runs the project's spec with [run_spec()] (same seed) and compares the
-#' numbers with those saved in the file.
+#' numbers with those saved in the file. A simulation that isn't run in
+#' batches draws its replications in one stream per core, so it is run on
+#' the number of cores the file records, whatever `powerkit.cores` says.
 #'
 #' @param project A project from [read_project()].
 #' @param tolerance Largest relative difference counted as the same.
@@ -163,6 +165,11 @@ read_project <- function(x) {
 reproduce_project <- function(project, tolerance = 1e-10) {
   if (!inherits(project, "powerkit_project")) {
     abort_project("'project' should come from read_project().")
+  }
+  cores <- saved_cores(project$result)
+  if (!is.na(cores)) {
+    old <- options(powerkit.cores = cores)
+    on.exit(options(old), add = TRUE)
   }
   result <- run_spec(project$spec)
   if (is.null(project$result)) {
@@ -180,6 +187,12 @@ reproduce_project <- function(project, tolerance = 1e-10) {
     if (!isTRUE(all.equal(a, b, tolerance = tolerance, check.attributes = FALSE))) {
       differences <- c(differences, sprintf("%s differs from the saved result.", name))
     }
+  }
+  if (length(differences) > 0 && is.na(cores) && identical(project$result$provenance$method, "simulation")) {
+    differences <- c(differences, paste(
+      "This file doesn't record how many cores the simulation ran on (powerkit before 0.24.1 didn't save it);",
+      "a simulated result is reproduced only on the same number. Try options(powerkit.cores = 1), the app's setting."
+    ))
   }
   list(result = result, same = length(differences) == 0, differences = differences)
 }
@@ -215,13 +228,20 @@ result_record <- function(result) {
     check_run_passed = all(result$check_run$ok),
     provenance = c(
       result$provenance[c(
-        "spec_hash", "method", "seed", "nrep", "backend", "backend_function",
+        "spec_hash", "method", "seed", "nrep", "cores", "backend", "backend_function",
         "r_version", "started"
       )],
       # A named list, so the JSON keeps the package names.
       list(packages = as.list(result$provenance$packages))
     )
   )
+}
+
+# The number of cores a saved simulation ran on, or NA (an exact result,
+# or a file saved before powerkit recorded it).
+saved_cores <- function(record) {
+  cores <- suppressWarnings(as.integer(record$provenance$cores %||% NA_integer_))
+  if (length(cores) != 1 || is.na(cores) || cores < 1) NA_integer_ else cores
 }
 
 # The numbers a reproduction must match.
