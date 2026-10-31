@@ -10,11 +10,11 @@ test_that("the whole-study simulation covers measured predictors and score outco
   expect_equal(vapply(plan$analyses, function(a) a$role, ""), c("main", "main", "extra"))
   expect_equal(plan$roles, c("X", "W", "M", "Y"))
 
-  # A two-group condition is not covered yet; the reason is given.
-  other <- modifyList(ws_answers, list(x = "cond2"))
+  # Three or more groups are not covered yet; the reason is given.
+  other <- modifyList(ws_answers, list(x = "cond3"))
   plan <- whole_study_plan(tree, other, c("compare", "mediation"), "compare", list())
   expect_false(plan$ok)
-  expect_true(any(grepl("measured score", plan$reasons, fixed = TRUE)))
+  expect_true(any(grepl("two groups or conditions", plan$reasons, fixed = TRUE)))
 
   # No main analysis.
   plan <- whole_study_plan(tree, ws_answers, "compare", character(), list())
@@ -159,4 +159,20 @@ test_that("long waits are given in hours", {
   expect_equal(whole_study_duration(600), "about 10 minutes")
   expect_equal(whole_study_duration_range(c(100 * 60, 2.8 * 3600)), "about 1.5 to 3 hours")
   expect_equal(whole_study_duration_range(c(40 * 60, 2 * 3600)), "about 40 minutes to 2 hours")
+})
+
+test_that("two groups or conditions: the group comparison, moderation and mediation are simulated together (next.md item 1)", {
+  answers <- modifyList(ws_answers, list(x = "cond2"))
+  plan <- whole_study_plan(tree, answers, c("compare", "mediation", "moderation"), c("compare", "moderation"), list())
+  expect_true(plan$ok)
+  expect_true(plan$binary_x)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_y", "indirect", "interaction"))
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list()))
+  expect_identical(skeleton$variables$X$type, "binary")
+  expect_identical(skeleton$variables$W$type, "continuous")
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  # The engine doesn't ask for the correlation of the groups with W: it is 0.
+  params <- params_of(skeleton)
+  expect_false("X<->W" %in% params$correlations)
 })
