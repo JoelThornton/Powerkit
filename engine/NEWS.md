@@ -3,7 +3,7 @@
 * Effect-size conversion: a t statistic, or an F with one numerator df,
   is converted into Cohen's d or d_z by psych's `t2d()`, the exact
   relation (d = t / sqrt(n) for one group or pairs, t sqrt(1 / n1 + 1 / n2)
-  for two groups), instead of effectsize's `t_to_d()` and `F_to_d()`, which
+  for two groups; Lakens, 2013, now in `refs.bib`), instead of effectsize's `t_to_d()` and `F_to_d()`, which
   divide by the error df and assume equal groups (`conventions.md`,
   "Effect-size conversion": 2.6% larger d for one group of 20, 11% smaller
   for groups of 10 and 30). `conversion > n1` and `n2` now enter a t or F

@@ -3,7 +3,8 @@
 # uses, with the effectsize package (Ben-Shachar, Lüdecke & Makowski,
 # 2020), except t and F into d or d_z, which use psych's t2d(): the exact
 # relation, d = t / sqrt(n) for one group or pairs and
-# d = t sqrt(1 / n1 + 1 / n2) for two groups (effectsize's t_to_d() puts
+# d = t sqrt(1 / n1 + 1 / n2) for two groups (Lakens, 2013, equations 7
+# and 2; refs.bib Lakens2013_effectsizes; effectsize's t_to_d() puts
 # the error df in place of n, and assumes equal groups; conventions.md,
 # "Effect-size conversion"). The spec records what was converted in
 # 'effect_justification > conversion'; validate_spec() puts the converted

@@ -465,8 +465,8 @@ conversion_fields <- function(template, when = list()) {
   c(Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
-         help = paste("powerkit converts it with the psych package (a t or F statistic) or the effectsize package",
-                      "(Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
+         help = paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
+                      "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
                       "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
                       "from one study.")),
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,

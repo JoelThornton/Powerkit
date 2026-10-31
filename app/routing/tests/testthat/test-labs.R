@@ -175,7 +175,7 @@ test_that("plan from a published result: the engine converts and gives the safeg
   out <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "2.5", pub_df = "58",
     pub_n1 = "30", pub_n2 = "30", pub_protection = "0.8"), convert, safeguard)
   expect_length(out$problems, 0)
-  expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d().", fixed = TRUE)
+  expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
   expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
   expect_match(out$lines[2], "for an 80% chance", fixed = TRUE)

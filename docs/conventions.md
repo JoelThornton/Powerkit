@@ -422,6 +422,9 @@ for the maintainer, not yet made.
 These are the definitions: a one-sample or paired t is the mean (of the
 differences) over its standard error, sd / sqrt(n), so d = t / sqrt(n)
 exactly; for two groups the standard error is sd sqrt(1 / n1 + 1 / n2).
+They are Lakens's (2013) equations 7 and 2, the first after Rosenthal
+(1991), with 2t / sqrt(N) when only the total is known (refs.bib,
+`Lakens2013_effectsizes`, checked against the full text).
 effectsize's `t_to_d()` puts the error df where n belongs, which gives a
 slightly larger d, and assumes equal groups. Its size, from
 `test-effect-conversion.R`: one group of 20 with t = 3 gives 0.671 here

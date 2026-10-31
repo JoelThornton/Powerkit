@@ -756,6 +756,9 @@ conversion_package_text <- function(package, function_used) {
   fun <- sub("\\(.*", "", sub("^[A-Za-z.]+::", "", function_used))
   if (identical(package, "effectsize")) {
     sprintf("with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)", fun)
+  } else if (identical(fun, "t2d")) {
+    # The formulas are Lakens's (2013, equations 2 and 7; refs.bib).
+    sprintf("with the psych package's %s(), by the formula in Lakens (2013)", fun)
   } else {
     sprintf("with the %s package's %s()", package, fun)
   }
