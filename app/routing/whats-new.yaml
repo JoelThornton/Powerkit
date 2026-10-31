@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "More simulated data sets"
+    text: >-
+      The simulated data set download now covers MANOVA, one group's several
+      outcomes against fixed values, and the one-way ANCOVA, where one
+      covariate stands for all of yours; the page says so beside the download.
+  - date: "2026-10-31"
     title: "Friedman's test, and rank correlations for skewed data"
     text: >-
       The one-way repeated-measures card now calculates Friedman's test,

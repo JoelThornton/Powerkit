@@ -70,6 +70,26 @@ simulated_data_available <- function(spec) {
   !is.null(simulated_data_code(spec, 100L, 1L))
 }
 
+#' @rdname simulated_data
+#' @return `simulated_data_note()`: a sentence on a choice the data set
+#'   makes that the spec leaves open (for example one covariate standing
+#'   for all of an ANCOVA's covariates), or `NULL`.
+#' @export
+simulated_data_note <- function(spec) {
+  spec <- validate_spec(spec)
+  if (identical(spec$template, "oneway_ancova") && (spec$population$covariates %||% 1) > 1) {
+    return(sprintf(paste0(
+      "The plan has %d covariates; the data set has one, Covariate, carrying all of their R-squared (%s) ",
+      "with the outcome, since the plan doesn't say what they are."),
+      spec$population$covariates, format_number(spec$population$r2_covariates)))
+  }
+  if (identical(spec$template, "oneway_ancova")) {
+    return(sprintf("The covariate, Covariate, is drawn as a standard normal score with R-squared %s with the outcome within each group.",
+      format_number(spec$population$r2_covariates)))
+  }
+  NULL
+}
+
 # R code that builds `simulated` (a data frame) from the spec's
 # population, or NULL when the design has no generator here yet. The code
 # names its packages (pkg::fun) so it runs without powerkit.
@@ -83,7 +103,7 @@ simulated_data_code <- function(spec, n, seed) {
   )
   body <- if (rank_test(spec)) sim_rank_code(spec, n) else switch(
     spec$design,
-    basic_test = sim_basic_code(spec, n) %||% sim_more_basic_code(spec, n),
+    basic_test = sim_basic_code(spec, n) %||% sim_more_basic_code(spec, n) %||% sim_multivariate_code(spec, n),
     equivalence_test = sim_equivalence_code(spec, n),
     logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n) else sim_glm_code(spec, n),
     ordinal_regression = sim_ordinal_code(spec, n),
@@ -96,6 +116,8 @@ simulated_data_code <- function(spec, n, seed) {
       sim_superpower_code(spec, n)
     } else if (identical(spec$template, "oneway_contrast")) {
       sim_contrast_code(spec, n)
+    } else if (identical(spec$template, "oneway_ancova")) {
+      sim_ancova_code(spec, n)
     },
     regression_interaction = if (identical(spec$template, "two_way")) sim_interaction_code(spec, n),
     mediation = ,
@@ -462,6 +484,58 @@ sim_contrast_code <- function(spec, n) {
       "simulated <- data.frame(%s = %s[as.integer(sim$group)], %s = sim$DV)",
       sim_label(spec, "A"), r_code(levels), sim_label(spec, "Y")
     )
+  )
+}
+
+# MANOVA and one-sample Hotelling's T-squared: multivariate normal scores
+# with each group's means (or the one group's), the outcomes' SDs and one
+# correlation between every pair, as manova_scores() draws them; one row
+# per person, one column per outcome.
+sim_multivariate_code <- function(spec, n) {
+  if (!spec$template %in% c("manova", "hotelling_one")) {
+    return(NULL)
+  }
+  pop <- spec$population
+  outcomes <- vapply(manova_outcomes(spec), function(y) sim_label(spec, y), character(1))
+  p <- length(outcomes)
+  manova <- identical(spec$template, "manova")
+  means <- if (manova) manova_means(spec) else matrix(as.numeric(unlist(pop$means)), nrow = 1)
+  k <- nrow(means)
+  per_group <- n %/% k
+  c(
+    sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # one row per %s, one column per outcome",
+      r_code(as.numeric(t(means))), k, if (manova) "group" else "group (here one)"),
+    sprintf("correlation <- matrix(%s, %d, %d)", r_code(pop$r), p, p),
+    "diag(correlation) <- 1",
+    sprintf("sds <- %s", r_code(as.numeric(unlist(pop$sds)))),
+    "sigma <- diag(sds) %*% correlation %*% diag(sds)",
+    sprintf("y <- do.call(rbind, lapply(seq_len(%d), function(g) SimDesign::rmvnorm(%d, means[g, ], sigma)))", k, per_group),
+    "simulated <- data.frame(",
+    if (manova) sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(sim_levels(spec, "A")), per_group),
+    paste0(sprintf("  %s = y[, %d]", outcomes, seq_len(p)), c(rep(",", p - 1), "")),
+    ")"
+  )
+}
+
+# One-way ANCOVA: one covariate carrying all of the covariates' R-squared
+# with the outcome (the spec says how much they explain, not what they
+# are). The covariate is standard normal in every group, as randomisation
+# makes it, so the adjusted means are the group means; within a group the
+# outcome has the unadjusted SD the spec gives (pwrss's sd.vector) and
+# R-squared r2_covariates with the covariate.
+sim_ancova_code <- function(spec, n) {
+  pop <- spec$population
+  levels <- sim_levels(spec, "A")
+  k <- length(levels)
+  per_group <- n %/% k
+  c(
+    sprintf("means <- %s # each group's (adjusted) mean", r_code(as.numeric(unlist(pop$means)))),
+    sprintf("covariate <- stats::rnorm(%d) # one covariate standing for all of them (R-squared %s)", per_group * k, format_number(pop$r2_covariates)),
+    sprintf("group <- rep(seq_len(%d), each = %d)", k, per_group),
+    sprintf("outcome <- means[group] + %s * (sqrt(%s) * covariate + sqrt(1 - %s) * stats::rnorm(%d))",
+      r_code(pop$sd), r_code(pop$r2_covariates), r_code(pop$r2_covariates), per_group * k),
+    sprintf("simulated <- data.frame(%s = %s[group], Covariate = covariate, %s = outcome)",
+      sim_label(spec, "A"), r_code(levels), sim_label(spec, "Y"))
   )
 }
 

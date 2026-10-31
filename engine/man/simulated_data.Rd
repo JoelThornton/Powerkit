@@ -3,11 +3,14 @@
 \name{simulated_data}
 \alias{simulated_data}
 \alias{simulated_data_available}
+\alias{simulated_data_note}
 \title{A simulated data set for a design}
 \usage{
 simulated_data(spec, n, seed = 1, file = NULL)
 
 simulated_data_available(spec)
+
+simulated_data_note(spec)
 }
 \arguments{
 \item{spec}{A design specification (see \code{\link[=read_spec]{read_spec()}}).}
@@ -21,6 +24,10 @@ data, here and in the R script from \code{\link[=export_script]{export_script()}
 }
 \value{
 A data frame (invisibly when \code{file} is given).
+
+\code{simulated_data_note()}: a sentence on a choice the data set
+makes that the spec leaves open (for example one covariate standing
+for all of an ANCOVA's covariates), or \code{NULL}.
 }
 \description{
 Draws one data set of \code{n} participants from the population in a

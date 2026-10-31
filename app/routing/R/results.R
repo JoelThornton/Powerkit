@@ -1812,7 +1812,10 @@ simulated_data_ui <- function(spec, result) {
   div(class = "simulated-data",
     downloadButton("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
     p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
-      "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set."))
+      "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
+      # A choice the data set makes that the plan leaves open (the engine's
+      # simulated_data_note()).
+      tryCatch(engine_function("simulated_data_note")(spec), error = function(e) NULL)))
 }
 
 # The n the simulated data set uses: the required n for a sample-size

@@ -1811,6 +1811,9 @@ test_that("the simulated data set: offered where the engine has a generator, wit
   expect_match(html, "Simulated data set (CSV, n = 128)", fixed = TRUE)
   expect_match(html, "not evidence, not a pilot", fixed = TRUE)
   expect_equal(simulated_data_n_for(spec, list(goal_type = "power")), spec$goal$n %||% NA_real_)
+  # A choice the data set makes that the plan leaves open is said beside it.
+  html <- as.character(simulated_data_ui(spec_at("anova_oneway_ancova"), result))
+  expect_match(html, "The covariate, Covariate, is drawn as a standard normal score", fixed = TRUE)
   html <- as.character(simulated_data_ui(spec_at("sem_model_fit"), result))
   expect_match(html, "A simulated data set isn't available for this design yet.", fixed = TRUE)
   expect_no_match(html, "download_simulated_data", fixed = TRUE)
