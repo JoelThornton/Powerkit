@@ -12,8 +12,10 @@ test_that("nothing is required, scored or marked complete", {
   html <- as.character(labs_ui(tree))
   expect_no_match(html, "aria-required|required=|\\(required\\)", perl = TRUE)
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
-  # The outcome starts unchosen, and all three outcomes are offered.
-  expect_no_match(html, "checked=\"checked\"", fixed = TRUE)
+  # The outcome starts unchosen, and all three outcomes are offered. (The
+  # picture of power's alpha starts at .05, its default.)
+  checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
+  expect_true(all(grepl("name=\"picture_alpha\"", checked, fixed = TRUE)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -100,7 +102,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 3)
+  expect_length(labs_tools, 4)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 
@@ -200,3 +202,25 @@ test_that("plan from a published result: the engine converts and gives the safeg
   expect_match(wide$lines[1], "includes zero", fixed = TRUE)
 })
 
+
+test_that("the picture of power shows the engine's curves and numbers, and computes nothing itself", {
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "Open A picture of power", fixed = TRUE)
+  expect_match(html, "data-display-if=\"input.labs_tool == &#39;picture&#39;\"|data-display-if=\"input.labs_tool == 'picture'\"")
+  picture <- engine_function("power_picture")
+  skip_if(is.null(picture), "powerkit's engine isn't available here")
+  p64 <- picture(64, 0.5, alpha = 0.05)
+  text <- as.character(picture_numbers(p64))
+  expect_match(text, sprintf("%.1f%%", 100 * p64$power), fixed = TRUE)
+  expect_match(text, sprintf("%.3f", p64$d_crit), fixed = TRUE)
+  expect_match(text, "(Lakens, 2013)", fixed = TRUE)
+  # The plot draws without error.
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file)
+  on.exit(unlink(file))
+  expect_no_error(picture_plot(p64))
+  grDevices::dev.off()
+  # Lakens (2013) is in refs.bib.
+  bib <- paste(readLines(file.path(repo_dir, "engine", "inst", "citations", "refs.bib"), encoding = "UTF-8"), collapse = "\n")
+  expect_match(bib, "@Article{Lakens2013_effectsizes", fixed = TRUE)
+})

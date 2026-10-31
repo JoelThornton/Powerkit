@@ -59,7 +59,8 @@ fully validated. Validation runs are recorded in
   (power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
-  notes, the methods map, plan from a published result).
+  notes, the methods map, plan from a published result, a picture of
+  power for the two-group t-test).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 10); E17 on questions for power4mome (item 12); Spower's faults

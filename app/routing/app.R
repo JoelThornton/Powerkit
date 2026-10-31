@@ -1028,6 +1028,20 @@ server <- function(input, output, session) {
       div(class = "result-panel mt-2", role = "status", lapply(out$lines, p))
     })
   })
+  # Labs: the picture of power, from the engine's power_picture().
+  picture <- reactive({
+    tryCatch(engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5),
+      alpha = as.numeric(input$picture_alpha %||% "0.05")), error = function(e) NULL)
+  })
+  output$picture_plot <- renderPlot({
+    req(picture())
+    picture_plot(picture())
+  }, alt = reactive(if (is.null(picture())) "The picture of power" else
+    sprintf("Two t distributions: power is %.1f%% for d = %s with %s participants at alpha = %s.",
+      100 * picture()$power, format(picture()$d), format(picture()$n), format(picture()$alpha))))
+  output$picture_numbers <- renderUI(if (is.null(picture())) {
+    p("The picture needs powerkit's engine.")
+  } else picture_numbers(picture()))
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))

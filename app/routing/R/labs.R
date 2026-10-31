@@ -17,6 +17,8 @@ labs_tools <- list(
        text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
   list(id = "prereplication", title = "Pre-replication notes",
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
+  list(id = "picture", title = "A picture of power",
+       text = "For a two-group t-test: move the sample size and the effect, choose alpha, and see the two t distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
   list(id = "published", title = "Plan from a published result",
        text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
@@ -191,6 +193,7 @@ labs_ui <- function(tree) {
       div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
         "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
       map_ui(tree)),
+    picture_ui(),
     published_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
@@ -456,6 +459,62 @@ published_result <- function(values, convert, safeguard) {
     "more likely to be published. A single study's estimate is also uncertain. The safeguard value allows for the",
     "second; neither number corrects for the first."))
   list(lines = lines, problems = character())
+}
+
+# A picture of power (Labs): the engine's power_picture() gives the curves
+# and the numbers (pwr's power, base R's t densities); the app draws them.
+picture_alphas <- c("0.005", "0.01", "0.05", "0.10")
+
+picture_ui <- function() {
+  conditionalPanel("input.labs_tool == 'picture'",
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
+    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
+      "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t distributions for the curves)."),
+    h3("A picture of power"),
+    p("A two-group t-test with equal groups. The grey curve is the t statistic you would see if there were no effect; the blue curve is the t statistic for the effect you set. A result beyond the dashed lines is significant."),
+    sliderInput("picture_n", "Total number of participants (two equal groups)", min = 10, max = 400, value = 64, step = 2, width = "100%"),
+    sliderInput("picture_d", "Cohen's d in the population", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%"),
+    radioButtons("picture_alpha", "Alpha", choices = picture_alphas, selected = "0.05", inline = TRUE),
+    plotOutput("picture_plot", height = "320px"),
+    uiOutput("picture_numbers"))
+}
+
+# The picture: both densities, the critical values, power shaded under the
+# blue curve beyond them and alpha under the grey one.
+picture_plot <- function(picture) {
+  curves <- picture$curves
+  t <- curves$t
+  beyond <- abs(t) >= picture$t_crit
+  shade <- function(y, keep, colour) {
+    runs <- split(seq_along(t)[keep], cumsum(c(1, diff(seq_along(t)[keep]) != 1)))
+    for (i in runs) graphics::polygon(c(t[i], rev(t[i])), c(y[i], rep(0, length(i))), col = colour, border = NA)
+  }
+  graphics::par(mar = c(4, 4, 1, 1))
+  graphics::plot(t, curves$null, type = "n", ylim = c(0, max(curves$null, curves$alternative) * 1.05),
+    xlab = "t statistic", ylab = "Density", las = 1, bty = "l")
+  shade(curves$alternative, beyond, grDevices::adjustcolor("#2166ac", alpha.f = 0.35))
+  shade(curves$null, beyond, grDevices::adjustcolor("#b2182b", alpha.f = 0.5))
+  graphics::lines(t, curves$null, col = "grey40", lwd = 2)
+  graphics::lines(t, curves$alternative, col = "#2166ac", lwd = 2)
+  graphics::abline(v = c(-1, 1) * picture$t_crit, lty = 2)
+  graphics::legend("topright", bty = "n", cex = 0.85,
+    legend = c("No effect (central t)", sprintf("d = %s (noncentral t)", format(picture$d)), "Power (shaded blue)", "Type I error (shaded red)"),
+    col = c("grey40", "#2166ac", grDevices::adjustcolor("#2166ac", alpha.f = 0.35), grDevices::adjustcolor("#b2182b", alpha.f = 0.5)),
+    lwd = c(2, 2, 8, 8))
+}
+
+# The numbers behind the picture, in words.
+picture_numbers <- function(picture) {
+  pct <- function(x) sprintf("%.1f%%", 100 * x)
+  tagList(
+    tags$ul(class = "picture-numbers",
+      tags$li(tags$strong("Power: "), pct(picture$power), sprintf(" (the blue area beyond the dashed lines), so beta, the chance of missing the effect, is %s.", pct(picture$beta))),
+      tags$li(tags$strong("Degrees of freedom: "), picture$df, sprintf(" (n - 2, with %s in each group).", format(picture$n / 2))),
+      tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = d \u00d7 \u221a(n per group / 2), where the blue curve is centred."),
+      tags$li(tags$strong("Critical t: "), sprintf("\u00b1%.3f", picture$t_crit), sprintf(" for a two-sided test at alpha = %s.", format(picture$alpha))),
+      tags$li(tags$strong("Smallest significant d: "), sprintf("%.3f", picture$d_crit),
+        " = critical t \u00d7 \u221a(1/n1 + 1/n2) (Lakens, 2013). Any observed d smaller than this isn't significant, whatever the true effect.")),
+    p(class = "small text-muted", sprintf("Power from %s; curves from R's dt().", picture$function_used)))
 }
 
 published_ui <- function() {
