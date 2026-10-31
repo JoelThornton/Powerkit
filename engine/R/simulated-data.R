@@ -512,7 +512,12 @@ sim_multivariate_code <- function(spec, n) {
     "sigma <- diag(sds) %*% correlation %*% diag(sds)",
     sprintf("y <- do.call(rbind, lapply(seq_len(%d), function(g) SimDesign::rmvnorm(%d, means[g, ], sigma)))", k, per_group),
     "simulated <- data.frame(",
-    if (manova) sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(sim_levels(spec, "A")), per_group),
+    if (manova && is.null(spec$variables$B)) sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(sim_levels(spec, "A")), per_group),
+    # Two factors: the groups are A's levels by B's, B's fastest.
+    if (manova && !is.null(spec$variables$B)) c(
+      sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(sim_levels(spec, "A")), per_group * length(sim_levels(spec, "B"))),
+      sprintf("  %s = rep(rep(%s, each = %d), times = %d),", sim_label(spec, "B"), r_code(sim_levels(spec, "B")), per_group, length(sim_levels(spec, "A")))
+    ),
     paste0(sprintf("  %s = y[, %d]", outcomes, seq_len(p)), c(rep(",", p - 1), "")),
     ")"
   )

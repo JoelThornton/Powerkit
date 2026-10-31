@@ -1,5 +1,14 @@
 # powerkit 0.25.0
 
+* Two-way MANOVA: the `manova` template takes a second between factor B
+  (one row of means per combination of A and B, A's levels outer) and
+  tests either main effect or the interaction (`target_test > effect`)
+  with Pillai's trace of `stats::manova(y ~ A * B)`, simulated with
+  Spower. The check run recovers every cell's means; the exported script
+  and the simulated data set carry both factors. Checked against a
+  simulation written separately (fitted in the other order), with the
+  Type I error near alpha for each effect. The app's MANOVA card (E59)
+  asks whether the groups come from one factor or two.
 * App: an "I know the terms" setting in the top bar, remembered in the
   viewer's browser, shows the technical names first (on the cards and in
   the list of analyses) and hides the plain-English hints, the help

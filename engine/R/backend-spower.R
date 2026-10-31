@@ -110,7 +110,9 @@ spower_inputs <- function(spec) {
     manova = list(
       experiment = "p_manova", own = TRUE, generator = "manova_scores", generate = manova_scores,
       args = function(n) {
-        list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r)
+        c(list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r),
+          # Two factors: B's number of levels and the effect tested.
+          if (!is.null(spec$variables$B)) list(b = length(spec$variables$B$levels), term = manova_term(spec)))
       }
     ),
     # One-sample Hotelling's T-squared: powerkit's own experiment,
@@ -191,7 +193,8 @@ spower_inputs <- function(spec) {
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
   } else if (identical(template, "manova")) {
-    "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)"
+    if (is.null(spec$variables$B)) "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)" else
+      sprintf("Spower::Spower(p_manova()) (stats::manova() of A * B, Pillai's trace of %s)", manova_term(spec))
   } else if (identical(template, "hotelling_one")) {
     "Spower::Spower(p_hotelling_one()) (one-sample Hotelling's T-squared: stats::anova() of lm(), Pillai's trace)"
   } else if (identical(template, "paired_variances")) {
@@ -696,7 +699,8 @@ manova_means <- function(spec) {
 # with that group's means, the outcomes' SDs and one correlation r between
 # every pair of outcomes (SimDesign::rmvnorm(), as Spower's own generators
 # use). Returns a data frame with the group and one column per outcome.
-manova_scores <- function(n, means, sds, r) {
+# Arguments for the test (a two-factor MANOVA's `b` and `term`) are ignored.
+manova_scores <- function(n, means, sds, r, ...) {
   p <- ncol(means)
   correlation <- matrix(r, p, p)
   diag(correlation) <- 1
@@ -726,11 +730,28 @@ p_hotelling_one <- function(n, means, mu0, sds, r) {
   stats::anova(stats::lm(differences ~ 1), test = "Pillai")[1, "Pr(>F)"]
 }
 
-# Spower experiment for a one-way MANOVA: the p-value of Pillai's trace
-# from stats::manova() on scores drawn by manova_scores(). With two groups
-# every MANOVA statistic gives the same, exact test (Hotelling's T-squared).
-p_manova <- function(n, means, sds, r) {
+# Spower experiment for a MANOVA: the p-value of Pillai's trace from
+# stats::manova() on scores drawn by manova_scores(). With two groups every
+# MANOVA statistic gives the same, exact test (Hotelling's T-squared). With
+# two factors (`b` levels of B, the groups being A's levels by B's, B
+# fastest), the model is A * B and `term` ("A", "B" or "A:B") is tested;
+# the groups are equal in size, so the sequential and the adjusted tests
+# are the same.
+p_manova <- function(n, means, sds, r, b = 1, term = "A") {
   data <- manova_scores(n, means, sds, r)
-  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)
-  summary(fit, test = "Pillai")$stats[1, "Pr(>F)"]
+  y <- as.matrix(data[, -1])
+  if (b == 1) {
+    fit <- stats::manova(y ~ data$group)
+    return(summary(fit, test = "Pillai")$stats[1, "Pr(>F)"])
+  }
+  group <- as.integer(data$group)
+  A <- factor((group - 1) %/% b + 1)
+  B <- factor((group - 1) %% b + 1)
+  fit <- stats::manova(y ~ A * B)
+  summary(fit, test = "Pillai")$stats[term, "Pr(>F)"]
+}
+
+# The term of A * B a two-factor MANOVA tests.
+manova_term <- function(spec) {
+  switch(spec$target_test$effect, main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
 }
