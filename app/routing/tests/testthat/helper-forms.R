@@ -148,7 +148,7 @@ form_examples$E57 <- c(list(X_label = "Session", X_level1 = "Before training", X
                             alternative = "two_sided"), closing_ok)
 
 # E59: three groups compared on three outcomes (one-way MANOVA).
-form_examples$E59 <- c(list(A_label = "Condition", A_levels = "Waiting list, Online course, Group course",
+form_examples$E59 <- c(list(manova_factors = "one", A_label = "Condition", A_levels = "Waiting list, Online course, Group course",
                             Y_labels = "Anxiety, Depression, Stress", means = "20, 18, 22\n18, 16.5, 20\n17, 16, 19",
                             sds = "6, 5, 7", manova_r = "0.5"), closing_ok)
 

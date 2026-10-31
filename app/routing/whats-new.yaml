@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "MANOVA with two factors"
+    text: >-
+      The MANOVA card now plans a study with two factors crossed, such as
+      condition by delivery, compared on several outcomes at once: either
+      factor's effect, or their interaction.
+  - date: "2026-10-31"
     title: "Whole-study simulation for before-and-after studies"
     text: >-
       "Plan my whole study" now simulates studies where each person is

@@ -256,11 +256,19 @@ design_description <- function(spec) {
       "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
       label("Y"), label("G"), levels("G")
     ),
-    "basic_test/manova" = sprintf(
-      "one-way MANOVA of %s across the %d groups of %s (%s); Pillai's trace%s",
-      paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
-      if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
-    ),
+    "basic_test/manova" = if (is.null(v$B)) {
+      sprintf(
+        "one-way MANOVA of %s across the %d groups of %s (%s); Pillai's trace%s",
+        paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
+        if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
+      )
+    } else {
+      sprintf(
+        "two-way MANOVA of %s by %s (%s) and %s (%s); Pillai's trace of %s",
+        paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), label("A"), levels("A"), label("B"), levels("B"),
+        switch(spec$target_test$effect, main_effect_A = label("A"), main_effect_B = label("B"), interaction = "their interaction")
+      )
+    },
     "basic_test/hotelling_one" = sprintf(
       "one-sample Hotelling's T-squared: do the means of %s differ from the fixed values (%s)?",
       paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "),
@@ -1242,7 +1250,17 @@ spower_script_inputs <- function(spec) {
     manova = c(
       sprintf("# Mean of each outcome (columns: %s) in each group (rows: %s).",
         paste(vapply(manova_outcomes(spec), function(y) comment_text(v[[y]]$label), character(1)), collapse = ", "),
-        paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
+        if (is.null(v$B)) {
+          paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+        } else {
+          paste(apply(expand.grid(b = comment_text(unlist(v$B$levels)), a = comment_text(unlist(v$A$levels)))[, 2:1], 1,
+            paste, collapse = " with "), collapse = ", ")
+        }),
+      if (!is.null(v$B)) c(
+        sprintf("b <- %d # levels of %s; the rows are %s's levels by %s's, %s's fastest",
+          length(unlist(v$B$levels)), comment_text(v$B$label), comment_text(v$A$label), comment_text(v$B$label), comment_text(v$B$label)),
+        sprintf("term <- %s # the effect tested", r_code(manova_term(spec)))
+      ),
       sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE)", r_code(as.numeric(t(manova_means(spec)))), length(pop$means)),
       sprintf("sds <- %s # SD of each outcome within the groups", r_code(as.numeric(unlist(pop$sds)))),
       sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
@@ -1413,7 +1431,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = n_group, # size of each group",
       "means = means,",
       "sds = sds,",
-      "r = r"
+      if (is.null(spec$variables$B)) "r = r" else c("r = r,", "b = b,", "term = term")
     ),
     hotelling_one = c(
       "n = batch_n, # the number of people",
@@ -1542,11 +1560,24 @@ spower_derived_lines <- function(spec) {
       "  colnames(y) <- paste0(\"Y\", seq_len(p))",
       "  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)",
       "}",
-      "p_manova <- function(n, means, sds, r) {",
-      "  data <- manova_scores(n, means, sds, r)",
-      "  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)",
-      "  summary(fit, test = \"Pillai\")$stats[1, \"Pr(>F)\"]",
-      "}"
+      if (is.null(spec$variables$B)) c(
+        "p_manova <- function(n, means, sds, r) {",
+        "  data <- manova_scores(n, means, sds, r)",
+        "  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)",
+        "  summary(fit, test = \"Pillai\")$stats[1, \"Pr(>F)\"]",
+        "}"
+      ) else c(
+        "# Two factors: the groups are A's levels by B's (B fastest); the model is",
+        "# A * B, and the groups are equal, so the sequential test is the adjusted one.",
+        "p_manova <- function(n, means, sds, r, b, term) {",
+        "  data <- manova_scores(n, means, sds, r)",
+        "  group <- as.integer(data$group)",
+        "  A <- factor((group - 1) %/% b + 1)",
+        "  B <- factor((group - 1) %% b + 1)",
+        "  fit <- stats::manova(as.matrix(data[, -1]) ~ A * B)",
+        "  summary(fit, test = \"Pillai\")$stats[term, \"Pr(>F)\"]",
+        "}"
+      )
     ),
     hotelling_one = c(
       "# The experiment, as powerkit runs it: one group's multivariate normal",

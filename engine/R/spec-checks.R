@@ -855,17 +855,31 @@ manova_outcomes <- function(spec) {
   sort(grep("^Y[1-9]$", names(spec$variables), value = TRUE))
 }
 
+# The number of groups: A's levels, or with a second factor B every
+# combination of A and B.
+manova_groups <- function(spec) {
+  length(spec$variables$A$levels) * if (is.null(spec$variables$B)) 1L else length(spec$variables$B$levels)
+}
+
 check_manova <- function(spec) {
   pop <- spec$population
   outcomes <- manova_outcomes(spec)
   p <- length(outcomes)
-  k <- length(spec$variables$A$levels)
+  k <- manova_groups(spec)
+  two <- !is.null(spec$variables$B)
   problems <- character()
   if (!identical(outcomes, paste0("Y", seq_len(p)))) {
     problems <- c(problems, sprintf("The outcomes should be named Y1 to Y%d, with none missing.", p))
   }
+  if (!two && !identical(spec$target_test$effect, "main_effect_A")) {
+    problems <- c(problems, "With one factor the test is of A ('target_test > effect' \"main_effect_A\"); B's effect and the interaction need a second factor B.")
+  }
   if (length(pop$means) != k) {
-    problems <- c(problems, sprintf("'population > means' should have one row per group of A (%d); it has %d.", k, length(pop$means)))
+    problems <- c(problems, if (two) {
+      sprintf("'population > means' should have one row per combination of A and B (%d), A's levels outer; it has %d.", k, length(pop$means))
+    } else {
+      sprintf("'population > means' should have one row per group of A (%d); it has %d.", k, length(pop$means))
+    })
   }
   if (any(lengths(pop$means) != p)) {
     problems <- c(problems, sprintf("Each row of 'population > means' should have one mean per outcome (%d).", p))
@@ -1781,7 +1795,7 @@ minimum_n <- function(spec) {
       two_variances = 4,
       # Pillai's trace needs more people than outcomes in the residual
       # degrees of freedom: at least p + 2 people in each group.
-      manova = length(spec$variables$A$levels) * (length(manova_outcomes(spec)) + 2),
+      manova = manova_groups(spec) * (length(manova_outcomes(spec)) + 2),
       # Hotelling's T-squared with one group has n - p denominator df: at
       # least p + 2 people, as each MANOVA group needs.
       hotelling_one = length(manova_outcomes(spec)) + 2,
@@ -1901,6 +1915,10 @@ group_split <- function(spec) {
   if (spec$template == "tost_two_proportions") {
     return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
   }
+  if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
+    cells <- manova_groups(spec)
+    return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
+  }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
@@ -1979,7 +1997,21 @@ target_effect_is_zero <- function(spec) {
       # The largest difference between two groups on any outcome.
       manova = {
         means <- do.call(rbind, lapply(pop$means, as.numeric))
-        max(apply(means, 2, function(x) diff(range(x))))
+        if (is.null(spec$variables$B)) {
+          max(apply(means, 2, function(x) diff(range(x))))
+        } else {
+          # Each outcome's cell means as an A by B table: the spread of the
+          # effect tested (row means, column means, or what is left after
+          # both, for the interaction).
+          k <- length(spec$variables$A$levels)
+          max(apply(means, 2, function(x) {
+            cells <- matrix(x, nrow = k, byrow = TRUE)
+            switch(spec$target_test$effect,
+              main_effect_A = diff(range(rowMeans(cells))),
+              main_effect_B = diff(range(colMeans(cells))),
+              interaction = max(abs(cells - outer(rowMeans(cells), colMeans(cells), "+") + mean(cells))))
+          }))
+        }
       },
       # The largest difference between a mean and its fixed value.
       hotelling_one = max(abs(as.numeric(unlist(pop$means)) - as.numeric(unlist(pop$mu0)))),

@@ -1794,7 +1794,7 @@ forms:
   # simulated with Spower. The outcomes are named in one field; R/forms.R
   # (build_spec()) makes one variable of each, Y1 to Yp.
   E59:
-    methods_name: "a one-way MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)"
+    methods_name: "a MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)"
     tool: Spower
     directional: false
     known_differences: ["8"]
@@ -1808,14 +1808,30 @@ forms:
     groups:
       - input: "The groups and the outcomes"
         fields:
+          - {id: manova_factors, label: "How the groups are formed", type: select, required: true,
+             choices: {one: "By one factor (for example, three conditions)", two: "By two factors crossed, different people in every combination (for example, condition by delivery)"},
+             default: one, default_source: "one factor, the usual MANOVA",
+             sets: {one: [{path: target_test.effect, value: main_effect_A}], two: [{path: variables.B.type, value: between_factor}]}}
           - {id: A_label, label: "What the groups are (for example, condition)", type: text, path: variables.A.label, required: true}
           - {id: A_levels, label: "The groups' names (two or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+          - {id: B_label, label: "The second factor (for example, delivery)", type: text, path: variables.B.label, required: true,
+             shown_if: {field: manova_factors, is: two}}
+          - {id: B_levels, label: "The second factor's levels, separated by commas", type: levels, path: variables.B.levels, required: true,
+             shown_if: {field: manova_factors, is: two}}
+          - {id: manova_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {interaction: "The interaction: does the first factor's effect depend on the second?", main_effect_A: "The first factor", main_effect_B: "The second factor"},
+             default: interaction, default_source: "the interaction, usually the question a two-factor design is built for",
+             shown_if: {field: manova_factors, is: two}}
           - {id: Y_labels, label: "The outcomes (two to nine), separated by commas", type: levels, required: true,
              help: "The scores compared together, for example anxiety, depression, stress."}
       - input: "The expected means on each outcome"
         fields:
           - {id: means, writeup_label: "group means", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
-             rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome"}
+             rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome",
+             shown_if: {field: manova_factors, is_not: two}}
+          - {id: cell_means, writeup_label: "group means", label: "Means: one line per combination of the two factors (the first factor's levels slowest: first with first, first with second, ...), with one number per outcome", type: table, path: population.means, effect: true,
+             rows_from: [A_levels, B_levels], cols_from: Y_labels, rows_name: "combination", cols_name: "outcome",
+             shown_if: {field: manova_factors, is: two}}
       - input: "Each outcome's SD, and the correlation between the outcomes"
         fields:
           - {id: sds, writeup_label: "outcome SDs", label: "SDs: one for each outcome, in the same order, separated by commas", type: numbers, per_levels: Y_labels, path: population.sds, effect: true,

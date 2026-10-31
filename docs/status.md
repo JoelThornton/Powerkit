@@ -50,7 +50,7 @@ fully validated. Validation runs are recorded in
   ANCOVAs take partial eta-squared and the chi-square tests Cohen's w, as
   G\*Power does; moderation
   takes the R-squared change; safeguard power for an effect from one
-  study. MANOVA (E59) and one-sample Hotelling's T-squared (E60) take
+  study. MANOVA (E59, one or two factors) and one-sample Hotelling's T-squared (E60) take
   means, SDs and a correlation, and their cards say why.
 - **Validation.** Most designs are checked against the package each one
   calls, plus Type I error; independent checks exist for the basic tests
