@@ -37,6 +37,7 @@ pwr_covers <- function(spec) {
     !spower_only(spec) &&
     !formula_test(spec) &&
     !bayes_factor_test(spec) &&
+    !minimum_effect_test(spec) &&
     !identical(spec$target_test$method, "welch_t")
 }
 

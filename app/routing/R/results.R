@@ -239,6 +239,7 @@ test_text <- function(spec) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
   }
+  if (is_minimum_effect(spec)) return(minimum_effect_test_text(spec))
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
   if (is.null(spec$target_test$alternative) && !is.null(unsided <- unsided_test_name(spec))) side <- unsided
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
@@ -370,6 +371,27 @@ equivalence_test_text <- function(spec, result) {
 
 is_noninferiority <- function(spec) startsWith(spec$template %||% "", "noninf_")
 
+# Minimum-effect tests on the t-test cards (E1-E3): the effect shown to be
+# larger than the smallest effect of interest (the margin).
+is_minimum_effect <- function(spec) identical(spec$target_test$method, "minimum_effect")
+
+minimum_effect_margin_text <- function(spec) {
+  sprintf("%s = %s", if (identical(spec$template, "paired_t")) "d_z" else "d", format(signif(spec$population$margin, 3)))
+}
+
+minimum_effect_test_text <- function(spec) {
+  side <- switch(spec$target_test$alternative %||% "two_sided",
+    greater = "one-sided: the effect above", less = "one-sided: the effect below minus",
+    "two-sided: the effect further from 0 than")
+  sprintf("a minimum-effect test at alpha = %s (%s a smallest effect of interest of %s)",
+    alpha_text(spec$target_test$alpha), side, minimum_effect_margin_text(spec))
+}
+
+minimum_effect_sentence <- function(spec) {
+  sprintf(paste("A minimum-effect test is significant only if the effect is larger than your smallest effect of interest (%s),",
+    "not merely different from 0, so it needs more people than the ordinary t-test for the same effect."), minimum_effect_margin_text(spec))
+}
+
 # Non-inferiority: one one-sided test against the margin.
 noninf_test_text <- function(spec) {
   pop <- spec$population
@@ -460,6 +482,7 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
+  if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
   clusters <- cluster_sentence(result)
   if (!is.null(clusters)) out[["detail"]] <- paste(out[["detail"]], clusters)
   if (is_bayes_test(spec)) {
@@ -668,6 +691,15 @@ units_sentence <- function(result) {
   u <- result$effect_from_units
   if (is.null(u)) return(NULL)
   round3 <- function(x) format(round(x, 3), nsmall = 2)
+  # A point-biserial r: the d worked out from it, or the smallest r.
+  if (!is.null(u$r)) {
+    share <- sprintf("%s%% of the sample in group 2", format(round(100 * u$share, 1)))
+    if (!is.null(u$smallest_r)) {
+      return(sprintf("As a point-biserial correlation, that is r = %s (with %s).", round3(u$smallest_r), share))
+    }
+    return(sprintf("From the point-biserial r of %s you entered, powerkit worked out Cohen's d = %s (with %s), which gives the same test as G*Power's point-biserial model.",
+      format(u$r), round3(u$value), share))
+  }
   if (!is.null(u$smallest_difference)) {
     return(sprintf("In your outcome's own units, that is a difference of %s (%s × %s, %s).",
       round3(u$smallest_difference), round3(result$sensitivity$effect), format(signif(u$sd, 4)), u$sd_name))
@@ -1717,6 +1749,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     name <- sprintf("%s with the %s correction for sphericity", name, c(GG = "Greenhouse-Geisser", HF = "Huynh-Feldt")[[correction]])
   }
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)
+  if (is_minimum_effect(spec)) name <- sprintf("%s as a minimum-effect test against a smallest effect of interest of %s (pwrss's t-test against the margin)",
+    name, minimum_effect_margin_text(spec))
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
@@ -1750,6 +1784,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   } else if (equivalence) {
     what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
     sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
+  } else if (is_minimum_effect(spec)) {
+    "Power to show the effect is larger than the smallest effect of interest, if it is as expected, is %.1f%%."
   } else "Power to detect this effect is %.1f%%."
   effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
   # A converted effect: the published value, what it became and how.

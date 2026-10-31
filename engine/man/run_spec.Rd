@@ -32,7 +32,11 @@ outcome's own units (\code{population > metric} "raw", the t-tests);
 otherwise a list with the standardised effect's \code{name} ("Cohen's d"
 or "d_z") and \code{value}, the \code{difference} in the outcome's units, and
 the \code{sd} it was divided by (with its \code{sd_name}), and for a
-sensitivity goal the \code{smallest_difference} in the outcome's units;
+sensitivity goal the \code{smallest_difference} in the outcome's units.
+For the two-group t-test given by a point-biserial correlation
+(\code{population > metric} "point_biserial") it has the \code{name} and
+\code{value} of d, the \code{r} and the \code{share} in group 2 instead, and for a
+sensitivity goal the \code{smallest_r};
 \item \code{effect_conversion}: \code{NULL} unless the effect justification converts
 the effect from another form; otherwise the form (\code{from},
 \code{from_name}), the published \code{value} and its \code{df_error}, and the

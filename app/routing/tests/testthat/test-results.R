@@ -2056,3 +2056,47 @@ test_that("tests without sides are not called two-sided", {
   expect_match(test_text(light_spec("E6")), "a chi-square test", fixed = TRUE)
   expect_match(test_text(light_spec("E2")), "two-sided", fixed = TRUE)
 })
+
+test_that("the t-test cards offer a minimum-effect test against a smallest effect of interest", {
+  for (ep in c("E1", "E2", "E3")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    expect_false(field_applies(by_id("margin"), list(method = "t_test", effect_units = "standardised")), label = ep)
+    expect_true(field_applies(by_id("margin"), list(method = "minimum_effect", effect_units = "standardised")), label = ep)
+    expect_true(field_applies(by_id("raw_margin"), list(method = "minimum_effect", effect_units = "raw")), label = ep)
+    effect <- if (ep == "E3") "dz" else "d"
+    values <- modifyList(form_examples[[ep]], stats::setNames(list("minimum_effect", "0.2", "0.6", "power", "120", "greater", "standardised"),
+      c("method", "margin", effect, "goal", "n", "alternative", "effect_units")))
+    spec <- build_spec(forms, ep, fields, values)
+    expect_equal(spec$population$margin, 0.2, label = ep)
+    expect_identical(spec$target_test$method, "minimum_effect", label = ep)
+    skip_without_run()
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    sentences <- paste(result_sentences(spec, calc$result), collapse = " ")
+    expect_match(sentences, "minimum-effect test", fixed = TRUE, label = ep)
+    text <- paste(writeup_text(forms$forms[[ep]], spec, calc$result, fields, values), collapse = " ")
+    expect_match(text, "as a minimum-effect test against a smallest effect of interest", fixed = TRUE, label = ep)
+    expect_match(text, "larger than the smallest effect of interest", fixed = TRUE, label = ep)
+  }
+})
+
+test_that("the two-group card takes a point-biserial r, as G*Power's point-biserial model does", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  by_r <- list(effect_units = "point_biserial", goal = "sample_size")
+  expect_true(field_applies(by_id("r_pb"), by_r))
+  expect_false(field_applies(by_id("d"), by_r))
+  expect_false(field_applies(by_id("conv_from"), by_r))
+  expect_true(field_applies(by_id("conv_from"), list(effect_units = "standardised", goal = "sample_size")))
+  values <- modifyList(form_examples[["E2"]], list(effect_units = "point_biserial", r_pb = "0.25", goal = "sample_size",
+    power = "0.95", alternative = "greater", method = "student_t"))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$population$r, 0.25)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  # G*Power's point-biserial example (r = .25, one-sided, power .95) needs 164.
+  expect_equal(calc$result$n_required$n, 164)
+  expect_match(paste(result_sentences(spec, calc$result), collapse = " "), "From the point-biserial r of 0.25", fixed = TRUE)
+})
