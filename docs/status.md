@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.24.1). This page says where the
+*Last updated: 31 October 2026 (powerkit 0.25.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -19,8 +19,8 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
-  **38 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E47-E57 and E59 (`forms.yaml`'s `calculates`). **Eight are simulated with a
+  **39 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E47-E57, E59 and E60 (`forms.yaml`'s `calculates`). **Eight are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X) and E33 (participants and items, simr). No template
@@ -36,8 +36,8 @@ fully validated. Validation runs are recorded in
   `conventions.md`, "Effect-size conversion"); between-participants,
   repeated-measures and mixed ANOVA take partial eta-squared; moderation
   takes the R-squared change; safeguard power for an effect from one
-  study. MANOVA (E59) takes means, SDs and a correlation, and its card
-  says why.
+  study. MANOVA (E59) and one-sample Hotelling's T-squared (E60) take
+  means, SDs and a correlation, and their cards say why.
 - **Validation.** Most designs are checked against the package each one
   calls, plus Type I error; independent checks exist for the basic tests
   (G\*Power screenshots), mediation (pwrss and simsem) and the two-group

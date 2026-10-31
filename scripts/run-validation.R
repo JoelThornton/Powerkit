@@ -95,7 +95,7 @@ validation_chunks <- function() {
   list(
     basic = "test-validation-basic-tests.R",
     variances = "test-validation-variance-tests.R",
-    manova = "test-validation-manova.R",
+    manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
     rank = "test-validation-rank-tests.R",
     bayes = "test-validation-bayes-factor.R",
     anova = c(

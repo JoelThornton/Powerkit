@@ -94,7 +94,8 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/one_variance" = ,
     "basic_test/two_variances" = ,
     "basic_test/paired_variances" = ,
-    "basic_test/manova" = spower_backend(spec, seed),
+    "basic_test/manova" = ,
+    "basic_test/hotelling_one" = spower_backend(spec, seed),
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {

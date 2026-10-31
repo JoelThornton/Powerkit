@@ -419,6 +419,8 @@ nodes:
       - {label: "Two, with different people in each", next: E2, when: {times: once}}
       - {label: "Two, with the same people in both (or one group measured twice)", next: E3, when: {times: twice}}
       - {label: "Three or more", next: f2a, when: {times: [once, many_conditions]}}
+      - {label: "One group, its several outcomes compared with fixed values at once", next: E60, when: {times: once},
+         help: "e.g. a clinic sample's anxiety, depression and stress compared with the scales' published norms together (one-sample Hotelling's T-squared)."}
       - {label: "Two or more, compared on several outcomes at once", next: E59, when: {times: once},
          help: "e.g. three therapy groups compared on anxiety, depression and stress together (MANOVA; Hotelling's T-squared for two groups)."}
   f2a:
@@ -1588,6 +1590,22 @@ endpoints:
     inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups"]
+  E60:
+    doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
+    plain_name: "Does one group differ from fixed values on several outcomes at once?"
+    template: "basic_test / hotelling_one"
+    backend: "Spower: powerkit's p_hotelling_one() experiment, multivariate normal scores whose mean vector is tested against the fixed values (stats::anova() of lm(), Pillai's trace), by simulation"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-hotelling-one.R, note: "Matches the exact F test of Hotelling's T-squared (pwrss's generic F test with the Mahalanobis distance), recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own example."}
+    card_points:
+      - "Compares one group's means on several outcomes with fixed values, such as published norms or scale midpoints, in one test: one-sample Hotelling's T-squared."
+      - "You give each outcome's expected mean, the value it is compared with, each outcome's SD, and how strongly the outcomes are correlated."
+      - "Why means and not one effect size: the simulation draws scores from a population, so it needs the means, the SDs and the correlation. A single effect size doesn't say what those are."
+      - "The answer is simulated, so it carries a little random error. G*Power computes this test exactly."
+    inputs: ["The outcomes", "The expected means and the fixed values", "Each outcome's SD, and the correlation between the outcomes"]
+    tier: v2
+    alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]
   E54:
     rank_test: "Friedman's test"
     doc_name: "One-way repeated-measures ANOVA, omnibus"

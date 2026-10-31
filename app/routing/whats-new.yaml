@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "One group's several outcomes against fixed values"
+    text: >-
+      You can now plan a study that compares one group with fixed values,
+      such as published norms, on several outcomes at once (a one-sample
+      Hotelling's T-squared test). Give each outcome's expected mean, the
+      value it is compared with, the SDs and how strongly the outcomes are
+      correlated.
+  - date: "2026-10-31"
     title: "A published t converted more exactly"
     text: >-
       When you enter an effect as a published t or F, powerkit now turns it

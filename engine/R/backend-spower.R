@@ -109,6 +109,17 @@ spower_inputs <- function(spec) {
         list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r)
       }
     ),
+    # One-sample Hotelling's T-squared: powerkit's own experiment,
+    # p_hotelling_one(), draws one group's multivariate normal scores
+    # (hotelling_one_scores()) and tests their means against the fixed
+    # values.
+    hotelling_one = list(
+      experiment = "p_hotelling_one", own = TRUE, generator = "hotelling_one_scores", generate = hotelling_one_scores,
+      args = function(n) {
+        list(n = n, means = as.numeric(unlist(pop$means)), mu0 = as.numeric(unlist(pop$mu0)),
+             sds = as.numeric(unlist(pop$sds)), r = pop$r)
+      }
+    ),
     two_proportions = list(
       experiment = "p_prop.test", generator = "gen_prop.test",
       args = function(n) {
@@ -177,6 +188,8 @@ spower_inputs <- function(spec) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
   } else if (identical(template, "manova")) {
     "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)"
+  } else if (identical(template, "hotelling_one")) {
+    "Spower::Spower(p_hotelling_one()) (one-sample Hotelling's T-squared: stats::anova() of lm(), Pillai's trace)"
   } else if (identical(template, "paired_variances")) {
     sprintf("Spower::Spower(Spower::p_r(gen_fun = <sum and difference of paired scores>%s)) (the Pitman-Morgan test)",
       if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
@@ -453,6 +466,21 @@ spower_check_run <- function(spec, inputs, n, seed) {
         r_rows
       )
     },
+    # Hotelling's T-squared, one group: each outcome's mean and SD, and
+    # the correlation between each pair of outcomes.
+    hotelling_one = {
+      y <- as.matrix(data)
+      means <- as.numeric(unlist(pop$means))
+      sds <- as.numeric(unlist(pop$sds))
+      within_r <- stats::cor(y)[upper.tri(diag(ncol(y)))]
+      r_rows <- check_run_rows("correlation between two outcomes (average)", pop$r, mean(within_r), NA)
+      r_rows$ok <- abs(atanh(mean(within_r)) - atanh(pop$r)) <= 5 / sqrt(nrow(y) - 3)
+      rbind(
+        check_run_rows(sprintf("mean of Y%d", seq_along(means)), means, colMeans(y), sds / sqrt(nrow(y))),
+        check_run_rows(sprintf("SD of Y%d", seq_along(sds)), sds, apply(y, 2, stats::sd), sds / sqrt(2 * (nrow(y) - 1))),
+        r_rows
+      )
+    },
     # Welch's F: each group's mean and SD, in the means' units.
     oneway_between = {
       by_group <- split(data$DV, data$group)
@@ -613,6 +641,26 @@ manova_scores <- function(n, means, sds, r) {
   y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) SimDesign::rmvnorm(n, means[g, ], sigma)))
   colnames(y) <- paste0("Y", seq_len(p))
   data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)
+}
+
+# Multivariate normal scores for one group: n people with the expected
+# means, the outcomes' SDs and one correlation r between every pair
+# (SimDesign::rmvnorm(), as manova_scores()). `mu0` is the experiment's,
+# not the data's. Returns a data frame with one column per outcome.
+hotelling_one_scores <- function(n, means, mu0, sds, r) {
+  y <- manova_scores(n, matrix(means, nrow = 1), sds, r)[, -1, drop = FALSE]
+  rownames(y) <- NULL
+  y
+}
+
+# Spower experiment for one-sample Hotelling's T-squared: the p-value of
+# the test that the scores' mean vector equals mu0, by the multivariate
+# test of the intercept of lm(scores - mu0 ~ 1) (stats::anova(), Pillai's
+# trace). With one group every multivariate statistic gives the same
+# exact F test, Hotelling's T-squared with p and n - p df.
+p_hotelling_one <- function(n, means, mu0, sds, r) {
+  differences <- sweep(as.matrix(hotelling_one_scores(n, means, mu0, sds, r)), 2, mu0)
+  stats::anova(stats::lm(differences ~ 1), test = "Pillai")[1, "Pr(>F)"]
 }
 
 # Spower experiment for a one-way MANOVA: the p-value of Pillai's trace

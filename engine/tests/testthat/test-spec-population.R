@@ -301,6 +301,7 @@ zero_effect_cases <- list(
   two_variances = function(s) within(s, population$var2 <- population$var1),
   paired_variances = function(s) within(s, population$var2 <- population$var1),
   manova = function(s) within(s, population$means <- rep(population$means[1], length(population$means))),
+  hotelling_one = function(s) within(s, population$means <- population$mu0),
   cluster_randomised = function(s) within(s, population$d <- 0),
   multisite = function(s) within(s, population$d <- 0),
   cluster_randomised_binary = function(s) within(s, population$p2 <- population$p1),

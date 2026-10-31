@@ -137,7 +137,7 @@ Departure 10 in [`conventions.md`](conventions.md).
 | A28 | Repeated measures: within factors, MANOVA-approach | GP | E54, E20, E56 (beside the univariate F) | Wired (29 October 2026: the MANOVA approach's power, Pillai's trace, is shown beside the univariate F when the target effect involves a within factor with three or more levels, from the same `ANOVA_exact()` run; matches Superpower called directly; published values to transcribe) | Now: PN at the n planned for the univariate F | **Engine: Superpower `ANOVA_exact()`, element `manova_results`** | A sample size planned for the MANOVA approach itself | [G1][] |
 | A29 | Repeated measures: within-between interactions, ANOVA-approach | GP | E8 (2 x 2); E55 (beyond 2 x 2, in the app 28 October 2026, validation in progress) | Done (validated and wired) | Now: AP, PN, S (2 x 2); AP, PN (E55) | Superpower `ANOVA_exact()` (`"2b*2w"`; `"kb*mw"` for E55) | E55: published value to transcribe | — |
 | A30 | Repeated measures: within-between interactions, MANOVA-approach | GP | E55, E56 (beside the univariate F) | Wired (as A28, for an interaction with a within factor of three or more levels) | As A28 | As A28 | As A28 | [G1][] |
-| A31 | Hotelling T², one group | GP | none: not reachable | Planned (`next.md`, MANOVA follow-ups; the same simulation with one group against fixed values) | — | unknown (none found in the foundation tools' help) | — | [G1][] |
+| A31 | Hotelling T², one group | GP | E60 | Wired (simulated with Spower and powerkit's `p_hotelling_one()`; exact check against pwrss's generic F test; G\*Power value to transcribe) | — | unknown (none found in the foundation tools' help) | — | [G1][] |
 | A32 | Hotelling T², two groups | GP | E59 (two groups) | Wired (simulated with Spower and `stats::manova()`; exact two-group check against pwrss; G\*Power values to transcribe) | — | unknown in the foundation tools. BUCSS `ss_buc_manova()` (two-group multivariate comparison, with bias correction) is a candidate | — | [G1][] |
 | A33 | MANOVA: global effects | GP; UCLA | E59 | Wired (Pillai's trace, simulated with Spower and `stats::manova()`; G\*Power values to transcribe; Known difference 8) | — | unknown (Superpower's MANOVA output is for within factors only) | — | [C14][], [G1][] |
 | A34 | MANOVA: special effects and interactions | GP | none: not reachable | Planned (`next.md`, MANOVA follow-ups: two factors, their interaction) | — | unknown | — | [C14][], [G1][] |
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 27 | 17 | 0 | 44 |
+| Wired (validation not finished) | 28 | 17 | 0 | 45 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 2 | 12 | 2 | 16 |
+| Planned | 1 | 12 | 2 | 15 |
 | Foundation tool can do it, not planned | 6 | 8 | 1 | 15 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 4 | 5 |
