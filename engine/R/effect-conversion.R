@@ -23,6 +23,11 @@ conversion_templates <- list(
   oneway_between = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
   "2x2_between" = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
   factorial_between = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
+  # Three between factors, and the ANCOVAs (whose published F already
+  # allows for the covariates).
+  factorial_three = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
+  oneway_ancova = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
+  factorial_ancova = list(effect = "eta_squared", name = "partial eta-squared", from = c("F", "f")),
   # Repeated-measures and mixed ANOVA: a published F only, whose partial
   # eta-squared already reflects the correlation between measurements
   # (population > eta_source "published").
@@ -179,7 +184,7 @@ apply_conversion <- function(spec) {
   if (is.null(rule) || !(identical(spec$design, "basic_test") || anova)) {
     return(list(spec = spec, problems = paste0(
       "Converting an effect size ('effect_justification > conversion') is available for the one-sample, paired and ",
-      "independent t-tests, the correlation, and between-participants ANOVA given by partial eta-squared ",
+      "independent t-tests, the correlation, and ANOVA or ANCOVA given by partial eta-squared ",
       "('population > metric' \"eta_squared\"), not for this design yet.")))
   }
   if (spec$template %in% eta_squared_mixed_templates && !identical(spec$population$eta_source, "published")) {

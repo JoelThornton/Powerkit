@@ -350,12 +350,13 @@ safeguard_fields <- function(template) {
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
 
-# Between-participants ANOVA by its effect size: the "Units of the means"
+# ANOVA and ANCOVA by its effect size: the "Units of the means"
 # choice gains "an effect size" (partial eta-squared, as G*Power takes it;
 # the engine then uses pwrss's F test), which hides the means and the SDs
 # and shows the partial eta-squared instead. The test version stays: the
 # engine explains that Welch's F and the Kruskal-Wallis test need means.
-eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between", "oneway_within", "2x2_mixed", "mixed")
+eta_squared_templates <- c("oneway_between", "2x2_between", "factorial_between", "factorial_three", "oneway_ancova",
+                           "factorial_ancova", "oneway_within", "2x2_mixed", "mixed")
 # Repeated-measures and mixed ANOVA: partial eta-squared means different
 # things there, so the screen asks which kind it is (required, no default)
 # and, for an effect size planned the G*Power way, the correlation between
@@ -396,8 +397,18 @@ with_eta_squared <- function(group, template) {
       fields <- c(fields, list(hide(f)))
     }
   }
+  at <- which(vapply(fields, function(f) identical(f$id, "eta_squared"), logical(1)))
+  if (length(at) == 1 && template %in% c("oneway_ancova", "factorial_ancova")) {
+    fields[[at]]$help <- paste("The partial eta-squared of the effect you test, from an ANCOVA with the same covariates. It already",
+      "allows for them, so their R-squared isn't needed; their number still counts, as in G*Power. powerkit treats it as the",
+      "true effect; a published value tends to be too large. Groups are taken as equal in size.")
+  }
+  if (length(at) == 1 && identical(template, "factorial_three")) {
+    fields[[at]]$help <- paste("The partial eta-squared of the effect you test, as in G*Power. This is for three factors that are all",
+      "between participants (different people in every cell); with a within-participants factor, give the means instead.",
+      "powerkit treats it as the true effect; a published value tends to be too large. Groups are taken as equal in size.")
+  }
   if (mixed) {
-    at <- which(vapply(fields, function(f) identical(f$id, "eta_squared"), logical(1)))
     if (length(at) == 1) {
       fields[[at]]$help <- paste("The partial eta-squared of the effect you test. powerkit treats it as the true effect, as G*Power does;",
         "a published value tends to be too large. Groups are equal in size, and sphericity is assumed.")
@@ -427,6 +438,9 @@ conversion_choices <- list(
   oneway_between = c("F", "f"),
   "2x2_between" = c("F", "f"),
   factorial_between = c("F", "f"),
+  factorial_three = c("F", "f"),
+  oneway_ancova = c("F", "f"),
+  factorial_ancova = c("F", "f"),
   oneway_within = "F",
   "2x2_mixed" = "F",
   mixed = "F"

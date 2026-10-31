@@ -35,11 +35,13 @@
 #   regression         z test of one predictor, pwrss::power.z.poisson()
 #                      (Demidenko's method with its variance correction,
 #                      as for logistic regression)
-#   ANOVA from an      factorial_anova/oneway_between, 2x2_between and
-#   effect size        factorial_between with population > metric
+#   ANOVA from an      factorial_anova/oneway_between, 2x2_between,
+#   effect size        factorial_between, factorial_three (every factor
+#                      between) and the ANCOVAs with population > metric
 #                      "eta_squared": the F test of the effect tested from
 #                      its partial eta-squared, as G*Power takes it,
-#                      pwrss::power.f.ancova() with no covariates
+#                      pwrss::power.f.ancova() (with the ANCOVA's number of
+#                      covariates, which take error df as in G*Power)
 #   contrast           factorial_anova/oneway_contrast: a planned
 #                      comparison between the levels of one factor, the t
 #                      test of a weighted combination of the group means,
@@ -101,8 +103,14 @@ pwrss_backend <- function(spec, seed = NULL) {
 # effect tested (G*Power's input) rather than by group means.
 eta_squared_anova <- function(spec) {
   identical(spec$design, "factorial_anova") && identical(spec$population$metric, "eta_squared") &&
-    spec$template %in% c("oneway_between", "2x2_between", "factorial_between", eta_squared_mixed_templates)
+    spec$template %in% eta_squared_templates
 }
+
+# Every template that takes an effect given by its partial eta-squared.
+eta_squared_templates <- c(
+  "oneway_between", "2x2_between", "factorial_between", "factorial_three", "oneway_ancova", "factorial_ancova",
+  "oneway_within", "2x2_mixed", "mixed"
+)
 
 # Repeated-measures and mixed ANOVA (factor A between, B within, or one
 # within factor): pwrss's power.f.mixed.anova().
@@ -142,8 +150,16 @@ eta_anova_design <- function(spec) {
       mixed = TRUE
     ))
   }
-  if (identical(spec$template, "oneway_between")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova")) {
     return(list(levels = k, target = NULL, df = k - 1))
+  }
+  if (identical(spec$template, "factorial_three")) {
+    sizes <- c(A = k, B = length(spec$variables$B$levels), C = length(spec$variables$C$levels))
+    factors <- switch(spec$target_test$effect %||% "interaction_ABC",
+      main_effect_A = "A", main_effect_B = "B", main_effect_C = "C",
+      interaction_AB = c("A", "B"), interaction_AC = c("A", "C"), interaction_BC = c("B", "C"),
+      interaction_ABC = c("A", "B", "C"))
+    return(list(levels = unname(sizes), target = paste(factors, collapse = ":"), df = prod(sizes[factors] - 1)))
   }
   m <- length(spec$variables$B$levels)
   effect <- spec$target_test$effect %||% "interaction"
@@ -207,7 +223,7 @@ pwrss_inputs <- function(spec) {
         args = function(n) c(
           list(eta.squared = pop$eta_squared, factor.levels = design$levels),
           if (!is.null(design$target)) list(target.effect = design$target),
-          list(k.covariates = 0, n.total = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
+          list(k.covariates = pop$covariates %||% 0, n.total = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
         )
       )
     },
@@ -464,7 +480,10 @@ pwrss_check_run <- function(spec, inputs) {
           row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
           row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
           row("Cohen's f^2 = eta^2 / (1 - eta^2), from pwrss's noncentrality / N",
-              pop$eta_squared / (1 - pop$eta_squared), out$ncp / args$n.total)
+              pop$eta_squared / (1 - pop$eta_squared), out$ncp / args$n.total),
+          # Error df as in G*Power: N minus the cells minus the covariates.
+          row("error df: N minus the groups minus the covariates (df2)",
+              args$n.total - prod(eta_anova_design(spec)$levels) - (pop$covariates %||% 0), out$df2)
         )
       }
     },

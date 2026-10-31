@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Partial eta-squared for ANCOVA and three-factor designs"
+    text: >-
+      The ANCOVA card and the three-factor card (when every factor is
+      between participants) now accept the partial eta-squared of the
+      effect, as G*Power does, so you no longer need adjusted means or the
+      covariates' R-squared from an earlier paper. A published F converts
+      into it.
+  - date: "2026-10-31"
     title: "Repeated measures that don't vary equally"
     text: >-
       The one-way repeated-measures card can now take a different SD for

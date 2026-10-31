@@ -2542,17 +2542,17 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sd"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "description": "Expected cell means: one array per level of A, each holding one array per level of B, each with one mean per level of C, in the order of the factors' levels.",
@@ -2578,8 +2578,44 @@
             "r": {
               "description": "Only with at least one within-participants factor (and then required): the correlation between a participant's scores in any two cells (the same for every pair).",
               "$ref": "#/definitions/correlation"
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased. Every factor must then be between participants.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "r": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd"
+                ],
+                "properties": {
+                  "eta_squared": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -4842,9 +4878,6 @@
         "population": {
           "required": [
             "metric",
-            "means",
-            "sd",
-            "r2_covariates",
             "covariates"
           ],
           "additionalProperties": false,
@@ -4852,8 +4885,10 @@
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "description": "Expected adjusted mean of each group (adjusted for the covariates), in the order of the factor's levels.",
@@ -4878,8 +4913,45 @@
               "description": "Number of covariates.",
               "type": "integer",
               "minimum": 1
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased. An ANCOVA's partial eta-squared already allows for the covariates, so their R-squared isn't needed; their number still takes error df.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "r2_covariates": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd",
+                  "r2_covariates"
+                ],
+                "properties": {
+                  "eta_squared": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
@@ -4932,9 +5004,6 @@
         "population": {
           "required": [
             "metric",
-            "means",
-            "sd",
-            "r2_covariates",
             "covariates"
           ],
           "additionalProperties": false,
@@ -4942,8 +5011,10 @@
             "metric": {
               "enum": [
                 "raw",
-                "standardised"
-              ]
+                "standardised",
+                "eta_squared"
+              ],
+              "description": "'raw' or 'standardised': the effect is given by group means (in the outcome's units or in SD units) and the SD. 'eta_squared': it is given by the partial eta-squared of the effect tested ('eta_squared'), as in G*Power."
             },
             "means": {
               "description": "Expected adjusted cell means (adjusted for the covariates): one array per level of A (rows), each with one mean per level of B, in the order of the factors' levels.",
@@ -4972,8 +5043,45 @@
               "description": "Number of covariates.",
               "type": "integer",
               "minimum": 1
+            },
+            "eta_squared": {
+              "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased. An ANCOVA's partial eta-squared already allows for the covariates, so their R-squared isn't needed; their number still takes error df.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "eta_squared"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "eta_squared"
+                ],
+                "properties": {
+                  "means": false,
+                  "sd": false,
+                  "r2_covariates": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sd",
+                  "r2_covariates"
+                ],
+                "properties": {
+                  "eta_squared": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {
