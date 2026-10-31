@@ -65,7 +65,7 @@ export_script <- function(spec, result, file = NULL) {
     metapower = metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
-    simr = simr_script(spec, result),
+    simr = if (identical(spec$template, "two_level")) two_level_script(spec, result) else simr_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -409,6 +409,12 @@ design_description <- function(spec) {
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
+    "mixed_model/two_level" = sprintf(
+      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s; effect tested: %s",
+      format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
+        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction")
     ),
     "regression_interaction/three_way" = sprintf(
       "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",

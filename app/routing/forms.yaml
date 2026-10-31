@@ -162,6 +162,11 @@ simulations:
       preview: {power: 35}
       full: {power: 350}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E62:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E11:
       full_run: [power]
       preview: {power: 50}
@@ -898,6 +903,39 @@ forms:
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+
+  # People nested in groups (simr): a person-level X, a group-level W and
+  # their cross-level interaction (31 October 2026).
+  E62:
+    methods_name: "a two-level linear mixed model with a person-level and a group-level predictor (Satterthwaite t test)"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: two_level,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {method: satterthwaite_t}}
+    groups:
+      - input: "The outcome, the person-level predictor and the group-level predictor"
+        fields:
+          - {id: Y_label, label: "Outcome (for example, maths score)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Measured on each person (X; for example, homework time)", type: text, path: variables.X.label, required: true}
+          - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
+      - input: "Each effect, how much the groups differ, and the residual SD"
+        fields:
+          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
+          - {id: b_W, writeup_label: "W's effect between groups", label: "W's effect between groups: the change in a group's average for one SD more of W", type: number, path: population.b_W, effect: true}
+          - {id: b_XW, writeup_label: "cross-level interaction", label: "The cross-level interaction: how much X's effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: sd_group, writeup_label: "SD of the groups' averages", label: "SD of the groups' averages beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
+             help: "In the outcome's units. With a residual SD of 1, an SD of 0.33 means about 10% of the variance lies between groups (an intraclass correlation of 0.1)."}
+          - {id: sd_group_slope, writeup_label: "SD of X's effect across groups", label: "SD of X's effect across groups beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
+          - {id: r_group, label: "Correlation of the groups' averages and X's effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+      - input: "The number of people in each group, and the effect to test"
+        fields:
+          - {id: cluster_size, label: "People in each group (the same in every group)", type: number, path: population.cluster_size, required: true, min: 2, integer: true}
+          - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups"},
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
 
   E11:
     methods_name: "a parallel mediation model"
