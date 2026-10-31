@@ -283,7 +283,7 @@ routes:
   options:
     - id: known
       label: "I know my analysis"
-      help: "Pick it from a list (after four screening questions)."
+      help: "Search for it, or open its group in a list of every analysis."
       after_screening: list
     - id: choose
       label: "Help me choose"
@@ -1877,6 +1877,25 @@ guided:
 # sizes come from is an open judgement call, 3.2). docs/glossary.md lists
 # the same terms; a test keeps the two in step.
 # ---------------------------------------------------------------------------
+# The families "I know my analysis" groups its list into, in order (the
+# maintainer's decision of 31 October 2026, docs/decisions.md): every end
+# point but the safety net is in exactly one (a test checks).
+analysis_families:
+  - {id: means, label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
+  - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23]}
+  - {id: correlation, label: "Correlations", endpoints: [E4, E49, E51]}
+  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E29]}
+  - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
+  - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
+  - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E33, E34, E41, E35, E45, E44]}
+  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
+  - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
+  - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
+  - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}
+  - {id: meta, label: "Meta-analysis", endpoints: [E61]}
+  - {id: other, label: "Other: time-to-event, precision, Bayes factors and generic tests", endpoints: [E43, E46, E-bayes, E50]}
+
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}
   - {term: "Cohen's w", pattern: "Cohen's w", hint: "How far the proportions are from what you would see with no association (or from the fixed proportions), on one scale: 0 means no difference at all."}

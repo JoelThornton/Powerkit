@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Find your analysis faster"
+    text: >-
+      "I know my analysis" now goes straight to a list of every analysis,
+      grouped by family (t-tests, ANOVA, regression, mediation and so on),
+      with a search box at the top. Open a group, or type a few words such
+      as "repeated measures" or "logistic". The screening questions are
+      still there under "Help me choose".
+  - date: "2026-10-31"
     title: "Meta-analysis: the Hartung-Knapp test"
     text: >-
       The meta-analysis card now plans for the Hartung-Knapp test under the

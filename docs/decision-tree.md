@@ -194,7 +194,10 @@ From PAMLj 1.2.0 (its analysis definitions `jamovi/*.a.yaml` and
 
 The first screen offers three routes: "I know my analysis" (the
 shortcut list), "Help me choose" (this tree) and the optional guided
-"Plan my whole study" (section 4.1). **Every route starts with four
+"Plan my whole study" (section 4.1). **"I know my analysis" goes straight
+to the list** (since 31 October 2026): every analysis in closed groups by
+family (`tree.yaml`, `analysis_families`), with a search box, each card
+saying what its test assumes. **The other two routes start with four
 screening questions (chart S):** what kind of outcome, how the data are
 grouped, how many times each person is measured, and the goal. Designs
 powerkit doesn't cover leave at an honest end point there, before any
@@ -273,8 +276,8 @@ flowchart TD
 ```mermaid
 flowchart TD
   S0{"How do you want<br/>to start?"}
-  S0 --> SCR["Chart S: four screening questions<br/>(every route; designs powerkit<br/>doesn't cover leave here)"]
-  SCR -->|I know my analysis| SC["Shortcut list:<br/>pick the analysis by name"]
+  S0 -->|I know my analysis| SC["Every analysis, grouped by family,<br/>with a search box"]
+  S0 --> SCR["Chart S: four screening questions<br/>(designs powerkit doesn't cover<br/>leave here)"]
   SCR -->|Help me choose| Q1{"Q1 What do you want<br/>your study to show?"}
   SCR -->|Plan my whole study| G["Guided study planner (section 4.1):<br/>define variables once, tick analyses,<br/>mark primary; one card per analysis<br/>plus the combined N"]
   Q1 -->|A difference between<br/>groups or conditions| A["Chart A"]
@@ -1102,7 +1105,7 @@ optional route.
 
 | Route | Who it's for | What happens |
 | --- | --- | --- |
-| **"I know my analysis"** | Users who can name their test | Pick it from a list (the shortcut, S0), then fill in its form. As in G\*Power's and PAMLj's menus |
+| **"I know my analysis"** | Users who can name their test | Search for it, or open its family in a grouped list of every analysis (no screening questions, since 31 October 2026), then fill in its form. As in G\*Power's and PAMLj's menus |
 | **"Help me choose"** | Users who know their hypothesis but not the test's name | The tree in section 2 (design finder), ending on one form |
 | **"Plan my whole study"** (guided, optional) | Users less familiar with power analysis, and studies with several hypotheses on the same data | Define the study's variables once, tick the analyses planned, mark which are primary, and get a plan (below) |
 

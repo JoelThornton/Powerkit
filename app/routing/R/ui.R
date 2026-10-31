@@ -325,49 +325,81 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
 
 # "I know my analysis" list ---------------------------------------------------
 
-# With screening answers (`ctx`), the list offers only the end points that
-# fit them (endpoints_for_context()).
+# Every analysis, grouped by family (tree.yaml, `analysis_families`) in
+# closed groups, with a search box that filters them all (the maintainer's
+# decision of 31 October 2026): someone who knows their analysis goes
+# straight here, without the screening questions. With screening answers
+# (`ctx`), only the end points that fit them are listed.
+known_status_text <- list(
+  runs_validated = NULL, runs_validation_in_progress = "Runs; validation in progress",
+  coming_soon = "Coming soon", not_in_powerkit = "Not in powerkit yet: the card points to tools that do it"
+)
+
 known_ui <- function(tree, history = list(), ctx = NULL) {
-  groups <- list(
-    "Runs in powerkit (validated)" = "runs_validated",
-    "Runs, validation in progress" = "runs_validation_in_progress",
-    "Coming soon" = "coming_soon",
-    "Not in powerkit yet" = "not_in_powerkit"
-  )
   eps <- tree$endpoints
-  total <- length(eps)
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
+  item <- function(id, family) {
+    ep <- eps[[id]]
+    name <- standard_name(ep$doc_name)$name
+    status <- known_status_text[[ep$status]]
+    help <- paste(c(if (maintainer_view()) sprintf("%s (%s)", name, id) else name, status), collapse = " \u00b7 ")
+    words <- tolower(paste(ep$plain_name, ep$doc_name, family$label))
+    div(class = "known-item", `data-search` = words,
+      pick_button(ep$plain_name, paste0("ep:", id), help,
+        class = if (identical(ep$status, "not_in_powerkit")) "btn btn-outline-secondary choice" else "btn btn-outline-primary choice"))
+  }
+  families <- Filter(function(f) any(unlist(f$endpoints) %in% names(eps)), tree$analysis_families)
   tagList(
     screen_nav_ui(),
     trail_ui(history),
     h2("Which analysis do you want?"),
-    p(class = "lead", "Pick it by name. Each one opens its card."),
+    p(class = "lead", "Search for it, or open its group. Each one opens its card, which says what the test assumes and needs."),
     if (!is.null(ctx)) {
-      p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.", length(eps), total))
-    } else {
-      tagList(
-        p(class = "text-muted", sprintf(tree$routes$skip_screening$note, total)),
-        div(class = "choices list",
-          pick_button(tree$routes$skip_screening$filter_label, "screen_me",
-            class = "btn btn-outline-secondary choice choice-safety"))
-      )
+      p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.",
+        length(eps), length(tree$endpoints)))
     },
-    lapply(names(groups), function(g) {
-      ids <- names(eps)[vapply(eps, function(e) e$status %in% groups[[g]], logical(1))]
-      if (length(ids) == 0) return(NULL)
-      tagList(
-        h3(class = "h4 mt-4", g),
-        div(class = "choices list", lapply(ids, function(id) {
-          pick_button(eps[[id]]$plain_name, paste0("ep:", id),
-            # The standard name, without a PROCESS model number or the
-            # internal code (shown to the maintainer only).
-            if (maintainer_view()) sprintf("%s (%s)", standard_name(eps[[id]]$doc_name)$name, id) else standard_name(eps[[id]]$doc_name)$name)
-        }))
-      )
+    tags$label(`for` = "known_search", class = "form-label", "Search the analyses"),
+    tags$input(id = "known_search", type = "search", class = "form-control mb-3", autocomplete = "off",
+      placeholder = "For example: repeated measures, logistic, mediation, meta-analysis",
+      oninput = "powerkitFilterAnalyses(this.value)"),
+    p(id = "known_none", class = "text-muted", hidden = NA,
+      "No analysis matches those words. Try fewer words, or open the groups below."),
+    lapply(families, function(f) {
+      ids <- intersect(unlist(f$endpoints), names(eps))
+      tags$details(class = "known-family mb-2", `data-family` = f$id,
+        tags$summary(class = "h5", sprintf("%s (%d)", f$label, length(ids))),
+        div(class = "choices list", lapply(ids, item, family = f)))
     }),
-    div(class = "choices list mt-4", pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"))
+    div(class = "choices list mt-4",
+      pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"),
+      pick_button("Not sure which? Answer a few questions instead", "route:choose", class = "btn btn-outline-secondary choice choice-safety")),
+    tags$script(HTML(known_search_js))
   )
 }
+
+# Filters the list as the user types: every word must appear in an
+# analysis's names or its group's; groups with matches open, the rest
+# hide; an empty box shows every group closed again.
+known_search_js <- "
+function powerkitFilterAnalyses(query) {
+  var words = query.toLowerCase().split(/\\s+/).filter(function(w) { return w.length > 0; });
+  var any = false;
+  document.querySelectorAll('.known-family').forEach(function(family) {
+    var shown = 0;
+    family.querySelectorAll('.known-item').forEach(function(item) {
+      var text = item.getAttribute('data-search');
+      var match = words.every(function(w) { return text.indexOf(w) >= 0; });
+      item.hidden = !match;
+      if (match) shown++;
+    });
+    family.hidden = shown === 0;
+    family.open = words.length > 0 && shown > 0;
+    if (shown > 0) any = true;
+  });
+  var none = document.getElementById('known_none');
+  if (none) none.hidden = any;
+}
+"
 
 # End-point card ------------------------------------------------------------
 

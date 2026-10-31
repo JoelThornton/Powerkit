@@ -98,17 +98,23 @@ test_that("'I know my analysis' can skip the screening; the other routes can't",
     "skip_screening", fixed = TRUE)
 })
 
-test_that("the skipped list holds every analysis and offers the questions as a filter", {
+test_that("'I know my analysis' lists every analysis in closed family groups, with a search box", {
   all_of_them <- as.character(known_ui(tree, list(), NULL))
   for (id in names(tree$endpoints)) {
     expect_match(all_of_them, sprintf("&#39;ep:%s&#39;", id), fixed = TRUE, label = id)
   }
-  # It says how many, and that nothing was screened out.
-  expect_match(all_of_them, sprintf(tree$routes$skip_screening$note, length(tree$endpoints)), fixed = TRUE)
+  # Every analysis but the safety net is in exactly one family.
+  in_families <- unlist(lapply(tree$analysis_families, `[[`, "endpoints"))
+  expect_false(anyDuplicated(in_families) > 0)
+  expect_setequal(in_families, setdiff(names(tree$endpoints), tree$safety_net$endpoint))
+  # The groups start closed, and the search box filters them.
+  expect_equal(lengths(regmatches(all_of_them, gregexpr("<details class=\"known-family", all_of_them))), length(tree$analysis_families))
+  expect_no_match(all_of_them, "<details[^>]* open", perl = TRUE)
+  expect_match(all_of_them, "id=\"known_search\"", fixed = TRUE)
+  expect_match(all_of_them, "powerkitFilterAnalyses", fixed = TRUE)
   expect_no_match(all_of_them, "that fit your screening answers", fixed = TRUE)
-  # And it offers the screening questions instead.
-  expect_match(all_of_them, "&#39;screen_me&#39;", fixed = TRUE)
-  expect_match(all_of_them, htmltools::htmlEscape(tree$routes$skip_screening$filter_label), fixed = TRUE)
+  # Someone unsure can still answer the questions.
+  expect_match(all_of_them, "&#39;route:choose&#39;", fixed = TRUE)
 
   # With screening answers the list is filtered, and says so.
   ctx <- list(outcome = "score", times = "once")
@@ -116,7 +122,6 @@ test_that("the skipped list holds every analysis and offers the questions as a f
   fits <- length(endpoints_for_context(tree, ctx))
   expect_lt(fits, length(tree$endpoints))
   expect_match(filtered, sprintf("Showing the %d of %d analyses", fits, length(tree$endpoints)), fixed = TRUE)
-  expect_no_match(filtered, "screen_me", fixed = TRUE)
 })
 
 test_that("the skip is part of 'where you are', so Back and Forward restore it", {

@@ -27,6 +27,9 @@ fully validated. Validation runs are recorded in
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X) and E33 (participants and items, simr). No template
   is engine-only.
+- **Finding an analysis:** "I know my analysis" lists every analysis in
+  closed groups by family with a search box (31 October 2026); "Help me
+  choose" asks the screening questions first.
 - **Results** state their spec hash, seed, backend, R and package
   versions; save as a project file or a study plan and reopen; export an
   R script that reproduces them with the backend alone, citations, a
