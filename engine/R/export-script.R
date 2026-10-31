@@ -1617,6 +1617,7 @@ superpower_script <- function(spec, result) {
         "  result <- ANOVA_power(",
         "    design,",
         "    alpha_level = alpha,",
+        if (identical(spec$template, "oneway_within")) "    correction = correction, # sphericity correction of the F test",
         if (!is.null(inputs$pairwise_row)) "    p_adjust = p_adjust, # adjusts the p-values of all the pairwise t-tests",
         "    nsims = batch_replications,",
         "    seed = batch_seed,",
@@ -1679,8 +1680,13 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("#   a = %s: %s", comment_text(v$A$label), paste(sprintf("a%d = %s", seq_along(lv), lv), collapse = ", ")),
       sprintf("design_string <- %s # one within-participants factor with %d levels", r_code(inputs$design), length(lv)),
       sprintf("mu <- %s # mean of %s in each condition, a1 to a%d", r_code(inputs$mu), comment_text(v$Y$label), length(lv)),
-      sprintf("cell_sd <- %s # SD in every condition", r_code(inputs$sd)),
-      sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(inputs$r)),
+      sprintf("cell_sd <- %s # %s", r_code(inputs$sd), if (length(inputs$sd) == 1) "SD in every condition" else sprintf("SD in each condition, a1 to a%d", length(lv))),
+      sprintf("r <- %s # %s", r_code(inputs$r), if (length(inputs$r) == 1) {
+        "correlation between any two conditions, within a participant"
+      } else {
+        "correlation between each pair of conditions: (a1, a2), (a1, a3), ..., (a2, a3), ..."
+      }),
+      sprintf("correction <- %s # sphericity correction of the F test (none, GG or HF)", r_code(inputs$correction)),
       "groups <- 1 # one group: everyone is in every condition",
       "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)",
       superpower_pairwise_lines(inputs)
@@ -1805,7 +1811,11 @@ superpower_exact_sections <- function(spec, result, inputs) {
     "exact_result <- function(n_total, means = mu) {",
     "  design <- build_design(n_total, means)",
     "  set.seed(seed)",
-    "  result <- ANOVA_exact(design, alpha_level = alpha, verbose = FALSE)",
+    if (identical(spec$template, "oneway_within")) {
+      "  result <- ANOVA_exact(design, alpha_level = alpha, correction = correction, verbose = FALSE)"
+    } else {
+      "  result <- ANOVA_exact(design, alpha_level = alpha, verbose = FALSE)"
+    },
     "  row <- result$main_results[effect_row, ]",
     "  list(power = row$power / 100, cohen_f = row$cohen_f)",
     "}",

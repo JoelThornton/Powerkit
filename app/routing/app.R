@@ -605,7 +605,9 @@ server <- function(input, output, session) {
     by_field <- by_field[!duplicated(names(by_field))]
     session$sendCustomMessage("field_problems", as.list(by_field))
     spec <- if (length(problems) == 0) build_spec(forms, state$endpoint, fields, values)
-    check <- if (length(problems) == 0) check_spec(spec, fields)
+    # The engine's messages name a field by its path; only the fields shown
+    # are offered, as two fields can share a path (E54's r and rs).
+    check <- if (length(problems) == 0) check_spec(spec, Filter(function(f) field_applies(f, values), fields))
     state$calc <- NULL
     state$long_spec <- NULL
     cancel_job()

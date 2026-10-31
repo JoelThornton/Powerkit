@@ -1600,6 +1600,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
   if (is_pairwise(spec)) name <- pairwise_test_name(spec)
+  # A sphericity correction (E54, when the SDs or correlations differ).
+  correction <- spec$target_test$correction %||% "none"
+  if (!identical(correction, "none") && !is_pairwise(spec)) {
+    name <- sprintf("%s with the %s correction for sphericity", name, c(GG = "Greenhouse-Geisser", HF = "Huynh-Feldt")[[correction]])
+  }
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))

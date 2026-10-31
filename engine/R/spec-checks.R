@@ -38,6 +38,7 @@ population_problems <- function(spec) {
     check_weights_allowed(spec),
     check_pairwise(spec),
     check_friedman(spec),
+    check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -252,11 +253,60 @@ check_friedman <- function(spec) {
     problems <- c(problems, "Friedman's test needs each condition's mean ('population > means' and 'population > sd'), not partial eta-squared.")
   }
   r <- spec$population$r
-  if (is.numeric(r) && (r < 0 || r >= 1)) {
+  if (is.numeric(r) && length(r) == 1 && (r < 0 || r >= 1)) {
     problems <- c(problems, paste0(
       "For Friedman's test, the correlation between conditions ('population > r') must be at least 0 and below 1: ",
       "powerkit draws each score as the person's own level plus a deviation, so the correlation is the share of ",
       "the variance that is the person's."))
+  }
+  problems
+}
+
+# One-way repeated measures with an SD per condition or a correlation per
+# pair: one value per condition (k) and per pair (k(k - 1) / 2), a
+# correlation matrix that is possible (positive definite), and the means
+# themselves (partial eta-squared has no SDs). The sphericity correction
+# belongs to this template alone.
+check_within_covariance <- function(spec) {
+  pop <- spec$population
+  correction <- spec$target_test$correction
+  problems <- character()
+  if (!identical(spec$template, "oneway_within")) {
+    if (!is.null(correction)) {
+      problems <- c(problems, "'target_test > correction' only applies to the one-way repeated-measures ANOVA (template 'oneway_within'); remove it.")
+    }
+    return(problems)
+  }
+  sds <- as.numeric(unlist(pop$sd))
+  rs <- as.numeric(unlist(pop$r))
+  k <- length(spec$variables$A$levels)
+  several <- length(sds) > 1 || length(rs) > 1
+  if (several && identical(pop$metric, "eta_squared")) {
+    return("An SD per condition or a correlation per pair needs the condition means ('population > means'), not partial eta-squared.")
+  }
+  if (!is.null(correction) && !identical(correction, "none") && identical(pop$metric, "eta_squared")) {
+    return(paste0("A sphericity correction ('target_test > correction') needs the condition means, SDs and correlations: ",
+      "from partial eta-squared powerkit assumes sphericity (pwrss's epsilon = 1)."))
+  }
+  if (several && !spec$target_test$method %in% c("anova_f", "t_test")) {
+    problems <- c(problems, "An SD per condition or a correlation per pair is available for the F test and pairwise comparisons; Friedman's test takes one of each.")
+  }
+  if (length(sds) > 1 && length(sds) != k) {
+    problems <- c(problems, sprintf("'population > sd' should have one SD per condition (%d); it has %d.", k, length(sds)))
+  }
+  if (length(rs) > 1 && length(rs) != k * (k - 1) / 2) {
+    problems <- c(problems, sprintf(
+      "'population > r' should have one correlation per pair of conditions (%d, in the order (1, 2), (1, 3), ..., (2, 3), ...); it has %d.",
+      k * (k - 1) / 2, length(rs)))
+  } else if (length(rs) > 1) {
+    correlation <- diag(k)
+    correlation[upper.tri(correlation)] <- rs
+    correlation[lower.tri(correlation)] <- t(correlation)[lower.tri(correlation)]
+    if (min(eigen(correlation, symmetric = TRUE, only.values = TRUE)$values) <= 0) {
+      problems <- c(problems, "These correlations can't all hold at once (the correlation matrix they make isn't possible): check them, for example pairs that are much higher or lower than the rest.")
+    }
+  } else if (length(rs) == 1 && k > 1 && rs <= -1 / (k - 1)) {
+    problems <- c(problems, sprintf("With %d conditions, one correlation for every pair must be above %s.", k, format_number(round(-1 / (k - 1), 3))))
   }
   problems
 }

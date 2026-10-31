@@ -1092,10 +1092,25 @@ forms:
           - {id: means, writeup_label: "condition means", label: "Means: one for each condition, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every condition; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same in every condition?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation for every pair of conditions", differ: "No: an SD for each condition and a correlation for each pair"},
+             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             help: "When they differ, sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every condition; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: sds, writeup_label: "SDs", label: "SDs: one for each condition, in the same order, separated by commas (in the means' units)", type: numbers, per_levels: A_levels, path: population.sd, effect: true,
+             shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two conditions"
         fields:
-          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: rs, writeup_label: "correlations between conditions", label: "Correlations: one for each pair of conditions, in the order (1, 2), (1, 3), ..., (2, 3), ..., separated by commas", type: numbers, path: population.r, effect: true,
+             shown_if: {field: spread, is: differ},
+             help: "With three conditions: first with second, first with third, second with third."}
+          - {id: correction, label: "Sphericity correction of the F test", type: select, path: target_test.correction, required: true,
+             shown_if: {field: spread, is: differ},
+             choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
+             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "The ANOVA, Friedman's test or pairwise comparisons"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,

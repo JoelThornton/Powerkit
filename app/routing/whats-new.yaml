@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Repeated measures that don't vary equally"
+    text: >-
+      The one-way repeated-measures card can now take a different SD for
+      each condition and a different correlation for each pair, with a
+      Greenhouse-Geisser or Huynh-Feldt correction if you will report one.
+  - date: "2026-10-31"
     title: "A picture of power, in Labs"
     text: >-
       Labs has a new tool for seeing what power is: move the sample size

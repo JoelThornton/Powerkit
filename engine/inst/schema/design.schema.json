@@ -495,6 +495,14 @@
           "description": "Bayes factor t-tests only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))).",
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "correction": {
+          "description": "One-way repeated measures only: the sphericity correction (see template_oneway_within).",
+          "enum": [
+            "none",
+            "GG",
+            "HF"
+          ]
         }
       },
       "allOf": [
@@ -3416,13 +3424,36 @@
               }
             },
             "sd": {
-              "description": "Standard deviation in each condition (the same in every condition).",
-              "type": "number",
-              "exclusiveMinimum": 0
+              "description": "Standard deviation in each condition: one number for every condition, or one per condition in the order of the factor's levels.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "array",
+                  "minItems": 3,
+                  "items": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              ]
             },
             "r": {
-              "description": "Correlation between any two conditions' measurements within a participant (the same for every pair).",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between two conditions' measurements within a participant: one number for every pair, or one per pair in the order (1, 2), (1, 3), ..., (1, k), (2, 3), ... (the upper triangle of the correlation matrix, row by row, as Superpower's ANOVA_design() takes it).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 3,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
@@ -3513,6 +3544,14 @@
                 "anova_f",
                 "t_test",
                 "friedman"
+              ]
+            },
+            "correction": {
+              "description": "Sphericity correction of the F test's degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
+              "enum": [
+                "none",
+                "GG",
+                "HF"
               ]
             }
           }
