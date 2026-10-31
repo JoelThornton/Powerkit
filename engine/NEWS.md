@@ -1,5 +1,9 @@
 # powerkit 0.25.0
 
+* App: "I know my analysis" goes straight to every analysis, in closed
+  groups by family (`tree.yaml`, `analysis_families`) with a search box,
+  without the screening questions; a test checks every analysis is in
+  exactly one group. "Help me choose" keeps the questions.
 * Meta-analysis (E61): the random-effects model plans for the
   Hartung-Knapp test by default (`target_test > test` "hartung_knapp";
   Departure 18), simulated with Spower and powerkit's experiment

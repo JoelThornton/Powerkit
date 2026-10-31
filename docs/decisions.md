@@ -3786,5 +3786,5 @@ merges when its checks pass, unless a doubt is stated in it.
   would preregister), with the z test available; done the same day (Departure 18).
 - **Finding tests (31 October 2026):** "I know my analysis" becomes a
   grouped, collapsible, searchable list without the screening questions
-  (item 26); an "I know the terms" setting shows technical names first
-  (item 27).
+  (done the same day); an "I know the terms" setting shows technical
+  names first (item 26).

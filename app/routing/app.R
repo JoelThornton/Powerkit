@@ -458,11 +458,19 @@ server <- function(input, output, session) {
       state$skip_screening <- FALSE
       state$from_labs <- FALSE; state$labs_seed <- NULL
     } else if (kind == "route") {
-      # The aim comes next, on its own screen.
       state$start <- list()
       state$route <- value; state$history <- list(); state$ctx <- list()
       state$skip_screening <- FALSE
-      state$screen <- "aim"
+      if (identical(value, "known")) {
+        # "I know my analysis" goes straight to the grouped, searchable
+        # list (31 October 2026): no aim and no screening questions.
+        state$skip_screening <- TRUE
+        state$node <- NULL
+        state$screen <- "known"
+      } else {
+        # The aim comes next, on its own screen.
+        state$screen <- "aim"
+      }
     } else if (kind == "aim") {
       # Estimation and equivalence go to their cards.
       state$start <- list(aim = value)
