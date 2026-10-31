@@ -460,6 +460,10 @@ rank_design_description <- function(spec, label, levels) {
     oneway_between = sprintf(
       "Kruskal-Wallis test of %s across the %d groups of %s (%s)",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
+    oneway_within = sprintf(
+      "Friedman's test of %s across the %d conditions of %s (%s), everyone in every condition",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
     )
   )
   sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape))
@@ -1091,7 +1095,11 @@ spower_script_inputs <- function(spec) {
       "dz <- %s # d_z: mean of the differences (%s minus %s) / SD of the differences",
       r_code(pop$dz), lv("X", 2), lv("X", 1)
     ),
-    correlation = sprintf("r <- %s # population correlation (Pearson's r of the scores)", r_code(pop$r)),
+    correlation = c(
+      sprintf("r <- %s # population correlation (Pearson's r of the scores)", r_code(pop$r)),
+      if (shaped_rank_correlation(spec)) sprintf("score_shape <- %s # the shape of both scores: %s",
+        r_code(pop$score_shape), score_shape_words(pop$score_shape))
+    ),
     manova = c(
       sprintf("# Mean of each outcome (columns: %s) in each group (rows: %s).",
         paste(vapply(manova_outcomes(spec), function(y) comment_text(v[[y]]$label), character(1)), collapse = ", "),
@@ -1226,7 +1234,8 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = batch_n, # sample size",
       "r = r, # population correlation",
       if (rank_correlation(spec)) sprintf("method = \"%s\" # %s", spec$target_test$method,
-        if (identical(spec$target_test$method, "spearman")) "Spearman's rho" else "Kendall's tau")
+        if (identical(spec$target_test$method, "spearman")) "Spearman's rho" else "Kendall's tau"),
+      if (shaped_rank_correlation(spec)) c("gen_fun = shaped_pair, # scores of the chosen shape (above)", "shape = score_shape")
     ),
     paired_variances = c(
       "n = batch_n, # number of people",
@@ -1335,6 +1344,20 @@ spower_derived_lines <- function(spec) {
   if (rank_test(spec)) {
     return(rank_derived_lines(spec))
   }
+  if (shaped_rank_correlation(spec)) {
+    return(c(
+      "# Two scores of the chosen shape (mean 0, SD 1) with Pearson's correlation r:",
+      "# the second is r times the first plus sqrt(1 - r^2) times another draw.",
+      "shaped_pair <- function(n, r, shape, ...) {",
+      "  draw <- function(n) switch(shape,",
+      "    skewed = (rchisq(n, df = 10) - 10) / sqrt(20), # standardised chi-square, 10 df",
+      "    heavy_tailed = rt(n, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1",
+      "  )",
+      "  x <- draw(n)",
+      "  data.frame(x = x, y = r * x + sqrt(1 - r^2) * draw(n))",
+      "}"
+    ))
+  }
   switch(
     spec$template,
     independent_t = "d_spower <- -d # Spower puts the effect in group 1, so d (group 2 minus group 1) changes sign",
@@ -1438,6 +1461,14 @@ rank_script_inputs <- function(spec) {
       "means <- %s / %s # group means (%s) in SD units: the means over the SD",
       r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
       paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    ),
+    oneway_within = c(
+      sprintf(
+        "means <- %s / %s # condition means (%s) in SD units: the means over the SD",
+        r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
+        paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+      ),
+      sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(pop$r))
     )
   )
   c(effect, shape)
@@ -1479,6 +1510,18 @@ rank_derived_lines <- function(spec) {
       "gen_groups <- function(n, k, n.ratios, means, ...) {",
       "  lapply(seq_len(k), function(g) means[g] + draw_scores(n * n.ratios[g]))",
       "}"
+    ),
+    oneway_within = c(
+      "# The experiment, as powerkit runs it: each score is the condition's mean,",
+      "# the person's own level (normal, variance r) and a deviation in the chosen",
+      "# shape (variance 1 - r), so every score has SD 1 and two conditions",
+      "# correlate r. The people's levels are drawn first, then each condition's",
+      "# deviations in turn. Then the p-value of Friedman's test.",
+      "p_friedman <- function(n, means, r) {",
+      "  person <- sqrt(r) * rnorm(n)",
+      "  y <- vapply(seq_along(means), function(j) means[j] + person + sqrt(1 - r) * draw_scores(n), numeric(n))",
+      "  friedman.test(matrix(y, nrow = n))$p.value",
+      "}"
     )
   )
   c(draw, "", rest)
@@ -1513,6 +1556,11 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "k = length(means), # number of groups",
       "means = means, # group means in SD units",
       "gen_fun = gen_groups"
+    ),
+    oneway_within = c(
+      "n = batch_n, # number of participants",
+      "means = means, # condition means in SD units",
+      "r = r"
     )
   )
   if (one_sided) {

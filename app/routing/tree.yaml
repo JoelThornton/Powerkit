@@ -881,7 +881,7 @@ endpoints:
   E4:
     rank_test: "Spearman's or Kendall's rank correlation"
     rank_test_simulated: true
-    rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, on normal scores with the correlation you enter."
+    rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, on scores of the shape you choose (normal, skewed or heavy-tailed) with the correlation you enter."
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
     template: "basic_test / correlation"
@@ -1609,6 +1609,7 @@ endpoints:
     alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]
   E54:
     rank_test: "Friedman's test"
+    rank_test_simulated: true
     doc_name: "One-way repeated-measures ANOVA, omnibus"
     plain_name: "Any difference among three or more conditions, the same people in each"
     template: "factorial_anova / oneway_within"
@@ -1621,9 +1622,9 @@ endpoints:
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
       - "powerkit assumes the same SD in every condition and the same correlation between every pair of conditions. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-    inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA or pairwise comparisons"]
+    inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test or pairwise comparisons"]
     tier: v2
-    alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model", "Friedman's test"]
+    alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
   E55:
     doc_name: "Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints)"
     plain_name: "Groups of different people, each measured in every condition or at every timepoint"

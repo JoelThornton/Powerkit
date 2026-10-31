@@ -163,6 +163,17 @@ sim_basic_code <- function(spec, n) {
       ")"
     ))
   }
+  if (shaped_rank_correlation(spec)) {
+    # Both scores in the chosen shape (shaped_pair_scores()).
+    draw <- switch(pop$score_shape,
+      skewed = "(stats::rchisq(%d, df = 10) - 10) / sqrt(20)",
+      heavy_tailed = "stats::rt(%d, df = 3) / sqrt(3)")
+    return(c(
+      sprintf("x <- %s # %s, mean 0 and SD 1", sprintf(draw, n), score_shape_words(pop$score_shape)),
+      sprintf("simulated <- data.frame(%s = x, %s = %s * x + sqrt(1 - %s^2) * %s)", sim_label(spec, "X"), sim_label(spec, "Y"),
+        r_code(pop$r), r_code(pop$r), sprintf(draw, n))
+    ))
+  }
   inputs <- spower_inputs(spec)
   args <- inputs$args(n)
   args <- args[setdiff(names(args), c("var.equal", "correct", "method"))]
@@ -372,6 +383,21 @@ sim_rank_code <- function(spec, n) {
         "simulated <- data.frame(",
         sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(levels), n %/% k),
         sprintf("  %s = unlist(lapply(means, function(m) m + draw(%d)))", y, n %/% k),
+        ")"
+      )
+    },
+    # Friedman's test: one row per participant, one column per condition;
+    # each score the condition's mean, the person's level and a deviation in
+    # the chosen shape (friedman_scores()).
+    oneway_within = {
+      levels <- sim_levels(spec, "A")
+      means <- as.numeric(unlist(pop$means)) / pop$sd
+      c(
+        sprintf("means <- %s # each condition's mean, in SD units", r_code(means)),
+        sprintf("person <- sqrt(%s) * stats::rnorm(%d) # each person's own level", r_code(pop$r), n),
+        "simulated <- data.frame(",
+        paste0(sprintf("  %s = means[%d] + person + sqrt(1 - %s) * draw(%d)", vapply(paste(y, levels), csv_name, character(1)),
+          seq_along(levels), r_code(pop$r), n), c(rep(",", length(levels) - 1), "")),
         ")"
       )
     }

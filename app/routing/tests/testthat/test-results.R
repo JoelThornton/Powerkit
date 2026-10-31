@@ -869,7 +869,7 @@ test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E4"))
   for (method in c("spearman", "kendall")) {
-    values <- modifyList(form_examples$E4, list(method = method))
+    values <- modifyList(form_examples$E4, list(method = method, score_shape = "normal"))
     expect_equal(form_problems(fields, values), character(), info = method)
     spec <- build_spec(forms, "E4", fields, values)
     expect_identical(spec$target_test$method, method)
@@ -1541,6 +1541,35 @@ test_that("pairwise comparisons after a one-way ANOVA: the pair and the adjustme
   expect_identical(calc$status, "ok")
   expect_identical(calc$result$provenance$method, "simulation")
   expect_match(calc$result$provenance$backend_function, "p_adjust = \"bonferroni\"", fixed = TRUE)
+})
+
+test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
+  fields <- form_fields(form_groups(forms, "E54"))
+  values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))
+  spec <- build_spec(forms, "E54", fields, values)
+  expect_identical(spec$target_test$method, "friedman")
+  expect_identical(spec$population$score_shape, "skewed")
+  expect_null(spec$options$method)
+  expect_match(rank_test_name(spec), "Friedman's test, simulated assuming skewed deviations from each person's own level", fixed = TRUE)
+  expect_length(departures_for(forms, "E54", spec), 0)
+  by_id <- function(fields, id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_false(field_applies(by_id(fields, "score_shape"), list(test_version = "anova_f")))
+  fields4 <- form_fields(form_groups(forms, "E4"))
+  expect_true(field_applies(by_id(fields4, "score_shape"), list(method = "kendall")))
+  expect_false(field_applies(by_id(fields4, "score_shape"), list(method = "pearson")))
+  spec4 <- build_spec(forms, "E4", fields4, modifyList(form_examples$E4, list(method = "spearman", score_shape = "heavy_tailed", goal = "power", n = "60")))
+  expect_identical(spec4$population$score_shape, "heavy_tailed")
+  expect_match(rank_correlation_name(spec4), "a test of Spearman's rho, simulated assuming heavy-tailed scores", fixed = TRUE)
+  # Neither the formula's departures nor the formula-based explore panel apply.
+  expect_false(any(c("9", "10") %in% names(departures_for(forms, "E4", spec4))))
+  expect_null(explore_effect(spec4))
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_match(calc$result$provenance$backend_function, "friedman.test", fixed = TRUE)
+  calc4 <- run_calculation(spec4, run, seed = forms$default_seed)
+  expect_identical(calc4$status, "ok")
+  expect_match(calc4$result$provenance$backend_function, "heavy-tailed", fixed = TRUE)
 })
 
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {

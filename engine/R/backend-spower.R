@@ -82,11 +82,15 @@ spower_inputs <- function(spec) {
     ),
     # Pearson's r by simulation, or Spearman's rho or Kendall's tau
     # (p_r(method =)), on bivariate normal scores with Pearson correlation r.
+    # Spearman's rho and Kendall's tau on scores of a chosen shape other
+    # than normal: both scores drawn by shaped_pair_scores(), passed to
+    # p_r() as its generator.
     correlation = list(
-      experiment = "p_r", generator = "gen_r",
+      experiment = "p_r", generator = "gen_r", generate = if (shaped_rank_correlation(spec)) shaped_pair_scores,
       args = function(n) {
         method <- spec$target_test$method %||% "pearson"
-        c(list(n = n, r = pop$r), if (!identical(method, "pearson")) list(method = method))
+        c(list(n = n, r = pop$r), if (!identical(method, "pearson")) list(method = method),
+          if (shaped_rank_correlation(spec)) list(gen_fun = shaped_pair_scores, shape = pop$score_shape))
       }
     ),
     # The Pitman-Morgan test: the variances of two paired measurements are
@@ -194,7 +198,8 @@ spower_inputs <- function(spec) {
     sprintf("Spower::Spower(Spower::p_r(gen_fun = <sum and difference of paired scores>%s)) (the Pitman-Morgan test)",
       if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
   } else if (rank_correlation(spec)) {
-    sprintf("Spower::Spower(Spower::p_r(method = \"%s\"%s))", spec$target_test$method,
+    sprintf("Spower::Spower(Spower::p_r(method = \"%s\"%s%s))", spec$target_test$method,
+      if (shaped_rank_correlation(spec)) sprintf(", gen_fun = <%s>", score_shape_words(spec$population$score_shape)) else "",
       if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
   } else if (alternative == "two_sided") {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
@@ -226,6 +231,16 @@ rank_test_inputs <- function(spec, first_group) {
   ratio <- spec$options$allocation_ratio %||% 1
   draw <- score_shape_sampler(pop$score_shape)
   shifted <- function(n, d) d + draw(n)
+  if (identical(spec$template, "oneway_within")) {
+    # Friedman's test: powerkit's own experiment, p_friedman() (see
+    # friedman_scores()), with the condition means in SD units.
+    means <- as.numeric(unlist(pop$means)) / pop$sd
+    shape <- pop$score_shape %||% "normal"
+    return(list(
+      experiment = "p_friedman", own = TRUE, rank = "friedman", draw = draw,
+      args = function(n) list(n = n, means = means, r = pop$r, shape = shape)
+    ))
+  }
   if (identical(spec$template, "oneway_between")) {
     k <- length(spec$variables$A$levels)
     means <- as.numeric(unlist(pop$means)) / pop$sd
@@ -278,12 +293,48 @@ score_shape_words <- function(shape) {
 }
 
 rank_test_description <- function(test, template, alternative) {
+  if (identical(template, "oneway_within")) {
+    return("Spower::Spower(p_friedman()) (stats::friedman.test())")
+  }
   type <- switch(template, one_sample_t = "one.sample", paired_t = "paired", independent_t = "two.sample", NULL)
   arguments <- c(
     if (!is.null(type)) sprintf("type = \"%s\"", type),
     if (alternative != "two_sided") sprintf("alternative = \"%s\"", spower_alternative(template, alternative))
   )
   sprintf("Spower::Spower(Spower::%s(%s))", test$experiment, paste(arguments, collapse = ", "))
+}
+
+# A rank correlation on scores of a shape other than normal.
+shaped_rank_correlation <- function(spec) {
+  rank_correlation(spec) && !identical(spec$population$score_shape %||% "normal", "normal")
+}
+
+# Two scores in the chosen shape (SD 1) with Pearson's correlation r: the
+# second is r times the first plus sqrt(1 - r^2) times another draw of the
+# same shape. The first is drawn first. Its shape is exactly the one
+# chosen; the second's is close to it (a mixture of the two draws).
+shaped_pair_scores <- function(n, r, shape, ...) {
+  draw <- score_shape_sampler(shape)
+  x <- draw(n)
+  data.frame(x = x, y = r * x + sqrt(1 - r^2) * draw(n))
+}
+
+# Scores for Friedman's test: n people in k conditions, each score the
+# condition's mean (in SD units), the person's own level (normal, variance
+# r) and a deviation in the chosen shape (variance 1 - r). Every score then
+# has SD 1, any two conditions correlate r, and conditions differ only by
+# a shift. The person's levels are drawn first, then each condition's
+# deviations in turn (the exported script draws in the same order).
+friedman_scores <- function(n, means, r, shape) {
+  draw <- score_shape_sampler(shape)
+  person <- sqrt(r) * stats::rnorm(n)
+  y <- vapply(seq_along(means), function(j) means[j] + person + sqrt(1 - r) * draw(n), numeric(n))
+  matrix(y, nrow = n)
+}
+
+# Spower experiment for Friedman's test: its p-value on friedman_scores().
+p_friedman <- function(n, means, r, shape) {
+  stats::friedman.test(friedman_scores(n, means, r, shape))$p.value
 }
 
 # Paired scores for the Pitman-Morgan test, returned as their sum and
@@ -530,6 +581,18 @@ spower_check_run <- function(spec, inputs, n, seed) {
 # sample is, with the effect recovered in the spec's own orientation.
 rank_check_run <- function(spec, args, seed) {
   pop <- spec$population
+  if (identical(spec$template, "oneway_within")) {
+    y <- call_backend("Spower", with_seed(seed, friedman_scores(args$n, args$means, args$r, args$shape)))
+    within_r <- stats::cor(y)[upper.tri(diag(ncol(y)))]
+    r_row <- check_run_rows("correlation between two conditions (average)", args$r, mean(within_r), NA)
+    r_row$ok <- abs(atanh(mean(within_r)) - atanh(args$r)) <= 5 / sqrt(nrow(y) - 3)
+    return(rbind(
+      check_run_rows(sprintf("mean of %s (SD units)", unlist(spec$variables$A$levels)), args$means, colMeans(y), 1 / sqrt(nrow(y))),
+      check_run_rows(sprintf("SD in %s (SD units)", unlist(spec$variables$A$levels)), rep(1, ncol(y)), apply(y, 2, stats::sd),
+        rep(1 / sqrt(2 * (nrow(y) - 1)), ncol(y))),
+      r_row
+    ))
+  }
   if (identical(spec$template, "oneway_between")) {
     groups <- call_backend("Spower", with_seed(seed, args$gen_fun(args$n, args$k, rep(1, args$k), args$means)))
     return(check_run_rows(
