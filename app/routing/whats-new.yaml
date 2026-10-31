@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Multilevel models with predictors at both levels"
+    text: >-
+      For people within groups (pupils in classes, patients in clinics),
+      powerkit now simulates power for a predictor measured on each person,
+      one measured on each group, and whether the person-level effect
+      depends on the group-level one. "Help me choose" asks one new
+      question to tell this apart from a cluster-randomised trial. Not yet
+      checked by a statistician.
+  - date: "2026-10-31"
     title: "Whole-study simulation with two groups"
     text: >-
       "Plan my whole study" can now simulate a study whose main predictor is

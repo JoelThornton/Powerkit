@@ -5,6 +5,8 @@
 
 routes <- c("choose", "known", "guided")
 screen_score <- c("A score or scale", "Independent people")
+cluster_conditions <- "Conditions or treatments given to whole groups, or to people within the groups"
+cluster_measured <- "Something measured on each person, or on each group, and how it relates to the outcome"
 
 # Where a list of answers leads in each route.
 leads_to <- function(labels) vapply(routes, function(r) follow_answers(tree, labels, r), character(1))
@@ -31,9 +33,9 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       end <- p[length(p)]
       if (!is_endpoint_id(end)) next
       # Separate people are asked all of S1-S3; people in groups leave
-      # after S2 for the grouped card.
+      # after S2 for the grouped cards (through C1).
       # Many trials per person leave after S2's follow-up for E33.
-      screened <- "s3" %in% p || ("s2" %in% p && end == "E34") || ("s2_trials" %in% p && end == "E33")
+      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62")) || ("s2_trials" %in% p && end == "E33")
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -48,8 +50,12 @@ test_that("answers other than the simple ones leave at an honest end point", {
   expect_identical(follow_answers(tree, c(ordinal, "Twice", "A difference between groups or conditions")), "E-unsure")
   expect_all_routes("The time until something happens", "E43")
   # People within groups: the goal is asked before the cluster-randomised
-  # trial (which calculates) is suggested.
-  expect_all_routes(c("A score or scale", "People within groups"), "E34")
+  # trial (which calculates) is suggested; with a score outcome, C1 then
+  # separates conditions given to groups (E34) from measured predictors
+  # at either level (E62).
+  expect_identical(leads_to(c("A score or scale", "People within groups")), c(choose = "c1", known = "c1", guided = "c1"))
+  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions), "E34")
+  expect_all_routes(c("A score or scale", "People within groups", cluster_measured), "E62")
   # Equivalence for grouped data: not the equivalence card, which assumes
   # separate people; the grouped card says it isn't covered yet.
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
@@ -171,7 +177,7 @@ test_that("nested data with a yes/no outcome no longer reaches the two-proportio
 
 test_that("cluster-randomised designs reach the multilevel card", {
   # On main: diff > score > Different people > One > Two, with different people > E2.
-  expect_all_routes(c("A score or scale", "People within groups"), "E34")
+  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions), "E34")
   expect_match(tree$nodes$s2$options[[2]]$help, "whole groups were assigned", fixed = TRUE)
 })
 

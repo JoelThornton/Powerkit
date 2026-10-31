@@ -3761,6 +3761,12 @@ merges when its checks pass, unless a doubt is stated in it.
   regression on the same people; Experimental, with the statistician's
   check afterwards (item 11), not before.
 - **Multilevel models (3):** E41 next, simulated with simr as E33 is.
+  Landed as its own card, E62 (a two-level model: a person-level and a
+  group-level predictor and their cross-level interaction), since E41
+  also stands for designs that remain uncovered (within-person
+  mediation, multilevel correlations); a new question C1 for people
+  within groups with a score outcome separates it from the
+  cluster-randomised trial (E34).
 - **Bayes (4):** the order in `docs/bayes-planning.md` (#193): a Labs
   Bayes mode at fixed N with the analysis and design priors kept apart and
   every outcome shown, then the other cards, sequential designs last.

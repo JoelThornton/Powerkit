@@ -251,6 +251,7 @@ zero_effect_cases <- list(
   regression_interaction = function(s) within(s, population$r_XW_Y <- 0),
   regression_interaction_binary = function(s) within(s, population$r_XW_Y <- 0),
   crossed_two_condition = function(s) within(s, population$difference <- 0),
+  mixed_two_level = function(s) within(s, population$b_XW <- 0),
   meta_mean_effect = function(s) within(s, population$effect <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),

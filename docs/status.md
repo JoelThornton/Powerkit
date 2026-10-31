@@ -22,10 +22,14 @@ fully validated. Validation runs are recorded in
   **40 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
   E37, E47-E57 and E59-E61 (`forms.yaml`'s `calculates`); E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
-  default, simulated with metafor), since 31 October 2026. **Eight are simulated with a
+  default, simulated with metafor), since 31 October 2026. **Nine are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
-  with a yes/no X) and E33 (participants and items, simr). No template
+  with a yes/no X), E33 (participants and items, simr) and E62 (a
+  two-level model with predictors at each level and their cross-level
+  interaction, simr; reached from the new question C1 for people within
+  groups, 31 October 2026; agrees with a separately written simulation,
+  published value and statistician review to come). No template
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026); "Help me
