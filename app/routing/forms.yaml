@@ -462,7 +462,12 @@ forms:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated"},
              default: pearson, default_source: "Pearson's r, the correlation pwr computes (pwr.r.test(), pwr 1.3-0)",
-             help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the underlying scores; powerkit simulates the rank test on normal scores with that correlation."}
+             help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
+          - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
+             shown_if: {field: method, is_one_of: [spearman, kendall]},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, Spower's default (p_r(), Spower 0.7)",
+             help: "A rank correlation's advantage over Pearson's r is in skewed or heavy-tailed data. The second score is drawn as r times the first plus another draw of the same shape, so its shape is close to, not exactly, the one chosen."}
 
   E5:
     methods_name: "a test of two proportions (z test)"
@@ -1091,12 +1096,18 @@ forms:
       - input: "The correlation between any two conditions"
         fields:
           - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
-      - input: "The ANOVA or pairwise comparisons"
+      - input: "The ANOVA, Friedman's test or pairwise comparisons"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "One-way repeated-measures ANOVA (F test)", t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated"},
+             choices: {anova_f: "One-way repeated-measures ANOVA (F test)", friedman: "Friedman's test (rank-based), simulated",
+                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
+          - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: friedman},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as the ANOVA assumes",
+             help: "Each score is the condition's mean, the person's own level and a deviation of this shape; the correlation between conditions is the share that is the person's, so it must be at least 0. Conditions differ only by a shift."}
           - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
              shown_if: {field: test_version, is: t_test},
              help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}

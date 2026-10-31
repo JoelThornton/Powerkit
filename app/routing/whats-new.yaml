@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Friedman's test, and rank correlations for skewed data"
+    text: >-
+      The one-way repeated-measures card now calculates Friedman's test,
+      the rank-based version, for normal, skewed or heavy-tailed scores.
+      Spearman's and Kendall's correlations can now be planned for skewed or
+      heavy-tailed scores too, where they have their advantage.
+  - date: "2026-10-31"
     title: "Pairwise comparisons after an ANOVA"
     text: >-
       If you will analyse a study with three or more groups or conditions

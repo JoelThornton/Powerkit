@@ -1,5 +1,21 @@
 # powerkit 0.25.0
 
+* Friedman's test: `target_test > method` "friedman" on `oneway_within`,
+  with `population > score_shape` (normal, skewed or heavy-tailed).
+  Simulated with Spower and powerkit's own experiment, `p_friedman()`
+  (`stats::friedman.test()`), on scores that are each condition's mean, the
+  person's own level and a deviation of the chosen shape, so the
+  correlation between conditions is r (at least 0). Checked against a
+  simulation written separately with `MASS::mvrnorm()`; Type I error near
+  alpha for every shape. The app offers it on E54, whose card no longer
+  says the ANOVA figure only approximates it.
+* Spearman's rho and Kendall's tau on skewed or heavy-tailed scores:
+  `population > score_shape` on the correlation template, drawn by
+  powerkit's `shaped_pair_scores()` and passed to Spower's `p_r()` as its
+  generator; normal scores keep Spower's own. The app's write-up now names
+  the rank correlation (it said "a Pearson correlation"), and neither the
+  formula's departures nor the formula-based explore panel are shown for
+  it.
 * Pairwise comparisons after a one-way ANOVA: `target_test > effect`
   "pairwise" with `method` "t_test" on `oneway_between` and
   `oneway_within`, `comparison` (the two levels whose difference is

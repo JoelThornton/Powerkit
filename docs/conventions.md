@@ -241,9 +241,27 @@ with Superpower 0.2.4.1 under R 4.5.3 on 29 October 2026.
   the Pearson correlation of those scores, not rho or tau themselves (for
   normal scores rho is slightly smaller than r). G\*Power has no rank
   correlation test; the only established alternative is an asymptotic
-  approximation, which powerkit would have to write itself. Normal scores
-  only for now: a choice of score shape, as for the rank location tests,
-  is a queue item.
+  approximation, which powerkit would have to write itself. From 31
+  October 2026 the scores can be skewed or heavy-tailed too, as for the
+  rank location tests: powerkit's generator (`shaped_pair_scores()`, passed
+  to `p_r()` as `gen_fun`) draws the first score in the chosen shape and
+  the second as r times the first plus sqrt(1 - r^2) times another draw of
+  that shape, so Pearson's correlation is r; the second score's shape is
+  close to the chosen one, not exactly it. Normal scores keep Spower's
+  `gen_r()`. Spearman's rho with r = -0.2 and 60 people: 29.3% power on
+  normal scores, 40.3% on heavy-tailed ones (300 replications).
+- **Friedman's test** (from 31 October 2026), the rank-based one-way
+  repeated-measures test, is simulated with Spower and powerkit's own
+  experiment, `p_friedman()`, calling `stats::friedman.test()`. Each score
+  is the condition's mean in SD units, the person's own level (normal,
+  variance r) and a deviation in the chosen shape (variance 1 - r), so
+  every score has SD 1, any two conditions correlate r, and the conditions
+  differ only by a shift; r must therefore be at least 0. G\*Power has no
+  Friedman test, and no package powerkit builds on has a power function
+  for it (roadmap B26). With normal deviations the scores are exactly the
+  multivariate normal the repeated-measures ANOVA assumes, which the
+  validation file uses for an independent check
+  (`test-validation-friedman.R`).
 - **The Pitman-Morgan test** of two paired variances is simulated with
   Spower's `p_r()` on the sum and the difference (first minus second) of
   bivariate normal paired scores with the two variances and their

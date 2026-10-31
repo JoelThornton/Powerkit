@@ -38,7 +38,12 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/oneway_within" = ,
+    "factorial_anova/oneway_within" = if (rank_test(spec)) {
+      # Friedman's test, simulated with Spower.
+      spower_backend(spec, seed)
+    } else {
+      superpower_backend(spec, seed)
+    },
     "factorial_anova/factorial_between" = ,
     "factorial_anova/factorial_within" = ,
     "factorial_anova/factorial_three" = superpower_backend(spec, seed),

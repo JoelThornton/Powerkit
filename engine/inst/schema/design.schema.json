@@ -1519,6 +1519,14 @@
             },
             "r": {
               "$ref": "#/definitions/correlation"
+            },
+            "score_shape": {
+              "description": "Spearman's rho and Kendall's tau only: the shape of both scores, in SD units. 'normal' (the default, bivariate normal scores); 'skewed': a chi-square distribution with 10 df, standardised; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1. The second score is r times the first plus sqrt(1 - r^2) times another draw of the same shape, so Pearson's correlation is r.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           }
         },
@@ -1714,7 +1722,8 @@
                       "contrast_t",
                       "kruskal_wallis",
                       "welch_f",
-                      "t_test"
+                      "t_test",
+                      "friedman"
                     ]
                   }
                 }
@@ -3427,6 +3436,14 @@
                 "published",
                 "planned"
               ]
+            },
+            "score_shape": {
+              "description": "Friedman's test only: the shape of each person's deviations from their own mean in every condition, in SD units; conditions differ only by a shift (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           },
           "allOf": [
@@ -3494,7 +3511,8 @@
             "method": {
               "enum": [
                 "anova_f",
-                "t_test"
+                "t_test",
+                "friedman"
               ]
             }
           }

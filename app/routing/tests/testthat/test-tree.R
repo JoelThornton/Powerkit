@@ -48,23 +48,20 @@ test_that("generic 'not covered' cards have their own text, and those that claim
   expect_false(grepl("Hmisc", as.character(card_ui(t2, "E43")), fixed = TRUE))
 })
 
-test_that("the repeated-measures ANOVA card says the figure only approximates a rank-based test", {
-  for (id in c("E54")) {
-    html <- as.character(card_ui(tree, id))
-    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
-    expect_match(html, "only approximates the rank-based one", fixed = TRUE, label = id)
-  }
-  # The t-test, one-way ANOVA and correlation cards offer the rank test as a
-  # test version (the correlation card with its own note: normal scores only).
+test_that("the cards with a rank-based counterpart offer it as a simulated test version", {
+  # The t-test, ANOVA and correlation cards offer the rank test as a test
+  # version (the correlation card with its own note on the scores' shape;
+  # the repeated-measures card since Friedman's test was added, 31 October
+  # 2026).
   e4 <- as.character(card_ui(tree, "E4"))
-  expect_match(e4, "powerkit simulates the rank test itself, on normal scores", fixed = TRUE)
-  for (id in c("E1", "E2", "E3", "E18")) {
+  expect_match(e4, "powerkit simulates the rank test itself, on scores of the shape you choose", fixed = TRUE)
+  for (id in c("E1", "E2", "E3", "E18", "E54")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
     expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, label = id)
     expect_false(grepl("only approximates", html, fixed = TRUE), label = id)
     method <- Filter(function(f) identical(f$path, "target_test.method"), form_fields(forms$forms[[id]]$groups))
-    expect_true(any(c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis") %in% names(method[[1]]$choices)), label = id)
+    expect_true(any(c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman") %in% names(method[[1]]$choices)), label = id)
   }
   expect_false(grepl("rank-based one", as.character(card_ui(tree, "E7")), fixed = TRUE))
 })

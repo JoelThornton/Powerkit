@@ -37,6 +37,7 @@ population_problems <- function(spec) {
     check_direction_allowed(spec),
     check_weights_allowed(spec),
     check_pairwise(spec),
+    check_friedman(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -177,7 +178,7 @@ spower_only <- function(spec) {
 # Mann-Whitney test (two groups) and the Kruskal-Wallis test (three or more
 # groups), simulated with Spower's p_wilcox.test() and p_kruskal.test().
 rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
 }
 
 # Welch's one-way ANOVA (unequal variances), simulated with Spower's
@@ -230,6 +231,32 @@ check_pairwise <- function(spec) {
       "'target_test > comparison' names %s, which %s not among A's levels (%s).",
       paste(sprintf("'%s'", setdiff(pair, levels)), collapse = " and "),
       if (length(setdiff(pair, levels)) == 1) "is" else "are", paste(levels, collapse = ", ")))
+  }
+  problems
+}
+
+# Friedman's test (one-way repeated measures, rank-based): the scores are
+# each person's own level plus a deviation (friedman_scores()), so the
+# correlation between conditions is the share of the variance that is the
+# person's and must be at least 0 and below 1; the effect is given by the
+# condition means.
+check_friedman <- function(spec) {
+  if (!identical(spec$target_test$method, "friedman")) {
+    return(character())
+  }
+  problems <- character()
+  if (!identical(spec$template, "oneway_within")) {
+    problems <- c(problems, "Friedman's test is for one factor with every participant in every condition (template 'oneway_within').")
+  }
+  if (identical(spec$population$metric, "eta_squared")) {
+    problems <- c(problems, "Friedman's test needs each condition's mean ('population > means' and 'population > sd'), not partial eta-squared.")
+  }
+  r <- spec$population$r
+  if (is.numeric(r) && (r < 0 || r >= 1)) {
+    problems <- c(problems, paste0(
+      "For Friedman's test, the correlation between conditions ('population > r') must be at least 0 and below 1: ",
+      "powerkit draws each score as the person's own level plus a deviation, so the correlation is the share of ",
+      "the variance that is the person's."))
   }
   problems
 }
@@ -290,13 +317,14 @@ check_welch_sds <- function(spec) {
 # The shape of the scores is only an input to the rank tests: the t-tests
 # and ANOVA powerkit computes assume normal scores.
 check_score_shape_allowed <- function(spec) {
-  if (is.null(spec$population$score_shape) || rank_test(spec)) {
+  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec)) {
     return(character())
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Kruskal-Wallis); the t-tests and ANOVA assume normal ",
-    "scores. Remove it, or choose a rank test in 'target_test > method'."
+    "Mann-Whitney, Kruskal-Wallis, Friedman) and the rank correlations (Spearman, ",
+    "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
+    "or choose a rank test in 'target_test > method'."
   )
 }
 

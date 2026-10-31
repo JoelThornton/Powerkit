@@ -827,7 +827,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
 # correlation by formula only for now. The app only calls the engine.
 explore_effect <- function(spec) {
   if (!identical(spec$design, "basic_test") || identical(spec$options$method, "simulation") ||
-      identical(spec$target_test$method, "welch_t") || is_rank_test(spec)) return(NULL)
+      identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec)) return(NULL)
   switch(spec$template,
     one_sample_t = list(field = "d", label = "Cohen's d", max = 1.5),
     independent_t = list(field = "d", label = "Cohen's d", max = 1.5),
@@ -1240,10 +1240,28 @@ pairwise_test_name <- function(spec) {
     if (identical(spec$template, "oneway_within")) "paired t-test" else "t-test", pair[1], pair[2], choose(k, 2), adjust)
 }
 
-# The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis): a
-# test version on E1, E2, E3 and E18, simulated by the engine with Spower.
+# The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis,
+# Friedman): a test version on E1, E2, E3, E18 and E54, simulated by the
+# engine with Spower.
 is_rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
+}
+
+# Spearman's rho and Kendall's tau: a test version on E4, simulated by the
+# engine with Spower on scores of the chosen shape.
+is_rank_correlation <- function(spec) isTRUE(spec$target_test$method %in% c("spearman", "kendall"))
+
+rank_correlation_name <- function(spec) {
+  sprintf("a test of %s, simulated assuming %s with Pearson's correlation as entered",
+    if (identical(spec$target_test$method, "spearman")) "Spearman's rho" else "Kendall's tau",
+    score_shape_text(spec$population$score_shape))
+}
+
+score_shape_text <- function(shape) {
+  switch(shape %||% "normal",
+    normal = "normally distributed scores",
+    skewed = "skewed scores (a standardised chi-square distribution with 10 df)",
+    heavy_tailed = "heavy-tailed scores (a t distribution with 3 df)")
 }
 
 rank_test_name <- function(spec) {
@@ -1251,12 +1269,11 @@ rank_test_name <- function(spec) {
     one_sample_t = "a one-sample Wilcoxon signed-rank test",
     paired_t = "a Wilcoxon signed-rank test of paired measurements",
     independent_t = "a Mann-Whitney (Wilcoxon rank-sum) test",
-    oneway_between = "a Kruskal-Wallis test")
-  shape <- switch(spec$population$score_shape %||% "normal",
-    normal = "normally distributed scores",
-    skewed = "skewed scores (a standardised chi-square distribution with 10 df)",
-    heavy_tailed = "heavy-tailed scores (a t distribution with 3 df)")
+    oneway_between = "a Kruskal-Wallis test",
+    oneway_within = "Friedman's test")
+  shape <- score_shape_text(spec$population$score_shape)
   if (identical(spec$template, "paired_t")) shape <- sub("scores", "differences", shape)
+  if (identical(spec$template, "oneway_within")) shape <- sub("scores", "deviations from each person's own level", shape)
   sprintf("%s, simulated assuming %s", test, shape)
 }
 
@@ -1313,7 +1330,7 @@ departures_for <- function(forms, ep_id, spec) {
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
-  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
@@ -1580,6 +1597,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
+  if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
   if (is_pairwise(spec)) name <- pairwise_test_name(spec)
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)

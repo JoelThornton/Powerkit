@@ -49,6 +49,9 @@ fully validated. Validation runs are recorded in
   (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
   29 and 30 October failed on two unit tests that compared runs on
   different numbers of cores; fixed in 0.24.0's conversion PR (#181).
+- **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
+  the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
+  31 October 2026) and Spearman's and Kendall's correlations (E4).
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
@@ -66,15 +69,13 @@ fully validated. Validation runs are recorded in
 
 - Sphericity is assumed in the repeated-measures designs, and mixed
   designs with unequal groups reach the safety net (`next.md`, item 15).
-- Friedman's test only carries an approximation note, and the rank
-  correlations are simulated on normal scores (item 17).
 - Simulated data sets are missing for ANCOVA, R², logistic and Poisson
   regression with other predictors, the three-way interaction, multisite
   and yes/no cluster outcomes, SEM and McNemar's test (item 9).
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (item 14).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 26).
+  semPower, powertools, TOSTER and bfpwr designs (item 25).
 
 ## Working environment
 
