@@ -710,3 +710,17 @@ test_that("an unexpected engine fault reaches users in plain words, not as R's o
     list(message = "This design spec has a problem:\n* Plain words.", call = NULL, problems = "Plain words.")))
   expect_identical(check_spec(list(), list(), validate = own)$problems, "Plain words.")
 })
+
+test_that("E33 with the conditions between participants drops the participant slope and builds a valid spec", {
+  fields <- form_fields(form_groups(forms, "E33"))
+  values <- modifyList(form_examples$E33, list(crossed_participants = "between_factor", goal = "power", n = "40"))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false(any(vapply(applies, function(f) f$id, "") %in% c("sd_participant_slope", "r_participant")))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E33", fields, values)
+  expect_identical(spec$variables$X$type, "between_factor")
+  expect_null(spec$population$sd_participant_slope)
+  validate <- engine_function("validate_spec")
+  skip_if(is.null(validate), "engine not available")
+  expect_s3_class(validate(spec), "powerkit_spec")
+})

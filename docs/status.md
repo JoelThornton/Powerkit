@@ -25,7 +25,7 @@ fully validated. Validation runs are recorded in
   default, simulated with metafor), since 31 October 2026. **Nine are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
-  with a yes/no X), E33 (participants and items, simr) and E62 (a
+  with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants) and E62 (a
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
   groups, 31 October 2026; agrees with a separately written simulation,

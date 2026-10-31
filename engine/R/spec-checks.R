@@ -571,6 +571,21 @@ check_crossed_two_condition <- function(spec) {
       "('population > item_design' \"within\"); remove it, or set item_design to \"within\"."
     ))
   }
+  # Conditions between participants: each participant is in one condition,
+  # so there is no participant condition slope (nor its correlation).
+  if (identical(spec$variables$X$type, "between_factor")) {
+    for (key in c("sd_participant_slope", "r_participant")) {
+      if (!is.null(pop[[key]])) {
+        problems <- c(problems, sprintf(paste0(
+          "'population > %s' only applies when every participant takes part in both conditions; ",
+          "with the conditions between participants each has one condition, so remove it."), key))
+      }
+    }
+  } else if (is.null(pop$sd_participant_slope)) {
+    problems <- c(problems, paste0(
+      "Give 'population > sd_participant_slope', how much the difference between conditions varies across participants ",
+      "(0 if it doesn't), or make X a between factor if each participant is in one condition."))
+  }
   problems
 }
 
@@ -1918,6 +1933,9 @@ group_split <- function(spec) {
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)
     return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
+  }
+  if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
+    return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size

@@ -89,6 +89,17 @@ Fixes from a review of 0.25.0, and its follow-ups.
   simulation written separately (fitted in the other order), with the
   Type I error near alpha for each effect. The app's MANOVA card (E59)
   asks whether the groups come from one factor or two.
+* Participants and items (E33): the condition may vary between
+  participants (`variables > X > type` "between_factor"): half the
+  participants in each condition, each with a random intercept only
+  (`sd_participant_slope` and `r_participant` don't apply), every
+  participant responding to every item (items in both conditions, with
+  an optional by-item condition slope) or each condition with its own
+  half of the items. n must be even. The check run, exported script and
+  simulated data set follow the design; checked against a simulation
+  written separately without simr, with the Type I error near alpha.
+  The design finder's question on many trials or stimuli offers "each
+  person is in one of them".
 
 # powerkit 0.25.0
 

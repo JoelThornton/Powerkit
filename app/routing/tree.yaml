@@ -340,11 +340,13 @@ nodes:
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
-    help: "powerkit calculates the commonest design: two conditions that every participant responds in, with a score on each trial."
+    help: "powerkit calculates two conditions with a score on each trial: every participant responding in both, or each in one of them."
     options:
       - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: score}, help: "e.g. emotional and neutral words, each person reading both kinds."}
       - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [yesno, count, ordinal]}}
-      - {label: "Something else: three or more conditions, conditions given to different people, or a predictor measured on each trial", next: E41}
+      - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: score}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
+      - {label: "Two conditions, and each person is in one of them", next: E41, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "Something else: three or more conditions, or a predictor measured on each trial", next: E41}
   s3:
     doc_id: S3
     text: "How many times is each person measured on the outcome?"
@@ -1309,9 +1311,9 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-mixed-model.R, note: "Matches simr called directly, replication for replication, recovers every population value in its check run, and agrees with an independent simulation and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
     card_points:
-      - "Each participant responds to many items (words, faces, trials) in two conditions, and both participants and items vary: for example, response times to emotional and neutral words."
+      - "Each participant responds to many items (words, faces, trials) in two conditions, and both participants and items vary: for example, response times to emotional and neutral words. The conditions can be within participants (everyone responds in both) or between them (half the participants in each)."
       - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
-      - "The model has random intercepts for participants and items and a random condition effect for participants; items can be in one condition each or in both."
+      - "The model has random intercepts for participants and items, a random condition effect for participants when everyone responds in both conditions, and one for items when every item appears in both; items can be in one condition each or in both."
       - "Simulated with simr, testing the condition with Satterthwaite's t test rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
     inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect), in the outcome's units", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
     refs: "decisions, 30 October 2026 (docs/decisions.md); Departure 16"

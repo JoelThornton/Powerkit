@@ -18,12 +18,12 @@
 
 mixed_reps <- 2000L
 
-mixed_validation_spec <- function(population, seed, n) {
+mixed_validation_spec <- function(population, seed, n, x_type = "within_factor") {
   validation_spec(
     design = "mixed_model",
     template = "crossed_two_condition",
     variables = list(
-      X = validation_variable("within_factor", "Condition", levels = list("First", "Second")),
+      X = validation_variable(x_type, "Condition", levels = list("First", "Second")),
       Y = validation_variable("continuous", "Outcome")
     ),
     population = c(list(metric = "raw"), population),
@@ -100,3 +100,49 @@ test_that("crossed design: Type I error is alpha when the conditions don't diffe
   spec <- mixed_validation_spec(utils::modifyList(pop_crossed, list(difference = 0)), seed = 3306, n = 30)
   expect_power_near(engine_power(spec), 0.05)
 })
+
+# 5. Conditions between participants (31 October 2026) ------------------------------
+#
+# Half the participants in each condition, each with a random intercept;
+# items in both conditions (with a by-item condition slope) or each
+# condition with its own half of the items. The same independent
+# simulation as in 1, written without simr.
+
+pop_between <- list(difference = 0.4, sd_participant = 0.5, sd_item = 0.4, sd_residual = 1, items = 30)
+
+between_by_hand <- function(p, n, items_within, nrep, seed) {
+  design <- expand.grid(participant = seq_len(n), item = seq_len(p$items))
+  design$cond <- ifelse(design$participant <= n / 2, -0.5, 0.5)
+  if (!items_within) design <- design[(design$item <= p$items / 2) == (design$cond < 0), ]
+  formula <- if (items_within) y ~ cond + (1 | participant) + (1 + cond | item) else y ~ cond + (1 | participant) + (1 | item)
+  with_seed(seed, mean(vapply(seq_len(nrep), function(i) {
+    u <- stats::rnorm(n, sd = p$sd_participant)
+    w <- stats::rnorm(p$items, sd = p$sd_item)
+    v <- if (items_within) stats::rnorm(p$items, sd = p$sd_item_slope) else rep(0, p$items)
+    d <- design
+    d$y <- p$difference * d$cond + u[d$participant] + w[d$item] + v[d$item] * d$cond +
+      stats::rnorm(nrow(d), sd = p$sd_residual)
+    d$participant <- factor(d$participant)
+    d$item <- factor(d$item)
+    fit <- tryCatch(suppressMessages(suppressWarnings(lmerTest::lmer(formula, data = d))), error = function(e) NULL)
+    !is.null(fit) && summary(fit)$coefficients["cond", "Pr(>|t|)"] < 0.05
+  }, logical(1))))
+}
+
+for (items in c("within", "between")) {
+  test_that(sprintf("conditions between participants, items %s: agrees with an independent simulation (analytic)", items), {
+    skip_unless_full_validation()
+    skip_if_not_installed("lmerTest")
+    p <- c(pop_between, list(item_design = items), if (items == "within") list(sd_item_slope = 0.2))
+    spec <- mixed_validation_spec(p, seed = 3311, n = 40, x_type = "between_factor")
+    reference <- between_by_hand(p, 40, items == "within", mixed_reps, seed = 3312)
+    expect_power_near(engine_power(spec), reference, reference_nrep = mixed_reps)
+  })
+
+  test_that(sprintf("conditions between participants, items %s: Type I error is alpha when the conditions don't differ", items), {
+    skip_unless_full_validation()
+    p <- c(utils::modifyList(pop_between, list(difference = 0)), list(item_design = items),
+      if (items == "within") list(sd_item_slope = 0.2))
+    expect_power_near(engine_power(mixed_validation_spec(p, seed = 3313, n = 40, x_type = "between_factor")), 0.05)
+  })
+}
