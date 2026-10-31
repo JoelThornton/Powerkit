@@ -179,7 +179,7 @@
     },
     "metafor": {
       "Package": "metafor",
-      "Version": "5.2.1",
+      "Version": "5.2-1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [

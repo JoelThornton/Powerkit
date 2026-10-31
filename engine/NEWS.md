@@ -4,7 +4,7 @@
   Hartung-Knapp test by default (`target_test > test` "hartung_knapp";
   Departure 18), simulated with Spower and powerkit's experiment
   `p_meta_hk()`, which fits metafor's `rma(method = "DL", test = "knha")`
-  (new dependency, metafor 5.2.1); metapower's z test stays available
+  (new dependency, metafor 5.2-1); metapower's z test stays available
   (`test` "z"). It gives less power with few studies: about 16.5% against
   21.4% for d = 0.15 in ten studies of 40 with I-squared 0.5. Checked
   against a separately written simulation of IntHout, Ioannidis and
