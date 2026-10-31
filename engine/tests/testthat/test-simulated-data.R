@@ -156,6 +156,36 @@ test_that("contrasts, one-predictor regressions and cluster trials recover their
   expect_equal(mean(data[[5]][!individual]) - mean(data[[5]][individual]), spec$population$d, tolerance = 0.2)
 })
 
+test_that("MANOVA, one-sample Hotelling's T-squared and one-way ANCOVA recover their populations", {
+  manova <- read_spec(spec_file("manova"))
+  data <- simulated_data(manova, 6000, seed = 2)
+  outcomes <- as.matrix(data[, 4:6])
+  groups <- data[[3]]
+  expected <- do.call(rbind, lapply(manova$population$means, as.numeric))
+  observed <- do.call(rbind, lapply(unlist(manova$variables$A$levels), function(g) colMeans(outcomes[groups == g, ])))
+  expect_equal(unname(observed), expected, tolerance = 0.03)
+  centred <- outcomes - apply(outcomes, 2, function(v) ave(v, groups))
+  expect_equal(unname(apply(centred, 2, stats::sd)), as.numeric(unlist(manova$population$sds)), tolerance = 0.03)
+  expect_lt(abs(stats::cor(centred)[1, 2] - manova$population$r), 0.05)
+
+  hotelling <- read_spec(spec_file("hotelling_one"))
+  data <- simulated_data(hotelling, 6000, seed = 2)
+  expect_equal(unname(colMeans(data[, 3:5])), as.numeric(unlist(hotelling$population$means)), tolerance = 0.02)
+
+  ancova <- read_spec(spec_file("anova_oneway_ancova"))
+  data <- simulated_data(ancova, 6000, seed = 2)
+  expect_named(data, c("SIMULATED_NOT_REAL_DATA", "participant", "Intervention", "Covariate", "Anxiety_after"))
+  means <- tapply(data$Anxiety_after, data$Intervention, mean)[unlist(ancova$variables$A$levels)]
+  expect_equal(as.numeric(means), as.numeric(unlist(ancova$population$means)), tolerance = 0.03)
+  within <- data$Anxiety_after - ave(data$Anxiety_after, data$Intervention)
+  expect_equal(stats::sd(within), ancova$population$sd, tolerance = 0.03)
+  expect_lt(abs(stats::cor(data$Covariate, within)^2 - ancova$population$r2_covariates), 0.04)
+  expect_match(simulated_data_note(ancova), "standard normal score with R-squared 0.36", fixed = TRUE)
+  ancova$population$covariates <- 3
+  expect_match(simulated_data_note(ancova), "The plan has 3 covariates; the data set has one", fixed = TRUE)
+  expect_null(simulated_data_note(manova))
+})
+
 test_that("designs without a generator say so", {
   spec <- read_spec(spec_file("sem_model_fit"))
   expect_false(simulated_data_available(spec))

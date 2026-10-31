@@ -313,7 +313,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   # these (CLAUDE.md: the app builds specs and calls the engine).
   used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
-  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "power_interval",
+  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power"))
   # Calculations run only for the end points listed in forms.yaml.

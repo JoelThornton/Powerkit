@@ -1,5 +1,11 @@
 # powerkit 0.25.0
 
+* Simulated data sets for MANOVA and one-sample Hotelling's T-squared
+  (the multivariate normal scores the simulation draws) and the one-way
+  ANCOVA (one standard normal covariate carrying all of the covariates'
+  R-squared, the outcome with the unadjusted SD within each group). New
+  `simulated_data_note()` says what a data set chooses that the plan
+  leaves open; the app shows it under the download.
 * Friedman's test: `target_test > method` "friedman" on `oneway_within`,
   with `population > score_shape` (normal, skewed or heavy-tailed).
   Simulated with Spower and powerkit's own experiment, `p_friedman()`
