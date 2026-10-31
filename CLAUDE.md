@@ -101,6 +101,10 @@ to read small.
   The docs that describe a change go in the same PR as the change. When a
   group is too big to review comfortably, split it by design or by fix,
   never by layer, and say in the description what each part does.
+- Open the pull request yourself when the work is ready, and merge it once
+  its checks pass. Leave it open for the maintainer to merge when you're
+  uncertain about something (a method choice, a result you can't explain,
+  a check you couldn't run), and say what in the description.
 - Public content: the repository is public and must read as a professional
   software project. Commit messages, PR titles and descriptions, comments
   and repo files say what a change does, why it is needed (in terms of the

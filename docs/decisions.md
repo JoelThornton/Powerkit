@@ -3703,7 +3703,9 @@ request holds one group of related work that can be described in a
 sentence: a queue item, a design with its follow-ups, or one review's
 fixes (such as 0.24.1). Unrelated changes still go apart, docs go with
 the change they describe, and a group too big to review is split by
-design or fix, never by layer (`CLAUDE.md`, "Working process").
+design or fix, never by layer (`CLAUDE.md`, "Working process"). Threads
+open their own pull requests and merge them once the checks pass, leaving
+one for the maintainer only when uncertain about something.
 
 **Reproducing a saved project.** A simulation that isn't run in batches
 (Spower, simr, InteractionPoweR) draws one random stream per core, so the same seed gives a
