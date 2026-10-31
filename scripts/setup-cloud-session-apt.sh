@@ -35,12 +35,21 @@ cat > "$PROFILE" <<RPROF
 options(repos = c(CRAN = "https://cran.r-project.org"), Ncpus = $(nproc))
 .libPaths(c("$LIB", .libPaths()))
 RPROF
-grep -q "R_PROFILE_USER" "$HOME/.bashrc" 2>/dev/null || cat >> "$HOME/.bashrc" <<ENV
+# The settings go in ~/.powerkit-env.sh, sourced on ~/.bashrc's first
+# line (setup-cloud-session.sh, powerkit_env(), says why).
+cat > "$HOME/.powerkit-env.sh" <<ENV
 export R_PROFILE_USER="$PROFILE"
 export RENV_ACTIVATE_PROJECT=FALSE
 export NOT_CRAN=true
 export LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV
+line='[ -f "$HOME/.powerkit-env.sh" ] && . "$HOME/.powerkit-env.sh"'
+touch "$HOME/.bashrc"
+if [ "$(head -n 1 "$HOME/.bashrc")" != "$line" ]; then
+  grep -vxF "$line" "$HOME/.bashrc" > "$HOME/.bashrc.powerkit" || true
+  { printf '%s\n' "$line"; cat "$HOME/.bashrc.powerkit"; } > "$HOME/.bashrc"
+  rm -f "$HOME/.bashrc.powerkit"
+fi
 export R_PROFILE_USER="$PROFILE" RENV_ACTIVATE_PROJECT=FALSE LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 cd "$(dirname "$0")/.."

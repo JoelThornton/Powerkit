@@ -90,6 +90,10 @@ to read small.
 - docs/status.md is current state only: replace old entries, don't append
   history (git, NEWS.md and docs/archive/ hold that).
 - Prefer updating an existing doc to adding a new one.
+- Read CLAUDE.md, docs/next.md and docs/status.md in full. docs/decisions.md,
+  docs/conventions.md, engine/NEWS.md and the YAML files are long records
+  (hundreds of KB): search them for the design, date or package in hand
+  rather than reading them whole.
 - One design or one feature per PR; keep code changes to a few hundred
   lines where possible, and keep docs-only changes in their own PR.
 - Public content: the repository is public and must read as a professional
@@ -108,11 +112,22 @@ to read small.
   --build-from-source`.
 
 ## Before finishing any task
-- Run devtools::test() and devtools::check() in engine/; both must pass
+- Run the engine's tests and R CMD check in engine/, as CI does; both must
+  pass: `testthat::test_local()` and
+  `rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")`
+  (devtools isn't in the CI image that cloud sessions copy; where it is
+  installed, devtools::test() and devtools::check() do the same). After
+  changing roxygen comments, regenerate man/ with roxygen2 at the version
+  in engine/DESCRIPTION (also not in the image: install it into a scratch
+  library) rather than editing .Rd files by hand.
 - Run the app's suite too when anything outside engine/ changed:
-  testthat::test_dir("tests/testthat") in app/routing/. The cross-checks that
-  tie the engine, the docs and the app together live there, so an engine-only
-  run will not see them.
+  testthat::test_dir("tests/testthat") in app/routing/, after installing
+  the engine (`R CMD INSTALL engine`), since the suite tests the installed
+  one. The cross-checks that tie the engine, the docs and the app together
+  live there, so an engine-only run will not see them. test-results.R takes
+  about two thirds of its time; CI runs it beside the rest (`filter =
+  "^results$"`, with `invert = TRUE` for the rest), and two R sessions can
+  do the same locally.
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
   app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.
