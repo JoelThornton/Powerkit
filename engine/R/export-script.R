@@ -1569,11 +1569,16 @@ superpower_script <- function(spec, result) {
         "  result <- ANOVA_power(",
         "    design,",
         "    alpha_level = alpha,",
+        if (!is.null(inputs$pairwise_row)) "    p_adjust = p_adjust, # adjusts the p-values of all the pairwise t-tests",
         "    nsims = batch_replications,",
         "    seed = batch_seed,",
         "    verbose = FALSE",
         "  )",
-        "  power <- result$main_results[paste0(\"anova_\", effect_row), \"power\"] / 100",
+        if (is.null(inputs$pairwise_row)) {
+          "  power <- result$main_results[paste0(\"anova_\", effect_row), \"power\"] / 100"
+        } else {
+          "  power <- result$pc_results[pairwise_row, \"power\"] / 100 # the chosen pair's t-test"
+        },
         "  c(round(power * batch_replications), batch_replications)",
         "}",
         "",
@@ -1582,6 +1587,18 @@ superpower_script <- function(spec, result) {
       )
     },
     comparison_section()
+  )
+}
+
+# Pairwise comparisons: the chosen pair's row of pc_results and the
+# adjustment, or nothing.
+superpower_pairwise_lines <- function(inputs) {
+  if (is.null(inputs$pairwise_row)) {
+    return(character())
+  }
+  c(
+    sprintf("pairwise_row <- %s # Superpower's row of pc_results for the pair compared", r_code(inputs$pairwise_row)),
+    sprintf("p_adjust <- %s # adjustment across all the pairwise comparisons (stats::p.adjust())", r_code(inputs$p_adjust))
   )
 }
 
@@ -1603,7 +1620,8 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("cell_sd <- %s # SD in every group", r_code(inputs$sd)),
       "r <- 0 # correlation between repeated measures (none in a between design)",
       sprintf("groups <- %s # groups: the total n is split equally across them", inputs$groups),
-      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)",
+      superpower_pairwise_lines(inputs)
     ))
   }
   if (spec$template == "oneway_within") {
@@ -1616,7 +1634,8 @@ superpower_script_inputs <- function(spec, inputs) {
       sprintf("cell_sd <- %s # SD in every condition", r_code(inputs$sd)),
       sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(inputs$r)),
       "groups <- 1 # one group: everyone is in every condition",
-      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)"
+      "effect_row <- \"a\" # Superpower's row for the factor's main effect (the omnibus F test)",
+      superpower_pairwise_lines(inputs)
     ))
   }
   if (spec$template == "factorial_three") {

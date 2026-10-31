@@ -46,17 +46,23 @@ superpower_backend <- function(spec, seed = NULL) {
   }
   # Unequal cells: ANOVA_exact() takes equal cells only, so they are
   # simulated (unequal_cells()).
+  # So are pairwise comparisons: ANOVA_exact() doesn't adjust p-values.
   unequal <- !is.null(inputs$cell_ratio)
+  simulated_only <- unequal || !is.null(inputs$pairwise_row)
   list(
     name = "Superpower",
     packages = c("Superpower", "afex"),
-    methods = if (unequal) "simulation" else c("exact", "simulation"),
-    default_method = if (unequal) "simulation" else "exact",
-    functions = c(exact = "Superpower::ANOVA_exact", simulation = "Superpower::ANOVA_power"),
+    methods = if (simulated_only) "simulation" else c("exact", "simulation"),
+    default_method = if (simulated_only) "simulation" else "exact",
+    functions = c(exact = "Superpower::ANOVA_exact", simulation = if (is.null(inputs$pairwise_row)) {
+      "Superpower::ANOVA_power"
+    } else {
+      sprintf("Superpower::ANOVA_power (pairwise t-tests, p_adjust = \"%s\")", inputs$p_adjust)
+    }),
     n_step = inputs$groups,
     exact_min_n = exact_min_n,
-    exact_power = if (unequal) NULL else function(n) exact_at(n)$power,
-    bracket_power = if (unequal) NULL else function(n) exact_at(n)$power,
+    exact_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
+    bracket_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
     manova_power = function(n) exact_at(n)$manova_power,
     details = function(n) exact_at(n)$details,
     simulate = function(n, nrep, seed, cores) {
@@ -93,7 +99,7 @@ superpower_inputs <- function(spec) {
     # One between-participants factor with k levels: Superpower's design
     # "kb" (for example "3b"), one mean per group, equal SDs.
     k <- length(spec$variables$A$levels)
-    return(list(
+    return(c(list(
       design = paste0(k, "b"),
       groups = k,
       mu = as.numeric(unlist(pop$means)),
@@ -101,7 +107,7 @@ superpower_inputs <- function(spec) {
       r = 0,
       alpha = spec$target_test$alpha,
       effect = "a"
-    ))
+    ), superpower_pairwise(spec)))
   }
   if (spec$template == "oneway_within") {
     # One within-participants factor with k levels: Superpower's design
@@ -109,7 +115,7 @@ superpower_inputs <- function(spec) {
     # one group; one SD and one correlation for every pair of conditions
     # (compound symmetry), so sphericity holds and no correction applies.
     k <- length(spec$variables$A$levels)
-    return(list(
+    return(c(list(
       design = paste0(k, "w"),
       groups = 1,
       mu = as.numeric(unlist(pop$means)),
@@ -117,7 +123,7 @@ superpower_inputs <- function(spec) {
       r = pop$r,
       alpha = spec$target_test$alpha,
       effect = "a"
-    ))
+    ), superpower_pairwise(spec)))
   }
   by_row <- function(x) as.numeric(unlist(x))
   if (spec$template == "mixed") {
@@ -176,18 +182,37 @@ superpower_inputs <- function(spec) {
   )
 }
 
+# Pairwise comparisons (pairwise_comparison()): the row of ANOVA_power()'s
+# pc_results for the chosen pair, and the adjustment. Superpower names the
+# levels of a design built without labels a1, a2, ..., so the pair of
+# levels i < j is row "p_a_ai_a_aj". NULL otherwise.
+superpower_pairwise <- function(spec) {
+  if (!pairwise_comparison(spec)) {
+    return(NULL)
+  }
+  pair <- pairwise_levels(spec)
+  list(pairwise_row = sprintf("p_a_a%d_a_a%d", pair[1], pair[2]), p_adjust = spec$target_test$p_adjust %||% "holm")
+}
+
 # Rejections out of nrep, one seeded ANOVA_power() call per core. With one
 # core this is exactly ANOVA_power(design, nsims = nrep, seed = seed).
+# For a pairwise comparison, the chosen pair's power, with the p-values of
+# all the pairwise t-tests adjusted (p_adjust).
 superpower_simulate <- function(design, inputs, nrep, seed, cores) {
   simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
     result <- call_backend("Superpower", Superpower::ANOVA_power(
       design,
       alpha_level = inputs$alpha,
+      p_adjust = inputs$p_adjust %||% "none",
       nsims = k,
       seed = chunk_seed,
       verbose = FALSE
     ))
-    power <- result$main_results[paste0("anova_", inputs$effect), "power"]
+    power <- if (is.null(inputs$pairwise_row)) {
+      result$main_results[paste0("anova_", inputs$effect), "power"]
+    } else {
+      result$pc_results[inputs$pairwise_row, "power"]
+    }
     round(power / 100 * k)
   })
 }

@@ -49,6 +49,9 @@ fully validated. Validation runs are recorded in
   (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
   29 and 30 October failed on two unit tests that compared runs on
   different numbers of cores; fixed in 0.24.0's conversion PR (#181).
+- **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
+  chosen pair, adjusted by Holm's (the default, Departure 17) or
+  Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan
   (power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
@@ -71,7 +74,7 @@ fully validated. Validation runs are recorded in
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (item 14).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 27).
+  semPower, powertools, TOSTER and bfpwr designs (item 26).
 
 ## Working environment
 

@@ -1226,6 +1226,20 @@ entered_lines <- function(fields, values) {
   out
 }
 
+# Pairwise comparisons after a one-way ANOVA (E18, E54): the chosen pair's
+# t-test, adjusted across all the pairwise comparisons, simulated by the
+# engine with Superpower's ANOVA_power().
+is_pairwise <- function(spec) identical(spec$target_test$effect, "pairwise")
+
+pairwise_test_name <- function(spec) {
+  k <- length(unlist(spec$variables$A$levels))
+  pair <- unlist(spec$target_test$comparison)
+  adjust <- switch(spec$target_test$p_adjust %||% "holm",
+    holm = "Holm's adjustment", bonferroni = "Bonferroni's adjustment", none = "no adjustment")
+  sprintf("a %s comparing %s with %s, one of the %d pairwise comparisons, with %s for their number",
+    if (identical(spec$template, "oneway_within")) "paired t-test" else "t-test", pair[1], pair[2], choose(k, 2), adjust)
+}
+
 # The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis): a
 # test version on E1, E2, E3 and E18, simulated by the engine with Spower.
 is_rank_test <- function(spec) {
@@ -1305,7 +1319,10 @@ departures_for <- function(forms, ep_id, spec) {
   if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
-  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "3")
+  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
+  # Departure 17 is about adjusting pairwise comparisons, when they are
+  # adjusted.
+  if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")
   # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
   # test's departures, nor the continuity correction, apply.
   if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
@@ -1564,6 +1581,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
+  if (is_pairwise(spec)) name <- pairwise_test_name(spec)
   if (is_bayes_test(spec)) name <- bayes_test_name(spec)
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))

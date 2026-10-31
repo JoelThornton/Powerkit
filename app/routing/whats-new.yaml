@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Pairwise comparisons after an ANOVA"
+    text: >-
+      If you will analyse a study with three or more groups or conditions
+      by comparing pairs of them, the one-way ANOVA cards can now give the
+      power of the pair you care about, with the comparisons adjusted for
+      their number by Holm's or Bonferroni's method.
+  - date: "2026-10-31"
     title: "One group's several outcomes against fixed values"
     text: >-
       You can now plan a study that compares one group with fixed values,
