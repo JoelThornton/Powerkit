@@ -107,6 +107,7 @@ route_spec <- function(spec, seed = NULL) {
       spower_backend(spec, seed)
     },
     "ordinal_regression/ordinal_two_groups" = propodds_backend(spec),
+    "meta_analysis/mean_effect" = metapower_backend(spec, seed),
     "mixed_model/crossed_two_condition" = simr_backend(spec, seed),
     "logistic_regression/factorial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {

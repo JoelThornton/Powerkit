@@ -306,7 +306,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B68 | Meta-analysis | ML; Audit | none: not reachable | Planned (`next.md` item 7: in scope since 30 October 2026; needs a decision on the package) | — | metapower `mpower()`; POMADE `power_MADE()` | Decide the package and the first tests | — |
+| B68 | Meta-analysis | ML; Audit | E61 (the average effect) | Runs for the average effect (31 October 2026); heterogeneity, moderators and several effects per study are `next.md` item 7 | — | metapower `mpower()`; POMADE `power_MADE()` | Moderators (metapower, checked against simulation) and POMADE | — |
 | B69 | Replication-study power (e.g. small telescopes, safeguard power) | ML | none: not reachable | Unknown (decide whether this is an effect-size input option or its own card) | — | RSmallTelescopes `SmallTelescopes()`; BUCSS `ss_buc_*()` functions; mixpower `mp_safeguard_effect()` | Decide | [B2][] |
 
 ## Wave 2 (engine groundwork, 18 October 2026)

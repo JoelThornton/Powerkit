@@ -246,6 +246,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   goals <- list(sample_size = "The sample size I need", power = "The power I'd have at a given sample size")
   # Generic tests have no sample size: the noncentrality reflects it.
   if (isTRUE(form$generic)) goals <- list(power = "The power for this noncentrality", sensitivity = "The noncentrality I'd need for a target power")
+  # A meta-analysis (E61): n is the number of studies.
+  meta <- isTRUE(form$meta)
+  if (meta) goals <- list(sample_size = "The number of studies I need", power = "The power I'd have with a given number of studies")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
@@ -284,6 +287,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  if (meta) {
+    test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)
+    at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
+    test[[at]]$label <- "Number of studies"
+  }
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
     claim_groups(start$claim, start$n_tests),
@@ -302,7 +310,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
            shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
     ), safeguard_fields(form$base$template))),
-    if (!isTRUE(form$generic)) list(input = NULL, title = "Participants you expect to lose", fields = list(
+    if (!isTRUE(form$generic) && !meta) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),

@@ -264,6 +264,7 @@ start_questions:
     question: "What is your study trying to do?"
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
+      meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
@@ -737,7 +738,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57, E61]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -751,7 +752,7 @@ closing_questions:
   - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all}
   - {doc_id: Q-power, text: "What power do you want?", applies_to: all}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
-  - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50]}
+  - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61]}
   - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all}
   - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all}
 
@@ -1607,6 +1608,22 @@ endpoints:
     inputs: ["The outcomes", "The expected means and the fixed values", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]
+  E61:
+    doc_name: "A planned meta-analysis: the test of the average effect"
+    plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
+    template: "meta_analysis / mean_effect"
+    backend: "metapower: mpower(), the z test of the average effect under the fixed-effect model, and Jackson and Turner's (2017) method under the random-effects model (formula)"
+    method: "Formula"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-meta-analysis.R, note: "Matches simulated meta-analyses (the fixed-effect and DerSimonian-Laird random-effects z tests) for d and r. Not yet checked against Valentine, Pigott and Rothstein's (2010) worked examples, which are ready to transcribe."}
+    card_points:
+      - "For a systematic review you are planning: how many studies you need, or the power you can expect, for the meta-analysis to detect the average effect."
+      - "You give the average effect (Cohen's d or a correlation), the size of a typical study, and how much the studies' true effects are expected to differ (heterogeneity, as I-squared)."
+      - "Under the random-effects model, heterogeneity costs power: Jackson and Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis reasonably consistently has more power than the studies in it."
+      - "Every study is taken to be the same size, and the test is metapower's z test. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation) or for moderators."
+    inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model"]
+    tier: v2
+    alternatives: ["the power of each included study for a range of effects (study-level power, the metameta package), to judge how informative the studies themselves are"]
   E54:
     rank_test: "Friedman's test"
     rank_test_simulated: true
@@ -1862,6 +1879,7 @@ guided:
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}
   - {term: "Cohen's w", pattern: "Cohen's w", hint: "How far the proportions are from what you would see with no association (or from the fixed proportions), on one scale: 0 means no difference at all."}
+  - {term: "I-squared", pattern: "I-squared", hint: "The share of the variation in the studies' results that comes from real differences between their effects, rather than chance."}
   - {term: "d_z", pattern: "\\bd_z\\b", hint: "The average change within people (for example, after minus before), divided by how much that change varies from person to person."}
   - {term: "SD (standard deviation)", pattern: "\\bSDs?\\b", hint: "How spread out the scores are around their average."}
   - {term: "pooled SD", pattern: "pooled SD", hint: "The two groups' standard deviations combined into one, weighted by the groups' sizes."}

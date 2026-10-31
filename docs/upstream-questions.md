@@ -63,6 +63,23 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    t-based design prior) planned, or is the approximation the intended
    method? powerkit uses the function as it is and states the difference.
 
+## metapower
+
+Questions about metapower 0.2.2, from its source (opened 31 October
+2026); reproducible example in `docs/upstream/metapower-homogeneity.R`.
+
+1. **Power for the test of heterogeneity.** `homogen_power()`'s
+   random-effects power disagrees with simulated Q tests in both
+   directions (58.2% against 48.5%, 19.6% against 25.8%, 27.5% against
+   31.3%). In `compute_homogen_power()` the variance of Q uses one study's
+   weight where the line before it sums over the studies, and its second
+   term is always 0. powerkit doesn't offer this
+   test until it is resolved.
+2. **Fisher's z rounded to two decimals.** `mpower()` with `es_type = "r"`
+   rounds z before computing power, which moves power by up to about 1.3
+   points (Known difference 9 in `docs/conventions.md`). Is the rounding
+   intended? powerkit uses `mpower()` as it is and states the difference.
+
 ## power4mome
 
 1. **Reproducibility with a product term.** For a model with a product

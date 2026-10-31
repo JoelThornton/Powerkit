@@ -75,6 +75,7 @@ on:
           - manova
           - rank
           - bayes
+          - meta
           - process_4
           - process_4_binary
           - process_6

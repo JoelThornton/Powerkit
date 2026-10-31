@@ -16,8 +16,8 @@ abstract: >-
   powerkit reads a single design specification for common psychology
   designs, checks that it describes a possible population, and routes it to
   established power analysis packages (among them pwr, pwrss, Superpower,
-  Spower, InteractionPoweR, power4mome, powertools, TOSTER, semPower and
-  bfpwr) to estimate power, required sample size and sensitivity.
+  Spower, InteractionPoweR, power4mome, powertools, TOSTER, semPower,
+  bfpwr and metapower) to estimate power, required sample size and sensitivity.
 keywords:
   - power analysis
   - sample size

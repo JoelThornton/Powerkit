@@ -62,6 +62,7 @@ export_script <- function(spec, result, file = NULL) {
     power4mome = power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
+    metapower = metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = simr_script(spec, result),
@@ -181,6 +182,9 @@ design_description <- function(spec) {
   }
   if (bayes_factor_test(spec)) {
     return(bayes_design_description(spec, label, levels))
+  }
+  if (identical(spec$design, "meta_analysis")) {
+    return(meta_design_description(spec, label))
   }
   switch(
     paste(spec$design, spec$template, sep = "/"),

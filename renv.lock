@@ -154,6 +154,24 @@
       ],
       "Hash": "7b77557b453924e27e8a0c88d6798cd4"
     },
+    "metapower": {
+      "Package": "metapower",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cowplot",
+        "dplyr",
+        "ggplot2",
+        "knitr",
+        "magrittr",
+        "rlang",
+        "testthat",
+        "tidyr"
+      ],
+      "Hash": "c054f7a0da138de0f74c899830d10ac8"
+    },
     "PowerTOST": {
       "Package": "PowerTOST",
       "Version": "1.5-7",

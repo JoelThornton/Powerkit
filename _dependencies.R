@@ -18,6 +18,7 @@ library(lavaan)
 library(lme4)      # E33's mixed model (with simr)
 library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
+library(metapower) # E61's planned meta-analysis
 library(power4mome)
 library(powertools)
 library(PUMP)      # joint power for several outcomes in the study plan

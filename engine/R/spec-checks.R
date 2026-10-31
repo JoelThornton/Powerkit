@@ -21,7 +21,8 @@ population_problems <- function(spec) {
     mediation = function(spec) c(check_path_model(spec), check_single_predictor_x(spec)),
     moderated_mediation = check_path_model,
     generic_test = function(spec) character(),
-    equivalence_test = check_equivalence_test
+    equivalence_test = check_equivalence_test,
+    meta_analysis = check_meta_analysis
   )
   design_problems <- design_check(spec)
   c(
@@ -1860,6 +1861,9 @@ minimum_n <- function(spec) {
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
     mixed_model = 6,
+    # A meta-analysis: n is the number of studies; metapower needs at
+    # least two.
+    meta_analysis = 2,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2030,7 +2034,8 @@ target_effect_is_zero <- function(spec) {
       spec$template,
       process_7 = paths[[paste0("XW->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "->Y")]],
       process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]]
-    )
+    ),
+    meta_analysis = pop$effect
   )
   isTRUE(abs(value) < 1e-12)
 }
@@ -2058,6 +2063,35 @@ modmed_mediator <- function(spec) {
 
 # One share per category of Y, summing to 1 (powertools::propodds() needs
 # both).
+# Meta-analysis -------------------------------------------------------------
+
+# A planned meta-analysis (metapower): a correlation between -1 and 1, a
+# one-sided test in the direction of the effect, and no sensitivity
+# analysis yet (metapower solves for power only).
+check_meta_analysis <- function(spec) {
+  pop <- spec$population
+  problems <- character()
+  if (identical(pop$metric, "r") && abs(pop$effect) >= 1) {
+    problems <- c(problems, "A correlation ('population > effect' with metric \"r\") must be between -1 and 1.")
+  }
+  if (identical(pop$metric, "d") && pop$study_size %% 2 != 0) {
+    problems <- c(problems, sprintf(paste0(
+      "With Cohen's d each study has two groups of equal size, so 'population > study_size' must be even; ",
+      "%d isn't."), as.integer(pop$study_size)))
+  }
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  if (!identical(alternative, "two_sided") && pop$effect != 0 &&
+      !identical(alternative, if (pop$effect > 0) "greater" else "less")) {
+    problems <- c(problems, "A one-sided test of a meta-analysis runs in the direction of the expected effect.")
+  }
+  if (identical(spec$goal$type, "sensitivity")) {
+    problems <- c(problems, paste0(
+      "For a meta-analysis powerkit gives power, or the number of studies needed; the smallest detectable ",
+      "average effect isn't available yet."))
+  }
+  problems
+}
+
 check_ordinal_two_groups <- function(spec) {
   p <- as.numeric(unlist(spec$population$probabilities))
   levels <- unlist(spec$variables$Y$levels)

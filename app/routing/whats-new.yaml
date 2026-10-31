@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Planning a meta-analysis"
+    text: >-
+      A new card plans a meta-analysis: how many studies you need, or the
+      power you can expect, to detect the average effect, under the
+      fixed-effect or random-effects model. Choose "Combine studies others
+      have done" when the design finder asks what your study is trying to
+      do.
+  - date: "2026-10-31"
     title: "Cohen's w for the chi-square tests"
     text: >-
       The chi-square test of independence and the goodness-of-fit test now
