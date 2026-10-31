@@ -27,8 +27,20 @@ jobs:
       contents: read
       packages: write
 
+  # Two jobs side by side: test-results.R, which runs calculations and the
+  # exported scripts and takes about two thirds of the time, and every
+  # other test file. Together they are the whole suite.
   app-tests:
     needs: image
+    name: app-tests (${{ matrix.part }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: results
+            invert: "FALSE"
+          - part: the rest
+            invert: "TRUE"
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -66,4 +78,5 @@ jobs:
           POWERKIT_APP_TESTS_NEED_ENGINE: "true"
         shell: Rscript {0}
         run: |
-          testthat::test_dir("app/routing/tests/testthat", stop_on_failure = TRUE)
+          testthat::test_dir("app/routing/tests/testthat", filter = "^results$",
+            invert = ${{ matrix.invert }}, stop_on_failure = TRUE)

@@ -8,8 +8,24 @@ crossed_example <- function(goal = list(type = "power", n = 20), ...) {
   spec
 }
 
+# Each run refits 100 mixed models with the Satterthwaite test, the
+# slowest part of the engine's tests, so the tests that need a run share
+# one: seed 11, on one core, as the direct simr call below runs.
+shared_spec <- function() crossed_example(nrep = 100, seed = 11)
+shared_run <- local({
+  result <- NULL
+  function() {
+    if (is.null(result)) {
+      old <- options(powerkit.cores = 1)
+      on.exit(options(old))
+      result <<- suppressWarnings(run_spec(shared_spec()))
+    }
+    result
+  }
+})
+
 test_that("the design reaches simr as the specified model, and the check run recovers it", {
-  result <- suppressWarnings(run_spec(crossed_example(nrep = 100)))
+  result <- shared_run()
   expect_true(all(result$check_run$ok))
   expect_identical(result$provenance$backend, "simr")
   expect_setequal(result$check_run$parameter, c(
@@ -20,11 +36,9 @@ test_that("the design reaches simr as the specified model, and the check run rec
 
 test_that("powerkit's simulation is simr's powerSim() with the Satterthwaite test, replication for replication", {
   # On one core, as the direct call is: spread over cores (POWERKIT_CORES),
-  # the replications draw from other random streams.
-  old <- options(powerkit.cores = 1)
-  on.exit(options(old))
-  spec <- crossed_example(nrep = 100, seed = 11)
-  result <- suppressWarnings(run_spec(spec))
+  # the replications draw from other random streams (shared_run() pins one).
+  spec <- shared_spec()
+  result <- shared_run()
   inputs <- simr_inputs(validate_spec(spec))
   direct <- suppressMessages(suppressWarnings(simr::powerSim(
     simr_model(inputs, 20), test = simr::fixed("cond", "sa"), nsim = 100, seed = 11, progress = FALSE
@@ -55,8 +69,8 @@ test_that("impossible designs are refused in plain English", {
 })
 
 test_that("the exported script and the simulated data use the same model", {
-  result <- suppressWarnings(run_spec(crossed_example(nrep = 100)))
-  script <- export_script(crossed_example(nrep = 100), result)
+  result <- shared_run()
+  script <- export_script(shared_spec(), result)
   expect_match(script, "fixed(\"cond\", \"sa\")", fixed = TRUE)
   expect_match(script, "makeLmer(y ~ cond + (1 + cond | participant) + (1 | item)", fixed = TRUE)
   data <- simulated_data(crossed_example(), 30, seed = 1)
