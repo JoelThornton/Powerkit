@@ -40,8 +40,9 @@ Fixes from a review of 0.25.0.
   `search_words`), treats hyphens as spaces and matches one- and
   two-letter words only whole. "I know the terms" becomes an
   "Explanations" switch, on by default, and no longer hides the help
-  under each field. The Labs tools are renamed: Methods map, Replication
-  planner, Power visualiser and Effect size converter.
+  under each field. The Labs tools are renamed: Methods map, Power
+  visualiser and Effect size converter; "Pre-replication notes" keeps
+  the term of the paper it comes from (Karhulahti et al., 2025).
 
 # powerkit 0.25.0
 

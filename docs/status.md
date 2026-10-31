@@ -67,8 +67,8 @@ fully validated. Validation runs are recorded in
 - **Experimental:** whole-study simulation on the guided plan
   (power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
-  randomised groups on different outcomes (PUMP); Labs (the replication
-  planner, the methods map, the effect size converter and the power
+  randomised groups on different outcomes (PUMP); Labs (pre-replication
+  notes, the methods map, the effect size converter and the power
   visualiser for the two-group t-test).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,

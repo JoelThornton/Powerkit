@@ -3806,6 +3806,7 @@ merges when its checks pass, unless a doubt is stated in it.
   field, which also holds instructions (the order to enter correlations,
   how a value is split).
 - **Labs names.** Each tool has a name that says what it is, as someone
-  would search for it: Methods map, Replication planner (pre-replication
-  notes), Power visualiser (a picture of power) and Effect size converter
-  (plan from a published result). The page links (`?tool=`) are unchanged.
+  would search for it: Methods map, Power visualiser (a picture of power) and Effect size converter
+  (plan from a published result). Pre-replication notes keeps its name,
+  the term of the paper it comes from (Karhulahti et al., 2025). The page
+  links (`?tool=`) are unchanged.

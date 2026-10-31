@@ -1,6 +1,6 @@
 # Labs (experimental): optional tools kept apart from the main route.
 #
-# The first tool is the "Replication planner" (pre-replication notes): the three questions of
+# The first tool is "Pre-replication notes": the three questions of
 # Karhulahti, Martončik and Adamkovič (2025, refs.bib key
 # Karhulahti2025_prereplication), answered in the user's own words. Nothing
 # is scored, required or sent to the server; the notes are kept in the
@@ -15,7 +15,7 @@ labs_tab_title <- "Labs (experimental)"
 labs_tools <- list(
   list(id = "map", title = "Methods map",
        text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
-  list(id = "prereplication", title = "Replication planner",
+  list(id = "prereplication", title = "Pre-replication notes",
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
   list(id = "picture", title = "Power visualiser",
        text = "For a two-group t-test: move the sample size and the effect, choose alpha, and see the two t distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
@@ -154,7 +154,7 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
     unlist(lapply(ids, function(f) c(sprintf("**%s**", f$label), "", answer(f$id), "")))
   }
   c(
-    "# Replication planner: pre-replication notes", "",
+    "# Pre-replication notes", "",
     sprintf("_%s_", labs_notes_heading(outcome)), "",
     "## The finding", "", section("finding"),
     "## Epistemic goals", "", section("goals"),
@@ -200,7 +200,7 @@ labs_ui <- function(tree) {
     div(class = "labs-notice", role = "note",
       tags$strong("Experimental and not validated. "),
       "Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
-    h3("Replication planner"),
+    h3("Pre-replication notes"),
     p("Before replicating a finding, answer three questions in your own words. They come from Karhulahti, Martončik and Adamkovič (2025), who describe the purpose as “to make researchers critically reflect on their work before having started it”. Write as much or as little as you like."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "The paper asks you to replicate findings, not studies: name the finding you care about, not only the paper it came from."),
@@ -300,7 +300,7 @@ labs_next_ui <- function(outcome, has_test) {
 labs_signpost_ui <- function() {
   conditionalPanel("input.f_just_type == 'prior_study'",
     div(class = "labs-signpost",
-      "Planning a replication? ", actionLink("go_labs", "The replication planner in Labs"),
+      "Planning a replication? ", actionLink("go_labs", "Pre-replication notes in Labs"),
       " can help you think it through first (optional). ",
       tags$button(type = "button", class = "btn btn-link btn-sm labs-hide", onclick = "pkLabsHideHint()", "Hide this")))
 }

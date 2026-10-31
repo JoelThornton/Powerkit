@@ -14,8 +14,8 @@ entries:
       now work for every goal. Long simulations show a progress bar. The
       meta-analysis card talks about studies, not participants. The search
       finds more test names, such as Mann-Whitney, Kruskal-Wallis and post
-      hoc. The Labs tools have plain names: Methods map, Replication
-      planner, Power visualiser and Effect size converter.
+      hoc. The Labs tools have plain names: Methods map, Power visualiser
+      and Effect size converter.
   - date: "2026-10-31"
     title: "Show or hide explanations"
     text: >-
