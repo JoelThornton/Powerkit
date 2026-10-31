@@ -817,7 +817,8 @@
               "one_variance",
               "two_variances",
               "paired_variances",
-              "manova"
+              "manova",
+              "hotelling_one"
             ]
           },
           "target_test": {
@@ -1065,6 +1066,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_manova"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "hotelling_one"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_hotelling_one"
             }
           }
         ]
@@ -4625,6 +4641,85 @@
             },
             "method": {
               "const": "pillai_trace"
+            },
+            "alternative": {
+              "const": "two_sided"
+            }
+          }
+        }
+      }
+    },
+    "template_hotelling_one": {
+      "description": "One group's several continuous outcomes compared with fixed values at once (one-sample Hotelling's T-squared: is the group's mean vector different from the values given?). Simulated with Spower: multivariate normal scores with the expected means, the outcomes' SDs and one correlation between every pair of outcomes, analysed by the test of the intercept of a multivariate linear model of the scores minus the fixed values (stats::anova() on lm(), Pillai's trace, which with one group is the exact Hotelling's T-squared F test). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y1",
+            "Y2"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^Y[1-9]$": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "mu0",
+            "sds",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "means": {
+              "description": "The expected mean of each outcome, in the order Y1, Y2, ...",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 9,
+              "items": {
+                "type": "number"
+              }
+            },
+            "mu0": {
+              "description": "The fixed value each outcome's mean is compared with (for example a scale midpoint or a published norm), in the same order and units.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 9,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sds": {
+              "description": "The SD of each outcome, in the order Y1, Y2, ..., in the means' units.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 9,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "r": {
+              "description": "The correlation between every pair of outcomes (the same for every pair). Means equal to the fixed values (no effect) are allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_vector"
+            },
+            "method": {
+              "const": "hotelling_t2"
             },
             "alternative": {
               "const": "two_sided"

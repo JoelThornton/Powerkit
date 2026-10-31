@@ -105,7 +105,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
-    !spec$template %in% c("paired_variances", "manova") && (
+    !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       pwrss_only(spec) ||
@@ -167,7 +167,7 @@ simulation_available <- function(spec) {
 # maths itself (CLAUDE.md), so these are simulated with Spower. The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova") || rank_test(spec) || welch_anova(spec) ||
+  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 
@@ -218,7 +218,7 @@ check_welch_sds <- function(spec) {
     ))
   }
   # MANOVA's sds are one per outcome (check_manova()).
-  if (is.null(sds) || identical(spec$template, "manova")) {
+  if (is.null(sds) || spec$template %in% c("manova", "hotelling_one")) {
     return(character())
   }
   if (!welch_anova(spec)) {
@@ -697,6 +697,7 @@ check_basic_test <- function(spec) {
     chi_square_gof = check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
     manova = check_manova(spec),
+    hotelling_one = check_hotelling_one(spec),
     overlapping_correlations = ,
     nonoverlapping_correlations = check_dependent_correlations(spec),
     character()
@@ -728,6 +729,30 @@ check_manova <- function(spec) {
   }
   if (length(pop$sds) != p) {
     problems <- c(problems, sprintf("'population > sds' should have one SD per outcome (%d); it has %d.", p, length(pop$sds)))
+  }
+  if (p > 1 && pop$r <= -1 / (p - 1)) {
+    problems <- c(problems, sprintf(
+      "With %d outcomes, the correlation between every pair can't be %s or lower (it must be above %s), or the outcomes couldn't all be correlated that way at once.",
+      p, format_number(-1 / (p - 1)), format_number(round(-1 / (p - 1), 3))))
+  }
+  problems
+}
+
+# One-sample Hotelling's T-squared: one mean and one fixed value per
+# outcome, outcomes Y1, Y2, ... in order, one SD per outcome, and a
+# correlation that gives a valid covariance matrix (as for MANOVA).
+check_hotelling_one <- function(spec) {
+  pop <- spec$population
+  outcomes <- manova_outcomes(spec)
+  p <- length(outcomes)
+  problems <- character()
+  if (!identical(outcomes, paste0("Y", seq_len(p)))) {
+    problems <- c(problems, sprintf("The outcomes should be named Y1 to Y%d, with none missing.", p))
+  }
+  for (field in c("means", "mu0", "sds")) {
+    if (length(pop[[field]]) != p) {
+      problems <- c(problems, sprintf("'population > %s' should have one value per outcome (%d); it has %d.", field, p, length(pop[[field]])))
+    }
   }
   if (p > 1 && pop$r <= -1 / (p - 1)) {
     problems <- c(problems, sprintf(
@@ -1614,6 +1639,9 @@ minimum_n <- function(spec) {
       # Pillai's trace needs more people than outcomes in the residual
       # degrees of freedom: at least p + 2 people in each group.
       manova = length(spec$variables$A$levels) * (length(manova_outcomes(spec)) + 2),
+      # Hotelling's T-squared with one group has n - p denominator df: at
+      # least p + 2 people, as each MANOVA group needs.
+      hotelling_one = length(manova_outcomes(spec)) + 2,
       4
     ),
     # TOSTER's power_t_TOST() needs two people per group (one in a
@@ -1802,6 +1830,8 @@ target_effect_is_zero <- function(spec) {
         means <- do.call(rbind, lapply(pop$means, as.numeric))
         max(apply(means, 2, function(x) diff(range(x))))
       },
+      # The largest difference between a mean and its fixed value.
+      hotelling_one = max(abs(as.numeric(unlist(pop$means)) - as.numeric(unlist(pop$mu0)))),
       chi_square_gof = {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))

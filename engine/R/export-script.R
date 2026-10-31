@@ -247,6 +247,11 @@ design_description <- function(spec) {
       paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
       if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
     ),
+    "basic_test/hotelling_one" = sprintf(
+      "one-sample Hotelling's T-squared: do the means of %s differ from the fixed values (%s)?",
+      paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "),
+      paste(format_number(as.numeric(unlist(spec$population$mu0))), collapse = ", ")
+    ),
     "basic_test/paired_variances" = sprintf(
       "Pitman-Morgan test of two paired variances: does the variance of %s differ between %s (%s), in the same people?",
       label("Y"), label("X"), levels("X")
@@ -1095,6 +1100,14 @@ spower_script_inputs <- function(spec) {
       sprintf("sds <- %s # SD of each outcome within the groups", r_code(as.numeric(unlist(pop$sds)))),
       sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
     ),
+    hotelling_one = c(
+      sprintf("# Outcomes, in order: %s.",
+        paste(vapply(manova_outcomes(spec), function(y) comment_text(v[[y]]$label), character(1)), collapse = ", ")),
+      sprintf("means <- %s # expected mean of each outcome", r_code(as.numeric(unlist(pop$means)))),
+      sprintf("mu0 <- %s # the fixed value each mean is compared with", r_code(as.numeric(unlist(pop$mu0)))),
+      sprintf("sds <- %s # SD of each outcome", r_code(as.numeric(unlist(pop$sds)))),
+      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
+    ),
     paired_variances = c(
       sprintf("var1 <- %s # variance of %s in %s", r_code(pop$var1), comment_text(v$Y$label), lv("X", 1)),
       sprintf("var2 <- %s # variance of %s in %s", r_code(pop$var2), comment_text(v$Y$label), lv("X", 2)),
@@ -1244,6 +1257,13 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "sds = sds,",
       "r = r"
     ),
+    hotelling_one = c(
+      "n = batch_n, # the number of people",
+      "means = means,",
+      "mu0 = mu0,",
+      "sds = sds,",
+      "r = r"
+    ),
     factorial = c(
       "formula = y ~ A * B, # both factors and their interaction",
       "X = X, # the design (above)",
@@ -1354,6 +1374,22 @@ spower_derived_lines <- function(spec) {
       "  data <- manova_scores(n, means, sds, r)",
       "  fit <- stats::manova(as.matrix(data[, -1]) ~ data$group)",
       "  summary(fit, test = \"Pillai\")$stats[1, \"Pr(>F)\"]",
+      "}"
+    ),
+    hotelling_one = c(
+      "# The experiment, as powerkit runs it: one group's multivariate normal",
+      "# scores, then the p-value of one-sample Hotelling's T-squared, the test of",
+      "# the intercept of lm(scores - mu0 ~ 1) (exact with one group).",
+      "hotelling_one_scores <- function(n, means, sds, r) {",
+      "  p <- length(means)",
+      "  correlation <- matrix(r, p, p)",
+      "  diag(correlation) <- 1",
+      "  sigma <- diag(sds, p) %*% correlation %*% diag(sds, p)",
+      "  SimDesign::rmvnorm(n, means, sigma)",
+      "}",
+      "p_hotelling_one <- function(n, means, mu0, sds, r) {",
+      "  differences <- sweep(hotelling_one_scores(n, means, sds, r), 2, mu0)",
+      "  stats::anova(stats::lm(differences ~ 1), test = \"Pillai\")[1, \"Pr(>F)\"]",
       "}"
     ),
     paired_variances = c(

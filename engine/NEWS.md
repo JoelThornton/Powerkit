@@ -1,3 +1,15 @@
+# powerkit 0.25.0
+
+* One-sample Hotelling's T-squared: template `basic_test/hotelling_one`
+  (one group, two to nine outcomes `Y1` to `Y9`) with `population > means`,
+  `mu0` (the fixed values), `sds` and `r`, `target_test > method`
+  "hotelling_t2". Simulated with Spower and powerkit's own experiment,
+  `p_hotelling_one()`: multivariate normal scores, and the test of the
+  intercept of `lm(scores - mu0 ~ 1)` (`stats::anova()`, exact with one
+  group). Matches the exact noncentral F test (0.620 against 0.6195 at
+  N = 40 for the example). Known difference 8 now covers it. The app's
+  card is E60, reached from F2.
+
 # powerkit 0.24.1
 
 * Effect-size conversion: a t statistic, or an F with one numerator df,

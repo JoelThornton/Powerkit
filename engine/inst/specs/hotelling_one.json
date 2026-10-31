@@ -1,0 +1,34 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "hotelling_one",
+  "variables": {
+    "Y1": {"type": "continuous", "label": "Anxiety"},
+    "Y2": {"type": "continuous", "label": "Depression"},
+    "Y3": {"type": "continuous", "label": "Stress"}
+  },
+  "population": {
+    "metric": "raw",
+    "means": [22, 19, 24],
+    "mu0": [20, 18, 21],
+    "sds": [6, 5, 7],
+    "r": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a group expected to score about a third of an SD above the scale norms on each outcome, the smallest difference the team considers worthwhile."
+  },
+  "target_test": {
+    "effect": "mean_vector",
+    "method": "hotelling_t2",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261031
+  }
+}
