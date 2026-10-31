@@ -8,7 +8,11 @@
 #   y ~ cond + (1 + cond | participant) + (1 | item)
 # with cond coded -0.5 and 0.5, so its coefficient is the difference between
 # conditions; with every item in both conditions (item_design "within"), a
-# by-item condition slope is added when its SD is above 0. The condition is
+# by-item condition slope is added when its SD is above 0. With the
+# condition between participants (X a between factor), half the
+# participants are in each condition, each with a random intercept only:
+#   y ~ cond + (1 | participant) + (1 | item)  (or (1 + cond | item)).
+# The condition is
 # tested with lmerTest's Satterthwaite t test (simr's method "sa"), not
 # simr's default "z", which its help calls an asymptotic approximation for
 # models fitted with lmer (the maintainer's decision, 30 October 2026;
@@ -40,22 +44,26 @@ simr_backend <- function(spec, seed = NULL) {
 simr_inputs <- function(spec) {
   pop <- spec$population
   within <- identical(pop$item_design %||% "between", "within")
+  participants_between <- identical(spec$variables$X$type, "between_factor")
   item_slope <- within && (pop$sd_item_slope %||% 0) > 0
   r <- pop$r_participant %||% 0
-  participant <- matrix(
-    c(
-      pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
-      r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2
-    ),
-    nrow = 2
-  )
+  participant <- if (participants_between) {
+    pop$sd_participant^2
+  } else {
+    matrix(
+      c(
+        pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
+        r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2
+      ),
+      nrow = 2
+    )
+  }
   item <- if (item_slope) diag(c(pop$sd_item^2, pop$sd_item_slope^2)) else pop$sd_item^2
+  participant_term <- if (participants_between) "(1 | participant)" else "(1 + cond | participant)"
+  item_term <- if (item_slope) "(1 + cond | item)" else "(1 | item)"
   list(
-    formula = if (item_slope) {
-      y ~ cond + (1 + cond | participant) + (1 + cond | item)
-    } else {
-      y ~ cond + (1 + cond | participant) + (1 | item)
-    },
+    formula = stats::as.formula(paste("y ~ cond +", participant_term, "+", item_term), env = globalenv()),
+    participants_between = participants_between,
     fixef = c(0, pop$difference),
     VarCorr = list(participant = participant, item = item),
     sigma = pop$sd_residual,
@@ -65,11 +73,19 @@ simr_inputs <- function(spec) {
   )
 }
 
-# One data set's design: every participant responds to every item, in one
-# condition (items between conditions: the first half of the items in the
-# first condition) or in both (items within).
+# One data set's design. Conditions within participants: every
+# participant responds to every item, in one condition (items between
+# conditions: the first half of the items in the first condition) or in
+# both (items within). Conditions between participants: the first half of
+# the participants in the first condition; each responds to every item
+# (items within), or to the half of the items in their own condition
+# (items between).
 simr_design <- function(inputs, n) {
-  if (inputs$within) {
+  if (isTRUE(inputs$participants_between)) {
+    data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
+    data$cond <- ifelse(data$participant <= n / 2, -0.5, 0.5)
+    if (!inputs$within) data <- data[(data$item <= inputs$items / 2) == (data$cond < 0), ]
+  } else if (inputs$within) {
     data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items), cond = c(-0.5, 0.5))
   } else {
     data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
@@ -128,7 +144,9 @@ simr_check_run <- function(spec, inputs, seed) {
   rows <- list(
     check_run_rows("difference between conditions", pop$difference, coefs["cond", "Estimate"], coefs["cond", "Std. Error"]),
     sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n),
-    sd_row("SD of participant condition slopes", pop$sd_participant_slope, sd_of("participant", "cond"), n),
+    if (!isTRUE(inputs$participants_between)) {
+      sd_row("SD of participant condition slopes", pop$sd_participant_slope, sd_of("participant", "cond"), n)
+    },
     sd_row("SD of item intercepts", pop$sd_item, sd_of("item", "(Intercept)"), big$items),
     check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
   )

@@ -640,7 +640,13 @@ sim_mixed_code <- function(spec, n) {
     r_code(inputs$VarCorr$item)
   }
   c(
-    if (inputs$within) {
+    if (inputs$participants_between) {
+      c(
+        sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
+        sprintf("design$cond <- ifelse(design$participant <= %d, -0.5, 0.5) # the first half of the participants in the first condition", n %/% 2),
+        if (!inputs$within) sprintf("design <- design[(design$item <= %d) == (design$cond < 0), ] # each condition's own half of the items", inputs$items %/% 2)
+      )
+    } else if (inputs$within) {
       sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d), cond = c(-0.5, 0.5))", n, inputs$items)
     } else {
       c(
@@ -650,7 +656,11 @@ sim_mixed_code <- function(spec, n) {
     },
     "design$participant <- factor(design$participant)",
     "design$item <- factor(design$item)",
-    sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant))),
+    if (inputs$participants_between) {
+      sprintf("participant_var <- %s", r_code(inputs$VarCorr$participant))
+    } else {
+      sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant)))
+    },
     sprintf(
       "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
       deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma)

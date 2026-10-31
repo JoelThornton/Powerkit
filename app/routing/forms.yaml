@@ -883,6 +883,9 @@ forms:
           - {id: X_label, label: "What the conditions are (for example, word type)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
+             choices: {within_factor: "Both conditions", between_factor: "One condition (half the participants in each)"},
+             default: within_factor, default_source: "the design as decided on 30 October 2026 (docs/decisions.md); between participants since 31 October 2026"}
       - input: "The difference between conditions (the fixed effect), in the outcome's units"
         fields:
           - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true,
@@ -892,8 +895,10 @@ forms:
           - {id: sd_participant, label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0,
              help: "For example, 100 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_participant_slope, label: "SD of the condition difference across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0,
+             shown_if: {field: crossed_participants, is: within_factor},
              help: "For example, 5.3 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: r_participant, label: "Correlation of participants' averages and differences (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1,
+             shown_if: {field: crossed_participants, is: within_factor},
              help: "For example, -0.40 in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_item, label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0,
              help: "For example, 43.6 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
@@ -903,7 +908,7 @@ forms:
         fields:
           - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
-             choices: {between: "In one condition each (half the items in each)", within: "In both conditions (every participant sees every item twice)"},
+             choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
              default: between, default_source: "the design as decided on 30 October 2026 (docs/decisions.md)"}
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},

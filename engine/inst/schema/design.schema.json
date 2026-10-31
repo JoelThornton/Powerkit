@@ -7387,7 +7387,7 @@
       }
     },
     "template_crossed_two_condition": {
-      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants: a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within).",
+      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants (or, when X is a between factor, between them: half the participants in each, each with a random intercept only; with item_design 'within' every participant responds to every item, with 'between' each condition has its own half of the items): a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within).",
       "properties": {
         "variables": {
           "required": [
@@ -7397,7 +7397,14 @@
           "additionalProperties": false,
           "properties": {
             "X": {
-              "$ref": "#/definitions/two_level_within_factor"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/two_level_within_factor"
+                },
+                {
+                  "$ref": "#/definitions/two_level_between_factor"
+                }
+              ]
             },
             "Y": {
               "$ref": "#/definitions/variable_continuous"
@@ -7409,7 +7416,6 @@
             "metric",
             "difference",
             "sd_participant",
-            "sd_participant_slope",
             "sd_item",
             "sd_residual",
             "items"
@@ -7429,7 +7435,7 @@
               "minimum": 0
             },
             "sd_participant_slope": {
-              "description": "SD of the participants' random condition slopes: how much the difference between conditions varies across participants.",
+              "description": "Conditions within participants (X a within factor): SD of the participants' random condition slopes, how much the difference between conditions varies across participants (required). Not used when X is a between factor.",
               "type": "number",
               "minimum": 0
             },

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Many items per person, with the conditions given to different people"
+    text: >-
+      The card for participants responding to many items or stimuli now
+      also plans studies where each participant is in one of the two
+      conditions, for example one group rating emotional words and another
+      neutral words.
+  - date: "2026-10-31"
     title: "MANOVA with two factors"
     text: >-
       The MANOVA card now plans a study with two factors crossed, such as

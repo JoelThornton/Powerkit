@@ -188,7 +188,11 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
   # (which takes a score on each trial).
   expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E41")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
-  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: three or more conditions, conditions given to different people, or a predictor measured on each trial"), "E41")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: three or more conditions, or a predictor measured on each trial"), "E41")
+  # Conditions given to different people (31 October 2026): E33 with the
+  # condition between participants; a yes/no outcome per trial still E41.
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E33")
+  expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E41")
 })
 
 test_that("dyadic data no longer reach a test that treats partners as independent", {
