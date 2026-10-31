@@ -7,13 +7,17 @@
 # the values the engine says the population needs
 # (whole_study_parameters()), builds the spec and shows the engine's result.
 #
-# Covered: different people measured once, a measured predictor (X) and a
-# score outcome, no covariates, a measured moderator or none, and one or
-# two mediators that are scores. Each ticked analysis must lead to one of
-# the end points below.
+# Covered: different people measured once, a measured predictor (X) or
+# two groups or conditions (next.md item 1, 31 October 2026), a score
+# outcome, no covariates, a measured moderator or none, and one or two
+# mediators that are scores. Each ticked analysis must lead to one of the
+# end points below. With two groups, the comparison of the groups (E2) is
+# the regression of Y on the groups, Student's t test; the moderation (E15)
+# and mediation (E16) with a yes/no X are simulated the same way.
 
 whole_study_tests <- c(E4 = "x_y", E9 = "interaction", E10 = "indirect", E11 = "indirect",
-  E12 = "indirect", E13 = "index_of_mome", E14 = "index_of_mome")
+  E12 = "indirect", E13 = "index_of_mome", E14 = "index_of_mome",
+  E2 = "x_y", E15 = "interaction", E16 = "indirect")
 
 # Plain names for the variables and product terms in path labels.
 whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the moderator (W)",
@@ -34,7 +38,7 @@ whole_study_input_id <- function(key) paste0("ws_", gsub("[^A-Za-z0-9]", "_", ke
 # variables, mediators, path_choices).
 whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   reasons <- character()
-  if (!identical(answers$x, "score")) reasons <- c(reasons, "the main predictor (X) is a measured score")
+  if (!answers$x %in% c("score", "cond2")) reasons <- c(reasons, "the main predictor (X) is a measured score or two groups or conditions")
   if (!identical(answers$outcome, "score")) reasons <- c(reasons, "the outcome is a score")
   if (!identical(answers$covariate %||% "none", "none")) reasons <- c(reasons, "there are no covariates")
   if (!identical(answers$times %||% "once", "once")) reasons <- c(reasons, "each person is measured once")
@@ -70,7 +74,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   path_choices <- if (length(mediators) == 2 && "indirect" %in% tests) {
     if (serial) c("X->M1->M2->Y", "X->M1->Y", "X->M2->Y") else c("X->M1->Y", "X->M2->Y")
   }
-  list(ok = TRUE, analyses = analyses, roles = roles,
+  list(ok = TRUE, analyses = analyses, roles = roles, binary_x = identical(answers$x, "cond2"),
     mediators = if (length(mediators) == 2 && any(tests %in% c("indirect", "index_of_mome"))) (if (serial) "serial" else "parallel"),
     path_choices = path_choices)
 }
@@ -100,7 +104,9 @@ whole_study_skeleton <- function(plan, labels, path = NULL) {
   })
   spec <- list(
     spec_version = "0.1", kind = "whole_study",
-    variables = stats::setNames(lapply(plan$roles, function(r) list(type = "continuous", label = labels[[r]])), plan$roles),
+    variables = stats::setNames(lapply(plan$roles, function(r) {
+      list(type = if (identical(r, "X") && isTRUE(plan$binary_x)) "binary" else "continuous", label = labels[[r]])
+    }), plan$roles),
     analyses = analyses,
     claim = "each", alpha = 0.05,
     effect_justification = list(type = "none"),

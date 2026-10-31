@@ -12,6 +12,13 @@ entries:
       condition by delivery, compared on several outcomes at once: either
       factor's effect, or their interaction.
   - date: "2026-10-31"
+    title: "Whole-study simulation with two groups"
+    text: >-
+      "Plan my whole study" can now simulate a study whose main predictor is
+      two groups or conditions: the comparison of the groups together with
+      a moderation or a mediation on the same people, with the chance that
+      all of them come out significant together. Still experimental.
+  - date: "2026-10-31"
     title: "An \"I know the terms\" setting"
     text: >-
       Tick "I know the terms" at the top of the page to see the technical

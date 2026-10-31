@@ -847,7 +847,13 @@ as an experimental option, for a statistician's check
   interaction 47.5% against InteractionPoweR's 49.2%, and a correlation
   whose outcome also depends on an interaction 76.5% against 77.6%; the
   last two are about 1.5 Monte Carlo standard errors apart and are a
-  question for the statistician). The joint power differs where the
+  question for the statistician). With X as two groups (31 October 2026;
+  10,000 replications, N = 120, a moderator W and an interaction), the
+  group comparison had 79.1% power against pwr's t test at the implied d,
+  81.0%: the same kind of gap, since the outcome also depends on the
+  interaction the comparison leaves out (within the cross-check
+  allowance, and a question for the statistician); Type I error 4.8%
+  and 5.1% for the two tests with every path 0. The joint power differs where the
   analyses are related: for the correlation and simple mediation (a = b =
   .3, c' = .1, N = 100), both significant in 38.1% of replications against
   34.8% from the product of the separate powers, 3.3 points higher. For
