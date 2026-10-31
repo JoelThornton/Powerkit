@@ -90,3 +90,9 @@ test_that("minimising the weighted errors gives a lower alpha than balancing the
   # Balancing with equal weights makes alpha equal beta (q = 1).
   expect_equal(balance$alpha, balance$beta, tolerance = 0.005)
 })
+
+test_that("the citations include JustifyAlpha, from its own citation()", {
+  text <- export_citations(run_spec(ja_spec("one_sample_t")))
+  expect_match(text, "JustifyAlpha, which found the justified alpha", fixed = TRUE)
+  expect_match(text, "Maier", fixed = TRUE)
+})

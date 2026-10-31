@@ -127,6 +127,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
   if ("effectsize" %in% used) {
     packages <- c(packages, list(s("effectsize", "which converted the effect size entered into the one the calculation uses")))
   }
+  if ("JustifyAlpha" %in% used) {
+    packages <- c(packages, list(s("JustifyAlpha", "which found the justified alpha (optimal_alpha())")))
+  }
   if ("psych" %in% used && length(psych_roles) > 0) {
     packages <- c(packages, list(s("psych", paste("which", paste(psych_roles, collapse = " and ")))))
   }
