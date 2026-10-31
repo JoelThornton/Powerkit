@@ -91,7 +91,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | # | Test | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | A1 | Correlation: bivariate normal model | GP; UCLA | E4 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | Spower `p_r()`: simulates bivariate normal data and runs `cor.test()` (the exact t test of ρ = 0); Fisher's z when `rho` ≠ 0. pwr `pwr.r.test()`: Fisher's z with a bias correction under the alternative, critical value from t; ρ0 = 0 only. pwrss `power.exact.onecor()` (exact; cross-check) | Decided: keep Fisher's z (Departure 10, see note 1). ρ0 ≠ 0 is in Spower but not exposed, and its one-sided p-value has a flag (below) | — |
-| A2 | Correlation: point biserial model | GP | E2 (the same test: r converted to d for the planned allocation, 31 October 2026) | Working | Now: AP, PN, S through E2 with r (`population > metric` "point_biserial"). Could: Co, Cr | pwr through E2; Spower `p_t.test(r = )` (its G\*Power examples vignette, Example 16.3) | — | [G3][] |
+| A2 | Correlation: point biserial model | GP | E2 (the same test: r converted to d for the planned allocation, 31 October 2026) | Wired | Now: AP, PN, S through E2 with r (`population > metric` "point_biserial"). Could: Co, Cr | pwr through E2; Spower `p_t.test(r = )` (its G\*Power examples vignette, Example 16.3) | — | [G3][] |
 | A3 | Correlation: tetrachoric model | GP | none: not reachable *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_r.cat()` (tetrachoric, polychoric, polyserial; Example 31.3) | — | [G1][] |
 | A4 | Two dependent Pearson r's (common index) | GP | E51 | Wired (in the app; the manual's required N reproduces in the engine's tests, Departure 12; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.twocors.steiger(common.index = TRUE, pooled = FALSE)`** (Steiger's z test, unpooled as G\*Power, Departure 12; template `overlapping_correlations`). Spower `p_2r()` (default test `"steiger1980"`; Example 28.3.2) | Transcribe manual example 28.3.2 (validation placeholders) | [G1][] |
 | A5 | Two dependent Pearson r's (no common index) | GP | E51 | Wired (in the app; the manual's required N reproduces in the engine's tests, Departure 12; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.twocors.steiger(common.index = FALSE, pooled = FALSE)`** (template `nonoverlapping_correlations`). Spower `p_2r()` with `r.ad`, `r.bd`, `r.cd` (Example 28.3.1) | Transcribe manual example 28.3.1 (validation placeholders) | [G1][] |
@@ -427,10 +427,10 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 28 | 19 | 0 | 47 |
+| Wired (validation not finished) | 29 | 19 | 0 | 48 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 11 | 2 | 14 |
-| Foundation tool can do it, not planned | 6 | 8 | 0 | 14 |
+| Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
@@ -442,9 +442,9 @@ and fails if a line here disagrees.
 **Cheapest additions** (a foundation tool already does it, and powerkit
 needs only a routing change, a new field or an output it already has):
 
-- **A2, A7: point-biserial r and the slope of a simple regression.** The
-  same tests as E2 and E4 with the effect entered differently; an
-  effect-size conversion on the existing cards.
+- **A7: the slope of a simple regression.** The same test as E4 with
+  the effect entered differently; an effect-size conversion on the
+  existing card. (A2, the point-biserial r, is now an input on E2.)
 - **A38: Fisher's exact test.** Spower's `p_prop.test(exact = TRUE)`, the
   same function E5 calls (judgement call 3.9).
 - **A42: chi-square goodness-of-fit.** Spower's `p_chisq.test()` with
