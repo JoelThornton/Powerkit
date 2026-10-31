@@ -532,3 +532,23 @@ test_that("the methods paragraph names mediation models without PROCESS numbers"
     expect_no_match(forms$forms[[ep]]$methods_name, "PROCESS", fixed = TRUE, info = ep)
   }
 })
+
+test_that("'I know the terms' swaps in the technical names and hides the hints, and plain English stays the default", {
+  card <- as.character(card_ui(tree, "E54"))
+  expect_match(card, "<span class=\"name-plain\">", fixed = TRUE)
+  expect_match(card, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(standard_name(tree$endpoints$E54$doc_name)$name)), fixed = TRUE)
+  list_html <- as.character(known_ui(tree))
+  expect_match(list_html, "class=\"name-tech-alt\"", fixed = TRUE)
+  expect_match(list_html, "class=\"name-plain-alt\"", fixed = TRUE)
+  toggle <- as.character(terms_toggle_ui())
+  expect_match(toggle, "id=\"terms_mode\"", fixed = TRUE)
+  expect_no_match(toggle, "checked=", fixed = TRUE)
+  # The setting is only remembered in the viewer's browser, and every
+  # storage call is guarded.
+  expect_equal(lengths(regmatches(terms_js, gregexpr("try \\{", terms_js))), 2)
+  # Hints, the help under fields and "also called" hide; notes, departures
+  # and known differences have no rule that hides them.
+  app_code <- paste(readLines(file.path(routing_dir, "app.R"), warn = FALSE), collapse = "\n")
+  expect_match(app_code, ".terms-mode .hint, .terms-mode .form-terms, .terms-mode .field-help", fixed = TRUE)
+  expect_no_match(app_code, "\\.terms-mode \\.(group-note|departure|known-difference|status)", perl = TRUE)
+})

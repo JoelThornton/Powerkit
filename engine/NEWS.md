@@ -1,5 +1,10 @@
 # powerkit 0.25.0
 
+* App: an "I know the terms" setting in the top bar, remembered in the
+  viewer's browser, shows the technical names first (on the cards and in
+  the list of analyses) and hides the plain-English hints, the help
+  under the fields and the "also called" lines; notes, assumptions,
+  departures and known differences stay. Plain English stays the default.
 * App: "I know my analysis" goes straight to every analysis, in closed
   groups by family (`tree.yaml`, `analysis_families`) with a search box,
   without the screening questions; a test checks every analysis is in

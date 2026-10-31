@@ -151,6 +151,16 @@ app_css <- "
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
   .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
   .share-page { display: flex; align-items: center; gap: 0.5rem; }
+  /* 'I know the terms' (terms_js): technical names first, and the
+     plain-English hints and long help hidden; notes, assumptions,
+     departures and known differences stay. */
+  .topbar-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+  .terms-toggle { display: flex; align-items: center; gap: 0.35rem; color: #fff; font-size: 0.9rem; margin: 0 0.75rem 0 0; cursor: pointer; }
+  .name-tech, .name-plain-alt { display: none; }
+  .terms-mode .name-tech, .terms-mode .name-plain-alt { display: inline; }
+  .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
+  .terms-mode .hint, .terms-mode .form-terms, .terms-mode .field-help, .terms-mode .also-called,
+  .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
   .share-page-status { font-size: 0.85rem; color: #fff; }
@@ -326,14 +336,14 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   tags$header(class = "topbar",
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
         tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))),
-      share_page_ui())
+      div(class = "topbar-tools", terms_toggle_ui(), share_page_ui()))
   ),
   tags$main(
     class = "app-main",

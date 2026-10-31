@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "An \"I know the terms\" setting"
+    text: >-
+      Tick "I know the terms" at the top of the page to see the technical
+      names first (one-way repeated-measures ANOVA, rather than its plain
+      description) and hide the explanations of terms. Warnings and notes
+      that change what you should do stay. Your browser remembers the
+      setting.
+  - date: "2026-10-31"
     title: "Find your analysis faster"
     text: >-
       "I know my analysis" now goes straight to a list of every analysis,

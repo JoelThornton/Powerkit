@@ -182,6 +182,36 @@ public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
 
 # The top bar's button: copies a link to the page on show (and the Labs
 # tool open, as ?page=labs&tool=...).
+# "I know the terms" (the maintainer's decision of 31 October 2026): a
+# setting each viewer's browser remembers, which shows the technical names
+# first and hides the plain-English hints and long help (CSS, .terms-mode).
+# Plain English stays the default.
+terms_toggle_ui <- function() {
+  tags$label(class = "terms-toggle", `for` = "terms_mode",
+    tags$input(type = "checkbox", id = "terms_mode", onchange = "pkSetTermsMode(this.checked)"),
+    "I know the terms")
+}
+
+terms_js <- "
+  window.pkSetTermsMode = function(on) {
+    document.documentElement.classList.toggle('terms-mode', !!on);
+    try { window.localStorage.setItem('powerkit-terms-mode', on ? '1' : '0'); } catch (e) {}
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    var on = false;
+    try { on = window.localStorage.getItem('powerkit-terms-mode') === '1'; } catch (e) {}
+    document.documentElement.classList.toggle('terms-mode', on);
+    var box = document.getElementById('terms_mode');
+    if (box) box.checked = on;
+  });
+"
+
+# A name in two forms: the plain-English one by default, the technical one
+# with "I know the terms" on.
+name_swap <- function(plain, technical) {
+  tagList(tags$span(class = "name-plain", plain), tags$span(class = "name-tech", technical))
+}
+
 share_page_ui <- function() {
   div(class = "share-page",
     tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
@@ -342,10 +372,14 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
     ep <- eps[[id]]
     name <- standard_name(ep$doc_name)$name
     status <- known_status_text[[ep$status]]
-    help <- paste(c(if (maintainer_view()) sprintf("%s (%s)", name, id) else name, status), collapse = " \u00b7 ")
+    shown <- if (maintainer_view()) sprintf("%s (%s)", name, id) else name
+    # The other name underneath: the technical one by default, the plain
+    # one with "I know the terms" on.
+    help <- tagList(tags$span(class = "name-tech-alt", shown), tags$span(class = "name-plain-alt", ep$plain_name),
+      if (!is.null(status)) paste0(" \u00b7 ", status))
     words <- tolower(paste(ep$plain_name, ep$doc_name, family$label))
     div(class = "known-item", `data-search` = words,
-      pick_button(ep$plain_name, paste0("ep:", id), help,
+      pick_button(name_swap(ep$plain_name, name), paste0("ep:", id), help,
         class = if (identical(ep$status, "not_in_powerkit")) "btn btn-outline-secondary choice" else "btn btn-outline-primary choice"))
   }
   families <- Filter(function(f) any(unlist(f$endpoints) %in% names(eps)), tree$analysis_families)
@@ -546,7 +580,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       # The end point's ID and engine template are for reviewers: kept in
       # the page source, shown only in the maintainer's view.
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
-      (if (compact) h3 else h2)(class = "card-title h3", ep$plain_name),
+      (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, standard_name(ep$doc_name)$name)),
       p(class = "standard-name", "Standard name: ", tags$strong(standard_name(ep$doc_name)$name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
       hints_ui(tree, standard_name(ep$doc_name)$name),
