@@ -56,7 +56,7 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    Spower = spower_script(spec, result),
+    Spower = if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = power4mome_script(spec, result),

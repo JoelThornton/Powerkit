@@ -14,17 +14,19 @@
 # Expected values below are owned by the maintainer: do not edit them.
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 
-meta_validation_spec <- function(metric, effect, study_size, k, i2, model = "random", alternative = "two_sided") {
+meta_validation_spec <- function(metric, effect, study_size, k, i2, model = "random", alternative = "two_sided",
+                                 test = if (model == "random") "z") {
   validation_spec(
     design = "meta_analysis",
     template = "mean_effect",
     variables = list(Y = validation_variable("continuous", "Outcome")),
     population = list(metric = metric, effect = effect, study_size = study_size, i2 = i2),
-    target_test = list(effect = "mean_effect", method = "z_test", model = model, alpha = 0.05, alternative = alternative),
+    target_test = c(list(effect = "mean_effect", method = "z_test", model = model, alpha = 0.05, alternative = alternative),
+                    if (!is.null(test)) list(test = test)),
     seed = 1,
     n = k,
-    # A formula: no simulations to set.
-    options = list(nrep = NULL)
+    # metapower's formula: no simulations to set.
+    options = if (identical(test, "hartung_knapp")) list() else list(nrep = NULL)
   )
 }
 
@@ -119,3 +121,53 @@ for (case in meta_cases) {
     expect_power_near(engine_power(spec), reference, reference_nrep = nrep)
   })
 }
+
+# 3. The Hartung-Knapp test (Departure 18) ------------------------------------------
+
+# The Hartung-Knapp-Sidik-Jonkman test as IntHout, Ioannidis and Borm
+# (2014) set it out (their equation 1 and the variance after it):
+# DerSimonian and Laird's tau^2, then the weighted mean's variance
+# sum(w (y - mean)^2) / ((k - 1) sum(w)) and a t test with k - 1 df.
+# Written here without metafor, so the check doesn't rely on the
+# package the engine calls.
+simulated_hk_power <- function(effect, study_size, k, i2, nrep, seed) {
+  set.seed(seed)
+  v <- 4 / study_size + effect^2 / (2 * study_size)
+  tau2 <- i2 * v / (1 - i2)
+  w <- rep(1 / v, k)
+  crit <- stats::qt(0.975, k - 1)
+  mean(vapply(seq_len(nrep), function(i) {
+    y <- stats::rnorm(k, stats::rnorm(k, effect, sqrt(tau2)), sqrt(v))
+    fixed <- sum(w * y) / sum(w)
+    q <- sum(w * (y - fixed)^2)
+    t2 <- max(0, (q - (k - 1)) / (sum(w) - sum(w^2) / sum(w)))
+    ws <- rep(1 / (v + t2), k)
+    est <- sum(ws * y) / sum(ws)
+    var_hk <- sum(ws * (y - est)^2) / ((k - 1) * sum(ws))
+    abs(est / sqrt(var_hk)) > crit
+  }, logical(1)))
+}
+
+hk_cases <- list(
+  list(effect = 0.3, study_size = 40, k = 10, i2 = 0.5),
+  list(effect = 0.4, study_size = 30, k = 5, i2 = 0.25),
+  list(effect = 0.2, study_size = 60, k = 20, i2 = 0.75)
+)
+
+for (case in hk_cases) {
+  label <- sprintf("Hartung-Knapp, d = %s, %s studies of %s, I-squared %s", case$effect, case$k, case$study_size, case$i2)
+  test_that(paste0(label, ": matches a separately written simulation"), {
+    skip_unless_full_validation()
+    spec <- meta_validation_spec("d", case$effect, case$study_size, case$k, case$i2, test = "hartung_knapp")
+    nrep <- validation_nrep()
+    reference <- simulated_hk_power(case$effect, case$study_size, case$k, case$i2, nrep, seed = 2027)
+    expect_power_near(engine_power(spec), reference, reference_nrep = nrep)
+  })
+}
+
+test_that("Hartung-Knapp keeps the Type I error near alpha with no average effect", {
+  skip_unless_full_validation()
+  spec <- meta_validation_spec("d", 0, 40, 10, 0.5, test = "hartung_knapp")
+  estimate <- engine_power(spec)
+  expect_lt(abs(estimate$power - 0.05), 0.015)
+})

@@ -1,9 +1,12 @@
 # A planned meta-analysis (design meta_analysis, template mean_effect):
 # metapower's mpower(), with n the number of studies.
 
-meta_spec <- function(..., goal = list(type = "power", n = 20L)) {
+# metapower's z test (target_test > test "z"); the Hartung-Knapp default
+# is tested below.
+meta_spec <- function(..., goal = list(type = "power", n = 20L), test = "z") {
   spec <- example_spec("meta_mean_effect")
   spec$population <- utils::modifyList(spec$population, list(...))
+  spec$target_test$test <- test
   spec$goal <- goal
   spec
 }
@@ -12,6 +15,7 @@ test_that("a meta-analysis runs on metapower's mpower(), as a direct call does",
   for (model in c("random", "fixed")) {
     spec <- meta_spec()
     spec$target_test$model <- model
+    if (model == "fixed") spec$target_test$test <- NULL
     result <- run_spec(spec)
     expect_identical(result$provenance$backend_function, "metapower::mpower")
     expect_true(all(result$check_run$ok), label = model)
@@ -52,6 +56,7 @@ test_that("metapower rounds Fisher's z to two decimals: the size of the differen
   # exact z.
   spec <- meta_spec(metric = "r", effect = 0.25, study_size = 30L, i2 = 0, goal = list(type = "power", n = 5L))
   spec$target_test$model <- "fixed"
+  spec$target_test$test <- NULL
   rounded <- run_spec(spec)$curve$power
   ncp <- atanh(0.25) / sqrt(1 / (27 * 5))
   exact <- stats::pnorm(ncp - stats::qnorm(0.975)) + stats::pnorm(-stats::qnorm(0.975) - ncp)
@@ -65,4 +70,48 @@ test_that("the exported script reproduces the result with metapower alone", {
   result <- run_spec(spec)
   run <- run_exported_script(spec, result)
   expect_equal(run$reproduced$n, result$n_required$n)
+})
+
+# The Hartung-Knapp test (Departure 18) --------------------------------------
+
+test_that("the random-effects model defaults to the Hartung-Knapp test, simulated with metafor", {
+  spec <- meta_spec(test = NULL)
+  spec$options <- list(nrep = 200L, seed = 3L)
+  result <- run_spec(spec)
+  expect_identical(result$provenance$backend, "Spower")
+  expect_identical(result$provenance$method, "simulation")
+  expect_match(result$provenance$backend_function, "test = \"knha\"", fixed = TRUE)
+  expect_true(all(result$check_run$ok))
+  expect_true("metafor" %in% names(result$provenance$packages))
+})
+
+test_that("Hartung-Knapp power: the size of the difference from metapower's z test (Departure 18)", {
+  # d = 0.15, 40 per study, I-squared 0.5 (Valentine et al.'s example),
+  # 10 studies: the z test 21.4%, Hartung-Knapp about 16.5% (2,000
+  # simulated meta-analyses); the gap narrows as studies are added.
+  z <- run_spec(meta_spec(goal = list(type = "power", n = 10L)))$curve$power
+  hk_spec <- meta_spec(goal = list(type = "power", n = 10L), test = "hartung_knapp")
+  hk_spec$options <- list(nrep = 2000L, seed = 7L)
+  hk <- run_spec(hk_spec)$curve
+  expect_equal(round(z, 3), 0.214)
+  expect_lt(hk$power + 3 * hk$mcse, z)
+  expect_equal(hk$power, 0.165, tolerance = 4 * hk$mcse, scale = 1)
+})
+
+test_that("the Hartung-Knapp test refuses the fixed-effect model and a formula; the z test refuses simulations", {
+  fixed <- meta_spec(test = "hartung_knapp")
+  fixed$target_test$model <- "fixed"
+  expect_spec_problem(fixed, "random-effects model")
+  exact <- meta_spec(test = "hartung_knapp")
+  exact$options <- list(method = "exact")
+  expect_spec_problem(exact, "simulated")
+  z <- meta_spec()
+  z$options <- list(nrep = 100L)
+  expect_spec_problem(z, "nothing to simulate")
+})
+
+test_that("the Hartung-Knapp script reproduces the result with Spower and metafor alone", {
+  spec <- meta_spec(test = "hartung_knapp", goal = list(type = "power", n = 8L))
+  spec$options <- list(nrep = 200L, seed = 5L)
+  expect_script_reproduces_power(spec, run_spec(spec))
 })

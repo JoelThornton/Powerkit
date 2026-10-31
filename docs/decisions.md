@@ -3783,8 +3783,8 @@ merges when its checks pass, unless a doubt is stated in it.
   al. worked examples to transcribe.
 - **Hartung-Knapp (31 October 2026):** the random-effects test defaults
   to Hartung-Knapp for every number of studies (one test, as a review
-  would preregister), with the z test available; queued as item 26.
+  would preregister), with the z test available; done the same day (Departure 18).
 - **Finding tests (31 October 2026):** "I know my analysis" becomes a
   grouped, collapsible, searchable list without the screening questions
-  (item 27); an "I know the terms" setting shows technical names first
-  (item 28).
+  (item 26); an "I know the terms" setting shows technical names first
+  (item 27).

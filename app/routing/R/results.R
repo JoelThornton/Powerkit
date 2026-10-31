@@ -277,6 +277,14 @@ generic_sentences <- function(spec, result) {
   }
 }
 
+# The random-effects meta-analysis planned with the Hartung-Knapp test
+# (Departure 18): the default unless the z test or the fixed-effect model
+# is chosen.
+is_hartung_knapp <- function(spec) {
+  identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
+    !identical(spec$target_test$test, "z")
+}
+
 # A planned meta-analysis (E61): n is the number of studies, and the
 # heterogeneity matters as much as the effect (Jackson and Turner, 2017).
 meta_sentences <- function(spec, result) {
@@ -284,11 +292,17 @@ meta_sentences <- function(spec, result) {
   random <- !identical(spec$target_test$model, "fixed")
   model <- if (random) "the random-effects model" else "the fixed-effect model"
   effect <- sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
-  test <- sprintf("%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
+  test <- sprintf("%s%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
+    if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test",
     alpha_text(spec$target_test$alpha),
     if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "" else " one-sided",
     whole(pop$study_size), format(pop$i2))
-  source <- sprintf("Calculated by formula (%s).", exact_source(result))
+  source <- if (is_hartung_knapp(spec)) {
+    sprintf("Simulated: %s meta-analyses at each number of studies (Spower with metafor), so the answer carries a little random error.",
+      whole(result$provenance$nrep))
+  } else {
+    sprintf("Calculated by formula (%s).", exact_source(result))
+  }
   caution <- if (random) {
     paste("The random-effects model allows for the studies' true effects differing, which costs power; Jackson and",
           "Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis",
@@ -1374,6 +1388,8 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
+  # Departure 18 is about the Hartung-Knapp test, when it is used.
+  if (!is_hartung_knapp(spec)) keys <- setdiff(keys, "18")
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")
@@ -1392,6 +1408,9 @@ departures_for <- function(forms, ep_id, spec) {
 known_difference_keys <- function(forms, ep_id, spec = NULL) {
   form <- forms$forms[[ep_id]]
   keys <- unlist(form$known_differences)
+  # Known difference 9 is about metapower, which the Hartung-Knapp test
+  # doesn't use.
+  if (!is.null(spec) && is_hartung_knapp(spec)) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
   # Some apply to one way of giving the effect (E9: Known difference 1 to

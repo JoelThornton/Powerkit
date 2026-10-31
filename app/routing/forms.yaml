@@ -215,6 +215,7 @@ departures:
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): the established tools calculate each analysis on its own, from its own inputs, and the chance that several analyses all succeed has to be worked out from their separate powers, as if they were unrelated. Here one population model generates every simulated study and each analysis is fitted to the same data, so the analyses' inputs can't contradict each other and the joint chance is counted directly. Each analysis's own power agrees with its separate calculation from the values the population implies, within simulation error in powerkit's checks; where the population has a term an analysis leaves out (for example, an interaction when testing the correlation of X and Y), the simulation includes its effect and the separate calculation doesn't."
   "14": "Smallest detectable effect when only one condition is in groups: powerkit finds the d at which powertools' power formula (irgtt.cont(), a t test) reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 77% power rather than 80%; powerkit gives 0.352."
+  "18": "Meta-analysis: under the random-effects model powerkit plans for the Hartung-Knapp test unless you choose otherwise, because it keeps the chance of a false positive closer to alpha than the z test, especially with few studies (IntHout, Ioannidis & Borm, 2014); metapower plans for the z test. No package has a formula for its power, so it is simulated (metafor's rma(test = \"knha\"), with Spower). It gives less power: for d = 0.15 in ten studies of 40 with I-squared 0.5, about 16.5% against 21.4% with the z test."
   "17": "Pairwise comparisons: powerkit adjusts the p-values for the number of comparisons by Holm's method unless you choose otherwise; Superpower's ANOVA_power() adjusts none by default. Adjusting costs power: for None against Praise in powerkit's example (means 10, 11 and 13, SD 6, 30 per group), 31.2% with Holm's adjustment, 30.1% with Bonferroni's and 47.8% with none."
   "16": "Mixed model: the condition is tested with Satterthwaite's t test (lmerTest), not simr's default z test, which treats the t statistic as normal and so rejects too often in designs with few participants or items. In powerkit's example (40 items), the z test gives 42.0% power at 40 participants where Satterthwaite's gives 39.6% (27.7% and 25.0% at 20 participants)."
   "15": "Bayes factor t-tests: powerkit plans for exactly the effect you entered unless you say how unsure you are about it (a design prior SD of 0), as a usual power analysis does. bfpwr's own default spreads the true effect as widely as the analysis prior (SD 0.707), which needs far more people: for d = 0.5 and BF10 of at least 10, 120 per group give 80% with powerkit's default and 67% with bfpwr's, which needs 372 per group."
@@ -1814,6 +1815,7 @@ forms:
     tool: metapower
     directional: true
     meta: true
+    departures: ["18"]
     known_differences: ["9"]
     base: {spec_version: "0.1", design: meta_analysis, template: mean_effect,
            variables: {"Y": {type: continuous}},
@@ -1833,11 +1835,16 @@ forms:
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
           - {id: i2, label: "Heterogeneity, as I-squared (0 to just under 1)", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
              help: "The share of the variation between the studies' effects that isn't chance. Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."}
-      - input: "The fixed-effect or the random-effects model"
+      - input: "The fixed-effect or the random-effects model, and the test"
         fields:
           - {id: meta_model, label: "Model", type: select, path: target_test.model, required: true,
              choices: {random: "Random effects: the studies' true effects differ", fixed: "Fixed effect: every study estimates the same effect"},
              default: random, default_source: "powerkit's choice: the random-effects model, which allows for the studies' true effects differing (metapower reports both)"}
+          - {id: meta_test, label: "Test of the average effect", type: select, path: target_test.test, required: true,
+             choices: {hartung_knapp: "Hartung-Knapp (recommended; simulated)", z: "z test (metapower's formula)"}, default: hartung_knapp,
+             default_source: "powerkit's choice (Departure 18): the Hartung-Knapp test keeps false positives closer to alpha, especially with few studies (IntHout, Ioannidis & Borm, 2014)",
+             help: "Plan with the test you will run. The z test is what metapower and many older meta-analyses use; it is too often significant when there are few studies.",
+             shown_if: {field: meta_model, is: random}}
 
   # Logistic regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its odds ratio is per SD; a yes/no X compares

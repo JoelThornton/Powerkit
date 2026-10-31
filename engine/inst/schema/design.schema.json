@@ -514,6 +514,13 @@
             "random",
             "fixed"
           ]
+        },
+        "test": {
+          "description": "Meta-analysis, random-effects model only: the test of the average effect. 'hartung_knapp' (the default, Departure 18): the Hartung-Knapp-Sidik-Jonkman test, simulated with metafor's rma(test = \"knha\"); 'z': metapower's z test, by formula.",
+          "enum": [
+            "hartung_knapp",
+            "z"
+          ]
         }
       },
       "allOf": [
@@ -7664,9 +7671,11 @@
           "options": {
             "properties": {
               "method": {
-                "const": "exact"
+                "enum": [
+                  "exact",
+                  "simulation"
+                ]
               },
-              "nrep": false,
               "attrition": false,
               "allocation_ratio": false,
               "proportions_formula": false,
@@ -7702,7 +7711,7 @@
       }
     },
     "template_meta_mean_effect": {
-      "description": "A planned meta-analysis of studies that each give one effect size: the z test of the average effect, under a fixed-effect or random-effects model (metapower's mpower(), Hedges and Pigott's approach, with Jackson and Turner's method for the random-effects model). Every study is taken to have the same size. goal > n is the number of studies.",
+      "description": "A planned meta-analysis of studies that each give one effect size: the z test of the average effect, under a fixed-effect or random-effects model (metapower's mpower(), Hedges and Pigott's approach, with Jackson and Turner's method for the random-effects model). Every study is taken to have the same size. goal > n is the number of studies. Under the random-effects model the test is Hartung-Knapp by default (simulated with metafor), or metapower's z test (target_test > test \"z\").",
       "properties": {
         "variables": {
           "additionalProperties": false,
@@ -7759,6 +7768,12 @@
                 "fixed"
               ],
               "description": "'random' (the default): the random-effects model, whose test allows for the studies' true effects differing; 'fixed': the fixed-effect model, which assumes they don't."
+            },
+            "test": {
+              "enum": [
+                "hartung_knapp",
+                "z"
+              ]
             }
           }
         }

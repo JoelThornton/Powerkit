@@ -28,8 +28,7 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   # A factorial logistic regression needs ten people in every cell.
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
   spec$goal <- goal
-  # Formulas with nothing to simulate: no replications to set.
-  if (!ep %in% c("E7", "E8", "E36", "E61")) spec$options$nrep <- 100L
+  if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
   spec
 }
 
@@ -1925,10 +1924,28 @@ test_that("moderated mediation with two mediators (E40) builds a valid spec for 
   expect_s3_class(validate(spec), "powerkit_spec")
 })
 
+test_that("a meta-analysis with the Hartung-Knapp test (E61's default) is simulated and states Departure 18", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E61"))
+  expect_identical(Filter(function(f) identical(f$id, "meta_test"), fields)[[1]]$default, "hartung_knapp")
+  spec <- build_spec(forms, "E61", fields, form_examples$E61)
+  expect_identical(spec$target_test$test, "hartung_knapp")
+  spec$goal <- list(type = "power", n = 10L)
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$method, "simulation")
+  sentences <- result_sentences(spec, calc$result)
+  expect_match(sentences[["headline"]], "the Hartung-Knapp test", fixed = TRUE)
+  expect_match(sentences[["detail"]], "Simulated", fixed = TRUE)
+  expect_true(any(grepl("Hartung-Knapp test unless you choose otherwise", departures_for(forms, "E61", spec), fixed = TRUE)))
+  expect_false("9" %in% known_difference_keys(forms, "E61", spec))
+})
+
 test_that("a planned meta-analysis (E61) reports studies, not participants, and states Known difference 9", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E61"))
-  values <- modifyList(form_examples$E61, list(goal = "sample_size", power = "0.8"))
+  values <- modifyList(form_examples$E61, list(goal = "sample_size", power = "0.8", meta_test = "z"))
   spec <- build_spec(forms, "E61", fields, values)
   expect_identical(spec$design, "meta_analysis")
   expect_null(spec$options$attrition)
@@ -1938,7 +1955,9 @@ test_that("a planned meta-analysis (E61) reports studies, not participants, and 
   sentences <- result_sentences(spec, calc$result)
   expect_match(sentences[["headline"]], sprintf("You need %s studies", calc$result$n_required$n), fixed = TRUE)
   expect_no_match(sentences[["headline"]], "participants in total", fixed = TRUE)
+  expect_match(sentences[["headline"]], "the z test", fixed = TRUE)
   expect_match(sentences[["detail"]], "Jackson and Turner (2017)", fixed = TRUE)
+  expect_true("9" %in% known_difference_keys(forms, "E61", spec))
   # The closing questions ask for the number of studies and leave out lost participants.
   closing <- form_fields(closing_groups(forms, "E61"))
   ids <- vapply(closing, `[[`, "", "id")
