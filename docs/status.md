@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.25.0). This page says where the
+*Last updated: 31 October 2026 (powerkit 0.26.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -33,10 +33,12 @@ fully validated. Validation runs are recorded in
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026); "Help me
-  choose" asks the screening questions first; an "I know the terms" setting
-  shows technical names first and hides the hints.
+  choose" asks the screening questions first; the search also knows other
+  names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
+  default, shows technical names first and hides the hints when off.
 - **Results** state their spec hash, seed, backend, R and package
-  versions; save as a project file or a study plan and reopen; export an
+  versions; save as a project file or a study plan and reopen (a project
+  saved from 0.26.0 shows its saved result without running it again); export an
   R script that reproduces them with the backend alone, citations, a
   methods paragraph and, for most designs, a simulated data set. A saved
   simulation reproduces on the number of cores it ran on (0.24.1).
@@ -71,8 +73,8 @@ fully validated. Validation runs are recorded in
   measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
-  notes, the methods map, plan from a published result, a picture of
-  power for the two-group t-test).
+  notes, the methods map, the effect size converter and the power
+  visualiser for the two-group t-test).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 10); E17 on questions for power4mome (item 12); Spower's faults
@@ -87,6 +89,9 @@ fully validated. Validation runs are recorded in
 - Simulated data sets are missing for R², logistic and Poisson regression
   with other predictors, the two-way ANCOVA, the three-way interaction,
   multisite and yes/no cluster outcomes, SEM and McNemar's test (item 9).
+- MANOVA with three or more groups is simulated (no formula in a package
+  or the G\*Power manual); two groups and one group against fixed values
+  are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (item 14).
 - Technical details (df, critical value, noncentrality) are missing for

@@ -90,3 +90,10 @@ test_that("the smallest detectable effect is also given in the outcome's units",
   result <- run_spec(spec)
   expect_equal(result$effect_from_units$smallest_difference, result$sensitivity$effect * 1.2)
 })
+
+test_that("MANOVA and one-sample Hotelling's T-squared, which also take raw means, give no units record", {
+  for (name in c("manova", "hotelling_one")) {
+    spec <- validate_spec(read_spec(system.file("specs", paste0(name, ".json"), package = "powerkit")))
+    expect_null(effect_from_units(spec), label = name)
+  }
+})

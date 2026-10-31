@@ -49,16 +49,37 @@ restore_from_project <- function(route, tree, forms) {
   )
 }
 
-# The notice shown on the input screen after a project is opened.
-project_opened_ui <- function(project) {
+# The notice shown on the input screen after a project is opened. With
+# `shown` TRUE the saved result is on screen below it, as it was saved,
+# not run again (a simulation can take minutes); "Run it again to check"
+# runs it, as "Check my answers" does.
+project_opened_ui <- function(project, shown = FALSE) {
   saved <- project$result
   div(
     class = "alert alert-info", role = "status",
     tags$strong("Project opened."),
     sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version),
-    if (!is.null(saved)) " Press \u201cCheck my answers\u201d to reproduce the saved result; it should match exactly." else " Press \u201cCheck my answers\u201d to run it.",
+    if (shown) {
+      tagList(
+        " Below is the saved result, as it was saved: it hasn't been run again. Running it again should give the same numbers. ",
+        actionButton("rerun_saved", "Run it again to check", class = "btn btn-outline-primary btn-sm")
+      )
+    } else if (!is.null(saved)) {
+      " Press \u201cCheck my answers\u201d to reproduce the saved result; it should match exactly."
+    } else {
+      " Press \u201cCheck my answers\u201d to run it."
+    },
     if (length(project$notes) > 0) tags$ul(lapply(project$notes, tags$li))
   )
+}
+
+# The saved result of an opened project, ready for the result screen, or
+# NULL to run it (a file without one, or from an earlier powerkit).
+saved_calc <- function(project, saved = engine_function("saved_result")) {
+  if (is.null(saved)) return(NULL)
+  result <- tryCatch(saved(project), error = function(e) NULL)
+  if (is.null(result)) return(NULL)
+  list(status = "ok", spec = unclass(project$spec), result = result, notes = character(), saved = TRUE)
 }
 
 project_file_name <- function(endpoint) {

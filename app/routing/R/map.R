@@ -257,7 +257,7 @@ map_ui <- function(tree) {
     tags$script(src = "vendor/dagre.min.js"),
     tags$script(src = "vendor/cytoscape-dagre.js"),
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree))),
-    h3("A map of the methods"),
+    h3("Methods map"),
     p("Every analysis powerkit knows about, drawn from the same questions as “Help me choose”. Each thing a study can want to show is a star; its analyses are the planets around it. Drag to fly about, scroll to zoom, search or filter on the left, and click a planet to read about it."),
     div(class = "map-stage",
       div(id = "map-canvas", class = "map-canvas", role = "img",

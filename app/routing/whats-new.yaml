@@ -14,6 +14,27 @@ entries:
       first, as an ANCOVA does, so a group comparison can be planned
       together with a moderation or a mediation. Still experimental.
   - date: "2026-10-31"
+    title: "Saved results open straight away; more tests calculated exactly"
+    text: >-
+      Opening a saved project now shows its result as it was saved, without
+      running it again, so a long simulation doesn't have to be repeated;
+      a button runs it again to check. Projects saved before this version
+      still run when opened. The tests of one or two variances, and
+      Hotelling's T-squared (one group's several outcomes compared with
+      fixed values, or a MANOVA of two groups), are now calculated exactly,
+      as G*Power does, instead of simulated, so they answer straight away.
+  - date: "2026-10-31"
+    title: "Fixes, and clearer names"
+    text: >-
+      Repeated-measures and mixed ANOVA with three or more conditions now
+      give the right answer from a published partial eta-squared (before,
+      power was too low). MANOVA, and 2 x 2 designs with unequal groups,
+      now work for every goal. Long simulations show a progress bar. The
+      meta-analysis card talks about studies, not participants. The search
+      finds more test names, such as Mann-Whitney, Kruskal-Wallis and post
+      hoc. The Labs tools have plain names: Methods map, Power visualiser
+      and Effect size converter.
+  - date: "2026-10-31"
     title: "Multilevel models with predictors at both levels"
     text: >-
       For people within groups (pupils in classes, patients in clinics),
@@ -30,13 +51,13 @@ entries:
       a moderation or a mediation on the same people, with the chance that
       all of them come out significant together. Still experimental.
   - date: "2026-10-31"
-    title: "An \"I know the terms\" setting"
+    title: "Show or hide explanations"
     text: >-
-      Tick "I know the terms" at the top of the page to see the technical
+      Turn "Explanations" off at the top of the page to see the technical
       names first (one-way repeated-measures ANOVA, rather than its plain
-      description) and hide the explanations of terms. Warnings and notes
-      that change what you should do stay. Your browser remembers the
-      setting.
+      description) and hide the explanations of terms. The help under each
+      question, and warnings and notes that change what you should do,
+      stay. Your browser remembers the setting.
   - date: "2026-10-31"
     title: "Find your analysis faster"
     text: >-

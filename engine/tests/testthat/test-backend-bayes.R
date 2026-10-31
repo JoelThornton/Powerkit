@@ -97,7 +97,7 @@ test_that("Bayes factor settings belong to the Bayes factor tests, which have no
   spec$options$method <- "simulation"
   expect_spec_problem(spec, "'options > method' 'simulation' isn't available for this test")
   spec <- bayes_spec("one_sample_t", goal = list(type = "sensitivity", n = 50, power = 0.8))
-  expect_error(run_quietly(spec), "Sensitivity analysis")
+  expect_error(run_quietly(spec), "smallest detectable effect")
 })
 
 test_that("the exported script reproduces each Bayes factor t-test", {

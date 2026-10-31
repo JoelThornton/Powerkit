@@ -830,6 +830,14 @@ build_spec <- function(forms, ep_id, fields, values) {
       if (field_applies(extra, values)) spec <- set_path(spec, split_path(extra$path), extra$value)
     }
   }
+  # The pair compared (pairwise comparisons) is matched to the levels'
+  # spelling, so "none, praise" finds "None" and "Praise".
+  if (!is.null(spec$target_test$comparison) && !is.null(spec$variables$A$levels)) {
+    levels <- unlist(spec$variables$A$levels)
+    pair <- unlist(spec$target_test$comparison)
+    at <- match(tolower(trimws(pair)), tolower(trimws(levels)))
+    spec$target_test$comparison <- as.list(ifelse(is.na(at), pair, levels[at]))
+  }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)
   # The range of sample sizes is several engine runs (sensitivity_curve());
