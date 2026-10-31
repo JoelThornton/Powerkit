@@ -1,0 +1,31 @@
+{
+  "spec_version": "0.1",
+  "design": "meta_analysis",
+  "template": "mean_effect",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Depressive symptoms"
+    }
+  },
+  "population": {
+    "metric": "d",
+    "effect": 0.15,
+    "study_size": 40,
+    "i2": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: Valentine, Pigott and Rothstein (2010) use d = 0.15 as the smallest clinically meaningful effect of a depression prevention programme, with 20 participants per condition and moderate heterogeneity."
+  },
+  "target_test": {
+    "effect": "mean_effect",
+    "method": "z_test",
+    "model": "random",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  }
+}

@@ -1321,3 +1321,33 @@ Wired into the app on 18 October 2026 (E25, E26).*
   Monte Carlo error; G\*Power computes Hotelling's T-squared exactly and
   Pillai's trace with an F approximation." (`known_differences_methods`,
   key "8").
+
+### 9. Meta-analysis: metapower's rounding for r, and an estimated between-study variance
+
+- **What differs:** for a correlation, metapower's `mpower()` rounds
+  Fisher's z to two decimals before computing power. Under the
+  random-effects model it uses Jackson and Turner's (2017) equation 9,
+  which allows for the between-study variance being estimated; the
+  formulas in Valentine, Pigott and Rothstein (2010) treat it as known.
+  powerkit follows metapower, the package it calls, and states both. G\*Power
+  has no meta-analysis.
+- **Size:** the rounding moves power by up to about 1.3 points: 85.6%
+  against 84.3% with the exact z for r = 0.25 in five studies of 30 (the
+  largest over r .05 to .3, 30 to 100 per study, 5 to 20 studies and
+  I-squared 0 to .75). In Valentine et al.'s random-effects example (d =
+  0.15, 20 per group, 40 studies, moderate heterogeneity, one-sided) the
+  paper gives 0.68 and powerkit 68.3%.
+- **Not used:** metapower's power for the test of heterogeneity, which
+  disagrees with simulation (`docs/upstream-questions.md`, metapower).
+- **Open method question for the maintainer:** metapower tests the
+  random-effects average with a z test. Methods papers recommend the
+  Hartung-Knapp adjustment for few studies, which would give lower power;
+  powerkit follows metapower until that is decided (not yet in
+  `refs.bib`).
+- **Test:** `engine/tests/testthat/test-backend-metapower.R` (the rounding's
+  size), `test-validation-meta-analysis.R` (simulated meta-analyses; the
+  two Valentine et al. examples to transcribe).
+- **Shown to users:** on the meta-analysis result screen (E61), under
+  "Where other established tools give a different answer"
+  (`app/routing/forms.yaml`, `known_differences`, key "9").
+- **Methods paragraph:** `known_differences_methods`, key "9".

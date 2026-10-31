@@ -1,5 +1,17 @@
 # powerkit 0.25.0
 
+* A planned meta-analysis (E61): design `meta_analysis`, template
+  `mean_effect`, through metapower's `mpower()` (new dependency,
+  metapower 0.2.2). Power, or the number of studies needed (n is the
+  number of studies), for the z test of the average effect under the
+  fixed-effect or random-effects model, from Cohen's d or r, the size of a
+  typical study and I-squared. Validated against simulated meta-analyses;
+  Valentine, Pigott and Rothstein's (2010) worked examples are ready to
+  transcribe. metapower's rounding of Fisher's z for r is Known
+  difference 9 (up to about 1.3 points); its power for the heterogeneity
+  test disagrees with simulation and isn't used
+  (`docs/upstream/metapower-homogeneity.R`). Jackson and Turner (2017) and
+  Valentine et al. (2010) added to `refs.bib`.
 * Cohen's w, as G*Power takes it, for the chi-square tests: `population >
   metric` "w" with `population > w` on `chi_square_independence` (pwr's
   `pwr.chisq.test()`) and `chi_square_gof` (pwrss's `power.chisq.gof()`),

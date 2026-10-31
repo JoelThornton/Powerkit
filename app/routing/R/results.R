@@ -277,6 +277,42 @@ generic_sentences <- function(spec, result) {
   }
 }
 
+# A planned meta-analysis (E61): n is the number of studies, and the
+# heterogeneity matters as much as the effect (Jackson and Turner, 2017).
+meta_sentences <- function(spec, result) {
+  pop <- spec$population
+  random <- !identical(spec$target_test$model, "fixed")
+  model <- if (random) "the random-effects model" else "the fixed-effect model"
+  effect <- sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  test <- sprintf("%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
+    alpha_text(spec$target_test$alpha),
+    if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "" else " one-sided",
+    whole(pop$study_size), format(pop$i2))
+  source <- sprintf("Calculated by formula (%s).", exact_source(result))
+  caution <- if (random) {
+    paste("The random-effects model allows for the studies' true effects differing, which costs power; Jackson and",
+          "Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis",
+          "reasonably consistently has more power than the studies in it.")
+  } else {
+    "The fixed-effect model assumes every study estimates the same effect; if they differ, its test is too optimistic."
+  }
+  if (identical(result$goal_type, "sample_size")) {
+    k <- result$n_required$n
+    c(
+      headline = sprintf("You need %s studies for %s power to detect an average effect of %s, with %s.",
+        whole(k), percent(spec$goal$power), effect, test),
+      detail = paste(source, caution)
+    )
+  } else {
+    row <- result$curve[1, ]
+    c(
+      headline = sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
+        whole(row$n), percent(row$power), effect, round(100 * row$power), test),
+      detail = paste(source, caution)
+    )
+  }
+}
+
 # Equivalence tests (E36): the two one-sided tests, each at alpha, and the
 # bounds (in the outcome's own units too, when given that way).
 equivalence_bound <- function(spec, result) {
@@ -379,6 +415,7 @@ simulation_note <- function(result) {
 # result_wording).
 result_sentences <- function(spec, result) {
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
+  if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)

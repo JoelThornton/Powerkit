@@ -3764,3 +3764,27 @@ merges when its checks pass, unless a doubt is stated in it.
 - **Bayes (4):** the order in `docs/bayes-planning.md` (#193): a Labs
   Bayes mode at fixed N with the analysis and design priors kept apart and
   every outcome shown, then the other cards, sequential designs last.
+
+## 2026-10-31 · The meta-analysis card (E61)
+
+- **What it plans:** the test of the average effect in a planned
+  meta-analysis, through metapower's `mpower()`, with n the number of
+  studies. Its fixed-effect and random-effects power agree with simulated
+  meta-analyses (the random-effects formula is Jackson and Turner's 2017
+  equation 9); its power for the heterogeneity test doesn't, so that test
+  is left out and raised upstream.
+- **Correlations:** `mpower()` is used as it is, with its rounding of
+  Fisher's z stated as Known difference 9 (up to about 1.3 points).
+- **Defaults:** the random-effects model; heterogeneity as I-squared, with
+  Valentine, Pigott and Rothstein's (2010) small, moderate and large
+  values in the help; reached from the aim question.
+- **For the maintainer:** whether the random-effects test should be
+  Hartung-Knapp rather than metapower's z test, and the two Valentine et
+  al. worked examples to transcribe.
+- **Hartung-Knapp (31 October 2026):** the random-effects test defaults
+  to Hartung-Knapp for every number of studies (one test, as a review
+  would preregister), with the z test available; queued as item 26.
+- **Finding tests (31 October 2026):** "I know my analysis" becomes a
+  grouped, collapsible, searchable list without the screening questions
+  (item 27); an "I know the terms" setting shows technical names first
+  (item 28).

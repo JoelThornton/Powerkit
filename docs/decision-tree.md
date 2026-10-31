@@ -601,9 +601,11 @@ that table's "Engine can use it?" column:
   one proportion, McNemar's test and two correlations (E25, E26, E49,
   E51), logistic regression (E27), Poisson regression (E28), the
   cluster-randomised trial (E34), the variance
-  tests (E52, E53, E57), and the generic t and z tests (E50);
+  tests (E52, E53, E57), the generic t and z tests (E50) and the
+  meta-analysis (E61);
 - participants expected to be lost (Q-attr) on every card but the generic
-  tests (E50), which have no sample size;
+  tests (E50), which have no sample size, and the meta-analysis (E61),
+  whose sample is studies;
 - a test version (Q-test) only where there is a choice: Student's or
   Welch's t-test (E2), the z test or Fisher's exact test (E5), or exact or
   simulation (E7, E8, E18).
@@ -661,6 +663,7 @@ the two in step.
 | E57 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E59 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E60 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E61 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
 | E54 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E55 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E56 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -738,6 +741,7 @@ taken from coverage.md, where they are proposals.
 | E57 | Two variances in the same people (Pitman-Morgan test) | `basic_test / paired_variances` | `Spower::p_r()` on the sum and the difference of the paired scores (the Pitman-Morgan test, simulated). Reached from Q1 and V1 when each person is measured twice | Simulation | The expected variance at each measurement and the correlation between them | No: matches a direct Spower call and holds alpha in `test-backend-paired-variances-rank-cor.R` (published value TODO) | v2 | Runs |
 | E59 | Several outcomes compared across groups (one-way MANOVA; Hotelling's T-squared for two groups) | `basic_test / manova` | Spower with powerkit's `p_manova()` experiment: multivariate normal scores analysed with `stats::manova()`, Pillai's trace (simulated). Reached from F2 when each person is measured once | Simulation | Each group's mean on each outcome, each outcome's SD, the correlation between the outcomes | No: matches Hotelling's T-squared exactly (pwrss) and a separate simulation, and holds alpha, in `test-validation-manova.R` (G*Power values TODO) | v2 | Runs |
 | E60 | Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared) | `basic_test / hotelling_one` | Spower with powerkit's `p_hotelling_one()` experiment: multivariate normal scores whose mean vector is tested against the fixed values (`stats::anova()` of `lm()`, Pillai's trace, exact with one group; simulated). Reached from F2 when each person is measured once | Simulation | Each outcome's expected mean, the fixed value it is compared with, each outcome's SD, the correlation between the outcomes | No: matches the exact F test (pwrss) and holds alpha, in `test-validation-hotelling-one.R` (G*Power value TODO) | v2 | Runs |
+| E61 | A planned meta-analysis: the test of the average effect | `meta_analysis / mean_effect` | metapower's `mpower()`: the z test of the average effect, fixed-effect model, or Jackson and Turner's (2017) method for the random-effects model. Reached from the aim question ("Combine studies others have done") | Formula | The average effect (d or r), the size of a typical study, the heterogeneity (I-squared), the model; n is the number of studies | No: matches simulated meta-analyses in `test-validation-meta-analysis.R` (Valentine et al. 2010 values TODO) | v2 | Runs |
 | E58 | Latent profile or latent class analysis (how many types of people, and who belongs to which) | — | No power function: planned from published simulation studies (Tein, Coxe & Cham, 2013; Nylund, Asparouhov & Muthén, 2007; Nylund-Gibson & Choi, 2018; Spurk et al., 2020) or a custom simulation (e.g. Mplus Monte Carlo, or Spower in R). Reached from Q1 | — | The number of profiles, their separation on each indicator, the number of indicators, the size of the smallest profile | No | later | Not in spec |
 | E54 | One-way repeated-measures ANOVA, omnibus | `factorial_anova / oneway_within` | `Superpower::ANOVA_design("kw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. One SD and one correlation for every pair of conditions, so sphericity holds and no correction applies. Test versions: Friedman's test (Spower with powerkit's `p_friedman()`, simulated, a chosen shape of scores) and pairwise comparisons (Superpower's `ANOVA_power(p_adjust =)`). Reached from F2a when the screening says the same people are in three or more conditions | Exact dataset (no repeated simulation) | Condition means (raw or in SD units), one SD, the correlation between any two conditions | No: matches Superpower's `ANOVA_exact()` and `power_oneway_within()` in `test-backend-oneway-within.R` (not yet in the full validation run; published value TODO) | v2 | Runs |
 | E55 | Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints) | `factorial_anova / mixed` | `Superpower::ANOVA_design("kb*mw")` + `ANOVA_exact()`; `ANOVA_power()` if simulation is chosen. Equal groups, one SD and one correlation, so sphericity holds. Reached from F3a, and from the guided route for three conditions measured twice | Exact dataset (no repeated simulation) | Cell means (raw or in SD units), one SD, the correlation between any two levels of the within factor, which effect | No: matches Superpower's `ANOVA_exact()` in `test-backend-mixed.R` (not yet in the full validation run; published value TODO) | v2 | Runs |

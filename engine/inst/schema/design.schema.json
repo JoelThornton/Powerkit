@@ -37,7 +37,8 @@
         "cluster_trial",
         "sem",
         "ordinal_regression",
-        "mixed_model"
+        "mixed_model",
+        "meta_analysis"
       ]
     },
     "template": {
@@ -149,6 +150,9 @@
     },
     {
       "$ref": "#/definitions/design_ordinal_regression"
+    },
+    {
+      "$ref": "#/definitions/design_meta_analysis"
     }
   ],
   "definitions": {
@@ -502,6 +506,13 @@
             "none",
             "GG",
             "HF"
+          ]
+        },
+        "model": {
+          "description": "Meta-analysis only: the model whose test of the average effect is planned, 'random' or 'fixed'.",
+          "enum": [
+            "random",
+            "fixed"
           ]
         }
       },
@@ -7622,6 +7633,134 @@
               }
             }
           ]
+        }
+      }
+    },
+    "design_meta_analysis": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "meta_analysis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "mean_effect"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "n": {
+                "description": "For a meta-analysis: the number of studies (k), not participants."
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "attrition": false,
+              "allocation_ratio": false,
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "comparison": false,
+              "p_adjust": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "mean_effect"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_mean_effect"
+            }
+          }
+        ]
+      }
+    },
+    "template_meta_mean_effect": {
+      "description": "A planned meta-analysis of studies that each give one effect size: the z test of the average effect, under a fixed-effect or random-effects model (metapower's mpower(), Hedges and Pigott's approach, with Jackson and Turner's method for the random-effects model). Every study is taken to have the same size. goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect the meta-analysis should detect (Cohen's d, or r between -1 and 1)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Heterogeneity as I-squared: the share of the variation between the studies' effects that isn't sampling error (0 for none). Used by the random-effects model; Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_effect"
+            },
+            "method": {
+              "const": "z_test"
+            },
+            "model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the random-effects model, whose test allows for the studies' true effects differing; 'fixed': the fixed-effect model, which assumes they don't."
+            }
+          }
         }
       }
     }

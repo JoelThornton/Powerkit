@@ -157,6 +157,11 @@ form_examples$E59 <- c(list(A_label = "Condition", A_levels = "Waiting list, Onl
 form_examples$E60 <- c(list(Y_labels = "Anxiety, Depression, Stress", means = "22, 19, 24", mu0 = "20, 18, 21",
                             sds = "6, 5, 7", manova_r = "0.5"), closing_ok)
 
+# E61: a planned meta-analysis of two-group studies (Valentine, Pigott and
+# Rothstein's 2010 example: d = 0.15, 40 per study, moderate heterogeneity).
+form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_metric = "d", meta_effect = "0.15", study_size = "40",
+                            i2 = "0.5", meta_model = "random", alternative = "two_sided"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",
