@@ -5145,19 +5145,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "942c7d5dc98b4e52cff89bc41e6c0d18b4997fe4",
-        "RemoteSha": "942c7d5dc98b4e52cff89bc41e6c0d18b4997fe4",
+        "RemoteRef": "dfdea5e096455e4349dc2208a1dc119be8152fbe",
+        "RemoteSha": "dfdea5e096455e4349dc2208a1dc119be8152fbe",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "942c7d5dc98b4e52cff89bc41e6c0d18b4997fe4",
-        "GithubSHA1": "942c7d5dc98b4e52cff89bc41e6c0d18b4997fe4",
+        "GithubRef": "dfdea5e096455e4349dc2208a1dc119be8152fbe",
+        "GithubSHA1": "dfdea5e096455e4349dc2208a1dc119be8152fbe",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-31 11:51:04 UTC; runner",
+        "Packaged": "2026-10-31 12:16:38 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-31 11:51:12 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-31 12:16:46 UTC; unix"
       }
     },
     "powertools": {
@@ -6928,7 +6928,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "617788893ccb027c93d5ddc7761f06bc"
+      "checksum": "a57fd5fe2d049800163703d997f41ad8"
     },
     "forms.yaml": {
       "checksum": "30d39b49b7945c6196c66431b3079406"
@@ -6967,7 +6967,7 @@
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "7a10726ba1417ad3c19869a87f5939ef"
+      "checksum": "a3b640ef13632264eedb293787576dfc"
     },
     "R/whole-study.R": {
       "checksum": "7270ea927b353340c030b665c4b35293"
@@ -7018,7 +7018,7 @@
       "checksum": "da7bce0b58608d38fd4b4dc84a353ccc"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "f9e6ad7fd6aab7d39b3383b6d48a3a83"
+      "checksum": "1e6aea19ed4703461d3209dd6ded5a05"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "72e7435089b837ddaeaf1597c2201ce3"
@@ -7054,7 +7054,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "33aea3769c75c716a2c516b22e5eaa4a"
+      "checksum": "50d1c714f3dd070bac6ca4c88775e8ef"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
