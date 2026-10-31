@@ -4027,6 +4027,33 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:44:09 UTC; unix"
       }
     },
+    "metapower": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "metapower",
+        "Type": "Package",
+        "Title": "Power Analysis for Meta-Analysis",
+        "Version": "0.2.2",
+        "Authors@R": "person(\"Jason\", \"Griffin\", email = \"jasongriffin138@gmail.com\", role = c(\"aut\", \"cre\"))",
+        "Description": "A simple and effective tool for computing and visualizing statistical power for meta-analysis,\n    including power analysis of main effects (Jackson & Turner, 2017)<doi:10.1002/jrsm.1240>, \n    test of homogeneity (Pigott, 2012)<doi:10.1007/978-1-4614-2278-5>, subgroup analysis, \n    and categorical moderator analysis (Hedges & Pigott, 2004)<doi:10.1037/1082-989X.9.4.426>.",
+        "Depends": "R (>= 3.6)",
+        "License": "GPL-2",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "Imports": "cowplot (>= 1.0.0), dplyr (>= 0.8.5), ggplot2 (>= 3.3.0),\nknitr (>= 1.28), magrittr (>= 1.5), tidyr (>= 1.0.2), testthat\n(>= 2.3.2), rlang (>= 0.4.5)",
+        "Suggests": "rmarkdown (>= 2.1)",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2021-02-08 12:58:31 UTC; jxg569",
+        "Author": "Jason Griffin [aut, cre]",
+        "Maintainer": "Jason Griffin <jasongriffin138@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2021-02-08 13:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 01:20:07 UTC; unix"
+      }
+    },
     "mgcv": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5019,12 +5046,12 @@
         "Title": "Unified Power Analysis for Psychology Designs",
         "Version": "0.25.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower').",
+        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, parallel,\npsych, power4mome, pwr, powertools, pwrss, PUMP, semPower,\nsimr, SimDesign, Spower (>= 0.7), stats, Superpower, TOSTER,\nutils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, metapower,\nparallel, psych, power4mome, pwr, powertools, pwrss, PUMP,\nsemPower, simr, SimDesign, Spower (>= 0.7), stats, Superpower,\nTOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5034,19 +5061,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b0a8eecd6f57b39291d4fff30ac5fd8a4b8eeeb6",
-        "RemoteSha": "b0a8eecd6f57b39291d4fff30ac5fd8a4b8eeeb6",
+        "RemoteRef": "b2e0cf1d74737eb61fdd82d86050fdfc2c664b0a",
+        "RemoteSha": "b2e0cf1d74737eb61fdd82d86050fdfc2c664b0a",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b0a8eecd6f57b39291d4fff30ac5fd8a4b8eeeb6",
-        "GithubSHA1": "b0a8eecd6f57b39291d4fff30ac5fd8a4b8eeeb6",
+        "GithubRef": "b2e0cf1d74737eb61fdd82d86050fdfc2c664b0a",
+        "GithubSHA1": "b2e0cf1d74737eb61fdd82d86050fdfc2c664b0a",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-10-31 09:50:50 UTC; runner",
+        "Packaged": "2026-10-31 10:37:23 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-10-31 09:50:58 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-10-31 10:37:34 UTC; unix"
       }
     },
     "powertools": {
@@ -6820,7 +6847,7 @@
       "checksum": "fba930ef3da439d54805f240c7843039"
     },
     "forms.yaml": {
-      "checksum": "c44e69205ef9d1701dd7572d2fe6c334"
+      "checksum": "1bd9b7d023f5f74b35990687c5d5b912"
     },
     "R/about.R": {
       "checksum": "f9419d5e04f5a92d544c6b5fe65f91ca"
@@ -6832,7 +6859,7 @@
       "checksum": "f8d04b8589f94a830b4d38258b87454a"
     },
     "R/forms.R": {
-      "checksum": "55e6b8c099b686be9d9000f4a22e77b7"
+      "checksum": "25ce536b7d9ba7051e60d2c54456055c"
     },
     "R/labs.R": {
       "checksum": "c1aa4a880c7448979ce2e7be825f9de6"
@@ -6844,7 +6871,7 @@
       "checksum": "cc2762cffb5ad515b6add7523356cb9f"
     },
     "R/results.R": {
-      "checksum": "48d3192b2dc2637955e075871da41a50"
+      "checksum": "66ea68cba742de6d386f865f852ec314"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6871,7 +6898,7 @@
       "checksum": "72df4a7ccfdbde23452a92aae65311d0"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "e0ed3dd62335aed0cdcbef7f3b52dea6"
+      "checksum": "26ef250f09d3a02f39785c00c14670b8"
     },
     "tests/testthat/setup.R": {
       "checksum": "9e0197dca2881b76838e3eeb10588c81"
@@ -6904,10 +6931,10 @@
       "checksum": "a320b2d0c5e285572549990e2551db58"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "8aa03d2f1da4ef48d9f66d9933ccc438"
+      "checksum": "c35409d0aeed4b8de7cf22a10899d9fa"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "911e87f78cad46247f29f7e80ad22f8d"
+      "checksum": "c800b793dde3624e3091598094f393ba"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "72e7435089b837ddaeaf1597c2201ce3"
@@ -6928,7 +6955,7 @@
       "checksum": "87466e447069e3ce799cc52a6735e1fb"
     },
     "tree.yaml": {
-      "checksum": "63c027e1950fe4477248a26d611bd1f8"
+      "checksum": "9d3686147dbbe27e3be7072d3b495da6"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -6943,7 +6970,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "2cb87a521c4297e2368248dd975d073c"
+      "checksum": "9eff5fc87dd15a140907d95bfb3ae22b"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
