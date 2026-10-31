@@ -3712,3 +3712,34 @@ one for the maintainer only when uncertain about something.
 different answer on a different number of cores. Projects now record the
 cores, and `reproduce_project()` runs on them; a file saved before this
 says why a simulated result may differ.
+
+## 2026-10-31 · Ten queue items decided
+
+The maintainer's calls on `next.md` items 5 to 9, 15 to 17, 19 and 24,
+each now Ready with its decision in its row:
+
+- **Justified alpha (5):** JustifyAlpha, minimising or balancing weighted
+  error rates, the weight asked as how much worse a false positive is than
+  a missed effect (equal by default); the t-tests and the correlation first.
+- **Precision planning (6):** MBESS's `ss.aipe.smd()` for Cohen's d, presize
+  for r and a proportion.
+- **Meta-analysis (7):** metapower first (one effect per study); POMADE,
+  for studies that contribute several correlated effects, as a follow-up.
+- **The picture of power (8):** in Labs only, the two-group t-test first.
+- **Simulated data sets (9):** simple choices, each stated with the data:
+  one covariate or predictor carries a stated R-squared; SEM and McNemar's
+  test stay without a data set.
+- **Repeated measures (15):** an SD per condition and a correlation matrix
+  through Superpower before any sphericity correction.
+- **Point-biserial r and minimum-effect tests (16):** r as an input on the
+  two-group card; minimum-effect tests by pwrss's one-sided test against a
+  margin.
+- **Friedman's test and rank correlations (17):** simulated with Spower,
+  Friedman's test by powerkit's own experiment.
+- **Trend tests (19):** simulated with Spower, Cochran-Armitage by
+  `stats::prop.trend.test()` and Jonckheere-Terpstra by PMCMRplus.
+- **Pairwise comparisons (24):** an option on the ANOVA cards through
+  Superpower's `p_adjust`, Holm and Bonferroni first.
+
+These form one batch, 0.25.0; each lands as its own pull request and
+merges when its checks pass, unless a doubt is stated in it.
