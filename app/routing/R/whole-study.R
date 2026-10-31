@@ -14,6 +14,13 @@
 # end points below. With two groups, the comparison of the groups (E2) is
 # the regression of Y on the groups, Student's t test; the moderation (E15)
 # and mediation (E16) with a yes/no X are simulated the same way.
+#
+# Measured twice (before and after): the outcome's first measurement is
+# the baseline B, and every analysis adjusts the second for it, as the
+# ANCOVA card (E23) does (decided 31 October 2026). Covered: the
+# comparison when the ANCOVA is chosen (the mixed ANOVA's group x time
+# test is not simulated as a whole study), the moderation and a mediation
+# through one mediator; these have no card of their own yet (E41).
 
 whole_study_tests <- c(E4 = "x_y", E9 = "interaction", E10 = "indirect", E11 = "indirect",
   E12 = "indirect", E13 = "index_of_mome", E14 = "index_of_mome",
@@ -21,11 +28,18 @@ whole_study_tests <- c(E4 = "x_y", E9 = "interaction", E10 = "indirect", E11 = "
 
 # Plain names for the variables and product terms in path labels.
 whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the moderator (W)",
-  M = "the mediator (M)", M1 = "the first mediator (M1)", M2 = "the second mediator (M2)",
+  B = "the first measurement of the outcome (B)", M = "the mediator (M)", M1 = "the first mediator (M1)", M2 = "the second mediator (M2)",
   XW = "the predictor x moderator interaction (XW)", MW = "the mediator x moderator interaction (MW)")
+
+# Measured twice: the analysis that each planned analysis becomes once Y
+# is adjusted for its first measurement (whole_study_plan()).
+whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect")
+whole_study_twice_endpoints <- c(compare = "E23", moderation = "E41", mediation = "E41")
 
 whole_study_path_label <- function(key) {
   if (identical(key, "X<->W")) return("Correlation of the predictor with the moderator (X with W)")
+  if (identical(key, "X<->B")) return("Correlation of the predictor with the first measurement of the outcome (X with B)")
+  if (identical(key, "W<->B")) return("Correlation of the moderator with the first measurement of the outcome (W with B)")
   if (identical(key, "M1<->M2")) return("Correlation of the two mediators' residuals (what M1 and M2 share beyond X)")
   ends <- strsplit(key, "->", fixed = TRUE)[[1]]
   sprintf("Path %s → %s: from %s to %s", ends[1], ends[2], whole_study_names[[ends[1]]], whole_study_names[[ends[2]]])
@@ -41,14 +55,21 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   if (!answers$x %in% c("score", "cond2")) reasons <- c(reasons, "the main predictor (X) is a measured score or two groups or conditions")
   if (!identical(answers$outcome, "score")) reasons <- c(reasons, "the outcome is a score")
   if (!identical(answers$covariate %||% "none", "none")) reasons <- c(reasons, "there are no covariates")
-  if (!identical(answers$times %||% "once", "once")) reasons <- c(reasons, "each person is measured once")
+  twice <- identical(answers$times, "twice")
+  if (!(answers$times %||% "once") %in% c("once", "twice")) reasons <- c(reasons, "each person is measured once or twice")
+  if (twice && !answers$mediators %in% c("none", "one")) reasons <- c(reasons, "measured twice, there is one mediator at most")
   if (!answers$moderator %in% c("none", "score")) reasons <- c(reasons, "the moderator, if any, is a measured score")
   if (!answers$mediators %in% c("none", "one", "several")) reasons <- c(reasons, "the mediators, if any, are scores")
   if (length(intersect(ticked, primary)) == 0) reasons <- c(reasons, "at least one analysis is a main analysis")
   endpoints <- vapply(ticked, function(id) {
     resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])$endpoint %||% ""
   }, character(1))
-  outside <- ticked[!endpoints %in% names(whole_study_tests)]
+  covered <- if (twice) {
+    vapply(seq_along(ticked), function(i) identical(unname(whole_study_twice_endpoints[ticked[i]]), endpoints[[i]]), logical(1))
+  } else {
+    endpoints %in% names(whole_study_tests)
+  }
+  outside <- ticked[!covered]
   if (length(outside)) {
     reasons <- c(reasons, sprintf("every analysis is one the simulation covers (not yet: %s)",
       paste(vapply(outside, function(id) analysis_by_id(tree, id)$label, ""), collapse = "; ")))
@@ -62,7 +83,8 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   analyses <- lapply(seq_along(ticked), function(i) {
     id <- ticked[i]
     ep <- endpoints[[i]]
-    a <- list(id = id, label = analysis_by_id(tree, id)$label, test = whole_study_tests[[ep]],
+    a <- list(id = id, label = analysis_by_id(tree, id)$label,
+      test = if (twice) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
       role = if (id %in% primary) "main" else "extra")
     if (identical(a$test, "indirect")) a$path <- if (length(mediators) == 1) "X->M->Y" else if (serial) "X->M1->M2->Y" else "X->M1->Y"
     if (identical(a$test, "index_of_mome")) a$moderated_link <- link[[ep]]
@@ -70,7 +92,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   })
   tests <- vapply(analyses, function(a) a$test, "")
   roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome"))) "W",
-    if (any(tests %in% c("indirect", "index_of_mome"))) mediators, "Y")
+    if (any(tests %in% c("indirect", "index_of_mome"))) mediators, if (twice) "B", "Y")
   path_choices <- if (length(mediators) == 2 && "indirect" %in% tests) {
     if (serial) c("X->M1->M2->Y", "X->M1->Y", "X->M2->Y") else c("X->M1->Y", "X->M2->Y")
   }
@@ -82,7 +104,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
 # The variables' names: from what the user typed on the plan's input
 # screens, else the role names.
 whole_study_labels <- function(roles, plan_values) {
-  defaults <- c(X = "Predictor", Y = "Outcome", W = "Moderator", M = "Mediator", M1 = "First mediator", M2 = "Second mediator")
+  defaults <- c(X = "Predictor", Y = "Outcome", B = "Outcome, first measurement", W = "Moderator", M = "Mediator", M1 = "First mediator", M2 = "Second mediator")
   out <- defaults[roles]
   for (r in roles) {
     for (values in plan_values) {
@@ -93,6 +115,8 @@ whole_study_labels <- function(roles, plan_values) {
       }
     }
   }
+  # The first measurement of the outcome is named after the outcome.
+  if ("B" %in% roles && identical(out[["B"]], defaults[["B"]])) out[["B"]] <- paste0(out[["Y"]], ", first measurement")
   out
 }
 
@@ -282,7 +306,9 @@ whole_study_value_label <- function(key) {
   fixed <- c(r = "Correlation r", r_X_Y = "Correlation of X with Y", r_W_Y = "Correlation of W with Y",
     r_XW_Y = "Correlation of the interaction XW with Y", r_X_W = "Correlation of X with W",
     c_X_W = "Correlation of X with W", indirect = "Indirect effect (product of its paths)",
-    index = "Index of moderated mediation", rc_M1_M2 = "Residual correlation of M1 with M2")
+    index = "Index of moderated mediation", rc_M1_M2 = "Residual correlation of M1 with M2",
+    d = "Cohen's d of the groups (not adjusted for a first measurement)",
+    r_B_Y = "Correlation of the first measurement B with the outcome Y")
   if (key %in% names(fixed)) return(fixed[[key]])
   if (grepl("^p_", key)) {
     parts <- strsplit(sub("^p_", "", key), "_", fixed = TRUE)[[1]]
@@ -415,6 +441,10 @@ whole_study_methods <- function(r) {
   pv <- r$provenance
   lower_first <- function(x) paste0(tolower(substr(x, 1, 1)), substr(x, 2, nchar(x)))
   powers <- paste(sprintf("%s for %s", percent(a$power), lower_first(a$label)), collapse = "; ")
+  # Measured twice: the engine reports the baseline's correlation with the
+  # outcome for every analysis, which each adjusted for.
+  twice <- any(vapply(r$implied, function(i) "r_B_Y" %in% names(i$values), logical(1)))
+  baseline <- if (twice) "Each person was measured twice, and every analysis adjusted the second measurement of the outcome for the first, as an analysis of covariance does. " else ""
   joint <- if (!is.null(r$joint) && !identical(r$claim, "each")) sprintf(
     " The proportion of simulated studies in which %s was %s.",
     if (r$joint$rule == "all") "every main analysis was significant" else "at least one main analysis was significant",
@@ -423,8 +453,8 @@ whole_study_methods <- function(r) {
     "Power was estimated by simulating the whole study (powerkit %s, experimental) with the R package power4mome %s. ",
     "One population model, specified as standardised paths, generated %s data sets of N = %s; each planned analysis was fitted to every data set with its own model ",
     "(regressions by ordinary least squares; mediation models in lavaan, with indirect effects tested by Monte Carlo confidence intervals) at alpha = %s%s. ",
-    "Estimated power was %s.%s Random seed %s."),
+    "%sEstimated power was %s.%s Random seed %s."),
     pv$packages[["powerkit"]], pv$packages[["power4mome"]], whole(pv$nrep), whole(r$n), format(r$alpha),
     if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
-    powers, joint, pv$seed)
+    baseline, powers, joint, pv$seed)
 }

@@ -289,3 +289,36 @@ test_that("a two-group X must be uncorrelated with W, and x_prob needs a two-gro
   outcome$variables$Y$type <- "binary"
   expect_error(validate_whole_study(outcome), class = "powerkit_spec_error")
 })
+
+test_that("measured twice, the baseline B predicts Y and every analysis adjusts Y for it", {
+  spec <- regression_study()
+  spec$variables$B <- list(type = "continuous", label = "Exhaustion before")
+  bare <- spec[setdiff(names(spec), "population")]
+  params <- whole_study_parameters(bare)
+  expect_true("B->Y" %in% params$paths)
+  expect_setequal(params$correlations, c("X<->W", "X<->B", "W<->B"))
+  spec$population$paths[["B->Y"]] <- 0.5
+  spec$population$correlations <- list("X<->W" = -0.2, "X<->B" = 0.1, "W<->B" = 0.2)
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  expect_identical(vapply(inputs$analyses, function(a) a$fit_model, ""), c("Y ~ X + B", "Y ~ X + W + X:W + B"))
+  expect_true(all(c("X ~~ B: 0.1", "W ~~ B: 0.2") %in% lines_of(inputs$pop_es)))
+  # A two-group X is drawn on its own: uncorrelated with B, which isn't asked.
+  spec$variables$X$type <- "binary"
+  spec$population$correlations <- list("X<->W" = 0, "X<->B" = 0.1, "W<->B" = 0.2)
+  expect_error(validate_whole_study(spec), "correlation of X and B must be 0", class = "powerkit_spec_error")
+  expect_setequal(whole_study_parameters(spec[setdiff(names(spec), "population")])$correlations, "W<->B")
+})
+
+test_that("measured twice, a mediation adjusts Y, not the mediator, for the baseline", {
+  spec <- whole_study_example()
+  spec$variables$B <- list(type = "continuous", label = "Before")
+  spec$population$paths[["B->Y"]] <- 0.4
+  spec$population$correlations[["X<->B"]] <- 0
+  spec$population$correlations[["W<->B"]] <- 0
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  sem <- Filter(function(a) identical(a$fit_function, "lavaan"), inputs$analyses)
+  for (a in sem) {
+    expect_true(any(grepl("^Y ~ .* \\+ B$", lines_of(a$fit_model))), label = a$id)
+    expect_false(any(grepl("^M[12]? ~ .*B", lines_of(a$fit_model))), label = a$id)
+  }
+})

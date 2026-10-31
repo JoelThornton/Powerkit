@@ -88,9 +88,12 @@ whole_study_model <- function(spec) {
     y_eq <- c(y_eq, "W", "MW")
     products$MW <- c("M", "W")
   }
+  # Measured twice: the baseline score B predicts Y in the population, and
+  # every analysis adjusts Y for it (whole_study_fit()).
+  if ("B" %in% names(spec$variables)) y_eq <- c(y_eq, "B")
   y_eq <- unique(y_eq)
   list(
-    exogenous = intersect(c("X", "W"), names(spec$variables)),
+    exogenous = intersect(c("X", "W", "B"), names(spec$variables)),
     mediators = mediators,
     serial = serial,
     products = products,
@@ -125,8 +128,7 @@ whole_study_parameters <- function(spec) {
     paths = model_paths(whole_study_model(spec)),
     # A two-group X is uncorrelated with W (whole_study_problems()), so its
     # correlation isn't asked for.
-    correlations = c(if ("W" %in% roles && !identical(spec$variables$X$type, "binary")) "X<->W",
-      if (identical(spec$mediators, "parallel")) "M1<->M2")
+    correlations = whole_study_correlation_keys(spec)
   )
 }
 
@@ -218,16 +220,19 @@ whole_study_problems <- function(spec) {
   }
   correlations <- spec$population$correlations %||% list()
   # power4mome draws a two-group X on its own (x_fun), so it can't be
-  # correlated with W: as when the groups are randomised.
-  if (identical(spec$variables$X$type, "binary") && isTRUE(abs(correlations[["X<->W"]] %||% 0) > 0)) {
-    problems <- c(problems, paste0(
-      "With X as two groups, the correlation of X and W must be 0 (as when people are randomised to the groups): ",
-      "the simulation draws the groups on their own."))
-  }
+  # correlated with W or B: as when the groups are randomised.
   binary_x <- identical(spec$variables$X$type, "binary")
-  wanted <- c(if ("W" %in% roles && !binary_x) "X<->W", if (two && identical(spec$mediators, "parallel")) "M1<->M2")
+  for (other in c("W", "B")) {
+    key <- paste0("X<->", other)
+    if (binary_x && isTRUE(abs(correlations[[key]] %||% 0) > 0)) {
+      problems <- c(problems, sprintf(paste0(
+        "With X as two groups, the correlation of X and %s must be 0 (as when people are randomised to the groups): ",
+        "the simulation draws the groups on their own."), other))
+    }
+  }
+  wanted <- whole_study_correlation_keys(spec)
   missing_r <- setdiff(wanted, names(correlations))
-  extra_r <- setdiff(names(correlations), c(wanted, if (binary_x) "X<->W"))
+  extra_r <- setdiff(names(correlations), c(wanted, if (binary_x) c("X<->W", "X<->B")))
   if (length(missing_r) > 0) {
     problems <- c(problems, sprintf("Give the correlation %s (0 if none).", paste(missing_r, collapse = " and ")))
   }
@@ -238,6 +243,18 @@ whole_study_problems <- function(spec) {
     return(problems)
   }
   whole_study_variance_problems(spec, model)
+}
+
+# The correlations the population needs: of the exogenous variables
+# (X, W and the baseline B; not of a two-group X, drawn on its own), and of
+# parallel mediators' residuals.
+whole_study_correlation_keys <- function(spec) {
+  roles <- names(spec$variables)
+  binary_x <- identical(spec$variables$X$type, "binary")
+  c(if ("W" %in% roles && !binary_x) "X<->W",
+    if ("B" %in% roles && !binary_x) "X<->B",
+    if (all(c("W", "B") %in% roles)) "W<->B",
+    if (identical(spec$mediators, "parallel")) "M1<->M2")
 }
 
 # Each outcome's explained variance must be below 1. It is computed with
@@ -267,7 +284,7 @@ whole_study_paths_spec <- function(spec) {
     variables = spec$variables,
     population = list(
       paths = spec$population$paths,
-      correlations = correlations["X<->W"[!is.null(correlations[["X<->W"]])]],
+      correlations = correlations[intersect(c("X<->W", "X<->B", "W<->B"), names(correlations))],
       residual_correlations = correlations["M1<->M2"[!is.null(correlations[["M1<->M2"]])]]
     )
   )
@@ -290,8 +307,9 @@ whole_study_inputs <- function(spec) {
   correlations <- spec$population$correlations %||% list()
   covariances <- character()
   pop_covariances <- character()
-  if (!is.null(correlations[["X<->W"]])) {
-    pop_covariances <- sprintf("X ~~ W: %s", format_pop_value(correlations[["X<->W"]]))
+  for (key in intersect(c("X<->W", "X<->B", "W<->B"), names(correlations))) {
+    pair <- strsplit(key, "<->", fixed = TRUE)[[1]]
+    pop_covariances <- c(pop_covariances, sprintf("%s ~~ %s: %s", pair[1], pair[2], format_pop_value(correlations[[key]])))
   }
   if (!is.null(correlations[["M1<->M2"]])) {
     # power4mome's value for 'M1 ~~ M2' is the residual covariance (all
@@ -359,12 +377,15 @@ whole_study_inputs <- function(spec) {
 # as power4mome fits them for powerkit's mediation designs (residuals of
 # parallel mediators free to correlate, Departure 7).
 whole_study_fit <- function(a, spec) {
-  regression <- function(formula) list(fun = "lm", text = formula, args = list(fit_function = "lm", model = list(formula)))
+  mediators <- sort(intersect(c("M", "M1", "M2"), names(spec$variables)))
+  # Measured twice: Y is adjusted for its baseline B in every analysis.
+  b <- if ("B" %in% names(spec$variables)) " + B" else ""
+  regression <- function(formula) list(fun = "lm", text = paste0(formula, b), args = list(fit_function = "lm", model = list(paste0(formula, b))))
   sem <- function(lines) {
+    lines <- ifelse(startsWith(lines, "Y ~ "), paste0(lines, b), lines)
     text <- paste(lines, collapse = "\n")
     list(fun = "lavaan", text = text, args = list(model = text))
   }
-  mediators <- sort(intersect(c("M", "M1", "M2"), names(spec$variables)))
   switch(
     a$test,
     x_y = regression("Y ~ X"),
@@ -663,8 +684,9 @@ whole_study_check_run <- function(spec, inputs, data) {
   }
   correlations <- spec$population$correlations %||% list()
   correlation_rows <- list()
-  if (!is.null(correlations[["X<->W"]])) {
-    correlation_rows <- c(correlation_rows, list(correlation_row("X<->W", correlations[["X<->W"]], stats::cor(data$X, data$W))))
+  for (key in intersect(c("X<->W", "X<->B", "W<->B"), names(correlations))) {
+    pair <- strsplit(key, "<->", fixed = TRUE)[[1]]
+    correlation_rows <- c(correlation_rows, list(correlation_row(key, correlations[[key]], stats::cor(data[[pair[1]]], data[[pair[2]]]))))
   }
   if (!is.null(correlations[["M1<->M2"]])) {
     residuals <- lapply(c("M1", "M2"), function(m) {
@@ -706,6 +728,9 @@ whole_study_implied <- function(spec, inputs, data) {
       indirect = whole_study_implied_mediation(spec, a, data, coefs),
       index_of_mome = whole_study_implied_mome(a, data, coefs)
     )
+    # Measured twice: the correlation of the baseline with the outcome (the
+    # ANCOVA card's covariate), and the Y fits above adjust for B.
+    if ("B" %in% names(data)) values <- c(values, r_B_Y = stats::cor(data$B, data$Y))
     list(id = a$id, test = a$test, values = values)
   })
 }
@@ -726,7 +751,7 @@ whole_study_implied_mediation <- function(spec, a, data, coefs) {
     rhs <- c("X", if (serial && m == "M2") "M1")
     stats::lm(stats::reformulate(rhs, response = m), data = data)
   })
-  y_fit <- stats::lm(stats::reformulate(c(mediators, "X"), response = "Y"), data = data)
+  y_fit <- stats::lm(stats::reformulate(c(mediators, "X", intersect("B", names(data))), response = "Y"), data = data)
   out <- c()
   for (i in seq_along(mediators)) {
     b <- stats::coef(fits[[i]])
@@ -746,12 +771,12 @@ whole_study_implied_mediation <- function(spec, a, data, coefs) {
 whole_study_implied_mome <- function(a, data, coefs) {
   if (identical(a$moderated_link, "x_m")) {
     m_fit <- stats::lm(M ~ X + W + X:W, data = data)
-    y_fit <- stats::lm(Y ~ M + X, data = data)
+    y_fit <- stats::lm(stats::reformulate(c("M", "X", intersect("B", names(data))), response = "Y"), data = data)
     values <- c(p_X_M = stats::coef(m_fit)[["X"]], p_W_M = stats::coef(m_fit)[["W"]], p_XW_M = stats::coef(m_fit)[["X:W"]],
       p_M_Y = stats::coef(y_fit)[["M"]], p_X_Y = stats::coef(y_fit)[["X"]])
   } else {
     m_fit <- stats::lm(M ~ X, data = data)
-    y_fit <- stats::lm(Y ~ M + X + W + M:W, data = data)
+    y_fit <- stats::lm(stats::reformulate(c("M", "X", "W", "M:W", intersect("B", names(data))), response = "Y"), data = data)
     values <- c(p_X_M = stats::coef(m_fit)[["X"]], p_M_Y = stats::coef(y_fit)[["M"]], p_W_Y = stats::coef(y_fit)[["W"]],
       p_MW_Y = stats::coef(y_fit)[["M:W"]], p_X_Y = stats::coef(y_fit)[["X"]])
   }
