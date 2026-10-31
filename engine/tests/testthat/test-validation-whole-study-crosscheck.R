@@ -149,3 +149,43 @@ test_that("whole study: Type I error with every path 0", {
   # The chance of at least one false positive stays at about alpha or below.
   expect_lte(result$joint$power, 1.2 * 0.05)
 })
+
+# Study C: X as two groups (next.md item 1), with a moderator: the group
+# comparison is the t test of the groups (Student's, as lm() fits it),
+# checked against pwr's t test at the d the population implies, with the
+# cross-check allowance because the outcome also depends on the
+# interaction; and the Type I error of both tests with every path 0.
+study_c <- function(paths = list("X->Y" = 0.25, "W->Y" = 0.2, "XW->Y" = 0.15), seed = 83001) {
+  spec <- list(
+    spec_version = "0.1", kind = "whole_study",
+    variables = list(X = list(type = "binary", label = "Condition"), W = list(type = "continuous", label = "Moderator"),
+      Y = list(type = "continuous", label = "Outcome")),
+    population = list(paths = paths, correlations = list("X<->W" = 0)),
+    analyses = list(
+      list(id = "groups", label = "Group difference", test = "x_y", role = "main"),
+      list(id = "moderation", label = "Moderation", test = "interaction", role = "main")
+    ),
+    claim = "all", alpha = 0.05,
+    effect_justification = list(type = "smallest_effect_of_interest", source = "powerkit validation benchmark (not a real study)"),
+    goal = list(type = "power", n = 120),
+    options = list(nrep = validation_nrep(), seed = seed)
+  )
+  validate_whole_study(spec)
+}
+
+test_that("whole study C: a two-group X's comparison agrees with the t test at the implied d", {
+  skip_unless_full_validation()
+  result <- run_whole_study(study_c())
+  d <- result$implied$groups$values[["d"]]
+  reference <- pwr::pwr.t.test(n = 60, d = d, sig.level = 0.05)$power
+  estimate <- analysis_estimate(result, "groups")
+  expect_lte(abs(estimate$power - reference), z_for(0.999) * estimate$mcse + crosscheck_allowance(120))
+})
+
+test_that("whole study C: with every path 0, both tests keep the Type I error near alpha", {
+  skip_unless_full_validation()
+  result <- run_whole_study(study_c(paths = list("X->Y" = 0, "W->Y" = 0, "XW->Y" = 0), seed = 83002))
+  for (id in c("groups", "moderation")) {
+    expect_lt(abs(analysis_estimate(result, id)$power - 0.05), 0.015, label = id)
+  }
+})

@@ -11,7 +11,7 @@
     "spec_version": {"const": "0.1"},
     "kind": {"const": "whole_study"},
     "variables": {
-      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), and M, or M1 and M2, for the mediators. All are scores (continuous) in this version.",
+      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), and M, or M1 and M2, for the mediators. All are scores (continuous), except that X may be two groups or conditions (binary).",
       "type": "object",
       "required": ["X", "Y"],
       "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2"]},
@@ -20,10 +20,19 @@
         "required": ["type", "label"],
         "additionalProperties": false,
         "properties": {
-          "type": {"const": "continuous"},
+          "type": {"enum": ["continuous", "binary"]},
           "label": {"type": "string", "minLength": 1}
         }
-      }
+      },
+      "allOf": [{
+        "properties": {
+          "Y": {"properties": {"type": {"const": "continuous"}}},
+          "W": {"properties": {"type": {"const": "continuous"}}},
+          "M": {"properties": {"type": {"const": "continuous"}}},
+          "M1": {"properties": {"type": {"const": "continuous"}}},
+          "M2": {"properties": {"type": {"const": "continuous"}}}
+        }
+      }]
     },
     "mediators": {
       "description": "With two mediators (M1, M2): side by side (parallel, PROCESS model 4) or in a chain (serial, PROCESS model 6).",
@@ -39,6 +48,12 @@
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}
+        },
+        "x_prob": {
+          "description": "With a two-group X: the share of people in X's second group (0.5, the default, for equal groups), drawn by power4mome's rbinary_rs() and standardised like every variable.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
         },
         "correlations": {
           "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals.",

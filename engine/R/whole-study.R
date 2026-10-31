@@ -123,7 +123,10 @@ whole_study_parameters <- function(spec) {
   roles <- names(spec$variables)
   list(
     paths = model_paths(whole_study_model(spec)),
-    correlations = c(if ("W" %in% roles) "X<->W", if (identical(spec$mediators, "parallel")) "M1<->M2")
+    # A two-group X is uncorrelated with W (whole_study_problems()), so its
+    # correlation isn't asked for.
+    correlations = c(if ("W" %in% roles && !identical(spec$variables$X$type, "binary")) "X<->W",
+      if (identical(spec$mediators, "parallel")) "M1<->M2")
   )
 }
 
@@ -210,10 +213,21 @@ whole_study_problems <- function(spec) {
       paste(extra, collapse = ", ")
     ))
   }
+  if (!is.null(spec$population$x_prob) && !identical(spec$variables$X$type, "binary")) {
+    problems <- c(problems, "'population > x_prob' is the share in X's second group, so it applies only when X is two groups ('variables > X > type' \"binary\").")
+  }
   correlations <- spec$population$correlations %||% list()
-  wanted <- c(if ("W" %in% roles) "X<->W", if (two && identical(spec$mediators, "parallel")) "M1<->M2")
+  # power4mome draws a two-group X on its own (x_fun), so it can't be
+  # correlated with W: as when the groups are randomised.
+  if (identical(spec$variables$X$type, "binary") && isTRUE(abs(correlations[["X<->W"]] %||% 0) > 0)) {
+    problems <- c(problems, paste0(
+      "With X as two groups, the correlation of X and W must be 0 (as when people are randomised to the groups): ",
+      "the simulation draws the groups on their own."))
+  }
+  binary_x <- identical(spec$variables$X$type, "binary")
+  wanted <- c(if ("W" %in% roles && !binary_x) "X<->W", if (two && identical(spec$mediators, "parallel")) "M1<->M2")
   missing_r <- setdiff(wanted, names(correlations))
-  extra_r <- setdiff(names(correlations), wanted)
+  extra_r <- setdiff(names(correlations), c(wanted, if (binary_x) "X<->W"))
   if (length(missing_r) > 0) {
     problems <- c(problems, sprintf("Give the correlation %s (0 if none).", paste(missing_r, collapse = " and ")))
   }
@@ -330,6 +344,9 @@ whole_study_inputs <- function(spec) {
     fits = fits,
     analyses = analyses,
     mains = vapply(analyses, function(a) a$id, character(1))[mains],
+    # A two-group X: power4mome draws it with rbinary_rs() (power4mome_call()),
+    # standardised like every variable, with this share in its second group.
+    x_prob = if (identical(spec$variables$X$type, "binary")) spec$population$x_prob %||% 0.5,
     needs_draws = any(vapply(analyses, function(a) a$test %in% c("indirect", "index_of_mome"), logical(1))),
     ci_draws = spec$options$ci_draws %||% default_ci_draws()
   )
@@ -657,7 +674,14 @@ whole_study_check_run <- function(spec, inputs, data) {
       "residual M1<->M2", correlations[["M1<->M2"]], stats::cor(residuals[[1]], residuals[[2]])
     )))
   }
-  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows))
+  # A two-group X: the share in its second group (its larger value).
+  split_rows <- list()
+  if (!is.null(inputs$x_prob)) {
+    share <- mean(data$X == max(data$X))
+    split_rows <- list(data.frame(parameter = "share of X's second group", specified = inputs$x_prob, recovered = share,
+      ok = abs(share - inputs$x_prob) <= 5 * sqrt(inputs$x_prob * (1 - inputs$x_prob) / n)))
+  }
+  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows, split_rows))
   rownames(check) <- NULL
   check
 }
@@ -672,7 +696,9 @@ whole_study_implied <- function(spec, inputs, data) {
   lapply(stats::setNames(inputs$analyses, vapply(inputs$analyses, function(a) a$id, character(1))), function(a) {
     values <- switch(
       a$test,
-      x_y = c(r = stats::cor(data$X, data$Y)),
+      # A two-group X: also the d the two-group card asks for, the groups'
+      # mean difference over their pooled SD, estimated from the data.
+      x_y = c(r = stats::cor(data$X, data$Y), if (!is.null(inputs$x_prob)) c(d = whole_study_group_d(data))),
       interaction = c(
         r_X_Y = stats::cor(data$X, data$Y), r_W_Y = stats::cor(data$W, data$Y),
         r_XW_Y = stats::cor(data$X * data$W, data$Y), r_X_W = stats::cor(data$X, data$W)
@@ -682,6 +708,14 @@ whole_study_implied <- function(spec, inputs, data) {
     )
     list(id = a$id, test = a$test, values = values)
   })
+}
+
+whole_study_group_d <- function(data) {
+  second <- data$X == max(data$X)
+  y1 <- data$Y[!second]
+  y2 <- data$Y[second]
+  pooled <- sqrt(((length(y1) - 1) * stats::var(y1) + (length(y2) - 1) * stats::var(y2)) / (length(data$Y) - 2))
+  (mean(y2) - mean(y1)) / pooled
 }
 
 whole_study_implied_mediation <- function(spec, a, data, coefs) {

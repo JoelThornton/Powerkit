@@ -17,6 +17,13 @@ entries:
       hoc. The Labs tools have plain names: Methods map, Power visualiser
       and Effect size converter.
   - date: "2026-10-31"
+    title: "Whole-study simulation with two groups"
+    text: >-
+      "Plan my whole study" can now simulate a study whose main predictor is
+      two groups or conditions: the comparison of the groups together with
+      a moderation or a mediation on the same people, with the chance that
+      all of them come out significant together. Still experimental.
+  - date: "2026-10-31"
     title: "Show or hide explanations"
     text: >-
       Turn "Explanations" off at the top of the page to see the technical
