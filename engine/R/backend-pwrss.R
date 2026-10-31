@@ -14,7 +14,8 @@
 #   Fisher's exact     basic_test/two_proportions with method fisher_exact:
 #                      pwrss::power.exact.fisher(method = "exact")
 #   goodness of fit    basic_test/chi_square_gof: Cohen's w from
-#                      pwrss::probs.to.w(), then pwrss::power.chisq.gof()
+#                      pwrss::probs.to.w() (or given, population > metric
+#                      "w"), then pwrss::power.chisq.gof()
 #   two correlations   basic_test/two_correlations: Fisher's z test,
 #                      pwrss::power.z.twocors()
 #   dependent          basic_test/overlapping_correlations (X with Y vs X
@@ -440,6 +441,8 @@ pwrss_predictor_distribution <- function(spec) {
 # Cohen's w for a goodness-of-fit spec, by pwrss::probs.to.w().
 gof_w <- function(spec) {
   pop <- spec$population
+  # Cohen's w given directly (as G*Power takes it), with its df.
+  if (chisq_by_w(spec)) return(list(w = pop$w, df = chisq_df(spec)))
   args <- list(prob.matrix = as.numeric(unlist(pop$probabilities)), verbose = 0)
   if (!is.null(pop$null_probabilities)) args$null.prob.matrix <- as.numeric(unlist(pop$null_probabilities))
   call_backend("pwrss", quietly(do.call(pwrss::probs.to.w, args)))
@@ -517,7 +520,12 @@ pwrss_check_run <- function(spec, inputs) {
       row("r_Y1_X2 passed to pwrss (rho23)", pop$r_Y1_X2, args$rho23),
       row("r_Y1_Y2 passed to pwrss (rho24)", pop$r_Y1_Y2, args$rho24)
     ),
-    chi_square_gof = {
+    chi_square_gof = if (chisq_by_w(spec)) {
+      rbind(
+        row("Cohen's w passed to pwrss (w)", pop$w, args$w),
+        row("degrees of freedom (categories - 1)", length(spec$variables$Y$levels) - 1, args$df)
+      )
+    } else {
       p <- as.numeric(unlist(pop$probabilities))
       p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))
       rbind(

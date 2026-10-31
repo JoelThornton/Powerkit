@@ -827,11 +827,20 @@ check_sem_latent_regression <- function(spec) {
 
 # Basic tests ----------------------------------------------------------------
 
+# A chi-square test given by Cohen's w: worked out by formula, as in
+# G*Power; a simulation needs the proportions to draw from.
+check_chisq_w <- function(spec) {
+  if (identical(spec$options$method, "simulation")) {
+    return("With Cohen's w, power is worked out by formula; a simulation needs the proportions ('population > metric' \"proportion\").")
+  }
+  character()
+}
+
 check_basic_test <- function(spec) {
   switch(
     spec$template,
-    chi_square_independence = check_probability_table(spec),
-    chi_square_gof = check_gof_probabilities(spec),
+    chi_square_independence = if (chisq_by_w(spec)) check_chisq_w(spec) else check_probability_table(spec),
+    chi_square_gof = if (chisq_by_w(spec)) check_chisq_w(spec) else check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
     manova = check_manova(spec),
     hotelling_one = check_hotelling_one(spec),
@@ -1760,8 +1769,8 @@ minimum_n <- function(spec) {
       spec$template,
       one_sample_t = 3,
       paired_t = 3,
-      chi_square_independence = length(unlist(spec$population$probabilities)),
-      chi_square_gof = length(unlist(spec$population$probabilities)),
+      chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
+      chi_square_gof = length(spec$variables$Y$levels),
       # Fisher's z needs more than 3 people in each group (its SE is
       # 1 / sqrt(n - 3)).
       two_correlations = 10,
@@ -1969,12 +1978,12 @@ target_effect_is_zero <- function(spec) {
       },
       # The largest difference between a mean and its fixed value.
       hotelling_one = max(abs(as.numeric(unlist(pop$means)) - as.numeric(unlist(pop$mu0)))),
-      chi_square_gof = {
+      chi_square_gof = if (chisq_by_w(spec)) pop$w else {
         p <- as.numeric(unlist(pop$probabilities))
         p0 <- as.numeric(unlist(pop$null_probabilities %||% rep(1 / length(p), length(p))))
         max(abs(p - p0))
       },
-      chi_square_independence = {
+      chi_square_independence = if (chisq_by_w(spec)) pop$w else {
         p <- matrix(as.numeric(unlist(pop$probabilities)), nrow = length(pop$probabilities), byrow = TRUE)
         max(abs(p - outer(rowSums(p), colSums(p))))
       }

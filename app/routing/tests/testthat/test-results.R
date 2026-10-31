@@ -1671,6 +1671,26 @@ test_that("ANCOVA and three between factors by their effect size: partial eta-sq
   expect_match(check$problems, "every factor is between participants", fixed = TRUE, all = FALSE)
 })
 
+test_that("the chi-square tests by their effect size: Cohen's w, as G*Power takes it", {
+  for (ep in c("E6", "E48")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    by_w <- list(chisq_metric = "w", goal = "power")
+    expect_false(field_applies(by_id("probabilities"), by_w), label = ep)
+    expect_true(field_applies(by_id("w"), by_w), label = ep)
+    expect_true(field_applies(by_id("probabilities"), list(chisq_metric = "proportion")), label = ep)
+    values <- modifyList(form_examples[[ep]], list(chisq_metric = "w", w = "0.2", goal = "power", n = "200"))
+    spec <- build_spec(forms, ep, fields, values)
+    expect_null(spec$population$probabilities, label = ep)
+    expect_equal(spec$population$w, 0.2, label = ep)
+    skip_without_run()
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    text <- paste(writeup_text(forms$forms[[ep]], spec, calc$result, fields, values), collapse = " ")
+    expect_match(text, "Cohen's w = 0.2", fixed = TRUE, label = ep)
+  }
+})
+
 test_that("repeated-measures and mixed ANOVA by effect size: the screen asks which kind of partial eta-squared", {
   for (ep in c("E54", "E8", "E55")) {
     fields <- form_fields(form_groups(forms, ep))

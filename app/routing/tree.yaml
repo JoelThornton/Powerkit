@@ -913,7 +913,7 @@ endpoints:
     template: "basic_test / chi_square_independence"
     backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it)"
     method: "Formula (no simulation)"
-    inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1)"]
+    inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -1484,7 +1484,7 @@ endpoints:
     card_points:
       - "The test has one fewer degree of freedom than the number of categories."
       - "Without fixed proportions to compare with, powerkit compares with equal proportions, as pwrss's probs.to.w() does."
-    inputs: ["The categories of the variable", "The expected proportion in each category, and the fixed proportions they are compared with"]
+    inputs: ["The categories of the variable", "The expected proportion in each category, and the fixed proportions they are compared with, or Cohen's w"]
     tier: v2
     alternatives: ["an exact multinomial test", "a likelihood-ratio (G) test"]
   E49:
@@ -1861,6 +1861,7 @@ guided:
 # ---------------------------------------------------------------------------
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}
+  - {term: "Cohen's w", pattern: "Cohen's w", hint: "How far the proportions are from what you would see with no association (or from the fixed proportions), on one scale: 0 means no difference at all."}
   - {term: "d_z", pattern: "\\bd_z\\b", hint: "The average change within people (for example, after minus before), divided by how much that change varies from person to person."}
   - {term: "SD (standard deviation)", pattern: "\\bSDs?\\b", hint: "How spread out the scores are around their average."}
   - {term: "pooled SD", pattern: "pooled SD", hint: "The two groups' standard deviations combined into one, weighted by the groups' sizes."}

@@ -1,5 +1,14 @@
 # powerkit 0.25.0
 
+* Cohen's w, as G*Power takes it, for the chi-square tests: `population >
+  metric` "w" with `population > w` on `chi_square_independence` (pwr's
+  `pwr.chisq.test()`) and `chi_square_gof` (pwrss's `power.chisq.gof()`),
+  the degrees of freedom from the numbers of levels. Power, sample size
+  and the smallest detectable w all work; the check run confirms w and the
+  df, and the exported scripts reproduce the result. A simulation needs
+  the proportions, so it is refused with w in plain words, and there is no
+  simulated data set. The same table gives the same power from its
+  proportions and from its w (a test).
 * Partial eta-squared, as G*Power takes it, for the one-way and two-way
   ANCOVA and for three-factor ANOVA with every factor between
   participants: `population > metric` "eta_squared" on `oneway_ancova`,

@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Cohen's w for the chi-square tests"
+    text: >-
+      The chi-square test of independence and the goodness-of-fit test now
+      accept Cohen's w, as G*Power does, instead of a table of proportions,
+      for when w is the number an earlier paper gives.
+  - date: "2026-10-31"
     title: "Partial eta-squared for ANCOVA and three-factor designs"
     text: >-
       The ANCOVA card and the three-factor card (when every factor is

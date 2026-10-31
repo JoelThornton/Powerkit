@@ -94,9 +94,10 @@ simulated_data_note <- function(spec) {
 # population, or NULL when the design has no generator here yet. The code
 # names its packages (pkg::fun) so it runs without powerkit.
 simulated_data_code <- function(spec, n, seed) {
-  # An ANOVA given by its partial eta-squared, or an interaction by its
-  # R-squared change, has no means or correlations to draw data from.
-  if (eta_squared_anova(spec) || interaction_r2_change(spec)) return(NULL)
+  # An ANOVA given by its partial eta-squared, an interaction by its
+  # R-squared change or a chi-square test by Cohen's w has no means,
+  # correlations or proportions to draw data from.
+  if (eta_squared_anova(spec) || interaction_r2_change(spec) || chisq_by_w(spec)) return(NULL)
   superpower <- c(
     "oneway_between", "oneway_within", "2x2_between", "2x2_mixed", "mixed",
     "factorial_between", "factorial_within", "factorial_three"

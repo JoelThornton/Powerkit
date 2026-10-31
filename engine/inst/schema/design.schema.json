@@ -1630,13 +1630,16 @@
         },
         "population": {
           "required": [
-            "metric",
-            "probabilities"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "proportion"
+              "enum": [
+                "proportion",
+                "w"
+              ],
+              "description": "'proportion': the effect is given by the proportions ('probabilities'). 'w': it is given by Cohen's w ('w'), as in G*Power, treated as the population value."
             },
             "probabilities": {
               "description": "Proportion of the population in each cell: one row per level of X, one column per level of Y. Must add up to 1.",
@@ -1651,8 +1654,40 @@
                   "maximum": 1
                 }
               }
+            },
+            "w": {
+              "description": "With metric 'w': Cohen's w for the association, as G*Power and pwr's pwr.chisq.test() take it; the degrees of freedom come from the numbers of levels, (levels of X - 1) x (levels of Y - 1).",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "w"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "w"
+                ],
+                "properties": {
+                  "probabilities": false
+                }
+              },
+              "else": {
+                "required": [
+                  "probabilities"
+                ],
+                "properties": {
+                  "w": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "allOf": [
@@ -4286,13 +4321,16 @@
         },
         "population": {
           "required": [
-            "metric",
-            "probabilities"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "proportion"
+              "enum": [
+                "proportion",
+                "w"
+              ],
+              "description": "'proportion': the effect is given by the proportions ('probabilities'). 'w': it is given by Cohen's w ('w'), as in G*Power, treated as the population value."
             },
             "probabilities": {
               "description": "Expected proportion of the population in each category of Y, in the order of its levels. Must add up to 1.",
@@ -4313,8 +4351,41 @@
                 "exclusiveMinimum": 0,
                 "maximum": 1
               }
+            },
+            "w": {
+              "description": "With metric 'w': Cohen's w for the departure from the fixed proportions, as G*Power and pwrss's power.chisq.gof() take it; the degrees of freedom are the levels of Y - 1.",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "w"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "w"
+                ],
+                "properties": {
+                  "probabilities": false,
+                  "null_probabilities": false
+                }
+              },
+              "else": {
+                "required": [
+                  "probabilities"
+                ],
+                "properties": {
+                  "w": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "allOf": [
