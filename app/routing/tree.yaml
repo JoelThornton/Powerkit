@@ -1612,16 +1612,17 @@ endpoints:
     doc_name: "A planned meta-analysis: the test of the average effect"
     plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
     template: "meta_analysis / mean_effect"
-    backend: "metapower: mpower(), the z test of the average effect under the fixed-effect model, and Jackson and Turner's (2017) method under the random-effects model (formula)"
-    method: "Formula"
+    backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
+    method: "Simulation (Hartung-Knapp) or formula (z test)"
     status: runs_validation_in_progress
     validation: {file: test-validation-meta-analysis.R, note: "Matches simulated meta-analyses (the fixed-effect and DerSimonian-Laird random-effects z tests) for d and r. Not yet checked against Valentine, Pigott and Rothstein's (2010) worked examples, which are ready to transcribe."}
     card_points:
       - "For a systematic review you are planning: how many studies you need, or the power you can expect, for the meta-analysis to detect the average effect."
       - "You give the average effect (Cohen's d or a correlation), the size of a typical study, and how much the studies' true effects are expected to differ (heterogeneity, as I-squared)."
       - "Under the random-effects model, heterogeneity costs power: Jackson and Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis reasonably consistently has more power than the studies in it."
-      - "Every study is taken to be the same size, and the test is metapower's z test. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation) or for moderators."
-    inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model"]
+      - "Under the random-effects model powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
+      - "Every study is taken to be the same size. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation) or for moderators."
+    inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model, and the test"]
     tier: v2
     alternatives: ["the power of each included study for a range of effects (study-level power, the metameta package), to judge how informative the studies themselves are"]
   E54:

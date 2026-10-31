@@ -160,7 +160,7 @@ form_examples$E60 <- c(list(Y_labels = "Anxiety, Depression, Stress", means = "2
 # E61: a planned meta-analysis of two-group studies (Valentine, Pigott and
 # Rothstein's 2010 example: d = 0.15, 40 per study, moderate heterogeneity).
 form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_metric = "d", meta_effect = "0.15", study_size = "40",
-                            i2 = "0.5", meta_model = "random", alternative = "two_sided"), closing_ok)
+                            i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",

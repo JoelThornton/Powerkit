@@ -2089,6 +2089,20 @@ check_meta_analysis <- function(spec) {
       "For a meta-analysis powerkit gives power, or the number of studies needed; the smallest detectable ",
       "average effect isn't available yet."))
   }
+  # The Hartung-Knapp test is for the random-effects model and is
+  # simulated; the z test is metapower's formula.
+  if (identical(spec$target_test$model, "fixed") && identical(spec$target_test$test, "hartung_knapp")) {
+    problems <- c(problems, "The Hartung-Knapp test is for the random-effects model; the fixed-effect model uses the z test.")
+  }
+  method <- spec$options$method
+  if (hartung_knapp_test(spec) && identical(method, "exact")) {
+    problems <- c(problems, paste0(
+      "The Hartung-Knapp test is simulated (no package has a formula for its power); for metapower's formula, ",
+      "set 'target_test > test' to \"z\"."))
+  }
+  if (!hartung_knapp_test(spec) && (identical(method, "simulation") || !is.null(spec$options$nrep))) {
+    problems <- c(problems, "The z test is worked out by formula (metapower), so there is nothing to simulate; remove 'options > nrep'.")
+  }
   problems
 }
 

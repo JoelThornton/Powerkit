@@ -964,6 +964,38 @@ and Bonferroni first); Holm's method as the default is powerkit's.
   comparisons are adjusted (`app/routing/forms.yaml`, `departures`, key
   "17"), and in the methods paragraph's full version.
 
+### 18. Meta-analysis: the Hartung-Knapp test by default, not metapower's z test
+
+Decided by the maintainer on 31 October 2026 (`docs/decisions.md`): the
+Hartung-Knapp test for every number of studies, for consistency with one
+preregistered test.
+
+- **Established convention:** metapower's `mpower()` plans the
+  random-effects average with a z test (Jackson and Turner's, 2017,
+  method, after DerSimonian and Laird's tau^2).
+- **powerkit:** under the random-effects model, E61 plans for the
+  Hartung-Knapp(-Sidik-Jonkman) test unless the user chooses the z test:
+  DerSimonian and Laird's tau^2, the variance
+  sum(w (y - mean)^2) / ((k - 1) sum(w)) and a t test with k - 1 df,
+  which "consistently results in more adequate error rates than the DL
+  method, especially when the number of studies is small" (IntHout,
+  Ioannidis & Borm, 2014, refs.bib `IntHout2014_hksj`). No package
+  computes its power, so it is simulated: Spower with powerkit's
+  experiment `p_meta_hk()`, fitting metafor's
+  `rma(method = "DL", test = "knha")` to k simulated study estimates. The
+  fixed-effect model keeps the z test.
+- **Size:** less power, most with few studies: for d = 0.15, 40 per
+  study, I-squared 0.5 and ten studies, about 16.5% against 21.4% with
+  the z test.
+- **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
+  the difference"; `test-validation-meta-analysis.R` checks the
+  simulated power against a separately written simulation of IntHout et
+  al.'s formulas, and the Type I error.
+- **Shown to users:** on the E61 result screen when the Hartung-Knapp test
+  is used (`app/routing/forms.yaml`, `departures`, key "18"), and in the
+  methods paragraph's full version. Known difference 9 (metapower's
+  rounding) then doesn't apply and isn't shown.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -1339,11 +1371,9 @@ Wired into the app on 18 October 2026 (E25, E26).*
   paper gives 0.68 and powerkit 68.3%.
 - **Not used:** metapower's power for the test of heterogeneity, which
   disagrees with simulation (`docs/upstream-questions.md`, metapower).
-- **Open method question for the maintainer:** metapower tests the
-  random-effects average with a z test. Methods papers recommend the
-  Hartung-Knapp adjustment for few studies, which would give lower power;
-  powerkit follows metapower until that is decided (not yet in
-  `refs.bib`).
+- **Applies only to metapower's z test:** the Hartung-Knapp test, the
+  default since 31 October 2026 (Departure 18), is simulated from the
+  exact Fisher's z and doesn't round.
 - **Test:** `engine/tests/testthat/test-backend-metapower.R` (the rounding's
   size), `test-validation-meta-analysis.R` (simulated meta-analyses; the
   two Valentine et al. examples to transcribe).

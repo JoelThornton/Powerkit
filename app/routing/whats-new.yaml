@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Meta-analysis: the Hartung-Knapp test"
+    text: >-
+      The meta-analysis card now plans for the Hartung-Knapp test under the
+      random-effects model, which keeps false positives closer to the
+      significance level than the z test, especially with few studies. It
+      gives a more cautious number of studies; the z test is still one
+      click away.
+  - date: "2026-10-31"
     title: "Planning a meta-analysis"
     text: >-
       A new card plans a meta-analysis: how many studies you need, or the

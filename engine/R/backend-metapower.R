@@ -138,10 +138,146 @@ metapower_script <- function(spec, result) {
 meta_design_description <- function(spec, label) {
   inputs <- metapower_inputs(spec)
   sprintf(
-    "%s meta-analysis of %s, the z test of the average effect (%s) in studies of %s participants with I-squared %s%s",
+    "%s meta-analysis of %s, the %s of the average effect (%s) in studies of %s participants with I-squared %s%s",
     if (identical(inputs$model, "fixed")) "fixed-effect" else "random-effects",
-    label("Y"), if (identical(inputs$es_type, "r")) "r" else "Cohen's d",
+    label("Y"), if (hartung_knapp_test(spec)) "Hartung-Knapp test" else "z test",
+    if (identical(inputs$es_type, "r")) "r" else "Cohen's d",
     format_number(inputs$study_size), format_number(inputs$i2),
     if (identical(inputs$test_type, "one-tailed")) ", one-sided" else ""
+  )
+}
+
+# The Hartung-Knapp test (target_test > test "hartung_knapp", the default
+# for the random-effects model; Departure 18): no package computes its
+# power, so it is simulated with Spower and powerkit's own experiment,
+# p_meta_hk(), which draws k study estimates and fits metafor's
+# rma(method = "DL", test = "knha"): DerSimonian and Laird's tau^2, the
+# Hartung-Knapp-Sidik-Jonkman variance and a t test with k - 1 df
+# (IntHout, Ioannidis & Borm, 2014). The studies follow the same model as
+# metapower's: each estimate has the sampling variance v of a typical
+# study (Cohen's d from two equal groups, or Fisher's z of r, exact) and
+# the true effects vary with tau^2 = I^2 v / (1 - I^2).
+
+hartung_knapp_test <- function(spec) {
+  identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
+    !identical(spec$target_test$test, "z")
+}
+
+# The average effect on the analysis scale (Fisher's z for r) and a
+# typical study's sampling variance.
+meta_study_model <- function(spec) {
+  pop <- spec$population
+  n <- pop$study_size
+  if (identical(pop$metric, "r")) {
+    theta <- atanh(pop$effect)
+    v <- 1 / (n - 3)
+  } else {
+    theta <- pop$effect
+    v <- 4 / n + pop$effect^2 / (2 * n)
+  }
+  list(theta = theta, v = v, tau2 = pop$i2 * v / (1 - pop$i2))
+}
+
+# k studies' estimates: true effects from N(theta, tau2), each estimated
+# with sampling variance v.
+meta_estimates <- function(k, theta, v, tau2) {
+  data.frame(yi = stats::rnorm(k, stats::rnorm(k, theta, sqrt(tau2)), sqrt(v)), vi = v)
+}
+
+# Spower experiment: the p-value of the Hartung-Knapp test of the average
+# effect (two-sided, or one-sided from its t statistic with k - 1 df).
+p_meta_hk <- function(k, theta, v, tau2, alternative = "two.sided") {
+  studies <- meta_estimates(k, theta, v, tau2)
+  fit <- metafor::rma(yi = studies$yi, vi = studies$vi, method = "DL", test = "knha")
+  if (identical(alternative, "two.sided")) {
+    fit$pval
+  } else {
+    stats::pt(fit$zval, k - 1, lower.tail = identical(alternative, "less"))
+  }
+}
+
+meta_hk_backend <- function(spec, seed = NULL) {
+  model <- meta_study_model(spec)
+  alternative <- switch(spec$target_test$alternative %||% "two_sided",
+    two_sided = "two.sided", greater = "greater", less = "less")
+  args <- function(k) list(k = k, theta = model$theta, v = model$v, tau2 = model$tau2, alternative = alternative)
+  list(
+    name = "Spower",
+    packages = c("Spower", "SimDesign", "metafor"),
+    methods = "simulation",
+    default_method = "simulation",
+    functions = c(simulation = "Spower::Spower(p_meta_hk()) (metafor::rma(method = \"DL\", test = \"knha\"), the Hartung-Knapp test)"),
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    simulate = function(n, nrep, seed, cores) {
+      simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) {
+        result <- spower_eval(as.name("p_meta_hk"), args(n), chunk, spec$target_test$alpha, chunk_seed)
+        round(result$power * chunk)
+      })
+    },
+    sensitivity = NULL,
+    check_run = function() meta_hk_check_run(spec, model, seed)
+  )
+}
+
+# Check run: many simulated studies recover the average effect and the
+# spread of their estimates (sampling variance plus tau^2).
+meta_hk_check_run <- function(spec, model, seed) {
+  k <- check_run_n()
+  studies <- with_seed(seed %||% 1, meta_estimates(k, model$theta, model$v, model$tau2))
+  total <- model$v + model$tau2
+  rbind(
+    check_run_rows(if (identical(spec$population$metric, "r")) "average effect (Fisher's z of r)" else "average effect (Cohen's d)",
+                   model$theta, mean(studies$yi), sqrt(total / k)),
+    check_run_rows("variance of the studies' estimates (sampling variance plus tau-squared)",
+                   total, stats::var(studies$yi), total * sqrt(2 / (k - 1)))
+  )
+}
+
+# The standalone script for the Hartung-Knapp test: Spower with the same
+# experiment, written out, and metafor (export_script()).
+meta_hk_script <- function(spec, result) {
+  model <- meta_study_model(spec)
+  alternative <- switch(spec$target_test$alternative %||% "two_sided",
+    two_sided = "two.sided", greater = "greater", less = "less")
+  c(
+    script_header(spec, result, "Spower", result$provenance$backend_function),
+    "library(Spower)",
+    "library(metafor)",
+    "",
+    "# Inputs ----",
+    sprintf("theta <- %s # the average effect%s", r_code(model$theta),
+      if (identical(spec$population$metric, "r")) sprintf(", as Fisher's z of r = %s", format(spec$population$effect)) else " (Cohen's d)"),
+    sprintf("v <- %s # a typical study's sampling variance (%s)", r_code(model$v),
+      if (identical(spec$population$metric, "r")) "1 / (n - 3)" else "4 / n + d^2 / (2 n), two equal groups of n / 2"),
+    sprintf("tau2 <- %s # between-study variance: I-squared %s times v / (1 - I-squared)", r_code(model$tau2), format(spec$population$i2)),
+    sprintf("alternative <- %s", r_code(alternative)),
+    "# n_total below is the number of studies (k).",
+    goal_inputs(spec, result),
+    "",
+    "# k studies' estimates, and the p-value of the Hartung-Knapp test of their",
+    "# average (DerSimonian and Laird's tau^2; t test with k - 1 df).",
+    "p_meta_hk <- function(k, theta, v, tau2, alternative = \"two.sided\") {",
+    "  yi <- rnorm(k, rnorm(k, theta, sqrt(tau2)), sqrt(v))",
+    "  fit <- rma(yi = yi, vi = rep(v, k), method = \"DL\", test = \"knha\")",
+    "  if (alternative == \"two.sided\") fit$pval else pt(fit$zval, k - 1, lower.tail = alternative == \"less\")",
+    "}",
+    "",
+    "# One batch of simulated meta-analyses: rejections and analysable ones.",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  set.seed(batch_seed) # Spower draws its own seeds from R's random-number generator",
+    "  result <- Spower(",
+    "    p_meta_hk(k = batch_n, theta = theta, v = v, tau2 = tau2, alternative = alternative),",
+    "    sig.level = alpha,",
+    "    replications = batch_replications,",
+    "    parallel = FALSE,",
+    "    verbose = FALSE",
+    "  )",
+    "  c(round(result$power * batch_replications), batch_replications)",
+    "}",
+    "",
+    batch_section(result, "Spower()"),
+    simulation_goal_section(spec, result, 1),
+    comparison_section()
   )
 }

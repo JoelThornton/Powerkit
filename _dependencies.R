@@ -18,6 +18,7 @@ library(lavaan)
 library(lme4)      # E33's mixed model (with simr)
 library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
+library(metafor)   # E61's Hartung-Knapp test (rma(test = "knha")), simulated
 library(metapower) # E61's planned meta-analysis
 library(power4mome)
 library(powertools)
