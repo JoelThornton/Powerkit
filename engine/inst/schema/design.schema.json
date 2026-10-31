@@ -7347,7 +7347,8 @@
         "properties": {
           "template": {
             "enum": [
-              "crossed_two_condition"
+              "crossed_two_condition",
+              "two_level"
             ]
           }
         },
@@ -7365,6 +7366,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_crossed_two_condition"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_level"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_two_level"
             }
           }
         ]
@@ -7791,6 +7807,107 @@
               ]
             }
           }
+        }
+      }
+    },
+    "template_two_level": {
+      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "b_X",
+            "b_W",
+            "b_XW",
+            "sd_group",
+            "sd_group_slope",
+            "sd_residual",
+            "cluster_size"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "b_X": {
+              "type": "number",
+              "description": "X's effect within groups: the change in the outcome, in its own units, for one SD more of X than the group's average."
+            },
+            "b_W": {
+              "type": "number",
+              "description": "W's effect between groups: the change in a group's average outcome for one SD more of W."
+            },
+            "b_XW": {
+              "type": "number",
+              "description": "The cross-level interaction: how much X's effect changes for one SD more of W."
+            },
+            "sd_group": {
+              "type": "number",
+              "minimum": 0,
+              "description": "SD of the groups' random intercepts: how much groups' average outcomes differ beyond W."
+            },
+            "sd_group_slope": {
+              "type": "number",
+              "minimum": 0,
+              "description": "SD of the groups' random X slopes: how much X's effect differs between groups beyond W."
+            },
+            "r_group": {
+              "$ref": "#/definitions/correlation",
+              "description": "Correlation between the groups' intercepts and X slopes. 0 if omitted."
+            },
+            "sd_residual": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "SD of the residual: how much people differ within a group."
+            },
+            "cluster_size": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "People in each group (the same in every group)."
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "enum": [
+                    "within_effect",
+                    "between_effect",
+                    "cross_level_interaction"
+                  ]
+                },
+                "method": {
+                  "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
         }
       }
     }

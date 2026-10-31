@@ -13,7 +13,7 @@ population_problems <- function(spec) {
       if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
     },
     ordinal_regression = check_ordinal_two_groups,
-    mixed_model = check_crossed_two_condition,
+    mixed_model = function(spec) if (identical(spec$template, "two_level")) character() else check_crossed_two_condition(spec),
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -110,9 +110,10 @@ uses_simulation <- function(spec) {
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
-    !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
+    !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
+      formula_test(spec) ||
       pwrss_only(spec) ||
       identical(spec$target_test$method, "welch_t")
   )
@@ -166,13 +167,14 @@ simulation_available <- function(spec) {
   !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
 }
 
-# Basic tests powerkit computes by simulation only: neither pwr nor pwrss
-# has a formula for them. G*Power computes the variance tests by formula,
-# but no package powerkit is built on does, and powerkit doesn't write the
-# maths itself (CLAUDE.md), so these are simulated with Spower. The rank
+# Basic tests powerkit computes by simulation only: no formula covers
+# them (the Pitman-Morgan test, and MANOVA with three or more groups or
+# two factors). The variance tests of one or two groups and Hotelling's
+# T-squared (one group, or a MANOVA of two groups) have their own formula
+# (backend-variance.R, backend-hotelling.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
+  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 
@@ -219,11 +221,7 @@ check_pairwise <- function(spec) {
   if (!identical(tt$method, "t_test")) {
     problems <- c(problems, "Pairwise comparisons are t-tests: set 'target_test > method' to \"t_test\".")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, paste0(
-      "Pairwise comparisons need each group's mean ('population > means' and 'population > sd'), ",
-      "not partial eta-squared, which doesn't say which groups differ."))
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   levels <- unlist(spec$variables$A$levels)
   pair <- unlist(tt$comparison)
   if (length(pair) != 2 || length(unique(pair)) != 2) {
@@ -250,9 +248,7 @@ check_friedman <- function(spec) {
   if (!identical(spec$template, "oneway_within")) {
     problems <- c(problems, "Friedman's test is for one factor with every participant in every condition (template 'oneway_within').")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, "Friedman's test needs each condition's mean ('population > means' and 'population > sd'), not partial eta-squared.")
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   r <- spec$population$r
   if (is.numeric(r) && length(r) == 1 && (r < 0 || r >= 1)) {
     problems <- c(problems, paste0(
@@ -429,14 +425,14 @@ check_allocation_allowed <- function(spec) {
   # The two-variance test has two groups, but Spower can only simulate
   # equal ones: gen_var.test() builds a data frame of the wrong length when
   # the group sizes differ (docs/upstream-questions.md).
-  if (identical(spec$template, "two_variances")) {
+  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation")) {
     return(paste0(
-      "'options > allocation_ratio' isn't available for the two-variance ",
-      "test yet: the simulation it uses can only draw groups of the same ",
-      "size. Remove it, or plan for two equal groups."
+      "'options > allocation_ratio' isn't available for the simulated ",
+      "two-variance test: the simulation can only draw groups of the same ",
+      "size. Remove it, or use the formula (remove 'options > method')."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance",
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
                            "noninf_independent", "noninf_two_proportions", "ordinal_two_groups")) {
     return(character())
   }
@@ -1874,7 +1870,8 @@ minimum_n <- function(spec) {
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
-    mixed_model = 6,
+    # Two-level: at least ten groups, for the groups' variances.
+    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     meta_analysis = 2,
@@ -1921,6 +1918,10 @@ group_split <- function(spec) {
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)
     return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
+  }
+  if (identical(spec$template, "two_level")) {
+    m <- spec$population$cluster_size
+    return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
     k <- length(spec$variables$A$levels)
@@ -2043,7 +2044,11 @@ target_effect_is_zero <- function(spec) {
       log(pop$odds_ratio)
     },
     ordinal_regression = log(pop$odds_ratio),
-    mixed_model = pop$difference,
+    mixed_model = if (identical(spec$template, "two_level")) {
+      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+    } else {
+      pop$difference
+    },
     poisson_regression = log(pop$rate_ratio),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice for model fit: the schema refuses it, as
@@ -2194,9 +2199,11 @@ check_eta_squared_anova <- function(spec) {
   ancova <- spec$template %in% c("oneway_ancova", "factorial_ancova")
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
+    test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
+      t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
-      "With partial eta-squared the test is the ANOVA F test; '%s' needs the group means and SDs. ",
-      "Give the means instead ('population > metric' \"raw\" or \"standardised\")."), method))
+      "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",
+      "give the means instead ('population > metric' \"raw\" or \"standardised\")."), test))
   }
   if (!is.null(spec$options$cell_ratio) && length(unique(as.numeric(unlist(spec$options$cell_ratio)))) > 1) {
     return("With partial eta-squared the groups are equal in size; for unequal groups, give the cell means instead.")

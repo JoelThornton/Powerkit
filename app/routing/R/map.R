@@ -34,7 +34,7 @@ map_filters <- list(
   status = c(runs = "Calculates in powerkit", soon = "Coming", not = "Not in powerkit yet")
 )
 
-map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4")
+map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1")
 map_elsewhere <- "Designs set by how the data are collected"
 
 # The end points an automatic node leads to, through further automatic
@@ -257,7 +257,7 @@ map_ui <- function(tree) {
     tags$script(src = "vendor/dagre.min.js"),
     tags$script(src = "vendor/cytoscape-dagre.js"),
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree))),
-    h3("A map of the methods"),
+    h3("Methods map"),
     p("Every analysis powerkit knows about, drawn from the same questions as “Help me choose”. Each thing a study can want to show is a star; its analyses are the planets around it. Drag to fly about, scroll to zoom, search or filter on the left, and click a planet to read about it."),
     div(class = "map-stage",
       div(id = "map-canvas", class = "map-canvas", role = "img",

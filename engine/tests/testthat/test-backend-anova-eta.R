@@ -67,7 +67,7 @@ test_that("a published F with both dfs, or Cohen's f, converts into the partial 
 test_that("partial eta-squared is refused where the group means are needed", {
   welch <- eta_spec("oneway_between", 0.05)
   welch$target_test$method <- "welch_f"
-  expect_spec_problem(welch, "'welch_f' needs the group means and SDs")
+  expect_spec_problem(welch, "Welch's F test needs the mean in each group or condition and the SD")
   unequal <- eta_spec("2x2_between", 0.05, effect = "interaction")
   unequal$options$cell_ratio <- list(list(2, 1), list(1, 1))
   expect_spec_problem(unequal, "the groups are equal in size")
@@ -99,13 +99,19 @@ test_that("repeated-measures and mixed ANOVA take either kind of partial eta-squ
   expect_identical(planned$provenance$backend_function, "pwrss::power.f.mixed.anova")
   expect_true(all(planned$check_run$ok))
   expect_true(all(published$check_run$ok))
-  expect_equal(planned$curve$power, published$curve$power, tolerance = 1e-4)
+  # pwrss's two values are the same study for a large sample; powerkit takes
+  # the published kind's noncentrality as f^2 x the error df (88 here), so
+  # it is a little lower than pwrss's f^2 x N.
+  expect_equal(planned$curve$power, published$curve$power, tolerance = 0.02)
   direct <- pwrss::power.f.mixed.anova(eta.squared = 0.022, factor.levels = c(2, 2), rho.within = 0.5, effect = "within",
     n.total = 90, alpha = 0.05, ceil.n = FALSE, verbose = 0)
   expect_equal(planned$curve$power, direct$power)
   # One within factor: one group, its levels within.
   within <- run_spec(rm_spec("oneway_within", list(metric = "eta_squared", eta_squared = 0.06, eta_source = "published")))
-  expect_equal(within$curve$power, pwrss::power.f.mixed.anova(eta.squared = 0.06, factor.levels = c(1, 3), rho.within = NA,
+  # The published kind is rescaled so the noncentrality is f^2 x the error
+  # df, (90 - 1) x (3 - 1).
+  f2 <- 0.06 / 0.94 * (89 * 2) / 90
+  expect_equal(within$curve$power, pwrss::power.f.mixed.anova(eta.squared = f2 / (1 + f2), factor.levels = c(1, 3), rho.within = NA,
     effect = "within", n.total = 90, alpha = 0.05, ceil.n = FALSE, verbose = 0)$power)
   # The planned kind needs the correlation; the published kind refuses one.
   expect_error(validate_spec(rm_spec("mixed", list(metric = "eta_squared", eta_squared = 0.06, eta_source = "planned"))), class = "powerkit_spec_error")
@@ -116,6 +122,40 @@ test_that("repeated-measures and mixed ANOVA take either kind of partial eta-squ
   expect_spec_problem(conv, "set 'population > eta_source' to \"published\"")
   conv$population <- list(metric = "eta_squared", eta_source = "published")
   expect_equal(validate_spec(conv)$population$eta_squared, effectsize::F_to_eta2(6, 2, 88)[[1]])
+})
+
+test_that("a published partial eta-squared gives the power of the study it came from, with three or more measurements", {
+  # Superpower's exact dataset for a study, and the partial eta-squared its
+  # ANOVA reports: entered as published, it gives Superpower's power back.
+  # (Before 0.25.1 pwrss's f^2 x N noncentrality gave 60% here, not 89%.)
+  within <- Superpower::ANOVA_design("3w", n = 40, mu = c(600, 620, 650), sd = 100, r = 0.6, plot = FALSE)
+  exact <- Superpower::ANOVA_exact(within, verbose = FALSE)$main_results
+  spec <- example_spec("anova_oneway_within")
+  spec$population <- list(metric = "eta_squared", eta_squared = exact$partial_eta_squared[1], eta_source = "published")
+  spec$goal <- list(type = "power", n = 40L)
+  result <- run_spec(spec)
+  expect_equal(result$curve$power, exact$power[1] / 100, tolerance = 1e-6)
+  expect_true(all(result$check_run$ok))
+  # A 2 x 3 mixed design: every effect.
+  mixed <- Superpower::ANOVA_design("2b*3w", n = 30, mu = c(20, 16, 15, 20, 19, 18.5), sd = 6, r = 0.5, plot = FALSE)
+  exact <- Superpower::ANOVA_exact(mixed, verbose = FALSE)$main_results
+  effects <- c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")
+  for (effect in names(effects)) {
+    spec <- example_spec("anova_mixed")
+    spec$population <- list(metric = "eta_squared", eta_squared = exact[effects[[effect]], "partial_eta_squared"], eta_source = "published")
+    spec$target_test$effect <- effect
+    spec$goal <- list(type = "power", n = 60L)
+    expect_equal(run_spec(spec)$curve$power, exact[effects[[effect]], "power"] / 100, tolerance = 1e-6, label = effect)
+  }
+})
+
+test_that("the script reproduces a published partial eta-squared with three measurements", {
+  skip_unless_scripts_can_run()
+  spec <- example_spec("anova_oneway_within")
+  spec$population <- list(metric = "eta_squared", eta_squared = 0.06, eta_source = "published")
+  spec$goal <- list(type = "power", n = 60L)
+  spec <- validate_spec(spec)
+  expect_script_reproduces_power(spec, run_for_export(spec))
 })
 
 # The F test from its noncentrality, as G*Power computes it: lambda = f^2 N,

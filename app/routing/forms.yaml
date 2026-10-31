@@ -78,6 +78,11 @@ tool_defaults:
     alpha_source: "metapower's default (mpower(p = 0.05), metapower 0.2.2)"
     power_source: "metapower reports power and has no default target power; enter one"
     alternative_source: "metapower's default (two-sided: mpower(test_type = \"two-tailed\"), metapower 0.2.2)"
+  formula:
+    alpha: 0.05
+    alpha_source: "the usual 5% level, as in the G*Power 3.1 manual's examples; powerkit's formulas have no default of their own"
+    power_source: "enter a target power: the formula has no default"
+    alternative_source: "two-sided, as R's var.test() is by default (alternative = \"two.sided\")"
   power4mome:
     alpha: 0.05
     alpha_source: "power4mome's default (95% confidence intervals: n_region_from_power(ci_level = 0.95), power4mome 0.2.1)"
@@ -162,6 +167,11 @@ simulations:
       preview: {power: 35}
       full: {power: 350}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E62:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E11:
       full_run: [power]
       preview: {power: 50}
@@ -240,11 +250,11 @@ known_differences:
   "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, power_interaction_r2(), as G*Power's would, not from simulation. Fixed-model power is slightly higher than simulated power (up to about 1.4 points), so the smallest effect you could detect may be slightly larger than shown. Sample size and power for this design are simulated."
   "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
   "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
-  "4": "Variance tests: powerkit simulates power (Spower's p_var.test()), because no package it builds on has a formula for these tests; G*Power computes them exactly. The simulated answer carries a little random error: about 0.013 in power at 1,000 replications and about 0.004 at 10,000, so the sample size can differ from G*Power's by a participant or two."
+  "4": "Variance tests (retired 31 October 2026): powerkit simulated power with Spower's p_var.test() while G*Power computes these tests exactly. powerkit now computes them exactly too; this note is kept for results saved before then."
   "5": "Rank tests: powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
-  "8": "MANOVA: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Hotelling's T-squared (one or two groups) exactly and Pillai's trace (three or more groups) with an F approximation. With one or two groups the two agree within the simulation's random error (about 0.013 in power at 1,000 replications); with three or more, how far G*Power's approximation sits from the simulated power hasn't been measured yet."
+  "8": "MANOVA with three or more groups: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
 
 # The same known differences as one sentence for the methods paragraph
@@ -258,7 +268,7 @@ known_differences_methods:
   "5": "Power for the rank test was estimated by simulating the test itself on scores of the assumed shape, rather than by adjusting the t-test's power for the test's efficiency as G*Power does, so the two can give slightly different sample sizes."
   "6": "The probability of strong evidence was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
   "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
-  "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Hotelling's T-squared exactly and Pillai's trace with an F approximation."
+  "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Pillai's trace with an F approximation."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
 
 forms:
@@ -516,7 +526,7 @@ forms:
       - {id: proportions_formula, label: "Which formula", type: select, path: options.proportions_formula, optional: true,
          shown_if: [{field: calc_method, is: exact}, {field: method, is: z_test}],
          choices: {z_test: "z test, as in G*Power (base R's power.prop.test() for equal groups, pwrss for unequal groups)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
-         default: z_test, default_source: "G*Power's z test for two independent proportions, default options (maintainer's decision, docs/decisions.md, 17 October 2026)"}
+         default: z_test, default_source: "G*Power's z test for two independent proportions, with its default options"}
 
   E6:
     sides: false
@@ -899,6 +909,39 @@ forms:
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
 
+  # People nested in groups (simr): a person-level X, a group-level W and
+  # their cross-level interaction (31 October 2026).
+  E62:
+    methods_name: "a two-level linear mixed model with a person-level and a group-level predictor (Satterthwaite t test)"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: two_level,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {method: satterthwaite_t}}
+    groups:
+      - input: "The outcome, the person-level predictor and the group-level predictor"
+        fields:
+          - {id: Y_label, label: "Outcome (for example, maths score)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Measured on each person (X; for example, homework time)", type: text, path: variables.X.label, required: true}
+          - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
+      - input: "Each effect, how much the groups differ, and the residual SD"
+        fields:
+          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
+          - {id: b_W, writeup_label: "W's effect between groups", label: "W's effect between groups: the change in a group's average for one SD more of W", type: number, path: population.b_W, effect: true}
+          - {id: b_XW, writeup_label: "cross-level interaction", label: "The cross-level interaction: how much X's effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: sd_group, writeup_label: "SD of the groups' averages", label: "SD of the groups' averages beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
+             help: "In the outcome's units. With a residual SD of 1, an SD of 0.33 means about 10% of the variance lies between groups (an intraclass correlation of 0.1)."}
+          - {id: sd_group_slope, writeup_label: "SD of X's effect across groups", label: "SD of X's effect across groups beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
+          - {id: r_group, label: "Correlation of the groups' averages and X's effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+      - input: "The number of people in each group, and the effect to test"
+        fields:
+          - {id: cluster_size, label: "People in each group (the same in every group)", type: number, path: population.cluster_size, required: true, min: 2, integer: true}
+          - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups"},
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+
   E11:
     methods_name: "a parallel mediation model"
     tool: power4mome
@@ -1070,7 +1113,7 @@ forms:
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is: t_test},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "the maintainer's decision of 31 October 2026 (Holm and Bonferroni first; Holm's method never rejects less often than Bonferroni's)"}
+             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: kruskal_wallis},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1144,7 +1187,7 @@ forms:
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is: t_test},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "the maintainer's decision of 31 October 2026 (Holm and Bonferroni first; Holm's method never rejects less often than Bonferroni's)"}
+             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},
@@ -1681,15 +1724,14 @@ forms:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
 
-  # Variance tests (Spower's p_var.test(), simulated: Known difference 4).
+  # Variance tests: the chi-square and F distributions, as G*Power computes
+  # them (engine, backend-variance.R; Known difference 4 no longer applies).
   # Variances, not SDs, because the spec holds variances; the help says how
-  # to get one from an SD. Two groups are equal in size: Spower can't draw
-  # unequal groups yet (docs/upstream-questions.md).
+  # to get one from an SD. Two groups are equal in size on this screen.
   E52:
     methods_name: "a chi-square test of one variance"
-    tool: Spower
+    tool: formula
     directional: true
-    known_differences: ["4"]
     base: {spec_version: "0.1", design: basic_test, template: one_variance,
            variables: {"Y": {type: continuous}}, population: {metric: variance},
            target_test: {effect: variance_ratio, method: chi_square_var}}
@@ -1706,9 +1748,8 @@ forms:
 
   E53:
     methods_name: "an F test of two variances"
-    tool: Spower
+    tool: formula
     directional: true
-    known_differences: ["4"]
     base: {spec_version: "0.1", design: basic_test, template: two_variances,
            variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: variance},
            target_test: {effect: variance_ratio, method: f_var}}
@@ -1757,6 +1798,9 @@ forms:
     tool: Spower
     directional: false
     known_differences: ["8"]
+    # Two groups are calculated exactly (Hotelling's T-squared), as G*Power
+    # does, so Known difference 8 is about three or more groups.
+    known_differences_if_groups_above: {"8": 2}
     outcomes: Y_labels
     base: {spec_version: "0.1", design: basic_test, template: manova,
            variables: {A: {type: between_factor}}, population: {metric: raw},
@@ -1796,14 +1840,14 @@ forms:
              help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires."}
 
   # One-sample Hotelling's T-squared: one group's outcomes against fixed
-  # values (scale norms, midpoints), simulated with Spower and powerkit's
-  # p_hotelling_one() experiment. The outcomes are named in one field, as
-  # for E59, which makes one variable of each, Y1 to Yp.
+  # values (scale norms, midpoints), computed exactly by its noncentral F
+  # distribution (Anderson, 2003, section 5.4; engine backend-hotelling.R).
+  # The outcomes are named in one field, as for E59, which makes one
+  # variable of each, Y1 to Yp.
   E60:
     methods_name: "a one-sample Hotelling's T-squared test"
-    tool: Spower
+    tool: formula
     directional: false
-    known_differences: ["8"]
     outcomes: Y_labels
     base: {spec_version: "0.1", design: basic_test, template: hotelling_one,
            population: {metric: raw},

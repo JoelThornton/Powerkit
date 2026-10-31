@@ -46,7 +46,13 @@ export_script <- function(spec, result, file = NULL) {
   lines <- switch(
     result$provenance$backend,
     pwr = ,
-    stats = pwr_script(spec, result),
+    stats = if (variance_formula_test(spec)) {
+      variance_script(spec, result)
+    } else if (hotelling_formula_test(spec)) {
+      hotelling_script(spec, result)
+    } else {
+      pwr_script(spec, result)
+    },
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
@@ -65,7 +71,7 @@ export_script <- function(spec, result, file = NULL) {
     metapower = metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
-    simr = simr_script(spec, result),
+    simr = if (identical(spec$template, "two_level")) two_level_script(spec, result) else simr_script(spec, result),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -418,6 +424,12 @@ design_description <- function(spec) {
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
+    "mixed_model/two_level" = sprintf(
+      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s; effect tested: %s",
+      format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
+        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction")
+    ),
     "regression_interaction/three_way" = sprintf(
       "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",
       label("X"), label("W"), label("Y"), label("Z")
@@ -765,6 +777,127 @@ comparison_section <- function() {
     "}",
     "",
     "sessionInfo()"
+  )
+}
+
+# The variance tests by formula (backend-variance.R) ------------------------------
+
+# The chi-square or F distribution, in base R: no package to load.
+variance_script <- function(spec, result) {
+  inputs <- variance_inputs(spec)
+  one <- identical(spec$template, "one_variance")
+  ratio <- spec$options$allocation_ratio %||% 1
+  tails <- switch(
+    inputs$alternative,
+    two_sided = c(
+      "  # Two-sided: alpha / 2 in each tail.",
+      sprintf("  lower <- %s(alpha / 2, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  upper <- %s(1 - alpha / 2, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(lower / ratio, %s) + %s(upper / ratio, %s, lower.tail = FALSE)",
+        if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    ),
+    greater = c(
+      "  # One-sided: the first variance is the larger.",
+      sprintf("  upper <- %s(1 - alpha, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(upper / ratio, %s, lower.tail = FALSE)", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    ),
+    less = c(
+      "  # One-sided: the first variance is the smaller.",
+      sprintf("  lower <- %s(alpha, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(lower / ratio, %s)", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    )
+  )
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    if (!one) {
+      sprintf("allocation_ratio <- %s # size of group 2 relative to group 1", r_code(ratio))
+    },
+    goal_inputs(spec, result),
+    "",
+    if (one) {
+      c(
+        "# Under H0, (n - 1) s^2 / variance_null follows the chi-square distribution",
+        "# with n - 1 df; under H1, the same distribution times the variance ratio",
+        "# (G*Power 3.1 manual, section 26.5)."
+      )
+    } else {
+      c(
+        "# Under H0, s1^2 / s2^2 follows the F distribution with n1 - 1 and n2 - 1",
+        "# df; under H1, the same distribution times the variance ratio (G*Power",
+        "# 3.1 manual, section 15.5)."
+      )
+    },
+    if (one) "ratio <- variance / variance_null" else "ratio <- variances[1] / variances[2]",
+    "power_at <- function(n_total) {",
+    if (one) {
+      "  df <- n_total - 1"
+    } else {
+      c(
+        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  df <- c(n_group1 - 1, n_total - n_group1 - 1)"
+      )
+    },
+    tails,
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# Hotelling's T-squared (one group against fixed values, or two groups) by
+# its noncentral F distribution, in base R (backend-hotelling.R).
+hotelling_script <- function(spec, result) {
+  inputs <- hotelling_inputs(spec)
+  two <- inputs$groups == 2
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    goal_inputs(spec, result),
+    "",
+    if (two) {
+      c(
+        "# With two equal groups, T^2 (N - p - 1) / ((N - 2) p) follows the noncentral",
+        "# F distribution with p and N - p - 1 df and noncentrality N1 N2 / N = N / 4",
+        "# times the squared Mahalanobis distance between the groups' means",
+        "# (Anderson, 2003, An Introduction to Multivariate Statistical Analysis,",
+        "# 3rd ed., sections 5.3.4 and 5.4)."
+      )
+    } else {
+      c(
+        "# (T^2 / (n - 1)) (n - p) / p follows the noncentral F distribution with p",
+        "# and n - p df and noncentrality n times the squared Mahalanobis distance",
+        "# of the means from the fixed values (Anderson, 2003, An Introduction to",
+        "# Multivariate Statistical Analysis, 3rd ed., section 5.4)."
+      )
+    },
+    "p <- length(sds)",
+    "sigma <- matrix(r, p, p)",
+    "diag(sigma) <- 1",
+    "sigma <- sigma * outer(sds, sds) # covariance matrix of the outcomes",
+    if (two) "difference <- means[2, ] - means[1, ]" else "difference <- means - mu0",
+    "distance2 <- as.numeric(t(difference) %*% solve(sigma, difference))",
+    "power_at <- function(n_total) {",
+    if (two) {
+      c(
+        "  df2 <- n_total - p - 1",
+        "  ncp <- n_total / 4 * distance2"
+      )
+    } else {
+      c(
+        "  df2 <- n_total - p",
+        "  ncp <- n_total * distance2"
+      )
+    },
+    "  critical <- qf(1 - alpha, p, df2)",
+    "  pf(critical, p, df2, ncp = ncp, lower.tail = FALSE)",
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
   )
 }
 

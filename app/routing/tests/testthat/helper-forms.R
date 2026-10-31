@@ -162,6 +162,11 @@ form_examples$E60 <- c(list(Y_labels = "Anxiety, Depression, Stress", means = "2
 form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_metric = "d", meta_effect = "0.15", study_size = "40",
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
+# E62: pupils in classes; a cross-level interaction.
+form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience",
+                            b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
+                            sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",

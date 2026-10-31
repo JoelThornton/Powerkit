@@ -631,6 +631,7 @@ sim_cluster_code <- function(spec, n) {
 # long format a mixed model is fitted to. The outcome is centred: the
 # model's intercept is 0, as the difference is all the power depends on.
 sim_mixed_code <- function(spec, n) {
+  if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
   inputs <- simr_inputs(spec)
   levels <- sim_levels(spec, "X")
   item_var <- if (length(inputs$VarCorr$item) > 1) {
@@ -815,4 +816,29 @@ simulated_data_file_name <- function(spec) {
 simulated_data_n <- function(spec, result) {
   n <- if (identical(spec$goal$type, "sample_size")) result$n_required$n else spec$goal$n
   if (is.numeric(n) && length(n) == 1 && !is.na(n)) n
+}
+
+# People in groups (E41): the design and model the simulation uses
+# (two_level_design(), two_level_inputs()), one row per person.
+sim_two_level_code <- function(spec, n) {
+  inputs <- two_level_inputs(spec)
+  n <- (n %/% inputs$cluster_size) * inputs$cluster_size
+  c(
+    sprintf("cluster_size <- %d", as.integer(inputs$cluster_size)),
+    sprintf("groups <- %d", as.integer(n / inputs$cluster_size)),
+    "x <- qnorm(seq_len(cluster_size) / (cluster_size + 1))",
+    "w <- qnorm((seq_len(groups) - 0.5) / groups)",
+    "design <- data.frame(group = factor(rep(seq_len(groups), each = cluster_size)),",
+    "  x = rep((x - mean(x)) / sqrt(mean((x - mean(x))^2)), groups),",
+    "  w = rep((w - mean(w)) / sqrt(mean((w - mean(w))^2)), each = cluster_size))",
+    sprintf("group_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$group))),
+    sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(group = group_var), sigma = %s, data = design)",
+      deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$sigma)),
+    "simulated <- data.frame(",
+    "  group = design$group,",
+    sprintf("  %s = design$x,", sim_label(spec, "X")),
+    sprintf("  %s = design$w,", sim_label(spec, "W")),
+    sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
 }

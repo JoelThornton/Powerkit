@@ -1,5 +1,72 @@
-# powerkit 0.25.0
+# powerkit 0.26.0
 
+Fixes from a review of 0.25.0, and its follow-ups.
+
+* The variance tests of one and two groups are computed exactly, from the
+  chi-square and F distributions the G*Power 3.1 manual gives (sections
+  26.5 and 15.5), with base R's `pchisq()` and `pf()`
+  (`backend-variance.R`), instead of simulated: they give the manual's
+  examples exactly (N = 81 and 103; 193 per group, power 0.800105) and
+  agree with Spower's simulation, which stays available with
+  `options > method` "simulation". Known difference 4 is retired. The
+  formula takes an allocation ratio for two groups (the simulation still
+  can't). The exported script reproduces the result with base R alone.
+* Hotelling's T-squared is computed exactly, by its noncentral F
+  distribution (Anderson, 2003, *An Introduction to Multivariate
+  Statistical Analysis*, 3rd ed., sections 5.3.4 and 5.4), with base R's
+  `pf()` (`backend-hotelling.R`), instead of simulated: for one group
+  against fixed values (E60; p and N - p df, noncentrality N times the
+  squared Mahalanobis distance) and for a MANOVA of two groups (E59;
+  p and N - p - 1 df, noncentrality N1 N2 / N times the distance). It
+  gives the same power as pwrss's noncentral F tests and agrees with
+  Spower's simulation, which stays available with `options > method`
+  "simulation". Known difference 8 now applies only to MANOVA with three
+  or more groups.
+* Project rule: where no package has a formula, a closed-form result from a
+  published source may be written in the engine, cited and checked against
+  simulation (`CLAUDE.md`); where a method is clearly better, it becomes the
+  default and the conventional one stays an option.
+* Repeated-measures and mixed ANOVA from a *published* partial
+  eta-squared (as SPSS, R and JASP report it) gave too little power, and
+  too large a sample size, when a within factor has three or more levels:
+  pwrss's `power.f.mixed.anova(rho.within = NA)` takes the noncentrality
+  as f-squared times N, but a published value needs f-squared times the
+  effect's error df, as Superpower's `ANOVA_exact()` and G\*Power's "as in
+  SPSS" option use. The engine now rescales the value it passes to pwrss
+  (`pwrss_mixed_eta()`), and the exported script does the same. Three
+  conditions, means 600/620/650, SD 100, r = .6, 40 people: 60.3% before,
+  88.8% now, as `ANOVA_exact()` gives. Two levels were right before and
+  are unchanged; the "planned" (G\*Power) route is unchanged.
+  `conventions.md` states the rescaling.
+* MANOVA (E59) and one-sample Hotelling's T-squared (E60) failed on the
+  result screen: `effect_from_units()` now returns NULL for designs other
+  than the t-tests and equivalence tests it describes.
+* 2 x 2 ANOVA with unequal group sizes (E22): the sample-size search now
+  steps by the smallest N that splits into the cells' ratio
+  (`cell_ratio_step()`), instead of failing with "non-conformable
+  arguments".
+* New `runs_simulation(spec)`: whether `run_spec()` would simulate. The app
+  uses it to run long simulations (pairwise comparisons, Friedman's and
+  Kruskal-Wallis tests, factorial logistic regression, the Hartung-Knapp
+  meta-analysis) in the background with a progress bar, rather than
+  holding up the app.
+* Plain-English messages: choosing partial eta-squared with a test that
+  needs means names the test in words, once; the smallest-effect message
+  no longer says "goal type"; a backend's error isn't repeated twice.
+* App: the meta-analysis result, write-up and ethics version count
+  studies, not participants, name the test used (Hartung-Knapp or z) and
+  the effect (d or r); F, chi-square and rank tests are no longer called
+  "two-sided"; the pair to compare matches group names whatever their
+  case; internal notes no longer show in the help; the About page lists
+  every backend and no internal codes, and its opening line is current.
+* App: the analysis search also finds tests by their other names (rank
+  tests, post hoc, ICC, mixed models, HLM and more; `tree.yaml`,
+  `search_words`), treats hyphens as spaces and matches one- and
+  two-letter words only whole. "I know the terms" becomes an
+  "Explanations" switch, on by default, and no longer hides the help
+  under each field. The Labs tools are renamed: Methods map, Power
+  visualiser and Effect size converter; "Pre-replication notes" keeps
+  the term of the paper it comes from (Karhulahti et al., 2025).
 * Two-way MANOVA: the `manova` template takes a second between factor B
   (one row of means per combination of A and B, A's levels outer) and
   tests either main effect or the interaction (`target_test > effect`)
@@ -9,6 +76,24 @@
   simulation written separately (fitted in the other order), with the
   Type I error near alpha for each effect. The app's MANOVA card (E59)
   asks whether the groups come from one factor or two.
+
+# powerkit 0.25.0
+
+* Two-level model (E62, design `mixed_model`, template `two_level`):
+  people within groups, with a predictor measured on each person (X), one
+  measured on each group (W) and their cross-level interaction, fitted
+  by simr's `powerSim()` on `y ~ x + w + x:w + (1 + x | group)` and each
+  effect tested by lmerTest's Satterthwaite t test (`target_test >
+  effect` "within_effect", "between_effect" or
+  "cross_level_interaction"). The inputs are each effect per SD of its
+  predictor, the SDs of the groups' averages and of their X effects and
+  the correlation between them, the residual SD and the group size; n is
+  the number of people, a whole number of groups. Agrees with a
+  separately written simulation (MASS and lmerTest), with the Type I
+  error near alpha; published value to come. App: a new question for
+  people within groups (C1) separates conditions given to groups (E34)
+  from measured predictors at either level (E62); outcomes other than
+  scores still go to E34.
 * Whole-study simulation (experimental): X may be two groups or
   conditions (`variables > X > type` "binary", `population > x_prob`, the
   share in the second group, 0.5 by default), drawn by power4mome's

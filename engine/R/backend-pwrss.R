@@ -171,6 +171,26 @@ eta_anova_design <- function(spec) {
   )
 }
 
+# The partial eta-squared passed to pwrss's power.f.mixed.anova() at total
+# sample size n. A published one (as SPSS, R and JASP report it) is the
+# effect's sum of squares over the error sum of squares, so the F test's
+# noncentrality is f^2 times the error df: (n - groups) x (measurements - 1)
+# for a within effect or the interaction, n - groups for the between
+# effect. This is how Superpower's ANOVA_exact() relates its partial
+# eta-squared to its noncentrality, and how G*Power's "as in SPSS" setting
+# converts f (Superpower's vignette "More ANOVA designs"). pwrss, with
+# rho.within = NA, takes the noncentrality as f^2 x n, which agrees only
+# with two measurements; so f^2 is rescaled by error df / n before it is
+# passed. The G*Power kind ('planned') is passed unchanged.
+pwrss_mixed_eta <- function(pop, design, n) {
+  if (!identical(pop$eta_source, "published")) return(pop$eta_squared)
+  k <- design$levels[1]
+  m <- design$levels[2]
+  df_error <- (n - k) * if (identical(design$target, "between")) 1 else (m - 1)
+  f2 <- pop$eta_squared / (1 - pop$eta_squared) * df_error / n
+  f2 / (1 + f2)
+}
+
 # pwrss's alternative: its one-sided tests run in the direction of the
 # specified effect (validate_spec() refuses a one-sided test pointing the
 # other way for these templates).
@@ -212,7 +232,7 @@ pwrss_inputs <- function(spec) {
         fun = "power.f.mixed.anova",
         design = design,
         args = function(n) list(
-          eta.squared = pop$eta_squared, factor.levels = design$levels, rho.within = rho, epsilon = 1,
+          eta.squared = pwrss_mixed_eta(pop, design, n), factor.levels = design$levels, rho.within = rho, epsilon = 1,
           n.total = n, alpha = alpha, effect = design$target, ceil.n = FALSE, verbose = 0
         )
       )
@@ -473,8 +493,15 @@ pwrss_check_run <- function(spec, inputs) {
       out <- pwrss_output(inputs$fun, args)
       if (isTRUE(eta_anova_design(spec)$mixed)) {
         rbind(
-          row("partial eta-squared passed to pwrss (eta.squared)", pop$eta_squared, args$eta.squared),
+          row(if (identical(pop$eta_source, "published")) {
+                "partial eta-squared passed to pwrss, rescaled so its noncentrality is f^2 x error df (eta.squared)"
+              } else "partial eta-squared passed to pwrss (eta.squared)",
+              pwrss_mixed_eta(pop, eta_anova_design(spec), args$n.total), args$eta.squared),
           row("numerator df of the effect pwrss tested (df1)", eta_anova_design(spec)$df, out$df1),
+          if (identical(pop$eta_source, "published")) {
+            row("noncentrality: Cohen's f^2 from the eta-squared entered x pwrss's error df",
+                pop$eta_squared / (1 - pop$eta_squared) * out$df2, out$ncp)
+          },
           row("correlation between measurements passed to pwrss (rho.within; NA = already in the eta-squared)",
               if (identical(pop$eta_source, "published")) NA_real_ else pop$r, as.numeric(args$rho.within))
         )

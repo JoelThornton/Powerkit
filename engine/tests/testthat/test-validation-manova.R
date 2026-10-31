@@ -1,10 +1,12 @@
 # Validation: one-way MANOVA (Pillai's trace) and, with two groups,
-# Hotelling's T-squared. Backend: Spower simulation of powerkit's
-# p_manova() experiment (multivariate normal scores, stats::manova()). No
-# package powerkit builds on has a formula for MANOVA power, so it is
-# simulated; G*Power computes it by formula (exact for Hotelling's
-# T-squared, an approximation for Pillai's trace with three or more
-# groups), so the published comparisons allow for Monte Carlo error.
+# Hotelling's T-squared. Backend: with three or more groups, Spower
+# simulation of powerkit's p_manova() experiment (multivariate normal
+# scores, stats::manova()), as no package powerkit builds on has a formula
+# for MANOVA power; G*Power uses an approximation for Pillai's trace there,
+# so the published comparison allows for Monte Carlo error. With two
+# groups, since 31 October 2026, the exact noncentral F of Hotelling's
+# T-squared (Anderson, 2003, sections 5.3.4 and 5.4; backend-hotelling.R),
+# as G*Power computes it.
 # Build guide section 6:
 #   1. published-example agreement with G*Power 3.1
 #   2. agreement with an exact calculation (two groups: Hotelling's

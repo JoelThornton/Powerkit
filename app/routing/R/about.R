@@ -8,12 +8,19 @@
 # tools"), then the software doing real work underneath them (as in the
 # engine's citations export, supporting_software()), then R and Shiny.
 about_foundation_tools <- list(
-  list(package = "pwr", role = "formulas for the t-tests, the correlation and the chi-square test (E1 to E4, E6), and Cohen's h for two proportions if you choose it"),
-  list(package = "pwrss", role = "the z test for two proportions in unequal groups and Fisher's exact test (E5), Welch's t-test by formula (E2), one-way ANCOVA (E23), multiple regression (E24), one proportion (E25) and McNemar's test (E26)"),
-  list(package = "Spower", role = "simulation for the basic tests when you choose it, and for Welch's t-test (E2)"),
-  list(package = "Superpower", role = "the 2 x 2 designs (E7, E8) and the one-way ANOVA (E18)"),
-  list(package = "InteractionPoweR", role = "interactions in regression (E9)"),
-  list(package = "power4mome", role = "mediation and moderated mediation (E10 to E14)")
+  list(package = "pwr", role = "formulas for the t-tests, the correlation and the chi-square test of independence, and Cohen's h for two proportions if you choose it"),
+  list(package = "pwrss", role = "the z test for two proportions in unequal groups, Fisher's exact test, Welch's t-test by formula, ANOVA and ANCOVA from partial eta-squared, regression, one proportion, McNemar's test, the goodness-of-fit test, comparing correlations and non-inferiority tests"),
+  list(package = "Spower", role = "simulation for the rank tests, Welch's tests, the variance test in the same people, MANOVA and the meta-analysis's Hartung-Knapp test, and for the basic tests when you choose it"),
+  list(package = "Superpower", role = "the one-way, factorial, repeated-measures and mixed ANOVAs from means, planned contrasts and pairwise comparisons"),
+  list(package = "InteractionPoweR", role = "interactions in regression"),
+  list(package = "power4mome", role = "mediation, moderated mediation and the whole-study simulation"),
+  list(package = "powertools", role = "cluster-randomised, multisite and group treatment trials"),
+  list(package = "semPower", role = "model fit, measurement invariance, factor correlations and latent paths in SEM"),
+  list(package = "TOSTER", role = "equivalence tests"),
+  list(package = "bfpwr", role = "Bayes factor t-tests"),
+  list(package = "metapower", role = "the planned meta-analysis's z test"),
+  list(package = "simr", role = "participants responding to many items (mixed models)"),
+  list(package = "PUMP", role = "joint power for several outcomes in a study plan")
 )
 about_supporting_tools <- list(
   list(package = "SimDesign", role = "which runs Spower's simulations"),
@@ -21,7 +28,11 @@ about_supporting_tools <- list(
   list(package = "MASS", role = "which Superpower uses to generate data"),
   list(package = "lavaan", role = "which power4mome uses to fit each simulated data set"),
   list(package = "manymome", role = "which power4mome uses for indirect effects and their confidence intervals"),
-  list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups (E5)"),
+  list(package = "metafor", role = "which fits each simulated meta-analysis"),
+  list(package = "lme4", role = "which fits simr's mixed models"),
+  list(package = "effectsize", role = "which converts published effect sizes"),
+  list(package = "psych", role = "which converts published t and F statistics, and gives safeguard power's interval"),
+  list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups, and its chi-square and F distributions the variance tests of one or two groups"),
   list(package = "shiny", role = "which draws this app")
 )
 
@@ -56,12 +67,12 @@ about_endpoint_lines <- function(tree, forms) {
   line <- function(id, how) {
     ep <- tree$endpoints[[id]]
     # One string, so no stray spaces appear around the punctuation.
-    tags$li(HTML(sprintf("<strong>%s</strong>: %s (%s). %s", id,
+    tags$li(`data-endpoint` = id, HTML(sprintf("<strong>%s</strong> (%s). %s",
       htmltools::htmlEscape(ep$plain_name), htmltools::htmlEscape(ep$doc_name), htmltools::htmlEscape(how))))
   }
   c(
     lapply(instant, function(id) {
-      line(id, if (id %in% background) "Calculates here, in the background, with a progress bar." else "Calculates here, straight away.")
+      line(id, if (id %in% background) "Calculates here, in the background, with a progress bar." else "Calculates here; a simulated test version runs in the background, with a progress bar.")
     }),
     lapply(names(sims), function(id) {
       full <- "power" %in% unlist(sims[[id]]$full_run)

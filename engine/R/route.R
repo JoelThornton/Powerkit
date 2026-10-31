@@ -97,10 +97,18 @@ route_spec <- function(spec, seed = NULL) {
     "equivalence_test/noninf_one_sample" = ,
     "equivalence_test/noninf_two_proportions" = noninf_backend(spec, seed),
     "basic_test/one_variance" = ,
-    "basic_test/two_variances" = ,
+    "basic_test/two_variances" = if (basic_test_method(spec) == "exact") {
+      variance_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/paired_variances" = ,
     "basic_test/manova" = ,
-    "basic_test/hotelling_one" = spower_backend(spec, seed),
+    "basic_test/hotelling_one" = if (basic_test_method(spec) == "exact") {
+      hotelling_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {
@@ -109,6 +117,7 @@ route_spec <- function(spec, seed = NULL) {
     "ordinal_regression/ordinal_two_groups" = propodds_backend(spec),
     "meta_analysis/mean_effect" = if (hartung_knapp_test(spec)) meta_hk_backend(spec, seed) else metapower_backend(spec, seed),
     "mixed_model/crossed_two_condition" = simr_backend(spec, seed),
+    "mixed_model/two_level" = simr_backend(spec, seed),
     "logistic_regression/factorial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
       # Given by its R-squared change, as G*Power takes it: pwrss's F test.
@@ -135,12 +144,13 @@ route_spec <- function(spec, seed = NULL) {
   )
 }
 
-# Basic tests use pwr's exact formula unless simulation is requested or
-# the test isn't one pwr covers (Welch's t-test, and the variance tests,
-# which no formula backend covers at all), when Spower simulates.
+# Basic tests use an exact formula unless simulation is requested or
+# no formula covers the test (Welch's t-test, the rank tests, the
+# Pitman-Morgan test), when Spower simulates: pwr's, or for one or two
+# variances the chi-square and F distributions (backend-variance.R).
 # Welch's t-test by formula (pwrss) only when options > method = "exact".
 basic_test_method <- function(spec) {
-  spec$options$method %||% if (pwr_covers(spec)) "exact" else "simulation"
+  spec$options$method %||% if (pwr_covers(spec) || formula_test(spec)) "exact" else "simulation"
 }
 
 abort_not_available <- function(message) {
@@ -267,6 +277,8 @@ call_backend <- function(backend, expr) {
   tryCatch(
     suppressMessages(expr),
     error = function(e) {
+      # Nested calls (a backend run inside another's simulation) report once.
+      if (inherits(e, "powerkit_run_error")) stop(e)
       abort_run(sprintf(
         "%s could not run this design. It reported: %s",
         backend, trimws(conditionMessage(e))

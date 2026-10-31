@@ -13,13 +13,13 @@ labs_tab_title <- "Labs (experimental)"
 # The tools on Labs' first screen; each opens on its own (22 October 2026),
 # so that more can be added.
 labs_tools <- list(
-  list(id = "map", title = "A map of the methods",
+  list(id = "map", title = "Methods map",
        text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
   list(id = "prereplication", title = "Pre-replication notes",
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
-  list(id = "picture", title = "A picture of power",
+  list(id = "picture", title = "Power visualiser",
        text = "For a two-group t-test: move the sample size and the effect, choose alpha, and see the two t distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
-  list(id = "published", title = "Plan from a published result",
+  list(id = "published", title = "Effect size converter",
        text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
 labs_ref_key <- "Karhulahti2025_prereplication"
@@ -301,7 +301,7 @@ labs_signpost_ui <- function() {
   conditionalPanel("input.f_just_type == 'prior_study'",
     div(class = "labs-signpost",
       "Planning a replication? ", actionLink("go_labs", "Pre-replication notes in Labs"),
-      " may help you think it through first (optional). ",
+      " can help you think it through first (optional). ",
       tags$button(type = "button", class = "btn btn-link btn-sm labs-hide", onclick = "pkLabsHideHint()", "Hide this")))
 }
 
@@ -369,7 +369,7 @@ labs_js <- "
   })();
 "
 
-# Plan from a published result (Labs): the effect as a paper reported it,
+# Effect size converter (Labs, "Plan from a published result" until 0.25.1): the effect as a paper reported it,
 # converted by the engine (convert_effect(): psych's t2d() for t and F into
 # d or d_z, effectsize for the rest) into the
 # effect size a card uses, and the safeguard effect size (safeguard_effect(),
@@ -461,7 +461,7 @@ published_result <- function(values, convert, safeguard) {
   list(lines = lines, problems = character())
 }
 
-# A picture of power (Labs): the engine's power_picture() gives the curves
+# Power visualiser (Labs, "A picture of power" until 0.25.1): the engine's power_picture() gives the curves
 # and the numbers (pwr's power, base R's t densities); the app draws them.
 picture_alphas <- c("0.005", "0.01", "0.05", "0.10")
 
@@ -470,7 +470,7 @@ picture_ui <- function() {
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
       "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t distributions for the curves)."),
-    h3("A picture of power"),
+    h3("Power visualiser"),
     p("A two-group t-test with equal groups. The grey curve is the t statistic you would see if there were no effect; the blue curve is the t statistic for the effect you set. A result beyond the dashed lines is significant."),
     sliderInput("picture_n", "Total number of participants (two equal groups)", min = 10, max = 400, value = 64, step = 2, width = "100%"),
     sliderInput("picture_d", "Cohen's d in the population", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%"),
@@ -523,7 +523,7 @@ published_ui <- function() {
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
       "The numbers come from powerkit's engine (effectsize and psych for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
-    h3("Plan from a published result"),
+    h3("Effect size converter"),
     p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, where it can, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
