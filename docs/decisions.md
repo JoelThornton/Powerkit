@@ -3755,3 +3755,12 @@ merges when its checks pass, unless a doubt is stated in it.
   earlier paper can still plan. A review of the cards found four that
   didn't: the ANCOVAs and three between factors (partial eta-squared,
   added) and the two chi-square tests (Cohen's w, next).
+- **Joint power for plans that mix designs (1):** extend the whole-study
+  simulation (one data set for every analysis, so their correlation is
+  right), starting with a group comparison and a correlation or
+  regression on the same people; Experimental, with the statistician's
+  check afterwards (item 11), not before.
+- **Multilevel models (3):** E41 next, simulated with simr as E33 is.
+- **Bayes (4):** the order in `docs/bayes-planning.md` (#193): a Labs
+  Bayes mode at fixed N with the analysis and design priors kept apart and
+  every outcome shown, then the other cards, sequential designs last.
