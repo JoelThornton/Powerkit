@@ -1,5 +1,10 @@
 # powerkit 0.25.0
 
+* `power_picture()`: for a two-group t-test, the central and noncentral t
+  densities (`stats::dt()`) with the critical t, pwr's power, beta, the
+  df, the noncentrality and the smallest significant d (critical t times
+  sqrt(1 / n1 + 1 / n2), Lakens, 2013). The app's Labs draws it as "A
+  picture of power".
 * Simulated data sets for MANOVA and one-sample Hotelling's T-squared
   (the multivariate normal scores the simulation draws) and the one-way
   ANCOVA (one standard normal covariate carrying all of the covariates'

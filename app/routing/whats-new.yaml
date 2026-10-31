@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "A picture of power, in Labs"
+    text: >-
+      Labs has a new tool for seeing what power is: move the sample size
+      and the effect for a two-group t-test, and watch the two t
+      distributions, the power and the smallest effect that would be
+      significant change.
+  - date: "2026-10-31"
     title: "More simulated data sets"
     text: >-
       The simulated data set download now covers MANOVA, one group's several
