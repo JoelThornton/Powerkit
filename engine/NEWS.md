@@ -1,5 +1,15 @@
 # powerkit 0.25.0
 
+* Whole-study simulation (experimental): X may be two groups or
+  conditions (`variables > X > type` "binary", `population > x_prob`, the
+  share in the second group, 0.5 by default), drawn by power4mome's
+  `rbinary_rs()`. The group comparison is the regression of Y on the
+  groups (Student's t test); moderation and mediation with a yes/no X
+  are simulated on the same data sets, so a study plan can give joint
+  power for a group comparison with a moderation or a mediation on the
+  same people. The groups must be uncorrelated with W (power4mome draws
+  them on their own), as when people are randomised; the check run
+  confirms the share, and the implied values give the comparison's d.
 * App: an "I know the terms" setting in the top bar, remembered in the
   viewer's browser, shows the technical names first (on the cards and in
   the list of analyses) and hides the plain-English hints, the help

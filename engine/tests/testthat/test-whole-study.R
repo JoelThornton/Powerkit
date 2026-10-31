@@ -254,3 +254,38 @@ test_that("the run script for a whole study holds the spec and runs run_whole_st
   export_whole_study_script(spec, file = file, run_time = "about 20 minutes")
   expect_equal(paste(c(readLines(file, encoding = "UTF-8"), ""), collapse = "\n"), text)
 })
+
+# X as two groups (next.md item 1: a group comparison and a regression on
+# the same people) ------------------------------------------------------------
+
+group_study <- function(x_prob = NULL, r_xw = 0, nrep = 100, seed = 21) {
+  spec <- regression_study(nrep = nrep, seed = seed)
+  spec$variables$X <- list(type = "binary", label = "Condition")
+  spec$population$correlations <- list("X<->W" = r_xw)
+  if (!is.null(x_prob)) spec$population$x_prob <- x_prob
+  spec
+}
+
+test_that("X may be two groups: power4mome draws it with the share given, and the check run confirms it", {
+  spec <- validate_whole_study(group_study(x_prob = 0.4))
+  inputs <- whole_study_inputs(spec)
+  expect_equal(inputs$x_prob, 0.4)
+  expect_equal(whole_study_inputs(validate_whole_study(group_study()))$x_prob, 0.5)
+  result <- run_whole_study(group_study(x_prob = 0.4))
+  share <- result$check_run[result$check_run$parameter == "share of X's second group", ]
+  expect_equal(nrow(share), 1)
+  expect_true(all(result$check_run$ok))
+  # The group comparison's implied values include the d its own card asks for.
+  expect_named(result$implied$compare$values, c("r", "d"))
+})
+
+test_that("a two-group X must be uncorrelated with W, and x_prob needs a two-group X", {
+  expect_error(validate_whole_study(group_study(r_xw = 0.3)), "must be 0", class = "powerkit_spec_error")
+  scores <- regression_study()
+  scores$population$x_prob <- 0.5
+  expect_error(validate_whole_study(scores), "only when X is two groups", class = "powerkit_spec_error")
+  # Only X may be two groups.
+  outcome <- group_study()
+  outcome$variables$Y$type <- "binary"
+  expect_error(validate_whole_study(outcome), class = "powerkit_spec_error")
+})
