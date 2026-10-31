@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "The power visualiser shows a correlation too"
+    text: >-
+      In Labs, the power visualiser now also draws power for a
+      correlation: move the number of participants and the correlation,
+      and see how the two curves pull apart, with the smallest correlation
+      that would be significant.
+  - date: "2026-10-31"
     title: "Choose a significance level by weighing the two mistakes"
     text: >-
       The one-sample, paired and two-group t-tests and the correlation

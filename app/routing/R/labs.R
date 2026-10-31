@@ -18,7 +18,7 @@ labs_tools <- list(
   list(id = "prereplication", title = "Pre-replication notes",
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
   list(id = "picture", title = "Power visualiser",
-       text = "For a two-group t-test: move the sample size and the effect, choose alpha, and see the two t distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
+       text = "For a two-group t-test or a correlation: move the sample size and the effect, choose alpha, and see the two distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
   list(id = "published", title = "Effect size converter",
        text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
@@ -471,9 +471,16 @@ picture_ui <- function() {
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
       "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t distributions for the curves)."),
     h3("Power visualiser"),
-    p("A two-group t-test with equal groups. The grey curve is the t statistic you would see if there were no effect; the blue curve is the t statistic for the effect you set. A result beyond the dashed lines is significant."),
-    sliderInput("picture_n", "Total number of participants (two equal groups)", min = 10, max = 400, value = 64, step = 2, width = "100%"),
-    sliderInput("picture_d", "Cohen's d in the population", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%"),
+    selectInput("picture_design", "Which test?", choices = c("A two-group t-test (equal groups)" = "t", "A correlation (Pearson's r)" = "r"),
+      selected = "t", selectize = FALSE, width = "100%"),
+    conditionalPanel("input.picture_design != 'r'",
+      p("A two-group t-test with equal groups. The grey curve is the t statistic you would see if there were no effect; the blue curve is the t statistic for the effect you set. A result beyond the dashed lines is significant."),
+      sliderInput("picture_n", "Total number of participants (two equal groups)", min = 10, max = 400, value = 64, step = 2, width = "100%"),
+      sliderInput("picture_d", "Cohen's d in the population", min = 0, max = 1.5, value = 0.5, step = 0.05, width = "100%")),
+    conditionalPanel("input.picture_design == 'r'",
+      p("A correlation, tested two-sided. The curves are the correlation you would observe, on the scale of Fisher's z, as pwr's formula treats it: grey if there were no correlation, blue for the correlation you set. A result beyond the dashed lines is significant."),
+      sliderInput("picture_n_r", "Number of participants", min = 10, max = 400, value = 84, step = 1, width = "100%"),
+      sliderInput("picture_r", "Correlation in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%")),
     radioButtons("picture_alpha", "Alpha", choices = picture_alphas, selected = "0.05", inline = TRUE),
     plotOutput("picture_plot", height = "320px"),
     uiOutput("picture_numbers"))
@@ -483,22 +490,27 @@ picture_ui <- function() {
 # blue curve beyond them and alpha under the grey one.
 picture_plot <- function(picture) {
   curves <- picture$curves
-  t <- curves$t
-  beyond <- abs(t) >= picture$t_crit
+  # A correlation (power_picture_r()) is drawn on Fisher's z scale.
+  is_r <- !is.null(picture$r)
+  t <- if (is_r) curves$z else curves$t
+  crit <- if (is_r) picture$z_crit else picture$t_crit
+  beyond <- abs(t) >= crit
   shade <- function(y, keep, colour) {
     runs <- split(seq_along(t)[keep], cumsum(c(1, diff(seq_along(t)[keep]) != 1)))
     for (i in runs) graphics::polygon(c(t[i], rev(t[i])), c(y[i], rep(0, length(i))), col = colour, border = NA)
   }
   graphics::par(mar = c(4, 4, 1, 1))
   graphics::plot(t, curves$null, type = "n", ylim = c(0, max(curves$null, curves$alternative) * 1.05),
-    xlab = "t statistic", ylab = "Density", las = 1, bty = "l")
+    xlab = if (is_r) "Observed correlation, as Fisher's z" else "t statistic", ylab = "Density", las = 1, bty = "l")
   shade(curves$alternative, beyond, grDevices::adjustcolor("#2166ac", alpha.f = 0.35))
   shade(curves$null, beyond, grDevices::adjustcolor("#b2182b", alpha.f = 0.5))
   graphics::lines(t, curves$null, col = "grey40", lwd = 2)
   graphics::lines(t, curves$alternative, col = "#2166ac", lwd = 2)
-  graphics::abline(v = c(-1, 1) * picture$t_crit, lty = 2)
+  graphics::abline(v = c(-1, 1) * crit, lty = 2)
+  labels <- if (is_r) c("No correlation", sprintf("r = %s", format(picture$r))) else
+    c("No effect (central t)", sprintf("d = %s (noncentral t)", format(picture$d)))
   graphics::legend("topright", bty = "n", cex = 0.85,
-    legend = c("No effect (central t)", sprintf("d = %s (noncentral t)", format(picture$d)), "Power (shaded blue)", "Type I error (shaded red)"),
+    legend = c(labels, "Power (shaded blue)", "Type I error (shaded red)"),
     col = c("grey40", "#2166ac", grDevices::adjustcolor("#2166ac", alpha.f = 0.35), grDevices::adjustcolor("#b2182b", alpha.f = 0.5)),
     lwd = c(2, 2, 8, 8))
 }
@@ -506,6 +518,15 @@ picture_plot <- function(picture) {
 # The numbers behind the picture, in words.
 picture_numbers <- function(picture) {
   pct <- function(x) sprintf("%.1f%%", 100 * x)
+  if (!is.null(picture$r)) return(tagList(
+    tags$ul(class = "picture-numbers",
+      tags$li(tags$strong("Power: "), pct(picture$power), sprintf(" (the blue area beyond the dashed lines), so beta, the chance of missing the correlation, is %s.", pct(picture$beta))),
+      tags$li(tags$strong("Spread: "), sprintf("%.3f", picture$se), sprintf(" = 1 / \u221a(n - 3), the standard error of Fisher's z with %s participants; it shrinks as n grows, so the curves overlap less.", format(picture$n))),
+      tags$li(tags$strong("Centre of the blue curve: "), sprintf("%.3f", picture$z_r), sprintf(" = Fisher's z of r = %s, with pwr's small bias correction.", format(picture$r))),
+      tags$li(tags$strong("Critical value: "), sprintf("\u00b1%.3f", picture$z_crit), sprintf(" on the z scale, from the critical t of \u00b1%.3f with %s degrees of freedom (n - 2) at alpha = %s.", picture$t_crit, picture$df, format(picture$alpha))),
+      tags$li(tags$strong("Smallest significant r: "), sprintf("%.3f", picture$r_crit),
+        " = critical t / \u221a(critical t\u00b2 + n - 2). Any observed correlation smaller than this isn't significant, whatever the true correlation.")),
+    p(class = "small text-muted", sprintf("Power from %s; curves from R's dnorm().", picture$function_used))))
   tagList(
     tags$ul(class = "picture-numbers",
       tags$li(tags$strong("Power: "), pct(picture$power), sprintf(" (the blue area beyond the dashed lines), so beta, the chance of missing the effect, is %s.", pct(picture$beta))),

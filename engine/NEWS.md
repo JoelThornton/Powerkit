@@ -35,6 +35,12 @@ A batch of new features, built as one round.
   compromise power analysis (Known difference 11: minimising, the
   default, gives a lower alpha). New dependency: JustifyAlpha (with
   BayesFactor, qpdf and their dependencies).
+* `power_picture_r()`: the Labs picture of power for a correlation. pwr's
+  `pwr.r.test()` power, with the two normal curves on Fisher's z scale that
+  its formula uses (SD 1 / sqrt(n - 3), centred on 0 and on Fisher's z of r
+  with pwr's bias correction), the critical value from the t test with
+  n - 2 df, and the smallest significant r. The app's power visualiser
+  offers it beside the two-group t-test.
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.

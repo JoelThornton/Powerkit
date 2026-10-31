@@ -83,7 +83,7 @@ fully validated. Validation runs are recorded in
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter and the power
-  visualiser for the two-group t-test).
+  visualiser for the two-group t-test and, since 0.27.0, the correlation).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 8); E17 on questions for power4mome (item 10); Spower's faults
