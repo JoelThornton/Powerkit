@@ -71,7 +71,8 @@ export_script <- function(spec, result, file = NULL) {
     metapower = metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
-    simr = if (identical(spec$template, "two_level")) two_level_script(spec, result) else simr_script(spec, result),
+    simr = switch(spec$template, two_level = two_level_script(spec, result),
+      crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -423,6 +424,16 @@ design_description <- function(spec) {
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
+    "mixed_model/crossed_conditions" = sprintf(
+      "participants responding to %s items in %d conditions of %s (%s, within participants); effect tested: %s",
+      format_number(spec$population$items), length(spec$variables$X$levels), label("X"), levels("X"),
+      if (identical(spec$target_test$effect, "pairwise")) {
+        sprintf("%s against %s (%s adjustment for all the pairs)", spec$target_test$comparison[[1]],
+          spec$target_test$comparison[[2]], spec$target_test$p_adjust %||% "holm")
+      } else {
+        "any difference between the conditions"
+      }
     ),
     "mixed_model/two_level" = sprintf(
       "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s; effect tested: %s",

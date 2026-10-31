@@ -35,7 +35,7 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped cards (through C1).
       # Many trials per person leave after S2's follow-up for E33.
-      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62")) || ("s2_trials" %in% p && end == "E33")
+      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -188,11 +188,13 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
   # (which takes a score on each trial).
   expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E41")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
-  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: three or more conditions, or a predictor measured on each trial"), "E41")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: conditions given to different people with three or more conditions, or a predictor measured on each trial"), "E41")
   # Conditions given to different people (31 October 2026): E33 with the
   # condition between participants; a yes/no outcome per trial still E41.
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E33")
   expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E41")
+  # Three or more conditions, everyone in all of them (31 October 2026): E63.
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Three or more conditions, and each person responds in all of them"), "E63")
 })
 
 test_that("dyadic data no longer reach a test that treats partners as independent", {

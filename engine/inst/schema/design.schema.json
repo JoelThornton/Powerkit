@@ -7348,7 +7348,8 @@
           "template": {
             "enum": [
               "crossed_two_condition",
-              "two_level"
+              "two_level",
+              "crossed_conditions"
             ]
           }
         },
@@ -7381,6 +7382,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_level"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "crossed_conditions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_crossed_conditions"
             }
           }
         ]
@@ -7910,6 +7926,120 @@
                 },
                 "method": {
                   "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_crossed_conditions": {
+      "description": "Participants respond to many items (stimuli) in three or more conditions, every participant in every condition: a linear mixed model y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with cond a factor in treatment coding (each coefficient a condition's mean minus the first condition's), one participant-by-condition variance shared by every condition, and, with every item in every condition (item_design 'within'), an optional item-by-condition variance, (1 | item:cond). Simulated with simr's powerSim() on a model built by makeLmer(), testing that the conditions differ with lmerTest's Satterthwaite F test (effect 'condition'), or one pair of conditions with the Satterthwaite t test adjusted for all the pairs by stats::p.adjust() (effect 'pairwise'). goal > n is the number of participants; every participant responds to every item.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd_participant",
+            "sd_participant_condition",
+            "sd_item",
+            "sd_residual",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "means": {
+              "description": "Each condition's mean, in the order of X's levels, in the outcome's units.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd_participant": {
+              "description": "SD of the participants' random intercepts: how much participants' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_participant_condition": {
+              "description": "SD of the participant-by-condition effects: how much each participant's responses in a condition differ from what their average and the condition's mean predict, the same for every condition (random intercepts for participant:cond).",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item": {
+              "description": "SD of the items' random intercepts: how much items' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_condition": {
+              "description": "Every item in every condition only (item_design 'within'): SD of the item-by-condition effects (random intercepts for item:cond). 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_residual": {
+              "description": "SD of the residual: trial-to-trial variation within a participant and item.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "items": {
+              "description": "Total number of items. With items between conditions, they are split equally, one block per condition, so the number must be a multiple of the number of conditions.",
+              "type": "integer",
+              "minimum": 6
+            },
+            "item_design": {
+              "description": "'between' (the default): each item appears in one condition only. 'within': every item appears in every condition.",
+              "enum": [
+                "between",
+                "within"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "enum": [
+                    "condition",
+                    "pairwise"
+                  ]
+                },
+                "method": {
+                  "enum": [
+                    "satterthwaite_f",
+                    "satterthwaite_t"
+                  ]
                 }
               }
             }

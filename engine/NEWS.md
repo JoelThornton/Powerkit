@@ -1,3 +1,22 @@
+# powerkit 0.27.0
+
+* Participants and items in three or more conditions (E63, design
+  `mixed_model`, template `crossed_conditions`): every participant in
+  every condition, a mean per condition, the SDs of participants'
+  averages, of their condition effects (one shared by every condition,
+  `(1 | participant:cond)`), of items' averages and of the residual, and
+  the items split equally between the conditions or (with an optional
+  item-by-condition SD) in every condition. Simulated with simr's
+  `powerSim()`, testing that the conditions differ with lmerTest's
+  Satterthwaite F test (`target_test > effect` "condition"), or one pair
+  (`effect` "pairwise", `comparison`) with its Satterthwaite t test
+  adjusted for all the pairs by `stats::p.adjust()` (`p_adjust`, Holm by
+  default, as on the one-way ANOVA cards). The check run, exported
+  script and simulated data set follow the design. Agrees with a
+  simulation written separately without simr, with the Type I error near
+  alpha; published value to come. Reached from the design finder's
+  question on many trials or stimuli.
+
 # powerkit 0.26.0
 
 Fixes from a review of 0.25.0, and its follow-ups.
