@@ -861,7 +861,17 @@ as an experimental option, for a statistician's check
   81.0%: the same kind of gap, since the outcome also depends on the
   interaction the comparison leaves out (within the cross-check
   allowance, and a question for the statistician); Type I error 4.8%
-  and 5.1% for the two tests with every path 0. The joint power differs where the
+  and 5.1% for the two tests with every path 0. Measured twice (31
+  October 2026; 10,000 replications, N = 120, the first measurement B
+  with a path of .6 to Y, a moderator and an interaction), the
+  comparison adjusted for B had 82.7% power against powerkit's ANCOVA
+  card (E23, pwrss's `power.f.ancova.shieh()`) at the implied values,
+  83.9%: the same kind of gap; Type I error 4.9% and 4.5% with no effect.
+  Every analysis adjusts Y for B, as the
+  ANCOVA option the guided plan offers for two groups measured twice
+  does, so this follows E23 rather than departing from it; the mixed
+  ANOVA's group x time test (change scores, E8) is not simulated as a
+  whole study. The joint power differs where the
   analyses are related: for the correlation and simple mediation (a = b =
   .3, c' = .1, N = 100), both significant in 38.1% of replications against
   34.8% from the product of the separate powers, 3.3 points higher. For

@@ -29,6 +29,32 @@ test_that("the whole-study simulation covers measured predictors and score outco
   expect_false(plan$ok)
 })
 
+test_that("measured twice, every analysis adjusts for the first measurement; the ANCOVA comparison is covered, the mixed ANOVA's is not", {
+  twice <- modifyList(ws_answers, list(x = "cond2", times = "twice"))
+  ancova <- list(compare = "ANCOVA: the second measurement adjusting for the first")
+  plan <- whole_study_plan(tree, twice, c("compare", "moderation", "mediation"), c("compare", "moderation"), ancova)
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_y", "interaction", "indirect"))
+  expect_equal(plan$roles, c("X", "W", "M", "B", "Y"))
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list(compare = list(Y_label = "Exhaustion"))))
+  expect_identical(skeleton$variables$B, list(type = "continuous", label = "Exhaustion, first measurement"))
+  # The mixed ANOVA's group x time test, moderated mediation and two
+  # mediators are not simulated as a whole study measured twice.
+  mixed <- list(compare = "The 2 x 2 mixed ANOVA interaction (group x time)")
+  plan <- whole_study_plan(tree, twice, "compare", "compare", mixed)
+  expect_false(plan$ok)
+  expect_true(any(grepl("not yet", plan$reasons, fixed = TRUE)))
+  expect_false(whole_study_plan(tree, twice, "modmed", "modmed", list())$ok)
+  expect_false(whole_study_plan(tree, modifyList(twice, list(mediators = "several")), "mediation", "mediation", list())$ok)
+  # Measured three times or more stays outside.
+  expect_false(whole_study_plan(tree, modifyList(twice, list(times = "many_conditions")), "compare", "compare", ancova)$ok)
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  params <- params_of(skeleton)
+  expect_true("B->Y" %in% params$paths)
+  expect_setequal(params$correlations, "W<->B")
+})
+
 test_that("two mediators in a chain test the whole chain unless another path is chosen", {
   answers <- modifyList(ws_answers, list(mediators = "several", moderator = "none"))
   plan <- whole_study_plan(tree, answers, "mediation", "mediation",

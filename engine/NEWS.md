@@ -67,6 +67,19 @@ Fixes from a review of 0.25.0, and its follow-ups.
   under each field. The Labs tools are renamed: Methods map, Power
   visualiser and Effect size converter; "Pre-replication notes" keeps
   the term of the paper it comes from (Karhulahti et al., 2025).
+* Whole-study simulation (experimental): people measured twice. A
+  baseline B (`variables > B`, the outcome's first measurement) predicts
+  Y (path `B->Y`), may correlate with W and with a measured X
+  (`population > correlations` "X<->B", "W<->B"; 0 for two groups), and
+  every analysis adjusts Y for it, as the ANCOVA card (E23) does
+  (decided 31 October 2026). In the app's plan this covers the
+  comparison when the ANCOVA is chosen, and the moderation and a
+  mediation through one mediator measured twice, which have no card of
+  their own yet; the mixed ANOVA's group x time test, moderated
+  mediation and two mediators measured twice are not yet simulated. The
+  check run confirms the baseline's path and correlations, the implied
+  values add its correlation with Y, and the methods paragraph says that
+  every analysis adjusted for the first measurement.
 * Two-way MANOVA: the `manova` template takes a second between factor B
   (one row of means per combination of A and B, A's levels outer) and
   tests either main effect or the interaction (`target_test > effect`)
