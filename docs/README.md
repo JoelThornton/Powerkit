@@ -11,8 +11,8 @@ reasoning and are not current instructions.
 - [`status.md`](status.md): where the project is now. Current state only.
 - [`adding-a-test.md`](adding-a-test.md): the one page to follow when
   powerkit gains a power analysis it couldn't do before — what "added"
-  means, how the backend package is chosen, every file it touches, and
-  the queue of what to add next.
+  means, how the backend package is chosen and every file it touches
+  (what to add next is in `next.md`).
 - [`handover.md`](handover.md): the working rules and where things live,
   for whoever picks the project up next.
 - [`decisions.md`](decisions.md): every decision the maintainer has made,

@@ -74,8 +74,8 @@ they disagree about process, this page is current.
 
 ## 1. Pick the batch
 
-The queue is at the end of this page. Take the top batch unless the
-maintainer says otherwise.
+The queue is [`next.md`](next.md): take its first item marked Ready,
+unless the maintainer says otherwise.
 
 Within a batch, the lens is **what researchers realistically need**:
 
@@ -162,7 +162,8 @@ variance tests (PR #109) are a recent, complete example to copy.
 | `engine/inst/specs/<template>.json` | a complete, realistic example spec |
 | `engine/tests/testthat/test-backend-*.R` | translation, the check run, refusals, and the exported script reproducing the run |
 
-Then `devtools::document()` if any roxygen comment changed.
+Then regenerate `man/` if any roxygen comment changed (`roxygen2::roxygenise()`
+in `engine/`, with the roxygen2 version in `engine/DESCRIPTION`).
 
 ## 4. Validation
 
@@ -240,7 +241,8 @@ result screen and the methods paragraph say so.
 
 ## 7. Before you finish
 
-- `devtools::test()` and `devtools::check()` in `engine/`: both clean.
+- The engine's tests and R CMD check in `engine/`: both clean (the
+  commands are in `CLAUDE.md`, "Before finishing any task").
 - The app's suite: `testthat::test_dir("tests/testthat")` in
   `app/routing/`.
 - Read the eight boxes again. The tests catch a missed card, a missed
@@ -283,37 +285,9 @@ October) were raised once per feature under the earlier rule. 0.9.0 is the
 methods map, the three-effect curves, safeguard power and the share
 button (27 October).
 
-## The queue: what to add next
+## What to add next
 
-**Batch 1 (now): finish the five designs the engine already computes.**
-Logistic regression is in review (26 October 2026); the four below
-remain.
-Boxes 1 to 3 are done for all five — engine, example specs, unit tests,
-validation files with placeholders and their chunks are all in. Each needs
-boxes 4 to 8: a card, an input screen, the "What's new" entry, the version
-bump and the status update. Three of them have cards that currently tell
-users powerkit cannot do what it can, and their entry in `engine_only`
-has to go when they land.
-
-| Design | End point | What it needs |
-| --- | --- | --- |
-
-**Then, with the maintainer:** pick from the roadmap
-([`coverage-roadmap.md`](coverage-roadmap.md)), where every row has a
-status and a candidate package. The rows worth weighing first:
-
-- **Repeated measures** (A25–A30: between factors, within factors and
-  within-between interactions, each by the ANOVA and the MANOVA
-  approach): common in psychology, and Superpower already returns the
-  MANOVA results for a design with a within factor.
-- **Equivalence and non-inferiority** (B54 TOST, B55): researchers ask
-  for these and G\*Power does not cover them.
-- **Clustered and multilevel designs** (B36 multilevel/nested, B39
-  cluster-randomised, B38 mixed models with binary outcomes): powerkit's
-  differentiator, and where psychologists most often give up and guess.
-  Needs a package decision and a statistician's eye.
-- **SEM, CFA and measurement invariance** (B45–B47): semPower is the
-  named candidate; again a package decision.
-
-Rows marked "no ready-made tool" or "unknown" are not batches: they are
-questions for the maintainer first.
+[`next.md`](next.md) is the one queue: take its first item marked Ready.
+The roadmap ([`coverage-roadmap.md`](coverage-roadmap.md)) gives every
+design a status and a candidate package; a row marked "no ready-made tool"
+or "unknown" is a question for the maintainer first, not a batch.
