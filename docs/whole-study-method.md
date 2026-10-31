@@ -30,7 +30,13 @@ and 80% together, about 89.4% each).
    - Y on X and every mediator; W and X x W when an interaction of X and W
      is tested; W and M x W when W moderates M -> Y (PROCESS model 14);
    - the correlation of X and W, and with parallel mediators the
-     correlation of their residuals.
+     correlation of their residuals;
+   - measured twice (31 October 2026): the outcome's first measurement B
+     as an exogenous variable, with a path B -> Y and its correlations
+     with X (0 for two groups, drawn on their own) and W. Every
+     analysis's model then adds B to the equation for Y, as an ANCOVA
+     does; the mediators are not adjusted for B, since the population
+     has no B -> M path (question 7).
 
    Every observed variable has variance 1; the residual variances follow
    from the paths (powerkit's existing check, `implied_r_squared()`,
@@ -114,6 +120,11 @@ a local run of fewer replications below:
 | | Indirect effect | 0.1% | below 1.67% | conservative when both paths are 0 |
 | | At least one | 3.5% | at most 5% | as intended |
 
+Study D (measured twice; two groups, a moderator, the first measurement
+B with a path of .6 to Y, N = 120, 10,000 replications): the comparison
+adjusted for B 82.7% (SE 0.4) against 83.9% from powerkit's ANCOVA card
+(E23) at the implied d and covariate R-squared, within the allowance.
+
 Study B's two small gaps (both about 1.5 Monte Carlo SEs, the whole-study
 power the lower) are the first thing to look at: they may be chance, or a
 real effect of the terms an analysis leaves out (question 1 below) and of
@@ -147,3 +158,10 @@ how InteractionPoweR generates its data compared with power4mome.
    analysis be searched on its own and the largest n taken? The probit
    curve behind the search assumes power is close to
    pnorm(a + b sqrt(n)); is that still a fair smoother for a joint power?
+7. **Measured twice.** Each analysis adjusts the second measurement for
+   the first (ANCOVA), not change scores, following the option the
+   guided plan offers for two groups (E23). The population has no path
+   from B to a mediator, so a mediation adjusts only Y for B. Should a
+   mediator measured at baseline, or a B -> M path, be part of the
+   model, and does the moderation's test change in meaning once B is in
+   the model?

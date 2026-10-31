@@ -70,7 +70,7 @@ fully validated. Validation runs are recorded in
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan, for a
-  measured predictor or two groups (power4mome; waiting for a statistician's check, `next.md`, item 11);
+  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter and the power
