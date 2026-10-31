@@ -139,10 +139,10 @@ pwr_inputs <- function(spec) {
       )
     },
     chi_square_independence = {
-      p <- probability_matrix(spec)
+      w <- if (chisq_by_w(spec)) pop$w else pwr_w(probability_matrix(spec))
       list(
         fun = "pwr.chisq.test",
-        args = function(n) list(w = pwr_w(p), N = n, df = (nrow(p) - 1) * (ncol(p) - 1))
+        args = function(n) list(w = w, N = n, df = chisq_df(spec))
       )
     }
   )
@@ -187,6 +187,20 @@ pwr_h <- function(pop) pwr::ES.h(pop$p2, pop$p1)
 
 # Cohen's w for a table of cell probabilities (independence as the null).
 pwr_w <- function(p) pwr::ES.w2(p)
+
+# A chi-square test given by Cohen's w itself (G*Power's input) rather than
+# by proportions.
+chisq_by_w <- function(spec) {
+  spec$template %in% c("chi_square_independence", "chi_square_gof") && identical(spec$population$metric, "w")
+}
+
+# The chi-square test's degrees of freedom, from the numbers of levels:
+# (levels of X - 1) x (levels of Y - 1) for independence, levels of Y - 1
+# for goodness of fit.
+chisq_df <- function(spec) {
+  k <- length(spec$variables$Y$levels) - 1
+  if (identical(spec$template, "chi_square_independence")) k * (length(spec$variables$X$levels) - 1) else k
+}
 
 # Power at total sample size n, from the pwr (or stats, or pwrss) call.
 #
@@ -246,11 +260,17 @@ pwr_check_run <- function(spec, inputs) {
         2 * asin(sqrt(pop$p2)) - 2 * asin(sqrt(pop$p1)), args$h
       )
     },
-    chi_square_independence = {
-      p <- probability_matrix(spec)
-      expected <- outer(rowSums(p), colSums(p))
-      row("Cohen's w passed to pwr", sqrt(sum((p - expected)^2 / expected)), args$w)
-    }
+    chi_square_independence = rbind(
+      if (chisq_by_w(spec)) {
+        row("Cohen's w passed to pwr", pop$w, args$w)
+      } else {
+        p <- probability_matrix(spec)
+        expected <- outer(rowSums(p), colSums(p))
+        row("Cohen's w passed to pwr", sqrt(sum((p - expected)^2 / expected)), args$w)
+      },
+      row("degrees of freedom: (levels of X - 1) x (levels of Y - 1)",
+          (length(spec$variables$X$levels) - 1) * (length(spec$variables$Y$levels) - 1), args$df)
+    )
   )
 }
 
@@ -314,8 +334,7 @@ pwr_sensitivity <- function(spec, n, target) {
       list(effect = r, effect_name = "r", effect_description = "correlation r")
     },
     chi_square_independence = {
-      p <- probability_matrix(spec)
-      df <- (nrow(p) - 1) * (ncol(p) - 1)
+      df <- chisq_df(spec)
       w <- solve("pwr.chisq.test", list(N = n, w = NULL, df = df), "w")
       # The power at w, from the same pwr call as for power: a table with
       # no departure from independence (none given) has nothing to scale.

@@ -215,10 +215,14 @@ design_description <- function(spec) {
       "comparison of two dependent correlations (Steiger's z test), same people: %s with %s against %s with %s",
       label("X1"), label("Y1"), label("X2"), label("Y2")
     ),
-    "basic_test/chi_square_gof" = sprintf(
-      "chi-square goodness-of-fit test of %s (%s) against %s proportions",
-      label("Y"), levels("Y"), if (is.null(spec$population$null_probabilities)) "equal" else "fixed"
-    ),
+    "basic_test/chi_square_gof" = if (chisq_by_w(spec)) {
+      sprintf("chi-square goodness-of-fit test of %s (%s), from Cohen's w", label("Y"), levels("Y"))
+    } else {
+      sprintf(
+        "chi-square goodness-of-fit test of %s (%s) against %s proportions",
+        label("Y"), levels("Y"), if (is.null(spec$population$null_probabilities)) "equal" else "fixed"
+      )
+    },
     "factorial_anova/oneway_ancova" = sprintf(
       "one-way ANCOVA of %s across the %d groups of %s (%s), adjusting for %s covariate%s; omnibus F test",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
@@ -831,9 +835,9 @@ pwr_script_call_lines <- function(spec, inputs) {
       )
     ),
     chi_square_independence = list(head = "pwr.chisq.test(", args = c(
-      "w = ES.w2(probabilities) # Cohen's w for the table of proportions",
+      if (chisq_by_w(spec)) "w = w" else "w = ES.w2(probabilities) # Cohen's w for the table of proportions",
       "N = n_total",
-      "df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1)",
+      "df = df",
       "sig.level = alpha"
     ))
   )
@@ -983,12 +987,10 @@ pwr_sensitivity_section <- function(spec, result) {
       "pwr.r.test(n = n_total, r = NULL, sig.level = alpha, power = target_power, %s)", alt
     ), "r"),
     chi_square_independence = c(
-      "w <- pwr.chisq.test(N = n_total, w = NULL, df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1),",
-      "  sig.level = alpha, power = target_power)$w",
+      "w <- pwr.chisq.test(N = n_total, w = NULL, df = df, sig.level = alpha, power = target_power)$w",
       "# The power at that w, with the same pwr call as for power.",
       "power_at <- function(n_total) {",
-      "  pwr.chisq.test(w = w, N = n_total, df = (nrow(probabilities) - 1) * (ncol(probabilities) - 1),",
-      "    sig.level = alpha)$power",
+      "  pwr.chisq.test(w = w, N = n_total, df = df, sig.level = alpha)$power",
       "}"
     ),
     two_proportions = c(
@@ -1149,17 +1151,27 @@ spower_script_inputs <- function(spec) {
         r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
       )
     ),
-    chi_square_independence = c(
-      sprintf(
-        "# Probability of each combination: rows are %s (%s), columns %s (%s).",
-        comment_text(v$X$label), paste(comment_text(unlist(v$X$levels)), collapse = ", "),
-        comment_text(v$Y$label), paste(comment_text(unlist(v$Y$levels)), collapse = ", ")
-      ),
-      sprintf(
-        "probabilities <- matrix(%s, nrow = %d, byrow = TRUE)",
-        r_code(t(probability_matrix(spec))), nrow(probability_matrix(spec))
+    chi_square_independence = if (chisq_by_w(spec)) {
+      c(
+        sprintf("w <- %s # Cohen's w for the association of %s and %s, taken as the population value (as in G*Power)",
+          r_code(spec$population$w), comment_text(v$X$label), comment_text(v$Y$label)),
+        sprintf("df <- %d # degrees of freedom: (%d categories - 1) x (%d categories - 1)", as.integer(chisq_df(spec)),
+          length(v$X$levels), length(v$Y$levels))
       )
-    )
+    } else {
+      c(
+        sprintf(
+          "# Probability of each combination: rows are %s (%s), columns %s (%s).",
+          comment_text(v$X$label), paste(comment_text(unlist(v$X$levels)), collapse = ", "),
+          comment_text(v$Y$label), paste(comment_text(unlist(v$Y$levels)), collapse = ", ")
+        ),
+        sprintf(
+          "probabilities <- matrix(%s, nrow = %d, byrow = TRUE)",
+          r_code(t(probability_matrix(spec))), nrow(probability_matrix(spec))
+        ),
+        "df <- (nrow(probabilities) - 1) * (ncol(probabilities) - 1) # degrees of freedom"
+      )
+    }
   )
 }
 

@@ -134,7 +134,10 @@ pwrss_script_inputs <- function(spec) {
       sprintf("r_Y1_Y2 <- %s # correlation of %s with %s (not compared)", r_code(pop$r_Y1_Y2), comment_text(v$Y1$label), comment_text(v$Y2$label)),
       alt_line
     ),
-    chi_square_gof = c(
+    chi_square_gof = if (chisq_by_w(spec)) c(
+      sprintf("effect <- list(w = %s, df = %d) # Cohen's w, taken as the population value (as in G*Power), and its df (%d categories - 1)",
+        r_code(pop$w), as.integer(chisq_df(spec)), length(v$Y$levels))
+    ) else c(
       sprintf("probabilities <- %s # expected proportion in each category: %s",
         r_code(as.numeric(unlist(pop$probabilities))), paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
       if (!is.null(pop$null_probabilities)) {

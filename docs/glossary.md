@@ -21,6 +21,7 @@ only partly supported, and the details are listed there.
 | Term | Plain-English hint | On the cards |
 | --- | --- | --- |
 | Cohen's d | A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart. | E1, E2 |
+| Cohen's w | How far the proportions are from what you would see with no association (or from the fixed proportions), on one scale: 0 means no difference at all. | E6, E48 |
 | d_z | The average change within people (for example, after minus before), divided by how much that change varies from person to person. | E3 |
 | SD (standard deviation) | How spread out the scores are around their average. | E1, E2, E3, E7, E8, E18, E19, E20, E21, E22, E23 |
 | pooled SD | The two groups' standard deviations combined into one, weighted by the groups' sizes. | E2 |
