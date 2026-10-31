@@ -6,13 +6,24 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
-    title: "An \"I know the terms\" setting"
+    title: "Fixes, and clearer names"
     text: >-
-      Tick "I know the terms" at the top of the page to see the technical
+      Repeated-measures and mixed ANOVA with three or more conditions now
+      give the right answer from a published partial eta-squared (before,
+      power was too low). MANOVA, and 2 x 2 designs with unequal groups,
+      now work for every goal. Long simulations show a progress bar. The
+      meta-analysis card talks about studies, not participants. The search
+      finds more test names, such as Mann-Whitney, Kruskal-Wallis and post
+      hoc. The Labs tools have plain names: Methods map, Replication
+      planner, Power visualiser and Effect size converter.
+  - date: "2026-10-31"
+    title: "Show or hide explanations"
+    text: >-
+      Turn "Explanations" off at the top of the page to see the technical
       names first (one-way repeated-measures ANOVA, rather than its plain
-      description) and hide the explanations of terms. Warnings and notes
-      that change what you should do stay. Your browser remembers the
-      setting.
+      description) and hide the explanations of terms. The help under each
+      question, and warnings and notes that change what you should do,
+      stay. Your browser remembers the setting.
   - date: "2026-10-31"
     title: "Find your analysis faster"
     text: >-

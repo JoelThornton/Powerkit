@@ -66,7 +66,15 @@ pwrss_script_inputs <- function(spec) {
         factors,
         if (isTRUE(design$mixed)) {
           if (identical(pop$eta_source, "published")) {
-            "rho <- NA # NA: the eta-squared is as a repeated-measures ANOVA reports it, so it already reflects the correlation"
+            c("rho <- NA # NA: the eta-squared is as a repeated-measures ANOVA reports it, so it already reflects the correlation",
+              "# A published partial eta-squared is the effect's sum of squares over the error sum of squares, so",
+              "# the F test's noncentrality is f^2 x the error df (as Superpower's ANOVA_exact() and G*Power's",
+              "# \"as in SPSS\" setting have it). pwrss takes it as f^2 x n_total, so f^2 is rescaled first.",
+              "eta_for_pwrss <- function(n_total) {",
+              sprintf("  df_error <- (n_total - levels[1]) * %s", if (identical(design$target, "between")) "1 # the between effect" else "(levels[2] - 1)"),
+              "  f2 <- eta_squared / (1 - eta_squared) * df_error / n_total",
+              "  f2 / (1 + f2)",
+              "}")
           } else {
             sprintf("rho <- %s # correlation between measurements (the eta-squared doesn't include it, as in G*Power)", r_code(pop$r))
           }
@@ -244,7 +252,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
     )),
     anova_eta_squared = if (isTRUE(eta_anova_design(spec)$mixed)) {
       list(head = "power.f.mixed.anova( # repeated-measures or mixed ANOVA from its partial eta-squared", args = c(
-        "eta.squared = eta_squared", "factor.levels = levels", "rho.within = rho",
+        if (identical(spec$population$eta_source, "published")) "eta.squared = eta_for_pwrss(n_total)" else "eta.squared = eta_squared", "factor.levels = levels", "rho.within = rho",
         "epsilon = 1 # sphericity assumed", "n.total = n_total # equal groups", "alpha = alpha",
         "effect = effect", "ceil.n = FALSE", "verbose = 0"
       ))

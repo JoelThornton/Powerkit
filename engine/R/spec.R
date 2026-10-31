@@ -172,6 +172,8 @@ effect_definition <- function(spec) {
 #                 the SD of the differences, from one SD and the
 #                 correlation r between the two measurements, is
 #                 SD * sqrt(2 * (1 - r)).
+raw_effect_templates <- c("one_sample_t", "tost_one_sample", "independent_t", "tost_independent", "paired_t", "tost_paired")
+
 standardise_raw_effect <- function(spec) {
   pop <- spec$population
   if (!spec$design %in% c("basic_test", "equivalence_test") || !identical(pop$metric, "raw")) {
@@ -201,7 +203,11 @@ standardise_raw_effect <- function(spec) {
 # the standardised effect itself.
 effect_from_units <- function(spec) {
   pop <- spec$population
-  if (!spec$design %in% c("basic_test", "equivalence_test") || !identical(pop$metric, "raw")) {
+  # Only the t-tests and their equivalence tests turn raw means into d or
+  # d_z; MANOVA and one-sample Hotelling's T-squared also take raw means,
+  # but have no single standardised effect to report here.
+  if (!spec$design %in% c("basic_test", "equivalence_test") || !identical(pop$metric, "raw") ||
+      !spec$template %in% raw_effect_templates) {
     return(NULL)
   }
   raw <- pop$raw

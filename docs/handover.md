@@ -95,16 +95,12 @@ land together (one batch of features raises the middle number by one).
   that change what users see, one page each, for the session (routing
   from screen A onwards first).
 - [`judgement-calls.md`](judgement-calls.md): every open or decided
-  judgement call, with options and the default now. Open ones include B12
-  (N rounding), B13 (power curve), B16 (what "simulation for data that
-  won't meet the assumptions" should simulate) and B17 (E9's progress
-  bar); B11 waits for its source. B4 and G7–G9 were decided with the new
-  design and G4 (what the methods paragraph reports) on 18 October 2026;
-  B6 is partly decided. Open questions for the
+  judgement call, with options and the default now; decided ones move to
+  `archive/judgement-calls-decided.md`. Open questions for the
   maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
-  powerkit's departures (1–11) and known differences (1–2).
+  powerkit's departures and known differences (numbered there).
 - [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14 and the maintainer's decision.
 - [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
 - In the app, the "For the maintainer: undecided settings" tab lists the

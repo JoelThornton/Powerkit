@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.25.0). This page says where the
+*Last updated: 31 October 2026 (powerkit 0.25.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -29,8 +29,9 @@ fully validated. Validation runs are recorded in
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026); "Help me
-  choose" asks the screening questions first; an "I know the terms" setting
-  shows technical names first and hides the hints.
+  choose" asks the screening questions first; the search also knows other
+  names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
+  default, shows technical names first and hides the hints when off.
 - **Results** state their spec hash, seed, backend, R and package
   versions; save as a project file or a study plan and reopen; export an
   R script that reproduces them with the backend alone, citations, a
@@ -66,9 +67,9 @@ fully validated. Validation runs are recorded in
 - **Experimental:** whole-study simulation on the guided plan
   (power4mome; waiting for a statistician's check, `next.md`, item 11);
   joint power in a study plan when every analysis compares the same
-  randomised groups on different outcomes (PUMP); Labs (pre-replication
-  notes, the methods map, plan from a published result, a picture of
-  power for the two-group t-test).
+  randomised groups on different outcomes (PUMP); Labs (the replication
+  planner, the methods map, the effect size converter and the power
+  visualiser for the two-group t-test).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 10); E17 on questions for power4mome (item 12); Spower's faults

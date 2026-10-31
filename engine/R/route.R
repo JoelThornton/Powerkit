@@ -267,6 +267,8 @@ call_backend <- function(backend, expr) {
   tryCatch(
     suppressMessages(expr),
     error = function(e) {
+      # Nested calls (a backend run inside another's simulation) report once.
+      if (inherits(e, "powerkit_run_error")) stop(e)
       abort_run(sprintf(
         "%s could not run this design. It reported: %s",
         backend, trimws(conditionMessage(e))

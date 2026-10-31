@@ -12,7 +12,18 @@ form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 # End points whose calculation takes long enough to run in the background,
 # with a progress bar and a Cancel button (forms.yaml, `background`: the
 # usual run time in seconds for each goal).
-runs_in_background <- function(forms, ep_id) ep_id %in% names(forms$background)
+# A spec the engine will simulate (pairwise comparisons, Friedman's and
+# Kruskal-Wallis tests, unequal cells, the Hartung-Knapp meta-analysis and
+# so on) also runs in the background, so a run of a minute or two neither
+# leaves the screen without a progress bar nor holds up everyone else
+# using the app (the online app has one R process). The basic tests'
+# simulations (Welch's t-test, the rank tests for two groups) take a few
+# seconds, less than starting a background process, so they run here.
+runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_function("runs_simulation")) {
+  if (ep_id %in% names(forms$background)) return(TRUE)
+  if (is.null(spec) || is.null(simulates) || identical(spec$design, "basic_test")) return(FALSE)
+  isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
+}
 usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
 
 # Run the engine on a checked spec. The input screen puts the seed in the
@@ -229,7 +240,20 @@ test_text <- function(spec) {
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
   }
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
+  if (is.null(spec$target_test$alternative) && !is.null(unsided <- unsided_test_name(spec))) side <- unsided
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
+}
+
+# F and chi-square tests have no sides (forms.yaml, sides: false), so the
+# result names the test instead of calling it two-sided.
+unsided_test_name <- function(spec) {
+  if (spec$template %in% c("chi_square_independence", "chi_square_gof")) return("a chi-square test")
+  if ((identical(spec$design, "factorial_anova") && !identical(spec$template, "oneway_contrast") &&
+       !identical(spec$target_test$effect, "pairwise")) ||
+      identical(spec$design, "multiple_regression") || spec$template %in% c("manova", "hotelling_one")) {
+    return(if (identical(spec$target_test$method, "kruskal_wallis") || identical(spec$target_test$method, "friedman")) "a rank test" else "an F test")
+  }
+  NULL
 }
 
 simulated <- function(result) identical(result$provenance$method, "simulation")
@@ -280,6 +304,9 @@ generic_sentences <- function(spec, result) {
 # The random-effects meta-analysis planned with the Hartung-Knapp test
 # (Departure 18): the default unless the z test or the fixed-effect model
 # is chosen.
+# A planned meta-analysis (E61): its n is the number of studies.
+is_meta <- function(spec) identical(spec$design, "meta_analysis")
+
 is_hartung_knapp <- function(spec) {
   identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
     !identical(spec$target_test$test, "z")
@@ -410,10 +437,10 @@ equivalence_sentences <- function(spec, result) {
 exact_source <- function(result) {
   if (identical(result$provenance$backend, "stats")) {
     sprintf("base R's formula, %s(), no simulation", result$provenance$backend_function)
-  } else if (result$provenance$backend %in% c("pwr", "pwrss", "TOSTER", "powertools", "semPower", "bfpwr")) {
-    sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
-  } else {
+  } else if (identical(result$provenance$backend, "Superpower")) {
     "Superpower's exact dataset, no repeated simulation"
+  } else {
+    sprintf("%s's formula, %s(), no simulation", result$provenance$backend, result$provenance$backend_function)
   }
 }
 
@@ -868,8 +895,8 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
   if (is.na(n80) || is.na(n95)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
-    "For comparison: 80%% power%s needs %s participants%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
-    together, whole(n80), group_text(spec, n80), whole(n95), group_text(spec, n95)
+    "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
+    together, whole(n80), if (is_meta(spec)) "studies" else "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
   )
 }
 
@@ -1118,7 +1145,9 @@ actual_power_sentence <- function(spec, result) {
   at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
   if (length(at_n) != 1 || is.na(at_n)) return(NULL)
   sizes <- group_sizes(spec, n)
-  who <- if (is.null(sizes)) {
+  who <- if (is_meta(spec)) {
+    sprintf("With %s studies", whole(n))
+  } else if (is.null(sizes)) {
     sprintf("With %s participants", whole(n))
   } else if (length(unique(sizes)) == 1) {
     unit <- if (identical(spec$template, "2x2_between")) "per cell" else "per group"
@@ -1619,8 +1648,9 @@ writeup_software <- function(result, full = FALSE) {
   } else {
     "by formula (no simulation)"
   }
-  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
-    how, p$backend, p$packages[[p$backend]], p$backend_function, p$packages[["powerkit"]], p$r_version)
+  fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
+  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by powerkit (version %s) in %s.",
+    how, p$backend, p$packages[[p$backend]], fun, p$packages[["powerkit"]], p$r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -1645,6 +1675,23 @@ writeup_claim <- function(values, spec) {
     })
 }
 
+# A meta-analysis's effect for the write-up: the average effect, with what
+# it is measured in, the study size and the heterogeneity.
+meta_effect_text <- function(spec) {
+  pop <- spec$population
+  sprintf("an average effect of %s = %s, in studies of %s participants each with I-squared = %s",
+    if (identical(pop$metric, "r")) "r" else "Cohen's d", format(pop$effect), whole(pop$study_size), format(pop$i2))
+}
+
+# The write-up's sample-size sentences, for a number of studies.
+meta_units <- function(text) {
+  text <- gsub(" participants are needed in total", " studies are needed", text, fixed = TRUE)
+  text <- gsub("power at this sample size is", "power with this many studies is", text, fixed = TRUE)
+  text <- gsub("for an effect of an average effect", "for an average effect", text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", "with \\2 studies", text)
+  text
+}
+
 # Returns c(short = ..., full = ...), or NULL when there is no reasoning
 # (the write-up, like saving, needs it).
 writeup_text <- function(form, spec, result, fields, values, departures = character(), known_methods = character(), known = character()) {
@@ -1656,6 +1703,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
   if (is_pairwise(spec)) name <- pairwise_test_name(spec)
+  if (is_hartung_knapp(spec)) name <- "a random-effects meta-analysis (the Hartung-Knapp test of the average effect)"
+  if (is_meta(spec) && !is_hartung_knapp(spec)) {
+    name <- sprintf("a %s meta-analysis (the z test of the average effect)", if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects")
+  }
   # A sphericity correction (E54, when the SDs or correlations differ).
   correction <- spec$target_test$correction %||% "none"
   if (!identical(correction, "none") && !is_pairwise(spec)) {
@@ -1696,7 +1747,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     what <- if (identical(spec$template, "tost_correlation")) "correlation" else "difference"
     sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
   } else "Power to detect this effect is %.1f%%."
-  effect <- writeup_effect(fields, values)
+  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
   # A converted effect: the published value, what it became and how.
   if (is.null(effect) && !is.null(conv <- result$effect_conversion)) {
     effect <- sprintf("%s = %s, converted from the published %s of %s%s %s",
@@ -1772,6 +1823,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- gsub("A power analysis was conducted", "A Bayes factor design analysis was conducted", main, fixed = TRUE)
     main <- c(main, bayes_sentence(spec, result))
   }
+  if (is_meta(spec)) main <- meta_units(main)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power),
@@ -1806,7 +1858,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (identical(spec$design, "generic_test")) return(NA_character_)
   alpha <- if (is.null(spec$target_test$alpha)) NA_character_ else paste0(format(100 * spec$target_test$alpha), "%")
   fixed <- identical(values$situation, "fixed")
-  effect <- writeup_effect(fields, values)
+  effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
   reasoning <- writeup_quote(values$just_source)
   basis <- if (identical(values$just_type, "none") || is.null(effect)) {
     sprintf("Our reasoning about the size of the effect: %s.", reasoning)
@@ -1835,6 +1887,12 @@ ethics_text <- function(spec, result, fields, values) {
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
   include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
+  if (is_meta(spec)) {
+    include <- sprintf("We plan to include %s studies in the meta-analysis.", whole(n))
+    chance <- function(p) sprintf(
+      "If that average effect is real, the chance that a meta-analysis of this many studies finds it (a statistically significant result, using a %s threshold) is %s, and the chance that it misses it is %s. If the real effect is smaller, the chance of missing it is higher.",
+      alpha, percent(p), percent(1 - p))
+  }
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf(
     "To allow for about %s who may drop out or be excluded, we will recruit %s.",
@@ -1856,6 +1914,7 @@ ethics_text <- function(spec, result, fields, values) {
           percent(spec$goal$power), alpha, size),
         sprintf("Our reasoning about the size of the effect: %s.", reasoning))
     })
+  if (is_meta(spec)) body <- meta_units(body)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")

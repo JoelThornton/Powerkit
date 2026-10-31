@@ -219,11 +219,7 @@ check_pairwise <- function(spec) {
   if (!identical(tt$method, "t_test")) {
     problems <- c(problems, "Pairwise comparisons are t-tests: set 'target_test > method' to \"t_test\".")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, paste0(
-      "Pairwise comparisons need each group's mean ('population > means' and 'population > sd'), ",
-      "not partial eta-squared, which doesn't say which groups differ."))
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   levels <- unlist(spec$variables$A$levels)
   pair <- unlist(tt$comparison)
   if (length(pair) != 2 || length(unique(pair)) != 2) {
@@ -250,9 +246,7 @@ check_friedman <- function(spec) {
   if (!identical(spec$template, "oneway_within")) {
     problems <- c(problems, "Friedman's test is for one factor with every participant in every condition (template 'oneway_within').")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, "Friedman's test needs each condition's mean ('population > means' and 'population > sd'), not partial eta-squared.")
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   r <- spec$population$r
   if (is.numeric(r) && length(r) == 1 && (r < 0 || r >= 1)) {
     problems <- c(problems, paste0(
@@ -2162,9 +2156,11 @@ check_eta_squared_anova <- function(spec) {
   ancova <- spec$template %in% c("oneway_ancova", "factorial_ancova")
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
+    test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
+      t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
-      "With partial eta-squared the test is the ANOVA F test; '%s' needs the group means and SDs. ",
-      "Give the means instead ('population > metric' \"raw\" or \"standardised\")."), method))
+      "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",
+      "give the means instead ('population > metric' \"raw\" or \"standardised\")."), test))
   }
   if (!is.null(spec$options$cell_ratio) && length(unique(as.numeric(unlist(spec$options$cell_ratio)))) > 1) {
     return("With partial eta-squared the groups are equal in size; for unequal groups, give the cell means instead.")

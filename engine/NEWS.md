@@ -1,3 +1,48 @@
+# powerkit 0.25.1
+
+Fixes from a review of 0.25.0.
+
+* Repeated-measures and mixed ANOVA from a *published* partial
+  eta-squared (as SPSS, R and JASP report it) gave too little power, and
+  too large a sample size, when a within factor has three or more levels:
+  pwrss's `power.f.mixed.anova(rho.within = NA)` takes the noncentrality
+  as f-squared times N, but a published value needs f-squared times the
+  effect's error df, as Superpower's `ANOVA_exact()` and G\*Power's "as in
+  SPSS" option use. The engine now rescales the value it passes to pwrss
+  (`pwrss_mixed_eta()`), and the exported script does the same. Three
+  conditions, means 600/620/650, SD 100, r = .6, 40 people: 60.3% before,
+  88.8% now, as `ANOVA_exact()` gives. Two levels were right before and
+  are unchanged; the "planned" (G\*Power) route is unchanged.
+  `conventions.md` states the rescaling.
+* MANOVA (E59) and one-sample Hotelling's T-squared (E60) failed on the
+  result screen: `effect_from_units()` now returns NULL for designs other
+  than the t-tests and equivalence tests it describes.
+* 2 x 2 ANOVA with unequal group sizes (E22): the sample-size search now
+  steps by the smallest N that splits into the cells' ratio
+  (`cell_ratio_step()`), instead of failing with "non-conformable
+  arguments".
+* New `runs_simulation(spec)`: whether `run_spec()` would simulate. The app
+  uses it to run long simulations (pairwise comparisons, Friedman's and
+  Kruskal-Wallis tests, factorial logistic regression, the Hartung-Knapp
+  meta-analysis) in the background with a progress bar, rather than
+  holding up the app.
+* Plain-English messages: choosing partial eta-squared with a test that
+  needs means names the test in words, once; the smallest-effect message
+  no longer says "goal type"; a backend's error isn't repeated twice.
+* App: the meta-analysis result, write-up and ethics version count
+  studies, not participants, name the test used (Hartung-Knapp or z) and
+  the effect (d or r); F, chi-square and rank tests are no longer called
+  "two-sided"; the pair to compare matches group names whatever their
+  case; internal notes no longer show in the help; the About page lists
+  every backend and no internal codes, and its opening line is current.
+* App: the analysis search also finds tests by their other names (rank
+  tests, post hoc, ICC, mixed models, HLM and more; `tree.yaml`,
+  `search_words`), treats hyphens as spaces and matches one- and
+  two-letter words only whole. "I know the terms" becomes an
+  "Explanations" switch, on by default, and no longer hides the help
+  under each field. The Labs tools are renamed: Methods map, Replication
+  planner, Power visualiser and Effect size converter.
+
 # powerkit 0.25.0
 
 * App: an "I know the terms" setting in the top bar, remembered in the

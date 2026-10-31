@@ -1265,6 +1265,23 @@ Wired into the app on 18 October 2026 (E25, E26).*
   81.3% from the means (Shieh) against 81.8% from partial eta-squared
   (G*Power) in the test example with 90 people, three groups and one
   covariate explaining 36% [powerkit, `test-backend-anova-eta.R`].
+- **Repeated-measures and mixed ANOVA from a published partial
+  eta-squared** (0.25.1). pwrss's `power.f.mixed.anova(rho.within = NA)`
+  takes the noncentrality as f^2 x N, which is right for the G\*Power kind
+  only after its correlation adjustment, and for a published value only
+  with two measurements. A partial eta-squared as SPSS, R or JASP report
+  it is the effect's sum of squares over the error sum of squares, so the
+  noncentrality is f^2 x the error df: (N - groups) x (measurements - 1)
+  for a within effect or the interaction, N - groups for the between
+  effect. That is how Superpower's `ANOVA_exact()` relates the two, and
+  how G\*Power's "As in SPSS" setting converts f (in Superpower's
+  vignette, f = 0.25 with r = .8, three measurements and n = 20 becomes
+  0.7024 [SP-vig]). powerkit rescales f^2 by error df / N before passing
+  it, so powerkit agrees with Superpower and G\*Power rather than pwrss.
+  Size of the difference: for three conditions (means 600, 620, 650, SD
+  100, r = .6, 40 people; partial eta-squared 0.140), pwrss alone gives
+  60.3%, powerkit and Superpower 88.8% (`test-backend-anova-eta.R`). Not a
+  departure from the established tools, whose answer it now matches.
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

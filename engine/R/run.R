@@ -234,12 +234,8 @@ run_spec <- function(spec) {
     return(run_generic(spec, seed))
   }
   backend <- route_spec(spec, seed)
-  method <- spec$options$method %||% backend$default_method
-  # A backend that simulates may find the smallest detectable effect by a
-  # formula of its own (InteractionPoweR's fixed-model power).
-  if (identical(spec$goal$type, "sensitivity") && is.null(spec$options$method) && !is.null(backend$sensitivity_method)) {
-    method <- backend$sensitivity_method
-  } else if (!method %in% backend$methods) {
+  method <- run_method(spec, backend)
+  if (!identical(method, backend$sensitivity_method) && !method %in% backend$methods) {
     abort_run(sprintf(
       "The '%s' method isn't available for this design; use %s.",
       method, quote_list(backend$methods)
@@ -278,7 +274,7 @@ run_spec <- function(spec) {
     sensitivity = {
       if (is.null(backend$sensitivity)) {
         abort_not_available(
-          "Sensitivity analysis (the smallest detectable effect) isn't available yet for this design; use goal type 'power' or 'sample_size'."
+          "The smallest detectable effect (a sensitivity analysis) isn't available yet for this design or test version: choose the sample size you need, or the power at a given sample size."
         )
       }
       if (simulating) {
@@ -452,4 +448,34 @@ power_interval <- function(result, level = 0.95) {
   }
   ci <- stats::binom.test(sims$rejections[1], sims$nrep[1], conf.level = level)$conf.int
   c(lower = ci[1], upper = ci[2])
+}
+
+# The method run_spec() uses: the spec's, or the backend's default. A
+# backend that simulates may find the smallest detectable effect by a
+# formula of its own (InteractionPoweR's fixed-model power).
+run_method <- function(spec, backend) {
+  if (identical(spec$goal$type, "sensitivity") && is.null(spec$options$method) && !is.null(backend$sensitivity_method)) {
+    return(backend$sensitivity_method)
+  }
+  spec$options$method %||% backend$default_method
+}
+
+#' Will a design spec be simulated?
+#'
+#' Whether [run_spec()] would estimate power by simulation (which can take
+#' from seconds to minutes) rather than by a formula or an exact data set,
+#' for the spec's design, test and goal. The app uses it to run simulated
+#' calculations in the background, with a progress bar.
+#'
+#' @param spec A design spec (list), or a path to a `.json` spec file.
+#' @return `TRUE` or `FALSE`.
+#' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "anova_2x2_mixed.json", package = "powerkit"))
+#' runs_simulation(spec)
+runs_simulation <- function(spec) {
+  spec <- validate_spec(spec)
+  if (identical(spec$design, "generic_test")) return(FALSE)
+  backend <- route_spec(spec, spec$options$seed %||% 1L)
+  identical(run_method(spec, backend), "simulation")
 }

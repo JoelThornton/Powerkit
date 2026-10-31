@@ -151,15 +151,15 @@ app_css <- "
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
   .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
   .share-page { display: flex; align-items: center; gap: 0.5rem; }
-  /* 'I know the terms' (terms_js): technical names first, and the
-     plain-English hints and long help hidden; notes, assumptions,
-     departures and known differences stay. */
+  /* Explanations off (terms_js): technical names first, and the
+     plain-English hints of terms hidden; the help under each field,
+     notes, assumptions, departures and known differences stay. */
   .topbar-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
   .terms-toggle { display: flex; align-items: center; gap: 0.35rem; color: #fff; font-size: 0.9rem; margin: 0 0.75rem 0 0; cursor: pointer; }
   .name-tech, .name-plain-alt { display: none; }
   .terms-mode .name-tech, .terms-mode .name-plain-alt { display: inline; }
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
-  .terms-mode .hint, .terms-mode .form-terms, .terms-mode .field-help, .terms-mode .also-called,
+  .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
@@ -646,7 +646,8 @@ server <- function(input, output, session) {
         sprintf("Running a rough preview (%s simulations)\u2026", whole(preview_nrep(forms)))))
       start_job("preview", preview_spec(spec, preview_nrep(forms)), usual,
         list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice))
-    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && runs_in_background(forms, state$endpoint)) {
+    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && !identical(values$goal, "sensitivity_curve") &&
+               runs_in_background(forms, state$endpoint, spec)) {
       # Long runs (E9): a separate R process, polled below, with an estimated
       # progress bar and a Cancel button.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)

@@ -15,14 +15,16 @@ test_that("the About panel lists every end point that calculates, and only those
   html <- about_html()
   calculating <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
   for (id in calculating) {
-    expect_match(html, sprintf("<strong>%s</strong>", id), fixed = TRUE, label = id)
+    expect_match(html, sprintf("data-endpoint=\"%s\"", id), fixed = TRUE, label = id)
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
   }
-  listed <- regmatches(html, gregexpr("<li>\\s*<strong>E[0-9]+</strong>", html))[[1]]
-  expect_setequal(sub(".*<strong>(E[0-9]+)</strong>", "\\1", listed), calculating)
+  listed <- regmatches(html, gregexpr("data-endpoint=\"[^\"]+\"", html))[[1]]
+  expect_setequal(sub("data-endpoint=\"([^\"]+)\"", "\\1", listed), calculating)
+  # Users see the analyses' names, not powerkit's internal codes.
+  expect_false(grepl("<strong>E[0-9]+</strong>", html))
   # E9 runs in the background; E10-E12 run the full analysis here; E13-E14 give a script.
-  expect_match(html, "E9</strong>\\s*: [^<]*Calculates here, in the background", perl = TRUE)
-  expect_match(html, "E13</strong>\\s*: [^<]*an R script to run the full analysis on your computer", perl = TRUE)
+  expect_match(html, "data-endpoint=\"E9\">[^<]*<strong>[^<]*</strong>[^<]*Calculates here, in the background", perl = TRUE)
+  expect_match(html, "data-endpoint=\"E13\">[^<]*<strong>[^<]*</strong>[^<]*an R script to run the full analysis on your computer", perl = TRUE)
 })
 
 test_that("the About panel explains how to report problems: the Feedback tab and 'Something doesn't fit?'", {
@@ -36,7 +38,8 @@ test_that("the About panel explains how to report problems: the Feedback tab and
 
 test_that("the About panel credits every foundation tool, from its own citation()", {
   html <- about_html()
-  foundation <- c("pwr", "pwrss", "Spower", "Superpower", "InteractionPoweR", "power4mome")
+  foundation <- c("pwr", "pwrss", "Spower", "Superpower", "InteractionPoweR", "power4mome", "powertools", "semPower",
+    "TOSTER", "bfpwr", "metapower", "simr", "PUMP")
   expect_setequal(vapply(about_foundation_tools, `[[`, "", "package"), foundation)
   for (p in c(foundation, "SimDesign", "afex", "MASS", "lavaan", "manymome", "shiny")) {
     expect_match(html, sprintf("<strong>%s</strong>", p), fixed = TRUE, label = p)

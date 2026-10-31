@@ -155,7 +155,7 @@ test_that("a sample-size result and a sensitivity result are worded from the eng
   spec <- light_spec("E7", goal = list(type = "sensitivity", n = 200L, power = 0.8))
   calc <- run_calculation(spec, run, seed = 3L)
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "With 200 participants in total (50 per cell), the smallest effect you could detect with 80% power, with a two-sided test at alpha = .05, is", fixed = TRUE)
+  expect_match(words[["headline"]], "With 200 participants in total (50 per cell), the smallest effect you could detect with 80% power, with an F test at alpha = .05, is", fixed = TRUE)
   expect_match(words[["headline"]], sprintf("Cohen's f = %.3f", calc$result$sensitivity$cohen_f), fixed = TRUE)
 })
 
@@ -1963,4 +1963,72 @@ test_that("a planned meta-analysis (E61) reports studies, not participants, and 
   ids <- vapply(closing, `[[`, "", "id")
   expect_false("attrition" %in% ids)
   expect_identical(Filter(function(f) identical(f$id, "n"), closing)[[1]]$label, "Number of studies")
+})
+
+test_that("the several-outcomes designs (E59, E60) draw their result screen", {
+  skip_without_run()
+  for (ep in c("E59", "E60")) {
+    spec <- light_spec(ep, list(type = "power", n = 60L))
+    fields <- form_fields(form_groups(forms, ep))
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
+    expect_match(html, "the study has", fixed = TRUE, label = ep)
+    # Their tests have no sides.
+    expect_no_match(html, "two-sided test", fixed = TRUE, label = ep)
+  }
+})
+
+test_that("a design the engine simulates runs in the background, whatever its card", {
+  fields <- form_fields(form_groups(forms, "E61"))
+  hk <- build_spec(forms, "E61", fields, form_examples$E61)
+  z <- build_spec(forms, "E61", fields, modifyList(form_examples$E61, list(meta_test = "z")))
+  expect_true(runs_in_background(forms, "E61", hk, simulates = function(spec) TRUE))
+  expect_false(runs_in_background(forms, "E61", z, simulates = function(spec) FALSE))
+  expect_false(runs_in_background(forms, "E61", hk, simulates = NULL))
+  # A failing check counts as "no", so the app still runs it.
+  expect_false(runs_in_background(forms, "E61", hk, simulates = function(spec) stop("no")))
+  skip_without_run()
+  simulates <- engine_function("runs_simulation", file.path(repo_dir, "engine"))
+  expect_true(runs_in_background(forms, "E61", hk, simulates = simulates))
+  expect_false(runs_in_background(forms, "E61", z, simulates = simulates))
+  # Welch's t-test (E2's default) is simulated, but in a few seconds.
+  expect_false(runs_in_background(forms, "E2", light_spec("E2"), simulates = simulates))
+  expect_true(simulates(light_spec("E2")))
+})
+
+test_that("a meta-analysis's result, write-up and ethics version count studies and name its test and effect", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E61"))
+  values <- modifyList(form_examples$E61, list(goal = "power", n = "10", meta_test = "z"))
+  spec <- build_spec(forms, "E61", fields, values)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  html <- as.character(result_panel_ui(tree, forms, "E61", fields, values, calc))
+  expect_match(html, "10 studies", fixed = TRUE)
+  expect_no_match(html, "10 participants", fixed = TRUE)
+  expect_no_match(html, "exact dataset", fixed = TRUE)
+  form <- forms$forms$E61
+  writeup <- writeup_text(form, spec, calc$result, fields, values)
+  expect_match(writeup, "10 studies", fixed = TRUE)
+  expect_no_match(writeup, "participants in total", fixed = TRUE)
+  expect_no_match(writeup, ")()", fixed = TRUE)
+  ethics <- ethics_text(spec, calc$result, fields, values)
+  expect_no_match(ethics, "include 10 participants", fixed = TRUE)
+})
+
+test_that("the pair to compare matches the groups' names whatever their case", {
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "t_test", comparison = "none, PRAISE", p_adjust = "holm",
+    method = NULL, goal = "power", n = "90"))
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_identical(unlist(spec$target_test$comparison), c("None", "Praise"))
+})
+
+test_that("tests without sides are not called two-sided", {
+  spec <- light_spec("E18")
+  expect_no_match(test_text(spec), "two-sided", fixed = TRUE)
+  expect_match(test_text(spec), "an F test", fixed = TRUE)
+  expect_match(test_text(light_spec("E6")), "a chi-square test", fixed = TRUE)
+  expect_match(test_text(light_spec("E2")), "two-sided", fixed = TRUE)
 })

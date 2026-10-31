@@ -516,7 +516,7 @@ forms:
       - {id: proportions_formula, label: "Which formula", type: select, path: options.proportions_formula, optional: true,
          shown_if: [{field: calc_method, is: exact}, {field: method, is: z_test}],
          choices: {z_test: "z test, as in G*Power (base R's power.prop.test() for equal groups, pwrss for unequal groups)", arcsine: "Cohen's h, the arcsine approximation (pwr)"},
-         default: z_test, default_source: "G*Power's z test for two independent proportions, default options (maintainer's decision, docs/decisions.md, 17 October 2026)"}
+         default: z_test, default_source: "G*Power's z test for two independent proportions, with its default options"}
 
   E6:
     sides: false
@@ -1070,7 +1070,7 @@ forms:
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is: t_test},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "the maintainer's decision of 31 October 2026 (Holm and Bonferroni first; Holm's method never rejects less often than Bonferroni's)"}
+             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: kruskal_wallis},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1144,7 +1144,7 @@ forms:
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
              shown_if: {field: test_version, is: t_test},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
-             default: holm, default_source: "the maintainer's decision of 31 October 2026 (Holm and Bonferroni first; Holm's method never rejects less often than Bonferroni's)"}
+             default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},

@@ -182,14 +182,16 @@ public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
 
 # The top bar's button: copies a link to the page on show (and the Labs
 # tool open, as ?page=labs&tool=...).
-# "I know the terms" (the maintainer's decision of 31 October 2026): a
-# setting each viewer's browser remembers, which shows the technical names
-# first and hides the plain-English hints and long help (CSS, .terms-mode).
-# Plain English stays the default.
+# The "Explanations" switch: on by default. Turned off, a setting each
+# viewer's browser remembers, it shows the technical names first and hides
+# the plain-English hints of terms (CSS, .terms-mode); the help under each
+# field, notes, assumptions, departures and known differences stay.
+# The stored value keeps its earlier meaning: '1' means explanations off.
 terms_toggle_ui <- function() {
-  tags$label(class = "terms-toggle", `for` = "terms_mode",
-    tags$input(type = "checkbox", id = "terms_mode", onchange = "pkSetTermsMode(this.checked)"),
-    "I know the terms")
+  tags$label(class = "terms-toggle form-switch", `for` = "explanations_on",
+    tags$input(type = "checkbox", role = "switch", id = "explanations_on", class = "form-check-input",
+      checked = NA, onchange = "pkSetTermsMode(!this.checked)"),
+    "Explanations")
 }
 
 terms_js <- "
@@ -201,13 +203,13 @@ terms_js <- "
     var on = false;
     try { on = window.localStorage.getItem('powerkit-terms-mode') === '1'; } catch (e) {}
     document.documentElement.classList.toggle('terms-mode', on);
-    var box = document.getElementById('terms_mode');
-    if (box) box.checked = on;
+    var box = document.getElementById('explanations_on');
+    if (box) box.checked = !on;
   });
 "
 
 # A name in two forms: the plain-English one by default, the technical one
-# with "I know the terms" on.
+# with explanations off.
 name_swap <- function(plain, technical) {
   tagList(tags$span(class = "name-plain", plain), tags$span(class = "name-tech", technical))
 }
@@ -374,10 +376,10 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
     status <- known_status_text[[ep$status]]
     shown <- if (maintainer_view()) sprintf("%s (%s)", name, id) else name
     # The other name underneath: the technical one by default, the plain
-    # one with "I know the terms" on.
+    # one with explanations off.
     help <- tagList(tags$span(class = "name-tech-alt", shown), tags$span(class = "name-plain-alt", ep$plain_name),
       if (!is.null(status)) paste0(" \u00b7 ", status))
-    words <- tolower(paste(ep$plain_name, ep$doc_name, family$label))
+    words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words)
     div(class = "known-item", `data-search` = words,
       pick_button(name_swap(ep$plain_name, name), paste0("ep:", id), help,
         class = if (identical(ep$status, "not_in_powerkit")) "btn btn-outline-secondary choice" else "btn btn-outline-primary choice"))
@@ -411,18 +413,27 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
   )
 }
 
+# The text the search box looks in: lower case, with hyphens, slashes,
+# brackets and other punctuation as spaces, so "t-test" and "t test" match.
+search_text <- function(...) {
+  text <- tolower(paste(unlist(list(...)), collapse = " "))
+  text <- gsub("[^a-z0-9\u00b2\u00d7]+", " ", text)
+  paste0(" ", trimws(gsub("\\s+", " ", text)), " ")
+}
+
 # Filters the list as the user types: every word must appear in an
-# analysis's names or its group's; groups with matches open, the rest
-# hide; an empty box shows every group closed again.
+# analysis's names, its group's or its other search words; a word of one
+# or two letters (such as "t" or "r") must be a whole word. Groups with
+# matches open, the rest hide; an empty box shows every group closed again.
 known_search_js <- "
 function powerkitFilterAnalyses(query) {
-  var words = query.toLowerCase().split(/\\s+/).filter(function(w) { return w.length > 0; });
+  var words = query.toLowerCase().replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
   var any = false;
   document.querySelectorAll('.known-family').forEach(function(family) {
     var shown = 0;
     family.querySelectorAll('.known-item').forEach(function(item) {
       var text = item.getAttribute('data-search');
-      var match = words.every(function(w) { return text.indexOf(w) >= 0; });
+      var match = words.every(function(w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : w) >= 0; });
       item.hidden = !match;
       if (match) shown++;
     });
