@@ -29,7 +29,8 @@ fully validated. Validation runs are recorded in
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026); "Help me
-  choose" asks the screening questions first.
+  choose" asks the screening questions first; an "I know the terms" setting
+  shows technical names first and hides the hints.
 - **Results** state their spec hash, seed, backend, R and package
   versions; save as a project file or a study plan and reopen; export an
   R script that reproduces them with the backend alone, citations, a

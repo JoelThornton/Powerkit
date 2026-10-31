@@ -3787,4 +3787,4 @@ merges when its checks pass, unless a doubt is stated in it.
 - **Finding tests (31 October 2026):** "I know my analysis" becomes a
   grouped, collapsible, searchable list without the screening questions
   (done the same day); an "I know the terms" setting shows technical
-  names first (item 26).
+  names first (done the same day).
