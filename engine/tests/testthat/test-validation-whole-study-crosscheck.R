@@ -189,3 +189,53 @@ test_that("whole study C: with every path 0, both tests keep the Type I error ne
     expect_lt(abs(analysis_estimate(result, id)$power - 0.05), 0.015, label = id)
   }
 })
+
+# Study D: people measured twice (next.md item 1), two groups compared on
+# the second measurement adjusting for the first (B), as the ANCOVA card
+# (E23) does, with a moderator W correlated with B. The comparison is
+# checked against powerkit's one-way ANCOVA (pwrss's power.f.ancova.shieh(),
+# a random covariate) at the values the population implies: the groups'
+# d, and the share of the within-group variance of Y that B explains (B
+# is uncorrelated with the groups, so r_B_Y^2 / (1 - r_X_Y^2)); with the
+# cross-check allowance, since the outcome also depends on the
+# interaction. And the Type I error of both tests with every path 0.
+study_d <- function(paths = list("X->Y" = 0.2, "W->Y" = 0.15, "XW->Y" = 0.15, "B->Y" = 0.6), seed = 84001) {
+  spec <- list(
+    spec_version = "0.1", kind = "whole_study",
+    variables = list(X = list(type = "binary", label = "Condition"), W = list(type = "continuous", label = "Moderator"),
+      B = list(type = "continuous", label = "Outcome, first measurement"), Y = list(type = "continuous", label = "Outcome")),
+    population = list(paths = paths, correlations = list("W<->B" = 0.3)),
+    analyses = list(
+      list(id = "groups", label = "Group difference, adjusted for the first measurement", test = "x_y", role = "main"),
+      list(id = "moderation", label = "Moderation", test = "interaction", role = "main")
+    ),
+    claim = "all", alpha = 0.05,
+    effect_justification = list(type = "smallest_effect_of_interest", source = "powerkit validation benchmark (not a real study)"),
+    goal = list(type = "power", n = 120),
+    options = list(nrep = validation_nrep(), seed = seed)
+  )
+  validate_whole_study(spec)
+}
+
+test_that("whole study D: measured twice, the adjusted comparison agrees with the ANCOVA card at the implied values", {
+  skip_unless_full_validation()
+  result <- run_whole_study(study_d())
+  implied <- result$implied$groups$values
+  ancova <- example_spec("anova_oneway_ancova")
+  ancova$variables$A$levels <- list("Control", "Treatment")
+  ancova$population$means <- list(0, implied[["d"]])
+  ancova$population$sd <- 1
+  ancova$population$r2_covariates <- implied[["r_B_Y"]]^2 / (1 - implied[["r"]]^2)
+  ancova$goal <- list(type = "power", n = 120L)
+  reference <- run_spec(ancova)$curve$power
+  estimate <- analysis_estimate(result, "groups")
+  expect_lte(abs(estimate$power - reference), z_for(0.999) * estimate$mcse + crosscheck_allowance(120))
+})
+
+test_that("whole study D: measured twice, with every effect 0, both tests keep the Type I error near alpha", {
+  skip_unless_full_validation()
+  result <- run_whole_study(study_d(paths = list("X->Y" = 0, "W->Y" = 0, "XW->Y" = 0, "B->Y" = 0.6), seed = 84002))
+  for (id in c("groups", "moderation")) {
+    expect_lt(abs(analysis_estimate(result, id)$power - 0.05), 0.015, label = id)
+  }
+})

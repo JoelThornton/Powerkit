@@ -3760,6 +3760,12 @@ merges when its checks pass, unless a doubt is stated in it.
   right), starting with a group comparison and a correlation or
   regression on the same people; Experimental, with the statistician's
   check afterwards (item 11), not before.
+- **Joint power, measured twice (1), 31 October 2026:** in the
+  whole-study simulation each analysis adjusts the second measurement
+  for the first (ANCOVA), not change scores. This follows the option the
+  guided plan already offers for two groups measured twice (E23); a plan
+  that chooses the mixed ANOVA's group x time test is not simulated as a
+  whole study.
 - **Multilevel models (3):** E41 next, simulated with simr as E33 is.
   Landed as its own card, E62 (a two-level model: a person-level and a
   group-level predictor and their cross-level interaction), since E41

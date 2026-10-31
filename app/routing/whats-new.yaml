@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Whole-study simulation for before-and-after studies"
+    text: >-
+      "Plan my whole study" now simulates studies where each person is
+      measured twice, for example before and after a programme. Every
+      analysis compares the second measurement after adjusting for the
+      first, as an ANCOVA does, so a group comparison can be planned
+      together with a moderation or a mediation. Still experimental.
+  - date: "2026-10-31"
     title: "Multilevel models with predictors at both levels"
     text: >-
       For people within groups (pupils in classes, patients in clinics),

@@ -11,10 +11,10 @@
     "spec_version": {"const": "0.1"},
     "kind": {"const": "whole_study"},
     "variables": {
-      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), and M, or M1 and M2, for the mediators. All are scores (continuous), except that X may be two groups or conditions (binary).",
+      "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), M, or M1 and M2, for the mediators, and B, the outcome measured at baseline when each person is measured twice (every analysis then adjusts Y for B, as an ANCOVA does). All are scores (continuous), except that X may be two groups or conditions (binary).",
       "type": "object",
       "required": ["X", "Y"],
-      "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2"]},
+      "propertyNames": {"enum": ["X", "Y", "W", "M", "M1", "M2", "B"]},
       "additionalProperties": {
         "type": "object",
         "required": ["type", "label"],
@@ -30,7 +30,8 @@
           "W": {"properties": {"type": {"const": "continuous"}}},
           "M": {"properties": {"type": {"const": "continuous"}}},
           "M1": {"properties": {"type": {"const": "continuous"}}},
-          "M2": {"properties": {"type": {"const": "continuous"}}}
+          "M2": {"properties": {"type": {"const": "continuous"}}},
+          "B": {"properties": {"type": {"const": "continuous"}}}
         }
       }]
     },
@@ -56,9 +57,9 @@
           "exclusiveMaximum": 1
         },
         "correlations": {
-          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals.",
+          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals. 'X<->B' and 'W<->B': with a baseline B, its correlations with X (0 for two groups, as when people are randomised) and W.",
           "type": "object",
-          "propertyNames": {"enum": ["X<->W", "M1<->M2"]},
+          "propertyNames": {"enum": ["X<->W", "M1<->M2", "X<->B", "W<->B"]},
           "additionalProperties": {"type": "number", "exclusiveMinimum": -1, "exclusiveMaximum": 1}
         }
       }
