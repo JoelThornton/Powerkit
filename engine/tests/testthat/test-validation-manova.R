@@ -126,3 +126,60 @@ test_that("MANOVA: Type I error is near alpha", {
   spec <- manova_validation_spec(list(c(1, 2, 3), c(1, 2, 3), c(1, 2, 3)), c(1, 2, 3), 0.4, seed = 301, n = 90)
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
+
+# 4. Two factors (next.md item 2) ---------------------------------------------------
+
+# A 2 x 3 MANOVA: A's levels by B's, B fastest, one row of means per cell.
+manova2_validation_spec <- function(means, sds, r, effect, seed, n) {
+  v <- validation_variable
+  p <- length(sds)
+  outcomes <- stats::setNames(lapply(seq_len(p), function(j) v("continuous", paste("Outcome", j))), paste0("Y", seq_len(p)))
+  validation_spec(
+    design = "basic_test",
+    template = "manova",
+    variables = c(list(A = v("between_factor", "Group", levels = c("A1", "A2")),
+                       B = v("between_factor", "Task", levels = c("B1", "B2", "B3"))), outcomes),
+    population = list(metric = "raw", means = means, sds = sds, r = r),
+    target_test = list(effect = effect, method = "pillai_trace", alpha = 0.05),
+    seed = seed,
+    n = n
+  )
+}
+
+manova2_means <- list(c(10, 12), c(10.5, 12), c(11, 12.5), c(10.5, 12.5), c(11.5, 13), c(13, 14))
+
+test_that("two-way MANOVA: each effect matches a simulation written out separately", {
+  skip_unless_full_validation()
+  skip_if_not_installed("Spower")
+  skip_if_not_installed("MASS")
+  sds <- c(3, 3)
+  r <- 0.4
+  # Written independently of powerkit's p_manova(): MASS::mvrnorm(), the
+  # factors built from the cell order directly, and the model fitted in
+  # the other order (B * A); with equal cells the sequential tests don't
+  # depend on the order, so this checks the cells, the factors and the
+  # term powerkit tests.
+  sigma <- diag(sds) %*% (matrix(r, 2, 2) + diag(1 - r, 2)) %*% diag(sds)
+  manova2_by_hand <- function(n_cell, term) {
+    y <- do.call(rbind, lapply(manova2_means, function(m) MASS::mvrnorm(n_cell, m, sigma)))
+    A <- factor(rep(c("A1", "A2"), each = 3 * n_cell))
+    B <- factor(rep(rep(c("B1", "B2", "B3"), each = n_cell), times = 2))
+    tests <- summary(stats::manova(y ~ B * A), test = "Pillai")$stats
+    tests[c(A = "A", B = "B", "A:B" = "B:A")[[term]], "Pr(>F)"]
+  }
+  for (case in list(c("main_effect_A", "A"), c("main_effect_B", "B"), c("interaction", "A:B"))) {
+    direct <- run_spower(bquote(manova2_by_hand(n_cell = 25, term = .(case[2]))), 0.05, validation_nrep(), 401,
+      data = list(manova2_by_hand = manova2_by_hand))
+    spec <- manova2_validation_spec(manova2_means, sds, r, case[1], seed = 402, n = 150)
+    expect_power_agrees(engine_power(spec), direct)
+  }
+})
+
+test_that("two-way MANOVA: Type I error is near alpha for each effect", {
+  skip_unless_full_validation()
+  flat <- rep(list(c(10, 12)), 6)
+  for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
+    spec <- manova2_validation_spec(flat, c(3, 3), 0.4, effect, seed = 403, n = 120)
+    expect_type1_near(engine_power(spec), alpha = 0.05)
+  }
+})

@@ -1576,7 +1576,7 @@ endpoints:
     tier: v2
     alternatives: ["the paired t-test, if your hypothesis is about the average rather than the spread"]
   E59:
-    doc_name: "Several outcomes compared across groups (one-way MANOVA; Hotelling's T-squared for two groups)"
+    doc_name: "Several outcomes compared across groups (MANOVA, one or two factors; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
     backend: "Spower: powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation"
@@ -1586,6 +1586,7 @@ endpoints:
     card_points:
       - "Compares groups on several outcomes together, in one test, for example three therapy groups on anxiety, depression and stress. With two groups this is Hotelling's T-squared."
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
+      - "With two factors crossed (different people in every combination), the test is of either factor or their interaction, each with Pillai's trace."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
       - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
       - "The answer is simulated, so it carries a little random error. G*Power computes Hotelling's T-squared exactly and Pillai's trace with an approximation."

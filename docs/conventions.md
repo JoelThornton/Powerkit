@@ -1343,6 +1343,9 @@ Wired into the app on 18 October 2026 (E25, E26).*
   0.6195 exact (pwrss's generic F test with noncentrality n times the
   Mahalanobis distance) for the example in `inst/specs/hotelling_one.json`
   at N = 40.
+  With two factors (31 October 2026), each effect is simulated the same
+  way, from `stats::manova(y ~ A * B)`; G\*Power's "special effects and
+  interactions" MANOVA uses an approximation, not compared yet.
   With three or more groups, the gap between G\*Power's approximation and
   the simulated power is not measured yet; the G\*Power example in the
   validation file will measure it once transcribed.

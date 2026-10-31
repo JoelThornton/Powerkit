@@ -1964,3 +1964,23 @@ test_that("a planned meta-analysis (E61) reports studies, not participants, and 
   expect_false("attrition" %in% ids)
   expect_identical(Filter(function(f) identical(f$id, "n"), closing)[[1]]$label, "Number of studies")
 })
+
+test_that("the MANOVA card takes two factors: the cells' means and the effect go to the engine", {
+  fields <- form_fields(form_groups(forms, "E59"))
+  values <- modifyList(form_examples$E59, list(manova_factors = "two", A_levels = "Control, Training",
+    B_label = "Delivery", B_levels = "Online, In person", manova_effect = "interaction",
+    cell_means = "20, 18, 22\n20, 18, 22\n18, 16.5, 20\n16, 15.5, 18", goal = "power", n = "160"))
+  expect_length(form_problems(Filter(function(f) field_applies(f, values), fields), values), 0)
+  spec <- build_spec(forms, "E59", fields, values)
+  expect_identical(spec$variables$B$type, "between_factor")
+  expect_identical(spec$target_test$effect, "interaction")
+  expect_length(spec$population$means, 4)
+  # The one-factor form is unchanged.
+  one <- build_spec(forms, "E59", fields, form_examples$E59)
+  expect_null(one$variables$B)
+  expect_identical(one$target_test$effect, "main_effect_A")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+})

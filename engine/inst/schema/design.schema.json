@@ -4775,7 +4775,7 @@
       }
     },
     "template_manova": {
-      "description": "Two or more independent groups compared on several continuous outcomes at once (one-way MANOVA, the omnibus test of Pillai's trace; with two groups it is Hotelling's T-squared, and every MANOVA statistic gives the same test). Simulated with Spower: multivariate normal scores with each group's means, the outcomes' SDs and one correlation between every pair of outcomes, the same in every group, analysed with stats::manova(). Group sizes are equal; goal > n is the total number of people.",
+      "description": "Two or more independent groups compared on several continuous outcomes at once (MANOVA, the test of Pillai's trace; with two groups it is Hotelling's T-squared, and every MANOVA statistic gives the same test). One factor A, or two crossed between-participants factors A and B (two-way MANOVA, since 31 October 2026), testing either main effect or their interaction. Simulated with Spower: multivariate normal scores with each group's means, the outcomes' SDs and one correlation between every pair of outcomes, the same in every group, analysed with stats::manova(). Group sizes are equal; goal > n is the total number of people.",
       "properties": {
         "variables": {
           "required": [
@@ -4786,6 +4786,16 @@
           "additionalProperties": false,
           "properties": {
             "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "B": {
               "properties": {
                 "type": {
                   "const": "between_factor"
@@ -4815,7 +4825,7 @@
               "const": "raw"
             },
             "means": {
-              "description": "Expected mean of each outcome in each group: one row per group, in the order of A's levels, each with one mean per outcome, in the order Y1, Y2, ...",
+              "description": "Expected mean of each outcome in each group: one row per group, in the order of A's levels, each with one mean per outcome, in the order Y1, Y2, ... With a second factor B, one row per combination of A and B, A's levels outer (A1 with B1, A1 with B2, ..., A2 with B1, ...).",
               "type": "array",
               "minItems": 2,
               "items": {
@@ -4848,7 +4858,12 @@
         "target_test": {
           "properties": {
             "effect": {
-              "const": "main_effect_A"
+              "enum": [
+                "main_effect_A",
+                "main_effect_B",
+                "interaction"
+              ],
+              "description": "With one factor, main_effect_A; with two, either main effect or their interaction."
             },
             "method": {
               "const": "pillai_trace"
