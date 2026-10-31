@@ -1583,6 +1583,7 @@ endpoints:
       - "Compares groups on several outcomes together, in one test, for example three therapy groups on anxiety, depression and stress. With two groups this is Hotelling's T-squared."
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
+      - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
       - "The answer is simulated, so it carries a little random error. G*Power computes Hotelling's T-squared exactly and Pillai's trace with an approximation."
     inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2

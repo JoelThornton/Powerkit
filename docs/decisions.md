@@ -3656,8 +3656,9 @@ p-values). Every other plan keeps the note. Plans that mix designs need a
 whole-study simulation, queued in `next.md`.
 
 **MANOVA and Hotelling's T-squared** follow G\*Power's approach (Pillai's
-trace for MANOVA, and its effect-size input), so researchers comparing
-tools see the same answer; any departure is recorded as usual.
+trace for MANOVA), so researchers comparing tools see the same answer; any
+departure is recorded as usual. (Corrected 31 October 2026: the card takes
+means, SDs and a correlation, not an effect size; see that day's entry.)
 
 **MANOVA's package.** No package on CRAN computes MANOVA or Hotelling
 power (checked 30 October 2026: pwrss covers only repeated-measures
@@ -3676,3 +3677,29 @@ cites no source, ignores the outcomes' correlation, and uses p(N - k) as
 the second degrees of freedom rather than the standard approximation's
 s(N - k - p + s).
 
+
+## 2026-10-31 · Converting t and F by n, MANOVA's inputs, and reproducing on the saved cores
+
+**t and F into d or d_z.** From 0.24.1 these use psych's `t2d()`, the
+exact relation (d = t / sqrt(n) for one group or pairs, t sqrt(1 / n1 +
+1 / n2) for two groups), not effectsize's `t_to_d()` and `F_to_d()`, which
+put the error df where n belongs and assume equal groups: 2.6% larger d
+for one group of 20, and 11% smaller for groups of 10 and 30
+(`conventions.md`, "Effect-size conversion"). The independent t-test's
+card and Labs take the published group sizes, optionally. psych was
+already a dependency (safeguard power) and is now cited whenever it runs.
+A plan saved with 0.24.0's conversion keeps its value, and its result
+says so; r, d and odds ratios are still effectsize's.
+
+**MANOVA's inputs.** The card keeps means, SDs and one correlation, and
+now says why (adding-a-test.md, "What added means", item 5): a simulation
+needs the population, and an effect size doesn't determine one. With two
+groups the power depends only on the Mahalanobis distance, so a distance
+input could be built as the validation tests build their populations;
+left for the follow-up in `next.md`.
+
+**Reproducing a saved project.** A simulation that isn't run in batches
+(Spower, simr, InteractionPoweR) draws one random stream per core, so the same seed gives a
+different answer on a different number of cores. Projects now record the
+cores, and `reproduce_project()` runs on them; a file saved before this
+says why a simulated result may differ.
