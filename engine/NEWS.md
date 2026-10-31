@@ -1,3 +1,42 @@
+# powerkit 0.24.1
+
+* Effect-size conversion: a t statistic, or an F with one numerator df,
+  is converted into Cohen's d or d_z by psych's `t2d()`, the exact
+  relation (d = t / sqrt(n) for one group or pairs, t sqrt(1 / n1 + 1 / n2)
+  for two groups), instead of effectsize's `t_to_d()` and `F_to_d()`, which
+  divide by the error df and assume equal groups (`conventions.md`,
+  "Effect-size conversion": 2.6% larger d for one group of 20, 11% smaller
+  for groups of 10 and 30). `conversion > n1` and `n2` now enter a t or F
+  conversion, and are refused when only one is given, for a design with one
+  group, or with more error df than n1 + n2 - 2. The provenance and the
+  citations name the package that converted (psych, or effectsize for r, d
+  and odds ratios); psych is now cited whenever it ran, safeguard power
+  included. A spec saved with 0.24.0's conversion keeps its value, and
+  `effect_conversion$earlier` says so.
+* `reproduce_project()` runs a simulation on the number of cores the
+  project records (`provenance > cores`, now saved): Spower, simr and
+  InteractionPoweR draw one random stream per core, so the same seed gave
+  another answer on another number of cores, and a saved project failed to
+  reproduce. A file saved before this says why a simulated result may
+  differ.
+* The app: the two-group t-test card and Labs' "Plan from a published
+  result" take the published group sizes for a conversion; the result and
+  the write-up name the package that converted. The MANOVA card says why it
+  asks for means rather than an effect size. An unexpected engine fault on
+  the input screen, the whole-study plan or Labs now gives a plain message
+  instead of R's own.
+* `man/` regenerated with roxygen2 8.1.1; three pages had fallen behind
+  their sources.
+* Repository: the app's suite runs on GitHub as two jobs side by side
+  (`test-results.R`, and the rest). `scripts/setup-cloud-session.sh` writes
+  the shell settings R needs to `~/.powerkit-env.sh`, sourced from the
+  first line of `~/.bashrc`, where non-interactive shells read it too;
+  `CLAUDE.md` gives test and check commands that work without devtools.
+  `docs/status.md` is again a short current-state page with item numbers
+  that match `next.md`; `adding-a-test.md`'s old queue is gone.
+* Tests: the mixed-model tests share one simulation instead of running
+  three (about half that file's time).
+
 # powerkit 0.24.0
 
 * One-way MANOVA: template `basic_test/manova` (two or more groups, two to

@@ -5,6 +5,20 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-10-31"
+    title: "A published t converted more exactly"
+    text: >-
+      When you enter an effect as a published t or F, powerkit now turns it
+      into Cohen's d from the study's sample size rather than its degrees of
+      freedom, as the usual formula does, and can take the two group sizes
+      when they differ. With small or uneven groups the effect size can
+      change noticeably, so check any plan made on 30 October with a
+      converted t or F.
+  - date: "2026-10-31"
+    title: "Saved simulations reopen with the same answer"
+    text: >-
+      A saved plan whose power was simulated now reproduces exactly on
+      another computer, whatever number of processor cores it has.
   - date: "2026-10-30"
     title: "MANOVA and Hotelling's T-squared"
     text: >-
