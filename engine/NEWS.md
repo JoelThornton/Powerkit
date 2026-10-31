@@ -1,5 +1,15 @@
 # powerkit 0.25.0
 
+* One-way repeated measures without sphericity: `oneway_within` takes an
+  SD per condition (`population > sd` as a list) and a correlation per
+  pair (`population > r`, the upper triangle row by row), passed to
+  Superpower's `ANOVA_design()`, and `target_test > correction` ("none",
+  the default as in Superpower, "GG" or "HF"), passed to `ANOVA_exact()`
+  and `ANOVA_power()`. Impossible correlation matrices are refused in
+  plain words. With unequal correlations a Greenhouse-Geisser correction
+  can cost several points of power (56.1% against 47.6% in the test
+  example). The app's E54 asks whether the SD and correlation are the same
+  in every condition, and the write-up names the correction.
 * `power_picture()`: for a two-group t-test, the central and noncentral t
   densities (`stats::dt()`) with the critical t, pwr's power, beta, the
   df, the noncentrality and the smallest significant d (critical t times

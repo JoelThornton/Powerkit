@@ -68,8 +68,10 @@ fully validated. Validation runs are recorded in
 
 ## Known gaps on cards that run
 
-- Sphericity is assumed in the repeated-measures designs, and mixed
-  designs with unequal groups reach the safety net (`next.md`, item 15).
+- The mixed and two-factor within designs assume one SD and one
+  correlation (sphericity), and mixed designs with unequal groups reach
+  the safety net (`next.md`, item 15); the one-way repeated-measures card
+  takes unequal ones and a correction.
 - Simulated data sets are missing for R², logistic and Poisson regression
   with other predictors, the two-way ANCOVA, the three-way interaction,
   multisite and yes/no cluster outcomes, SEM and McNemar's test (item 9).

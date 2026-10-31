@@ -46,7 +46,7 @@ form_examples <- list(
   E18 = c(list(A_label = "Feedback", A_levels = "None, Neutral, Praise", Y_label = "Persistence (minutes)",
                metric = "raw", means = "10, 11, 13", sd = "6", test_version = "anova_f", method = "exact"), closing_ok),
   E54 = c(list(A_label = "Task difficulty", A_levels = "Easy, Medium, Hard", Y_label = "Reaction time (ms)",
-               metric = "raw", means = "600, 620, 650", sd = "100", r = "0.6", test_version = "anova_f", method = "exact"), closing_ok),
+               metric = "raw", means = "600, 620, 650", spread = "same", sd = "100", r = "0.6", test_version = "anova_f", method = "exact"), closing_ok),
   E55 = c(list(A_label = "Group", A_levels = "Therapy, Waiting list", B_label = "Time", B_levels = "Before, After, Follow-up",
                Y_label = "Anxiety score", metric = "raw", means = "20, 16, 15\n20, 19, 18.5", sd = "6", r = "0.5",
                effect = "interaction", method = "exact"), closing_ok),

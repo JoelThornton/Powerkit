@@ -1572,6 +1572,31 @@ test_that("Friedman's test on E54 and shaped scores for the rank correlations on
   expect_match(calc4$result$provenance$backend_function, "heavy-tailed", fixed = TRUE)
 })
 
+test_that("repeated measures with an SD per condition, a correlation per pair and a correction (E54)", {
+  fields <- form_fields(form_groups(forms, "E54"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_false(field_applies(by_id("sds"), list(spread = "same")))
+  expect_true(field_applies(by_id("correction"), list(spread = "differ")))
+  values <- modifyList(form_examples$E54, list(spread = "differ", sd = NULL, r = NULL, sds = "100, 120, 150",
+    rs = "0.8, 0.5, 0.6", correction = "GG", goal = "power", n = "30"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E54", fields, values)
+  expect_equal(as.numeric(unlist(spec$population$sd)), c(100, 120, 150))
+  expect_equal(as.numeric(unlist(spec$population$r)), c(0.8, 0.5, 0.6))
+  expect_identical(spec$target_test$correction, "GG")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_false(is.null(calc$result$manova))
+  text <- paste(writeup_text(forms$forms$E54, spec, calc$result, fields, modifyList(values, list(just_type = "smallest_effect_of_interest",
+    just_source = "A pilot"))), collapse = " ")
+  expect_match(text, "with the Greenhouse-Geisser correction for sphericity", fixed = TRUE)
+  # A wrong number of correlations is reported against the field shown.
+  bad <- build_spec(forms, "E54", fields, modifyList(values, list(rs = "0.8, 0.5")))
+  check <- check_spec(bad, Filter(function(f) field_applies(f, values), fields))
+  expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
+})
+
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {
   for (ep in c("E7", "E18", "E21")) {
     fields <- form_fields(form_groups(forms, ep))

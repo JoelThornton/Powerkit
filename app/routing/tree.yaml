@@ -1620,7 +1620,7 @@ endpoints:
     card_points:
       - "Everyone takes part in every condition, such as three task difficulties or three timepoints, and the test asks whether the condition means differ at all."
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
-      - "powerkit assumes the same SD in every condition and the same correlation between every pair of conditions. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and choose a Greenhouse-Geisser or Huynh-Feldt correction if you will report the corrected F test; the MANOVA approach, which doesn't assume sphericity, is shown beside it."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
     inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test or pairwise comparisons"]
     tier: v2

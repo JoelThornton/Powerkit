@@ -112,17 +112,21 @@ superpower_inputs <- function(spec) {
   if (spec$template == "oneway_within") {
     # One within-participants factor with k levels: Superpower's design
     # "kw" (for example "3w"). Everyone is in every condition, so there is
-    # one group; one SD and one correlation for every pair of conditions
-    # (compound symmetry), so sphericity holds and no correction applies.
+    # one group. One SD and one correlation for every pair of conditions
+    # (compound symmetry) keep sphericity; an SD per condition and a
+    # correlation per pair (the upper triangle, row by row, as
+    # ANOVA_design() takes it) need not, and the F test can then be
+    # corrected (target_test > correction, Superpower's `correction`).
     k <- length(spec$variables$A$levels)
     return(c(list(
       design = paste0(k, "w"),
       groups = 1,
       mu = as.numeric(unlist(pop$means)),
-      sd = pop$sd,
-      r = pop$r,
+      sd = as.numeric(unlist(pop$sd)),
+      r = as.numeric(unlist(pop$r)),
       alpha = spec$target_test$alpha,
-      effect = "a"
+      effect = "a",
+      correction = spec$target_test$correction %||% "none"
     ), superpower_pairwise(spec)))
   }
   by_row <- function(x) as.numeric(unlist(x))
@@ -203,6 +207,7 @@ superpower_simulate <- function(design, inputs, nrep, seed, cores) {
     result <- call_backend("Superpower", Superpower::ANOVA_power(
       design,
       alpha_level = inputs$alpha,
+      correction = inputs$correction %||% "none",
       p_adjust = inputs$p_adjust %||% "none",
       nsims = k,
       seed = chunk_seed,
@@ -229,7 +234,7 @@ superpower_exact <- function(design, inputs, seed = NULL) {
   force(design)
   result <- call_backend("Superpower", with_seed(
     seed,
-    Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, verbose = FALSE)
+    Superpower::ANOVA_exact(design, alpha_level = inputs$alpha, correction = inputs$correction %||% "none", verbose = FALSE)
   ))
   row <- result$main_results[inputs$effect, ]
   # The MANOVA approach (Pillai's trace), which doesn't assume sphericity:
@@ -433,13 +438,14 @@ superpower_check_run <- function(spec, design, seed = NULL) {
 # conditions, with participants matched by Superpower's subject label.
 superpower_check_oneway <- function(spec, data) {
   means <- as.numeric(unlist(spec$population$means))
+  sds <- rep_len(as.numeric(unlist(spec$population$sd)), length(means))
   group <- as.integer(sub("^.*a", "", as.character(data$a)))
   unit <- if (spec$template == "oneway_within") "condition" else "group"
   rows <- lapply(seq_along(means), function(i) {
     y <- data$y[group == i]
     data.frame(
       parameter = c(sprintf("mean, %s %d", unit, i), sprintf("SD, %s %d", unit, i)),
-      specified = c(means[i], spec$population$sd),
+      specified = c(means[i], sds[i]),
       recovered = c(mean(y), stats::sd(y))
     )
   })
@@ -449,12 +455,13 @@ superpower_check_oneway <- function(spec, data) {
       level$y[order(level$subject)]
     })
     pairs <- utils::combn(seq_along(means), 2)
+    rs <- rep_len(as.numeric(unlist(spec$population$r)), ncol(pairs))
     rows <- c(rows, lapply(seq_len(ncol(pairs)), function(k) {
       i <- pairs[1, k]
       j <- pairs[2, k]
       data.frame(
         parameter = sprintf("r between conditions %d and %d", i, j),
-        specified = spec$population$r,
+        specified = rs[k],
         recovered = stats::cor(by_level[[i]], by_level[[j]])
       )
     }))
