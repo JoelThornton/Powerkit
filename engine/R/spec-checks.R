@@ -110,9 +110,10 @@ uses_simulation <- function(spec) {
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
-    !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
+    !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
+      formula_test(spec) ||
       pwrss_only(spec) ||
       identical(spec$target_test$method, "welch_t")
   )
@@ -166,13 +167,14 @@ simulation_available <- function(spec) {
   !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
 }
 
-# Basic tests powerkit computes by simulation only: neither pwr nor pwrss
-# has a formula for them. G*Power computes the variance tests by formula,
-# but no package powerkit is built on does, and powerkit doesn't write the
-# maths itself (CLAUDE.md), so these are simulated with Spower. The rank
+# Basic tests powerkit computes by simulation only: no formula covers
+# them (the Pitman-Morgan test, and MANOVA with three or more groups or
+# two factors). The variance tests of one or two groups and Hotelling's
+# T-squared (one group, or a MANOVA of two groups) have their own formula
+# (backend-variance.R, backend-hotelling.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
+  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 
@@ -219,11 +221,7 @@ check_pairwise <- function(spec) {
   if (!identical(tt$method, "t_test")) {
     problems <- c(problems, "Pairwise comparisons are t-tests: set 'target_test > method' to \"t_test\".")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, paste0(
-      "Pairwise comparisons need each group's mean ('population > means' and 'population > sd'), ",
-      "not partial eta-squared, which doesn't say which groups differ."))
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   levels <- unlist(spec$variables$A$levels)
   pair <- unlist(tt$comparison)
   if (length(pair) != 2 || length(unique(pair)) != 2) {
@@ -250,9 +248,7 @@ check_friedman <- function(spec) {
   if (!identical(spec$template, "oneway_within")) {
     problems <- c(problems, "Friedman's test is for one factor with every participant in every condition (template 'oneway_within').")
   }
-  if (identical(spec$population$metric, "eta_squared")) {
-    problems <- c(problems, "Friedman's test needs each condition's mean ('population > means' and 'population > sd'), not partial eta-squared.")
-  }
+  # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   r <- spec$population$r
   if (is.numeric(r) && length(r) == 1 && (r < 0 || r >= 1)) {
     problems <- c(problems, paste0(
@@ -429,14 +425,14 @@ check_allocation_allowed <- function(spec) {
   # The two-variance test has two groups, but Spower can only simulate
   # equal ones: gen_var.test() builds a data frame of the wrong length when
   # the group sizes differ (docs/upstream-questions.md).
-  if (identical(spec$template, "two_variances")) {
+  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation")) {
     return(paste0(
-      "'options > allocation_ratio' isn't available for the two-variance ",
-      "test yet: the simulation it uses can only draw groups of the same ",
-      "size. Remove it, or plan for two equal groups."
+      "'options > allocation_ratio' isn't available for the simulated ",
+      "two-variance test: the simulation can only draw groups of the same ",
+      "size. Remove it, or use the formula (remove 'options > method')."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance",
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
                            "noninf_independent", "noninf_two_proportions", "ordinal_two_groups")) {
     return(character())
   }
@@ -2171,9 +2167,11 @@ check_eta_squared_anova <- function(spec) {
   ancova <- spec$template %in% c("oneway_ancova", "factorial_ancova")
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
+    test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
+      t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
-      "With partial eta-squared the test is the ANOVA F test; '%s' needs the group means and SDs. ",
-      "Give the means instead ('population > metric' \"raw\" or \"standardised\")."), method))
+      "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",
+      "give the means instead ('population > metric' \"raw\" or \"standardised\")."), test))
   }
   if (!is.null(spec$options$cell_ratio) && length(unique(as.numeric(unlist(spec$options$cell_ratio)))) > 1) {
     return("With partial eta-squared the groups are equal in size; for unequal groups, give the cell means instead.")

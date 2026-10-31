@@ -306,6 +306,8 @@ See docs/build-guide.md.
 
 ## Non-negotiables
 - Never write new statistical maths when a backend package does it; adapt the spec.
+  Where none does, a published closed-form result may be written, cited and
+  checked against a simulation (CLAUDE.md, 31 October 2026).
 - Never edit expected values in tests/testthat/validation-*. They are
   transcribed from published sources by the maintainer. Report failures.
 - Every result records spec hash, seed, backend, R + package versions.

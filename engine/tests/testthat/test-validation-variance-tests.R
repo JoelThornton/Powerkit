@@ -1,15 +1,15 @@
 # Validation: variance tests (one group against a fixed variance; two
 # independent groups).
-# Backend: Spower simulation. `p_var.test()` runs EnvStats::varTest() for
-# one variance (the chi-square test of section 26) and stats::var.test()
-# for two (the F test of section 15), which are the tests G*Power computes
-# by formula. No package powerkit builds on has a formula for either, so
-# powerkit simulates them (docs/conventions.md) and the published
-# comparisons allow for Monte Carlo error.
+# Backend: since 31 October 2026, the exact chi-square and F
+# distributions the G*Power 3.1 manual gives (sections 26.5 and 15.5;
+# backend-variance.R), as G*Power computes them. Spower's simulation
+# (`p_var.test()`, which runs EnvStats::varTest() for one variance and
+# stats::var.test() for two) stays available as an option, so section 2
+# now compares the formula with an independent simulation.
 # Build guide section 6:
 #   1. published-example agreement with G*Power 3.1
-#   2. direct-call agreement with Spower (simulation)
-#   3. Type I error (simulation)
+#   2. agreement with a direct Spower simulation of the same test
+#   3. Type I error
 # Expected values below are owned by the maintainer: do not edit them.
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
 

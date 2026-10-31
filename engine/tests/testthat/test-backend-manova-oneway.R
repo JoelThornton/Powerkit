@@ -5,7 +5,7 @@
 manova_spec <- function(n = 90, nrep = 200, ...) {
   spec <- example_spec("manova")
   spec$goal <- list(type = "power", n = n)
-  spec$options <- list(seed = 7, nrep = nrep)
+  spec$options <- list(seed = 7, nrep = nrep, method = "simulation")
   # Replaced whole: modifyList() would merge new rows of means into the old.
   for (name in names(list(...))) spec$population[[name]] <- list(...)[[name]]
   spec

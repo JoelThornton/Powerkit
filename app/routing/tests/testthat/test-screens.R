@@ -320,7 +320,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
-    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power"))
+    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61"))
 })
@@ -533,7 +533,7 @@ test_that("the methods paragraph names mediation models without PROCESS numbers"
   }
 })
 
-test_that("'I know the terms' swaps in the technical names and hides the hints, and plain English stays the default", {
+test_that("turning explanations off swaps in the technical names and hides the hints, and explanations stay on by default", {
   card <- as.character(card_ui(tree, "E54"))
   expect_match(card, "<span class=\"name-plain\">", fixed = TRUE)
   expect_match(card, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(standard_name(tree$endpoints$E54$doc_name)$name)), fixed = TRUE)
@@ -541,14 +541,41 @@ test_that("'I know the terms' swaps in the technical names and hides the hints, 
   expect_match(list_html, "class=\"name-tech-alt\"", fixed = TRUE)
   expect_match(list_html, "class=\"name-plain-alt\"", fixed = TRUE)
   toggle <- as.character(terms_toggle_ui())
-  expect_match(toggle, "id=\"terms_mode\"", fixed = TRUE)
-  expect_no_match(toggle, "checked=", fixed = TRUE)
+  expect_match(toggle, "id=\"explanations_on\"", fixed = TRUE)
+  expect_match(toggle, "Explanations", fixed = TRUE)
+  expect_match(toggle, "checked", fixed = TRUE)
   # The setting is only remembered in the viewer's browser, and every
   # storage call is guarded.
   expect_equal(lengths(regmatches(terms_js, gregexpr("try \\{", terms_js))), 2)
-  # Hints, the help under fields and "also called" hide; notes, departures
+  # Hints and "also called" hide; the help under fields, notes, departures
   # and known differences have no rule that hides them.
   app_code <- paste(readLines(file.path(routing_dir, "app.R"), warn = FALSE), collapse = "\n")
-  expect_match(app_code, ".terms-mode .hint, .terms-mode .form-terms, .terms-mode .field-help", fixed = TRUE)
-  expect_no_match(app_code, "\\.terms-mode \\.(group-note|departure|known-difference|status)", perl = TRUE)
+  expect_match(app_code, ".terms-mode .hint, .terms-mode .form-terms", fixed = TRUE)
+  expect_no_match(app_code, "\\.terms-mode \\.(field-help|group-note|departure|known-difference|status)", perl = TRUE)
+})
+
+test_that("the analysis search finds tests by their other names, and short words only whole", {
+  html <- as.character(known_ui(tree))
+  items <- regmatches(html, gregexpr("data-search=\"[^\"]*\"[^>]*>\\s*<button[^>]*&#39;ep:[A-Za-z0-9-]+&#39;", html))[[1]]
+  text <- stats::setNames(sub("^data-search=\"([^\"]*)\".*$", "\\1", items),
+    sub("^.*&#39;ep:([A-Za-z0-9-]+)&#39;$", "\\1", items))
+  # The same rule as known_search_js: every word must appear, and a word
+  # of one or two letters only as a whole word.
+  find <- function(query) {
+    words <- strsplit(trimws(gsub("[^a-z0-9]+", " ", tolower(query))), " ")[[1]]
+    names(text)[vapply(text, function(t) all(vapply(words, function(w)
+      grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else w, t, fixed = TRUE), TRUE)), TRUE)]
+  }
+  expect_true(all(c("E1", "E3") %in% find("Wilcoxon")))
+  expect_true("E2" %in% find("Mann-Whitney"))
+  expect_true("E18" %in% find("Kruskal-Wallis"))
+  expect_true("E54" %in% find("Friedman"))
+  expect_true("E4" %in% find("Spearman"))
+  expect_true(all(c("E18", "E54") %in% find("post hoc")))
+  expect_true("E34" %in% find("ICC"))
+  expect_true(all(c("E33", "E34") %in% find("mixed model")))
+  expect_true(all(c("E8", "E20", "E35", "E54", "E55", "E56") %in% find("repeated measures")))
+  expect_setequal(find("t-test"), find("t test"))
+  expect_true(all(find("t test") %in% c("E1", "E2", "E3", "E50")))
+  expect_match(known_search_js, "w.length <= 2", fixed = TRUE)
 })

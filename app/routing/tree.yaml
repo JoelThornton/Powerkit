@@ -36,7 +36,7 @@ feedback:
   issues_url: https://github.com/JoelThornton/Powerkit/issues/new
   email: null
 
-banner: "Prototype, still being checked. The common analyses calculate here: t-tests, correlations, ANOVA, ANCOVA, regression, proportions, chi-square tests, equivalence tests, model fit for CFA and SEM, and cluster-randomised and multisite trials. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. Other designs give guidance only for now."
+banner: "Prototype, still being checked. Most analyses psychologists use calculate here: t-tests, correlations, ANOVA (between, repeated measures and mixed), ANCOVA, regression, proportions and chi-square tests, rank tests, equivalence tests, MANOVA, multilevel and cluster designs, SEM and planned meta-analyses. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. The cards for the rest point to tools that do them."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
@@ -511,7 +511,7 @@ nodes:
   pp1:
     doc_id: PP1
     text: "Were people randomly assigned to the groups?"
-    help: "Decision D2."
+    help: "This decides whether to compare the after scores adjusting for the before scores (ANCOVA) or to test the group by time interaction."
     options:
       - {label: "Yes, randomly assigned", next: pp2, help: "With randomised groups, ANCOVA is usually more powerful than the mixed interaction."}
       - {label: "No, the groups already existed or chose themselves", next: pp2, help: "Without random assignment, the two analyses can answer different questions (Lord's paradox). Neither is right by default."}
@@ -825,7 +825,9 @@ justification_prompt:
 
 # ---------------------------------------------------------------------------
 # End points (decision-tree.md, table 2.3). `doc_name` is copied exactly
-# from the table; `plain_name` is what the card shows.
+# from the table; `plain_name` is what the card shows. `search_words`
+# (optional): other names people search for, found by the search box of
+# "I know my analysis" along with the names and any rank test.
 # status: runs_validated | runs_validation_in_progress | coming_soon | not_in_powerkit
 #   To mark an end point validated once its full run is recorded in
 #   docs/validation-log.md: change `status: runs_validation_in_progress` to
@@ -859,6 +861,7 @@ endpoints:
     bayes_test: true
     doc_name: "One-sample t-test"
     plain_name: "Compare one group's average with a fixed value"
+    search_words: "one sample t test"
     template: "basic_test / one_sample_t"
     backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
@@ -873,6 +876,7 @@ endpoints:
     bayes_test: true
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
     plain_name: "Compare two separate groups on a score"
+    search_words: "two sample t test unpaired welch student"
     template: "basic_test / independent_t"
     backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation)"
@@ -887,6 +891,7 @@ endpoints:
     bayes_test: true
     doc_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
+    search_words: "dependent t test within subjects before after pre post repeated measures"
     template: "basic_test / paired_t"
     backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
@@ -901,6 +906,7 @@ endpoints:
     rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, on scores of the shape you choose (normal, skewed or heavy-tailed) with the correlation you enter."
     doc_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
+    search_words: "pearson r association"
     template: "basic_test / correlation"
     backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations"
     refs: "Departures 9 and 10 (docs/conventions.md)"
@@ -913,6 +919,7 @@ endpoints:
   E5:
     doc_name: "Test of two proportions (z test; Fisher's exact test as an option)"
     plain_name: "Compare two groups on a yes/no outcome"
+    search_words: "two proportions fisher exact"
     template: "basic_test / two_proportions"
     backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher()"
     refs: "Departures 5, 9 and 11 (docs/conventions.md)"
@@ -927,6 +934,7 @@ endpoints:
   E6:
     doc_name: "Chi-square test of independence"
     plain_name: "Test whether two sets of categories are related"
+    search_words: "crosstab contingency table"
     template: "basic_test / chi_square_independence"
     backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it)"
     method: "Formula (no simulation)"
@@ -938,6 +946,7 @@ endpoints:
   E7:
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
     plain_name: "Two factors crossed, different people in each of the four groups"
+    search_words: "factorial two way anova"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -949,6 +958,7 @@ endpoints:
   E8:
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
+    search_words: "repeated measures split plot group by time pre post two way anova"
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact()"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
@@ -1076,6 +1086,7 @@ endpoints:
     rank_test_simulated: true
     doc_name: "One-way ANOVA (different people), omnibus"
     plain_name: "Any difference among three or more groups"
+    search_words: "one way anova between subjects kruskal wallis pairwise post hoc bonferroni holm comparisons"
     template: "factorial_anova / oneway_between"
     backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_anova.test(var.equal = FALSE) for Welch's F; Spower's p_kruskal.test() for the Kruskal-Wallis test"
     method: "Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test"
@@ -1092,6 +1103,7 @@ endpoints:
   E19:
     doc_name: "Planned contrast"
     plain_name: "A specific comparison among three or more groups"
+    search_words: "contrast linear trend"
     template: "factorial_anova / oneway_contrast"
     backend: "pwrss: power.t.contrasts() (the t test of one planned contrast, by formula)"
     method: "Formula (no simulation)"
@@ -1107,6 +1119,7 @@ endpoints:
   E20:
     doc_name: "Two-factor within-participants ANOVA (2 x 2 or larger)"
     plain_name: "Two factors crossed, everyone in every combination"
+    search_words: "repeated measures within subjects two way anova"
     template: "factorial_anova / factorial_within"
     backend: "Superpower: ANOVA_design(\"kw*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -1122,6 +1135,7 @@ endpoints:
   E21:
     doc_name: "Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...)"
     plain_name: "Factorial designs bigger than 2 x 2, with different people in every group"
+    search_words: "factorial two way anova 2x3 3x3"
     template: "factorial_anova / factorial_between"
     backend: "Superpower: ANOVA_design(\"kb*mb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -1137,6 +1151,7 @@ endpoints:
   E22:
     doc_name: "2 x 2 ANOVA with unequal group sizes"
     plain_name: "A 2 x 2 design where the groups differ in size"
+    search_words: "unbalanced two way anova"
     template: "factorial_anova / 2x2_between, options > cell_ratio"
     backend: "Superpower: ANOVA_power() with one n per cell (simulation)"
     method: Simulation
@@ -1154,6 +1169,7 @@ endpoints:
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
+    search_words: "analysis of covariance baseline adjusted"
     template: "factorial_anova / oneway_ancova, factorial_ancova"
     backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula)"
     method: "Formula (no simulation)"
@@ -1168,6 +1184,7 @@ endpoints:
   E24:
     doc_name: "Multiple regression (R² or one coefficient)"
     plain_name: "Several predictors at once, or one predictor controlling for others"
+    search_words: "linear regression ols coefficient r squared"
     template: "multiple_regression / r2_zero, r2_increase"
     backend: "pwrss: power.f.regression() (the F test, by formula)"
     method: "Formula (no simulation)"
@@ -1192,6 +1209,7 @@ endpoints:
   E26:
     doc_name: "McNemar's test (same people, yes/no); Cochran's Q"
     plain_name: "The same people, a yes/no outcome in each condition"
+    search_words: "cochran"
     template: "basic_test / mcnemar"
     backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option)"
     method: "Formula (no simulation)"
@@ -1204,6 +1222,7 @@ endpoints:
   E27:
     doc_name: "Logistic regression (yes/no outcome)"
     plain_name: "Predict a yes/no outcome"
+    search_words: "binary logistic odds ratio"
     template: "logistic_regression / single_predictor"
     backend: "pwrss: power.z.logistic() (the Wald z test of one predictor, by formula)"
     method: "Formula (no simulation)"
@@ -1283,6 +1302,7 @@ endpoints:
   E33:
     doc_name: "Crossed participants and stimuli"
     plain_name: "Each person responds to many items or stimuli"
+    search_words: "mixed model mixed effects random effects stimuli items"
     template: "mixed_model / crossed_two_condition"
     backend: "simr: powerSim() on a model built by makeLmer(), with lmerTest's Satterthwaite t test (simulation)"
     method: Simulation
@@ -1300,6 +1320,7 @@ endpoints:
   E34:
     doc_name: "Multilevel or cluster design (cluster-randomised or multisite trial)"
     plain_name: "People nested in groups (classes, teams, clinics)"
+    search_words: "multilevel mixed model mixed effects hlm hierarchical linear model nested clustered cluster randomised trial intraclass correlation icc"
     template: "cluster_trial / cluster_randomised, multisite, group_treatment"
     backend: "powertools: crt.parallel.cont() and multisite.cont() for a score (the t test of the difference between conditions, by formula, with the design effect); crt.parallel.bin() and multisite.bin() for a yes/no outcome (the z test of the log odds ratio); irgtt.cont() and irgtt.bin() when only one condition is delivered in groups"
     method: "Formula (no simulation)"
@@ -1315,6 +1336,7 @@ endpoints:
   E35:
     doc_name: "Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling)"
     plain_name: "The same people measured three or more times"
+    search_words: "repeated measures longitudinal growth curve panel mixed model"
     status: not_in_powerkit
     inputs: ["Depends on the model"]
     packages:
@@ -1325,6 +1347,7 @@ endpoints:
   E36:
     doc_name: "Equivalence test (TOST)"
     plain_name: "Show that an effect is absent or too small to matter (equivalence)"
+    search_words: "tost equivalence non inferiority"
     template: "equivalence_test / tost_independent, tost_paired, tost_one_sample, tost_correlation, tost_two_proportions, noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions"
     backend: "TOSTER: power_t_TOST() (the two one-sided tests, exact formula); power_z_cor() for a correlation and power_twoprop() for two proportions (two one-sided z tests); pwrss's power.t.student() and power.z.twoprops() with a margin for non-inferiority (one-sided)"
     method: "Formula (no simulation)"
@@ -1341,6 +1364,7 @@ endpoints:
   E37:
     doc_name: "CFA, SEM model fit, measurement invariance, factor correlations and latent paths"
     plain_name: "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
+    search_words: "structural equation modelling sem cfa confirmatory factor analysis"
     template: "sem / model_fit, invariance, factor_correlation, latent_regression"
     backend: "semPower: semPower.postHoc() with an RMSEA for model fit (the chi-square test of exact fit, with semPower.getDf() for a CFA's degrees of freedom); semPower.powerMI() for measurement invariance across groups and semPower.powerLI() over occasions, semPower.powerCFA() for a factor correlation and semPower.powerRegression() for a latent slope (the chi-square difference test, by formula)"
     method: "Formula (no simulation)"
@@ -1393,6 +1417,7 @@ endpoints:
   E41:
     doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
     plain_name: "Relationships measured within people, or in nested data"
+    search_words: "mixed model multilevel hlm repeated measures"
     status: not_in_powerkit
     inputs: ["Depends on the model"]
     packages:
@@ -1567,13 +1592,13 @@ endpoints:
     doc_name: "One variance against a fixed value"
     plain_name: "Is one group's spread of scores different from a fixed value?"
     template: "basic_test / one_variance"
-    backend: "Spower: p_var.test() (the chi-square test of one variance, by simulation)"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pchisq() (the chi-square test of one variance, as the G*Power 3.1 manual gives it, section 26); Spower's p_var.test() simulates it on request"
+    method: "Formula (no simulation)"
     status: runs_validated
-    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's one-sided and two-sided examples within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
+    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's one-sided and two-sided examples exactly (N = 81 and 103, and its critical value), and agrees with Spower's simulation of the same test (31 October 2026)."}
     card_points:
       - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
-      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+      - "Calculated exactly, as G*Power does."
     inputs: ["Your outcome's name", "The expected variance and the fixed value"]
     tier: v2
     alternatives: ["the one-sample t-test, if your hypothesis is about the average rather than the spread"]
@@ -1581,14 +1606,14 @@ endpoints:
     doc_name: "Two variances (independent groups)"
     plain_name: "Do two groups differ in how spread out their scores are?"
     template: "basic_test / two_variances"
-    backend: "Spower: p_var.test() (the F test of two variances, by simulation)"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request"
+    method: "Formula (no simulation)"
     status: runs_validated
-    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's example within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
+    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026)."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
-      - "Groups of equal size only, for now: the package behind it can't simulate unequal groups yet."
-      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+      - "Groups of equal size only, for now."
+      - "Calculated exactly, as G*Power does."
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
@@ -1611,8 +1636,8 @@ endpoints:
     doc_name: "Several outcomes compared across groups (one-way MANOVA; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Spower: powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation"
-    method: "Simulation"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4)"
+    method: "Simulation (three or more groups) or formula (two groups)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
     card_points:
@@ -1620,7 +1645,7 @@ endpoints:
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
       - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
-      - "The answer is simulated, so it carries a little random error. G*Power computes Hotelling's T-squared exactly and Pillai's trace with an approximation."
+      - "With two groups the answer is calculated exactly, as G*Power does. With three or more it is simulated, so it carries a little random error; G*Power uses an approximation there."
     inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups"]
@@ -1628,21 +1653,22 @@ endpoints:
     doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
     plain_name: "Does one group differ from fixed values on several outcomes at once?"
     template: "basic_test / hotelling_one"
-    backend: "Spower: powerkit's p_hotelling_one() experiment, multivariate normal scores whose mean vector is tested against the fixed values (stats::anova() of lm(), Pillai's trace), by simulation"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, section 5.4); Spower's simulation with powerkit's p_hotelling_one() experiment on request"
+    method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-hotelling-one.R, note: "Matches the exact F test of Hotelling's T-squared (pwrss's generic F test with the Mahalanobis distance), recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own example."}
+    validation: {file: test-backend-hotelling-exact.R, note: "Gives the same power as pwrss's generic noncentral F test and agrees with Spower's simulation of the same test (31 October 2026). Not yet checked against G*Power's own example."}
     card_points:
       - "Compares one group's means on several outcomes with fixed values, such as published norms or scale midpoints, in one test: one-sample Hotelling's T-squared."
       - "You give each outcome's expected mean, the value it is compared with, each outcome's SD, and how strongly the outcomes are correlated."
-      - "Why means and not one effect size: the simulation draws scores from a population, so it needs the means, the SDs and the correlation. A single effect size doesn't say what those are."
-      - "The answer is simulated, so it carries a little random error. G*Power computes this test exactly."
+      - "Why means and not one effect size: the power depends on how far the means are from the fixed values once the SDs and the correlation are allowed for, and a single effect size doesn't say what those are."
+      - "Calculated exactly, as G*Power does."
     inputs: ["The outcomes", "The expected means and the fixed values", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]
   E61:
     doc_name: "A planned meta-analysis: the test of the average effect"
     plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
+    search_words: "meta analysis random effects"
     template: "meta_analysis / mean_effect"
     backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
     method: "Simulation (Hartung-Knapp) or formula (z test)"
@@ -1662,6 +1688,7 @@ endpoints:
     rank_test_simulated: true
     doc_name: "One-way repeated-measures ANOVA, omnibus"
     plain_name: "Any difference among three or more conditions, the same people in each"
+    search_words: "repeated measures within subjects one way anova friedman pairwise post hoc"
     template: "factorial_anova / oneway_within"
     backend: "Superpower: ANOVA_design(\"kw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -1678,6 +1705,7 @@ endpoints:
   E55:
     doc_name: "Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints)"
     plain_name: "Groups of different people, each measured in every condition or at every timepoint"
+    search_words: "repeated measures split plot group by time anova"
     template: "factorial_anova / mixed"
     backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -1693,6 +1721,7 @@ endpoints:
   E56:
     doc_name: "Three-factor ANOVA (2 x 2 x 2 or larger; any mix of between and within factors)"
     plain_name: "Three factors crossed, such as group by time by task"
+    search_words: "repeated measures three way anova factorial"
     template: "factorial_anova / factorial_three"
     backend: "Superpower: ANOVA_design() with three factors (such as \"2b*2w*2w\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"

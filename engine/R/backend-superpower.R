@@ -59,7 +59,9 @@ superpower_backend <- function(spec, seed = NULL) {
     } else {
       sprintf("Superpower::ANOVA_power (pairwise t-tests, p_adjust = \"%s\")", inputs$p_adjust)
     }),
-    n_step = inputs$groups,
+    # Unequal cells: the smallest total that splits into whole cells in the
+    # ratio given (6 for 2 : 2 : 1 : 1), so every n searched is valid.
+    n_step = if (unequal) cell_ratio_step(inputs$cell_ratio) else inputs$groups,
     exact_min_n = exact_min_n,
     exact_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
     bracket_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
@@ -79,6 +81,12 @@ superpower_backend <- function(spec, seed = NULL) {
       superpower_check_run(spec, design_at(50 * inputs$groups, cells = 50), seed)
     }
   )
+}
+
+cell_ratio_step <- function(ratio) {
+  whole <- function(x) all(abs(x - round(x)) < 1e-9)
+  for (n in seq_len(10000)) if (whole(n * ratio / sum(ratio))) return(n)
+  length(ratio)
 }
 
 # Superpower's n: the number in each between-participants group, one

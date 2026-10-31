@@ -3794,3 +3794,54 @@ merges when its checks pass, unless a doubt is stated in it.
   grouped, collapsible, searchable list without the screening questions
   (done the same day); an "I know the terms" setting shows technical
   names first (done the same day).
+
+## 2026-10-31 · Fixes from a review of 0.25.0, and clearer names (0.26.0)
+
+- **Published partial eta-squared with three or more within levels.** The
+  30 October entry's check (pwrss's two kinds of partial eta-squared give
+  the same answer for the same study) used two levels only. With three or
+  more, pwrss's `rho.within = NA` route takes the noncentrality as
+  f-squared times N, while a published value needs f-squared times the
+  effect's error df (Superpower's `ANOVA_exact()`, G\*Power's "as in SPSS").
+  The engine rescales the value before calling pwrss; `conventions.md`
+  states it. Not a departure: it makes the published route agree with the
+  tools that define the published value.
+- **"Explanations".** The "I know the terms" setting becomes an
+  "Explanations" switch, on by default; off, it shows technical names
+  first and hides the hints of terms, but no longer the help under each
+  field, which also holds instructions (the order to enter correlations,
+  how a value is split).
+- **Labs names.** Each tool has a name that says what it is, as someone
+  would search for it: Methods map, Power visualiser (a picture of power) and Effect size converter
+  (plan from a published result). Pre-replication notes keeps its name,
+  the term of the paper it comes from (Karhulahti et al., 2025). The page
+  links (`?tool=`) are unchanged.
+
+## 2026-10-31 · Published formulas where no package has one, and better methods by default
+
+**Rule.** "Never write new statistical maths when a package already does
+it" stays. Where no package does it, a closed-form result from a published
+source (a textbook, a paper or the G\*Power manual) may be written in the
+engine, with the source cited and checked against an independent
+simulation and, where G\*Power has the test, its answers (`CLAUDE.md`). The
+rule had come to be read as "simulate when no package has a formula",
+which made some cards slower and less accurate than G\*Power for no gain:
+the simulation is still there as the check.
+
+**Principle.** powerkit exists to break rituals. Where a method is clearly
+better, it is the default, and the conventional one stays available where
+researchers commonly use it, recorded as a departure as before.
+
+**First uses.** The variance tests of one and two groups (exact, as in the
+G\*Power 3.1 manual, sections 26.5 and 15.5; Known difference 4 retired).
+Hotelling's T-squared for one group and for a MANOVA of two groups, by
+the noncentral F (Anderson, 2003, An Introduction to Multivariate
+Statistical Analysis, 3rd ed., sections 5.3.4 and 5.4, pp. 179-186); MANOVA with
+three or more groups stays simulated, since G\*Power's Pillai
+approximation is itself an approximation.
+
+**Not adopted.** Emailing results of long runs: it would mean keeping
+visitors' email addresses and running long jobs on the shared online
+server; long runs already go to an R script run on the researcher's own
+computer.
+

@@ -1,10 +1,9 @@
 # Validation: one-sample Hotelling's T-squared (one group's several
-# outcomes against fixed values). Backend: Spower simulation of powerkit's
-# p_hotelling_one() experiment (multivariate normal scores, the test of the
-# intercept of lm(scores - mu0 ~ 1)). No package powerkit builds on has a
-# function for this power, so it is simulated, as the one-way MANOVA is;
-# G*Power computes it by formula, so the published comparison allows for
-# Monte Carlo error. Build guide section 6:
+# outcomes against fixed values). Backend: since 31 October 2026, the
+# noncentral F distribution of Anderson (2003, section 5.4) in base R
+# (backend-hotelling.R), as G*Power computes it; Spower's simulation of
+# powerkit's p_hotelling_one() experiment stays available as an option
+# (test-backend-hotelling-one.R). Build guide section 6:
 #   1. published-example agreement with G*Power 3.1
 #   2. agreement with the exact calculation: Hotelling's T-squared F test
 #      with p and n - p df and noncentrality n times the Mahalanobis

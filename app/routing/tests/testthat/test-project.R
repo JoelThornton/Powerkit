@@ -106,6 +106,36 @@ test_that("the notice after opening names the version and any differences", {
   expect_match(html, "Saved with pwr 1.2", fixed = TRUE)
 })
 
+test_that("a reopened project shows its saved result as it was, without running it again", {
+  skip_without_projects()
+  saved <- engine_function("saved_result", file.path(repo_dir, "engine"))
+  skip_if(is.null(saved), "this engine can't read a saved result back")
+  out <- save_and_reopen("E2", form_examples[["E2"]])
+  calc <- saved_calc(out$project, saved)
+  expect_identical(calc$status, "ok")
+  expect_true(calc$saved)
+  # The whole result comes back exactly, so the screen is the same.
+  expect_identical(unclass(calc$result), unclass(out$calc$result))
+  expect_identical(
+    as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], calc)),
+    as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], out$calc))
+  )
+  html <- as.character(project_opened_ui(out$project, shown = TRUE))
+  expect_match(html, "it hasn&#39;t been run again|it hasn't been run again")
+  expect_match(html, "rerun_saved", fixed = TRUE)
+  # A file from an earlier powerkit (no whole result) is run as before.
+  older <- out$project
+  older$screen <- NULL
+  expect_null(saved_calc(older, saved))
+  expect_match(as.character(project_opened_ui(older)), "Check my answers", fixed = TRUE)
+  # So is a file whose spec was changed after it was saved.
+  changed <- out$project
+  changed$spec$target_test$alpha <- 0.01
+  expect_null(saved_calc(changed, saved))
+  app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app, "observeEvent(input$rerun_saved, check_form())", fixed = TRUE)
+})
+
 # The plan checker (19 October 2026) ------------------------------------------
 
 test_that("the plan checker says what a shared plan found and what it leaves unstated", {

@@ -153,3 +153,28 @@ test_that("a result from another spec, or a spec with no seed, can't be saved to
   unseeded <- validate_spec(unseeded)
   expect_error(write_project(unseeded, run_spec(unseeded)), "has no seed", class = "powerkit_project_error")
 })
+
+test_that("a project holds the whole result, which reads back identical without running it", {
+  spec <- read_spec(system.file("specs", "anova_2x2_mixed.json", package = "powerkit"))
+  result <- run_spec(spec)
+  path <- tempfile(fileext = ".powerkit.json")
+  on.exit(unlink(path))
+  write_project(spec, result, file = path)
+  project <- read_project(path)
+  expect_identical(unclass(saved_result(project)), unclass(result))
+  expect_s3_class(saved_result(project), "powerkit_result")
+  # Missing values, infinities, names, empty vectors and data frames keep
+  # their types.
+  value <- list(a = NA, b = c(x = 1.5, y = NA, z = Inf, w = NaN, v = 1 / 3), c = data.frame(n = 1:2, s = c("a", NA)), k = data.frame(x = 1, row.names = "first"),
+    d = NULL, e = list(), f = character(0), g = 1L, h = structure(list(q = TRUE), class = "foo"))
+  json <- jsonlite::toJSON(encode_value(value), auto_unbox = TRUE, digits = NA, null = "null", na = "null")
+  expect_identical(decode_value(jsonlite::parse_json(json, simplifyVector = FALSE)), value)
+  # A file without it (saved by an earlier powerkit), or whose spec was
+  # changed after saving, gives NULL: the result has to be run again.
+  older <- project
+  older$screen <- NULL
+  expect_null(saved_result(older))
+  changed <- project
+  changed$spec$target_test$alpha <- 0.01
+  expect_null(saved_result(changed))
+})

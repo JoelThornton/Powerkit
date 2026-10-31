@@ -160,13 +160,13 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   expect_match(as.character(map_page_ui(tree, "E2")), tree$endpoints$E2$plain_name, fixed = TRUE)
   expect_null(map_page_ui(tree, ""))
   # Labs lists it, and nothing on the map is calculated.
-  expect_match(as.character(labs_ui(tree)), "Open A map of the methods", fixed = TRUE)
+  expect_match(as.character(labs_ui(tree)), "Open Methods map", fixed = TRUE)
   expect_no_match(paste(deparse(map_ui), collapse = "\n"), "engine_function", fixed = TRUE)
 })
 
 test_that("plan from a published result: the engine converts and gives the safeguard value", {
   html <- as.character(labs_ui(tree))
-  expect_match(html, "Open Plan from a published result", fixed = TRUE)
+  expect_match(html, "Open Effect size converter", fixed = TRUE)
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;published&#39;\"|data-display-if=\"input.labs_tool == 'published'\"")
   # Each kind of study offers its own effect size and the forms its card converts.
   for (design in names(published_designs)) {
@@ -205,7 +205,7 @@ test_that("plan from a published result: the engine converts and gives the safeg
 
 test_that("the picture of power shows the engine's curves and numbers, and computes nothing itself", {
   html <- as.character(labs_ui(tree))
-  expect_match(html, "Open A picture of power", fixed = TRUE)
+  expect_match(html, "Open Power visualiser", fixed = TRUE)
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;picture&#39;\"|data-display-if=\"input.labs_tool == 'picture'\"")
   picture <- engine_function("power_picture")
   skip_if(is.null(picture), "powerkit's engine isn't available here")
