@@ -1,11 +1,12 @@
 # One-sample Hotelling's T-squared (one group's several outcomes against
 # fixed values), simulated with Spower and powerkit's p_hotelling_one()
-# experiment. Few replications.
+# experiment (options > method = "simulation"; the default is the exact
+# formula, test-backend-hotelling-exact.R). Few replications.
 
 hotelling_spec <- function(n = 40, nrep = 200, ...) {
   spec <- example_spec("hotelling_one")
   spec$goal <- list(type = "power", n = n)
-  spec$options <- list(seed = 7, nrep = nrep)
+  spec$options <- list(seed = 7, nrep = nrep, method = "simulation")
   for (name in names(list(...))) spec$population[[name]] <- list(...)[[name]]
   spec
 }
@@ -51,9 +52,6 @@ test_that("one-sample Hotelling's T-squared specs are refused in plain English w
   expect_error(validate_spec(hotelling_spec(sds = c(6, 5))), "'population > sds' should have one value per outcome", class = "powerkit_spec_error")
   expect_error(validate_spec(hotelling_spec(r = -0.6)), "must be above -0.5", class = "powerkit_spec_error")
   expect_error(validate_spec(hotelling_spec(n = 4)), class = "powerkit_spec_error")
-  exact <- hotelling_spec()
-  exact$options$method <- "exact"
-  expect_error(validate_spec(exact), class = "powerkit_spec_error")
 })
 
 test_that("the exported script reproduces one-sample Hotelling's T-squared", {

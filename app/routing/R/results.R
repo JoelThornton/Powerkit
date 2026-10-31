@@ -1450,6 +1450,10 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # difference 3, logistic regression with other predictors).
   above <- form$known_differences_if_above_zero
   keys <- Filter(function(k) is.null(above[[k]]) || isTRUE((spec$population[[above[[k]]]] %||% 0) > 0), keys)
+  # Some apply only above a number of groups (E59's Known difference 8 to
+  # MANOVA with three or more groups; two groups are calculated exactly).
+  groups <- form$known_differences_if_groups_above
+  keys <- Filter(function(k) is.null(groups[[k]]) || length(spec$variables$A$levels) > groups[[k]] || !is.null(spec$variables$B), keys)
   # A known difference may have its own wording for the smallest detectable
   # effect (key "1 sensitivity": E9's comes from the fixed-model formula).
   if (identical(spec$goal$type, "sensitivity")) {

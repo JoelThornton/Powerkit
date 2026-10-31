@@ -104,7 +104,11 @@ route_spec <- function(spec, seed = NULL) {
     },
     "basic_test/paired_variances" = ,
     "basic_test/manova" = ,
-    "basic_test/hotelling_one" = spower_backend(spec, seed),
+    "basic_test/hotelling_one" = if (basic_test_method(spec) == "exact") {
+      hotelling_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {
@@ -145,7 +149,7 @@ route_spec <- function(spec, seed = NULL) {
 # variances the chi-square and F distributions (backend-variance.R).
 # Welch's t-test by formula (pwrss) only when options > method = "exact".
 basic_test_method <- function(spec) {
-  spec$options$method %||% if (pwr_covers(spec) || variance_formula_test(spec)) "exact" else "simulation"
+  spec$options$method %||% if (pwr_covers(spec) || formula_test(spec)) "exact" else "simulation"
 }
 
 abort_not_available <- function(message) {

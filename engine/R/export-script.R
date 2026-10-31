@@ -46,7 +46,13 @@ export_script <- function(spec, result, file = NULL) {
   lines <- switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (variance_formula_test(spec)) variance_script(spec, result) else pwr_script(spec, result),
+    stats = if (variance_formula_test(spec)) {
+      variance_script(spec, result)
+    } else if (hotelling_formula_test(spec)) {
+      hotelling_script(spec, result)
+    } else {
+      pwr_script(spec, result)
+    },
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
@@ -820,6 +826,60 @@ variance_script <- function(spec, result) {
       )
     },
     tails,
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# Hotelling's T-squared (one group against fixed values, or two groups) by
+# its noncentral F distribution, in base R (backend-hotelling.R).
+hotelling_script <- function(spec, result) {
+  inputs <- hotelling_inputs(spec)
+  two <- inputs$groups == 2
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    goal_inputs(spec, result),
+    "",
+    if (two) {
+      c(
+        "# With two equal groups, T^2 (N - p - 1) / ((N - 2) p) follows the noncentral",
+        "# F distribution with p and N - p - 1 df and noncentrality N1 N2 / N = N / 4",
+        "# times the squared Mahalanobis distance between the groups' means",
+        "# (Anderson, 2003, An Introduction to Multivariate Statistical Analysis,",
+        "# 3rd ed., sections 5.3.4 and 5.4)."
+      )
+    } else {
+      c(
+        "# (T^2 / (n - 1)) (n - p) / p follows the noncentral F distribution with p",
+        "# and n - p df and noncentrality n times the squared Mahalanobis distance",
+        "# of the means from the fixed values (Anderson, 2003, An Introduction to",
+        "# Multivariate Statistical Analysis, 3rd ed., section 5.4)."
+      )
+    },
+    "p <- length(sds)",
+    "sigma <- matrix(r, p, p)",
+    "diag(sigma) <- 1",
+    "sigma <- sigma * outer(sds, sds) # covariance matrix of the outcomes",
+    if (two) "difference <- means[2, ] - means[1, ]" else "difference <- means - mu0",
+    "distance2 <- as.numeric(t(difference) %*% solve(sigma, difference))",
+    "power_at <- function(n_total) {",
+    if (two) {
+      c(
+        "  df2 <- n_total - p - 1",
+        "  ncp <- n_total / 4 * distance2"
+      )
+    } else {
+      c(
+        "  df2 <- n_total - p",
+        "  ncp <- n_total * distance2"
+      )
+    },
+    "  critical <- qf(1 - alpha, p, df2)",
+    "  pf(critical, p, df2, ncp = ncp, lower.tail = FALSE)",
     "}",
     "",
     pwr_goal_section(spec, result),

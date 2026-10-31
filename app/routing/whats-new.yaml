@@ -6,13 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
-    title: "Saved results open straight away; exact variance tests"
+    title: "Saved results open straight away; more tests calculated exactly"
     text: >-
       Opening a saved project now shows its result as it was saved, without
       running it again, so a long simulation doesn't have to be repeated;
       a button runs it again to check. Projects saved before this version
-      still run when opened. The tests of one or two variances are now
-      calculated exactly, as G*Power does, instead of simulated.
+      still run when opened. The tests of one or two variances, and
+      Hotelling's T-squared (one group's several outcomes compared with
+      fixed values, or a MANOVA of two groups), are now calculated exactly,
+      as G*Power does, instead of simulated, so they answer straight away.
   - date: "2026-10-31"
     title: "Fixes, and clearer names"
     text: >-

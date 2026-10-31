@@ -110,10 +110,10 @@ uses_simulation <- function(spec) {
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
-    !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
+    !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
-      variance_formula_test(spec) ||
+      formula_test(spec) ||
       pwrss_only(spec) ||
       identical(spec$target_test$method, "welch_t")
   )
@@ -168,12 +168,13 @@ simulation_available <- function(spec) {
 }
 
 # Basic tests powerkit computes by simulation only: no formula covers
-# them (the Pitman-Morgan test, MANOVA and Hotelling's T-squared). The
-# variance tests of one or two groups have their own formula
-# (backend-variance.R). The rank
+# them (the Pitman-Morgan test, and MANOVA with three or more groups or
+# two factors). The variance tests of one or two groups and Hotelling's
+# T-squared (one group, or a MANOVA of two groups) have their own formula
+# (backend-variance.R, backend-hotelling.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
+  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 

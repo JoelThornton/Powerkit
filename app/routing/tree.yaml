@@ -1604,8 +1604,8 @@ endpoints:
     doc_name: "Several outcomes compared across groups (one-way MANOVA; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Spower: powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation"
-    method: "Simulation"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4)"
+    method: "Simulation (three or more groups) or formula (two groups)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
     card_points:
@@ -1613,7 +1613,7 @@ endpoints:
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
       - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
-      - "The answer is simulated, so it carries a little random error. G*Power computes Hotelling's T-squared exactly and Pillai's trace with an approximation."
+      - "With two groups the answer is calculated exactly, as G*Power does. With three or more it is simulated, so it carries a little random error; G*Power uses an approximation there."
     inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups"]
@@ -1621,15 +1621,15 @@ endpoints:
     doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
     plain_name: "Does one group differ from fixed values on several outcomes at once?"
     template: "basic_test / hotelling_one"
-    backend: "Spower: powerkit's p_hotelling_one() experiment, multivariate normal scores whose mean vector is tested against the fixed values (stats::anova() of lm(), Pillai's trace), by simulation"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, section 5.4); Spower's simulation with powerkit's p_hotelling_one() experiment on request"
+    method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-hotelling-one.R, note: "Matches the exact F test of Hotelling's T-squared (pwrss's generic F test with the Mahalanobis distance), recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own example."}
+    validation: {file: test-backend-hotelling-exact.R, note: "Gives the same power as pwrss's generic noncentral F test and agrees with Spower's simulation of the same test (31 October 2026). Not yet checked against G*Power's own example."}
     card_points:
       - "Compares one group's means on several outcomes with fixed values, such as published norms or scale midpoints, in one test: one-sample Hotelling's T-squared."
       - "You give each outcome's expected mean, the value it is compared with, each outcome's SD, and how strongly the outcomes are correlated."
-      - "Why means and not one effect size: the simulation draws scores from a population, so it needs the means, the SDs and the correlation. A single effect size doesn't say what those are."
-      - "The answer is simulated, so it carries a little random error. G*Power computes this test exactly."
+      - "Why means and not one effect size: the power depends on how far the means are from the fixed values once the SDs and the correlation are allowed for, and a single effect size doesn't say what those are."
+      - "Calculated exactly, as G*Power does."
     inputs: ["The outcomes", "The expected means and the fixed values", "Each outcome's SD, and the correlation between the outcomes"]
     tier: v2
     alternatives: ["a one-sample t-test for each outcome, with the significance level adjusted for the number of outcomes"]

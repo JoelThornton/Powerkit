@@ -3828,8 +3828,9 @@ researchers commonly use it, recorded as a departure as before.
 
 **First uses.** The variance tests of one and two groups (exact, as in the
 G\*Power 3.1 manual, sections 26.5 and 15.5; Known difference 4 retired).
-One-sample and two-group Hotelling's T-squared (the noncentral F) are next,
-once a published source for the formula is in hand to cite; MANOVA with
+Hotelling's T-squared for one group and for a MANOVA of two groups, by
+the noncentral F (Anderson, 2003, An Introduction to Multivariate
+Statistical Analysis, 3rd ed., sections 5.3.4 and 5.4, pp. 179-186); MANOVA with
 three or more groups stays simulated, since G\*Power's Pillai
 approximation is itself an approximation.
 

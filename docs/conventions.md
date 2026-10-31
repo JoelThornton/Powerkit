@@ -1346,13 +1346,18 @@ Wired into the app on 18 October 2026 (E25, E26).*
 
 - **What differs:** G\*Power computes Hotelling's T-squared for one or two
   groups exactly and MANOVA's global effect (Pillai's V) for three or more
-  groups with an F approximation. powerkit simulates all three with Spower
-  and its own experiments, `p_manova()` (multivariate normal scores,
-  `stats::manova()`, Pillai's trace) and, for one group against fixed
-  values, `p_hotelling_one()` (the test of the intercept of
-  `lm(scores - mu0 ~ 1)`, from 31 October 2026), because no package powerkit builds on has a formula
-  and powerkit doesn't write the maths itself (CLAUDE.md). The answer
-  carries Monte Carlo error.
+  groups with an F approximation. powerkit simulates MANOVA with Spower
+  and its own experiment, `p_manova()` (multivariate normal scores,
+  `stats::manova()`, Pillai's trace), because no package powerkit builds
+  on has a formula. The answer carries Monte Carlo error.
+- **One and two groups (retired 31 October 2026):** Hotelling's
+  T-squared, for one group against fixed values (E60) and for a MANOVA of
+  two groups (E59), is now computed exactly, by its noncentral F
+  distribution (Anderson, 2003, sections 5.3.4 and 5.4;
+  `backend-hotelling.R`), as G\*Power computes it, under CLAUDE.md's rule
+  on published formulas. The simulations (`p_hotelling_one()`,
+  `p_manova()`) stay available on request, and this difference applies
+  only to three or more groups.
 - **Size:** with two groups, the Monte Carlo error alone: 0.393 simulated
   against 0.392 exact (pwrss's F test of R-squared, which equals two-group
   Hotelling's T-squared) for three outcomes correlated 0.4 and N = 100.
@@ -1368,8 +1373,8 @@ Wired into the app on 18 October 2026 (E25, E26).*
   simulation; Type I error), `test-validation-hotelling-one.R` (a G\*Power
   example to transcribe; the exact one-group check; Type I error),
   `test-backend-manova-oneway.R` and `test-backend-hotelling-one.R`.
-- **Shown to users:** on the MANOVA and one-group Hotelling result screens
-  (E59, E60), under "Where
+- **Shown to users:** on the MANOVA result screen
+  (E59) with three or more groups (`known_differences_if_groups_above`), under "Where
   other established tools give a different answer"
   (`app/routing/forms.yaml`, `known_differences`, key "8").
 - **Methods paragraph:** "Power was estimated by simulation, so it carries

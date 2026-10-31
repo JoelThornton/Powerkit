@@ -35,7 +35,7 @@ pwr_covers <- function(spec) {
   spec$design == "basic_test" &&
     !pwrss_only(spec) &&
     !spower_only(spec) &&
-    !variance_formula_test(spec) &&
+    !formula_test(spec) &&
     !bayes_factor_test(spec) &&
     !identical(spec$target_test$method, "welch_t")
 }

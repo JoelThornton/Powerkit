@@ -11,6 +11,17 @@ Fixes from a review of 0.25.0, and its follow-ups.
   `options > method` "simulation". Known difference 4 is retired. The
   formula takes an allocation ratio for two groups (the simulation still
   can't). The exported script reproduces the result with base R alone.
+* Hotelling's T-squared is computed exactly, by its noncentral F
+  distribution (Anderson, 2003, *An Introduction to Multivariate
+  Statistical Analysis*, 3rd ed., sections 5.3.4 and 5.4), with base R's
+  `pf()` (`backend-hotelling.R`), instead of simulated: for one group
+  against fixed values (E60; p and N - p df, noncentrality N times the
+  squared Mahalanobis distance) and for a MANOVA of two groups (E59;
+  p and N - p - 1 df, noncentrality N1 N2 / N times the distance). It
+  gives the same power as pwrss's noncentral F tests and agrees with
+  Spower's simulation, which stays available with `options > method`
+  "simulation". Known difference 8 now applies only to MANOVA with three
+  or more groups.
 * Project rule: where no package has a formula, a closed-form result from a
   published source may be written in the engine, cited and checked against
   simulation (`CLAUDE.md`); where a method is clearly better, it becomes the
