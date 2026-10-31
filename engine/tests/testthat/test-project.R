@@ -57,6 +57,36 @@ test_that("a reloaded project reproduces the same result, exactly and by simulat
   }
 })
 
+test_that("a simulated project reproduces on the cores it ran on, whatever this session uses", {
+  # Spower runs its replications in one random stream per core, so the
+  # same seed gives another answer on another number of cores: reproducing
+  # pins the number the file records.
+  spec <- project_spec("correlation", list(type = "power", n = 80), method = "simulation", nrep = 200)
+  old <- options(powerkit.cores = 1)
+  on.exit(options(old))
+  result <- run_spec(spec)
+  project <- save_and_read(spec, result)
+  expect_identical(project$result$provenance$cores, 1L)
+  options(powerkit.cores = 2)
+  again <- reproduce_project(project)
+  expect_true(again$same)
+  expect_equal(again$result$curve, result$curve)
+  expect_identical(getOption("powerkit.cores"), 2)
+
+  # A file saved before the cores were recorded says why it may differ.
+  record <- jsonlite::parse_json(write_project(spec, result), simplifyVector = FALSE)
+  record$result$provenance$cores <- NULL
+  record$result$curve[[1]]$power <- 0.123
+  older <- read_project(jsonlite::toJSON(record, auto_unbox = TRUE, digits = NA, null = "null"))
+  expect_match(reproduce_project(older)$differences, "doesn't record how many cores", all = FALSE)
+
+  # An exact result records no cores and reproduces as before.
+  exact <- project_spec("independent_t", list(type = "power", n = 128), method = "exact")
+  project <- save_and_read(exact, run_spec(exact))
+  expect_null(project$result$provenance$cores)
+  expect_true(reproduce_project(project)$same)
+})
+
 test_that("a project saves the result's provenance and versions", {
   spec <- project_spec("paired_t", list(type = "power", n = 40))
   result <- run_spec(spec)

@@ -175,11 +175,18 @@ test_that("plan from a published result: the engine converts and gives the safeg
   out <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "2.5", pub_df = "58",
     pub_n1 = "30", pub_n2 = "30", pub_protection = "0.8"), convert, safeguard)
   expect_length(out$problems, 0)
-  expect_match(out$lines[1], "Converted: Cohen's d = 0.657, with the effectsize package's t_to_d()", fixed = TRUE)
+  expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
   expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
   expect_match(out$lines[2], "for an 80% chance", fixed = TRUE)
   expect_match(out$lines[3], "Published effects tend to be larger", fixed = TRUE)
+  # Groups of different sizes enter the conversion: d = t sqrt(1/n1 + 1/n2).
+  uneven <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "3", pub_df = "38",
+    pub_n1 = "10", pub_n2 = "30", pub_protection = "0.8"), convert, safeguard)
+  expect_match(uneven$lines[1], "Converted: Cohen's d = 1.095", fixed = TRUE)
+  # An r is still converted by effectsize.
+  from_r <- published_result(list(pub_design = "independent_t", pub_from = "r", pub_value = "0.3"), convert, safeguard)
+  expect_match(from_r$lines[1], "with the effectsize package's r_to_d() (Ben-Shachar", fixed = TRUE)
   # An ANOVA's F, with both dfs; no safeguard there yet.
   anova <- published_result(list(pub_design = "oneway_between", pub_from = "F", pub_value = "4.2", pub_df1 = "2", pub_df = "57"), convert, safeguard)
   expect_match(anova$lines[1], "partial eta-squared = 0.128", fixed = TRUE)

@@ -367,7 +367,8 @@ labs_js <- "
 "
 
 # Plan from a published result (Labs): the effect as a paper reported it,
-# converted by the engine (convert_effect(), with effectsize) into the
+# converted by the engine (convert_effect(): psych's t2d() for t and F into
+# d or d_z, effectsize for the rest) into the
 # effect size a card uses, and the safeguard effect size (safeguard_effect(),
 # Perugini, Gallucci & Costantini, 2014) where the design has one. The app
 # only calls the engine. The forms each kind of study takes follow the
@@ -411,16 +412,24 @@ published_result <- function(values, convert, safeguard) {
   lines <- character()
   estimate <- value
   if (!identical(from, "as_is")) {
+    # Two groups of unequal size: the group sizes, when both are given,
+    # enter the conversion as well as the safeguard value.
+    n1 <- whole(values$pub_n1)
+    n2 <- whole(values$pub_n2)
+    sized <- identical(design, "independent_t") && !is.na(n1) && !is.na(n2)
     out <- tryCatch(
       convert(from, value, design, df_error = if (from %in% c("t", "F")) whole(values$pub_df),
+              n1 = if (sized) n1, n2 = if (sized) n2,
               df = if (identical(from, "F") && identical(design, "oneway_between")) whole(values$pub_df1)),
       error = function(e) e)
     if (inherits(out, "error")) {
-      return(list(lines = character(), problems = sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out))))
+      problem <- if (inherits(out, "powerkit_error")) sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out)) else
+        "powerkit couldn't convert this value: something went wrong in its engine. Please report this, with the values you entered."
+      return(list(lines = character(), problems = problem))
     }
     estimate <- out$value
-    lines <- c(lines, sprintf("Converted: %s = %s, with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020).",
-      d$effect, format(round(estimate, 3), nsmall = 2), sub("\\(.*", "", sub("^effectsize::", "", out$function_used))))
+    lines <- c(lines, sprintf("Converted: %s = %s, %s.",
+      d$effect, format(round(estimate, 3), nsmall = 2), conversion_package_text(out$package$name, out$function_used)))
   }
   sizes <- safeguard_sizes[[design]]
   if (is.null(sizes)) {
@@ -454,7 +463,7 @@ published_ui <- function() {
   conditionalPanel("input.labs_tool == 'published'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-      "The numbers come from powerkit's engine (effectsize for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
+      "The numbers come from powerkit's engine (effectsize and psych for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
     h3("Plan from a published result"),
     p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, where it can, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
@@ -465,7 +474,7 @@ published_ui <- function() {
         textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
       conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",
         textInput("pub_df", "Its error degrees of freedom (the second df of F, or the df of t)", width = "100%"))),
-    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "For the safeguard value"),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published study's size (for the safeguard value, and for converting a t or F from groups of different sizes)"),
       conditionalPanel("input.pub_design == 'independent_t'",
         textInput("pub_n1", "People in group 1 of the published study", width = "100%"),
         textInput("pub_n2", "People in group 2 of the published study", width = "100%")),

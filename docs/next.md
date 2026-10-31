@@ -10,7 +10,8 @@ project is, this says what to do.*
 2. If an item says *Needs a decision*, it is not yours to start: say what
    the decision is and move to the next Ready item, or ask the maintainer.
 3. Follow [`adding-a-test.md`](adding-a-test.md) for anything that adds a
-   power analysis. One item per PR.
+   power analysis. One item, or a group of closely related ones, per PR
+   (`CLAUDE.md`, "Working process").
 4. When an item lands, delete its row and say so in `status.md`.
 5. **Check the top item still makes sense before starting.** This page is
    dated; a queue written three weeks ago can be stale, and the
@@ -21,7 +22,7 @@ project is, this says what to do.*
 | # | What | Why it matters | Size | State |
 | --- | --- | --- | --- | --- |
 | 1 | **Joint power for study plans that mix designs** | The study plan gives joint power (PUMP) when every analysis compares the same randomised groups on different outcomes. A plan that mixes analyses (for example a multilevel model and a mediation in the same study) needs a simulation of the whole study, as "Plan my whole study" runs for independent people measured once or twice; nested, repeated-measures and dyadic studies have none | L | Needs a decision: which designs first, and whether to extend the whole-study simulation (Spower) or build per-design simulations |
-| 2 | **MANOVA follow-ups: one-group Hotelling's T-squared, and two factors** | The one-way MANOVA card (two or more groups on several outcomes, Pillai's trace; Hotelling's T-squared with two groups) runs since 30 October 2026, simulated with Spower. Not yet: one group against fixed values (roadmap A31) and MANOVA with two factors and their interaction (A34); the G\*Power examples in its validation file are to transcribe | M | Ready: the same simulation route, decided 30 October 2026 |
+| 2 | **MANOVA follow-ups: one-group Hotelling's T-squared, and two factors** | The one-way MANOVA card (two or more groups on several outcomes, Pillai's trace; Hotelling's T-squared with two groups) runs since 30 October 2026, simulated with Spower. Not yet: one group against fixed values (roadmap A31) and MANOVA with two factors and their interaction (A34); the G\*Power examples in its validation file are to transcribe. The card asks for means and says why (31 October 2026); with two groups a Mahalanobis-distance input would be possible, as the validation tests build their populations | M | Ready: the same simulation route, decided 30 October 2026 |
 | 3 | **Multilevel: more simulated models, starting with E41** | Participants responding to many items in two conditions (E33) calculate since 30 October 2026, with simr. Not yet: predictors measured at both levels and cross-level interactions (E41), and other crossed designs (conditions between participants, three or more conditions, a predictor measured on each trial, a yes/no outcome per trial) | L | Needs a decision: which models next, each with its inputs and test, checked by a statistician |
 | 4 | **Bayes factors beyond the t-tests** | The Bayes factor t-tests are in the app (bfpwr, fixed N). Sequential designs (BFDA, on GitHub only) and Bayes factors for other designs are not | M | Needs a decision: the package for sequential designs, and which designs next |
 | 5 | **Justified alpha and compromise power** | Choosing alpha by weighing the costs of Type I and Type II errors, instead of always .05 (G\*Power's compromise analysis; Superpower's `ANOVA_compromise()` and semPower's `semPower.compromise()` are candidates; roadmap Co). powerkit offers a priori, power and sensitivity analyses only | S | Needs a decision: which designs first, and how the error-cost ratio is asked |

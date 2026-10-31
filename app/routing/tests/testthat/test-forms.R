@@ -694,3 +694,19 @@ test_that("example values in the help cite a source in refs.bib, by author and y
   names(e33) <- vapply(fields_for("E33"), function(f) f$id, "")
   expect_true(all(grepl("Brysbaert & Stevens, 2018, Table 2", e33[c("difference", "sd_participant", "sd_item", "sd_residual")])))
 })
+
+test_that("an unexpected engine fault reaches users in plain words, not as R's own message", {
+  fault <- function(...) stop("subscript out of bounds")
+  checked <- check_spec(list(), list(), validate = fault)
+  expect_identical(checked$status, "problems")
+  expect_match(checked$problems, "something went wrong in its engine", fixed = TRUE)
+  expect_no_match(checked$problems, "subscript")
+  expect_match(whole_study_check(list(), validate = fault), "something went wrong in its engine", fixed = TRUE)
+  out <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "2", pub_df = "20"), fault, fault)
+  expect_match(out$problems, "something went wrong in its engine", fixed = TRUE)
+  expect_no_match(out$problems, "subscript")
+  # The engine's own problems still come through as written.
+  own <- function(...) stop(structure(class = c("powerkit_spec_error", "powerkit_error", "error", "condition"),
+    list(message = "This design spec has a problem:\n* Plain words.", call = NULL, problems = "Plain words.")))
+  expect_identical(check_spec(list(), list(), validate = own)$problems, "Plain words.")
+})

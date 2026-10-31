@@ -1,6 +1,6 @@
 # Handover
 
-*Updated 26 October 2026, for whoever picks the project up next.
+*Updated 31 October 2026, for whoever picks the project up next.
 [`status.md`](status.md) is the current state and the priorities; this
 page is the working rules and where things live. [`README.md`](README.md)
 maps every document.*
@@ -32,14 +32,14 @@ and the write-up all need the user's reasoning.
 
 ## What to work on next
 
-[`next.md`](next.md) is the ordered queue, about twenty items deep, each marked
+[`next.md`](next.md) is the ordered queue, nearly thirty items deep, each marked
 Ready or needing a decision, with what is waiting on the maintainer at the
 bottom. It is the one place to look.
 
 ## Adding a power analysis
 
-[`adding-a-test.md`](adding-a-test.md) is the process, start to finish, and
-holds the queue of what to add next. The short version: a test is added
+[`adding-a-test.md`](adding-a-test.md) is the process, start to finish
+(what to add next is in [`next.md`](next.md)). The short version: a test is added
 when a researcher can run it and see that it exists, so the engine, the
 card, the input screen, the "What's new" entry and the batch's version
 land together (one batch of features raises the middle number by one).
@@ -81,9 +81,8 @@ land together (one batch of features raises the middle number by one).
   mark it "candidate" and leave it out (as with Hoenig and Heisey for B11).
   Any departure from a tool's conventions goes in `conventions.md`, on the
   result screen, in the methods paragraph, and in a test showing its size.
-- **Every PR:** run the engine and app tests (`devtools::test()`,
-  `devtools::check()` in `engine/`; `testthat::test_dir("app/routing/tests/testthat")`
-  from the repo root with `NOT_CRAN=true`), and update `engine/NEWS.md`
+- **Every PR:** run the engine and app tests (the commands are in
+  `CLAUDE.md`, "Before finishing any task"), and update `engine/NEWS.md`
   and `status.md`. A PR that changes what users see also adds a dated,
   plain-words entry at the top of `app/routing/whats-new.yaml` (the app's
   "What's new" tab; no internal codes such as E5).

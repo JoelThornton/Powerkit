@@ -413,8 +413,9 @@ with_eta_squared <- function(group, template) {
 }
 
 # Effect-size conversion: a published effect in another form (a t or F
-# statistic, r, d or an odds ratio), converted by the engine with the
-# effectsize package into the card's own effect size. The forms each card
+# statistic, r, d or an odds ratio), converted by the engine into the
+# card's own effect size (psych's t2d() for t and F into d or d_z, the
+# effectsize package for the rest). The forms each card
 # accepts follow the engine's list of conversions (a test in test-results.R
 # checks they agree). The fields go straight after the effect field, which
 # is hidden while a conversion is chosen.
@@ -450,12 +451,24 @@ conversion_fields <- function(template, when = list()) {
     # partial eta-squared, so it is offered only for that kind.
     if (isTRUE(template %in% eta_squared_mixed_templates)) list(list(field = "eta_source", is = "published")))
   converting <- c(planning, list(list(field = "conv_from", is_one_of = from)))
-  Filter(Negate(is.null), list(
+  sizes <- if (identical(template, "independent_t")) {
+    # Two groups of different sizes: the sizes change d (engine,
+    # convert_effect()); left empty, the groups are taken as equal.
+    sized <- c(converting, list(list(field = "conv_from", is_one_of = c("t", "F", "r"))))
+    help <- "Leave both empty if the published groups were the same size."
+    list(
+      list(id = "conv_n1", label = "Group 1's size in the published study (optional)", type = "number", integer = TRUE, min = 2,
+           conversion = TRUE, path = "effect_justification.conversion.n1", shown_if = sized, help = help),
+      list(id = "conv_n2", label = "Group 2's size in the published study (optional)", type = "number", integer = TRUE, min = 2,
+           conversion = TRUE, path = "effect_justification.conversion.n2", shown_if = sized, help = help))
+  }
+  c(Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
-         help = paste("powerkit converts it with the effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows",
-                      "the result and the function used. Published effects tend to be larger than the true effect: say how you",
-                      "adjusted it, or use safeguard power below if it comes from one study.")),
+         help = paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
+                      "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
+                      "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
+                      "from one study.")),
     list(id = "conv_value", label = "The published value", type = "number", required = TRUE, conversion = TRUE,
          path = "effect_justification.conversion.value", shown_if = converting),
     if (isTRUE(template %in% eta_squared_templates)) {
@@ -466,7 +479,7 @@ conversion_fields <- function(template, when = list()) {
     list(id = "conv_df", label = "Its error degrees of freedom (the second df of F, or the df of t)", type = "number", integer = TRUE, min = 1, conversion = TRUE,
          required = TRUE, path = "effect_justification.conversion.df_error",
          shown_if = c(converting, list(list(field = "conv_from", is_one_of = c("t", "F")))))
-  ))
+  )), sizes)
 }
 
 with_conversion <- function(group, template) {
@@ -893,7 +906,10 @@ check_spec <- function(spec, fields, validate = engine_validator()) {
   if (identical(result, "ok")) {
     return(list(status = "ok", problems = character(), advice = vapply(advice, plain_engine_message, "", fields = fields, USE.NAMES = FALSE)))
   }
-  problems <- result$problems %||% conditionMessage(result)
+  # Only the engine's own errors are worded for users; anything else is a
+  # fault, reported without its internals.
+  problems <- if (inherits(result, "powerkit_error")) result$problems %||% conditionMessage(result) else
+    "powerkit couldn't check these answers: something went wrong in its engine. Please report this, with the answers you copied."
   list(status = "problems", problems = vapply(problems, plain_engine_message, "", fields = fields, USE.NAMES = FALSE),
        advice = vapply(advice, plain_engine_message, "", fields = fields, USE.NAMES = FALSE))
 }

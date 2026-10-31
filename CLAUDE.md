@@ -8,14 +8,15 @@ confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
 
 ## What to work on
-docs/next.md is the ordered queue: take the first item marked Ready, one item
-per PR, and delete its row when it lands. An item marked "Needs a decision" is
+docs/next.md is the ordered queue: take the first item marked Ready (with
+any closely related items, as one group of work: see "Working process"),
+and delete its row when it lands. An item marked "Needs a decision" is
 not yours to start — say what the decision is and move on, or ask. Check the
 top item still makes sense before starting: the page is dated, and the
 maintainer's priorities beat it.
 
 ## Adding a power analysis
-Follow docs/adding-a-test.md, start to finish, in one PR. A test is added when a
+Follow docs/adding-a-test.md, start to finish, in the same PR. A test is added when a
 researcher can run it and see that it exists: engine, validation placeholders,
 card, input screen, a plain-words "What's new" entry, the version (see
 Non-negotiables) and the status update all land together. For a design whose power must be simulated,
@@ -90,8 +91,20 @@ to read small.
 - docs/status.md is current state only: replace old entries, don't append
   history (git, NEWS.md and docs/archive/ hold that).
 - Prefer updating an existing doc to adding a new one.
-- One design or one feature per PR; keep code changes to a few hundred
-  lines where possible, and keep docs-only changes in their own PR.
+- Read CLAUDE.md, docs/next.md and docs/status.md in full. docs/decisions.md,
+  docs/conventions.md, engine/NEWS.md and the YAML files are long records
+  (hundreds of KB): search them for the design, date or package in hand
+  rather than reading them whole.
+- One PR per group of related work: one queue item, a design with its
+  follow-ups, or a set of fixes from one review. The test is whether the
+  PR can be described in a sentence; unrelated changes go in separate PRs.
+  The docs that describe a change go in the same PR as the change. When a
+  group is too big to review comfortably, split it by design or by fix,
+  never by layer, and say in the description what each part does.
+- Open the pull request yourself when the work is ready, and merge it once
+  its checks pass. Leave it open for the maintainer to merge when you're
+  uncertain about something (a method choice, a result you can't explain,
+  a check you couldn't run), and say what in the description.
 - Public content: the repository is public and must read as a professional
   software project. Commit messages, PR titles and descriptions, comments
   and repo files say what a change does, why it is needed (in terms of the
@@ -108,11 +121,22 @@ to read small.
   --build-from-source`.
 
 ## Before finishing any task
-- Run devtools::test() and devtools::check() in engine/; both must pass
+- Run the engine's tests and R CMD check in engine/, as CI does; both must
+  pass: `testthat::test_local()` and
+  `rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")`
+  (devtools isn't in the CI image that cloud sessions copy; where it is
+  installed, devtools::test() and devtools::check() do the same). After
+  changing roxygen comments, regenerate man/ with roxygen2 at the version
+  in engine/DESCRIPTION (also not in the image: install it into a scratch
+  library) rather than editing .Rd files by hand.
 - Run the app's suite too when anything outside engine/ changed:
-  testthat::test_dir("tests/testthat") in app/routing/. The cross-checks that
-  tie the engine, the docs and the app together live there, so an engine-only
-  run will not see them.
+  testthat::test_dir("tests/testthat") in app/routing/, after installing
+  the engine (`R CMD INSTALL engine`), since the suite tests the installed
+  one. The cross-checks that tie the engine, the docs and the app together
+  live there, so an engine-only run will not see them. test-results.R takes
+  about two thirds of its time; CI runs it beside the rest (`filter =
+  "^results$"`, with `invert = TRUE` for the rest), and two R sessions can
+  do the same locally.
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
   app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.

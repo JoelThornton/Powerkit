@@ -62,7 +62,7 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
     )
   )
   software <- lapply(
-    supporting_software(package, names(result$provenance$packages)),
+    supporting_software(package, names(result$provenance$packages), psych_roles(result)),
     function(s) {
     list(
       label = sprintf("%s, %s (from citation(\"%s\"))", s$name, s$role, s$citation),
@@ -101,7 +101,7 @@ powerkit_paper_key <- function() "powerkit"
 #
 # `used` is the run's own package list (the provenance), so that a package
 # only some of a backend's tests call is cited only when it was called.
-supporting_software <- function(backend, used = character()) {
+supporting_software <- function(backend, used = character(), psych_roles = character()) {
   s <- function(name, role, citation = name) list(name = name, role = role, citation = citation)
   packages <- switch(
     backend,
@@ -127,12 +127,24 @@ supporting_software <- function(backend, used = character()) {
   if ("effectsize" %in% used) {
     packages <- c(packages, list(s("effectsize", "which converted the effect size entered into the one the calculation uses")))
   }
+  if ("psych" %in% used && length(psych_roles) > 0) {
+    packages <- c(packages, list(s("psych", paste("which", paste(psych_roles, collapse = " and ")))))
+  }
   # stats is part of R and citation("stats") is R's own citation, so R
   # isn't listed a second time.
   if (identical(backend, "stats")) {
     return(packages)
   }
   c(packages, list(s("R", "in which the analysis ran", "base")))
+}
+
+# What psych did in a run, for its entry: converted a t or F statistic
+# into d or d_z (t2d()), or found safeguard power's interval.
+psych_roles <- function(result) {
+  c(
+    if (identical(result$effect_conversion$package$name, "psych")) "converted the effect size entered into the one the calculation uses",
+    if (!is.null(result$safeguard)) "computed the confidence interval safeguard power starts from"
+  )
 }
 
 # Whether a refs.bib entry has the same DOI as an entry of a citation().

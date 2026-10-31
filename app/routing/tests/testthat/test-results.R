@@ -1440,7 +1440,7 @@ test_that("safeguard power: the form asks for the earlier study's size, and the 
   expect_null(plain$effect_justification$safeguard)
 })
 
-test_that("effect-size conversion: the form offers each card's forms, and the engine converts with effectsize", {
+test_that("effect-size conversion: the form offers each card's forms, and the engine converts them", {
   # The app offers the forms the engine converts from.
   for (template in names(conversion_choices)) {
     expect_setequal(conversion_choices[[template]], powerkit:::conversion_templates[[template]]$from)
@@ -1465,15 +1465,46 @@ test_that("effect-size conversion: the form offers each card's forms, and the en
   skip_without_run()
   calc <- run_calculation(spec, run, seed = forms$default_seed)
   expect_identical(calc$status, "ok")
-  expect_equal(calc$result$effect_conversion$converted, effectsize::t_to_d(2.5, 58)[[1]])
+  # A t into d: psych's t2d(), d = 2 t / sqrt(df + 2) for equal groups.
+  expect_equal(calc$result$effect_conversion$converted, 2 * 2.5 / sqrt(60))
   html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
-  expect_match(html, "Effect size converted: the published t statistic of 2.5 (error df 58) gives Cohen's d = 0.657, with the effectsize package's t_to_d()", fixed = TRUE)
+  expect_match(html, "Effect size converted: the published t statistic of 2.5 (error df 58) gives Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
-  expect_match(text, "converted from the published t statistic of 2.5 (error df 58) with the effectsize package's t_to_d()", fixed = TRUE)
+  expect_match(text, "converted from the published t statistic of 2.5 (error df 58) with the psych package's t2d(), by the formula in Lakens (2013)", fixed = TRUE)
+  # Groups of different sizes, when given, enter the conversion and the words.
+  expect_false(field_applies(by_id("conv_n1"), modifyList(values, list(conv_from = "odds_ratio"))))
+  uneven <- modifyList(values, list(conv_value = 3, conv_df = 38, conv_n1 = 10, conv_n2 = 30))
+  spec <- build_spec(forms, "E2", fields, uneven)
+  expect_identical(spec$effect_justification$conversion$n1, 10L)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$effect_conversion$converted, 3 * sqrt(1 / 10 + 1 / 30))
+  expect_match(conversion_sentence(calc$result), "the published t statistic of 3 (error df 38, groups of 10 and 30) gives Cohen's d = 1.095, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
+  # An r is still effectsize's.
+  calc <- run_calculation(build_spec(forms, "E2", fields, modifyList(values, list(conv_from = "r", conv_value = 0.3))), run, seed = forms$default_seed)
+  expect_match(conversion_sentence(calc$result), "with the effectsize package's r_to_d() (Ben-Shachar", fixed = TRUE)
   # "No" leaves the card as it was.
   plain <- build_spec(forms, "E2", fields, modifyList(values, list(conv_from = "none", d = "0.4")))
   expect_null(plain$effect_justification$conversion)
   expect_equal(plain$population$d, 0.4)
+})
+
+test_that("the conversion's formula is cited from refs.bib", {
+  bib <- paste(readLines(file.path(repo_dir, "engine", "inst", "citations", "refs.bib"), encoding = "UTF-8"), collapse = "\n")
+  entry <- grep("^Article\\{Lakens2013_effectsizes", strsplit(bib, "\n@")[[1]], value = TRUE)
+  expect_length(entry, 1)
+  expect_match(entry, "author = {Dani{\\\"e}l Lakens}", fixed = TRUE)
+  expect_match(entry, "year = {2013}", fixed = TRUE)
+  expect_identical(conversion_package_text("psych", "psych::t2d(t = 2.5, n = 60)"),
+    "with the psych package's t2d(), by the formula in Lakens (2013)")
+})
+
+test_that("a conversion saved by an earlier powerkit is named as such, with what this version gives", {
+  conv <- list(from_name = "a t statistic", value = 2.5, df_error = 29L, effect_name = "Cohen's d", converted = 0.464,
+    function_used = "psych::t2d(t = 2.5, n1 = 30)", package = list(name = "psych"), earlier = TRUE, now = 0.4564355)
+  expect_identical(conversion_sentence(list(effect_conversion = conv)), paste0(
+    "Effect size converted: the published t statistic of 2.5 (error df 29) gives Cohen's d = 0.464, as an earlier version ",
+    "of powerkit converted it and the saved plan records (this version gives 0.456)."))
 })
 
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {

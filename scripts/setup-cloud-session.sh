@@ -38,8 +38,30 @@ cd "$(dirname "$0")/.."
 IMG="joelthornton/powerkit-ci"
 sudo_cmd=""; [ "$(id -u)" -ne 0 ] && sudo_cmd="sudo"
 
+# The shell settings R needs here (UTF-8, so tree.yaml reads; renv not
+# activated, as the packages are in R's own library), in one file that
+# ~/.bashrc sources on its first line: below that line, Ubuntu's ~/.bashrc
+# returns early for a shell that isn't interactive, which is how Claude's
+# commands run.
+powerkit_env() {
+  cat > "$HOME/.powerkit-env.sh" <<ENV
+export R_PROFILE_USER="$HOME/.Rprofile-powerkit"
+export RENV_ACTIVATE_PROJECT=FALSE
+export NOT_CRAN=true
+export LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV
+  line='[ -f "$HOME/.powerkit-env.sh" ] && . "$HOME/.powerkit-env.sh"'
+  touch "$HOME/.bashrc"
+  if [ "$(head -n 1 "$HOME/.bashrc")" != "$line" ]; then
+    grep -vxF "$line" "$HOME/.bashrc" > "$HOME/.bashrc.powerkit" || true
+    { printf '%s\n' "$line"; cat "$HOME/.bashrc.powerkit"; } > "$HOME/.bashrc"
+    rm -f "$HOME/.bashrc.powerkit"
+  fi
+}
+
 if command -v Rscript >/dev/null 2>&1 &&
    R_PROFILE_USER="$HOME/.Rprofile-powerkit" Rscript -e 'loadNamespace("power4mome")' >/dev/null 2>&1; then
+  [ -f "$HOME/.Rprofile-powerkit" ] && powerkit_env
   echo "powerkit R setup: already done"
   exit 0
 fi
@@ -98,12 +120,7 @@ print("" if "layers" in m else next(x["digest"] for x in m["manifests"]
   cat > "$HOME/.Rprofile-powerkit" <<'RPROF'
 options(repos = c(CRAN = "https://cran.r-project.org"))
 RPROF
-  grep -q "Rprofile-powerkit" "$HOME/.bashrc" 2>/dev/null || cat >> "$HOME/.bashrc" <<ENV
-export R_PROFILE_USER="$HOME/.Rprofile-powerkit"
-export RENV_ACTIVATE_PROJECT=FALSE
-export NOT_CRAN=true
-export LANG=C.UTF-8 LC_ALL=C.UTF-8
-ENV
+  powerkit_env
   export R_PROFILE_USER="$HOME/.Rprofile-powerkit" RENV_ACTIVATE_PROJECT=FALSE
 
   # The engine itself, so the app tests find it.
