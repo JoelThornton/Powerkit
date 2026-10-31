@@ -1,7 +1,11 @@
 # Effect-size conversion: a published effect in another form (a t or F
 # statistic, r, d or an odds ratio) turned into the effect size the card
 # uses, with the effectsize package (Ben-Shachar, Lüdecke & Makowski,
-# 2020). The spec records what was converted in
+# 2020), except t and F into d or d_z, which use psych's t2d(): the exact
+# relation, d = t / sqrt(n) for one group or pairs and
+# d = t sqrt(1 / n1 + 1 / n2) for two groups (effectsize's t_to_d() puts
+# the error df in place of n, and assumes equal groups; conventions.md,
+# "Effect-size conversion"). The spec records what was converted in
 # 'effect_justification > conversion'; validate_spec() puts the converted
 # value in the population before the schema is checked, and records it as
 # 'conversion > result'.
@@ -36,7 +40,10 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' Convert a published effect size into the one a design uses
 #'
 #' Turns an effect reported in another form into the effect size a
-#' powerkit design takes, with the effectsize package: a t statistic, an F
+#' powerkit design takes, with the effectsize package (psych's `t2d()` for
+#' a t or F statistic into Cohen's d or d_z, with the sample size df + 1
+#' for one group or pairs and df + 2, or the two group sizes, for two
+#' groups): a t statistic, an F
 #' statistic with one numerator degree of freedom, r, Cohen's d or an odds
 #' ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
 #' t-test) or r (correlation); and an F statistic (with both its degrees of
@@ -51,14 +58,15 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #'   `"one_sample_t"`, `"paired_t"`, `"correlation"`, `"oneway_between"`,
 #'   `"2x2_between"` or `"factorial_between"`.
 #' @param df_error The error (denominator) degrees of freedom, for t and F.
-#' @param n1,n2 Optional group sizes, for r and d with two groups of
-#'   unequal size; equal groups are assumed without them.
+#' @param n1,n2 Optional group sizes, for the independent t-test and the
+#'   correlation (t, F, r or d with two groups of unequal size); equal
+#'   groups are assumed without them. With a t or F statistic, the error df
+#'   can't exceed n1 + n2 - 2.
 #' @param df The numerator degrees of freedom, for an F statistic converted
 #'   into an ANOVA's partial eta-squared.
 #'
 #' @return A list: `effect_name` and `value` (the converted effect),
-#'   `function_used` (the effectsize call) and `package` (name and
-#'   version).
+#'   `function_used` (the call) and `package` (name and version).
 #' @export
 #' @examples
 #' convert_effect("t", 2.5, "independent_t", df_error = 58)
@@ -79,7 +87,29 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
     abort_spec("Converting an F statistic for an ANOVA needs its numerator degrees of freedom ('df') as well as 'df_error'.")
   }
   paired <- template %in% c("one_sample_t", "paired_t")
+  if (xor(is.null(n1), is.null(n2))) {
+    abort_spec("Give both group sizes ('effect_justification > conversion > n1' and 'effect_justification > conversion > n2'), or neither for equal groups.")
+  }
+  if (!is.null(n1) && !template %in% c("independent_t", "correlation")) {
+    abort_spec("Group sizes ('effect_justification > conversion > n1' and 'effect_justification > conversion > n2') are only used for two groups: the independent t-test or the correlation.")
+  }
+  if (!is.null(n1) && from %in% c("t", "F") && !is.null(df_error) && df_error > n1 + n2 - 2) {
+    abort_spec(sprintf(
+      "With groups of %s and %s, a t or F statistic has at most %s error degrees of freedom, not %s. Check the group sizes and the df.",
+      n1, n2, n1 + n2 - 2, df_error))
+  }
   sizes <- if (!is.null(n1) && !is.null(n2)) sprintf(", n1 = %s, n2 = %s", n1, n2) else ""
+  # psych's t2d(): one group or pairs of n = df + 1 (n1 = n); two groups of
+  # their own sizes, or two equal groups of n = df + 2 in all.
+  t2d <- function(t) {
+    if (paired) {
+      list(value = psych::t2d(t, n1 = df_error + 1), used = sprintf("psych::t2d(t = %s, n1 = %s)", signif(t, 7), df_error + 1))
+    } else if (!is.null(n1)) {
+      list(value = psych::t2d(t, n1 = n1, n2 = n2), used = sprintf("psych::t2d(t = %s, n1 = %s, n2 = %s)", signif(t, 7), n1, n2))
+    } else {
+      list(value = psych::t2d(t, n = df_error + 2), used = sprintf("psych::t2d(t = %s, n = %s)", signif(t, 7), df_error + 2))
+    }
+  }
   call <- switch(
     paste(rule$effect, from),
     "eta_squared F" = list(
@@ -88,12 +118,10 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
     "eta_squared f" = list(
       value = effectsize::f_to_eta2(value),
       used = sprintf("effectsize::f_to_eta2(f = %s)", value)),
-    "d t" = , "dz t" = list(
-      value = effectsize::t_to_d(value, df_error, paired = paired)[[1]],
-      used = sprintf("effectsize::t_to_d(t = %s, df_error = %s%s)", value, df_error, if (paired) ", paired = TRUE" else "")),
-    "d F" = , "dz F" = list(
-      value = effectsize::F_to_d(value, 1, df_error, paired = paired)[[1]],
-      used = sprintf("effectsize::F_to_d(f = %s, df = 1, df_error = %s%s)", value, df_error, if (paired) ", paired = TRUE" else "")),
+    "d t" = , "dz t" = t2d(value),
+    # F with one numerator df is t squared: t = sqrt(F), positive, as F
+    # carries no direction.
+    "d F" = , "dz F" = t2d(sqrt(value)),
     "d r" = list(
       value = if (nzchar(sizes)) effectsize::r_to_d(value, n1, n2) else effectsize::r_to_d(value),
       used = sprintf("effectsize::r_to_d(r = %s%s)", value, sizes)),
@@ -113,8 +141,24 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
       value = effectsize::oddsratio_to_r(value),
       used = sprintf("effectsize::oddsratio_to_r(OR = %s)", value))
   )
+  package <- conversion_package(from, rule)
   list(effect_name = rule$name, value = unname(call$value), function_used = call$used,
-       package = list(name = "effectsize", version = as.character(utils::packageVersion("effectsize"))))
+       package = list(name = package, version = as.character(utils::packageVersion(package))))
+}
+
+# The package a conversion uses: psych for a t or F statistic into d or
+# d_z, effectsize otherwise.
+conversion_package <- function(from, rule) {
+  if (rule$effect %in% c("d", "dz") && from %in% c("t", "F")) "psych" else "effectsize"
+}
+
+# The package a spec's conversion uses, for the provenance (NULL without
+# a conversion, or one validation will refuse).
+spec_conversion_package <- function(spec) {
+  conv <- spec$effect_justification$conversion
+  rule <- conversion_templates[[spec$template %||% ""]]
+  if (is.null(conv) || is.null(rule) || !is.character(conv$from)) return(NULL)
+  conversion_package(conv$from, rule)
 }
 
 # In validate_spec(), before the schema is checked: when the justification
@@ -165,12 +209,17 @@ apply_conversion <- function(spec) {
 }
 
 # For the result: what the conversion did, or NULL. `value` is the
-# published value, `converted` the effect the calculation used.
+# published value, `converted` the effect the calculation used: the result
+# the spec records. A plan saved by an earlier powerkit keeps its result
+# even where this version converts differently; `earlier` is then TRUE and
+# `now` is what this version's `function_used` gives.
 conversion_record <- function(spec) {
   conv <- spec$effect_justification$conversion
   if (is.null(conv$result)) return(NULL)
   out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]])
+  earlier <- !isTRUE(all.equal(out$value, conv$result, tolerance = 1e-10))
   list(from = conv$from, from_name = conversion_from_names[[conv$from]], value = conv$value,
        df = conv[["df"]], df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, effect_name = out$effect_name,
-       converted = out$value, function_used = out$function_used, package = out$package)
+       converted = conv$result, function_used = out$function_used, package = out$package,
+       earlier = earlier, now = if (earlier) out$value)
 }

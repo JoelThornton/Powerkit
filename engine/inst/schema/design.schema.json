@@ -300,7 +300,7 @@
           }
         },
         "conversion": {
-          "description": "The effect size as published in another form, converted with the effectsize package into the effect this design uses (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
+          "description": "The effect size as published in another form, converted into the effect this design uses (with psych's t2d() for a t or F statistic into d or d_z, and the effectsize package otherwise) (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
           "type": "object",
           "required": [
             "from",
@@ -334,7 +334,7 @@
               "minimum": 1
             },
             "n1": {
-              "description": "Optional: group 1's size, for r and d with two groups of unequal size (equal groups are assumed without it).",
+              "description": "Optional: group 1's size, for t, F, r or d with two groups of unequal size (equal groups are assumed without it); with t or F, df_error can't exceed n1 + n2 - 2.",
               "type": "integer",
               "minimum": 2
             },

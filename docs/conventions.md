@@ -410,6 +410,27 @@ for the maintainer, not yet made.
 | simr | `powerSim()` simulates data sets from a model built with `makeLmer()` (fixed effects, `VarCorr`, `sigma`) and refits each with lme4; `fixed(xname, method)` tests one fixed effect [simr help] | The model's own parameters, in the outcome's units | `fixed()`'s default `method = "z"` treats the t statistic as normal (its help calls it an asymptotic approximation for models not fitted with `glmer`); `"sa"` is lmerTest's Satterthwaite t test, `"kr"` Kenward-Roger. A data set whose fit or test fails counts as not significant |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E33, from 30 October 2026) [powerkit] | The difference between conditions and the SDs of participants' intercepts and condition slopes (with their correlation), items' intercepts (and slopes, with items in both conditions) and the residual, in the outcome's units; the condition coded -0.5 and 0.5 | `y ~ cond + (1 + cond \| participant) + (1 \| item)`, every participant responding to every item; items in one condition each (half per condition) or in both. `goal.n` is the number of participants, the number of items fixed. The Satterthwaite test is Departure 16 |
 
+## Effect-size conversion (a published t, F, r, d or odds ratio)
+
+| Tool | t or F into d or d_z | Two groups of different sizes | Other conversions |
+| --- | --- | --- | --- |
+| G\*Power | No conversion from a test statistic | — | The effect-size drawers work from means and SDs [GP-man, 19.1, 20.1, 21.1] |
+| effectsize 1.0.3 | `t_to_d()`: d = 2t / sqrt(df) for two groups, d_z = t / sqrt(df) with `paired = TRUE`; `F_to_d()` is the same with t = sqrt(F) (installed source, 31 October 2026) | Not taken: `t_to_d()` has no group sizes, so equal groups are assumed | `r_to_d()`, `d_to_r()` (with `n1`, `n2`), `oddsratio_to_d()`, `t_to_r()`, `F_to_r()`, `F_to_eta2()` |
+| psych 2.6.9 | `t2d()`: d = t / sqrt(n1) for one group or pairs, d = 2t / sqrt(n) for two equal groups of n in all (installed source, 31 October 2026) | d = t sqrt(1 / n1 + 1 / n2) | — |
+| **powerkit** | psych's `t2d()`, with n = df + 1 for one group or pairs and n = df + 2 for two groups (from 0.24.1; 0.24.0 used effectsize's `t_to_d()` and `F_to_d()`) [powerkit] | The published group sizes, when given (`conversion > n1`, `n2`), with the error df no more than n1 + n2 - 2 | effectsize, as listed |
+
+These are the definitions: a one-sample or paired t is the mean (of the
+differences) over its standard error, sd / sqrt(n), so d = t / sqrt(n)
+exactly; for two groups the standard error is sd sqrt(1 / n1 + 1 / n2).
+effectsize's `t_to_d()` puts the error df where n belongs, which gives a
+slightly larger d, and assumes equal groups. Its size, from
+`test-effect-conversion.R`: one group of 20 with t = 3 gives 0.671 here
+against 0.688 (2.6% larger); two equal groups of 20 give 0.949 against
+0.973; groups of 10 and 30 give 1.095 against 0.973, which ignores the
+sizes. Under 0.3% with 200 people. The result screen and the write-up
+name the function used. A plan saved by 0.24.0 keeps the value it was
+converted to, and the result says so.
+
 ## Departures
 
 Each departure must also be shown on the results screen, stated in the

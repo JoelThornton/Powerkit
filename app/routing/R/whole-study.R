@@ -261,6 +261,9 @@ whole_study_check <- function(spec, validate = engine_function("validate_whole_s
     validate(spec)
     character()
   }, error = function(e) {
+    if (!inherits(e, "powerkit_error")) {
+      return("powerkit couldn't check this plan: something went wrong in its engine. Please report this, with the answers you copied.")
+    }
     msg <- conditionMessage(e)
     lines <- trimws(sub("^\\*\\s*", "", strsplit(msg, "\n", fixed = TRUE)[[1]]))
     lines[nzchar(lines) & !grepl("has a problem|has problems", lines)]

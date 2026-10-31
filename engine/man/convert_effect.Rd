@@ -21,25 +21,29 @@ convert_effect(
 \item{value}{The published value.}
 
 \item{template}{The design's template: \code{"independent_t"},
-\code{"one_sample_t"}, \code{"paired_t"}, \code{"correlation"},
-\code{"oneway_between"}, \code{"2x2_between"} or \code{"factorial_between"}.}
+\code{"one_sample_t"}, \code{"paired_t"}, \code{"correlation"}, \code{"oneway_between"},
+\code{"2x2_between"} or \code{"factorial_between"}.}
 
 \item{df_error}{The error (denominator) degrees of freedom, for t and F.}
 
-\item{n1, n2}{Optional group sizes, for r and d with two groups of
-unequal size; equal groups are assumed without them.}
+\item{n1, n2}{Optional group sizes, for the independent t-test and the
+correlation (t, F, r or d with two groups of unequal size); equal
+groups are assumed without them. With a t or F statistic, the error df
+can't exceed n1 + n2 - 2.}
 
 \item{df}{The numerator degrees of freedom, for an F statistic converted
 into an ANOVA's partial eta-squared.}
 }
 \value{
 A list: \code{effect_name} and \code{value} (the converted effect),
-\code{function_used} (the effectsize call) and \code{package} (name and
-version).
+\code{function_used} (the call) and \code{package} (name and version).
 }
 \description{
 Turns an effect reported in another form into the effect size a
-powerkit design takes, with the effectsize package: a t statistic, an F
+powerkit design takes, with the effectsize package (psych's \code{t2d()} for
+a t or F statistic into Cohen's d or d_z, with the sample size df + 1
+for one group or pairs and df + 2, or the two group sizes, for two
+groups): a t statistic, an F
 statistic with one numerator degree of freedom, r, Cohen's d or an odds
 ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
 t-test) or r (correlation); and an F statistic (with both its degrees of

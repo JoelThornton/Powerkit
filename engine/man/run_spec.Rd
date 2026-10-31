@@ -33,6 +33,12 @@ otherwise a list with the standardised effect's \code{name} ("Cohen's d"
 or "d_z") and \code{value}, the \code{difference} in the outcome's units, and
 the \code{sd} it was divided by (with its \code{sd_name}), and for a
 sensitivity goal the \code{smallest_difference} in the outcome's units;
+\item \code{effect_conversion}: \code{NULL} unless the effect justification converts
+the effect from another form; otherwise the form (\code{from},
+\code{from_name}), the published \code{value} and its \code{df_error}, and the
+\code{converted} effect with its \code{effect_name}, \code{function_used} and
+\code{package}; \code{earlier} is \code{TRUE} when the spec keeps a result an
+earlier powerkit converted differently (\code{now} is this version's).
 \item \code{safeguard}: \code{NULL} unless the effect justification uses safeguard
 power; otherwise \code{\link[=safeguard_effect]{safeguard_effect()}}'s list for the earlier study's
 estimate, with \code{lower} the effect size the calculation used.

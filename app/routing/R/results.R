@@ -724,19 +724,42 @@ safeguard_sentence <- function(result) {
 }
 
 # An effect converted from another form, in words beside the result: what
-# was published, what it became and the effectsize function that did it
+# was published, what it became and the package function that did it
 # (worked out by the engine).
 conversion_sentence <- function(result) {
   conv <- result$effect_conversion
   if (is.null(conv)) return(NULL)
-  sprintf(paste0("Effect size converted: the published %s of %s%s gives %s = %s, with the effectsize package's %s() ",
-    "(Ben-Shachar, L\u00fcdecke & Makowski, 2020)."),
-    sub("^an? ", "", conv$from_name), format(conv$value),
-    if (!is.null(conv$df_error)) sprintf(" (error df %s)", conv$df_error) else "",
-    conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_function(conv))
+  sprintf("Effect size converted: the published %s of %s%s gives %s = %s, %s.",
+    sub("^an? ", "", conv$from_name), format(conv$value), conversion_details(conv),
+    conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_by(conv))
 }
 
-conversion_function <- function(conv) sub("\\(.*", "", sub("^effectsize::", "", conv$function_used))
+# The published statistic's df and group sizes, in brackets.
+conversion_details <- function(conv) {
+  parts <- c(if (!is.null(conv$df_error)) sprintf("error df %s", conv$df_error),
+    if (!is.null(conv$n1) && !is.null(conv$n2)) sprintf("groups of %s and %s", conv$n1, conv$n2))
+  if (length(parts)) sprintf(" (%s)", paste(parts, collapse = ", ")) else ""
+}
+
+# Which function converted it: psych's t2d() for a t or F statistic into d
+# or d_z, effectsize's for the rest; or, for a plan saved before powerkit
+# 0.24.1 converted t and F that way, the value the plan keeps.
+conversion_by <- function(conv) {
+  if (isTRUE(conv$earlier)) {
+    return(sprintf("as an earlier version of powerkit converted it and the saved plan records (this version gives %s)",
+      format(round(conv$now, 3), nsmall = 2)))
+  }
+  conversion_package_text(conv$package$name, conv$function_used)
+}
+
+conversion_package_text <- function(package, function_used) {
+  fun <- sub("\\(.*", "", sub("^[A-Za-z.]+::", "", function_used))
+  if (identical(package, "effectsize")) {
+    sprintf("with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)", fun)
+  } else {
+    sprintf("with the %s package's %s()", package, fun)
+  }
+}
 
 # "Does this still apply?" (the new design, 18 October 2026): if the effect
 # size changes after the reasoning was written, the reasoning is kept but
@@ -1576,9 +1599,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   effect <- writeup_effect(fields, values)
   # A converted effect: the published value, what it became and how.
   if (is.null(effect) && !is.null(conv <- result$effect_conversion)) {
-    effect <- sprintf("%s = %s, converted from the published %s of %s%s with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)",
+    effect <- sprintf("%s = %s, converted from the published %s of %s%s %s",
       conv$effect_name, format(round(conv$converted, 3), nsmall = 2), sub("^an? ", "", conv$from_name), format(conv$value),
-      if (!is.null(conv$df_error)) sprintf(" (error df %s)", conv$df_error) else "", conversion_function(conv))
+      conversion_details(conv), conversion_by(conv))
   }
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units

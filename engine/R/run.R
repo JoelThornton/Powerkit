@@ -176,7 +176,8 @@
 #'     the effect from another form; otherwise the form (`from`,
 #'     `from_name`), the published `value` and its `df_error`, and the
 #'     `converted` effect with its `effect_name`, `function_used` and
-#'     `package`.
+#'     `package`; `earlier` is `TRUE` when the spec keeps a result an
+#'     earlier powerkit converted differently (`now` is this version's).
 #'   * `safeguard`: `NULL` unless the effect justification uses safeguard
 #'     power; otherwise [safeguard_effect()]'s list for the earlier study's
 #'     estimate, with `lower` the effect size the calculation used.
@@ -333,7 +334,7 @@ run_spec <- function(spec) {
         r_version = R.version.string,
         packages = package_versions(c("powerkit", backend$packages,
           if (!is.null(spec$effect_justification$safeguard)) "psych",
-          if (!is.null(spec$effect_justification$conversion)) "effectsize")),
+          spec_conversion_package(spec))),
         started = format(started, "%Y-%m-%d %H:%M:%S %Z"),
         run_time_seconds = as.numeric(difftime(Sys.time(), started, units = "secs"))
       )
