@@ -10,7 +10,7 @@
 about_foundation_tools <- list(
   list(package = "pwr", role = "formulas for the t-tests, the correlation and the chi-square test of independence, and Cohen's h for two proportions if you choose it"),
   list(package = "pwrss", role = "the z test for two proportions in unequal groups, Fisher's exact test, Welch's t-test by formula, ANOVA and ANCOVA from partial eta-squared, regression, one proportion, McNemar's test, the goodness-of-fit test, comparing correlations and non-inferiority tests"),
-  list(package = "Spower", role = "simulation for the rank tests, Welch's tests, the variance tests, MANOVA and the meta-analysis's Hartung-Knapp test, and for the basic tests when you choose it"),
+  list(package = "Spower", role = "simulation for the rank tests, Welch's tests, the variance test in the same people, MANOVA and the meta-analysis's Hartung-Knapp test, and for the basic tests when you choose it"),
   list(package = "Superpower", role = "the one-way, factorial, repeated-measures and mixed ANOVAs from means, planned contrasts and pairwise comparisons"),
   list(package = "InteractionPoweR", role = "interactions in regression"),
   list(package = "power4mome", role = "mediation, moderated mediation and the whole-study simulation"),
@@ -32,7 +32,7 @@ about_supporting_tools <- list(
   list(package = "lme4", role = "which fits simr's mixed models"),
   list(package = "effectsize", role = "which converts published effect sizes"),
   list(package = "psych", role = "which converts published t and F statistics, and gives safeguard power's interval"),
-  list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups"),
+  list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups, and its chi-square and F distributions the variance tests of one or two groups"),
   list(package = "shiny", role = "which draws this app")
 )
 

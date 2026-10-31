@@ -285,9 +285,11 @@ test_that("equal variances give power near alpha", {
 })
 
 test_that("variance specs that can't be right are refused", {
+  # One and two variances have an exact formula now (backend-variance.R);
+  # the Pitman-Morgan test doesn't.
   spec <- sim_spec("one_variance", goal = list(type = "power", n = 80))
   spec$options$method <- "exact"
-  expect_spec_problem(spec, "exact")
+  expect_no_error(validate_spec(spec))
   spec <- sim_spec("two_variances", goal = list(type = "power", n = 121))
   expect_spec_problem(spec, "split into two whole groups")
   spec$goal$n <- 120

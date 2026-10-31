@@ -35,6 +35,11 @@ engine-side change alone will fail the app suite.
 
 ## Non-negotiables
 - Never write new statistical maths when a backend package already does it; adapt the spec.
+  Where no package does it, a closed-form result from a published source (a
+  textbook, a paper or the G*Power manual) may be written in the engine, with
+  the source cited and checked against an independent simulation and, where
+  G*Power has the test, its answers. Don't simulate only because no package
+  has a formula: a simulation is slower and carries random error.
 - Never edit expected values in tests/testthat/test-validation-*. They are transcribed
   from published sources by the maintainer. If a test fails, report why.
 - Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer.
@@ -52,7 +57,9 @@ engine-side change alone will fail the app suite.
   to enter and see, not for what is right, and the packages powerkit calls have
   their own faults (docs/upstream-questions.md). Where the literature says a
   method is better, prefer it and record the departure — that machinery exists
-  so powerkit can be right and honest at once. Which method is right is the
+  so powerkit can be right and honest at once. powerkit exists to break
+  rituals: where a method is clearly better, make it the default and keep the
+  conventional one as an option where researchers commonly use it. Which method is right is the
   maintainer's call, with the literature behind it; never the thread's quiet
   decision, and never settled by what is already installed.
 - Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of

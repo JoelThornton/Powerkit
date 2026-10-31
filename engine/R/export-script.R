@@ -46,7 +46,7 @@ export_script <- function(spec, result, file = NULL) {
   lines <- switch(
     result$provenance$backend,
     pwr = ,
-    stats = pwr_script(spec, result),
+    stats = if (variance_formula_test(spec)) variance_script(spec, result) else pwr_script(spec, result),
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
@@ -757,6 +757,73 @@ comparison_section <- function() {
     "}",
     "",
     "sessionInfo()"
+  )
+}
+
+# The variance tests by formula (backend-variance.R) ------------------------------
+
+# The chi-square or F distribution, in base R: no package to load.
+variance_script <- function(spec, result) {
+  inputs <- variance_inputs(spec)
+  one <- identical(spec$template, "one_variance")
+  ratio <- spec$options$allocation_ratio %||% 1
+  tails <- switch(
+    inputs$alternative,
+    two_sided = c(
+      "  # Two-sided: alpha / 2 in each tail.",
+      sprintf("  lower <- %s(alpha / 2, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  upper <- %s(1 - alpha / 2, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(lower / ratio, %s) + %s(upper / ratio, %s, lower.tail = FALSE)",
+        if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    ),
+    greater = c(
+      "  # One-sided: the first variance is the larger.",
+      sprintf("  upper <- %s(1 - alpha, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(upper / ratio, %s, lower.tail = FALSE)", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    ),
+    less = c(
+      "  # One-sided: the first variance is the smaller.",
+      sprintf("  lower <- %s(alpha, %s)", if (one) "qchisq" else "qf", if (one) "df" else "df[1], df[2]"),
+      sprintf("  %s(lower / ratio, %s)", if (one) "pchisq" else "pf", if (one) "df" else "df[1], df[2]")
+    )
+  )
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    if (!one) {
+      sprintf("allocation_ratio <- %s # size of group 2 relative to group 1", r_code(ratio))
+    },
+    goal_inputs(spec, result),
+    "",
+    if (one) {
+      c(
+        "# Under H0, (n - 1) s^2 / variance_null follows the chi-square distribution",
+        "# with n - 1 df; under H1, the same distribution times the variance ratio",
+        "# (G*Power 3.1 manual, section 26.5)."
+      )
+    } else {
+      c(
+        "# Under H0, s1^2 / s2^2 follows the F distribution with n1 - 1 and n2 - 1",
+        "# df; under H1, the same distribution times the variance ratio (G*Power",
+        "# 3.1 manual, section 15.5)."
+      )
+    },
+    if (one) "ratio <- variance / variance_null" else "ratio <- variances[1] / variances[2]",
+    "power_at <- function(n_total) {",
+    if (one) {
+      "  df <- n_total - 1"
+    } else {
+      c(
+        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  df <- c(n_group1 - 1, n_total - n_group1 - 1)"
+      )
+    },
+    tails,
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
   )
 }
 

@@ -1560,13 +1560,13 @@ endpoints:
     doc_name: "One variance against a fixed value"
     plain_name: "Is one group's spread of scores different from a fixed value?"
     template: "basic_test / one_variance"
-    backend: "Spower: p_var.test() (the chi-square test of one variance, by simulation)"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pchisq() (the chi-square test of one variance, as the G*Power 3.1 manual gives it, section 26); Spower's p_var.test() simulates it on request"
+    method: "Formula (no simulation)"
     status: runs_validated
-    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's one-sided and two-sided examples within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
+    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's one-sided and two-sided examples exactly (N = 81 and 103, and its critical value), and agrees with Spower's simulation of the same test (31 October 2026)."}
     card_points:
       - "Compares how spread out one group's scores are (their variance, the SD squared) with a fixed value, such as a published norm."
-      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+      - "Calculated exactly, as G*Power does."
     inputs: ["Your outcome's name", "The expected variance and the fixed value"]
     tier: v2
     alternatives: ["the one-sample t-test, if your hypothesis is about the average rather than the spread"]
@@ -1574,14 +1574,14 @@ endpoints:
     doc_name: "Two variances (independent groups)"
     plain_name: "Do two groups differ in how spread out their scores are?"
     template: "basic_test / two_variances"
-    backend: "Spower: p_var.test() (the F test of two variances, by simulation)"
-    method: "Simulation"
+    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request"
+    method: "Formula (no simulation)"
     status: runs_validated
-    validation: {file: test-backend-spower.R, note: "Matches the G*Power 3.1 manual's example within Monte Carlo error, a direct Spower call, and the Type I error check in the full validation run of 27 October 2026."}
+    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026)."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
-      - "Groups of equal size only, for now: the package behind it can't simulate unequal groups yet."
-      - "The answer is simulated, so it carries a little random error: G*Power computes this test exactly, and no package powerkit builds on has the formula."
+      - "Groups of equal size only, for now."
+      - "Calculated exactly, as G*Power does."
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]

@@ -60,7 +60,10 @@ write_project <- function(spec, result = NULL, route = list(), file = NULL) {
     route = route,
     spec = unclass(spec),
     spec_hash = spec_hash(spec),
-    result = if (!is.null(result)) result_record(result)
+    result = if (!is.null(result)) result_record(result),
+    # The whole result, typed, so the app can show it again without
+    # running it (saved_result()).
+    screen = if (!is.null(result)) encode_value(unclass(result))
   )
   text <- as.character(jsonlite::toJSON(
     project,
@@ -142,10 +145,116 @@ read_project <- function(x) {
       saved = raw$saved,
       powerkit_version = raw$powerkit_version,
       r_version = raw$r_version,
-      notes = notes
+      notes = notes,
+      screen = raw$screen
     ),
     class = "powerkit_project"
   )
+}
+
+#' The result saved in a project, as it was
+#'
+#' A project file saved by powerkit 0.26.0 or later holds the whole result,
+#' so it can be shown again without running the calculation (which for a
+#' simulation can take minutes). [reproduce_project()] runs it again to
+#' check it.
+#'
+#' @param project A `powerkit_project` from [read_project()].
+#'
+#' @return The saved `powerkit_result`, or `NULL` when the file has none
+#'   (saved without a result, or by an earlier powerkit) or its spec was
+#'   changed after it was saved.
+#' @seealso [read_project()], [reproduce_project()]
+#' @export
+saved_result <- function(project) {
+  if (!inherits(project, "powerkit_project")) {
+    abort_project("'project' should come from read_project().")
+  }
+  if (is.null(project$screen) || is.null(project$result)) {
+    return(NULL)
+  }
+  result <- tryCatch(decode_value(project$screen), error = function(e) NULL)
+  if (!is.list(result) || !identical(result$provenance$spec_hash, spec_hash(project$spec))) {
+    return(NULL)
+  }
+  structure(result, class = "powerkit_result")
+}
+
+# A typed JSON form of an R value, so that it reads back identical: every
+# atomic vector keeps its type, length, names and missing values; lists
+# keep their names and class; data frames come back as data frames.
+# Data only: nothing is evaluated when it is read (decode_value()).
+encode_value <- function(x) {
+  if (is.null(x)) {
+    return(list(t = "null"))
+  }
+  if (is.data.frame(x)) {
+    row_names <- attr(x, "row.names")
+    return(list(t = "df", names = as.list(names(x)), cols = unname(lapply(x, encode_value)),
+      rows = if (is.character(row_names)) as.list(row_names)))
+  }
+  if (is.factor(x)) {
+    x <- as.character(x)
+  }
+  if (is.atomic(x)) {
+    type <- typeof(x)
+    values <- switch(
+      type,
+      double = ifelse(is.na(x) & !is.nan(x), NA_character_, sprintf("%.17g", x)),
+      integer = ,
+      logical = ,
+      character = x,
+      as.character(x)
+    )
+    return(list(
+      t = if (type %in% c("double", "integer", "logical", "character")) type else "character",
+      v = lapply(unname(values), function(v) if (is.na(v)) NULL else v),
+      n = if (!is.null(names(x))) as.list(names(x))
+    ))
+  }
+  if (is.list(x)) {
+    return(list(
+      t = "list",
+      v = unname(lapply(x, encode_value)),
+      n = if (!is.null(names(x))) as.list(names(x)),
+      c = if (!is.null(attr(x, "class"))) as.list(class(x))
+    ))
+  }
+  # Functions, environments and the like aren't results: dropped.
+  list(t = "null")
+}
+
+decode_value <- function(x) {
+  type <- x$t
+  if (identical(type, "null")) {
+    return(NULL)
+  }
+  if (identical(type, "df")) {
+    cols <- lapply(x$cols, decode_value)
+    names(cols) <- unlist(x$names)
+    out <- as.data.frame(cols, stringsAsFactors = FALSE, check.names = FALSE, optional = TRUE)
+    if (!is.null(x$rows)) rownames(out) <- unlist(x$rows)
+    return(out)
+  }
+  if (identical(type, "list")) {
+    out <- lapply(x$v, decode_value)
+    # A NULL element is kept, not dropped.
+    out <- if (length(out)) out else list()
+    if (!is.null(x$n)) names(out) <- unlist(x$n)
+    if (!is.null(x$c)) class(out) <- unlist(x$c)
+    return(out)
+  }
+  values <- vapply(x$v, function(v) if (is.null(v)) NA_character_ else as.character(v), character(1))
+  out <- switch(
+    type,
+    double = suppressWarnings(as.numeric(values)),
+    integer = as.integer(values),
+    logical = as.logical(values),
+    character = values,
+    abort_project("This project's saved result can't be read.")
+  )
+  if (!is.null(x$n)) names(out) <- unlist(x$n)
+  out
 }
 
 #' Run a saved project again and compare with its saved result

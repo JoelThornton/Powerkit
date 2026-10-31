@@ -73,13 +73,17 @@ sensitivity (manual, section 1.1, p. 2).
 | Power | Yes: "Power (1-β err prob)" in post hoc results (for example section 11.3.1, p. 27) | Power at N | **Has** | |
 | Required N | Yes: "Total sample size"; the two-group t test also shows "Sample size group 1" and "Sample size group 2" (section 1.2.3, p. 4) | Total N (and per group in the headline for two-group tests) | **Has** | |
 | Actual power at the rounded N | Yes: "Actual power" in a priori results. Non-integer sample sizes "are always rounded up" (section 1.2.3, p. 4) | Shown for exact results ("With 64 per group, power is 80.1%."); not for a simulated N | **Has** (exact results) | Judgement call G5, decided 17 October 2026 |
-| Noncentrality parameter | Yes for t tests (δ) and F tests (λ) (sections 1.2.3, 11, 14, 16, 19, 20). The exact correlation example shows none (section 3.3, p. 9) | — | See each end point | Not returned by pwr's functions (their value is the arguments plus power, "method" and "note"); none for a simulation |
-| Critical value | Yes: critical t (sections 16, 19, 20), critical F (sections 11, 14), lower and upper critical r (section 3.3, p. 9) | — | See each end point | As above |
-| df | Yes: df for t tests; numerator and denominator df for F tests (sections 11, 14, 19, 20). None in the exact correlation example (section 3.3) | — | See each end point | pwr takes df as an input for the chi-square test only |
+| Noncentrality parameter | Yes for t tests (δ) and F tests (λ) (sections 1.2.3, 11, 14, 16, 19, 20). The exact correlation example shows none (section 3.3, p. 9) | "Technical details" on the result screen, where the package reports it | See each end point | Not returned by pwr's functions (their value is the arguments plus power, "method" and "note"); none for a simulation |
+| Critical value | Yes: critical t (sections 16, 19, 20), critical F (sections 11, 14), lower and upper critical r (section 3.3, p. 9) | As above | See each end point | As above |
+| df | Yes: df for t tests; numerator and denominator df for F tests (sections 11, 14, 19, 20). None in the exact correlation example (section 3.3) | As above | See each end point | pwr takes df as an input for the chi-square test only |
 
-Computing a noncentrality parameter or critical value in powerkit itself
-would be new statistical maths, which the project rules rule out while a
-backend doesn't return it.
+The result screen's "Technical details" (29 October 2026) show the
+statistic, df, critical value and noncentrality wherever the package
+reports them (pwrss and the generic tests, for example), and say so where
+it doesn't. Since 31 October 2026 the project rules allow a published
+closed-form result where no package gives one (`CLAUDE.md`), so the
+remaining designs, such as pwr's t-tests, can have them too: `next.md`,
+"Critical effect size, and technical details for the remaining designs".
 
 ## E1: one-sample t-test
 

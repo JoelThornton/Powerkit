@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.25.1). This page says where the
+*Last updated: 31 October 2026 (powerkit 0.26.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -33,7 +33,8 @@ fully validated. Validation runs are recorded in
   names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
   default, shows technical names first and hides the hints when off.
 - **Results** state their spec hash, seed, backend, R and package
-  versions; save as a project file or a study plan and reopen; export an
+  versions; save as a project file or a study plan and reopen (a project
+  saved from 0.26.0 shows its saved result without running it again); export an
   R script that reproduces them with the backend alone, citations, a
   methods paragraph and, for most designs, a simulated data set. A saved
   simulation reproduces on the number of cores it ran on (0.24.1).

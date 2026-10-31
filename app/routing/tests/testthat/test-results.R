@@ -1220,15 +1220,19 @@ test_that("logistic regression runs on pwrss, with Known difference 3 only when 
   expect_identical(run_calculation(spec, run, seed = 1L)$result$provenance$backend_function, "pwrss::power.z.logistic")
 })
 
-test_that("the variance tests run on Spower, with Known difference 4", {
+test_that("the variance tests are calculated exactly, as G*Power does, with no known difference", {
   skip_without_run()
   for (ep in c("E52", "E53")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
-    expect_match(calc$result$provenance$backend_function, "Spower::p_var.test(", fixed = TRUE, label = ep)
+    expect_identical(calc$result$provenance$backend, "stats", label = ep)
+    expect_identical(calc$result$provenance$method, "exact", label = ep)
+    expect_null(forms$forms[[ep]]$known_differences)
     fields <- form_fields(form_groups(forms, ep))
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
     expect_match(html, "Validated. ", fixed = TRUE, label = ep)
-    expect_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
+    expect_no_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
+    expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>", label = ep)
+    expect_match(html, "G*Power 3.1 manual", fixed = TRUE, label = ep)
   }
 })
 

@@ -78,6 +78,11 @@ tool_defaults:
     alpha_source: "metapower's default (mpower(p = 0.05), metapower 0.2.2)"
     power_source: "metapower reports power and has no default target power; enter one"
     alternative_source: "metapower's default (two-sided: mpower(test_type = \"two-tailed\"), metapower 0.2.2)"
+  formula:
+    alpha: 0.05
+    alpha_source: "the usual 5% level, as in the G*Power 3.1 manual's examples (sections 15 and 26); powerkit's formula has no default of its own"
+    power_source: "enter a target power: the formula has no default"
+    alternative_source: "two-sided, as R's var.test() is by default (alternative = \"two.sided\")"
   power4mome:
     alpha: 0.05
     alpha_source: "power4mome's default (95% confidence intervals: n_region_from_power(ci_level = 0.95), power4mome 0.2.1)"
@@ -240,7 +245,7 @@ known_differences:
   "1 sensitivity": "Regression interactions: the smallest detectable effect comes from InteractionPoweR's fixed-model formula, power_interaction_r2(), as G*Power's would, not from simulation. Fixed-model power is slightly higher than simulated power (up to about 1.4 points), so the smallest effect you could detect may be slightly larger than shown. Sample size and power for this design are simulated."
   "2": "One proportion, McNemar's test and Fisher's exact test are exact tests of counts: their power goes up and down as N grows, so a slightly larger N can have a little less power. powerkit reports the smallest N that reaches the target, as G*Power does; pwrss's own sample-size answer is a little larger (92 rather than 90 for a proportion of .65 against .50, two-sided; 130 rather than 129 for McNemar's test with .25 and .10, G*Power's exact option). Fisher's exact test hasn't been compared with G*Power yet."
   "3": "Logistic regression with other predictors: when this predictor overlaps with the others (R-squared above 0), the G*Power manual's example reports a slightly larger sample size than powerkit gives for the same inputs (395 against 375 at an R-squared of 0.1). powerkit applies the adjustment as the manual's formulas describe it; why the example differs hasn't been settled, so G*Power may ask for a few per cent more people. With no overlap (R-squared 0) the two agree."
-  "4": "Variance tests: powerkit simulates power (Spower's p_var.test()), because no package it builds on has a formula for these tests; G*Power computes them exactly. The simulated answer carries a little random error: about 0.013 in power at 1,000 replications and about 0.004 at 10,000, so the sample size can differ from G*Power's by a participant or two."
+  "4": "Variance tests (retired 31 October 2026): powerkit simulated power with Spower's p_var.test() while G*Power computes these tests exactly. powerkit now computes them exactly too; this note is kept for results saved before then."
   "5": "Rank tests: powerkit simulates the rank test itself (Spower's p_wilcox.test() or p_kruskal.test()), drawing scores of the shape you chose. G*Power's Wilcoxon and Mann-Whitney tests instead adjust the t-test's answer by an efficiency factor for the shape, so the two can differ; by how much hasn't been measured yet. With normal scores a rank test needs slightly more people than the t-test, and with skewed or heavy-tailed scores it can need fewer."
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
@@ -1681,15 +1686,14 @@ forms:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwrss's power.z.twocors() (n.ratio = 1)"}
 
-  # Variance tests (Spower's p_var.test(), simulated: Known difference 4).
+  # Variance tests: the chi-square and F distributions, as G*Power computes
+  # them (engine, backend-variance.R; Known difference 4 no longer applies).
   # Variances, not SDs, because the spec holds variances; the help says how
-  # to get one from an SD. Two groups are equal in size: Spower can't draw
-  # unequal groups yet (docs/upstream-questions.md).
+  # to get one from an SD. Two groups are equal in size on this screen.
   E52:
     methods_name: "a chi-square test of one variance"
-    tool: Spower
+    tool: formula
     directional: true
-    known_differences: ["4"]
     base: {spec_version: "0.1", design: basic_test, template: one_variance,
            variables: {"Y": {type: continuous}}, population: {metric: variance},
            target_test: {effect: variance_ratio, method: chi_square_var}}
@@ -1706,9 +1710,8 @@ forms:
 
   E53:
     methods_name: "an F test of two variances"
-    tool: Spower
+    tool: formula
     directional: true
-    known_differences: ["4"]
     base: {spec_version: "0.1", design: basic_test, template: two_variances,
            variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: variance},
            target_test: {effect: variance_ratio, method: f_var}}

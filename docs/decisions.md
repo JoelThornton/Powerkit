@@ -3789,7 +3789,7 @@ merges when its checks pass, unless a doubt is stated in it.
   (done the same day); an "I know the terms" setting shows technical
   names first (done the same day).
 
-## 2026-10-31 · Fixes from a review of 0.25.0, and clearer names (0.25.1)
+## 2026-10-31 · Fixes from a review of 0.25.0, and clearer names (0.26.0)
 
 - **Published partial eta-squared with three or more within levels.** The
   30 October entry's check (pwrss's two kinds of partial eta-squared give
@@ -3810,3 +3810,31 @@ merges when its checks pass, unless a doubt is stated in it.
   (plan from a published result). Pre-replication notes keeps its name,
   the term of the paper it comes from (Karhulahti et al., 2025). The page
   links (`?tool=`) are unchanged.
+
+## 2026-10-31 · Published formulas where no package has one, and better methods by default
+
+**Rule.** "Never write new statistical maths when a package already does
+it" stays. Where no package does it, a closed-form result from a published
+source (a textbook, a paper or the G\*Power manual) may be written in the
+engine, with the source cited and checked against an independent
+simulation and, where G\*Power has the test, its answers (`CLAUDE.md`). The
+rule had come to be read as "simulate when no package has a formula",
+which made some cards slower and less accurate than G\*Power for no gain:
+the simulation is still there as the check.
+
+**Principle.** powerkit exists to break rituals. Where a method is clearly
+better, it is the default, and the conventional one stays available where
+researchers commonly use it, recorded as a departure as before.
+
+**First uses.** The variance tests of one and two groups (exact, as in the
+G\*Power 3.1 manual, sections 26.5 and 15.5; Known difference 4 retired).
+One-sample and two-group Hotelling's T-squared (the noncentral F) are next,
+once a published source for the formula is in hand to cite; MANOVA with
+three or more groups stays simulated, since G\*Power's Pillai
+approximation is itself an approximation.
+
+**Not adopted.** Emailing results of long runs: it would mean keeping
+visitors' email addresses and running long jobs on the shared online
+server; long runs already go to an R script run on the researcher's own
+computer.
+

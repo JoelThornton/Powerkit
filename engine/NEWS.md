@@ -1,7 +1,20 @@
-# powerkit 0.25.1
+# powerkit 0.26.0
 
-Fixes from a review of 0.25.0.
+Fixes from a review of 0.25.0, and its follow-ups.
 
+* The variance tests of one and two groups are computed exactly, from the
+  chi-square and F distributions the G*Power 3.1 manual gives (sections
+  26.5 and 15.5), with base R's `pchisq()` and `pf()`
+  (`backend-variance.R`), instead of simulated: they give the manual's
+  examples exactly (N = 81 and 103; 193 per group, power 0.800105) and
+  agree with Spower's simulation, which stays available with
+  `options > method` "simulation". Known difference 4 is retired. The
+  formula takes an allocation ratio for two groups (the simulation still
+  can't). The exported script reproduces the result with base R alone.
+* Project rule: where no package has a formula, a closed-form result from a
+  published source may be written in the engine, cited and checked against
+  simulation (`CLAUDE.md`); where a method is clearly better, it becomes the
+  default and the conventional one stays an option.
 * Repeated-measures and mixed ANOVA from a *published* partial
   eta-squared (as SPSS, R and JASP report it) gave too little power, and
   too large a sample size, when a within factor has three or more levels:

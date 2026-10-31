@@ -976,8 +976,21 @@ server <- function(input, output, session) {
     state$calc <- NULL
     state$long_spec <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
-    output$form_result <- renderUI(project_opened_ui(project))
+    # A file with the whole result shows it straight away, without running
+    # it again (decided 31 October 2026); older files are run as before.
+    calc <- saved_calc(project)
+    if (is.null(calc)) {
+      output$form_result <- renderUI(project_opened_ui(project))
+      return()
+    }
+    state$calc <- calc
+    ep_id <- state$endpoint
+    output$form_result <- renderUI(tagList(
+      project_opened_ui(project, shown = TRUE),
+      result_panel_ui(tree, forms, ep_id, current_form_fields(), current_form_values(), calc)
+    ))
   }
+  observeEvent(input$rerun_saved, check_form())
   # The plan checker: the same file, read for a reviewer (nothing is run).
   read_project_file <- function(path) {
     read <- engine_function("read_project")

@@ -123,7 +123,7 @@ power while matching G\*Power) is folded there instead
 | G*Power | One group: the chi-square test. (N - 1)s^2/sigma0^2 is central chi-square with N - 1 df under H0, and the same distribution scaled by sigma^2/sigma0^2 under H1 (section 26.5) [GP-man]. Two groups: the F test. s1^2/s0^2 is central F with N1 - 1 and N0 - 1 df under H0, scaled by sigma1^2/sigma0^2 under H1 (section 15.5) [GP-man] | The variance ratio var1/var0; the effect-size drawer works it out from two variances. Ratios in [0.999, 1.001] are refused (sections 26.1, 15.1) [GP-man] | Tails (one or two); allocation ratio N2/N1 (two groups, section 15.3) [GP-man] |
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
-| **powerkit** | Spower's `p_var.test()`, simulated: no package powerkit builds on has a formula for either test, and powerkit doesn't write the maths itself (CLAUDE.md), so these two templates have no exact method (Known difference 4) [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), always passed on to Spower; `goal.n` is the total, split into two equal groups for the two-group test. **An allocation ratio is refused** for the two-group test while Spower can't draw unequal groups |
+| **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, keeping the ratio exact (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443; powerkit 148 and 296, N = 444); the simulation is refused one while Spower can't draw unequal groups |
 
 ## Factorial ANOVA
 
@@ -679,8 +679,8 @@ kept so later departures keep theirs.
   `power.prop.test()`, Departure 11, or Cohen's h) the formulas are
   approximations. Spower simulation stays available on request, and is
   used for Welch's t-test, which pwr doesn't cover. The two variance
-  templates are basic tests that no formula backend covers at all, so they
-  are always simulated and offer no exact method (Known difference 4).
+  templates have their own exact formula since 31 October 2026 (see
+  "Variance tests"; Known difference 4 retired).
 - **Size:** the example designs below, alpha = .05 two-sided, formula
   against Spower simulation with 5,000 seeded replications (seed 9, one
   core). Every difference is within 2 Monte Carlo standard errors, so it
@@ -1129,7 +1129,7 @@ Wired into the app on 18 October 2026 (E25, E26).*
   `known_differences_if_above_zero`). Test: `test-results.R`, "logistic
   regression runs on pwrss, with Known difference 3 only when other
   predictors overlap".
-### 4. Variance tests: simulated, where G\*Power uses an exact formula
+### 4. Variance tests: simulated, where G\*Power uses an exact formula (retired 31 October 2026: powerkit computes them exactly too)
 
 - **What differs:** G\*Power computes both variance tests from their exact
   distributions (the chi-square test of one variance, section 26.5 of its
@@ -1272,7 +1272,7 @@ Wired into the app on 18 October 2026 (E25, E26).*
   (G*Power) in the test example with 90 people, three groups and one
   covariate explaining 36% [powerkit, `test-backend-anova-eta.R`].
 - **Repeated-measures and mixed ANOVA from a published partial
-  eta-squared** (0.25.1). pwrss's `power.f.mixed.anova(rho.within = NA)`
+  eta-squared** (0.26.0). pwrss's `power.f.mixed.anova(rho.within = NA)`
   takes the noncentrality as f^2 x N, which is right for the G\*Power kind
   only after its correlation adjustment, and for a published value only
   with two measurements. A partial eta-squared as SPSS, R or JASP report

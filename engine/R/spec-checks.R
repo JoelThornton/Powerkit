@@ -113,6 +113,7 @@ exact_available <- function(spec) {
     !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
+      variance_formula_test(spec) ||
       pwrss_only(spec) ||
       identical(spec$target_test$method, "welch_t")
   )
@@ -166,13 +167,13 @@ simulation_available <- function(spec) {
   !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
 }
 
-# Basic tests powerkit computes by simulation only: neither pwr nor pwrss
-# has a formula for them. G*Power computes the variance tests by formula,
-# but no package powerkit is built on does, and powerkit doesn't write the
-# maths itself (CLAUDE.md), so these are simulated with Spower. The rank
+# Basic tests powerkit computes by simulation only: no formula covers
+# them (the Pitman-Morgan test, MANOVA and Hotelling's T-squared). The
+# variance tests of one or two groups have their own formula
+# (backend-variance.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  spec$template %in% c("one_variance", "two_variances", "paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
+  spec$template %in% c("paired_variances", "manova", "hotelling_one") || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec)
 }
 
@@ -423,14 +424,14 @@ check_allocation_allowed <- function(spec) {
   # The two-variance test has two groups, but Spower can only simulate
   # equal ones: gen_var.test() builds a data frame of the wrong length when
   # the group sizes differ (docs/upstream-questions.md).
-  if (identical(spec$template, "two_variances")) {
+  if (identical(spec$template, "two_variances") && identical(spec$options$method, "simulation")) {
     return(paste0(
-      "'options > allocation_ratio' isn't available for the two-variance ",
-      "test yet: the simulation it uses can only draw groups of the same ",
-      "size. Remove it, or plan for two equal groups."
+      "'options > allocation_ratio' isn't available for the simulated ",
+      "two-variance test: the simulation can only draw groups of the same ",
+      "size. Remove it, or use the formula (remove 'options > method')."
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "tost_independent", "invariance",
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
                            "noninf_independent", "noninf_two_proportions", "ordinal_two_groups")) {
     return(character())
   }
