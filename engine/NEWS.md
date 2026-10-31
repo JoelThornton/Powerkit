@@ -1,5 +1,15 @@
 # powerkit 0.25.0
 
+* Pairwise comparisons after a one-way ANOVA: `target_test > effect`
+  "pairwise" with `method` "t_test" on `oneway_between` and
+  `oneway_within`, `comparison` (the two levels whose difference is
+  tested) and `p_adjust` ("holm", the default, "bonferroni" or "none").
+  Simulated with Superpower's `ANOVA_power(p_adjust =)`, which adjusts the
+  p-values of all the pairwise t-tests together; the power is the chosen
+  pair's (`pc_results`). Bonferroni's power matches `stats::power.t.test()`
+  at alpha / m. Departure 17: Holm's adjustment by default where
+  Superpower adjusts none. The app offers it as a test version on E18 and
+  E54.
 * One-sample Hotelling's T-squared: template `basic_test/hotelling_one`
   (one group, two to nine outcomes `Y1` to `Y9`) with `population > means`,
   `mu0` (the fixed values), `sds` and `r`, `target_test > method`

@@ -36,6 +36,7 @@ population_problems <- function(spec) {
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
+    check_pairwise(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
     check_goal(spec, check_effect = length(design_problems) == 0)
@@ -105,6 +106,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+    !pairwise_comparison(spec) &&
     !spec$template %in% c("paired_variances", "manova", "hotelling_one") && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
@@ -181,6 +183,56 @@ rank_test <- function(spec) {
 # Welch's one-way ANOVA (unequal variances), simulated with Spower's
 # p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
 welch_anova <- function(spec) identical(spec$target_test$method, "welch_f")
+
+# Pairwise comparisons after a one-way ANOVA (target_test > effect
+# "pairwise"): the t-test of one pair of levels, its p-value adjusted for
+# all the pairwise comparisons, simulated with Superpower's ANOVA_power()
+# (p_adjust), which adjusts across the pairwise t-tests only.
+pairwise_comparison <- function(spec) identical(spec$target_test$effect, "pairwise")
+
+# The chosen pair's positions among A's levels, in level order.
+pairwise_levels <- function(spec) {
+  sort(match(unlist(spec$target_test$comparison), unlist(spec$variables$A$levels)))
+}
+
+check_pairwise <- function(spec) {
+  tt <- spec$target_test
+  if (!pairwise_comparison(spec)) {
+    problems <- character()
+    if (!is.null(tt$comparison) || !is.null(tt$p_adjust)) {
+      problems <- c(problems, paste0(
+        "'target_test > comparison' and 'target_test > p_adjust' only apply to pairwise comparisons ",
+        "('target_test > effect' \"pairwise\"); remove them."))
+    }
+    if (identical(tt$method, "t_test") && identical(spec$design, "factorial_anova")) {
+      problems <- c(problems, "'target_test > method' \"t_test\" is for pairwise comparisons: set 'target_test > effect' to \"pairwise\".")
+    }
+    return(problems)
+  }
+  if (!spec$template %in% c("oneway_between", "oneway_within")) {
+    return("Pairwise comparisons are available after a one-way ANOVA (between or within participants) only, so far.")
+  }
+  problems <- character()
+  if (!identical(tt$method, "t_test")) {
+    problems <- c(problems, "Pairwise comparisons are t-tests: set 'target_test > method' to \"t_test\".")
+  }
+  if (identical(spec$population$metric, "eta_squared")) {
+    problems <- c(problems, paste0(
+      "Pairwise comparisons need each group's mean ('population > means' and 'population > sd'), ",
+      "not partial eta-squared, which doesn't say which groups differ."))
+  }
+  levels <- unlist(spec$variables$A$levels)
+  pair <- unlist(tt$comparison)
+  if (length(pair) != 2 || length(unique(pair)) != 2) {
+    problems <- c(problems, "'target_test > comparison' should name two different levels of A, the pair whose difference is tested.")
+  } else if (!all(pair %in% levels)) {
+    problems <- c(problems, sprintf(
+      "'target_test > comparison' names %s, which %s not among A's levels (%s).",
+      paste(sprintf("'%s'", setdiff(pair, levels)), collapse = " and "),
+      if (length(setdiff(pair, levels)) == 1) "is" else "are", paste(levels, collapse = ", ")))
+  }
+  problems
+}
 
 # Spearman's rho and Kendall's tau, simulated with Spower's p_r(method =).
 rank_correlation <- function(spec) isTRUE(spec$target_test$method %in% c("spearman", "kendall"))
@@ -326,6 +378,13 @@ check_method_allowed <- function(spec) {
   # Unequal cells: check_cell_ratio_allowed() explains.
   if (!identical(spec$options$method, "exact") || exact_available(spec) || unequal_cells(spec)) {
     return(character())
+  }
+  if (pairwise_comparison(spec)) {
+    return(paste0(
+      "'options > method' 'exact' isn't available for pairwise comparisons: Superpower adjusts ",
+      "the p-values for the number of comparisons only in its simulation (ANOVA_power()). ",
+      "Remove 'options > method'."
+    ))
   }
   if (spower_only(spec)) {
     return(paste0(
@@ -1842,7 +1901,14 @@ target_effect_is_zero <- function(spec) {
         max(abs(p - outer(rowSums(p), colSums(p))))
       }
     ),
-    factorial_anova = anova_contrast(spec),
+    factorial_anova = if (pairwise_comparison(spec)) {
+      # The chosen pair's difference (an unknown pair is reported by
+      # check_pairwise()).
+      pair <- pairwise_levels(spec)
+      if (length(pair) == 2 && !anyNA(pair)) diff(as.numeric(unlist(pop$means))[pair]) else 1
+    } else {
+      anova_contrast(spec)
+    },
     # An equivalence test has something to show whenever the bound is above
     # 0 (the schema requires it), whatever the expected difference.
     equivalence_test = pop$bound %||% pop$margin,

@@ -1507,6 +1507,42 @@ test_that("a conversion saved by an earlier powerkit is named as such, with what
     "of powerkit converted it and the saved plan records (this version gives 0.456)."))
 })
 
+test_that("pairwise comparisons after a one-way ANOVA: the pair and the adjustment reach the engine, and the write-up names them", {
+  for (ep in c("E18", "E54")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    expect_true("t_test" %in% names(by_id("test_version")$choices), label = ep)
+    expect_false(field_applies(by_id("comparison"), list(test_version = "anova_f")), label = ep)
+    expect_true(field_applies(by_id("p_adjust"), list(test_version = "t_test")), label = ep)
+    # The exact method is offered for the F test only.
+    method <- Filter(function(f) identical(f$id, "method"), form_fields(form_groups(forms, ep)))
+    if (length(method) > 0) expect_false(field_applies(method[[1]], list(test_version = "t_test")), label = ep)
+  }
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "t_test", comparison = "None, Praise", p_adjust = "bonferroni",
+    method = NULL, goal = "power", n = "90"))
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_identical(spec$target_test$effect, "pairwise")
+  expect_identical(spec$target_test$method, "t_test")
+  expect_identical(unlist(spec$target_test$comparison), c("None", "Praise"))
+  expect_identical(spec$target_test$p_adjust, "bonferroni")
+  expect_null(spec$options$method)
+  expect_match(pairwise_test_name(spec), "a t-test comparing None with Praise, one of the 3 pairwise comparisons, with Bonferroni's adjustment", fixed = TRUE)
+  # Departure 17 (the adjustment) in place of Departure 3 (the exact
+  # dataset, which a simulation doesn't use); none of it for the F test.
+  expect_setequal(names(departures_for(forms, "E18", spec)), "17")
+  unadjusted <- spec
+  unadjusted$target_test$p_adjust <- "none"
+  expect_length(departures_for(forms, "E18", unadjusted), 0)
+  f_test <- build_spec(forms, "E18", fields, form_examples$E18)
+  expect_false("17" %in% names(departures_for(forms, "E18", f_test)))
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$method, "simulation")
+  expect_match(calc$result$provenance$backend_function, "p_adjust = \"bonferroni\"", fixed = TRUE)
+})
+
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {
   for (ep in c("E7", "E18", "E21")) {
     fields <- form_fields(form_groups(forms, ep))

@@ -921,6 +921,31 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
 - **Shown to users:** on E33's result screen (`app/routing/forms.yaml`,
   `departures`, key "16"), and in the methods paragraph's full version.
 
+### 17. Pairwise comparisons: Holm's adjustment by default, not Superpower's none
+
+Decided by the maintainer on 31 October 2026 (`docs/decisions.md`: Holm
+and Bonferroni first); Holm's method as the default is powerkit's.
+
+- **Established convention:** Superpower's `ANOVA_power()` reports the
+  power of every pairwise t-test with `p_adjust = "none"` by default, and
+  adjusts them together (`p.adjust(paired_p, method = p_adjust)`, Superpower
+  0.2.4.1) when asked.
+- **powerkit:** the pairwise comparison option on the one-way ANOVA cards
+  (E18, E54) adjusts by Holm's method unless the user chooses Bonferroni's
+  or none, because a study analysed by several pairwise tests and reported
+  without adjustment overstates its evidence. Holm's method never rejects
+  less often than Bonferroni's.
+- **Size:** for None against Praise in the one-way example (means 10, 11
+  and 13, SD 6, 30 per group, three comparisons), 31.2% with Holm's
+  adjustment, 30.1% with Bonferroni's and 47.8% with none (Superpower's
+  `ANOVA_power()`, 10,000 replications each).
+- **Test:** `test-backend-anova-pairwise.R`, "adjusting costs power: none,
+  then Holm, then Bonferroni"; `test-validation-anova-pairwise.R` checks
+  Bonferroni's power against `stats::power.t.test()` at alpha / 3.
+- **Shown to users:** on the E18 and E54 result screens when pairwise
+  comparisons are adjusted (`app/routing/forms.yaml`, `departures`, key
+  "17"), and in the methods paragraph's full version.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
