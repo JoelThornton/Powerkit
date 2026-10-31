@@ -3743,3 +3743,15 @@ each now Ready with its decision in its row:
 
 These form one batch, 0.25.0; each lands as its own pull request and
 merges when its checks pass, unless a doubt is stated in it.
+
+## 2026-10-31 · Sphericity corrections, and effect sizes as G\*Power takes them
+
+- **Sphericity corrections (15):** the one-way repeated-measures card
+  offers Greenhouse-Geisser and Huynh-Feldt corrections now, with the
+  unequal SDs and correlations, rather than later; the default stays no
+  correction, as in Superpower and G\*Power (#197).
+- **No barrier G\*Power doesn't have:** every card should accept the effect
+  size G\*Power asks for, so a researcher with only that number from an
+  earlier paper can still plan. A review of the cards found four that
+  didn't: the ANCOVAs and three between factors (partial eta-squared,
+  added) and the two chi-square tests (Cohen's w, next).

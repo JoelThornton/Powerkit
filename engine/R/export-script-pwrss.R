@@ -47,6 +47,9 @@ pwrss_script_inputs <- function(spec) {
       design <- eta_anova_design(spec)
       factors <- if (length(design$levels) == 1) {
         sprintf("levels <- %d # groups of %s", design$levels, comment_text(v$A$label))
+      } else if (length(design$levels) == 3) {
+        sprintf("levels <- c(%d, %d, %d) # levels of %s (A), %s (B) and %s (C)", design$levels[1], design$levels[2],
+          design$levels[3], comment_text(v$A$label), comment_text(v$B$label), comment_text(v$C$label))
       } else {
         sprintf("levels <- c(%d, %d) # levels of %s (A) and %s (B)", design$levels[1], design$levels[2],
           comment_text(v$A$label), comment_text(v$B$label))
@@ -68,7 +71,10 @@ pwrss_script_inputs <- function(spec) {
             sprintf("rho <- %s # correlation between measurements (the eta-squared doesn't include it, as in G*Power)", r_code(pop$r))
           }
         },
-        if (!is.null(design$target)) sprintf("effect <- %s # the effect tested", r_code(design$target))
+        if (!is.null(design$target)) sprintf("effect <- %s # the effect tested", r_code(design$target)),
+        if (!is.null(pop$covariates)) {
+          sprintf("covariates <- %d # number of covariates (each takes one error df, as in G*Power)", as.integer(pop$covariates))
+        }
       )
     },
     one_proportion = c(
@@ -243,7 +249,8 @@ pwrss_script_call_lines <- function(spec, inputs) {
       list(head = "power.f.ancova( # the ANOVA F test from its partial eta-squared", args = c(
         "eta.squared = eta_squared", "factor.levels = levels",
         if (!is.null(eta_anova_design(spec)$target)) "target.effect = effect",
-        "k.covariates = 0 # no covariates", "n.total = n_total # equal groups", "alpha = alpha",
+        if (is.null(spec$population$covariates)) "k.covariates = 0 # no covariates" else "k.covariates = covariates",
+        "n.total = n_total # equal groups", "alpha = alpha",
         "ceil.n = FALSE", "verbose = 0"
       ))
     },

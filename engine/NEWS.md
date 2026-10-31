@@ -1,5 +1,17 @@
 # powerkit 0.25.0
 
+* Partial eta-squared, as G*Power takes it, for the one-way and two-way
+  ANCOVA and for three-factor ANOVA with every factor between
+  participants: `population > metric` "eta_squared" on `oneway_ancova`,
+  `factorial_ancova` and `factorial_three`, run with pwrss's
+  `power.f.ancova()` (with `k.covariates` for the ANCOVAs; the covariates'
+  R-squared isn't needed, as a published ANCOVA's partial eta-squared
+  already allows for them). A published F or Cohen's f converts into it.
+  Three factors with a within-participants factor are refused in plain
+  words. The check run confirms the error df (N minus the groups minus
+  the covariates). From the same population, Shieh's method (the means
+  route) and G*Power's (partial eta-squared) differ a little: 81.3%
+  against 81.8% in the test example (`docs/conventions.md`, ANCOVA).
 * One-way repeated measures without sphericity: `oneway_within` takes an
   SD per condition (`population > sd` as a list) and a correlation per
   pair (`population > r`, the upper triangle row by row), passed to

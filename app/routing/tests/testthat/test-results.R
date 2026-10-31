@@ -1634,6 +1634,43 @@ test_that("between-participants ANOVA by its effect size: partial eta-squared, o
   expect_equal(calc$result$effect_conversion$converted, effectsize::F_to_eta2(4.2, 2, 114)[[1]])
 })
 
+test_that("ANCOVA and three between factors by their effect size: partial eta-squared, as G*Power takes it", {
+  for (ep in c("E23", "E56")) {
+    fields <- form_fields(form_groups(forms, ep))
+    ids <- vapply(fields, `[[`, "", "id")
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    expect_true("eta_squared" %in% names(by_id("metric")$choices), label = ep)
+    effect_values <- list(metric = "eta_squared", goal = "power", factors = "oneway_ancova", within = "none")
+    for (id in intersect(c("means", "cell_means", "sd", "r", "r2_covariates"), ids)) {
+      expect_false(field_applies(by_id(id), effect_values), label = paste(ep, id))
+    }
+    expect_true(field_applies(by_id("eta_squared"), effect_values), label = ep)
+  }
+  # The ANCOVA keeps the number of covariates, which takes error df.
+  fields <- form_fields(form_groups(forms, "E23"))
+  expect_true(field_applies(Filter(function(f) identical(f$id, "covariates"), fields)[[1]], list(metric = "eta_squared")))
+  values <- modifyList(form_examples$E23, list(metric = "eta_squared", eta_squared = "0.06", covariates = "2",
+    goal = "power", n = "150"))
+  spec <- build_spec(forms, "E23", fields, values)
+  expect_null(spec$population$means)
+  expect_null(spec$population$r2_covariates)
+  expect_equal(spec$population$covariates, 2)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend_function, "pwrss::power.f.ancova")
+  # Three factors, all between participants; with a within factor the
+  # engine says to give the means.
+  fields <- form_fields(form_groups(forms, "E56"))
+  values <- modifyList(form_examples$E56, list(within = "none", metric = "eta_squared", eta_squared = "0.03",
+    goal = "power", n = "160"))
+  calc <- run_calculation(build_spec(forms, "E56", fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  within <- build_spec(forms, "E56", fields, modifyList(values, list(within = "C")))
+  check <- check_spec(within, Filter(function(f) field_applies(f, modifyList(values, list(within = "C"))), fields))
+  expect_match(check$problems, "every factor is between participants", fixed = TRUE, all = FALSE)
+})
+
 test_that("repeated-measures and mixed ANOVA by effect size: the screen asks which kind of partial eta-squared", {
   for (ep in c("E54", "E8", "E55")) {
     fields <- form_fields(form_groups(forms, ep))

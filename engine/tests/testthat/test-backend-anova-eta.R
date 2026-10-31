@@ -117,3 +117,81 @@ test_that("repeated-measures and mixed ANOVA take either kind of partial eta-squ
   conv$population <- list(metric = "eta_squared", eta_source = "published")
   expect_equal(validate_spec(conv)$population$eta_squared, effectsize::F_to_eta2(6, 2, 88)[[1]])
 })
+
+# The F test from its noncentrality, as G*Power computes it: lambda = f^2 N,
+# df2 = N minus the cells minus the covariates.
+f_test_power <- function(eta_squared, df1, cells, covariates, n, alpha = 0.05) {
+  df2 <- n - cells - covariates
+  stats::pf(stats::qf(1 - alpha, df1, df2), df1, df2, ncp = n * eta_squared / (1 - eta_squared), lower.tail = FALSE)
+}
+
+test_that("an ANCOVA given by partial eta-squared runs on pwrss's power.f.ancova() with its covariates", {
+  spec <- example_spec("anova_oneway_ancova")
+  spec$population <- list(metric = "eta_squared", eta_squared = 0.06, covariates = 2L)
+  spec$goal <- list(type = "power", n = 150L)
+  result <- run_spec(spec)
+  expect_identical(result$provenance$backend_function, "pwrss::power.f.ancova")
+  expect_true(all(result$check_run$ok))
+  expect_equal(result$curve$power, f_test_power(0.06, 2, 3, 2, 150), tolerance = 1e-8)
+
+  two_way <- example_spec("anova_factorial_ancova")
+  two_way$population <- list(metric = "eta_squared", eta_squared = 0.04, covariates = 1L)
+  two_way$target_test$effect <- "interaction"
+  two_way$goal <- list(type = "power", n = 162L)
+  levels <- vapply(c("A", "B"), function(v) length(two_way$variables[[v]]$levels), integer(1))
+  result <- run_spec(two_way)
+  expect_true(all(result$check_run$ok))
+  expect_equal(result$curve$power, f_test_power(0.04, prod(levels - 1), prod(levels), 1, 162), tolerance = 1e-8)
+})
+
+test_that("a three-factor between-participants ANOVA given by partial eta-squared tests each effect", {
+  spec <- example_spec("anova_factorial_three")
+  for (v in c("A", "B", "C")) spec$variables[[v]]$type <- "between_factor"
+  spec$variables$B$levels <- list("Before", "Middle", "After")
+  spec$population <- list(metric = "eta_squared", eta_squared = 0.03)
+  spec$goal <- list(type = "power", n = 240L)
+  df <- c(main_effect_A = 1, main_effect_B = 2, main_effect_C = 1, interaction_AB = 2, interaction_AC = 1,
+          interaction_BC = 2, interaction_ABC = 2)
+  for (effect in names(df)) {
+    spec$target_test$effect <- effect
+    result <- run_spec(spec)
+    expect_true(all(result$check_run$ok), label = effect)
+    expect_equal(result$curve$power, f_test_power(0.03, df[[effect]], 12, 0, 240), tolerance = 1e-8, label = effect)
+  }
+})
+
+test_that("partial eta-squared for three factors is refused with a within-participants factor", {
+  spec <- example_spec("anova_factorial_three")
+  spec$population <- list(metric = "eta_squared", eta_squared = 0.03)
+  expect_spec_problem(spec, "every factor is between participants")
+})
+
+test_that("an ANCOVA's and a three-factor ANOVA's exported scripts reproduce the result from partial eta-squared", {
+  spec <- example_spec("anova_oneway_ancova")
+  spec$population <- list(metric = "eta_squared", eta_squared = 0.06, covariates = 2L)
+  spec$goal <- list(type = "power", n = 150L)
+  result <- run_spec(spec)
+  expect_match(export_script(spec, result), "k.covariates = covariates", fixed = TRUE)
+  expect_script_reproduces_power(spec, result)
+
+  three <- example_spec("anova_factorial_three")
+  for (v in c("A", "B", "C")) three$variables[[v]]$type <- "between_factor"
+  three$population <- list(metric = "eta_squared", eta_squared = 0.03)
+  three$goal <- list(type = "power", n = 160L)
+  expect_script_reproduces_power(three, run_spec(three))
+})
+
+test_that("an ANCOVA from its means (Shieh's method) and from the same partial eta-squared (G*Power's) differ a little", {
+  # The same population: adjusted means 20, 18, 16, SD 6, the covariate
+  # explaining 36%, so f^2 = var(means) / (SD^2 (1 - R^2)). Shieh's method
+  # treats the covariate as random, G*Power's as fixed (docs/conventions.md,
+  # ANCOVA): 81.3% against 81.8% with 90 people.
+  spec <- example_spec("anova_oneway_ancova")
+  spec$goal <- list(type = "power", n = 90L)
+  shieh <- run_spec(spec)$curve$power
+  f2 <- mean((c(20, 18, 16) - 18)^2) / (36 * (1 - 0.36))
+  spec$population <- list(metric = "eta_squared", eta_squared = f2 / (1 + f2), covariates = 1L)
+  fixed <- run_spec(spec)$curve$power
+  expect_equal(fixed, f_test_power(f2 / (1 + f2), 2, 3, 1, 90), tolerance = 1e-8)
+  expect_equal(round(c(shieh, fixed), 3), c(0.813, 0.818))
+})

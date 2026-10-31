@@ -1224,6 +1224,15 @@ Wired into the app on 18 October 2026 (E25, E26).*
   asked for: rows `A1`, ... for A, `B1`, ... for B, `A1:B1`, ... for the
   interaction. Each effect agrees with Superpower's `ANCOVA_analytic()`
   in a test [powerkit, `engine/R/backend-pwrss.R`].
+  An ANCOVA given by its partial eta-squared (31 October 2026, as G*Power
+  takes it) uses pwrss's `power.f.ancova()` with the number of covariates:
+  G*Power's method, with the covariates fixed, lambda = f^2 N and error df
+  N minus the groups minus the covariates. A published ANCOVA's partial
+  eta-squared already allows for the covariates, so their R-squared isn't
+  asked for. For the same population the two methods differ a little:
+  81.3% from the means (Shieh) against 81.8% from partial eta-squared
+  (G*Power) in the test example with 90 people, three groups and one
+  covariate explaining 36% [powerkit, `test-backend-anova-eta.R`].
 - **Unequal group sizes (2 x 2 between and mixed).** powerkit's 2 x 2
   templates require equal group sizes; unequal groups are "coming later"
   (decisions D5, N1 and N3 in `docs/design-finder.md`). See "Superpower and

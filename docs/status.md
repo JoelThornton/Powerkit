@@ -33,8 +33,9 @@ fully validated. Validation runs are recorded in
 - **Effect sizes researchers have:** the t-tests and the correlation take
   a published t, F, r, d or odds ratio (t and F into d by psych's `t2d()`,
   with the group sizes when given; the rest by effectsize;
-  `conventions.md`, "Effect-size conversion"); between-participants,
-  repeated-measures and mixed ANOVA take partial eta-squared; moderation
+  `conventions.md`, "Effect-size conversion"); between-participants
+  (including three factors), repeated-measures and mixed ANOVA and the
+  ANCOVAs take partial eta-squared, as G\*Power does; moderation
   takes the R-squared change; safeguard power for an effect from one
   study. MANOVA (E59) and one-sample Hotelling's T-squared (E60) take
   means, SDs and a correlation, and their cards say why.
@@ -79,6 +80,8 @@ fully validated. Validation runs are recorded in
   groups or occasions (item 14).
 - Technical details (df, critical value, noncentrality) are missing for
   semPower, powertools, TOSTER and bfpwr designs (item 25).
+- The chi-square tests (E6, E48) take a table of proportions, not Cohen's
+  w as G\*Power does; next in the effect-size work (`next.md`, item 26).
 
 ## Working environment
 
