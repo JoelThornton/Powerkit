@@ -38,6 +38,9 @@ reasoning and are not current instructions.
   the app (options only; prices unchecked).
 - [`upstream-questions.md`](upstream-questions.md): open technical
   questions about the backend packages (not yet raised).
+- [`bayes-planning.md`](bayes-planning.md): a design note on planning a
+  Bayesian study (analysis and design priors, the three outcomes,
+  sequential designs, a Labs Bayes mode), for `next.md` item 4.
 
 ## Statistics: conventions and validation
 
