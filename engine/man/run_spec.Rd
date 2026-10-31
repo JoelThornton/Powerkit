@@ -27,6 +27,11 @@ and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
 applied to the specified pattern, the scaled cell \code{means} and the
 \code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
 \code{r}, \code{w} or \code{p2});
+\item \code{justified_alpha}: \code{NULL} unless the goal is \code{justified_alpha};
+otherwise JustifyAlpha's \code{optimal_alpha()} result: the \code{alpha}, the
+\code{beta} and \code{power} at it, the weighted \code{error_rate}, the weights
+(\code{cost_ratio}, \code{prior_odds}), the \code{error_rule}, and the
+\code{conventional_alpha} with its \code{conventional_power};
 \item \code{effect_from_units}: \code{NULL} unless the effect was given in the
 outcome's own units (\code{population > metric} "raw", the t-tests);
 otherwise a list with the standardised effect's \code{name} ("Cohen's d"

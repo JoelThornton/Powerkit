@@ -43,7 +43,7 @@
 #' }
 export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
-  lines <- switch(
+  lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else switch(
     result$provenance$backend,
     pwr = ,
     stats = if (variance_formula_test(spec)) {

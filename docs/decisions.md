@@ -3872,3 +3872,18 @@ computer.
   margin of 0.2 and 80% power (one-sided, alpha .05) is the exact
   noncentral-t answer; 0.681 is the same calculation with one group's
   degrees of freedom (56) for the test's (112).
+
+## 2026-10-31 · Justified alpha
+
+- **The goal:** `goal > type` "justified_alpha" at a fixed N, on the
+  one-sample, paired and two-group t-tests and the correlation (the
+  designs pwr's formula covers). JustifyAlpha's `optimal_alpha()` searches
+  alpha with pwr's power for the spec, so no new maths is written.
+- **The question asked:** how many times worse a false positive is than a
+  missed effect (`cost_ratio`, JustifyAlpha's `costT1T2`), default 1; the
+  prior odds of an effect (`prior_odds`, `priorH1H0`) optional, default 1.
+- **The rule:** minimising the weighted total of the errors by default,
+  JustifyAlpha's default; balancing them is offered. Balancing with a cost
+  ratio q is G\*Power's compromise power analysis (Known difference 11).
+- **The conventional alpha** stays in the spec and is shown beside the
+  justified one, with its power, so the user sees what the choice changes.

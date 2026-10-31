@@ -35,6 +35,7 @@ population_problems <- function(spec) {
     check_welch_sds(spec),
     check_bayes_factor(spec),
     check_minimum_effect(spec),
+    check_justified_alpha(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),

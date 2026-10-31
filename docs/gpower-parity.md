@@ -62,7 +62,10 @@ search over effect sizes, so it is **Not exposed** there. Criterion (alpha
 from power and N) is **Not exposed** for E1–E6 (pwr solves for
 `sig.level`; Spower with `sig.level = NA`) and unknown for the rest.
 Compromise is **Not exposed** for Spower (`beta_alpha`) and Superpower
-(`ANOVA_compromise()`), and not offered by pwr. G\*Power offers five
+(`ANOVA_compromise()`), and not offered by pwr; for E1-E4 it is
+**Exposed** as the justified alpha (JustifyAlpha's `optimal_alpha()` on
+pwr's power; its "balance" rule is the compromise analysis, 31 October
+2026). G\*Power offers five
 types of analysis: a priori, compromise, criterion, post hoc and
 sensitivity (manual, section 1.1, p. 2).
 

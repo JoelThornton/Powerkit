@@ -251,6 +251,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   if (meta) goals <- list(sample_size = "The number of studies I need", power = "The power I'd have with a given number of studies")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
+  # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
+  # paired and two-group t-tests and the correlation (E1-E4).
+  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "The significance level that best balances the two errors at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
@@ -266,7 +269,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     choices = list(choose = "No: I'm seeing what power a sample this size gives",
       fixed = "Yes: a participant pool, a budget or a rare group sets it"),
     default = if (identical(start$situation, "fixed")) "fixed" else "choose",
-    shown_for_goals = c("power", "sensitivity"), optional = TRUE)
+    shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
     list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor t-test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
@@ -275,10 +278,20 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
-         type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
+         type = "number", path = "goal.n", needed_for = c("power", "sensitivity", "justified_alpha"), min = 2, integer = TRUE),
     list(id = "n_max", label = "The largest number of participants you could analyse",
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     situation,
+    list(id = "cost_ratio", label = "How many times worse is a false positive than a missed effect?",
+         help = "1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%).",
+         type = "number", path = "goal.cost_ratio", needed_for = "justified_alpha", min_exclusive = 0, default = 1,
+         default_source = "both mistakes weighted equally"),
+    list(id = "prior_odds", label = "How much more likely is the effect to be real than not, before the study?",
+         help = "1 if you think it as likely as not. Leave at 1 if you have no view.",
+         type = "number", path = "goal.prior_odds", optional = TRUE, shown_for_goals = "justified_alpha", min_exclusive = 0, default = 1),
+    list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
+         choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
+         default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
     # Shown only when alpha is changed from its default (decided 18 October
