@@ -523,6 +523,11 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "prior_concentration": {
+          "description": "Bayes factor test of two proportions only: the prior concentration a of the contingency table Bayes factor (BayesFactor's contingencyTableBF(priorConcentration = a), independent multinomial sampling with the group sizes fixed; Gunel and Dickey's 'a'). Under the alternative each group's proportion has a Beta(a, a) prior. Default 1, JASP's default ('Prior concentration' 1) and BayesFactor's.",
+          "type": "number",
+          "minimum": 1
+        },
         "one_sided_null": {
           "description": "Bayes factor test of one proportion, one-sided only: 'point' (the default, JASP's one-sided Bayesian binomial test) tests p = p0 against the side in 'alternative', the prior truncated to that side; 'directional' (bfpwr's binbf01(type = \"direction\")) tests p <= p0 against p > p0 (or the reverse).",
           "enum": [
@@ -580,6 +585,7 @@
               "prior_a": false,
               "prior_b": false,
               "prior_width": false,
+              "prior_concentration": false,
               "one_sided_null": false
             }
           }
@@ -1816,6 +1822,11 @@
             "p2": {
               "description": "Proportion of 'yes' in the second group.",
               "$ref": "#/definitions/proportion"
+            },
+            "p_sd": {
+              "description": "Bayes factor test only: uncertainty about each group's proportion, as the SD of a beta design prior with mean p1 (and, for group 2, p2); 0, the default, is exactly these proportions. Power is then averaged over it: the study's assurance. Must be below sqrt(p (1 - p)) for both.",
+              "type": "number",
+              "minimum": 0
             }
           }
         },
@@ -1825,10 +1836,11 @@
               "const": "proportion_difference"
             },
             "method": {
-              "description": "z_test: the z test of two proportions (by formula, or simulated on request). fisher_exact: Fisher's exact test, by pwrss's exact power calculation (power.exact.fisher()).",
+              "description": "z_test: the z test of two proportions (by formula, or simulated on request). fisher_exact: Fisher's exact test, by pwrss's exact power calculation (power.exact.fisher()). bayes_factor: the Bayes factor test of two proportions (BayesFactor's contingencyTableBF(), independent multinomial with the group sizes fixed: the default of JASP's Bayesian contingency tables), by exact calculation over every possible table.",
               "enum": [
                 "z_test",
-                "fisher_exact"
+                "fisher_exact",
+                "bayes_factor"
               ]
             }
           }
