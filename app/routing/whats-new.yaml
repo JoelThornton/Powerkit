@@ -6,6 +6,19 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Meta-analysis: moderators that are scores, and heterogeneity"
+    text: >-
+      The meta-analysis card can now plan a meta-regression, whether the
+      effect changes with a score measured on each study such as its
+      participants' mean age, and the test of whether the studies' effects
+      differ at all.
+  - date: "2026-11-01"
+    title: "Meta-analyses where studies give several results"
+    text: >-
+      The meta-analysis card can now plan for studies that each report
+      several effect sizes, such as several outcomes or time points,
+      allowing for how alike the results from one study are.
+  - date: "2026-11-01"
     title: "Whole-study simulation: more designs measured twice"
     text: >-
       When each person is measured twice, the experimental whole-study

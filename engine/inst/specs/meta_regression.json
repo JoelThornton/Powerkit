@@ -1,0 +1,36 @@
+{
+  "spec_version": "0.1",
+  "design": "meta_analysis",
+  "template": "meta_regression",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Depressive symptoms"
+    }
+  },
+  "population": {
+    "metric": "d",
+    "effect": 0.3,
+    "slope": 0.15,
+    "study_size": 40,
+    "i2": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the effect is expected to rise by 0.15 for one SD more of the studies' mean age."
+  },
+  "target_test": {
+    "effect": "moderator_slope",
+    "method": "z_test",
+    "test": "hartung_knapp",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 40
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 2026
+  }
+}

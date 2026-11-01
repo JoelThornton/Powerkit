@@ -15,6 +15,28 @@
 
 A batch of new features, built as one round.
 
+* Meta-analysis (E61): a moderator that is a score (template
+  `meta_regression`: the average effect at the moderator's mean and the
+  slope per SD of a moderator measured on each study, residual
+  I-squared), tested by the Hartung-Knapp test by default (Departure 18)
+  or the z test; and the test of heterogeneity (template
+  `heterogeneity`: Cochran's Q from the fixed-effect fit). Both simulated
+  with Spower and metafor's `rma()`, since no package computes the first
+  and metapower's formula for the second disagrees with simulation.
+  Checked against simulations written separately with metafor, with the
+  Type I error near alpha.
+* Meta-analyses whose studies give several correlated effect sizes each
+  (E61, template `dependent_effects`): POMADE's `power_MADE()` for the
+  test of the average effect under the correlated and hierarchical
+  effects (CHE) model with robust variance estimation (J - 1 degrees of
+  freedom), POMADE's default. The inputs are the average effect (d or r),
+  a typical study's size (each effect's sampling variance computed as
+  metapower computes it), the effects per study, the SD of the studies'
+  average effects (`tau`), the SD of the effects within a study (`omega`)
+  and the correlation of a study's sampling errors (`rho`); n is the
+  number of studies. Checked against a simulation written separately
+  with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
+  furrr).
 * Whole-study simulation measured twice now covers mediation through two
   mediators (side by side or in a chain) and moderated mediation of one
   link (X to the mediator, or the mediator to the outcome); the guided

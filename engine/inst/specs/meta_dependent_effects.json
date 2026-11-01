@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "meta_analysis",
+  "template": "dependent_effects",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Depressive symptoms"
+    }
+  },
+  "population": {
+    "metric": "d",
+    "effect": 0.15,
+    "study_size": 40,
+    "effects_per_study": 4,
+    "tau": 0.1,
+    "omega": 0.05,
+    "rho": 0.6
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the smallest effect of E61's example (d = 0.15, 40 participants per study), with each study reporting four correlated outcomes."
+  },
+  "target_test": {
+    "effect": "mean_effect",
+    "method": "rve_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  }
+}

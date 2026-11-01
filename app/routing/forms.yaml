@@ -2291,7 +2291,7 @@ forms:
   # A planned meta-analysis (metapower's mpower()): the test of the
   # average effect, with n the number of studies.
   E61:
-    methods_name: "a meta-analysis (the z test of the average effect)"
+    methods_name: "a meta-analysis"
     tool: metapower
     directional: true
     meta: true
@@ -2305,8 +2305,14 @@ forms:
         fields:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
           - {id: meta_question, label: "What the meta-analysis tests", type: select, path: template, required: true,
-             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)"},
-             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}]},
+             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)",
+                       dependent_effects: "The average effect, when studies give several effects each (several outcomes or time points)",
+                       meta_regression: "Whether the effect changes with a score measured on each study (a meta-regression, e.g. the studies' mean age)",
+                       heterogeneity: "Whether the studies' true effects differ at all (the test of heterogeneity, Cochran's Q)"},
+             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}],
+                    dependent_effects: [{path: target_test.method, value: rve_t}],
+                    meta_regression: [{path: target_test.effect, value: moderator_slope}],
+                    heterogeneity: [{path: target_test.effect, value: heterogeneity}, {path: target_test.method, value: q_test}]},
              default: mean_effect, default_source: "the average effect, a meta-analysis's main question"}
           - {id: meta_metric, label: "The effect size the studies give", type: select, path: population.metric, required: true,
              choices: {d: "Cohen's d: two groups compared in each study", r: "A correlation r"}, default: d,
@@ -2316,22 +2322,41 @@ forms:
           - {id: meta_effects, writeup_label: "average effects of the kinds of study", label: "The average effect in each kind of study, separated by commas (for example, lab then online: 0.2, 0.5); the studies are split equally between the kinds", type: numbers, path: population.effects, effect: true,
              shown_if: {field: meta_question, is: subgroups}}
           - {id: meta_effect, writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
-             shown_if: {field: meta_question, is: mean_effect},
+             shown_if: {field: meta_question, is_one_of: [mean_effect, dependent_effects, meta_regression, heterogeneity]},
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
+          - {id: meta_slope, writeup_label: "change in the effect per SD of the moderator", label: "How much the effect changes for one SD more of the moderator (on the effect's scale)", type: number, path: population.slope, effect: true,
+             shown_if: {field: meta_question, is: meta_regression},
+             help: "For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
           - {id: i2, label: "Heterogeneity, as I-squared (0 to just under 1)", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
+             shown_if: {field: meta_question, is_not: dependent_effects},
              help: "The share of the variation between the studies' effects that isn't chance. Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."}
+          - {id: effects_per_study, label: "Effect sizes each study gives (the same in every study)", type: number, path: population.effects_per_study, required: true, min: 2, integer: true, in_effect_text: true, writeup_label: "effect sizes per study",
+             shown_if: {field: meta_question, is: dependent_effects}}
+          - {id: meta_tau, writeup_label: "SD between studies (tau)", label: "SD of the studies' average true effects (tau: heterogeneity between studies)", type: number, path: population.tau, effect: true, min: 0,
+             shown_if: {field: meta_question, is: dependent_effects},
+             help: "On the effect's own scale (Fisher's z for r). 0.1 for d is modest heterogeneity."}
+          - {id: meta_omega, writeup_label: "SD within studies (omega)", label: "SD of the true effects within a study (omega: heterogeneity within studies)", type: number, path: population.omega, effect: true, min: 0,
+             shown_if: {field: meta_question, is: dependent_effects}}
+          - {id: meta_rho, writeup_label: "correlation of a study's sampling errors", label: "Correlation between a study's effect sizes' sampling errors (0 to just under 1)", type: number, path: population.rho, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: meta_question, is: dependent_effects},
+             help: "How alike the estimates from the same participants are, for example 0.6 for outcomes measured on the same people. POMADE's authors suggest trying several values when it isn't known."}
       - input: "The fixed-effect or the random-effects model, and the test"
         fields:
           - {id: meta_model, label: "Model", type: select, path: target_test.model, required: true,
              choices: {random: "Random effects: the studies' true effects differ", fixed: "Fixed effect: every study estimates the same effect"},
+             shown_if: {field: meta_question, is_one_of: [mean_effect, subgroups]},
              default: random, default_source: "powerkit's choice: the random-effects model, which allows for the studies' true effects differing (metapower reports both)"}
           - {id: meta_test, label: "Test of the average effect", type: select, path: target_test.test, required: true,
              choices: {hartung_knapp: "Hartung-Knapp (recommended; simulated)", z: "z test (metapower's formula)"}, default: hartung_knapp,
              default_source: "powerkit's choice (Departure 18): the Hartung-Knapp test keeps false positives closer to alpha, especially with few studies (IntHout, Ioannidis & Borm, 2014)",
              help: "Plan with the test you will run. The z test is what metapower and many older meta-analyses use; it is too often significant when there are few studies.",
-             shown_if: {field: meta_model, is: random}}
+             shown_if: [{field: meta_model, is: random}, {field: meta_question, is_one_of: [mean_effect, subgroups]}]}
+          - {id: meta_reg_test, label: "Test of the moderator's slope", type: select, path: target_test.test, required: true,
+             choices: {hartung_knapp: "Hartung-Knapp (recommended)", z: "z test"}, default: hartung_knapp,
+             default_source: "powerkit's choice (Departure 18), as for the average effect: the Hartung-Knapp test keeps false positives closer to alpha with few studies",
+             shown_if: {field: meta_question, is: meta_regression}}
 
   # Logistic regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its odds ratio is per SD; a yes/no X compares

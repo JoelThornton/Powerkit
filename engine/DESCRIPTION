@@ -18,7 +18,7 @@ Description: Reads a single design specification (JSON) for common
     cluster-randomised and multisite trials (via 'powertools'), equivalence
     and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,
     measurement invariance, factor correlations and latent regression (via
-    'semPower'), and planned meta-analyses (via 'metapower').
+    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -35,6 +35,7 @@ Imports:
     jsonvalidate (>= 1.3.0),
     JustifyAlpha,
     PMCMRplus,
+    POMADE,
     presize,
     lme4,
     lmerTest,
