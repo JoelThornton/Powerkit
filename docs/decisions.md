@@ -3779,6 +3779,19 @@ merges when its checks pass, unless a doubt is stated in it.
   simr's default for a factor, so no departure is needed.
 - **Three-level designs (1 November 2026):** conditions assigned at the
   top level first, then predictors at every level.
+- **Dyadic data (1 November 2026):** the actor-partner interdependence
+  model as its own card (E44), simulated with power4mome and tested by
+  lavaan's Wald z test; distinguishable and indistinguishable members
+  (equal actor and partner effects, fitted with equality constraints);
+  pairs asked what the hypothesis involves, with conditions given to
+  whole pairs sent to the cluster-randomised card and other dyadic
+  designs to a "not yet covered" card (E65).
+- **Meta-analysis moderators (1 November 2026):** metapower's
+  `mod_power()` checked against simulation first (20 studies of 40, d =
+  0.2 against 0.5, I-squared 0.5: 55.8% against 57.2% fixed-effect, 31.9%
+  against 33.9% random-effects with tau-squared estimated), close enough
+  to use; under the random-effects model the Hartung-Knapp test is the
+  default, as for the average effect, simulated with metafor.
 - **Multilevel models, three or more conditions (31 October 2026):** a
   card of its own (E63): a mean per condition, one SD for participants'
   condition effects shared by every condition (participant:cond random
@@ -3893,3 +3906,144 @@ computer.
   margin of 0.2 and 80% power (one-sided, alpha .05) is the exact
   noncentral-t answer; 0.681 is the same calculation with one group's
   degrees of freedom (56) for the test's (112).
+
+## 2026-10-31 · Justified alpha
+
+- **The goal:** `goal > type` "justified_alpha" at a fixed N, on the
+  one-sample, paired and two-group t-tests and the correlation (the
+  designs pwr's formula covers). JustifyAlpha's `optimal_alpha()` searches
+  alpha with pwr's power for the spec, so no new maths is written.
+- **The question asked:** how many times worse a false positive is than a
+  missed effect (`cost_ratio`, JustifyAlpha's `costT1T2`), default 1; the
+  prior odds of an effect (`prior_odds`, `priorH1H0`) optional, default 1.
+- **The rule:** minimising the weighted total of the errors by default,
+  JustifyAlpha's default; balancing them is offered. Balancing with a cost
+  ratio q is G\*Power's compromise power analysis (Known difference 11).
+- **The conventional alpha** stays in the spec and is shown beside the
+  justified one, with its power, so the user sees what the choice changes.
+
+## 2026-11-01 · Trend tests (E64, E66)
+
+- **Backends:** both simulated with Spower by powerkit's own experiments,
+  as decided on 31 October 2026: the Cochran-Armitage test with
+  `stats::prop.trend.test()` (new template `proportion_trend`) and the
+  Jonckheere-Terpstra test with PMCMRplus's `jonckheereTest()` (a method
+  on the one-way between-participants template, beside Kruskal-Wallis).
+- **Variants built:** one- and two-sided tests and unequal groups
+  (`options > group_ratio`), since dose-response hypotheses are usually
+  directional and dose groups are often unequal. A one-sided
+  Cochran-Armitage test halves the two-sided p-value of
+  `prop.trend.test()` when the observed trend goes the way predicted: its
+  statistic is the square of the Cochran-Armitage z, so this is z's
+  one-sided p-value, and a test checks it against z written out.
+- **Reached from the design finder:** F2a (a steady rise or fall across
+  groups in order) leads to the Jonckheere-Terpstra card; Q3's yes/no
+  branch (three or more groups in order) to the Cochran-Armitage card.
+- **Not built:** an exact (permutation) Jonckheere-Terpstra p-value, which
+  matters only for very small groups; PMCMRplus's normal approximation is
+  its default.
+
+## 2026-11-01 · Unequal SDs and correlations in the mixed and within designs (E8, E55, E20)
+
+- **Route:** Superpower, as for the one-way repeated-measures card (E54):
+  `ANOVA_design()` with an SD per cell and the upper triangle of the whole
+  correlation matrix, `ANOVA_exact(correction =)` and
+  `ANOVA_power(correction =)`. No new maths in powerkit.
+- **What is asked:** the 2 x 2 mixed design, an SD per cell and a
+  correlation per group (its one pair of measurements); the larger mixed
+  design, an SD per cell and a correlation per pair of the within
+  factor's levels, the same in every group (the usual pattern over time;
+  a different pattern per group would mean a table of correlations most
+  researchers can't supply); the two-factor within design, a correlation
+  per pair of cells, as E54 asks per pair of conditions.
+- **Correction:** none by default (Superpower's and G\*Power's epsilon of
+  1), Greenhouse-Geisser or Huynh-Feldt on request, only where a within
+  factor has three or more levels; not a departure.
+- **Not built:** mixed designs with unequal groups, which Superpower's
+  simulation refuses (`next.md`).
+
+
+## 2026-11-01 · Bayesian planning in Labs (fixed N)
+
+The first step of `bayes-planning.md`: a Labs tool for the Bayes factor
+t-tests at a fixed sample size, `bayes_planning()`, every number from
+bfpwr (`ptbf01()`, `powertbf01()`, `tbf01()`; Pawel and Held, 2025).
+
+- **Two priors, chosen apart.** The analysis prior is the Cauchy prior
+  the Bayes factor uses (scale 0.707 by default, bfpwr's); the design
+  prior is the planner's belief, normal with an SD for uncertainty. The
+  tool's default design prior is d = 0.5 give or take 0.15, so that a
+  first look shows what uncertainty costs; an SD of 0 gives the card's
+  "exactly the effect entered" (Departure 15, unchanged here).
+- **No single power figure.** The three outcomes (strong evidence for an
+  effect, for no effect, neither) are shown under the belief and with no
+  effect, the misleading ones labelled, with the sample size for a chosen
+  chance of strong evidence for an effect, the largest BF01 the study can
+  give (two-sided only: a one-sided BF01 has no largest value), and the
+  chances against the sample size.
+- **Small samples.** Below 50 degrees of freedom the tool says that
+  bfpwr's normal approximation gives a chance of strong evidence a few
+  points lower than simulation (the same difference the Bayes factor
+  cards carry, `test-validation-bayes-factor.R` section 4).
+- **Sources.** Only bfpwr's own citation is used. The tool avoids the
+  term "assurance" and does not cover sequential designs, so no new
+  reference was needed; adding Schönbrodt and Wagenmakers (2018) and an
+  assurance source to `refs.bib` comes with those steps.
+
+## 2026-11-01 · Precision planning (E46)
+
+Planning for the width of a confidence interval rather than power, as
+`next.md` set out on 31 October 2026: a new design, `precision`, with a
+goal of a target width (find n) or a given n (find the width).
+
+- **Packages.** MBESS for Cohen's d between two equal groups
+  (`ss.aipe.smd()`), d_z and a standardised mean (`ss.aipe.sm()`, the
+  paired case on the differences), the noncentral t interval that
+  `ci.smd()` and `ci.sm()` compute; presize for a correlation
+  (`prec_cor()`, Fisher's z, with its corrections for Spearman's and
+  Kendall's coefficients) and a proportion (`prec_prop()`). Each is cited
+  from the package's own `citation()` (Kelley, 2007; Haynes et al., 2021).
+- **Assurance.** For d and standardised means, an optional chance that the
+  interval is no wider than the target (MBESS's `assurance`); without it
+  the plan is for the expected width, which about half of studies exceed.
+  The result says so in words. presize has no assurance option, so the
+  correlation and proportion plan for the expected width only.
+- **Proportion interval.** Wilson's by default, presize's own default;
+  Agresti-Coull, Clopper-Pearson (exact) and Wald are options, Wald only
+  with at least 5 expected in each outcome. There is no G\*Power
+  convention to follow for precision, so nothing here is a departure.
+- **Confidence level** is entered as such (0.95 by default) and stored as
+  `target_test > alpha` = 1 - level, so the spec keeps one place for it.
+- **Validation.** The engine's tests match each package called directly;
+  `test-validation-precision.R` simulates studies at the planned n and
+  checks the average width, and with assurance the share narrow enough,
+  against intervals computed independently (a noncentral t inversion,
+  Fisher's z and Wilson's formula). A published example for d and for a
+  proportion is left as `TODO_PUBLISHED_VALUE`.
+
+## 2026-11-01 · Simulated data sets for the remaining designs
+
+`next.md` set the choices on 31 October 2026: simple ones, each stated in
+the data set's note (`simulated_data_note()`).
+
+- **Regression.** The R-squared tests draw independent standard normal
+  predictors with equal weights within each set (the predictors already
+  in the model, then those tested). Logistic and Poisson regression with
+  other predictors get one column carrying their overlap with X (pwrss's
+  `r.squared.predictor`) and no effect of its own on the outcome.
+- **Cluster trials** follow the model each powertools formula assumes:
+  site means and site effects with `multisite.cont()`'s ICCs (the effect's
+  variance 4 times its ICC, the conditions coded -1/2 and +1/2); a random
+  intercept on the log odds with SD `sigma_u` (`crt.parallel.bin()`); a
+  log odds ratio varying between sites with SD `sigma_u`
+  (`multisite.bin()`); and, for a group treatment trial's yes/no outcome,
+  group proportions from a beta distribution with the ICC, under which
+  `irgtt.bin()`'s design effect holds. A baseline score has the outcome's
+  ICC and explains the two R-squared values the spec gives. Groups are all
+  of the planned size.
+- **Paired precision plans** draw the two measurements with correlation
+  0.5, so that the difference has SD 1 and mean d_z.
+- **Left without:** the three-way regression interaction (its data would
+  need the regression weights worked out from the correlations it takes,
+  which no package does), the meta-analysis, SEM, McNemar's test and the
+  generic tests.

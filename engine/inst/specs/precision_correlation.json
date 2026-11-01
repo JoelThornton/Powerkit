@@ -1,0 +1,35 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "correlation",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Sleep hours"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Mood"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: r about 0.3; the interval should be no wider than 0.2."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "pearson",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 0.2
+  },
+  "options": {
+    "seed": 20261101
+  }
+}

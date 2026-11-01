@@ -241,6 +241,8 @@ test_text <- function(spec) {
   }
   if (is_minimum_effect(spec)) return(minimum_effect_test_text(spec))
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
+  # A trend test's direction is a rise or a fall across the groups in order.
+  if (is_trend_test(spec) && alt != "two_sided") side <- sprintf("a one-sided test (a %s trend)", if (alt == "greater") "rising" else "falling")
   if (is.null(spec$target_test$alternative) && !is.null(unsided <- unsided_test_name(spec))) side <- unsided
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
 }
@@ -252,7 +254,7 @@ unsided_test_name <- function(spec) {
   if ((identical(spec$design, "factorial_anova") && !identical(spec$template, "oneway_contrast") &&
        !identical(spec$target_test$effect, "pairwise")) ||
       identical(spec$design, "multiple_regression") || spec$template %in% c("manova", "hotelling_one")) {
-    return(if (identical(spec$target_test$method, "kruskal_wallis") || identical(spec$target_test$method, "friedman")) "a rank test" else "an F test")
+    return(if (isTRUE(spec$target_test$method %in% c("kruskal_wallis", "friedman", "jonckheere_terpstra"))) "a rank test" else "an F test")
   }
   NULL
 }
@@ -307,6 +309,19 @@ generic_sentences <- function(spec, result) {
 # is chosen.
 # A planned meta-analysis (E61): its n is the number of studies.
 is_meta <- function(spec) identical(spec$design, "meta_analysis")
+is_dyadic <- function(spec) identical(spec$design, "dyadic")
+
+# What n counts, when it isn't participants: studies (a meta-analysis) or
+# pairs (dyadic data).
+n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else NULL
+
+# Dyadic data: the write-up counts pairs.
+dyad_units <- function(text) {
+  text <- gsub(" participants are needed in total", " pairs are needed", text, fixed = TRUE)
+  text <- gsub("power at this sample size is", "power with this many pairs is", text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", "with \\2 pairs", text)
+  text
+}
 
 is_hartung_knapp <- function(spec) {
   identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
@@ -319,7 +334,14 @@ meta_sentences <- function(spec, result) {
   pop <- spec$population
   random <- !identical(spec$target_test$model, "fixed")
   model <- if (random) "the random-effects model" else "the fixed-effect model"
-  effect <- sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  subgroups <- identical(spec$template, "subgroups")
+  effect <- if (subgroups) {
+    sprintf("average effects of %s = %s in the kinds of study", if (identical(pop$metric, "r")) "r" else "d",
+      paste(format(as.numeric(unlist(pop$effects))), collapse = ", "))
+  } else {
+    sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  }
+  aim <- if (subgroups) "detect that the kinds of study differ, with" else "detect an average effect of"
   test <- sprintf("%s%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
     if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test",
     alpha_text(spec$target_test$alpha),
@@ -341,15 +363,20 @@ meta_sentences <- function(spec, result) {
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
     c(
-      headline = sprintf("You need %s studies for %s power to detect an average effect of %s, with %s.",
-        whole(k), percent(spec$goal$power), effect, test),
+      headline = sprintf("You need %s studies%s for %s power to %s %s, with %s.",
+        whole(k), if (subgroups) " (split equally between the kinds)" else "", percent(spec$goal$power), aim, effect, test),
       detail = paste(source, caution)
     )
   } else {
     row <- result$curve[1, ]
     c(
-      headline = sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
-        whole(row$n), percent(row$power), effect, round(100 * row$power), test),
+      headline = if (subgroups) {
+        sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would find that the kinds of study differ, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      } else {
+        sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      },
       detail = paste(source, caution)
     )
   }
@@ -477,9 +504,12 @@ simulation_note <- function(result) {
 # The headline and supporting sentences for a result (draft wording; setting
 # result_wording).
 result_sentences <- function(spec, result) {
+  if (is_precision(spec)) return(precision_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
+  # Dyadic data: n counts pairs.
+  if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -492,7 +522,7 @@ result_sentences <- function(spec, result) {
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) {
     out[["detail"]] <- paste(out[["detail"]], sem_restriction_sentence(spec))
   }
-  if (!is.null(result$manova)) out[["detail"]] <- paste(out[["detail"]], manova_sentence(result))
+  if (!is.null(result$manova)) out[["detail"]] <- paste(out[["detail"]], manova_sentence(result, spec))
   sem <- if (is_sem_fit(spec)) sem_sentence(result)
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
@@ -506,13 +536,28 @@ is_sem_fit <- function(spec) identical(spec$design, "sem") && identical(spec$tem
 
 # Repeated measures: the MANOVA approach's power beside the univariate F's
 # (the engine's manova_summary(), from the same Superpower run).
-manova_sentence <- function(result) {
+manova_sentence <- function(result, spec = NULL) {
   m <- result$manova
-  sprintf(paste0(
-    "This assumes sphericity (equal variances of the differences between conditions). ",
-    "The MANOVA approach, which doesn't, has %s power with %s participants; ",
+  first <- if (is.null(spec) || assumes_sphericity(spec)) {
+    "This assumes sphericity (equal variances of the differences between conditions). "
+  } else {
+    sprintf("This F test uses the SDs and correlations you gave, which need not keep sphericity, %s. ", sphericity_correction_words(spec))
+  }
+  sprintf(paste0(first,
+    "The MANOVA approach, which doesn't need sphericity, has %s power with %s participants; ",
     "if you plan to report it instead, plan for it."),
     percent(m$power), whole(m$n))
+}
+
+# One SD and one correlation for every pair keep sphericity; an SD per cell
+# or a correlation per pair need not (E54, E55, E20).
+assumes_sphericity <- function(spec) {
+  length(unlist(spec$population$sd)) <= 1 && length(unlist(spec$population$r)) <= 1
+}
+
+sphericity_correction_words <- function(spec) {
+  switch(spec$target_test$correction %||% "none",
+    none = "with no correction", GG = "with the Greenhouse-Geisser correction", HF = "with the Huynh-Feldt correction")
 }
 
 # Invariance, a factor correlation, a latent slope: the test, and the
@@ -784,9 +829,45 @@ goal_sentences <- function(spec, result) {
           detail = "The pattern of means you entered keeps its shape and is scaled until the effect reaches the target power (exact, Superpower)."
         )
       }
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(
+        headline = sprintf(
+          "With %s participants in total%s, the significance level that %s is alpha = %s. At that level, %s has %s power to detect the effect you entered.",
+          whole(spec$goal$n), group_text(spec, spec$goal$n), justified_alpha_rule_text(j), justified_alpha_text(j$alpha),
+          justified_alpha_test_text(spec), percent(j$power)
+        ),
+        detail = sprintf(
+          "%s At the usual alpha = %s, power would be %s. Found by JustifyAlpha's optimal_alpha(), which searches over alpha with power from pwr's formula (%s).",
+          justified_alpha_weights_text(j), alpha_text(j$conventional_alpha), percent(j$conventional_power), exact_source(result)
+        )
+      )
     }
   )
 }
+
+# Justified alpha (JustifyAlpha's optimal_alpha()): the wording of the
+# rule, the weights and the level found.
+justified_alpha_rule_text <- function(j) {
+  if (identical(j$error_rule, "balance")) "makes the two weighted errors equal" else "makes the weighted total of the two errors as small as possible"
+}
+
+justified_alpha_text <- function(alpha) format(signif(alpha, 3))
+
+justified_alpha_weights_text <- function(j, brief = FALSE) {
+  cost <- if (isTRUE(all.equal(j$cost_ratio, 1))) "A false positive was weighted the same as a missed effect" else
+    sprintf("A false positive was weighted %s times as heavily as a missed effect", format(j$cost_ratio))
+  odds <- if (isTRUE(all.equal(j$prior_odds, 1))) ", and the effect taken as being as likely to be real as not" else
+    sprintf(", and the effect taken as %s times as likely to be real as not", format(j$prior_odds))
+  if (brief) return(paste0(cost, odds))
+  rate <- if (identical(j$error_rule, "balance")) "" else sprintf("; the weighted error rate is %s", percent(j$error_rate))
+  sprintf("%s%s%s. The chance of a false positive is then %s and of missing the effect %s.", cost, odds, rate,
+    percent(j$alpha), percent(j$beta))
+}
+
+# The test, without the alpha (the alpha is the answer).
+justified_alpha_test_text <- function(spec) sub(" at alpha = .*$", "", test_text(spec))
 
 # The plain reading of a target power (the new design, 18 October 2026):
 # it keeps the condition, and says what power is a chance of. Out of 10
@@ -928,7 +1009,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
     "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
-    together, whole(n80), if (is_meta(spec)) "studies" else "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
+    together, whole(n80), n_unit(spec) %||% "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
   )
 }
 
@@ -1177,8 +1258,8 @@ actual_power_sentence <- function(spec, result) {
   at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
   if (length(at_n) != 1 || is.na(at_n)) return(NULL)
   sizes <- group_sizes(spec, n)
-  who <- if (is_meta(spec)) {
-    sprintf("With %s studies", whole(n))
+  who <- if (!is.null(n_unit(spec))) {
+    sprintf("With %s %s", whole(n), n_unit(spec))
   } else if (is.null(sizes)) {
     sprintf("With %s participants", whole(n))
   } else if (length(unique(sizes)) == 1) {
@@ -1359,6 +1440,12 @@ is_rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
 }
 
+# The trend tests across groups in order: Jonckheere-Terpstra (E64) and
+# Cochran-Armitage (E66).
+is_trend_test <- function(spec) {
+  identical(spec$target_test$method, "jonckheere_terpstra") || identical(spec$template, "proportion_trend")
+}
+
 # Spearman's rho and Kendall's tau: a test version on E4, simulated by the
 # engine with Spower on scores of the chosen shape.
 is_rank_correlation <- function(spec) isTRUE(spec$target_test$method %in% c("spearman", "kendall"))
@@ -1474,9 +1561,14 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   keys <- unlist(form$known_differences)
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
-  if (!is.null(spec) && is_hartung_knapp(spec)) keys <- setdiff(keys, "9")
+  # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
+  # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
+  if (!is.null(spec) && (is_hartung_knapp(spec) || identical(spec$template, "subgroups"))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  # Some apply to one goal (Known difference 11, a justified alpha).
+  by_goal <- form$known_differences_if_goal
+  keys <- Filter(function(k) is.null(by_goal[[k]]) || identical(spec$goal$type, by_goal[[k]]), keys)
   # Some apply to one way of giving the effect (E9: Known difference 1 to
   # the correlations, which are simulated; 7 to the R-squared change).
   by_metric <- form$known_differences_if_metric
@@ -1526,10 +1618,20 @@ provenance_lines <- function(result) {
 
 # The whole result panel. `calc` is run_calculation()'s value.
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
+  # Dyadic data: every count of the sample on the screen counts pairs.
+  if (identical(calc$status, "ok") && is_dyadic(calc$spec)) {
+    panel <- result_panel_core(tree, forms, ep_id, fields, values, calc, check_advice)
+    return(HTML(gsub("([0-9][0-9,]*) participants", "\\1 pairs", as.character(panel))))
+  }
+  result_panel_core(tree, forms, ep_id, fields, values, calc, check_advice)
+}
+
+result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
   }
+  if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
   result <- calc$result
@@ -1656,8 +1758,9 @@ writeup_effect <- function(fields, values) {
 }
 
 writeup_sides <- function(spec) {
-  switch(spec$target_test$alternative %||% "two_sided",
-    two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
+  alt <- spec$target_test$alternative %||% "two_sided"
+  if (is_trend_test(spec) && alt != "two_sided") return(sprintf("one-sided, a %s trend", if (alt == "greater") "rising" else "falling"))
+  switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
 }
 
 # The reasons given for a changed alpha or a one-sided test, as sentences
@@ -1718,6 +1821,11 @@ writeup_claim <- function(values, spec) {
 # it is measured in, the study size and the heterogeneity.
 meta_effect_text <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "subgroups")) {
+    return(sprintf("average effects of %s = %s in %d kinds of study (the studies split equally between them), in studies of %s participants each with I-squared = %s",
+      if (identical(pop$metric, "r")) "r" else "Cohen's d", paste(format(as.numeric(unlist(pop$effects))), collapse = ", "),
+      length(unlist(pop$effects)), whole(pop$study_size), format(pop$i2)))
+  }
   sprintf("an average effect of %s = %s, in studies of %s participants each with I-squared = %s",
     if (identical(pop$metric, "r")) "r" else "Cohen's d", format(pop$effect), whole(pop$study_size), format(pop$i2))
 }
@@ -1856,6 +1964,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
           whole(spec$goal$n), group_text(spec, spec$goal$n)),
         sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size),
         basis)
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(sprintf("The significance level for %s was chosen by weighing the two errors (the R package JustifyAlpha, version %s, optimal_alpha()).",
+          if (is.null(sides)) name else sprintf("%s (%s)", name, sides), result$provenance$packages[["JustifyAlpha"]] %||% "unknown"),
+        sprintf("The sample size was %s %s participants in total%s.", if (fixed) "fixed by resource constraints at" else "set at",
+          whole(spec$goal$n), group_text(spec, spec$goal$n)),
+        basis,
+        sprintf("%s, so alpha was set to %s the weighted errors: alpha = %s, giving %.1f%% power (at alpha = %s, power would be %.1f%%).",
+          justified_alpha_weights_text(j, brief = TRUE),
+          if (identical(j$error_rule, "balance")) "balance" else "minimise the total of",
+          justified_alpha_text(j$alpha), 100 * j$power, writeup_alpha(j$conventional_alpha), 100 * j$conventional_power))
     }
   )
   if (is_bayes_test(spec)) {
@@ -1867,9 +1987,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- c(main, bayes_sentence(spec, result))
   }
   if (is_meta(spec)) main <- meta_units(main)
+  if (is_dyadic(spec)) main <- dyad_units(main)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
-            if (!is.null(result$manova)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power),
+            if (!is.null(result$manova)) {
+              if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)
+              else sprintf("The F test used the SDs and correlations given, without assuming sphericity; the MANOVA approach (Pillai's trace) has %.1f%% power at this sample size.", 100 * result$manova$power)
+            },
             if (identical(spec$design, "sem") && !is_sem_fit(spec)) sprintf("The model was %s.", sem_model_description(spec)))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
@@ -1956,8 +2080,15 @@ ethics_text <- function(spec, result, fields, values) {
         sprintf("A power analysis shows the smallest effect a study of this size would find %s of the time (using a %s threshold for statistical significance) is %s. Smaller effects would more often be missed.",
           percent(spec$goal$power), alpha, size),
         sprintf("Our reasoning about the size of the effect: %s.", reasoning))
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(include, recruit_line, set_by, basis,
+        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with a %s chance of finding the effect if it is real.",
+          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), percent(j$power)))
     })
   if (is_meta(spec)) body <- meta_units(body)
+  if (is_dyadic(spec)) body <- dyad_units(body)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")
@@ -1982,9 +2113,15 @@ simulated_data_ui <- function(spec, result) {
 }
 
 # The n the simulated data set uses: the required n for a sample-size
-# goal, otherwise the n entered.
+# goal, the n of a precision plan, otherwise the n entered.
 simulated_data_n_for <- function(spec, result) {
-  n <- if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
+  n <- if (identical(result$goal_type, "sample_size")) {
+    result$n_required$n
+  } else if (identical(result$goal_type, "precision")) {
+    result$precision$n
+  } else {
+    spec$goal$n
+  }
   if (is.numeric(n) && length(n) == 1 && !is.na(n)) n else NA_real_
 }
 
@@ -2006,4 +2143,140 @@ writeup_ui <- function(text) {
       tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"),
       p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
       tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
+}
+
+# --- Precision planning (E46) ----------------------------------------------------
+# The engine's design "precision": the confidence interval's width, not
+# power. The result screen, the write-up and the ethics version only word
+# the engine's result$precision.
+
+is_precision <- function(spec) identical(spec$design, "precision")
+
+precision_estimate_text <- function(spec) {
+  v <- spec$variables
+  switch(spec$template,
+    two_groups = sprintf("Cohen's d for the difference in %s between %s and %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    paired = sprintf("d_z for the change in %s from %s to %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    one_group = sprintf("the standardised mean of %s", v$Y$label),
+    correlation = sprintf("%s between %s and %s", switch(spec$target_test$method, spearman = "Spearman's rho", kendall = "Kendall's tau", "the correlation"),
+      v$X$label, v$Y$label),
+    proportion = sprintf("the proportion %s", v$Y$label))
+}
+
+precision_interval_name <- function(spec) {
+  level <- sprintf("%s%%", format(100 * (1 - spec$target_test$alpha)))
+  kind <- switch(spec$template,
+    proportion = switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald"),
+    correlation = if (identical(spec$target_test$method, "pearson")) "Fisher's z" else NULL,
+    "noncentral t")
+  if (is.null(kind)) sprintf("%s confidence interval", level) else sprintf("%s %s confidence interval", level, kind)
+}
+
+precision_number <- function(x) format(round(x, 3), nsmall = 2)
+
+precision_people <- function(spec, n) {
+  if (identical(spec$template, "two_groups")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+    if (identical(spec$template, "paired")) sprintf("%s pairs of scores", whole(n)) else sprintf("%s participants", whole(n))
+}
+
+precision_sentences <- function(spec, result) {
+  pr <- result$precision
+  estimate <- precision_estimate_text(spec)
+  interval <- precision_interval_name(spec)
+  expected <- sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
+    pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  how <- sprintf("Calculated by formula with %s (%s()), which powerkit called with your answers.", result$provenance$backend, pr$function_used)
+  if (!is.na(pr$target_width)) {
+    headline <- if (is.na(pr$assurance)) {
+      sprintf("With %s, the %s for %s is expected to be no wider than %s.", precision_people(spec, pr$n), interval, estimate, format(pr$target_width))
+    } else {
+      sprintf("With %s, the %s for %s would be no wider than %s in %s of studies like this.", precision_people(spec, pr$n), interval, estimate,
+        format(pr$target_width), percent(pr$assurance))
+    }
+    more <- if (spec$template %in% c("two_groups", "one_group", "paired")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
+    reading <- if (is.na(pr$assurance)) sprintf("“Expected” means the typical study: about half of studies this size would get a somewhat wider interval. For more certainty, %s.", more) else
+      "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
+  } else {
+    headline <- sprintf("With %s, the %s for %s would be about %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
+    reading <- "A narrower interval says more precisely how large the effect is; its width doesn't depend on whether the effect is significant."
+  }
+  c(headline = headline, reading = reading, detail = paste(expected, how))
+}
+
+precision_writeup <- function(form, spec, result, fields, values) {
+  if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
+  pr <- result$precision
+  p <- result$provenance
+  estimate <- precision_estimate_text(spec)
+  interval <- precision_interval_name(spec)
+  basis <- sprintf("The expected value, %s = %s, was based on %s: %s.", pr$effect_name, format(pr$effect),
+    writeup_source[[values$just_type %||% "smallest_effect_of_interest"]] %||% "our reasoning", writeup_quote(values$just_source))
+  aim <- if (!is.na(pr$target_width)) {
+    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s. This requires %s.",
+      interval, estimate, format(pr$target_width),
+      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance", percent(pr$assurance)), precision_people(spec, pr$n))
+  } else {
+    sprintf("With %s, the %s for %s is expected to be %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
+  }
+  recruit <- result$recruitment
+  recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, we will recruit %s.", percent_attrition(recruit$attrition), whole(recruit$n_recruit))
+  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
+    p$backend, p$packages[[p$backend]], pr$function_used, p$packages[["powerkit"]], p$r_version)
+  short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
+  full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
+  ethics <- paste(c(
+    sprintf("We plan to include %s.", precision_people(spec, pr$n)), recruit_line,
+    "This number comes from planning how precisely the study can estimate the result, not from a power analysis.",
+    sprintf("With this many, the range of plausible values the study reports (its %s) is expected to be about %s wide, which we judged narrow enough to be informative. Fewer people would give a wider, less informative range.",
+      interval, precision_number(pr$width)),
+    basis,
+    sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.", p$backend, p$packages[[p$backend]])
+  ), collapse = " ")
+  c(short = short, full = full, ethics = ethics)
+}
+
+precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
+  ep <- tree$endpoints[[ep_id]]
+  spec <- calc$spec
+  result <- calc$result
+  words <- precision_sentences(spec, result)
+  p_ <- result$provenance
+  can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  div(
+    class = "result-panel", role = "status", tabindex = "-1",
+    div(class = "result-card result-main",
+      h3(class = "h4", "Your result"),
+      p(class = "result-headline lead", words[["headline"]]),
+      p(class = "result-reading", words[["reading"]]),
+      if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
+      source_stale_ui(fields, values),
+      if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+        p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
+        p(class = "small", recruit[["caveat"]])),
+      p(class = "result-detail", words[["detail"]]),
+      if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
+    div(class = "result-card result-save",
+      h4(class = "h5", "Save and share"),
+      if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
+        tags$strong("To save this plan, download its R script or get its write-up, "),
+        "write your reasoning under “Where your effect size comes from” and press “Check my answers” again."),
+      div(class = "nav-buttons",
+        if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
+        downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
+        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+      p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed)."),
+      simulated_data_ui(spec, result),
+      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values))),
+    div(class = "result-card result-how",
+      h4(class = "h5", "How it was calculated"),
+      p(class = "result-credit",
+        "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
+        "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
+      validation_ui(ep),
+      tags$details(class = "result-more",
+        tags$summary("More about this result: the values it used"),
+        tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
+      tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
+      tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+  )
 }

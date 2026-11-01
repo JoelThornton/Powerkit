@@ -27,8 +27,10 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E34" && !is.null(goal$n)) goal$n <- 80L
   # A factorial logistic regression needs ten people in every cell.
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
+  # Precision planning has no power: the width expected at n instead.
+  if (ep == "E46") goal <- list(type = "precision", n = goal$n %||% 48L)
   spec$goal <- goal
-  if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
+  if (!ep %in% c("E7", "E8", "E36", "E46")) spec$options$nrep <- 100L
   spec
 }
 
@@ -822,7 +824,7 @@ test_that("repeated measures with three or more conditions show the MANOVA appro
   calc <- run_calculation(spec, run, seed = 1L)
   expect_false(is.null(calc$result$manova))
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["detail"]], "The MANOVA approach, which doesn't, has", fixed = TRUE)
+  expect_match(words[["detail"]], "The MANOVA approach, which doesn't need sphericity, has", fixed = TRUE)
   w <- writeup_text(forms$forms$E54, calc$spec, calc$result, fields, form_examples$E54)
   expect_match(w[["full"]], "the MANOVA approach (Pillai's trace)", fixed = TRUE)
   # A between-participants design has no MANOVA sentence.
@@ -893,6 +895,40 @@ test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test
   expect_true(all(calc$result$check_run$ok))
   w <- writeup_text(forms$forms$E57, calc$spec, calc$result, fields, form_examples$E57)
   expect_match(w[["short"]], "the Pitman-Morgan test of two paired variances", fixed = TRUE)
+})
+
+test_that("the trend tests (E64, E66) run one-sided with unequal groups, and their write-ups say so", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E64"))
+  expect_equal(form_problems(fields, form_examples$E64), character())
+  spec <- build_spec(forms, "E64", fields, form_examples$E64)
+  expect_identical(spec$target_test$method, "jonckheere_terpstra")
+  expect_identical(spec$target_test$alternative, "greater")
+  expect_equal(as.numeric(unlist(spec$options$group_ratio)), c(1, 1, 2))
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "jonckheereTest", fixed = TRUE)
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms$E64, calc$spec, calc$result, fields, form_examples$E64)
+  expect_match(w[["short"]], "a Jonckheere-Terpstra test of a trend across groups in order (one-sided, a rising trend", fixed = TRUE)
+  expect_match(test_text(calc$spec), "a one-sided test (a rising trend)", fixed = TRUE)
+
+  fields <- form_fields(form_groups(forms, "E66"))
+  values <- modifyList(form_examples$E66, list(group_ratio = "2, 1, 1, 2", alternative = "less", proportions = "0.35, 0.3, 0.25, 0.2"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E66", fields, values)
+  expect_identical(spec$template, "proportion_trend")
+  spec$goal <- list(type = "power", n = 396L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "prop.trend.test", fixed = TRUE)
+  w <- writeup_text(forms$forms$E66, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "one-sided, a falling trend", fixed = TRUE)
+  # Two-sided, equal groups: the example as given.
+  spec <- build_spec(forms, "E66", fields, form_examples$E66)
+  expect_null(spec$options$group_ratio)
+  expect_identical(spec$target_test$alternative, "two_sided")
 })
 
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
@@ -1601,6 +1637,42 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
 })
 
+test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
+  cases <- list(
+    E8 = list(spread = "differ", sd = NULL, r = NULL, metric = "raw", s11 = "1", s12 = "1.2", s21 = "1", s22 = "1.5", r1 = "0.6", r2 = "0.4"),
+    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG"),
+    E20 = list(spread = "differ", sd = NULL, r = NULL, sds = "80, 90, 100\n80, 90, 100",
+               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF")
+  )
+  for (ep in names(cases)) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_gt(length(unlist(spec$population$sd)), 1)
+    expect_gt(length(unlist(spec$population$r)), 1)
+    if (ep != "E8") expect_identical(spec$target_test$correction, cases[[ep]]$correction)
+    # With one SD and one correlation, nothing changes.
+    same <- build_spec(forms, ep, fields, modifyList(form_examples[[ep]], list(goal = "power", n = "40")))
+    expect_length(unlist(same$population$sd), 1)
+    expect_null(same$target_test$correction)
+  }
+  skip_without_run()
+  ep <- "E55"
+  fields <- form_fields(form_groups(forms, ep))
+  values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+  calc <- run_calculation(build_spec(forms, ep, fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_true(all(calc$result$check_run$ok))
+  expect_false(is.null(calc$result$manova))
+  text <- paste(writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, modifyList(values, list(just_type = "smallest_effect_of_interest",
+    just_source = "A pilot"))), collapse = " ")
+  expect_match(text, "with the Greenhouse-Geisser correction for sphericity", fixed = TRUE)
+  expect_match(text, "without assuming sphericity", fixed = TRUE)
+  expect_no_match(text, "Assuming sphericity", fixed = TRUE)
+  expect_match(paste(result_sentences(calc$spec, calc$result), collapse = " "), "need not keep sphericity, with the Greenhouse-Geisser correction", fixed = TRUE)
+})
+
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {
   for (ep in c("E7", "E18", "E21")) {
     fields <- form_fields(form_groups(forms, ep))
@@ -2099,4 +2171,105 @@ test_that("the two-group card takes a point-biserial r, as G*Power's point-biser
   # G*Power's point-biserial example (r = .25, one-sided, power .95) needs 164.
   expect_equal(calc$result$n_required$n, 164)
   expect_match(paste(result_sentences(spec, calc$result), collapse = " "), "From the point-biserial r of 0.25", fixed = TRUE)
+})
+
+test_that("dyadic data: the result and the write-up count pairs, and both kinds of dyad build valid specs", {
+  fields <- form_fields(form_groups(forms, "E44"))
+  values <- modifyList(form_examples$E44, list(goal = "power", n = "120"))
+  spec <- build_spec(forms, "E44", fields, values)
+  expect_identical(spec$population$distinguishable, FALSE)
+  distinct <- modifyList(values, list(distinguishable = "true", member_1 = "Woman", member_2 = "Man", actor = NULL, partner = NULL,
+    actor_1 = "-0.3", actor_2 = "-0.25", partner_12 = "-0.1", partner_21 = "-0.2", apim_effect_d = "partner_21"))
+  spec_d <- build_spec(forms, "E44", fields, distinct)
+  expect_identical(spec_d$population$distinguishable, TRUE)
+  expect_identical(unlist(spec_d$population$members), c("Woman", "Man"))
+  expect_identical(spec_d$target_test$effect, "partner_21")
+  skip_without_run()
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  html <- as.character(result_panel_ui(tree, forms, "E44", fields, values, calc))
+  expect_match(html, "120 pairs", fixed = TRUE)
+  expect_no_match(html, "120 participants", fixed = TRUE)
+})
+
+test_that("the t-test and correlation cards find a justified alpha, and say how the errors were weighed", {
+  for (ep in c("E1", "E2", "E3", "E4")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+    expect_true("justified_alpha" %in% names(goal$choices), label = ep)
+    values <- modifyList(form_examples[[ep]], list(goal = "justified_alpha", n = "64", cost_ratio = "4",
+      method = if (ep == "E2") "student_t" else form_examples[[ep]]$method,
+      error_rule = "minimize", prior_odds = "1"))
+    expect_true(field_applies(by_id("cost_ratio"), values))
+    expect_false(field_applies(by_id("cost_ratio"), list(goal = "power")))
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$goal$type, "justified_alpha")
+    expect_equal(spec$goal$cost_ratio, 4)
+    skip_without_run()
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    j <- calc$result$justified_alpha
+    text <- paste(result_sentences(spec, calc$result), collapse = " ")
+    expect_match(text, sprintf("is alpha = %s", format(signif(j$alpha, 3))), fixed = TRUE)
+    expect_match(text, "weighted 4 times as heavily as a missed effect", fixed = TRUE)
+    expect_match(text, "JustifyAlpha's optimal_alpha()", fixed = TRUE)
+  }
+})
+
+test_that("precision planning (E46) gives the sample size for an interval width, or the width at n, and words it without power", {
+  skip_without_run()
+  fields_of <- function(v) form_fields(form_groups(forms, "E46"))
+  calc_of <- function(v) {
+    fields <- fields_of(v)
+    expect_length(form_problems(fields, v), 0)
+    spec <- build_spec(forms, "E46", fields, v)
+    list(calc = run_calculation(spec, run, seed = 1L), fields = fields, values = v)
+  }
+  # A proportion (presize's prec_prop(), Wilson's interval).
+  out <- calc_of(form_examples$E46)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(width = 0.1, type = "precision"))
+  expect_equal(calc$spec$target_test$alpha, 0.05)
+  expect_identical(calc$result$provenance$backend, "presize")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("With %s participants, the 95%% Wilson confidence interval for the proportion Reports burnout is expected to be no wider than 0.1.",
+    whole(calc$result$precision$n)), fixed = TRUE)
+  expect_no_match(paste(words, collapse = " "), "\\bpower\\b", ignore.case = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E46", out$fields, out$values, calc))
+  expect_match(html, "Your result", fixed = TRUE)
+  expect_match(html, "presize", fixed = TRUE)
+  expect_no_match(html, "justified|adequate|sufficient power|well-powered", ignore.case = TRUE)
+  w <- precision_writeup(forms$forms$E46, calc$spec, calc$result, out$fields, out$values)
+  expect_match(w[["short"]], "for precision rather than power", fixed = TRUE)
+  expect_match(w[["short"]], "presize (version", fixed = TRUE)
+  expect_match(w[["ethics"]], "not from a power analysis", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+  # The width at a given sample size, for a correlation.
+  v <- modifyList(form_examples$E46, list(estimate = "correlation", C_label = "Sleep", Y_label = "Mood", r = "0.3", r_method = "spearman",
+    goal = "precision_width", n = "150"))
+  v$width <- NULL
+  calc <- calc_of(v)$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(n = 150L, type = "precision"))
+  expect_identical(calc$spec$target_test$method, "spearman")
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], "With 150 participants, the 95% confidence interval for Spearman's rho between Sleep and Mood would be about", fixed = TRUE)
+  # Cohen's d between two groups with assurance (MBESS).
+  skip_if_not_installed("MBESS")
+  v <- modifyList(form_examples$E46, list(estimate = "two_groups", X_label = "Condition", X_level1 = "Control", X_level2 = "Training",
+    Y_label = "Recall", d = "0.5", width = "0.4", assurance = "0.8"))
+  out <- calc_of(v)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$target_test$method, "noncentral_t")
+  expect_identical(calc$result$provenance$backend, "MBESS")
+  n <- calc$result$precision$n
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]],
+    sprintf("With %s participants in total (%s per group), the 95%% noncentral t confidence interval for Cohen's d for the difference in Recall between Control and Training would be no wider than 0.4 in 80%% of studies like this.", whole(n), whole(n / 2)), fixed = TRUE)
+  expect_match(precision_writeup(forms$forms$E46, calc$spec, calc$result, out$fields, out$values)[["short"]], "with 80% assurance", fixed = TRUE)
+  expect_equal(simulated_data_n_for(calc$spec, calc$result), n)
+  expect_match(as.character(result_panel_ui(tree, forms, "E46", out$fields, out$values, calc)), "download_simulated_data", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
 })

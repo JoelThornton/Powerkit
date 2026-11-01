@@ -43,7 +43,9 @@
 #' }
 export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
-  lines <- switch(
+  lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else if (precision_goal(spec)) {
+    precision_script(spec, result)
+  } else switch(
     result$provenance$backend,
     pwr = ,
     stats = if (variance_formula_test(spec)) {
@@ -64,13 +66,14 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    Spower = if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
+    Spower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
+      if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
-    power4mome = power4mome_script(spec, result),
+    power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
-    metapower = metapower_script(spec, result),
+    metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
@@ -199,8 +202,24 @@ design_description <- function(spec) {
     return(sprintf("minimum-effect test (smallest effect of interest %s = %s): %s",
       if (identical(spec$template, "paired_t")) "d_z" else "d", format_number(spec$population$margin), design_description(base)))
   }
+  if (meta_subgroups(spec)) {
+    return(sprintf("%s meta-analysis of %s: does the average effect differ between %d kinds of study (%s = %s), %s, studies of %s participants with I-squared %s",
+      if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects", label("Y"),
+      length(unlist(spec$population$effects)), if (identical(spec$population$metric, "r")) "r" else "Cohen's d",
+      paste(format_number(as.numeric(unlist(spec$population$effects))), collapse = ", "),
+      if (hartung_knapp_test(spec)) "Hartung-Knapp test" else "Q test", format_number(spec$population$study_size), format_number(spec$population$i2)))
+  }
   if (identical(spec$design, "meta_analysis")) {
     return(meta_design_description(spec, label))
+  }
+  if (identical(spec$design, "dyadic")) {
+    members <- unlist(spec$population$members %||% list("member 1", "member 2"))
+    effect <- switch(spec$target_test$effect, actor = "the actor effect", partner = "the partner effect",
+      actor_1 = sprintf("the actor effect for %s", members[1]), actor_2 = sprintf("the actor effect for %s", members[2]),
+      partner_12 = sprintf("the partner effect of %s on %s", members[1], members[2]),
+      partner_21 = sprintf("the partner effect of %s on %s", members[2], members[1]))
+    return(sprintf("actor-partner interdependence model for %s dyads: %s predicting %s; effect tested: %s",
+      if (isTRUE(spec$population$distinguishable)) "distinguishable" else "indistinguishable", label("X"), label("Y"), effect))
   }
   switch(
     paste(spec$design, spec$template, sep = "/"),
@@ -262,6 +281,11 @@ design_description <- function(spec) {
       "chi-square test of one variance: is the variance of %s different from a fixed value?",
       label("Y")
     ),
+    "basic_test/proportion_trend" = sprintf(
+      "Cochran-Armitage test of a linear trend in %s = %s across the %d groups of %s in order (%s), scores %s",
+      label("Y"), comment_text(unlist(v$Y$levels)[2] %||% "yes"), length(unlist(v$X$levels)), label("X"), levels("X"),
+      paste(format_number(trend_scores(spec)), collapse = ", ")
+    ),
     "basic_test/two_variances" = sprintf(
       "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
       label("Y"), label("G"), levels("G")
@@ -302,8 +326,8 @@ design_description <- function(spec) {
       if (welch_anova(spec)) "Welch's F test (variances not assumed equal)" else "omnibus F test"
     ),
     "factorial_anova/oneway_within" = sprintf(
-      "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, %s",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"), sphericity_words(spec)
     ),
     "ordinal_regression/ordinal_two_groups" = sprintf(
       "ordinal outcome: %s (%s, in order) compared between the groups of %s (%s), proportional odds",
@@ -398,6 +422,15 @@ design_description <- function(spec) {
       length(spec$population$slopes), if (length(spec$population$slopes) == 1) "" else "s",
       spec$population$indicators, spec$population$loading
     ),
+    "precision/two_groups" = sprintf("confidence interval for Cohen's d of %s (%s) between %s (expected d = %s; two equal groups)",
+      label("Y"), "noncentral t", levels("X"), spec$population$d),
+    "precision/one_group" = sprintf("confidence interval for the standardised mean of %s (expected %s; noncentral t)", label("Y"), spec$population$d),
+    "precision/paired" = sprintf("confidence interval for d_z, the paired difference in %s between %s (expected d_z = %s; noncentral t)",
+      label("Y"), levels("X"), spec$population$dz),
+    "precision/correlation" = sprintf("confidence interval for the %s correlation of %s and %s (expected r = %s)",
+      spec$target_test$method, label("X"), label("Y"), spec$population$r),
+    "precision/proportion" = sprintf("confidence interval for the proportion %s (expected %s; %s interval)",
+      label("Y"), spec$population$p, switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald")),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -410,16 +443,16 @@ design_description <- function(spec) {
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
     "factorial_anova/mixed" = sprintf(
-      "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; sphericity assumed",
-      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+      "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec), sphericity_words(spec)
     ),
     "factorial_anova/factorial_between" = sprintf(
       "two-factor between-participants ANOVA of %s: %s (%s) by %s (%s); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
     "factorial_anova/factorial_within" = sprintf(
-      "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; sphericity assumed",
-      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+      "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec), sphericity_words(spec)
     ),
     "factorial_anova/factorial_three" = sprintf(
       "three-factor ANOVA of %s: %s (%s, %s) by %s (%s, %s) by %s (%s, %s); effect tested: %s%s",
@@ -518,8 +551,10 @@ rank_design_description <- function(spec, label, levels) {
       "Mann-Whitney (Wilcoxon rank-sum) test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
     ),
     oneway_between = sprintf(
-      "Kruskal-Wallis test of %s across the %d groups of %s (%s)",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "%s test of %s across the %d groups of %s (%s)%s",
+      if (jonckheere_test(spec)) "Jonckheere-Terpstra" else "Kruskal-Wallis",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      if (jonckheere_test(spec)) ", a trend in the order given" else ""
     ),
     oneway_within = sprintf(
       "Friedman's test of %s across the %d conditions of %s (%s), everyone in every condition",
@@ -554,6 +589,15 @@ goal_description <- function(spec) {
       power = sprintf("the probability of strong evidence (BF10 at least %s) at a total sample size of %s", bfpwr_inputs(spec)$threshold, goal$n),
       sample_size = sprintf("the smallest total sample size with a probability of at least %s of strong evidence (BF10 at least %s)", goal$power, bfpwr_inputs(spec)$threshold)
     ))
+  }
+  if (precision_goal(spec)) {
+    level <- sprintf("%s%%", format(100 * (1 - spec$target_test$alpha)))
+    return(if (!is.null(goal$width)) {
+      sprintf("the smallest total sample size whose %s confidence interval is %s no wider than %s", level,
+        if (is.null(goal$assurance)) "expected to be" else sprintf("with a %s chance", format(goal$assurance)), format(goal$width))
+    } else {
+      sprintf("the width of the %s confidence interval expected with a total sample size of %s", level, goal$n)
+    })
   }
   if (spec$design == "generic_test") {
     return(switch(
@@ -768,12 +812,15 @@ add_recruitment_section <- function(lines, spec, result) {
       length(spec$variables$A$levels) * length(spec$variables$B$levels)
     ),
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    oneway_between = ,
+    oneway_between = if (jonckheere_test(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
+      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
+    ),
     oneway_contrast = ,
     mixed = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
+    proportion_trend = "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share",
     "groups_analysed <- n_analysed # one group"
   )
   section <- c(
@@ -1338,6 +1385,16 @@ spower_script_inputs <- function(spec) {
         r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
       )
     ),
+    proportion_trend = c(
+      sprintf(
+        "proportions <- %s # proportion with %s = %s in each group, in order (%s)",
+        r_code(as.numeric(unlist(pop$proportions))), comment_text(v$Y$label), lv("Y", 2),
+        paste(comment_text(unlist(v$X$levels)), collapse = ", ")
+      ),
+      sprintf("scores <- %s # each group's score in the trend test%s", r_code(trend_scores(spec)),
+        if (is.null(pop$scores)) " (1, 2, 3, ...: equally spaced, prop.trend.test()'s default)" else ""),
+      group_ratio_line(spec)
+    ),
     chi_square_independence = if (chisq_by_w(spec)) {
       c(
         sprintf("w <- %s # Cohen's w for the association of %s and %s, taken as the population value (as in G*Power)",
@@ -1363,6 +1420,13 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (jonckheere_test(spec) || spec$template == "proportion_trend") {
+    return(c(
+      "  # The experiment's n is one share of the total: each group has n times",
+      "  # its share in group_ratio.",
+      "  n_share <- batch_n / sum(group_ratio)"
+    ))
+  }
   if (spec$template == "oneway_between") {
     return(c(
       "  # Spower's n is the size of each group; the groups are equal.",
@@ -1483,6 +1547,12 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = batch_n, # total sample size",
       "P = probabilities, # probability of each combination",
       "correct = FALSE # no continuity correction (Spower's default is TRUE; powerkit's Departure 5)"
+    ),
+    proportion_trend = c(
+      "n = n_share, # one share of the total",
+      "proportions = proportions,",
+      "scores = scores,",
+      "n.ratios = group_ratio # each group's share"
     )
   )
   if (one_sided) {
@@ -1523,9 +1593,33 @@ spower_alternative_line <- function(spec, inputs) {
       "your test expects the first measurement's variance to be %s than the second's (the sum and difference correlate %s)",
       if (positive) "larger" else "smaller", if (positive) "positively" else "negatively"
     ),
+    oneway_between = sprintf("your test expects the scores to %s across the groups in order", if (positive) "rise" else "fall"),
+    proportion_trend = sprintf("your test expects the proportion to %s with the scores", if (positive) "rise" else "fall"),
     sprintf("one-sided: the effect is expected to be %s", if (positive) "positive" else "negative")
   )
   sprintf("alternative = %s # %s", r_code(alternative), why)
+}
+
+# A trend test's relative group sizes (options > group_ratio; 1 each for
+# equal groups).
+group_ratio_line <- function(spec) {
+  levels <- unlist(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels)
+  sprintf("group_ratio <- %s # relative size of each group (%s)%s", r_code(trend_group_shares(spec)),
+    paste(comment_text(levels), collapse = ", "), if (unequal_groups(spec)) "" else ": equal groups")
+}
+
+# How a repeated-measures design treats sphericity: with one SD and one
+# correlation it holds; otherwise the covariances may break it, and the F
+# test is corrected only if asked (target_test > correction).
+sphericity_words <- function(spec) {
+  pop <- spec$population
+  if (length(unlist(pop$sd)) == 1 && length(unlist(pop$r)) == 1) {
+    return("sphericity assumed")
+  }
+  switch(spec$target_test$correction %||% "none",
+    none = "SDs and correlations as given, F test not corrected for sphericity",
+    GG = "SDs and correlations as given, Greenhouse-Geisser correction",
+    HF = "SDs and correlations as given, Huynh-Feldt correction")
 }
 
 # Put a comma after every argument but the last, before any comment.
@@ -1567,6 +1661,23 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    proportion_trend = c(
+      "# The experiment, as powerkit runs it: each group's count of yes out of n,",
+      "# drawn from its proportion, and the p-value of the Cochran-Armitage test",
+      "# of a linear trend along the scores (prop.trend.test(), chi-square, 1 df).",
+      "# prop.trend.test() is two-sided; a one-sided test halves its p-value when",
+      "# the observed trend goes the way predicted (\"greater\": the proportion",
+      "# rises with the scores), and otherwise gives 1 minus half of it.",
+      "p_cochran_armitage <- function(n, proportions, scores, n.ratios = rep(1, length(proportions)),",
+      "                               alternative = \"two.sided\") {",
+      "  sizes <- n * n.ratios",
+      "  yes <- rbinom(length(proportions), sizes, proportions)",
+      "  p <- prop.trend.test(yes, sizes, score = scores)$p.value",
+      "  if (alternative == \"two.sided\") return(p)",
+      "  rising <- sum(yes * (scores - sum(sizes * scores) / sum(sizes))) > 0",
+      "  if (rising == (alternative == \"greater\")) p / 2 else 1 - p / 2",
+      "}"
+    ),
     factorial = c(
       "# The cells, with sum-to-zero (effect) coding, so that each factor's",
       "# coefficients are its main effect averaged over the other factor.",
@@ -1669,10 +1780,13 @@ rank_script_inputs <- function(spec) {
         r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
       )
     ),
-    oneway_between = sprintf(
-      "means <- %s / %s # group means (%s) in SD units: the means over the SD",
-      r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
-      paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    oneway_between = c(
+      sprintf(
+        "means <- %s / %s # group means (%s) in SD units: the means over the SD",
+        r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
+        paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+      ),
+      if (jonckheere_test(spec)) group_ratio_line(spec)
     ),
     oneway_within = c(
       sprintf(
@@ -1721,7 +1835,19 @@ rank_derived_lines <- function(spec) {
       "# Each group's scores: its mean plus scores in the chosen shape.",
       "gen_groups <- function(n, k, n.ratios, means, ...) {",
       "  lapply(seq_len(k), function(g) means[g] + draw_scores(n * n.ratios[g]))",
-      "}"
+      "}",
+      if (jonckheere_test(spec)) c(
+        "# The experiment, as powerkit runs it: the groups in the order of their",
+        "# levels, and the p-value of PMCMRplus's Jonckheere-Terpstra test (its",
+        "# default: the normal approximation, no continuity correction; \"greater\"",
+        "# is a rise across the groups). The scores and their groups go in as x and",
+        "# g: given a list of groups, jonckheereTest() ignores `alternative`.",
+        "p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = \"two.sided\") {",
+        "  groups <- gen_fun(n, k, n.ratios, means)",
+        "  g <- factor(rep(seq_len(k), lengths(groups)))",
+        "  unname(PMCMRplus::jonckheereTest(unlist(groups), g, alternative = alternative)$p.value)",
+        "}"
+      )
     ),
     oneway_within = c(
       "# The experiment, as powerkit runs it: each score is the condition's mean,",
@@ -1763,7 +1889,13 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "parent1 = shifted,",
       "parent2 = unshifted"
     ),
-    oneway_between = c(
+    oneway_between = if (jonckheere_test(spec)) c(
+      "n = n_share, # one share of the total",
+      "k = length(means), # number of groups",
+      "means = means, # group means in SD units",
+      "gen_fun = gen_groups,",
+      "n.ratios = group_ratio # each group's share"
+    ) else c(
       "n = n_group, # size of each group",
       "k = length(means), # number of groups",
       "means = means, # group means in SD units",
@@ -1829,7 +1961,7 @@ superpower_script <- function(spec, result) {
         "  result <- ANOVA_power(",
         "    design,",
         "    alpha_level = alpha,",
-        if (identical(spec$template, "oneway_within")) "    correction = correction, # sphericity correction of the F test",
+        if (spec$template %in% c("oneway_within", "mixed", "factorial_within")) "    correction = correction, # sphericity correction of the F test",
         if (!is.null(inputs$pairwise_row)) "    p_adjust = p_adjust, # adjusts the p-values of all the pairwise t-tests",
         "    nsims = batch_replications,",
         "    seed = batch_seed,",
@@ -1957,13 +2089,18 @@ superpower_script_inputs <- function(spec, inputs) {
         "mu <- %s # cell means of %s, in Superpower's order a1_b1, a1_b2, ..., a2_b1, ...",
         r_code(inputs$mu), comment_text(v$Y$label)
       ),
-      sprintf("cell_sd <- %s # SD in every cell", r_code(inputs$sd)),
+      sprintf("cell_sd <- %s # %s", r_code(inputs$sd), if (length(inputs$sd) == 1) "SD in every cell" else "SD of each cell, in the same order"),
       sprintf("r <- %s # %s", r_code(inputs$r), switch(
         spec$template,
-        mixed = "correlation between any two levels of b, within a participant",
+        mixed = if (length(inputs$r) == 1) "correlation between any two levels of b, within a participant" else
+          "correlations: the upper triangle of the cells' correlation matrix, row by row (0 between different groups)",
         factorial_between = "no repeated measures: every cell is different people",
-        factorial_within = "correlation between any two cells, within a participant"
+        factorial_within = if (length(inputs$r) == 1) "correlation between any two cells, within a participant" else
+          "correlation between each pair of cells: (a1_b1, a1_b2), (a1_b1, a1_b3), ..., (a1_b2, a1_b3), ..."
       )),
+      if (spec$template != "factorial_between") sprintf(
+        "correction <- %s # sphericity correction of the within-participants F tests (none, GG or HF)", r_code(inputs$correction)
+      ),
       sprintf("groups <- %s # %s", inputs$groups, if (inputs$groups == 1) {
         "one group: everyone is in every cell"
       } else {
@@ -1992,8 +2129,9 @@ superpower_script_inputs <- function(spec, inputs) {
     ),
     sprintf(
       "r <- %s # %s", r_code(inputs$r),
-      if (between) "correlation between repeated measures (none in a between design)" else
-        "correlation between the two measurements of b"
+      if (between) "correlation between repeated measures (none in a between design)" else if (length(inputs$r) == 1)
+        "correlation between the two measurements of b" else
+        "correlations: the upper triangle of the cells' correlation matrix, row by row (one per group, 0 between groups)"
     ),
     sprintf(
       "groups <- %s # between-participants groups: %s", inputs$groups,
@@ -2023,7 +2161,7 @@ superpower_exact_sections <- function(spec, result, inputs) {
     "exact_result <- function(n_total, means = mu) {",
     "  design <- build_design(n_total, means)",
     "  set.seed(seed)",
-    if (identical(spec$template, "oneway_within")) {
+    if (spec$template %in% c("oneway_within", "mixed", "factorial_within")) {
       "  result <- ANOVA_exact(design, alpha_level = alpha, correction = correction, verbose = FALSE)"
     } else {
       "  result <- ANOVA_exact(design, alpha_level = alpha, verbose = FALSE)"

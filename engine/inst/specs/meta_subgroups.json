@@ -1,0 +1,11 @@
+{
+  "spec_version": "0.1",
+  "design": "meta_analysis",
+  "template": "subgroups",
+  "variables": {"Y": {"type": "continuous", "label": "Anxiety"}},
+  "population": {"metric": "d", "effects": [0.2, 0.5], "study_size": 40, "i2": 0.5},
+  "effect_justification": {"type": "smallest_effect_of_interest", "source": "Example only: lab studies (d = 0.2) against online studies (d = 0.5)."},
+  "target_test": {"effect": "moderator", "method": "q_test", "model": "random", "alpha": 0.05},
+  "goal": {"type": "power", "n": 20},
+  "options": {"nrep": 200, "seed": 66}
+}

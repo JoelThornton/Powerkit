@@ -199,7 +199,7 @@ settings:
     question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
     value: name
-    shown_at: [E43, E44, E46]
+    shown_at: [E43, E65, E46]
   - key: other_analyses_note
     ref: "Open question 20"
     question: "Show a note on covered cards that other defensible analyses exist for the design (listed per card, e.g. Student's vs Welch's t), and that they can need different sample sizes? The drafts are in docs/routing-audit.md, 'Other defensible analyses'. Off while undecided."
@@ -335,8 +335,19 @@ nodes:
     options:
       - {label: "Independent people", next: s3, sets: {grouping: independent}, help: "Each person's data are separate from everyone else's. If your data come from one person or one unit (for example, a school's monthly averages), choose this too."}
       - {label: "People within groups", next: s4, sets: {grouping: clusters}, help: "e.g. pupils in classes or patients in clinics, including designs where whole groups were assigned to conditions."}
-      - {label: "Pairs", next: E44, help: "e.g. couples, or a parent and child, whose scores are related."}
+      - {label: "Pairs", next: d1, help: "e.g. couples, or a parent and child, whose scores are related."}
       - {label: "Many trials or stimuli per person", next: s2_trials, help: "e.g. each person rates 40 faces or completes 200 trials."}
+  # Pairs (1 November 2026): actor and partner effects (E44), conditions
+  # given to whole pairs (a cluster trial with groups of two, E34), or
+  # another dyadic design (E65).
+  d1:
+    doc_id: D1
+    text: "What does your main hypothesis involve?"
+    options:
+      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E44, when: {outcome: score}, help: "e.g. each partner's daily stress and both partners' relationship satisfaction."}
+      - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "Conditions given to whole pairs", next: E34, help: "e.g. couples randomised to a programme or a waiting list: a cluster-randomised trial with groups of two."}
+      - {label: "Something else, such as a condition given to one member of each pair", next: E65}
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
@@ -463,6 +474,8 @@ nodes:
     options:
       - {label: "A specific comparison (e.g. both feedback conditions beat no feedback)", next: E19}
       - {label: "Any difference among the groups", next: E18, when: {times: once}}
+      - {label: "A steady rise or fall across groups in a set order (e.g. doses, age bands)", next: E64, when: {times: once},
+         help: "Tested on ranks (the Jonckheere-Terpstra test). For a planned trend in the means, such as a linear contrast, choose a specific comparison instead."}
       - {label: "Any difference among the conditions", next: E54, when: {times: many_conditions}}
   f3:
     doc_id: F3
@@ -557,6 +570,8 @@ nodes:
     options:
       - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
       - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
+      - {label: "Different people, three or more groups in a set order (e.g. doses), yes/no outcome: a trend", next: E66, when: {times: once},
+         help: "e.g. whether the proportion who recover rises with the number of weekly sessions (the Cochran-Armitage trend test)."}
       - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
       - {label: "One group, outcome in several categories, compared with expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
@@ -769,7 +784,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57, E61]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -777,15 +792,15 @@ closing_questions:
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
-    card_notes: {E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
+    card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all}
-  - {doc_id: Q-power, text: "What power do you want?", applies_to: all}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46]}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61]}
-  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all}
+  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46]}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.
@@ -1115,6 +1130,38 @@ endpoints:
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test or pairwise comparisons"]
     tier: v2
     alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
+  E64:
+    doc_name: "Jonckheere-Terpstra trend test"
+    plain_name: "A steady rise or fall across groups in order, on ranks"
+    search_words: "jonckheere terpstra trend ordered alternative dose response ranks nonparametric ordered groups"
+    template: "factorial_anova / oneway_between"
+    backend: "Spower, with powerkit's experiment calling PMCMRplus's jonckheereTest() (simulated)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-trend.R, note: "Agrees with Spower called directly with the same experiment and with a plain loop of simulated studies, and holds alpha when the groups don't differ, in the engine's tests (1 November 2026). Not yet checked against a published example."}
+    card_points:
+      - "Tests whether scores rise (or fall) steadily across three or more groups of different people in a set order, such as doses or age bands, using ranks."
+      - "When the groups really do follow the order, it has more power than the Kruskal-Wallis test, which ignores the order."
+      - "One-sided (a rise, or a fall) or two-sided; equal or unequal groups. The answer is simulated, so it carries a little random error."
+    inputs: ["Names of the groups, in order, and the outcome", "The expected group means", "The SD", "The shape of the scores", "The relative size of each group"]
+    tier: v2
+    alternatives: ["the Kruskal-Wallis test, which ignores the groups' order", "a planned linear contrast of the means"]
+  E66:
+    doc_name: "Cochran-Armitage trend test"
+    plain_name: "A rising or falling proportion across groups in order"
+    search_words: "cochran armitage trend test proportions dose response ordered groups yes no linear trend chi-square"
+    template: "basic_test / proportion_trend"
+    backend: "Spower, with powerkit's experiment calling stats::prop.trend.test() (simulated)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-trend.R, note: "Agrees with Spower called directly with the same experiment and with a plain loop of simulated studies, and holds alpha when the proportions are equal, in the engine's tests (1 November 2026). Not yet checked against a published example."}
+    card_points:
+      - "Tests whether the proportion of 'yes' rises (or falls) along three or more groups of different people in a set order, such as doses."
+      - "Each group gets a score (its dose, say); the test looks for a straight-line trend along those scores. Without scores, the groups are one step apart."
+      - "One-sided (a rise, or a fall) or two-sided; equal or unequal groups. The answer is simulated, so it carries a little random error."
+    inputs: ["Names of the groups, in order, and the outcome", "The expected proportion of 'yes' in each group", "Each group's score in the trend", "The relative size of each group"]
+    tier: v2
+    alternatives: ["the chi-square test of independence, which ignores the groups' order", "logistic regression with the dose as a predictor"]
   E19:
     doc_name: "Planned contrast"
     plain_name: "A specific comparison among three or more groups"
@@ -1143,7 +1190,7 @@ endpoints:
     card_points:
       - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "powerkit assumes the same SD in every combination and the same correlation between people's scores in any two of them. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect"]
     tier: v2
     alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
@@ -1542,10 +1589,25 @@ endpoints:
     card_text: "powerkit doesn't cover outcomes that are the time until something happens (survival or time-to-event analysis), where some people may not reach the event before the study ends."
     tier: later
   E44:
-    tools:
-      - {name: apimpower, url: "https://robert-a-ackerman.shinyapps.io/apimpower/", what: "a web app by Ackerman and Kenny for power in the actor-partner interdependence model."}
-    doc_name: "Paired or dyadic data (pairs of people whose scores are related)"
-    plain_name: "Data that come in pairs, such as couples or a parent and child"
+    doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
+    plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"
+    search_words: "dyadic dyads couples APIM actor partner interdependence pairs"
+    template: "dyadic / apim"
+    backend: "power4mome: power4test() on the APIM, fitted with lavaan, the effect tested with test_parameters() (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Pairs of people whose scores are related, such as couples or friends, with something measured on each member (X) and an outcome measured on each (Y): each person's X can affect their own Y (the actor effect) and their partner's Y (the partner effect)."
+      - "Members can be distinguishable (for example, a woman and a man, or a parent and child), with their own actor and partner effects, or indistinguishable (for example, same-sex friends), sharing them."
+      - "You give the actor and partner effects as standardised paths, the correlation of the two members' X, and how alike the two members' outcomes are beyond their X; powerkit finds the number of pairs."
+      - "Simulated with power4mome, the model fitted by lavaan in each simulated study, so the answer carries a little random error."
+    inputs: ["The variables, and whether the members can be told apart", "The actor and partner effects", "How alike the members are"]
+    tier: v2
+    alternatives: ["conditions given to whole pairs: a cluster-randomised trial with groups of two", "treating the two members as independent people, which can overstate or understate power"]
+  E65:
+    doc_name: "Other dyadic designs (pairs of people whose scores are related)"
+    plain_name: "Data that come in pairs, in a design other than actor and partner effects"
     status: not_in_powerkit
     generic: true
     established_tools: true
@@ -1573,14 +1635,21 @@ endpoints:
   E46:
     tools:
       - {name: MBESS, url: "https://cran.r-project.org/package=MBESS", what: "the ss.aipe functions, for a target confidence-interval width."}
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "its precision criterion, by simulation."}
+      - {name: presize, url: "https://cran.r-project.org/package=presize", what: "precision-based sample sizes for correlations, proportions and more."}
     doc_name: "Precision planning (a target confidence-interval width)"
     plain_name: "Estimate an effect precisely (plan for a confidence-interval width)"
-    status: not_in_powerkit
-    generic: true
-    established_tools: true
-    card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
-    tier: later
+    template: "precision / two_groups, paired, one_group, correlation or proportion"
+    backend: "MBESS: ss.aipe.smd() and ss.aipe.sm() for Cohen's d, d_z and a standardised mean (with assurance on request), ci.smd() and ci.sm() for the width at a given n; presize: prec_cor() and prec_prop() for a correlation and a proportion (by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-precision.R, note: "Matches MBESS and presize called directly, and simulated intervals give the expected width and, with assurance, the chance of a narrow enough interval. Not yet checked against a published example."}
+    card_points:
+      - "Plans the sample size for how precisely the study estimates its result (the width of its confidence interval), rather than for power."
+      - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a correlation (Pearson's, Spearman's or Kendall's) or a proportion."
+      - "Gives the sample size for the width you set, or the width you would get at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
+    inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
+    tier: v2
+    alternatives: ["a power analysis on the card for your test, if you want to show an effect exists rather than estimate its size"]
   E47:
     doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
     plain_name: "Two or more factors crossed, with a yes/no outcome"
@@ -1735,8 +1804,8 @@ endpoints:
   E61:
     doc_name: "A planned meta-analysis: the test of the average effect"
     plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
-    search_words: "meta analysis random effects"
-    template: "meta_analysis / mean_effect"
+    search_words: "meta analysis random effects moderator subgroup"
+    template: "meta_analysis / mean_effect, subgroups"
     backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
     method: "Simulation (Hartung-Knapp) or formula (z test)"
     status: runs_validation_in_progress
@@ -1746,7 +1815,8 @@ endpoints:
       - "You give the average effect (Cohen's d or a correlation), the size of a typical study, and how much the studies' true effects are expected to differ (heterogeneity, as I-squared)."
       - "Under the random-effects model, heterogeneity costs power: Jackson and Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis reasonably consistently has more power than the studies in it."
       - "Under the random-effects model powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
-      - "Every study is taken to be the same size. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation) or for moderators."
+      - "It can also test whether the effect differs between kinds of study (a subgroup or moderator analysis, such as lab against online studies), by the between-groups Q test, with the Hartung-Knapp version by default under the random-effects model."
+      - "Every study is taken to be the same size. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation), or for a moderator that is a score."
     inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model, and the test"]
     tier: v2
     alternatives: ["the power of each included study for a range of effects (study-level power, the metameta package), to judge how informative the studies themselves are"]
@@ -1781,7 +1851,7 @@ endpoints:
     card_points:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
-      - "powerkit assumes equal group sizes, the same SD in every cell and the same correlation between every pair of timepoints or conditions. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "Equal group sizes. One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures"]
@@ -2010,13 +2080,13 @@ guided:
 # point but the safety net is in exactly one (a test checks).
 analysis_families:
   - {id: means, label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
-  - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23]}
+  - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
   - {id: correlation, label: "Correlations", endpoints: [E4, E49, E51]}
-  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E29]}
+  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E29, E66]}
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E41, E35, E45, E44]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E45, E65]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}

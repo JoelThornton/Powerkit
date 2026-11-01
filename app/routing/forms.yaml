@@ -73,6 +73,9 @@ tool_defaults:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
     power_source: "semPower has no default target power (semPower.aPriori(power = NULL)); enter one"
+  precision:
+    conf_level: 0.95
+    conf_level_source: "the default of MBESS (ss.aipe.smd(conf.level = .95), MBESS 5.0.1) and presize (prec_cor(conf.level = 0.95), presize 0.3.11)"
   metapower:
     alpha: 0.05
     alpha_source: "metapower's default (mpower(p = 0.05), metapower 0.2.2)"
@@ -119,7 +122,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -271,6 +274,7 @@ known_differences:
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
   "8": "MANOVA with three or more groups: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
   "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
+  "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
 
 # The same known differences as one sentence for the methods paragraph
@@ -286,6 +290,7 @@ known_differences_methods:
   "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
   "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Pillai's trace with an F approximation."
   "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
+  "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
 
 forms:
@@ -293,9 +298,11 @@ forms:
     methods_name: "a one-sample t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -352,9 +359,11 @@ forms:
     methods_name: "an independent-samples t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": mann_whitney, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -429,9 +438,11 @@ forms:
     methods_name: "a paired-samples t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -498,8 +509,11 @@ forms:
   E4:
     methods_name: "a Pearson correlation"
     departures: ["9", "10"]
+    known_differences: ["11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -740,10 +754,22 @@ forms:
           - {id: m22, label: "Mean: between level 2, within level 2", type: number, path: population.means.2.2, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same in both groups and at both measurements?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation between the two measurements", differ: "No: an SD for each cell and a correlation for each group"},
+             default: same, default_source: "one SD and one correlation, as G*Power's repeated-measures analysis and Superpower's examples take them",
+             help: "Groups whose spread or consistency differs (for example, a treatment that makes people's change more variable) change the power, so give each cell's SD and each group's correlation if you expect them to differ."}
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: s11, writeup_label: "SD, between level 1, within level 1", label: "SD: between level 1, within level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s12, writeup_label: "SD, between level 1, within level 2", label: "SD: between level 1, within level 2", type: number, path: population.sd.1.2, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s21, writeup_label: "SD, between level 2, within level 1", label: "SD: between level 2, within level 1", type: number, path: population.sd.2.1, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s22, writeup_label: "SD, between level 2, within level 2", label: "SD: between level 2, within level 2", type: number, path: population.sd.2.2, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
       - input: "The correlation between the two repeated measurements"
         fields:
-          - {id: r, label: "Correlation between the two measurements", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, label: "Correlation between the two measurements", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: r1, writeup_label: "correlation between the measurements, between level 1", label: "Correlation between the two measurements: between level 1", type: number, path: population.r.1, effect: true, min: -1, max: 1, shown_if: {field: spread, is: differ}}
+          - {id: r2, writeup_label: "correlation between the measurements, between level 2", label: "Correlation between the two measurements: between level 2", type: number, path: population.r.2, effect: true, min: -1, max: 1, shown_if: {field: spread, is: differ}}
       - input: "Which effect: between factor, within factor or the interaction"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -1108,6 +1134,57 @@ forms:
           - {id: groups_per_site, label: "Groups in each larger group (for example, classes per school)", type: number, path: population.groups_per_site, required: true, min: 2, integer: true,
              help: "The total number of people is then a whole number of larger groups; with whole larger groups assigned, an even number of them."}
 
+  # Dyadic data (power4mome): the actor-partner interdependence model
+  # (1 November 2026).
+  E44:
+    methods_name: "an actor-partner interdependence model"
+    tool: power4mome
+    units: pairs
+    directional: false
+    base: {spec_version: "0.1", design: dyadic, template: apim,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {method: wald_z}}
+    groups:
+      - input: "The variables, and whether the members can be told apart"
+        fields:
+          - {id: X_label, label: "Measured on each member (X; for example, daily stress)", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "The outcome, measured on each member (Y; for example, relationship satisfaction)", type: text, path: variables.Y.label, required: true}
+          - {id: distinguishable, label: "Can the two members be told apart in a way that matters?", type: select, required: true,
+             choices: {"false": "No (for example, same-sex friends or twins): one actor and one partner effect, shared", "true": "Yes (for example, a woman and a man, or a parent and child): each member has their own"},
+             sets: {"false": [{path: population.distinguishable, value: false}], "true": [{path: population.distinguishable, value: true}]},
+             default: "false", default_source: "indistinguishable members, the model with fewer effects to give"}
+          - {id: member_1, label: "Member 1 (for example, woman)", type: text, path: population.members.1, required: true,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: member_2, label: "Member 2 (for example, man)", type: text, path: population.members.2, required: true,
+             shown_if: {field: distinguishable, is: "true"}}
+      - input: "The actor and partner effects"
+        fields:
+          - {id: actor, writeup_label: "actor effect", label: "Actor effect: a person's X on their own Y (a standardised path, -1 to 1)", type: number, path: population.actor, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "false"}}
+          - {id: partner, writeup_label: "partner effect", label: "Partner effect: a person's X on their partner's Y (a standardised path)", type: number, path: population.partner, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "false"}}
+          - {id: actor_1, writeup_label: "member 1's actor effect", label: "Member 1's actor effect: member 1's X on member 1's Y", type: number, path: population.actor_1, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: actor_2, writeup_label: "member 2's actor effect", label: "Member 2's actor effect: member 2's X on member 2's Y", type: number, path: population.actor_2, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: partner_12, writeup_label: "partner effect of member 1 on member 2", label: "Partner effect of member 1 on member 2: member 1's X on member 2's Y", type: number, path: population.partner_12, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: partner_21, writeup_label: "partner effect of member 2 on member 1", label: "Partner effect of member 2 on member 1: member 2's X on member 1's Y", type: number, path: population.partner_21, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
+             shown_if: {field: distinguishable, is: "false"},
+             choices: {partner: "The partner effect", actor: "The actor effect"},
+             default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
+          - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
+             shown_if: {field: distinguishable, is: "true"},
+             choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect"},
+             default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
+      - input: "How alike the members are"
+        fields:
+          - {id: r_x, writeup_label: "correlation of the members' X", label: "Correlation of the two members' X", type: number, path: population.r_x, effect: true, min: -1, max: 1}
+          - {id: r_y, writeup_label: "residual correlation of the members' Y", label: "How alike the two members' Y are beyond their X (the residual correlation)", type: number, path: population.r_y, effect: true, min: -1, max: 1,
+             help: "Often called non-independence: how much the two members' outcomes go together once both members' X are allowed for."}
+
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
   E62:
@@ -1421,10 +1498,25 @@ forms:
              rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition"}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same everywhere?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation for every pair of timepoints or conditions", differ: "No: an SD for each cell and a correlation for each pair of timepoints or conditions"},
+             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per group, with one number per timepoint or condition, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two timepoints or conditions"
         fields:
-          - {id: r, writeup_label: "correlation between timepoints or conditions", label: "Correlation between people's scores at any two timepoints or in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, writeup_label: "correlation between timepoints or conditions", label: "Correlation between people's scores at any two timepoints or in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: rs, writeup_label: "correlations between timepoints or conditions", label: "Correlations: one for each pair of timepoints or conditions, in the order (1, 2), (1, 3), ..., (2, 3), ..., separated by commas (the same in every group)", type: numbers, path: population.r, effect: true,
+             shown_if: {field: spread, is: differ},
+             help: "With three timepoints: first with second, first with third, second with third."}
+          - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
+             shown_if: {field: spread, is: differ},
+             choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
+             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -1527,10 +1619,25 @@ forms:
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same in every combination?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation for every pair of combinations", differ: "No: an SD for each combination and a correlation for each pair"},
+             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             help: "When they differ, sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per level of the first factor, with one number per level of the second, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two conditions"
         fields:
-          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two combinations of the factors (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two combinations of the factors (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: rs, writeup_label: "correlations between combinations", label: "Correlations: one for each pair of combinations, separated by commas, with the combinations in the order first level of the first factor with each level of the second, then the second level, and so on", type: numbers, path: population.r, effect: true,
+             shown_if: {field: spread, is: differ},
+             help: "For a 2 x 2 design the combinations are A1 B1, A1 B2, A2 B1, A2 B2, and the six pairs come in the order (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)."}
+          - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
+             shown_if: {field: spread, is: differ},
+             choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
+             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -2083,12 +2190,19 @@ forms:
       - input: "The outcome, and whether the studies give Cohen's d or a correlation"
         fields:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+          - {id: meta_question, label: "What the meta-analysis tests", type: select, path: template, required: true,
+             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)"},
+             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}]},
+             default: mean_effect, default_source: "the average effect, a meta-analysis's main question"}
           - {id: meta_metric, label: "The effect size the studies give", type: select, path: population.metric, required: true,
              choices: {d: "Cohen's d: two groups compared in each study", r: "A correlation r"}, default: d,
              default_source: "Cohen's d, the first effect size metapower's mpower() takes (metapower 0.2.2)"}
       - input: "The average effect, the size of a typical study and the heterogeneity (I-squared)"
         fields:
+          - {id: meta_effects, writeup_label: "average effects of the kinds of study", label: "The average effect in each kind of study, separated by commas (for example, lab then online: 0.2, 0.5); the studies are split equally between the kinds", type: numbers, path: population.effects, effect: true,
+             shown_if: {field: meta_question, is: subgroups}}
           - {id: meta_effect, writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
+             shown_if: {field: meta_question, is: mean_effect},
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
@@ -2502,3 +2616,121 @@ forms:
              shown_if: {field: generic_test, is: f}}
           - {id: df2, label: "Denominator degrees of freedom", type: number, path: population.df2, required: true, min_exclusive: 0,
              shown_if: {field: generic_test, is: f}}
+
+  # Precision planning (1 November 2026): the sample size for a target
+  # confidence-interval width, or the width at a given sample size, not
+  # power. Cohen's d, a standardised mean and d_z by MBESS (ss.aipe.smd(),
+  # ss.aipe.sm()); a correlation and a proportion by presize (prec_cor(),
+  # prec_prop()). The engine's design "precision".
+  E46:
+    methods_name: "a confidence interval"
+    tool: precision
+    precision: true
+    base: {spec_version: "0.1", design: precision, template: two_groups, variables: {},
+           target_test: {effect: confidence_interval}}
+    groups:
+      - input: "What you want to estimate"
+        fields:
+          - {id: estimate, label: "What will the confidence interval be for?", type: select, path: template, required: true,
+             choices: {two_groups: "A difference between two groups, as Cohen's d", paired: "A change or difference within the same people, as d_z (pairs of scores)",
+                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)"},
+             default: two_groups, default_source: "powerkit's first choice; pick the estimate your study reports",
+             sets: {two_groups: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    paired: [{path: variables.X.type, value: within_factor}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    one_group: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    correlation: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: correlation}],
+                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}]}}
+      - input: "Names"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: T_label, label: "What the two measurements are (for example, time)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: T_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: T_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: C_label, label: "First variable", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: correlation}}
+          - {id: Y_label, label: "Outcome (for a correlation, the second variable; for a proportion, what is counted)", type: text, path: variables.Y.label, required: true}
+      - input: "The value you expect"
+        fields:
+          - {id: d, writeup_label: "expected d", label: "The Cohen's d you expect (group 2 minus group 1, in SDs)", type: number, path: population.d, effect: true,
+             shown_if: {field: estimate, is: two_groups}, help: "The interval's width depends a little on it; if unsure, a larger value gives a slightly larger sample size."}
+          - {id: dz, writeup_label: "expected d_z", label: "The d_z you expect (the mean difference divided by the SD of the differences)", type: number, path: population.dz, effect: true,
+             shown_if: {field: estimate, is: paired}}
+          - {id: sm, writeup_label: "expected standardised mean", label: "The standardised mean you expect: (mean minus the fixed value) / SD", type: number, path: population.d, effect: true,
+             shown_if: {field: estimate, is: one_group}}
+          - {id: r, writeup_label: "expected correlation", label: "The correlation you expect", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: estimate, is: correlation}, help: "Intervals are narrower for larger correlations, so a smaller guess is the cautious one."}
+          - {id: p, writeup_label: "expected proportion", label: "The proportion you expect (for example 0.3 for 30%)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none."}
+      - input: "The kind of interval"
+        fields:
+          - {id: r_method, label: "Which correlation", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: correlation},
+             choices: {pearson: "Pearson's r", spearman: "Spearman's rho", kendall: "Kendall's tau"}, default: pearson, default_source: "presize's default (prec_cor(method = \"pearson\"), presize 0.3.11)"}
+          - {id: p_method, label: "Which interval for the proportion", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: proportion},
+             choices: {wilson: "Wilson's interval", agresti_coull: "Agresti-Coull", exact: "Exact (Clopper-Pearson)", wald: "Wald (the textbook formula)"},
+             default: wilson, default_source: "presize's default (prec_prop(method = \"wilson\"), presize 0.3.11)",
+             help: "presize's help suggests Wilson's interval for fewer than 40 people and Agresti-Coull for more, and offers the Wald interval only because it is widely used."}
+
+  # Trend tests (1 November 2026), simulated with Spower by powerkit's own
+  # experiments: the Jonckheere-Terpstra test of a trend in scores across
+  # groups in order (PMCMRplus's jonckheereTest()), on the one-way
+  # between-participants template, and the Cochran-Armitage test of a trend
+  # in proportions (stats::prop.trend.test()).
+  E64:
+    methods_name: "a Jonckheere-Terpstra test of a trend across groups in order"
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: factorial_anova, template: oneway_between,
+           variables: {A: {type: between_factor}, "Y": {type: continuous}},
+           target_test: {effect: main_effect_A, method: jonckheere_terpstra}}
+    groups:
+      - input: "Names of the groups, in order, and the outcome"
+        fields:
+          - {id: A_label, label: "What the groups are (for example, dose)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The groups' names (three or more), in their order, separated by commas", type: levels, path: variables.A.levels, required: true,
+             help: "The order matters: the test looks for scores that rise (or fall) from the first group to the last. A one-sided test predicting a positive effect says they rise."}
+          - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+      - input: "The expected group means"
+        fields:
+          - {id: metric, label: "Units of the means", type: select, path: population.metric, required: true,
+             choices: {raw: "The outcome's own units (raw)", standardised: "SD units"}}
+          - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
+      - input: "The SD"
+        fields:
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+      - input: "The shape of the scores"
+        fields:
+          - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank tests draw by default (p_kruskal.test(), Spower 0.7)",
+             help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape."}
+      - input: "The relative size of each group"
+        fields:
+          - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order (optional; equal groups if left empty)", type: numbers, per_levels: A_levels, path: options.group_ratio, optional: true,
+             help: "For example 1, 1, 2 puts twice as many people in the last group. The total sample size is split in this ratio."}
+
+  E66:
+    methods_name: "a Cochran-Armitage test of a trend in proportions"
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: proportion_trend,
+           variables: {X: {type: categorical}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
+           target_test: {effect: trend, method: cochran_armitage}}
+    groups:
+      - input: "Names of the groups, in order, and the outcome"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, dose)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The groups' names (three or more), in their order, separated by commas", type: levels, path: variables.X.levels, required: true,
+             help: "The order matters: the test looks for a proportion that rises (or falls) from the first group to the last. A one-sided test predicting a positive effect says it rises with the scores."}
+          - {id: Y_label, label: "Yes/no outcome (for example, recovered)", type: text, path: variables.Y.label, required: true}
+      - input: "The expected proportion of 'yes' in each group"
+        fields:
+          - {id: proportions, writeup_label: "proportions", label: "Proportions of 'yes' (0 to 1): one for each group, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.proportions, effect: true}
+      - input: "Each group's score in the trend"
+        fields:
+          - {id: scores, writeup_label: "scores", label: "Scores: one for each group, in the same order (optional; 1, 2, 3, ... if left empty)", type: numbers, per_levels: X_levels, path: population.scores, optional: true,
+             help: "The values the trend runs along, such as the doses (0, 10, 20, 40). Equally spaced scores suit groups one step apart."}
+      - input: "The relative size of each group"
+        fields:
+          - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order (optional; equal groups if left empty)", type: numbers, per_levels: X_levels, path: options.group_ratio, optional: true,
+             help: "For example 2, 1, 1, 2 puts twice as many people in the first and last groups. The total sample size is split in this ratio."}
