@@ -35,6 +35,12 @@ A batch of new features, built as one round.
   compromise power analysis (Known difference 11: minimising, the
   default, gives a lower alpha). New dependency: JustifyAlpha (with
   BayesFactor, qpdf and their dependencies).
+* `power_picture_r()`: the Labs picture of power for a correlation. pwr's
+  `pwr.r.test()` power, with the two normal curves on Fisher's z scale that
+  its formula uses (SD 1 / sqrt(n - 3), centred on 0 and on Fisher's z of r
+  with pwr's bias correction), the critical value from the t test with
+  n - 2 df, and the smallest significant r. The app's power visualiser
+  offers it beside the two-group t-test.
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.
@@ -84,6 +90,25 @@ A batch of new features, built as one round.
   test (metafor's `rma()` with the kinds as a moderator, `test = "knha"`,
   simulated with Spower; Departure 18). The card asks what the
   meta-analysis tests.
+* Trend tests across three or more groups in a set order, both simulated
+  with Spower by powerkit's own experiments. The Jonckheere-Terpstra test
+  of a trend in scores (template `oneway_between` with `target_test >
+  method` "jonckheere_terpstra"; PMCMRplus's `jonckheereTest()`, normal
+  approximation) on normal, skewed or heavy-tailed scores, and the
+  Cochran-Armitage test of a trend in proportions (new template
+  `proportion_trend`; `stats::prop.trend.test()` with optional scores,
+  default 1, 2, 3, ...). Both are one- or two-sided (`target_test >
+  alternative`: "greater" is a rise along the order) and take unequal
+  groups (`options > group_ratio`, whole numbers; attrition is allowed for
+  in each group's share). A one-sided Cochran-Armitage test halves
+  prop.trend.test()'s two-sided p-value when the observed trend goes the
+  way predicted, which is the one-sided p-value of the Cochran-Armitage z
+  statistic. `jonckheereTest()` is given the scores and their groups,
+  because given a list it ignores `alternative`
+  (docs/upstream-questions.md). For the example design (means 10, 11, 13,
+  SD 6, 20 per group) the Jonckheere-Terpstra test has power .31 against
+  the Kruskal-Wallis test's .23. Exported scripts reproduce every variant;
+  validation chunk `trend` (`test-validation-trend.R`).
 
 # powerkit 0.26.0
 

@@ -38,9 +38,11 @@ analysed_groups <- function(spec, n) {
     oneway_between = ,
     oneway_contrast = ,
     mixed = ,
-    oneway_ancova = {
-      k <- length(spec$variables$A$levels)
-      rep(n / k, k)
+    oneway_ancova = ,
+    proportion_trend = {
+      # Trend tests may have unequal groups (options > group_ratio).
+      w <- trend_group_shares(spec)
+      n * w / sum(w)
     },
     # Attrition within each group: every group's analysed size is divided.
     cluster_randomised = ,
@@ -69,7 +71,8 @@ group_unit <- function(spec) {
     factorial_three = if (three_factor_groups(spec) == 1) NA_character_ else "group",
     oneway_between = ,
     oneway_contrast = ,
-    oneway_ancova = "group",
+    oneway_ancova = ,
+    proportion_trend = "group",
     cluster_randomised = ,
     multisite = ,
     group_treatment = "cluster",

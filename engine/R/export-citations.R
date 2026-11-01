@@ -109,6 +109,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       list(s("SimDesign", "which runs Spower's simulations")),
       if ("EnvStats" %in% used) {
         list(s("EnvStats", "whose varTest() is the chi-square test of one variance that Spower's p_var.test() runs"))
+      },
+      if ("PMCMRplus" %in% used) {
+        list(s("PMCMRplus", "whose jonckheereTest() is the Jonckheere-Terpstra test powerkit's experiment runs"))
       }
     ),
     Superpower = list(

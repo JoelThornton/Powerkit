@@ -3908,3 +3908,24 @@ computer.
   ratio q is G\*Power's compromise power analysis (Known difference 11).
 - **The conventional alpha** stays in the spec and is shown beside the
   justified one, with its power, so the user sees what the choice changes.
+
+## 2026-11-01 · Trend tests (E64, E66)
+
+- **Backends:** both simulated with Spower by powerkit's own experiments,
+  as decided on 31 October 2026: the Cochran-Armitage test with
+  `stats::prop.trend.test()` (new template `proportion_trend`) and the
+  Jonckheere-Terpstra test with PMCMRplus's `jonckheereTest()` (a method
+  on the one-way between-participants template, beside Kruskal-Wallis).
+- **Variants built:** one- and two-sided tests and unequal groups
+  (`options > group_ratio`), since dose-response hypotheses are usually
+  directional and dose groups are often unequal. A one-sided
+  Cochran-Armitage test halves the two-sided p-value of
+  `prop.trend.test()` when the observed trend goes the way predicted: its
+  statistic is the square of the Cochran-Armitage z, so this is z's
+  one-sided p-value, and a test checks it against z written out.
+- **Reached from the design finder:** F2a (a steady rise or fall across
+  groups in order) leads to the Jonckheere-Terpstra card; Q3's yes/no
+  branch (three or more groups in order) to the Cochran-Armitage card.
+- **Not built:** an exact (permutation) Jonckheere-Terpstra p-value, which
+  matters only for very small groups; PMCMRplus's normal approximation is
+  its default.

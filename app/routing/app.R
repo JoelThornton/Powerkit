@@ -1064,13 +1064,19 @@ server <- function(input, output, session) {
   })
   # Labs: the picture of power, from the engine's power_picture().
   picture <- reactive({
-    tryCatch(engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5),
-      alpha = as.numeric(input$picture_alpha %||% "0.05")), error = function(e) NULL)
+    alpha <- as.numeric(input$picture_alpha %||% "0.05")
+    tryCatch(if (identical(input$picture_design, "r")) {
+      engine_function("power_picture_r")(as.numeric(input$picture_n_r %||% 84), as.numeric(input$picture_r %||% 0.3), alpha = alpha)
+    } else {
+      engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5), alpha = alpha)
+    }, error = function(e) NULL)
   })
   output$picture_plot <- renderPlot({
     req(picture())
     picture_plot(picture())
-  }, alt = reactive(if (is.null(picture())) "The picture of power" else
+  }, alt = reactive(if (is.null(picture())) "The picture of power" else if (!is.null(picture()$r))
+    sprintf("Two distributions of the observed correlation: power is %.1f%% for r = %s with %s participants at alpha = %s.",
+      100 * picture()$power, format(picture()$r), format(picture()$n), format(picture()$alpha)) else
     sprintf("Two t distributions: power is %.1f%% for d = %s with %s participants at alpha = %s.",
       100 * picture()$power, format(picture()$d), format(picture()$n), format(picture()$alpha))))
   output$picture_numbers <- renderUI(if (is.null(picture())) {

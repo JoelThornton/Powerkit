@@ -304,6 +304,7 @@ zero_effect_cases <- list(
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   one_variance = function(s) within(s, population$var0 <- population$var),
   two_variances = function(s) within(s, population$var2 <- population$var1),
+  proportion_trend = function(s) within(s, population$proportions <- list(0.3, 0.3, 0.3, 0.3)),
   paired_variances = function(s) within(s, population$var2 <- population$var1),
   manova = function(s) within(s, population$means <- rep(population$means[1], length(population$means))),
   hotelling_one = function(s) within(s, population$means <- population$mu0),

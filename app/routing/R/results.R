@@ -241,6 +241,8 @@ test_text <- function(spec) {
   }
   if (is_minimum_effect(spec)) return(minimum_effect_test_text(spec))
   side <- switch(alt, two_sided = "a two-sided test", greater = "a one-sided test (effect positive)", less = "a one-sided test (effect negative)")
+  # A trend test's direction is a rise or a fall across the groups in order.
+  if (is_trend_test(spec) && alt != "two_sided") side <- sprintf("a one-sided test (a %s trend)", if (alt == "greater") "rising" else "falling")
   if (is.null(spec$target_test$alternative) && !is.null(unsided <- unsided_test_name(spec))) side <- unsided
   sprintf("%s at alpha = %s", side, alpha_text(spec$target_test$alpha))
 }
@@ -252,7 +254,7 @@ unsided_test_name <- function(spec) {
   if ((identical(spec$design, "factorial_anova") && !identical(spec$template, "oneway_contrast") &&
        !identical(spec$target_test$effect, "pairwise")) ||
       identical(spec$design, "multiple_regression") || spec$template %in% c("manova", "hotelling_one")) {
-    return(if (identical(spec$target_test$method, "kruskal_wallis") || identical(spec$target_test$method, "friedman")) "a rank test" else "an F test")
+    return(if (isTRUE(spec$target_test$method %in% c("kruskal_wallis", "friedman", "jonckheere_terpstra"))) "a rank test" else "an F test")
   }
   NULL
 }
@@ -1422,6 +1424,12 @@ is_rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
 }
 
+# The trend tests across groups in order: Jonckheere-Terpstra (E64) and
+# Cochran-Armitage (E66).
+is_trend_test <- function(spec) {
+  identical(spec$target_test$method, "jonckheere_terpstra") || identical(spec$template, "proportion_trend")
+}
+
 # Spearman's rho and Kendall's tau: a test version on E4, simulated by the
 # engine with Spower on scores of the chosen shape.
 is_rank_correlation <- function(spec) isTRUE(spec$target_test$method %in% c("spearman", "kendall"))
@@ -1730,8 +1738,9 @@ writeup_effect <- function(fields, values) {
 }
 
 writeup_sides <- function(spec) {
-  switch(spec$target_test$alternative %||% "two_sided",
-    two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
+  alt <- spec$target_test$alternative %||% "two_sided"
+  if (is_trend_test(spec) && alt != "two_sided") return(sprintf("one-sided, a %s trend", if (alt == "greater") "rising" else "falling"))
+  switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
 }
 
 # The reasons given for a changed alpha or a one-sided test, as sentences

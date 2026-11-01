@@ -19,8 +19,11 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
-  **41 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E44, E47-E57 and E59-E61 (`forms.yaml`'s `calculates`; E44, the actor-partner model for pairs, since 1 November 2026); E61, a planned
+  **43 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E44, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`); E44, the actor-partner model for pairs, since 1 November 2026; E64
+  and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
+  (simulated with Spower; one- or two-sided, equal or unequal groups),
+  since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
   of studies since 1 November. **Ten are simulated with a
@@ -84,7 +87,7 @@ fully validated. Validation runs are recorded in
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter and the power
-  visualiser for the two-group t-test).
+  visualiser for the two-group t-test and, since 0.27.0, the correlation).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 8); E17 on questions for power4mome (item 10); Spower's faults
@@ -105,7 +108,7 @@ fully validated. Validation runs are recorded in
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (item 12).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 22).
+  semPower, powertools, TOSTER and bfpwr designs (item 21).
 
 ## Working environment
 
