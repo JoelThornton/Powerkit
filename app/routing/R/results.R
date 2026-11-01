@@ -313,7 +313,18 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
-n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else NULL
+n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# The number of items as the sample size (E33): the write-up counts items,
+# with the participants fixed.
+items_units <- function(text, spec) {
+  p <- whole(spec$population$participants)
+  text <- gsub(" participants are needed in total", sprintf(" items are needed (with %s participants)", p), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many items (and %s participants) is", p), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 items and %s participants", p), text)
+  text
+}
 
 # Dyadic data: the write-up counts pairs.
 dyad_units <- function(text) {
@@ -2176,6 +2187,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -2277,6 +2289,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")
@@ -2351,7 +2364,11 @@ precision_estimate_text <- function(spec) {
     one_group = sprintf("the standardised mean of %s", v$Y$label),
     correlation = sprintf("%s between %s and %s", switch(spec$target_test$method, spearman = "Spearman's rho", kendall = "Kendall's tau", "the correlation"),
       v$X$label, v$Y$label),
-    proportion = sprintf("the proportion %s", v$Y$label))
+    proportion = sprintf("the proportion %s", v$Y$label),
+    mean_difference = sprintf("the difference in mean %s between %s and %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    odds_ratio = sprintf("the odds ratio of %s, %s against %s", v$Y$label, v$X$levels[[2]], v$X$levels[[1]]),
+    icc = sprintf("the ICC of %s", v$Y$label),
+    regression_coefficient = sprintf("the standardised coefficient of %s for %s", v$X$label, v$Y$label))
 }
 
 precision_interval_name <- function(spec) {
@@ -2359,6 +2376,8 @@ precision_interval_name <- function(spec) {
   kind <- switch(spec$template,
     proportion = switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald"),
     correlation = if (identical(spec$target_test$method, "pearson")) "Fisher's z" else NULL,
+    odds_ratio = switch(spec$target_test$method, indip_smooth = "independence-smoothed logit", gart = "Gart's logit", woolf = "Woolf's logit"),
+    mean_difference = "t", regression_coefficient = "t", icc = NULL,
     "noncentral t")
   if (is.null(kind)) sprintf("%s confidence interval", level) else sprintf("%s %s confidence interval", level, kind)
 }
@@ -2366,7 +2385,8 @@ precision_interval_name <- function(spec) {
 precision_number <- function(x) format(round(x, 3), nsmall = 2)
 
 precision_people <- function(spec, n) {
-  if (identical(spec$template, "two_groups")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+  if (spec$template %in% c("two_groups", "mean_difference", "odds_ratio")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+    if (identical(spec$template, "icc")) sprintf("%s people, each rated %s times", whole(n), whole(spec$population$raters)) else
     if (identical(spec$template, "paired")) sprintf("%s pairs of scores", whole(n)) else sprintf("%s participants", whole(n))
 }
 
@@ -2374,8 +2394,13 @@ precision_sentences <- function(spec, result) {
   pr <- result$precision
   estimate <- precision_estimate_text(spec)
   interval <- precision_interval_name(spec)
-  expected <- sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
-    pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  expected <- if (is.na(pr$lower)) {
+    sprintf("If the estimate comes out at %s = %s, its %s is about %s wide (presize gives the width, not the limits).",
+      pr$effect_name, format(pr$effect), interval, precision_number(pr$width))
+  } else {
+    sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
+      pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  }
   how <- sprintf("Calculated by formula with %s (%s()), which powerkit called with your answers.", result$provenance$backend, pr$function_used)
   if (!is.na(pr$target_width)) {
     headline <- if (is.na(pr$assurance)) {
@@ -2384,7 +2409,7 @@ precision_sentences <- function(spec, result) {
       sprintf("With %s, the %s for %s would be no wider than %s in %s of studies like this.", precision_people(spec, pr$n), interval, estimate,
         format(pr$target_width), percent(pr$assurance))
     }
-    more <- if (spec$template %in% c("two_groups", "one_group", "paired")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
+    more <- if (spec$template %in% c("two_groups", "one_group", "paired", "regression_coefficient")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
     reading <- if (is.na(pr$assurance)) sprintf("“Expected” means the typical study: about half of studies this size would get a somewhat wider interval. For more certainty, %s.", more) else
       "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
   } else {

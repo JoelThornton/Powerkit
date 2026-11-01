@@ -24,6 +24,50 @@ A batch of new features, built as one round.
   number of studies. Checked against a simulation written separately
   with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
   furrr).
+* A predictor measured on each trial (E67, template `item_predictor`,
+  `population > x_level` "trial"): a value that varies from trial to
+  trial, such as how long a stimulus is shown, rather than one per item.
+  Each participant meets every value once, rotated across the items, so
+  X varies within items too and its effect may vary across items
+  (`population > sd_item_slope`): y ~ x + (1 + x | participant) + (1 + x
+  | item). Checked against a simulation written separately with
+  lmerTest, with the Type I error near alpha.
+* Predictors at all three levels (E62, template `two_level`): with
+  `population > groups_per_site` the groups are in sites (classes in
+  schools), with a predictor Z on each site (`variables > Z`), its
+  effect between sites (`b_Z`) and its interaction with X (`b_XZ`), and
+  the sites' own intercepts (`sd_site`) and, optionally, X slopes
+  (`sd_site_slope`): y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x
+  | site:group). W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated. `target_test > effect` also
+  takes "site_effect" and "site_interaction"; n is a whole number of
+  sites. Works with a score or a yes/no outcome. Checked against a
+  simulation written separately with lmerTest, with the Type I error at
+  most alpha.
+* Participants and items in two conditions (E33) can plan the number of
+  items (stimuli) instead of participants: `goal > unit` "items", with
+  `population > participants` fixed; `goal > n` is then the number of
+  items (an even number when each item is in one condition). The search,
+  the exported script and the write-up count items. Checked against the
+  E33 independent simulation at a fixed number of participants
+  (`test-validation-mixed-model.R`).
+* Precision planning (E46) for four more estimates: a difference between
+  two groups' means in the outcome's units (template `mean_difference`,
+  presize's `prec_meandiff()`), an odds ratio between two groups
+  (`odds_ratio`, `prec_or()`, the second group's odds over the first's,
+  with presize's default independence-smoothed logit interval or Gart's
+  or Woolf's), an intraclass correlation (`icc`, `prec_icc()`, which gives
+  the expected width but not the limits) and a standardised regression
+  coefficient (`regression_coefficient`, MBESS's `ss.aipe.reg.coef()`,
+  with assurance; the width at a given n is the narrowest for which the
+  same function needs no more than n). New dependency: gsl (MBESS needs
+  it for the regression coefficient), with the system library libgsl in
+  the CI image and the online app. Validation
+  (`test-validation-precision.R`): for each, the median width of
+  intervals computed from their textbook formulas (the t interval, Woolf's
+  logit interval, the one-way ICC's F interval and the least-squares
+  interval) in simulated studies of the planned size is the width
+  planned; published examples are left for the maintainer.
 * A yes/no outcome in the two-level (E62, template `two_level`) and
   three-level (E68, template `three_level`) designs (`variables > Y >
   type` "binary", `population > metric` "probability"): a logistic mixed

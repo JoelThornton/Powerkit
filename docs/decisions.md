@@ -4128,6 +4128,36 @@ needed first.
 - **The test:** glmer's Wald z test by default, simr's default for a
   numeric or two-condition predictor and the p-value glmer's summary
   reports, with the likelihood ratio offered, as on E33 and E67.
+
+## 2026-11-01 · Predictors at all three levels (E62)
+
+- **One card, not a new one.** "Predictors at every level of a
+  three-level design" (`next.md` item 2) extends E62, the card for
+  predictors at each level, with an optional third level, rather than
+  E68, which is about conditions assigned at a level. The form asks
+  whether the groups are in larger groups.
+- **The model.** A site predictor Z, its effect and its interaction with
+  X (the cross-level interactions researchers usually test), the sites'
+  random intercepts and, optionally, X slopes: `y ~ x + w + z + x:w + x:z
+  + (1 + x | site) + (1 + x | site:group)`. W's interaction with Z, and
+  the W slopes across sites, are left out: they are rarely the planned
+  effect and would need many more sites to estimate.
+- **The design.** W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated, as X and W are at two
+  levels.
+
+## 2026-11-01 · A predictor measured on each trial (E67)
+
+- **On E67, as a choice of where X is measured.** A trial-level predictor
+  (a stimulus duration, a trial's position) is the item-predictor model
+  with X varying within items, so it is the same card with one question
+  more, not a new one.
+- **The design.** Each participant meets every value of X once, in an
+  order rotated across participants (a Latin-square rotation), so X is
+  centred within every participant, varies within every item, and is
+  balanced across items when the number of participants is a multiple of
+  the number of items. The items' slopes on X can then be estimated, and
+  are in the model when their SD is above 0.
 ## 2026-11-01 · Moderated mediation decisions, and the shape of the queue
 
 - **W on both links or the direct path (E38, PROCESS models 8, 58 and
@@ -4194,6 +4224,31 @@ needed first.
   meta-analyses report. With the score moderator and POMADE, the
   meta-analysis row in `next.md` is done; study-level power (metameta)
   moves to the Labs row.
+## 2026-11-01 · Precision for more estimates (E46)
+
+- **Packages, as for the first estimates:** presize for a raw mean
+  difference (two equal groups, equal variances), an odds ratio and an
+  ICC; MBESS for a standardised regression coefficient (with assurance).
+- **The odds ratio's direction:** the second group's odds over the
+  first's, as powerkit's other two-group results run; presize's own is
+  the other way, so the groups are passed to `prec_or()` reversed. Its
+  interval defaults to presize's own default, the independence-smoothed
+  logit interval, with Gart's and Woolf's offered.
+- **The regression coefficient at a given n:** MBESS gives the sample
+  size for a width, not the width at a size, so powerkit reports the
+  narrowest width for which `ss.aipe.reg.coef()` needs no more than n,
+  rather than computing a standard error itself.
+- **gsl** is a new dependency (MBESS needs it for this function), with
+  the system library in the CI image and the online app's build.
+
+## 2026-11-01 · The number of items as the sample size (E33)
+
+- **The same simulation, counted the other way:** the participants are
+  fixed and the search varies the number of items; the power at a given
+  number of items is the same as the power with those items and
+  participants planned the usual way (tested). With each item in one
+  condition the number of items is even. Attrition isn't offered here:
+  the participants given are those analysed.
 ## 2026-11-01 · Bayes factor test of one proportion (E25)
 
 Item 3 of `next.md`: the other Bayes factor cards, giving researchers who

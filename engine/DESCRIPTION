@@ -41,6 +41,7 @@ Imports:
     lmerTest,
     manymome,
     MBESS,
+    gsl,
     metafor,
     metapower,
     parallel,

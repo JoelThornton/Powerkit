@@ -735,7 +735,27 @@ check_crossed_two_condition <- function(spec) {
   pop <- spec$population
   within <- identical(pop$item_design %||% "between", "within")
   problems <- character()
-  if (!within && pop$items %% 2 == 1) {
+  # The number of items as the sample size: the participants are given,
+  # and the items are what the goal finds or fixes.
+  if (identical(spec$goal$unit, "items")) {
+    if (is.null(pop$participants)) {
+      problems <- c(problems, "With the number of items as the sample size ('goal > unit' \"items\"), give 'population > participants', the participants you will have.")
+    } else if (identical(spec$variables$X$type, "between_factor") && pop$participants %% 2 == 1) {
+      problems <- c(problems, sprintf("'population > participants' is %s, but with the conditions between participants half go in each, so it must be even.", format_number(pop$participants)))
+    }
+    if (!is.null(pop$items)) {
+      problems <- c(problems, "With the number of items as the sample size, 'goal > n' is the number of items: remove 'population > items'.")
+    }
+    if (!is.null(spec$options$attrition)) {
+      problems <- c(problems, "'options > attrition' is for participants who drop out; with the number of items as the sample size, give the participants you expect to analyse.")
+    }
+    return(problems)
+  }
+  if (is.null(pop$items)) problems <- c(problems, "Give 'population > items', the number of items each participant responds to.")
+  if (!is.null(pop$participants)) {
+    problems <- c(problems, "'population > participants' is for 'goal > unit' \"items\" (the number of items as the sample size); here 'goal > n' is the participants, so remove it.")
+  }
+  if (!within && !is.null(pop$items) && pop$items %% 2 == 1) {
     problems <- c(problems, sprintf(
       "'population > items' is %s, but with each item in one condition half the items go in each, so the number must be even.",
       format_number(pop$items)
@@ -772,6 +792,9 @@ check_item_predictor <- function(spec) {
   pop <- spec$population
   binary <- identical(spec$variables$Y$type, "binary")
   problems <- character()
+  if (!is.null(pop$sd_item_slope) && !identical(pop$x_level, "trial")) {
+    problems <- c(problems, "'population > sd_item_slope' is how much X's effect varies between items, which needs X to vary within items: set 'population > x_level' to \"trial\", or remove it.")
+  }
   if (binary) {
     if (!identical(pop$metric, "probability") || is.null(pop$probability)) {
       problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probability', the chance of 'yes' at the items' average X.")
@@ -809,6 +832,28 @@ check_two_level <- function(spec) {
   }
   if (!spec$target_test$method %in% allowed) {
     problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome.", paste(sprintf("\"%s\"", allowed), collapse = " or ")))
+  }
+  # Three levels: groups_per_site makes the design three-level, and then
+  # the site's predictor and SDs are needed; without it they don't apply.
+  three <- !is.null(pop$groups_per_site)
+  site_keys <- c("b_Z", "b_XZ", "sd_site")
+  if (three) {
+    missing <- site_keys[vapply(site_keys, function(k) is.null(pop[[k]]), logical(1))]
+    if (length(missing)) {
+      problems <- c(problems, sprintf("With the groups in sites ('population > groups_per_site'), give %s.",
+        paste(sprintf("'population > %s'", missing), collapse = ", ")))
+    }
+    if (is.null(spec$variables$Z)) problems <- c(problems, "With the groups in sites, give 'variables > Z', the predictor measured on each site.")
+  } else {
+    extra <- intersect(c(site_keys, "sd_site_slope"), names(pop))
+    if (length(extra)) {
+      problems <- c(problems, sprintf("%s only apply when the groups are in sites: give 'population > groups_per_site', or remove them.",
+        paste(sprintf("'population > %s'", extra), collapse = ", ")))
+    }
+    if (spec$target_test$effect %in% c("site_effect", "site_interaction")) {
+      problems <- c(problems, sprintf("'target_test > effect' \"%s\" needs the groups in sites: give 'population > groups_per_site' and the site's predictor.",
+        spec$target_test$effect))
+    }
   }
   problems
 }
@@ -2351,7 +2396,10 @@ minimum_n <- function(spec) {
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
     # Two-level: at least ten groups, for the groups' variances.
-    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else
+    mixed_model = if (identical(spec$template, "two_level")) {
+      pop2 <- spec$population
+      if (is.null(pop2$groups_per_site)) 10 * pop2$cluster_size else 6 * pop2$cluster_size * pop2$groups_per_site
+    } else
       if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
@@ -2409,6 +2457,10 @@ group_split <- function(spec) {
     cells <- manova_groups(spec)
     return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
   }
+  if (identical(spec$template, "crossed_two_condition") && identical(spec$goal$unit, "items")) {
+    if (identical(spec$population$item_design %||% "between", "within")) return(NULL)
+    return(list(rule = "an even number of items, half in each condition", valid = function(n) n %% 2 == 0))
+  }
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
@@ -2424,6 +2476,10 @@ group_split <- function(spec) {
   }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
+    k <- spec$population$groups_per_site
+    if (!is.null(k)) {
+      return(list(rule = sprintf("a whole number of sites of %d groups of %d", k, m), valid = function(n) n %% (m * k) == 0))
+    }
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
   if (unequal_groups(spec)) {
@@ -2561,7 +2617,8 @@ target_effect_is_zero <- function(spec) {
     },
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
-      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW,
+        site_effect = pop$b_Z, site_interaction = pop$b_XZ)
     } else if (identical(spec$template, "three_level")) {
       if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {

@@ -432,6 +432,14 @@ design_description <- function(spec) {
       label("Y"), levels("X"), spec$population$dz),
     "precision/correlation" = sprintf("confidence interval for the %s correlation of %s and %s (expected r = %s)",
       spec$target_test$method, label("X"), label("Y"), spec$population$r),
+    "precision/mean_difference" = sprintf("confidence interval for the difference in mean %s (expected %s, SD %s; two equal groups)",
+      label("Y"), format_number(spec$population$difference), format_number(spec$population$sd)),
+    "precision/odds_ratio" = sprintf("confidence interval for the odds ratio of %s (expected proportions %s and %s; two equal groups)",
+      label("Y"), format_number(spec$population$p1), format_number(spec$population$p2)),
+    "precision/icc" = sprintf("confidence interval for the ICC of %s (expected %s, %s ratings per subject)",
+      label("Y"), format_number(spec$population$icc), format_number(spec$population$raters)),
+    "precision/regression_coefficient" = sprintf("confidence interval for the standardised coefficient of %s on %s (expected %s; %s predictors, R-squared %s)",
+      label("Y"), label("X"), format_number(spec$population$b), format_number(spec$population$predictors), format_number(spec$population$r2)),
     "precision/proportion" = sprintf("confidence interval for the proportion %s (expected %s; %s interval)",
       label("Y"), spec$population$p, switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald")),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
@@ -482,8 +490,8 @@ design_description <- function(spec) {
       }
     ),
     "mixed_model/item_predictor" = sprintf(
-      "participants responding to %s items that differ on %s (measured on each item, per SD); outcome %s%s",
-      format_number(spec$population$items), label("X"), label("Y"),
+      "participants responding to %s items, with %s (measured on each %s, per SD); outcome %s%s",
+      format_number(spec$population$items), label("X"), if (identical(spec$population$x_level, "trial")) "trial" else "item", label("Y"),
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/three_level" = sprintf(
@@ -493,11 +501,14 @@ design_description <- function(spec) {
       label("Y"), if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/two_level" = sprintf(
-      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s%s; effect tested: %s",
-      format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      "people in groups of %s%s: %s (measured on each person, centred within groups), %s (measured on each group)%s predicting %s%s; effect tested: %s",
+      format_number(spec$population$cluster_size),
+      if (!is.null(spec$population$groups_per_site)) sprintf(", %s groups in each site", format_number(spec$population$groups_per_site)) else "",
+      label("X"), label("W"), if (!is.null(spec$variables$Z)) sprintf(" and %s (measured on each site)", label("Z")) else "", label("Y"),
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else "",
       switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
-        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction")
+        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction",
+        site_effect = sprintf("%s between sites", label("Z")), site_interaction = sprintf("the interaction of %s with %s", label("X"), label("Z")))
     ),
     "regression_interaction/three_way" = sprintf(
       "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",
@@ -2579,7 +2590,10 @@ simr_script <- function(spec, result) {
     sprintf("sd_item <- %s # SD of items' intercepts", r_code(pop$sd_item)),
     if (item_slope) sprintf("sd_item_slope <- %s # SD of items' condition slopes", r_code(pop$sd_item_slope)),
     if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
-    sprintf("items <- %s # number of items", r_code(pop$items)),
+    if (isTRUE(inputs$vary_items)) {
+      c(sprintf("participants <- %s # the participants, fixed: the sample size below is the number of items", r_code(pop$participants)),
+        "items <- NA # set for each number of items tried")
+    } else sprintf("items <- %s # number of items", r_code(pop$items)),
     sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
       if (inputs$within) "every item in both conditions" else "each item in one condition: the first half in the first"),
     sprintf("participant_design <- %s # %s", r_code(if (inputs$participants_between) "between" else "within"),
@@ -2626,6 +2640,15 @@ simr_script <- function(spec, result) {
     },
     "}",
     "",
+    if (isTRUE(inputs$vary_items)) c(
+      "# The sample size searched is the number of items, with the participants fixed.",
+      "model_for_participants <- model_for",
+      "model_for <- function(n_items) {",
+      "  items <<- n_items",
+      "  model_for_participants(participants)",
+      "}",
+      ""
+    ),
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
     if (!inputs$binary) c(
