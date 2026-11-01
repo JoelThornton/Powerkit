@@ -2269,5 +2269,7 @@ test_that("precision planning (E46) gives the sample size for an interval width,
   expect_match(result_sentences(calc$spec, calc$result)[["headline"]],
     sprintf("With %s participants in total (%s per group), the 95%% noncentral t confidence interval for Cohen's d for the difference in Recall between Control and Training would be no wider than 0.4 in 80%% of studies like this.", whole(n), whole(n / 2)), fixed = TRUE)
   expect_match(precision_writeup(forms$forms$E46, calc$spec, calc$result, out$fields, out$values)[["short"]], "with 80% assurance", fixed = TRUE)
+  expect_equal(simulated_data_n_for(calc$spec, calc$result), n)
+  expect_match(as.character(result_panel_ui(tree, forms, "E46", out$fields, out$values, calc)), "download_simulated_data", fixed = TRUE)
   expect_true(script_reproduces(script(calc$spec, calc$result)))
 })
