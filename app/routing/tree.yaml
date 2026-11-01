@@ -1500,6 +1500,7 @@ endpoints:
       - "Tests X's effect within groups, W's effect between groups, or the cross-level interaction: whether X's effect depends on W."
       - "You give each effect in the outcome's units per SD of the predictor, how much groups differ in their average and in X's effect, the residual SD, and the number of people in each group."
       - "Simulated with simr, as for crossed participants and items, so the answer carries a little random error. X is centred within each group; the groups are the same size."
+      - "The outcome can be a score or yes or no (passed or not): with yes or no, a logistic mixed model, each effect and SD on the log-odds scale, tested by the Wald or the likelihood-ratio test."
     inputs: ["The outcome, the person-level predictor and the group-level predictor", "Each effect, how much the groups differ, and the residual SD", "The number of people in each group, and the effect to test"]
     tier: v2
     alternatives: ["a cluster-randomised or multisite trial, if groups or people were assigned to conditions", "a regression ignoring the groups, which overstates the evidence when people in a group are alike"]
@@ -1550,6 +1551,7 @@ endpoints:
       - "People in groups within larger groups, such as pupils in classes in schools, with two conditions assigned to whole schools, to classes within each school, or to pupils within each class."
       - "You give Cohen's d over the outcome's total SD, the share of the variance between schools and between classes (intraclass correlations), how much the effect varies between schools or classes where it can, the class size and the classes per school."
       - "Simulated with simr and tested with Satterthwaite's t test, as for the other multilevel cards, so the answer carries a little random error."
+      - "The outcome can be a score or yes or no (passed or not): with yes or no, each condition's chance of yes and how much schools and classes differ on the log-odds scale, tested by the Wald or the likelihood-ratio test."
     inputs: ["The conditions, what is assigned to them, and the outcome", "The effect, and how alike people in the same group and site are", "The sizes of the groups and sites"]
     tier: v2
     alternatives: ["a two-level cluster-randomised or multisite trial, if the larger groups don't matter for the design", "ignoring the larger groups, which overstates power when people in the same school are alike"]

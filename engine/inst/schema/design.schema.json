@@ -8259,7 +8259,7 @@
       }
     },
     "template_two_level": {
-      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size.",
+      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio').",
       "properties": {
         "variables": {
           "required": [
@@ -8276,7 +8276,14 @@
               "$ref": "#/definitions/variable_continuous"
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
@@ -8288,13 +8295,22 @@
             "b_XW",
             "sd_group",
             "sd_group_slope",
-            "sd_residual",
             "cluster_size"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "description": "'raw' for a score outcome (in its own units); 'probability' for a yes/no outcome (the effects and SDs on the log-odds scale).",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probability": {
+              "description": "Yes/no outcome only: the chance of 'yes' for a typical group at the average X and W.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             },
             "b_X": {
               "type": "number",
@@ -8325,7 +8341,7 @@
             "sd_residual": {
               "type": "number",
               "exclusiveMinimum": 0,
-              "description": "SD of the residual: how much people differ within a group."
+              "description": "Score outcome only: SD of the residual, how much people differ within a group."
             },
             "cluster_size": {
               "type": "integer",
@@ -8351,7 +8367,11 @@
                   ]
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }
@@ -9143,7 +9163,7 @@
       }
     },
     "template_three_level": {
-      "description": "Three levels: people (level 1) in groups (level 2, e.g. classes) in sites (level 3, e.g. schools), with two conditions assigned to whole sites, to groups within each site, or to people within each group (population > assignment). On the scale of the outcome's total SD: the effect d, the sites' and groups' shares of the variance (icc_site, icc_group), and when the condition is assigned below the sites, the share of variance in its effect across sites (icc_effect_site) and, when assigned to people, across groups (icc_effect_group): y ~ cond + (1 + cond | site) + (1 + cond | site:group), with cond coded -0.5 and 0.5 and the condition's terms only where they apply. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test. goal > n is the number of people, a whole number of sites (an even number when whole sites are assigned).",
+      "description": "Three levels: people (level 1) in groups (level 2, e.g. classes) in sites (level 3, e.g. schools), with two conditions assigned to whole sites, to groups within each site, or to people within each group (population > assignment). On the scale of the outcome's total SD: the effect d, the sites' and groups' shares of the variance (icc_site, icc_group), and when the condition is assigned below the sites, the share of variance in its effect across sites (icc_effect_site) and, when assigned to people, across groups (icc_effect_group): y ~ cond + (1 + cond | site) + (1 + cond | site:group), with cond coded -0.5 and 0.5 and the condition's terms only where they apply. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test. goal > n is the number of people, a whole number of sites (an even number when whole sites are assigned). A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): each condition's chance of 'yes' for a typical site and group (population > probabilities), and in place of the shares of variance the SDs of the sites' and groups' intercepts and of the effect across sites or groups, on the log-odds scale (sd_site, sd_group, sd_effect_site, sd_effect_group); tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio').",
       "properties": {
         "variables": {
           "required": [
@@ -9156,16 +9176,20 @@
               "$ref": "#/definitions/two_level_between_factor"
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "d",
-            "icc_site",
-            "icc_group",
             "group_size",
             "groups_per_site",
             "assignment"
@@ -9173,35 +9197,70 @@
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised' for a score outcome (on the scale of its total SD); 'probability' for a yes/no outcome (the SDs on the log-odds scale).",
+              "enum": [
+                "standardised",
+                "probability"
+              ]
             },
             "d": {
-              "description": "The difference between conditions (second minus first) over the outcome's total SD.",
+              "description": "Score outcome only: the difference between conditions (second minus first) over the outcome's total SD.",
               "type": "number"
             },
             "icc_site": {
-              "description": "The share of the outcome's total variance between sites (e.g. schools).",
+              "description": "Score outcome only: the share of the outcome's total variance between sites (e.g. schools).",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_group": {
-              "description": "The share of the outcome's total variance between groups within sites (e.g. classes within schools).",
+              "description": "Score outcome only: the share of the outcome's total variance between groups within sites (e.g. classes within schools).",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_effect_site": {
-              "description": "Conditions assigned below the sites only: the share of the total variance in the effect across sites. 0 if omitted.",
+              "description": "Score outcome only: conditions assigned below the sites only: the share of the total variance in the effect across sites. 0 if omitted.",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_effect_group": {
-              "description": "Conditions assigned to people only: the share of the total variance in the effect across groups. 0 if omitted.",
+              "description": "Score outcome only: conditions assigned to people only: the share of the total variance in the effect across groups. 0 if omitted.",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (first, then second) for a typical site and group.",
+              "type": "array",
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "sd_site": {
+              "description": "Yes/no outcome only: SD of the sites' intercepts, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_group": {
+              "description": "Yes/no outcome only: SD of the groups' intercepts within sites, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_effect_site": {
+              "description": "Yes/no outcome only: Conditions assigned below the sites only: SD of the effect across sites. 0 if omitted, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_effect_group": {
+              "description": "Yes/no outcome only: Conditions assigned to people only: SD of the effect across groups. 0 if omitted, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
             },
             "group_size": {
               "description": "People in each group.",
@@ -9236,7 +9295,11 @@
                   "const": "condition"
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Yes or no outcomes for people in groups"
+    text: >-
+      The two-level card (people in groups, with a predictor on each person
+      and one on each group) and the three-level card (pupils in classes in
+      schools) now also plan studies where the outcome is yes or no, such as
+      passed or not, as a logistic mixed model.
+  - date: "2026-11-01"
     title: "Bayes factors checked as the data come in"
     text: >-
       The Bayesian planning tool in Labs now plans sequential studies,

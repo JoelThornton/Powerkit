@@ -2,6 +2,22 @@
 
 A batch of new features, built as one round.
 
+* A yes/no outcome in the two-level (E62, template `two_level`) and
+  three-level (E68, template `three_level`) designs (`variables > Y >
+  type` "binary", `population > metric` "probability"): a logistic mixed
+  model built by simr's `makeGlmer()` and refitted with lme4's `glmer()`.
+  E62 takes the chance of 'yes' for a typical group at the average X and
+  W (`population > probability`), with every effect and SD on the
+  log-odds scale; E68 each condition's chance for a typical site and
+  group (`population > probabilities`) and, in place of the shares of
+  variance, the SDs of the sites' and groups' intercepts and of the
+  effect on the log-odds scale (`sd_site`, `sd_group`, `sd_effect_site`,
+  `sd_effect_group`). Tested by glmer's Wald z test (`target_test >
+  method` "wald", the default, simr's for a numeric or two-condition
+  predictor) or the likelihood ratio ("likelihood_ratio"). The check run,
+  exported script and simulated data set follow the model. Checked against
+  a simulation written separately with glmer, with the Type I error near
+  alpha.
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from
