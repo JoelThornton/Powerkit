@@ -21,7 +21,8 @@ fully validated. Validation runs are recorded in
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
   **44 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
   E37, E44, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
-  E44, the actor-partner model for pairs, and E46, precision planning
+  E44, the actor-partner model for pairs (with joint power for actor and partner
+  effects tested together), and E46, precision planning
   (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
