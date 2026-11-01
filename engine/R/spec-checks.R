@@ -2598,7 +2598,8 @@ check_meta_analysis <- function(spec) {
       "set 'target_test > test' to \"z\"."))
   }
   if (!hartung_knapp_test(spec) && (identical(method, "simulation") || !is.null(spec$options$nrep))) {
-    problems <- c(problems, "The z test is worked out by formula (metapower), so there is nothing to simulate; remove 'options > nrep'.")
+    problems <- c(problems, sprintf("%s, so there is nothing to simulate; remove 'options > nrep'.",
+      if (identical(spec$template, "dependent_effects")) "POMADE works out power by formula" else "The z test is worked out by formula (metapower)"))
   }
   problems
 }

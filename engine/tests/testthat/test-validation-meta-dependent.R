@@ -24,7 +24,8 @@ dependent_spec <- function(population, seed, n) {
     population = c(list(metric = "d"), population),
     target_test = list(effect = "mean_effect", method = "rve_t", alpha = 0.05),
     seed = seed,
-    n = n
+    n = n,
+    options = list(nrep = NULL)
   )
 }
 
