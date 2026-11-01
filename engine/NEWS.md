@@ -1,5 +1,16 @@
 # powerkit 0.28.1
 
+* Technical details for more designs: SEM (model fit, invariance, a
+  factor correlation and a latent slope) now gives the likelihood-ratio
+  chi-square test's df, critical value and noncentrality, as semPower's
+  `semPower.postHoc()` returns them (`sempower_details()`); they
+  reproduce semPower's power. Pearson's correlation gives its t test's df
+  and critical t (`critical_effect_details()`), the critical t that pwr's
+  `pwr.r.test()` also uses, with the critical r; pwr's power then comes
+  from Fisher's z, so no noncentrality is given. Bayes factor designs say
+  why a critical value doesn't apply. TOSTER and powertools still return
+  no details; powertools computes them internally (a question for its
+  authors, `docs/upstream-questions.md`).
 * The critical effect size (Perugini et al., 2025; Lakens, 2022): for the
   one-sample, paired and two-group t-tests (Student's) and Pearson's
   correlation, every result now gives the smallest observed effect that

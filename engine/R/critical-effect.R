@@ -59,3 +59,25 @@ critical_effect_groups <- function(spec, n) {
   n1 <- round(n / (1 + ratio))
   c(n1, n - n1)
 }
+
+# Technical details for Pearson's correlation, which pwr's pwr.r.test()
+# doesn't return: the t test's df (n - 2) and critical t, the same critical
+# t (and critical r) pwr.r.test() uses internally, from Perugini et al.'s
+# closed form. pwr then takes power from Fisher's z of the expected r
+# against the critical r, so there is no noncentrality parameter to give.
+critical_effect_details <- function(ce) {
+  if (is.null(ce) || !identical(ce$effect_name, "r")) return(NULL)
+  t_c <- ce$t_critical
+  list(
+    statistic = "t",
+    df = ce$df,
+    critical = switch(ce$alternative, two_sided = c(-t_c, t_c), greater = t_c, less = -t_c),
+    ncp = NA_real_,
+    actual_alpha = NA_real_,
+    source = "Perugini et al.'s (2025) formula, with the critical t pwr's pwr.r.test() also uses",
+    note = sprintf(paste("The critical r is %s. pwr's power for a correlation compares Fisher's z of the expected r with that",
+      "critical r, so there is no noncentrality parameter."),
+      switch(ce$alternative, two_sided = sprintf("±%s", formatC(ce$value, digits = 3, format = "f")),
+        greater = formatC(ce$value, digits = 3, format = "f"), less = formatC(-ce$value, digits = 3, format = "f")))
+  )
+}

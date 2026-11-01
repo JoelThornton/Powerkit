@@ -48,6 +48,14 @@ Questions about powertools 1.0.0, from its source (opened 28 October
    variance gives the expected design effect (for m = 20, ICC 0.05 and
    RsqW 0.5, 1.476 against 1.475). Is that the intended reading? powerkit
    asks for them that way.
+4. **Returning the test's details.** `crt.parallel.cont()`,
+   `multisite.cont()` and the other functions powerkit calls compute the
+   test's degrees of freedom, critical value and noncentrality (for
+   example `df <- J - 2 - ncov`, `ncp <- d/sqrt(detot/N/RE)` and
+   `crit <- stats::qt(1 - alpha, df)` in `crt.parallel.cont()`), but
+   return only power and the inputs. Could they be returned, as pwrss
+   does? Researchers checking a result against another tool ask for them,
+   and powerkit shows them only where a package reports them.
 
 ## bfpwr
 

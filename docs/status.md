@@ -160,9 +160,11 @@ fully validated. Validation runs are recorded in
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (`next.md`, "SEM").
-- Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Technical
-  details").
+- Technical details (df, critical value, noncentrality) are given for
+  every exact design whose package reports them, SEM and the correlation
+  included since 1 November 2026; TOSTER and powertools return none
+  (powertools: `upstream-questions.md`), and Bayes factor designs have
+  none to give.
 
 ## Working environment
 

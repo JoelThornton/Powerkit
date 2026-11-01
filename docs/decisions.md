@@ -4386,3 +4386,18 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   Table 1's formula for Student's t gives 0.603; its other examples (r =
   .44 at n = 20, d = 0.75 with 15 per group, r = .03 at N = 5,000) match.
 
+## 2026-11-01 · Technical details for the remaining designs
+
+- **Read from the package where it reports them:** semPower's
+  `semPower.postHoc()` returns the chi-square test's df, critical value
+  and noncentrality, so SEM shows them; they reproduce its power.
+- **The correlation from a published closed form:** pwr's `pwr.r.test()`
+  computes the t test's critical t and critical r but doesn't return
+  them; Perugini et al.'s (2025) formula gives the same values, so they
+  are shown, with no noncentrality (pwr's power comes from Fisher's z).
+- **Not rebuilt where a package hides them:** powertools computes df,
+  noncentrality and the critical value internally; rewriting its formulas
+  in the engine would duplicate a package's maths, so the question goes to
+  its authors instead. TOSTER returns none. A Bayes factor design has no
+  critical value in this sense, and says so.
+

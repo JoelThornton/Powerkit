@@ -1393,6 +1393,8 @@ technical_details_ui <- function(result) {
     list("Not applicable: this result was simulated, so there is no single critical value or noncentrality parameter. The reproducibility record gives the seed and replications, and the R script reruns every simulation.")
   } else if (identical(result$goal_type, "sensitivity")) {
     list("Not given for a sensitivity analysis, where the effect size is the answer rather than an input; calculate power at that effect to see them.")
+  } else if (is.null(d) && !is.null(result$bayes)) {
+    list("Not applicable: a Bayes factor design decides by the Bayes factor reaching its threshold, not by a test statistic passing a critical value, so there is no critical value or noncentrality parameter to give.")
   } else if (is.null(d)) {
     list(sprintf("Not reported for this design: %s doesn't return them.", result$provenance$backend))
   } else {
@@ -1415,7 +1417,7 @@ technical_details_ui <- function(result) {
     } else {
       sprintf("Noncentrality parameter: %s.", number(d$ncp))
     }
-    c(list(sprintf("Test statistic: %s.", stat)), list(df), list(critical), list(ncp),
+    c(list(sprintf("Test statistic: %s.", stat)), list(df), list(critical), list(ncp), list(d$note),
       list(sprintf("Reported by %s at N = %s.", d$source, whole(n_analysed(result)))))
   }
   tags$details(class = "result-more result-technical",

@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Technical details for SEM and the correlation"
+    text: >-
+      The technical details under a result, for checking it against G*Power
+      or R, now cover structural equation models (the chi-square test's
+      degrees of freedom, critical value and noncentrality) and the
+      correlation (its t test's critical value), and say why a Bayes factor
+      has no critical value.
+  - date: "2026-11-01"
     title: "The critical effect size"
     text: >-
       The t-tests and the correlation now say the smallest effect your data

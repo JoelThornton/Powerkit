@@ -2394,3 +2394,25 @@ test_that("the t-tests and the correlation state their critical effect size as a
   expect_match(critical_effect_sentence(one_sided), "r below −0.21", fixed = TRUE)
   expect_null(critical_effect_note(spec, list()))
 })
+
+test_that("technical details cover semPower's chi-square and the correlation's t test, and say why a Bayes factor has none", {
+  sem <- list(goal_type = "power", curve = data.frame(n = 400, power = 0.9, mcse = 0), provenance = list(method = "exact", backend = "semPower"),
+    details = list(statistic = "chi-square", df = 51, critical = 68.67, ncp = 50.9, actual_alpha = NA, source = "semPower::semPower.postHoc"))
+  html <- as.character(technical_details_ui(sem))
+  expect_match(html, "Test statistic: Chi-square.", fixed = TRUE)
+  expect_match(html, "Critical value: Chi-square = 68.7.", fixed = TRUE)
+  expect_match(html, "Noncentrality parameter: 50.9.", fixed = TRUE)
+  cor <- sem
+  cor$provenance$backend <- "pwr"
+  cor$details <- list(statistic = "t", df = 78, critical = c(-1.99, 1.99), ncp = NA_real_, actual_alpha = NA,
+    source = "Perugini et al.'s (2025) formula", note = "The critical r is ±0.220. pwr's power ... Fisher's z.")
+  html <- as.character(technical_details_ui(cor))
+  expect_match(html, "Critical value: t = ±1.99 (two-sided).", fixed = TRUE)
+  expect_match(html, "The critical r is", fixed = TRUE)
+  expect_false(grepl("Noncentrality parameter", html, fixed = TRUE))
+  bayes <- sem
+  bayes$details <- NULL
+  bayes$bayes <- list(threshold = 10)
+  bayes$provenance$backend <- "bfpwr"
+  expect_match(as.character(technical_details_ui(bayes)), "a Bayes factor design decides by the Bayes factor", fixed = TRUE)
+})
