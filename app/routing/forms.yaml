@@ -985,7 +985,14 @@ forms:
              help: "For example, 148.8 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
       - input: "The items: how many, and whether each appears in one condition or both"
         fields:
-          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true}
+          - {id: plan_unit, label: "What do you want to plan?", type: select, path: goal.unit, required: true,
+             choices: {participants: "The number of participants, for a set of items", items: "The number of items (stimuli), for the participants you will have"},
+             default: participants, default_source: "the number of participants, the usual question",
+             help: "With items, the sample size below counts items, and you give the number of participants here."}
+          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true,
+             shown_if: {field: plan_unit, is: participants}}
+          - {id: participants, label: "Number of participants (analysed)", type: number, path: population.participants, required: true, min: 4, integer: true,
+             shown_if: {field: plan_unit, is: items}}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
              choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
              default: between, default_source: "the design as decided on 30 October 2026 (docs/decisions.md)"}

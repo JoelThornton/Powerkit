@@ -826,3 +826,18 @@ test_that("the precision card takes a raw mean difference, an odds ratio, an ICC
     if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
   }
 })
+
+test_that("the participants-and-items card can plan the number of items for a fixed number of participants", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E33"))
+  values <- modifyList(c(form_examples$E33, list(goal = "sample_size", power = "0.8")),
+    list(plan_unit = "items", participants = "30", items = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("items" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E33", fields, values)
+  expect_identical(spec$goal$unit, "items")
+  expect_equal(spec$population$participants, 30)
+  expect_null(spec$population$items)
+  if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+})

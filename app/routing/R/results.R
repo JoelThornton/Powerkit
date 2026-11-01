@@ -313,7 +313,18 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
-n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else NULL
+n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# The number of items as the sample size (E33): the write-up counts items,
+# with the participants fixed.
+items_units <- function(text, spec) {
+  p <- whole(spec$population$participants)
+  text <- gsub(" participants are needed in total", sprintf(" items are needed (with %s participants)", p), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many items (and %s participants) is", p), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 items and %s participants", p), text)
+  text
+}
 
 # Dyadic data: the write-up counts pairs.
 dyad_units <- function(text) {
@@ -2115,6 +2126,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -2216,6 +2228,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")

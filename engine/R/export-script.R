@@ -2583,7 +2583,10 @@ simr_script <- function(spec, result) {
     sprintf("sd_item <- %s # SD of items' intercepts", r_code(pop$sd_item)),
     if (item_slope) sprintf("sd_item_slope <- %s # SD of items' condition slopes", r_code(pop$sd_item_slope)),
     if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
-    sprintf("items <- %s # number of items", r_code(pop$items)),
+    if (isTRUE(inputs$vary_items)) {
+      c(sprintf("participants <- %s # the participants, fixed: the sample size below is the number of items", r_code(pop$participants)),
+        "items <- NA # set for each number of items tried")
+    } else sprintf("items <- %s # number of items", r_code(pop$items)),
     sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
       if (inputs$within) "every item in both conditions" else "each item in one condition: the first half in the first"),
     sprintf("participant_design <- %s # %s", r_code(if (inputs$participants_between) "between" else "within"),
@@ -2630,6 +2633,15 @@ simr_script <- function(spec, result) {
     },
     "}",
     "",
+    if (isTRUE(inputs$vary_items)) c(
+      "# The sample size searched is the number of items, with the participants fixed.",
+      "model_for_participants <- model_for",
+      "model_for <- function(n_items) {",
+      "  items <<- n_items",
+      "  model_for_participants(participants)",
+      "}",
+      ""
+    ),
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
     if (!inputs$binary) c(

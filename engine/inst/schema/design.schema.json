@@ -615,6 +615,13 @@
           "type": "number",
           "exclusiveMinimum": 0.5,
           "exclusiveMaximum": 1
+        },
+        "unit": {
+          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "enum": [
+            "participants",
+            "items"
+          ]
         }
       },
       "allOf": [
@@ -7825,8 +7832,7 @@
           "required": [
             "metric",
             "sd_participant",
-            "sd_item",
-            "items"
+            "sd_item"
           ],
           "additionalProperties": false,
           "properties": {
@@ -7891,6 +7897,11 @@
                 "between",
                 "within"
               ]
+            },
+            "participants": {
+              "description": "With goal > unit 'items' only: the number of participants, fixed while the number of items is found.",
+              "type": "integer",
+              "minimum": 4
             }
           }
         },
