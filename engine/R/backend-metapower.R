@@ -136,6 +136,17 @@ metapower_script <- function(spec, result) {
 
 # The design line of the script header for a meta-analysis.
 meta_design_description <- function(spec, label) {
+  if (meta_regression(spec)) {
+    pop <- spec$population
+    return(sprintf("random-effects meta-regression of %s on a moderator measured on each study (standardised across the studies), the %s of its slope (%s per SD, average effect %s %s), in studies of %s participants with residual I-squared %s",
+      label("Y"), if (hartung_knapp_test(spec)) "Hartung-Knapp test" else "z test", format_number(pop$slope),
+      if (identical(pop$metric, "r")) "r" else "Cohen's d", format_number(pop$effect), format_number(pop$study_size), format_number(pop$i2)))
+  }
+  if (meta_heterogeneity(spec)) {
+    pop <- spec$population
+    return(sprintf("meta-analysis of %s, Cochran's Q test of heterogeneity (average effect %s %s), in studies of %s participants with I-squared %s",
+      label("Y"), if (identical(pop$metric, "r")) "r" else "Cohen's d", format_number(pop$effect), format_number(pop$study_size), format_number(pop$i2)))
+  }
   if (identical(spec$template, "dependent_effects")) {
     pop <- spec$population
     return(sprintf(
@@ -166,7 +177,7 @@ meta_design_description <- function(spec, label) {
 # the true effects vary with tau^2 = I^2 v / (1 - I^2).
 
 hartung_knapp_test <- function(spec) {
-  identical(spec$design, "meta_analysis") && !identical(spec$template, "dependent_effects") &&
+  identical(spec$design, "meta_analysis") && !spec$template %in% c("dependent_effects", "heterogeneity") &&
     !identical(spec$target_test$model, "fixed") && !identical(spec$target_test$test, "z")
 }
 
@@ -475,6 +486,167 @@ meta_subgroups_script <- function(spec, result) {
       "",
       pwr_goal_section(spec, result)
     ),
+    comparison_section()
+  )
+}
+
+# A moderator that is a score (template meta_regression, 1 November 2026):
+# a meta-regression of the k studies' effects on a moderator measured on
+# each study (its mean sample age, say), standardised across the studies
+# (normal quantiles, so the design is fixed, as simr's are). The true
+# effects are theta + slope x + u, u with the residual heterogeneity tau^2
+# = I^2 v / (1 - I^2), each estimated with a typical study's sampling
+# variance. No package computes this test's power, so it is simulated with
+# Spower and metafor's rma(mods = ~ x): the Hartung-Knapp test by default
+# (as for the average effect, Departure 18) or the z test.
+meta_regression <- function(spec) identical(spec$template, "meta_regression")
+
+meta_regression_model <- function(spec) {
+  base <- meta_study_model(spec)
+  pop <- spec$population
+  list(theta = base$theta, slope = pop$slope, v = base$v, tau2 = base$tau2,
+    test = if (identical(spec$target_test$test, "z")) "z" else "knha")
+}
+
+meta_moderator_values <- function(k) {
+  x <- stats::qnorm((seq_len(k) - 0.5) / k)
+  (x - mean(x)) / sqrt(mean((x - mean(x))^2))
+}
+
+# Spower experiment: the p-value of the moderator's slope.
+p_meta_reg <- function(k, theta, slope, v, tau2, test = "knha") {
+  x <- meta_moderator_values(k)
+  yi <- stats::rnorm(k, stats::rnorm(k, theta + slope * x, sqrt(tau2)), sqrt(v))
+  fit <- metafor::rma(yi = yi, vi = rep(v, k), mods = ~ x, method = "DL", test = test)
+  fit$pval[2]
+}
+
+meta_regression_backend <- function(spec, seed = NULL) {
+  model <- meta_regression_model(spec)
+  test_text <- if (identical(model$test, "z")) "the z test" else "the Hartung-Knapp test"
+  list(
+    name = "Spower",
+    packages = c("Spower", "SimDesign", "metafor"),
+    methods = "simulation",
+    default_method = "simulation",
+    functions = c(simulation = sprintf("Spower::Spower(p_meta_reg()) (metafor::rma(mods = ~ x, method = \"DL\", test = \"%s\"), %s of the moderator's slope)",
+      model$test, test_text)),
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    simulate = function(n, nrep, seed, cores) {
+      simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) {
+        result <- spower_eval(as.name("p_meta_reg"), list(k = n, theta = model$theta, slope = model$slope, v = model$v,
+          tau2 = model$tau2, test = model$test), chunk, spec$target_test$alpha, chunk_seed)
+        round(result$power * chunk)
+      })
+    },
+    sensitivity = NULL,
+    check_run = function() meta_regression_check_run(spec, model, seed)
+  )
+}
+
+# Check run: a very large meta-analysis recovers the average effect, the
+# slope and the residual variance of the estimates.
+meta_regression_check_run <- function(spec, model, seed) {
+  k <- check_run_n()
+  x <- meta_moderator_values(k)
+  yi <- with_seed(seed %||% 1, stats::rnorm(k, stats::rnorm(k, model$theta + model$slope * x, sqrt(model$tau2)), sqrt(model$v)))
+  fit <- stats::lm(yi ~ x)
+  total <- model$v + model$tau2
+  coefs <- summary(fit)$coefficients
+  rbind(
+    check_run_rows("average effect at the moderator's mean", model$theta, coefs[1, 1], coefs[1, 2]),
+    check_run_rows("slope per SD of the moderator", model$slope, coefs[2, 1], coefs[2, 2]),
+    check_run_rows("residual variance of the estimates (sampling variance plus tau-squared)", total,
+      summary(fit)$sigma^2, total * sqrt(2 / (k - 2)))
+  )
+}
+
+# The test of heterogeneity (template heterogeneity, 1 November 2026):
+# Cochran's Q test that the studies' true effects are all equal, from the
+# fixed-effect fit (metafor's rma(method = "FE"), its QE and QEp), with
+# the true effects varying with tau^2 = I^2 v / (1 - I^2). metapower's
+# homogen_power() disagrees with simulated Q tests
+# (docs/upstream-questions.md), so the power is simulated with Spower.
+meta_heterogeneity <- function(spec) identical(spec$template, "heterogeneity")
+
+p_meta_q <- function(k, theta, v, tau2) {
+  yi <- stats::rnorm(k, stats::rnorm(k, theta, sqrt(tau2)), sqrt(v))
+  metafor::rma(yi = yi, vi = rep(v, k), method = "FE")$QEp
+}
+
+meta_heterogeneity_backend <- function(spec, seed = NULL) {
+  model <- meta_study_model(spec)
+  list(
+    name = "Spower",
+    packages = c("Spower", "SimDesign", "metafor"),
+    methods = "simulation",
+    default_method = "simulation",
+    functions = c(simulation = "Spower::Spower(p_meta_q()) (metafor::rma(method = \"FE\"), Cochran's Q test of heterogeneity)"),
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    simulate = function(n, nrep, seed, cores) {
+      simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) {
+        result <- spower_eval(as.name("p_meta_q"), list(k = n, theta = model$theta, v = model$v, tau2 = model$tau2),
+          chunk, spec$target_test$alpha, chunk_seed)
+        round(result$power * chunk)
+      })
+    },
+    sensitivity = NULL,
+    check_run = function() meta_hk_check_run(spec, model, seed)
+  )
+}
+
+# The standalone scripts: Spower with the same experiment and metafor.
+meta_more_script <- function(spec, result) {
+  regression <- meta_regression(spec)
+  model <- if (regression) meta_regression_model(spec) else meta_study_model(spec)
+  pop <- spec$population
+  r_metric <- identical(pop$metric, "r")
+  c(
+    script_header(spec, result, "Spower", result$provenance$backend_function),
+    "library(Spower)",
+    "library(metafor)",
+    "",
+    "# Inputs ----",
+    sprintf("theta <- %s # the average effect%s", r_code(model$theta), if (r_metric) " on Fisher's z" else " (Cohen's d)"),
+    if (regression) sprintf("slope <- %s # the change in the effect for one SD more of the moderator", r_code(model$slope)),
+    sprintf("v <- %s # a typical study's sampling variance (%s)", r_code(model$v), if (r_metric) "1 / (n - 3)" else "4 / n + d^2 / (2 n), as metapower computes it"),
+    sprintf("tau2 <- %s # %s heterogeneity, from I-squared %s", r_code(model$tau2), if (regression) "residual" else "", format_number(pop$i2)),
+    if (regression) sprintf("test <- %s # %s", r_code(model$test), if (identical(model$test, "z")) "the z test" else "the Hartung-Knapp test"),
+    "# n_total below is the number of studies (k).",
+    goal_inputs(spec, result),
+    "",
+    if (regression) {
+      c("experiment <- function(k, theta, slope, v, tau2, test) {",
+        "  x <- qnorm((seq_len(k) - 0.5) / k)",
+        "  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # the moderator, standardised across the studies",
+        "  yi <- rnorm(k, rnorm(k, theta + slope * x, sqrt(tau2)), sqrt(v))",
+        "  rma(yi = yi, vi = rep(v, k), mods = ~ x, method = \"DL\", test = test)$pval[2]",
+        "}",
+        "",
+        "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+        "  set.seed(batch_seed) # Spower draws its own seeds from R's random-number generator",
+        "  result <- Spower(experiment(k = batch_n, theta = theta, slope = slope, v = v, tau2 = tau2, test = test),",
+        "    sig.level = alpha, replications = batch_replications, parallel = FALSE, verbose = FALSE)",
+        "  c(round(result$power * batch_replications), batch_replications)",
+        "}")
+    } else {
+      c("experiment <- function(k, theta, v, tau2) {",
+        "  yi <- rnorm(k, rnorm(k, theta, sqrt(tau2)), sqrt(v))",
+        "  rma(yi = yi, vi = rep(v, k), method = \"FE\")$QEp # Cochran's Q test",
+        "}",
+        "",
+        "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+        "  set.seed(batch_seed) # Spower draws its own seeds from R's random-number generator",
+        "  result <- Spower(experiment(k = batch_n, theta = theta, v = v, tau2 = tau2),",
+        "    sig.level = alpha, replications = batch_replications, parallel = FALSE, verbose = FALSE)",
+        "  c(round(result$power * batch_replications), batch_replications)",
+        "}")
+    },
+    "",
+    batch_section(result, "Spower()"),
+    simulation_goal_section(spec, result, 1),
     comparison_section()
   )
 }

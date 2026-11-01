@@ -67,6 +67,7 @@ export_script <- function(spec, result, file = NULL) {
       pwr_script(spec, result)
     },
     Spower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
+      if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),

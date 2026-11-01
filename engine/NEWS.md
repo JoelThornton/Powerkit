@@ -2,6 +2,16 @@
 
 A batch of new features, built as one round.
 
+* Meta-analysis (E61): a moderator that is a score (template
+  `meta_regression`: the average effect at the moderator's mean and the
+  slope per SD of a moderator measured on each study, residual
+  I-squared), tested by the Hartung-Knapp test by default (Departure 18)
+  or the z test; and the test of heterogeneity (template
+  `heterogeneity`: Cochran's Q from the fixed-effect fit). Both simulated
+  with Spower and metafor's `rma()`, since no package computes the first
+  and metapower's formula for the second disagrees with simulation.
+  Checked against simulations written separately with metafor, with the
+  Type I error near alpha.
 * Meta-analyses whose studies give several correlated effect sizes each
   (E61, template `dependent_effects`): POMADE's `power_MADE()` for the
   test of the average effect under the correlated and hierarchical

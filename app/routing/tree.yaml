@@ -1818,7 +1818,8 @@ endpoints:
       - "Under the random-effects model powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
       - "It can also test whether the effect differs between kinds of study (a subgroup or moderator analysis, such as lab against online studies), by the between-groups Q test, with the Hartung-Knapp version by default under the random-effects model."
       - "When studies give several effect sizes each (several outcomes or time points), POMADE plans for the robust test of the average effect, allowing for heterogeneity between and within studies and for the correlation of a study's estimates."
-      - "Every study is taken to be the same size. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation), or for a moderator that is a score."
+      - "It can also plan a meta-regression on a score measured on each study (such as the participants' mean age), and the test of heterogeneity (whether the studies' true effects differ at all), both simulated with metafor."
+      - "Every study is taken to be the same size."
     inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model, and the test"]
     tier: v2
     alternatives: ["the power of each included study for a range of effects (study-level power, the metameta package), to judge how informative the studies themselves are"]

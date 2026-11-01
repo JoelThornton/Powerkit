@@ -8123,7 +8123,9 @@
             "enum": [
               "mean_effect",
               "subgroups",
-              "dependent_effects"
+              "dependent_effects",
+              "meta_regression",
+              "heterogeneity"
             ]
           },
           "goal": {
@@ -8200,6 +8202,36 @@
             },
             "then": {
               "$ref": "#/definitions/template_meta_dependent_effects"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "meta_regression"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_meta_regression"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "heterogeneity"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_heterogeneity"
             }
           }
         ]
@@ -9438,6 +9470,132 @@
             },
             "method": {
               "const": "rve_t"
+            },
+            "model": false,
+            "test": false
+          }
+        }
+      }
+    },
+    "template_meta_meta_regression": {
+      "description": "A random-effects meta-regression on a moderator that is a score, measured on each study (for example the studies' mean age), standardised across the studies: the true effects are effect + slope x + u, u with the residual heterogeneity (I-squared). Tested by the Hartung-Knapp test (the default) or the z test of the slope, metafor's rma(mods = ~ x), simulated with Spower (no package computes this power). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "slope",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect at the moderator's mean (Cohen's d, or r)."
+            },
+            "slope": {
+              "type": "number",
+              "description": "The change in the effect for one SD more of the moderator, on the effect's scale (Fisher's z for r)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Residual heterogeneity as I-squared: the share of the variation in the studies' effects beyond the moderator that isn't sampling error."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "moderator_slope"
+            },
+            "method": {
+              "const": "z_test"
+            },
+            "model": false,
+            "test": {
+              "enum": [
+                "hartung_knapp",
+                "z"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "template_meta_heterogeneity": {
+      "description": "The test of heterogeneity: Cochran's Q test that the studies' true effects are all equal (metafor's fixed-effect rma(), its QE), when they vary with I-squared. Simulated with Spower: metapower's homogen_power() disagrees with simulated Q tests (docs/upstream-questions.md). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect the meta-analysis should detect (Cohen's d, or r between -1 and 1)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The heterogeneity the test should detect, as I-squared (0 for none)."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "heterogeneity"
+            },
+            "method": {
+              "const": "q_test"
             },
             "model": false,
             "test": false

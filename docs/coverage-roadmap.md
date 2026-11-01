@@ -306,7 +306,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B68 | Meta-analysis | ML; Audit | E61 (the average effect, subgroups, several effects per study) | Wired (validation not finished): the average effect, 31 October 2026; subgroups of studies (a categorical moderator) and several effects per study (POMADE), 1 November 2026; heterogeneity and a score moderator are in `next.md` | — | metapower `mpower()`, `mod_power()`; metafor `rma(test = "knha")`; POMADE `power_MADE()` | POMADE | — |
+| B68 | Meta-analysis | ML; Audit | E61 (the average effect, subgroups, several effects per study, a score moderator, heterogeneity) | Wired (validation not finished): the average effect, 31 October 2026; subgroups of studies (a categorical moderator), several effects per study (POMADE), a score moderator and the test of heterogeneity, 1 November 2026 | — | metapower `mpower()`, `mod_power()`; metafor `rma(test = "knha")`; POMADE `power_MADE()` | POMADE | — |
 | B69 | Replication-study power (e.g. small telescopes, safeguard power) | ML | none: not reachable | Unknown (decide whether this is an effect-size input option or its own card) | — | RSmallTelescopes `SmallTelescopes()`; BUCSS `ss_buc_*()` functions; mixpower `mp_safeguard_effect()` | Decide | [B2][] |
 
 ## Wave 2 (engine groundwork, 18 October 2026)

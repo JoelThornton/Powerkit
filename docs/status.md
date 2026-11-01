@@ -29,7 +29,9 @@ fully validated. Validation runs are recorded in
   since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
-  of studies and several effects per study (POMADE) since 1 November. **Twelve are simulated with a
+  of studies, several effects per study (POMADE), a moderator that is a
+  score and the test of heterogeneity (both simulated with metafor) since
+  1 November. **Twelve are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
@@ -114,14 +116,14 @@ fully validated. Validation runs are recorded in
   stopping when the evidence is strong).
 - **Next for moderated mediation:** W on both links or the direct path
   (E38, models 8, 58 and 59) and a yes/no X or W (E17) are Ready
-  (`next.md`, items 7 and 8, decided 1 November 2026).
+  (`next.md`, items 6 and 7, decided 1 November 2026).
 - **Waiting on others:** Spower's faults are ready to raise upstream
   (`docs/upstream/spower-var-test.R`).
 
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 10). Every repeated-measures card takes an SD per cell and
+  item 9). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
 - Simulated data sets are missing for the three-way regression
@@ -132,9 +134,9 @@ fully validated. Validation runs are recorded in
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 9).
+  groups or occasions (item 8).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 18).
+  semPower, powertools, TOSTER and bfpwr designs (item 17).
 
 ## Working environment
 

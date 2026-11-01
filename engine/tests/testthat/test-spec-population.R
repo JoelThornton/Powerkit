@@ -261,6 +261,8 @@ zero_effect_cases <- list(
   dyadic_apim = function(s) within(s, population$partner <- 0),
   meta_subgroups = function(s) within(s, population$effects <- list(0.3, 0.3)),
   meta_dependent_effects = function(s) within(s, population$effect <- 0),
+  meta_regression = function(s) within(s, population$slope <- 0),
+  meta_heterogeneity = function(s) within(s, population$i2 <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),

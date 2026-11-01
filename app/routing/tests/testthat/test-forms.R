@@ -773,6 +773,24 @@ test_that("the meta-analysis card takes several effects per study: POMADE's inpu
   expect_s3_class(validate(spec), "powerkit_spec")
 })
 
+test_that("the meta-analysis card takes a score moderator and the test of heterogeneity", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E61"))
+  cases <- list(
+    meta_regression = list(meta_question = "meta_regression", meta_effect = "0.3", meta_slope = "0.15", meta_reg_test = "hartung_knapp",
+      i2 = "0.3", meta_model = NULL, meta_test = NULL),
+    heterogeneity = list(meta_question = "heterogeneity", meta_effect = "0.3", i2 = "0.5", meta_model = NULL, meta_test = NULL))
+  for (name in names(cases)) {
+    values <- modifyList(c(form_examples$E61, list(goal = "power", n = "20")), cases[[name]])
+    applies <- Filter(function(f) field_applies(f, values), fields)
+    expect_false(any(c("meta_model", "meta_test") %in% vapply(applies, function(f) f$id, "")), label = name)
+    expect_length(form_problems(applies, values), 0)
+    spec <- build_spec(forms, "E61", fields, values)
+    expect_identical(spec$template, name)
+    if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+  }
+})
+
 test_that("the meta-analysis card tests subgroups: the kinds' effects go to the engine's subgroups template", {
   fields <- form_fields(form_groups(forms, "E61"))
   values <- modifyList(form_examples$E61, list(meta_question = "subgroups", meta_effects = "0.2, 0.5", meta_effect = NULL,
