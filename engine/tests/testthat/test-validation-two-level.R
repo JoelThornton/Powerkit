@@ -161,3 +161,69 @@ test_that("two levels, yes/no outcome: Type I error near alpha for each effect, 
     expect_type1_near(engine_power(spec), alpha = 0.05)
   }
 })
+
+# Three levels with predictors at each level (1 November 2026): the groups
+# in sites, Z measured on each site. The independent simulation draws the
+# sites' and groups' intercepts and X slopes directly and fits each data
+# set with lmerTest::lmer() without simr, on the same fixed design (X
+# within groups, W across each site's groups, Z across the sites).
+three_predictor_population <- c(two_level_population, list(b_Z = 0.3, b_XZ = 0.1, sd_site = 0.3, sd_site_slope = 0.1, groups_per_site = 4))
+
+three_predictor_spec <- function(population, effect, seed, n) {
+  spec <- two_level_validation_spec(population, effect, seed, n)
+  spec$variables$Z <- validation_variable("continuous", "Site level")
+  spec
+}
+
+three_predictor_by_hand <- function(population, term, n, nrep, seed) {
+  set.seed(seed)
+  m <- population$cluster_size
+  k <- population$groups_per_site
+  sites <- n / (m * k)
+  spread <- function(j, inner) {
+    v <- stats::qnorm(if (inner) seq_len(j) / (j + 1) else (seq_len(j) - 0.5) / j)
+    (v - mean(v)) / sqrt(mean((v - mean(v))^2))
+  }
+  data <- data.frame(site = rep(seq_len(sites), each = m * k), group = rep(rep(seq_len(k), each = m), sites),
+    x = rep(spread(m, TRUE), sites * k), w = rep(rep(spread(k, FALSE), each = m), sites), z = rep(spread(sites, FALSE), each = m * k))
+  g <- (data$site - 1) * k + data$group
+  covariance <- with(population, matrix(c(sd_group^2, r_group * sd_group * sd_group_slope,
+    r_group * sd_group * sd_group_slope, sd_group_slope^2), 2))
+  data$site <- factor(data$site)
+  data$group <- factor(data$group)
+  mean(vapply(seq_len(nrep), function(i) {
+    u <- MASS::mvrnorm(sites * k, c(0, 0), covariance)
+    s0 <- stats::rnorm(sites, sd = population$sd_site)
+    s1 <- stats::rnorm(sites, sd = population$sd_site_slope)
+    st <- as.integer(data$site)
+    data$y <- with(population, b_X * data$x + b_W * data$w + b_Z * data$z + b_XW * data$x * data$w + b_XZ * data$x * data$z +
+      s0[st] + s1[st] * data$x + u[g, 1] + u[g, 2] * data$x + stats::rnorm(n, 0, sd_residual))
+    fit <- suppressMessages(suppressWarnings(lmerTest::lmer(y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x | site:group), data = data)))
+    isTRUE(summary(fit)$coefficients[term, "Pr(>|t|)"] < 0.05)
+  }, logical(1)))
+}
+
+for (case in list(c("site_effect", "z"), c("site_interaction", "x:z"))) {
+  test_that(sprintf("three levels with predictors, %s: agrees with an independent simulation (analytic)", case[1]), {
+    skip_unless_full_validation()
+    skip_if_not_installed("MASS")
+    skip_if_not_installed("lmerTest")
+    reference <- three_predictor_by_hand(three_predictor_population, case[2], n = 800, nrep = two_level_reps, seed = 4121)
+    spec <- three_predictor_spec(three_predictor_population, case[1], seed = 4122, n = 800)
+    expect_power_near(engine_power(spec), reference, reference_nrep = two_level_reps)
+  })
+}
+
+test_that("three levels with predictors: Type I error at most alpha for Z's effect and its interaction with X", {
+  skip_unless_full_validation()
+  null <- modifyList(three_predictor_population, list(b_Z = 0, b_XZ = 0))
+  for (effect in c("site_effect", "site_interaction")) {
+    spec <- three_predictor_spec(null, effect, seed = 4123, n = 800)
+    spec$options$nrep <- 2000L
+    # Satterthwaite's test is never liberal; with 20 sites it can be a
+    # little conservative, as for E68 (decisions.md, 1 November 2026).
+    estimate <- engine_power(spec)
+    expect_lte(estimate, 0.05 + 2 * sqrt(0.05 * 0.95 / 2000), label = effect)
+    expect_gte(estimate, 0.025, label = effect)
+  }
+})

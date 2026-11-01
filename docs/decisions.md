@@ -4128,3 +4128,20 @@ needed first.
 - **The test:** glmer's Wald z test by default, simr's default for a
   numeric or two-condition predictor and the p-value glmer's summary
   reports, with the likelihood ratio offered, as on E33 and E67.
+
+## 2026-11-01 · Predictors at all three levels (E62)
+
+- **One card, not a new one.** "Predictors at every level of a
+  three-level design" (`next.md` item 2) extends E62, the card for
+  predictors at each level, with an optional third level, rather than
+  E68, which is about conditions assigned at a level. The form asks
+  whether the groups are in larger groups.
+- **The model.** A site predictor Z, its effect and its interaction with
+  X (the cross-level interactions researchers usually test), the sites'
+  random intercepts and, optionally, X slopes: `y ~ x + w + z + x:w + x:z
+  + (1 + x | site) + (1 + x | site:group)`. W's interaction with Z, and
+  the W slopes across sites, are left out: they are rarely the planned
+  effect and would need many more sites to estimate.
+- **The design.** W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated, as X and W are at two
+  levels.

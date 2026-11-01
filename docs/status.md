@@ -36,8 +36,9 @@ fully validated. Validation runs are recorded in
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
   groups, 31 October 2026; agrees with a separately written simulation,
-  published value and statistician review to come); E62 and E68 with a
-  score or, since 1 November 2026, a yes/no outcome. No template
+  published value and statistician review to come; since 1 November 2026
+  also with the groups in larger groups, predictors at all three levels);
+  E62 and E68 with a score or, since 1 November 2026, a yes/no outcome. No template
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026), common

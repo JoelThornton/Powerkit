@@ -168,7 +168,7 @@ form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "me
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E62: pupils in classes; a cross-level interaction.
-form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous",
+form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous", in_sites = "no",
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 

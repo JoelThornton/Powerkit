@@ -490,11 +490,14 @@ design_description <- function(spec) {
       label("Y"), if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/two_level" = sprintf(
-      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s%s; effect tested: %s",
-      format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      "people in groups of %s%s: %s (measured on each person, centred within groups), %s (measured on each group)%s predicting %s%s; effect tested: %s",
+      format_number(spec$population$cluster_size),
+      if (!is.null(spec$population$groups_per_site)) sprintf(", %s groups in each site", format_number(spec$population$groups_per_site)) else "",
+      label("X"), label("W"), if (!is.null(spec$variables$Z)) sprintf(" and %s (measured on each site)", label("Z")) else "", label("Y"),
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else "",
       switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
-        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction")
+        between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction",
+        site_effect = sprintf("%s between sites", label("Z")), site_interaction = sprintf("the interaction of %s with %s", label("X"), label("Z")))
     ),
     "regression_interaction/three_way" = sprintf(
       "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",

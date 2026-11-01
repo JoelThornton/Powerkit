@@ -2,6 +2,18 @@
 
 A batch of new features, built as one round.
 
+* Predictors at all three levels (E62, template `two_level`): with
+  `population > groups_per_site` the groups are in sites (classes in
+  schools), with a predictor Z on each site (`variables > Z`), its
+  effect between sites (`b_Z`) and its interaction with X (`b_XZ`), and
+  the sites' own intercepts (`sd_site`) and, optionally, X slopes
+  (`sd_site_slope`): y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x
+  | site:group). W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated. `target_test > effect` also
+  takes "site_effect" and "site_interaction"; n is a whole number of
+  sites. Works with a score or a yes/no outcome. Checked against a
+  simulation written separately with lmerTest, with the Type I error at
+  most alpha.
 * A yes/no outcome in the two-level (E62, template `two_level`) and
   three-level (E68, template `three_level`) designs (`variables > Y >
   type` "binary", `population > metric` "probability"): a logistic mixed
