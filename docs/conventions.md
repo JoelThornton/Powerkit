@@ -1001,6 +1001,10 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   a factor, a likelihood-ratio test: with powerkit's example
   (`inst/specs/crossed_conditions.json`) and 1,000 simulated data sets,
   21.5% against 22.9% at 20 participants, 31.1% against 32.3% at 40.
+  With three levels (E64, from 1 November 2026) and whole schools
+  assigned (powerkit's example, `inst/specs/mixed_three_level.json`:
+  classes of 20, four classes per school), 17.2% against 23.6% at 12
+  schools and 46.4% against 49.4% at 30 (1,000 simulated data sets).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
