@@ -113,3 +113,174 @@ power_picture_r <- function(n, r, alpha = 0.05, points = 401) {
     package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
   )
 }
+
+
+# Shared input checks for the pictures below.
+picture_check <- function(alpha) {
+  if (!is.numeric(alpha) || length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 0.5) {
+    abort_run("'alpha' should be between 0 and 0.5.")
+  }
+}
+
+# The paired-samples t-test (Labs): the central and noncentral t with
+# n - 1 df, the noncentrality d_z sqrt(n), as pwr.t.test(type = "paired")
+# computes power; the smallest significant d_z is the critical t over
+# sqrt(n), since a paired t is the mean difference over its standard
+# error, SD / sqrt(n), so t = d_z sqrt(n).
+
+#' The picture of power for a paired-samples t-test
+#'
+#' What the Labs picture of power draws for a paired-samples (or
+#' one-sample) t-test: the t distribution when there is no effect and when
+#' the effect is `dz`, the critical values, and the numbers behind them.
+#'
+#' @param n The number of participants (pairs), at least 3.
+#' @param dz Cohen's d_z, the mean difference over the SD of the
+#'   differences (0 or more).
+#' @param alpha The significance level of the two-sided test.
+#' @param points How many points of each curve to return.
+#' @return A list: `n`, `dz`, `alpha`, `power` (pwr's `pwr.t.test()`,
+#'   `type = "paired"`), `beta`, `df` (n - 1), `ncp` (d_z sqrt(n)),
+#'   `t_crit`, `dz_crit` (the smallest observed d_z that would be
+#'   significant), `curves` (a data frame of `t`, `null` and `alternative`
+#'   densities), `function_used` and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_paired(34, 0.5)
+#' picture$power
+power_picture_paired <- function(n, dz, alpha = 0.05, points = 401) {
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 3 || n %% 1 != 0) {
+    abort_run("'n' should be a whole number of participants, at least 3.")
+  }
+  if (!is.numeric(dz) || length(dz) != 1 || is.na(dz) || dz < 0) {
+    abort_run("'dz' should be a Cohen's d_z of 0 or more.")
+  }
+  picture_check(alpha)
+  df <- n - 1
+  ncp <- dz * sqrt(n)
+  power <- pwr::pwr.t.test(n = n, d = dz, sig.level = alpha, type = "paired", alternative = "two.sided")$power
+  t_crit <- stats::qt(1 - alpha / 2, df)
+  from <- min(-4, -t_crit - 1)
+  to <- max(4, t_crit + 1, ncp + 4)
+  t <- seq(from, to, length.out = points)
+  list(
+    design = "paired", n = n, dz = dz, alpha = alpha, power = power, beta = 1 - power, df = df, ncp = ncp, t_crit = t_crit,
+    dz_crit = t_crit / sqrt(n),
+    curves = data.frame(t = t, null = stats::dt(t, df), alternative = stats::dt(t, df, ncp = ncp)),
+    function_used = sprintf("pwr::pwr.t.test(n = %s, d = %s, sig.level = %s, type = \"paired\")", format(n), format(dz), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}
+
+# The one-way ANOVA (Labs): the central and noncentral F with k - 1 and
+# n - k df, the noncentrality lambda = f^2 n, as pwr.anova.test()
+# computes power (pwr 1.3-0's source: lambda = k n f^2 with n per group);
+# the test is one-sided (large F). The smallest significant Cohen's f: F
+# is (SS_effect / df1) / (SS_error / df2) and Cohen's f^2 is SS_effect /
+# SS_error (eta^2 / (1 - eta^2)), so the observed f is sqrt(F df1 / df2).
+
+#' The picture of power for a one-way ANOVA
+#'
+#' What the Labs picture of power draws for a one-way between-participants
+#' ANOVA with equal groups: the F distribution when there is no effect and
+#' when the effect is Cohen's `f`, the critical value, and the numbers
+#' behind them.
+#'
+#' @param n The total number of participants, split into `k` equal groups.
+#' @param f Cohen's f in the population (0 or more).
+#' @param k The number of groups (2 to 10).
+#' @param alpha The significance level.
+#' @param points How many points of each curve to return.
+#' @return A list: `n`, `f`, `k`, `alpha`, `power` (pwr's
+#'   `pwr.anova.test()`), `beta`, `df1`, `df2`, `ncp` (f^2 n), `f_crit`
+#'   (the critical F), `effect_crit` (the smallest observed f that would be
+#'   significant), `curves` (a data frame of `F`, `null` and `alternative`
+#'   densities), `function_used` and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_anova(156, 0.25, k = 3)
+#' picture$power
+power_picture_anova <- function(n, f, k = 3, alpha = 0.05, points = 401) {
+  if (!is.numeric(k) || length(k) != 1 || is.na(k) || k < 2 || k > 10 || k %% 1 != 0) {
+    abort_run("'k' should be a whole number of groups, from 2 to 10.")
+  }
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n %% k != 0 || n / k < 2) {
+    abort_run(sprintf("'n' should split into %d equal groups of at least 2 participants.", k))
+  }
+  if (!is.numeric(f) || length(f) != 1 || is.na(f) || f < 0) {
+    abort_run("'f' should be a Cohen's f of 0 or more.")
+  }
+  picture_check(alpha)
+  df1 <- k - 1
+  df2 <- n - k
+  ncp <- f^2 * n
+  power <- pwr::pwr.anova.test(k = k, n = n / k, f = f, sig.level = alpha)$power
+  f_crit <- stats::qf(1 - alpha, df1, df2)
+  # The F axis covers the critical value and most of the alternative.
+  to <- max(f_crit * 2, stats::qf(0.995, df1, df2, ncp = ncp))
+  values <- seq(0, to, length.out = points)
+  # The F density with one numerator df is infinite at 0: start just above.
+  values[1] <- to / (points * 20)
+  list(
+    design = "anova", n = n, f = f, k = k, alpha = alpha, power = power, beta = 1 - power, df1 = df1, df2 = df2, ncp = ncp,
+    f_crit = f_crit, effect_crit = sqrt(f_crit * df1 / df2),
+    curves = data.frame(F = values, null = stats::df(values, df1, df2), alternative = stats::df(values, df1, df2, ncp = ncp)),
+    function_used = sprintf("pwr::pwr.anova.test(k = %s, n = %s, f = %s, sig.level = %s)", format(k), format(n / k), format(f), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}
+
+# Two proportions (Labs): as pwr.2p.test() computes power, the test
+# statistic is normal with SD 1, centred on 0 with no effect and on
+# h sqrt(n / 2) (n per group) for Cohen's h = 2 asin(sqrt(p2)) -
+# 2 asin(sqrt(p1)) (pwr 1.3-0's source for pwr.2p.test() and ES.h()); the
+# smallest significant h is the critical z times sqrt(2 / n).
+
+#' The picture of power for two proportions
+#'
+#' What the Labs picture of power draws for comparing two groups'
+#' proportions with Cohen's h (pwr's arcsine approximation, two equal
+#' groups): the test statistic's distribution when the groups don't differ
+#' and when they do, the critical values, and the numbers behind them.
+#'
+#' @param n The total number of participants, split into two equal groups
+#'   (an even number, at least 4).
+#' @param p1,p2 The proportion of 'yes' in each group (between 0 and 1).
+#' @param alpha The significance level of the two-sided test.
+#' @param points How many points of each curve to return.
+#' @return A list: `n`, `p1`, `p2`, `h` (Cohen's h, from pwr's `ES.h()`,
+#'   as p2 against p1), `alpha`, `power` (pwr's `pwr.2p.test()`), `beta`,
+#'   `centre` (|h| sqrt(n per group / 2)), `z_crit`, `h_crit` (the
+#'   smallest observed |h| that would be significant), `curves` (a data
+#'   frame of `z`, `null` and `alternative` densities), `function_used`
+#'   and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_2p(194, 0.4, 0.6)
+#' picture$power
+power_picture_2p <- function(n, p1, p2, alpha = 0.05, points = 401) {
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 4 || n %% 2 != 0) {
+    abort_run("'n' should be an even number of participants, at least 4, split into two equal groups.")
+  }
+  for (p in list(p1, p2)) {
+    if (!is.numeric(p) || length(p) != 1 || is.na(p) || p <= 0 || p >= 1) {
+      abort_run("Each proportion should be between 0 and 1.")
+    }
+  }
+  picture_check(alpha)
+  n_group <- n / 2
+  h <- pwr::ES.h(p2, p1)
+  centre <- abs(h) * sqrt(n_group / 2)
+  power <- pwr::pwr.2p.test(h = abs(h), n = n_group, sig.level = alpha, alternative = "two.sided")$power
+  z_crit <- stats::qnorm(1 - alpha / 2)
+  from <- min(-4, -z_crit - 1)
+  to <- max(4, z_crit + 1, centre + 4)
+  z <- seq(from, to, length.out = points)
+  list(
+    design = "two_proportions", n = n, p1 = p1, p2 = p2, h = h, alpha = alpha, power = power, beta = 1 - power,
+    centre = centre, z_crit = z_crit, h_crit = z_crit * sqrt(2 / n_group),
+    curves = data.frame(z = z, null = stats::dnorm(z), alternative = stats::dnorm(z, centre)),
+    function_used = sprintf("pwr::pwr.2p.test(h = ES.h(%s, %s), n = %s, sig.level = %s)", format(p2), format(p1), format(n_group), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}
