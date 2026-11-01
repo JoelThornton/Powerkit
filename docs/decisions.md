@@ -4155,3 +4155,18 @@ needed first.
 - **The fitted model for 58 and 59** leaves out power4mome's residual
   covariance of M with W, which lavaan can't estimate when W predicts M
   (`upstream-questions.md`, power4mome).
+
+## 2026-11-01 · Moderated mediation with a yes/no X or W (E17)
+
+- **Answered by checking, not by asking power4mome's author:** the
+  separately written simulation standardises a yes/no variable by its
+  population mean and SD and forms the product from the standardised
+  variables; powerkit's power agrees with it (the standardisation), and
+  the Type I error with no moderation stays at most alpha (the Monte Carlo
+  interval with a yes/no X).
+- **A yes/no W is tested as the difference between its two groups'
+  conditional indirect effects**, because manymome's `index_of_mome()`
+  treats a two-valued moderator as categorical; for models 7 and 14 that
+  is the index times a constant, so the decision is the same.
+- **A yes/no X or W must be uncorrelated with the other predictor**, as
+  the card already said: `rbinary_rs()` draws it on its own.

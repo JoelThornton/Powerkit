@@ -2,6 +2,18 @@
 
 A batch of new features, built as one round.
 
+* Moderated mediation with a yes/no X, W or both (E17, PROCESS models 7
+  and 14): each drawn by power4mome's `rbinary_rs()` (`population >
+  x_prob`, `w_prob`) and rescaled to mean 0 and SD 1, so paths stay per
+  SD, as for E16's X; a yes/no X or W must be uncorrelated with the other
+  predictor. With a yes/no W, manymome's `index_of_mome()` treats the
+  moderator as categorical and stops, so the test is the difference
+  between the two groups' conditional indirect effects (the index times
+  the distance between W's two rescaled values, from the same Monte Carlo
+  draws: the same decision). Checked against a simulation written
+  separately (a yes/no variable standardised by its population mean and
+  SD, OLS for each equation and its own Monte Carlo interval), with the
+  Type I error at most alpha. A yes/no mediator is still not available.
 * Moderated mediation with W on both links or the direct path (E38,
   templates `process_8`, `process_58` and `process_59`, one mediator):
   these models have no single index of moderated mediation, so the test

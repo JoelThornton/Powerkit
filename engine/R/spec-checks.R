@@ -1797,6 +1797,9 @@ check_modmed_binary <- function(spec) {
     problems <- c(problems, sprintf("With a yes/no %s, X and W must be uncorrelated (a yes/no variable is drawn on its own, as a randomised condition is): remove 'population > correlations > X<->W' or set it to 0.",
       paste(names(binary)[binary], collapse = " and ")))
   }
+  problems
+}
+
 # Models 8, 58 and 59 test the difference between conditional indirect
 # effects; models 7 and 14 the index of moderated mediation.
 check_modmed_effect <- function(spec) {

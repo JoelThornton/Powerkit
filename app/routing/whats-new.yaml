@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Moderated mediation with two groups"
+    text: >-
+      Moderated mediation now also works when the predictor is two groups,
+      such as a randomised condition, when the moderator is two groups, or
+      both.
+  - date: "2026-11-01"
     title: "Moderated mediation where the moderator changes both links"
     text: >-
       A new card plans moderated mediation where the moderator changes

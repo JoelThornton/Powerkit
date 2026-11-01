@@ -117,6 +117,17 @@ power4mome_inputs <- function(spec) {
     nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
     test_name <- "test_indirect_effect"
     test_args <- list(x = "X", m = nodes[-c(1, length(nodes))], y = "Y")
+  } else if (identical(spec$variables$W$type, "binary")) {
+    # A yes/no W (E17): manymome's index_of_mome() treats a moderator with
+    # two values as categorical and stops, so the test is the difference
+    # between the two groups' conditional indirect effects, at W's two
+    # rescaled values. The indirect effect is linear in W (models 7 and
+    # 14), so that difference is the index times the distance between the
+    # values, from the same Monte Carlo draws: the same decision.
+    p <- spec$population$w_prob %||% 0.5
+    test_name <- "test_cond_indirect_diff"
+    test_args <- list(x = "X", m = modmed_mediator(spec), y = "Y", w = "W",
+      w_from = (0 - p) / sqrt(p * (1 - p)), w_to = (1 - p) / sqrt(p * (1 - p)))
   } else if (cond_indirect_difference(spec)) {
     w_values <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
     test_name <- "test_cond_indirect_diff"
@@ -334,10 +345,14 @@ test_cond_indirect_diff <- function(fit = fit, x = NULL, m = NULL, y = NULL, w =
     (suppressWarnings(lavaan::lavInspect(fit, "post.check")) || !check_post_check))
   if (!fit_ok) return(empty)
   out <- tryCatch({
-    levels <- manymome::mod_levels(w = w, fit = fit, values = c(w_to, w_from))
+    # W as a number even when it takes two values (a yes/no W, rescaled):
+    # manymome would otherwise treat it as categorical.
+    levels <- manymome::mod_levels(w = w, fit = fit, w_type = "numeric", values = c(w_to, w_from))
     effects <- manymome::cond_indirect_effects(wlevels = levels, x = x, y = y, m = m, fit = fit, mc_ci = mc_ci, mc_out = mc_out,
       boot_ci = boot_ci, boot_out = boot_out, progress = FALSE, ...)
-    manymome::cond_indirect_diff(effects, from = 2, to = 1)
+    # The rows follow manymome's order, so they are found by value.
+    values <- levels[[1]]
+    manymome::cond_indirect_diff(effects, from = which.min(abs(values - w_from)), to = which.min(abs(values - w_to)))
   }, error = function(e) e)
   if (inherits(out, "error")) return(empty)
   ci <- stats::confint(out)
