@@ -19,7 +19,7 @@ test_that("in the other two routes, every path leaves the screening at an end po
     expect_true(all(is_endpoint_id(ends) | ends == after), label = route)
     expect_true(after %in% ends, label = route)
     # The screening alone: no path reaches a question beyond it.
-    for (p in paths) expect_true(all(p %in% c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", after) | is_endpoint_id(p)), label = paste(p, collapse = " > "))
+    for (p in paths) expect_true(all(p %in% c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", "d1", after) | is_endpoint_id(p)), label = paste(p, collapse = " > "))
   }
 })
 

@@ -21,6 +21,26 @@ A batch of new features, built as one round.
   in group 2, which gives the model's power at any allocation (G\*Power's
   example, r = .25 one-sided with power .95, needs 164). The smallest
   detectable effect is also given as r.
+* A justified alpha (`goal > type` "justified_alpha", at a fixed `goal > n`):
+  the significance level that minimises the weighted total of the two
+  error rates, or (`goal > error_rule` "balance") makes them equal, with
+  JustifyAlpha's `optimal_alpha()` on pwr's power, for the one-sample,
+  paired and two-group t-tests and the correlation. The weights are how
+  many times worse a false positive is than a missed effect
+  (`goal > cost_ratio`, default 1) and the prior odds of an effect
+  (`goal > prior_odds`, default 1). The result gives the alpha, the power
+  and beta at it, and the power at the conventional alpha
+  (`target_test > alpha`) for comparison; the exported script reruns
+  `optimal_alpha()`. Balancing with a cost ratio q is G\*Power's
+  compromise power analysis (Known difference 11: minimising, the
+  default, gives a lower alpha). New dependency: JustifyAlpha (with
+  BayesFactor, qpdf and their dependencies).
+* `power_picture_r()`: the Labs picture of power for a correlation. pwr's
+  `pwr.r.test()` power, with the two normal curves on Fisher's z scale that
+  its formula uses (SD 1 / sqrt(n - 3), centred on 0 and on Fisher's z of r
+  with pwr's bias correction), the critical value from the t test with
+  n - 2 df, and the smallest significant r. The app's power visualiser
+  offers it beside the two-group t-test.
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.
@@ -35,6 +55,165 @@ A batch of new features, built as one round.
   Back from a card returns to the same search and open groups, with focus
   on the analysis just viewed. Layout only: what each analysis opens is
   unchanged.
+* Participants and items in three or more conditions (E63, design
+  `mixed_model`, template `crossed_conditions`): every participant in
+  every condition, a mean per condition, the SDs of participants'
+  averages, of their condition effects (one shared by every condition,
+  `(1 | participant:cond)`), of items' averages and of the residual, and
+  the items split equally between the conditions or (with an optional
+  item-by-condition SD) in every condition. Simulated with simr's
+  `powerSim()`, testing that the conditions differ with lmerTest's
+  Satterthwaite F test (`target_test > effect` "condition"), or one pair
+  (`effect` "pairwise", `comparison`) with its Satterthwaite t test
+  adjusted for all the pairs by `stats::p.adjust()` (`p_adjust`, Holm by
+  default, as on the one-way ANOVA cards). The check run, exported
+  script and simulated data set follow the design. Agrees with a
+  simulation written separately without simr, with the Type I error near
+  alpha; published value to come. Reached from the design finder's
+  question on many trials or stimuli.
+* Participants and items in three or more conditions (E63) may have the
+  conditions between participants (`variables > X > type`
+  "between_factor"): the participants split equally between the
+  conditions, each with a random intercept only
+  (`sd_participant_condition` doesn't apply), every participant
+  responding to every item or to their condition's own block of items.
+  The check run allows for the residual noise in each group's estimate
+  when it checks an SD. Checked against a simulation written separately,
+  with the Type I error near alpha.
+* A yes/no outcome on each trial (correct or not) for participants and
+  items (E33 and E63, `variables > Y > type` "binary", `population >
+  metric` "probability"): each condition's chance of "yes" for a typical
+  participant and item (`population > probabilities`), every SD on the
+  log-odds scale and no residual SD, simulated as a logistic mixed model
+  (simr's `makeGlmer()`, lme4's `glmer()`). The test is the Wald test
+  (`target_test > method` "wald": glmer's z test for two conditions,
+  simr's Wald chi-square through car for three or more, car's
+  `linearHypothesis()` for a pair) or the likelihood-ratio test
+  ("likelihood_ratio"; for a pair, against the model in which that pair
+  shares a mean). The app's default is the Wald test for two
+  conditions and the likelihood-ratio test for three or more, simr's
+  default for a factor: there, with no difference, the Wald chi-square
+  test rejected 6.2% of 2,000 simulated studies at alpha .05 and the
+  likelihood ratio 5.65%. New dependency: car (already installed with
+  simr).
+  Checked against a simulation written separately with glmer, with the
+  Type I error near alpha. The design finder's question on many trials
+  or stimuli takes yes/no outcomes to these cards.
+* Dyadic data (E44, design `dyadic`, template `apim`): the actor-partner
+  interdependence model for pairs of people, each member's X predicting
+  their own Y (actor) and their partner's (partner), with the members'
+  X correlated (`r_x`) and their Y residuals correlated (`r_y`), as
+  standardised paths. Distinguishable members (`population >
+  distinguishable` true, `members`) have their own actor and partner
+  effects (`actor_1`, `actor_2`, `partner_12`, `partner_21`);
+  indistinguishable members share one of each (`actor`, `partner`),
+  fitted with the two constrained equal. Simulated with power4mome (the
+  model fitted by lavaan in every replication), the chosen effect tested
+  by `test_parameters()`, lavaan's Wald z test; n is the number of pairs.
+  The check run, exported script and simulated data set (one row per
+  pair) follow the design. Agrees with a simulation written separately
+  (MASS and lavaan), with the Type I error near alpha; published value to
+  come. App: the design finder asks pairs what the hypothesis involves
+  (D1): something measured on each member (E44), conditions given to
+  whole pairs (the cluster-randomised card, groups of two) or another
+  design (E65, not yet covered); the result screen counts pairs.
+* Dyadic data (E44): several effects tested together (`target_test >
+  effect` "actor_and_partner" for indistinguishable members, or
+  "both_partners", "both_actors" and "all_four" for distinguishable
+  ones): joint power, the share of simulated studies in which every one
+  is significant, each effect tested on the same fitted models.
+* Meta-analysis subgroups (E61, template `subgroups`): does the average
+  effect differ between kinds of study (a categorical moderator, such as
+  lab against online)? The studies are split equally between the kinds,
+  each with its own average effect (`population > effects`), and the test
+  is the between-groups Q test: metapower's `mod_power()` under the
+  fixed-effect model and on request under the random-effects model
+  (checked against simulated meta-analyses first: 55.8% against 57.2%
+  for the fixed-effect model, 31.9% against 33.9% for the random-effects
+  model), or by default under the random-effects model the Hartung-Knapp
+  test (metafor's `rma()` with the kinds as a moderator, `test = "knha"`,
+  simulated with Spower; Departure 18). The card asks what the
+  meta-analysis tests.
+* Trend tests across three or more groups in a set order, both simulated
+  with Spower by powerkit's own experiments. The Jonckheere-Terpstra test
+  of a trend in scores (template `oneway_between` with `target_test >
+  method` "jonckheere_terpstra"; PMCMRplus's `jonckheereTest()`, normal
+  approximation) on normal, skewed or heavy-tailed scores, and the
+  Cochran-Armitage test of a trend in proportions (new template
+  `proportion_trend`; `stats::prop.trend.test()` with optional scores,
+  default 1, 2, 3, ...). Both are one- or two-sided (`target_test >
+  alternative`: "greater" is a rise along the order) and take unequal
+  groups (`options > group_ratio`, whole numbers; attrition is allowed for
+  in each group's share). A one-sided Cochran-Armitage test halves
+  prop.trend.test()'s two-sided p-value when the observed trend goes the
+  way predicted, which is the one-sided p-value of the Cochran-Armitage z
+  statistic. `jonckheereTest()` is given the scores and their groups,
+  because given a list it ignores `alternative`
+  (docs/upstream-questions.md). For the example design (means 10, 11, 13,
+  SD 6, 20 per group) the Jonckheere-Terpstra test has power .31 against
+  the Kruskal-Wallis test's .23. Exported scripts reproduce every variant;
+  validation chunk `trend` (`test-validation-trend.R`).
+* The mixed designs and the two-factor within design take an SD per cell
+  and correlations per pair, as the one-way repeated-measures design does:
+  the 2 x 2 mixed design (`template` "2x2_mixed") an SD per cell and a
+  correlation per group; the larger mixed design ("mixed") an SD per cell
+  and a correlation per pair of the within factor's levels, the same in
+  every group; the two-factor within design ("factorial_within") an SD
+  per cell and a correlation per pair of cells. Superpower's
+  `ANOVA_design()` takes them as the whole correlation matrix (0 between
+  groups). The mixed and within designs take a sphericity correction
+  (`target_test > correction` "GG" or "HF", Superpower's `correction`),
+  and the MANOVA approach is shown beside the F test. For the interaction
+  in a 2 x 3 mixed design (SDs 6, 7, 8 and 6, 8, 10; correlations 0.6,
+  0.4, 0.6; n = 40) power is 26.7% uncorrected and 25.0% with
+  Greenhouse-Geisser. The result screen and write-up no longer say that
+  sphericity is assumed when the SDs or correlations differ (this also
+  corrects the one-way repeated-measures card's wording).
+
+* Precision planning (design "precision", E46): the sample size for a
+  target confidence-interval width (`goal > type` "precision" with
+  `goal > width`), or the width expected at a given n (`goal > n`), rather
+  than power. Cohen's d between two equal groups, d_z for paired scores and
+  a standardised mean by MBESS's `ss.aipe.smd()` and `ss.aipe.sm()`, with an
+  optional `goal > assurance` (the chance the interval is no wider than the
+  target), and the interval at n by `ci.smd()` and `ci.sm()`; a correlation
+  (Pearson's, Spearman's or Kendall's) and a proportion (Wilson's interval
+  by default, or Agresti-Coull, exact or Wald) by presize's `prec_cor()`
+  and `prec_prop()`. The confidence level is `1 - target_test > alpha`.
+  The result gives n, the expected interval and its width; the exported
+  script reruns the package call. MBESS restores the warning level it
+  changes. New dependencies: MBESS (with OpenMx and its dependencies) and
+  presize. New validation chunk: `precision`.
+* Simulated data sets (`simulated_data()` and the R script's data section)
+  for the designs that had none: multiple regression's R-squared tests
+  (independent standard normal predictors, equal weights within each
+  set), logistic and Poisson regression with other predictors (one
+  column, `Other_predictor`, sharing their R-squared with X and with no
+  effect of its own), the two-way ANCOVA, the Cochran-Armitage trend test,
+  multisite trials (site means and site effects with the ICCs
+  `multisite.cont()` defines), yes/no outcomes in cluster-randomised,
+  multisite and group treatment trials (the logistic models
+  `crt.parallel.bin()` and `multisite.bin()` assume, and beta-distributed
+  group proportions with the ICC for `irgtt.bin()`), a baseline score in
+  cluster trials (explaining `baseline_r2_between` between groups and
+  `baseline_r2_within` within them) and precision planning. Each choice
+  the plan leaves open is stated by `simulated_data_note()`. Still
+  without: the three-way interaction, meta-analysis, SEM, McNemar's test
+  and the generic tests.
+* `bayes_planning()`: the Labs Bayesian planning tool for a Bayes factor
+  t-test (one sample, paired or two groups) at a fixed sample size. The
+  analysis prior (a Cauchy prior with the scale chosen) and the design
+  prior (a normal belief about the effect, with an SD for uncertainty) are
+  set apart, as bfpwr keeps them. It returns bfpwr's chances of strong
+  evidence for an effect, strong evidence for no effect and neither, both
+  under the design prior and with no effect (`ptbf01()`); the largest
+  evidence for no effect the study can give (`tbf01()` at t = 0); the
+  sample size for a chosen chance of strong evidence for an effect
+  (`powertbf01()`); the curves against the sample size; and the two
+  priors' densities. At 120 per group, d about 0.5 give or take 0.15 and a
+  threshold of 10: 71.1% for an effect, 0% for no effect (BF01 can reach
+  only 7.1), and 159 per group for 80%. Checked against simulated Bayes
+  factors (`test-validation-bayes-factor.R`, section 5).
 
 # powerkit 0.26.0
 

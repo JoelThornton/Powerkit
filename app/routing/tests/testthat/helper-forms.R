@@ -25,12 +25,12 @@ form_examples <- list(
                Y_label = "Wellbeing", r_X_Y = "0.2", r_W_Y = "-0.3", r_XW_Y = "0.15", r_X_W = "0", rel_W = "0.85"), closing_ok),
   E8 = c(list(A_label = "Group", A_level1 = "Waitlist", A_level2 = "Therapy", B_label = "Time",
               B_level1 = "Pre", B_level2 = "Post", Y_label = "Depression score", metric = "standardised",
-              m11 = "0", m12 = "0", m21 = "0", m22 = "-0.4", sd = "1", r = "0.6", effect = "interaction", method = "exact"), closing_ok),
+              m11 = "0", m12 = "0", m21 = "0", m22 = "-0.4", spread = "same", sd = "1", r = "0.6", effect = "interaction", method = "exact"), closing_ok),
   E9 = c(list(X_label = "Daily stress", W_label = "Social support", Y_label = "Sleep quality",
               r_X_Y = "-0.3", r_W_Y = "0.2", r_XW_Y = "0.1", r_X_W = "-0.1", rel_X = "0.8", rel_W = "0.85"), closing_ok),
   E10 = c(list(X_label = "Workload", M_label = "Exhaustion", Y_label = "Turnover intention",
                p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0.1"), closing_ok),
-  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", crossed_participants = "within_factor", difference = "20",
+  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous", difference = "20",
                sd_participant = "60", sd_participant_slope = "25", r_participant = "0.2", sd_item = "30", sd_residual = "120",
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
@@ -48,13 +48,13 @@ form_examples <- list(
   E54 = c(list(A_label = "Task difficulty", A_levels = "Easy, Medium, Hard", Y_label = "Reaction time (ms)",
                metric = "raw", means = "600, 620, 650", spread = "same", sd = "100", r = "0.6", test_version = "anova_f", method = "exact"), closing_ok),
   E55 = c(list(A_label = "Group", A_levels = "Therapy, Waiting list", B_label = "Time", B_levels = "Before, After, Follow-up",
-               Y_label = "Anxiety score", metric = "raw", means = "20, 16, 15\n20, 19, 18.5", sd = "6", r = "0.5",
+               Y_label = "Anxiety score", metric = "raw", means = "20, 16, 15\n20, 19, 18.5", spread = "same", sd = "6", r = "0.5",
                effect = "interaction", method = "exact"), closing_ok),
   E56 = c(list(A_label = "Group", A_levels = "Control, Training", B_label = "Time", B_levels = "Before, After",
                C_label = "Task difficulty", C_levels = "Easy, Hard", Y_label = "Accuracy", within = "BC", metric = "raw",
                means = "80, 60\n81, 61\n80, 60\n84, 70", sd = "12", r = "0.5", effect = "interaction_ABC", method = "exact"), closing_ok),
   E20 = c(list(A_label = "Cue", A_levels = "Valid, Invalid", B_label = "Delay", B_levels = "Short, Medium, Long",
-               Y_label = "Reaction time (ms)", metric = "raw", means = "400, 410, 420\n430, 450, 470", sd = "80", r = "0.6",
+               Y_label = "Reaction time (ms)", metric = "raw", means = "400, 410, 420\n430, 450, 470", spread = "same", sd = "80", r = "0.6",
                effect = "interaction", method = "exact"), closing_ok),
   E21 = c(list(A_label = "Feedback", A_levels = "None, Praise", B_label = "Task difficulty", B_levels = "Easy, Medium, Hard",
                Y_label = "Persistence (minutes)", metric = "standardised", means = "0, 0, 0\n0.1, 0.3, 0.5", sd = "1",
@@ -89,6 +89,11 @@ form_examples <- list(
   E52 = c(list(Y_label = "Reaction time", var = "1", var0 = "1.5", alternative = "less"), closing_ok),
   E53 = c(list(G_label = "Group", G_level1 = "Trained", G_level2 = "Untrained", Y_label = "Reaction time",
                var1 = "1.5", var2 = "1", alternative = "two_sided"), closing_ok),
+  E64 = c(list(A_label = "Dose", A_levels = "None, Low, High", Y_label = "Wellbeing",
+               metric = "raw", means = "10, 11, 13", sd = "6", score_shape = "normal", group_ratio = "1, 1, 2",
+               alternative = "greater"), closing_ok),
+  E66 = c(list(X_label = "Weekly sessions", X_levels = "None, One, Two, Three", Y_label = "Recovered",
+               proportions = "0.2, 0.25, 0.3, 0.35", scores = "0, 1, 2, 3", alternative = "two_sided"), closing_ok),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)
@@ -159,13 +164,23 @@ form_examples$E60 <- c(list(Y_labels = "Anxiety, Depression, Stress", means = "2
 
 # E61: a planned meta-analysis of two-group studies (Valentine, Pigott and
 # Rothstein's 2010 example: d = 0.15, 40 per study, moderate heterogeneity).
-form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_metric = "d", meta_effect = "0.15", study_size = "40",
+form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "mean_effect", meta_metric = "d", meta_effect = "0.15", study_size = "40",
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E62: pupils in classes; a cross-level interaction.
 form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience",
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
+
+# E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
+form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",
+                            means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
+                            sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
+                            comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
+
+# E44: couples, indistinguishable; the partner effect.
+form_examples$E44 <- c(list(X_label = "Daily stress", Y_label = "Relationship satisfaction", distinguishable = "false",
+                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", r_x = "0.2", r_y = "0.3"), closing_ok)
 
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
@@ -188,3 +203,9 @@ form_examples$E29 <- c(list(X_label = "Condition", X_level1 = "Usual care", X_le
 form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", B_label = "Messenger", B_levels = "Doctor, Friend, Celebrity",
                             Y_label = "Booked a flu jab", probabilities = "0.3, 0.4, 0.25\n0.4, 0.45, 0.3",
                             effect = "main_effect_A"), closing_ok)
+
+# E46: precision planning, a proportion (presize; MBESS cases are in
+# test-results.R).
+form_examples$E46 <- list(estimate = "proportion", Y_label = "Reports burnout", p = "0.3", p_method = "wilson",
+  goal = "precision_n", width = "0.1", conf_level = "0.95",
+  just_type = "smallest_effect_of_interest", just_source = "Example only")

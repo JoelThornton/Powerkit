@@ -13,16 +13,21 @@ library(psych)     # safeguard power's confidence interval
 
 # Backends
 library(bfpwr)
+library(car)
 library(InteractionPoweR)
+library(JustifyAlpha) # a justified alpha (optimal_alpha())
 library(lavaan)
 library(lme4)      # E33's mixed model (with simr)
 library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
+library(MBESS)     # precision planning for Cohen's d (ss.aipe.smd(), ss.aipe.sm())
 library(metafor)   # E61's Hartung-Knapp test (rma(test = "knha")), simulated
 library(metapower) # E61's planned meta-analysis
 library(power4mome)
 library(powertools)
 library(PUMP)      # joint power for several outcomes in the study plan
+library(PMCMRplus) # the Jonckheere-Terpstra test (jonckheereTest())
+library(presize)   # precision planning for a correlation and a proportion
 library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
 library(semPower)

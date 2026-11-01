@@ -13,9 +13,10 @@ test_that("nothing is required, scored or marked complete", {
   expect_no_match(html, "aria-required|required=|\\(required\\)", perl = TRUE)
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
-  # picture of power's alpha starts at .05, its default.)
+  # picture of power's alpha starts at .05, and the Bayesian planning tool's
+  # hypothesis and threshold at their defaults.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"picture_alpha\"", checked, fixed = TRUE)))
+  expect_true(all(grepl("name=\"(picture_alpha|bayes_alternative|bayes_threshold)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -102,7 +103,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 4)
+  expect_length(labs_tools, 5)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 
@@ -223,4 +224,55 @@ test_that("the picture of power shows the engine's curves and numbers, and compu
   # Lakens (2013) is in refs.bib.
   bib <- paste(readLines(file.path(repo_dir, "engine", "inst", "citations", "refs.bib"), encoding = "UTF-8"), collapse = "\n")
   expect_match(bib, "@Article{Lakens2013_effectsizes", fixed = TRUE)
+})
+
+test_that("the picture of power also shows a correlation, from the engine's power_picture_r()", {
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "A correlation (Pearson&#39;s r)|A correlation \\(Pearson's r\\)")
+  picture <- engine_function("power_picture_r")
+  skip_if(is.null(picture), "powerkit's engine isn't available here")
+  p84 <- picture(84, 0.3, alpha = 0.05)
+  text <- as.character(picture_numbers(p84))
+  expect_match(text, sprintf("%.1f%%", 100 * p84$power), fixed = TRUE)
+  expect_match(text, sprintf("%.3f", p84$r_crit), fixed = TRUE)
+  expect_match(text, "Smallest significant r", fixed = TRUE)
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file)
+  on.exit(unlink(file))
+  expect_no_error(picture_plot(p84))
+  grDevices::dev.off()
+})
+
+test_that("Bayesian planning shows the engine's outcomes under the belief and with no effect, and no single power figure", {
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "Bayesian planning", fixed = TRUE)
+  expect_match(html, "data-display-if=\"input.labs_tool == &#39;bayes&#39;\"|data-display-if=\"input.labs_tool == 'bayes'\"")
+  for (id in c("bayes_type", "bayes_n", "bayes_scale", "bayes_effect", "bayes_effect_sd", "bayes_threshold", "bayes_target", "bayes_run")) {
+    expect_match(html, sprintf("id=\"%s\"", id), fixed = TRUE)
+  }
+  # The analysis prior and the design prior are asked for apart.
+  expect_match(html, "The analysis prior", fixed = TRUE)
+  expect_match(html, "The design prior", fixed = TRUE)
+  plan_of <- engine_function("bayes_planning")
+  skip_if(is.null(plan_of), "powerkit's engine isn't available here")
+  plan <- plan_of(120, effect = 0.5, effect_sd = 0.15)
+  text <- as.character(bayes_numbers(plan))
+  pct <- function(x) sprintf("%.1f%%", 100 * x)
+  for (x in unlist(plan$outcomes[c("for_effect", "for_null", "neither")])) expect_match(text, pct(x), fixed = TRUE)
+  expect_match(text, "If the effect is about 0.5 (give or take 0.15)", fixed = TRUE)
+  expect_match(text, "If there is no effect", fixed = TRUE)
+  expect_match(text, "misleading", fixed = TRUE)
+  expect_match(text, sprintf("under your belief: %s in each group", plan$n_needed), fixed = TRUE)
+  expect_match(text, "can never reach 10 in favour of no effect", fixed = TRUE)
+  expect_match(text, "Pawel", fixed = TRUE)
+  expect_no_match(text, "\\bpower(ed)? (is|of)\\b|justified|adequate|sufficient power|well-powered", perl = TRUE)
+  expect_no_match(text, "few points lower", fixed = TRUE)
+  expect_match(as.character(bayes_numbers(plan_of(20, effect = 0.5))), "few points lower", fixed = TRUE)
+  expect_no_error(bayes_priors_plot(plan))
+  expect_no_error(bayes_curves_plot(plan))
+  expect_no_error(bayes_priors_plot(plan_of(40, effect = 0.3, alternative = "greater")))
+  # The engine's refusals come back in the form's words, never R's.
+  refusal <- tryCatch(plan_of(2), error = bayes_problem)
+  expect_match(refusal, "^The sample size should be")
+  expect_match(bayes_problem(simpleError("subscript out of bounds")), "something went wrong", fixed = TRUE)
 })

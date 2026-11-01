@@ -149,7 +149,7 @@ power while matching G\*Power) is folded there instead
 | InteractionPoweR | Not covered | | |
 | power4mome | Not covered: to check | | |
 | Spower | to check | to check | to check |
-| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, SD(s) and `r` | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Superpower and unequal group sizes" below). |
+| **powerkit** | `ANOVA_exact()` by default; `ANOVA_power()` on request [powerkit] | Cell means, one SD or one per cell, and `r`: one correlation, or (from 1 November 2026) one per group, which Superpower takes as the whole correlation matrix (0 between groups; `test-backend-factorial-covariance.R`) | Reproduces the 91.25% and 98.98% that [SP-vig] reports from G*Power's within-between interaction; the G*Power setting behind those values is to check (see Departure 2). `goal.n` is the total number analysed and must be even. Equal group sizes only (see "Superpower and unequal group sizes" below). |
 
 ### One-way repeated measures (one within factor, three or more levels)
 
@@ -165,7 +165,7 @@ power while matching G\*Power) is folded there instead
 | --- | --- | --- | --- |
 | G*Power | "ANOVA: Repeated measures, within-between interaction" (and "between factors", "within factors" for the main effects). The manual has no section on them [GP-man, contents]; see the 2 x 2 mixed row above | As the 2 x 2 mixed row | To check (maintainer, in G*Power) |
 | Superpower | `ANOVA_exact()` on the design `"kb*mw"` (for example `"2b*3w"`), `ANOVA_power()` for simulation [SP-src]. `ANOVA_exact()` refuses a design whose n per group is not greater than the number of cells ("n <= the product of the factors") [SP-src] | Cell means, SD(s) and `r` | `correction` `"none"` by default [SP-src] |
-| **powerkit** | As the 2 x 2 mixed design: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per group), **one** SD and **one** correlation between every pair of the within factor's levels | No sphericity correction, which compound symmetry makes unnecessary (not a departure). Equal groups only; `goal.n` is the total, a multiple of the number of groups. Exact power needs more people per group than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`] |
+| **powerkit** | As the 2 x 2 mixed design: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per group), one SD and one correlation between every pair of the within factor's levels, or (from 1 November 2026, means in the user's units) an SD per cell and a correlation per pair of the within factor's levels, the same in every group | Superpower's default, no sphericity correction, unless `target_test > correction` asks for `"GG"` or `"HF"`. With one SD and one correlation sphericity holds and the corrections change nothing; with unequal ones they matter: for the interaction with SDs 6, 7, 8 and 6, 8, 10 and correlations 0.6, 0.4, 0.6 at n = 40, 26.7% uncorrected, 25.0% with Greenhouse-Geisser, 25.6% with Huynh-Feldt, and the MANOVA approach 26.2% (`test-backend-factorial-covariance.R`). Not a departure: the default follows Superpower and G\*Power's epsilon of 1. Equal groups only; `goal.n` is the total, a multiple of the number of groups. Exact power needs more people per group than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`] |
 
 ### Two-factor designs: both between (beyond 2 x 2) or both within
 
@@ -173,7 +173,7 @@ power while matching G\*Power) is folded there instead
 | --- | --- | --- | --- |
 | G*Power | Both between: "ANOVA: Fixed effects, special, main effects and interactions", from f and the numerator df [GP-man, contents]. Both within: "ANOVA: Repeated measures, within factors", which takes one within factor; a second within factor has to be folded into it by hand. The manual has no section on repeated measures [GP-man, contents] | f (both between); f with the correlation among repeated measures and the nonsphericity correction epsilon (within) | To check (maintainer, in G*Power) |
 | Superpower | `ANOVA_exact()` on the design `"kb*mb"` (both between, for example `"2b*3b"`) or `"kw*mw"` (both within, for example `"2w*3w"`), `ANOVA_power()` for simulation [SP-src]. For a between design `n` is per cell | Cell means, SD(s) and `r` | `correction` `"none"` by default [SP-src] |
-| **powerkit** | As the mixed designs: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per level of the first factor), **one** SD; for the within design **one** correlation between every pair of cells | No sphericity correction, which compound symmetry makes unnecessary (not a departure). Both between: 2 x 2 uses its own template (E7, which also takes an SD per cell); equal cells, `goal.n` is the total, a multiple of the number of cells. Both within: 2 x 2 and larger; the correlation must be above -1 / (cells - 1) for one correlation to fit every pair. Exact power needs more people per cell than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`, `engine/R/spec-checks.R`] |
+| **powerkit** | As the mixed designs: `ANOVA_exact()` by default, `ANOVA_power()` on request [powerkit] | Cell means (one row per level of the first factor), **one** SD; for the within design one correlation between every pair of cells, or (from 1 November 2026) an SD per cell and a correlation per pair of cells, the upper triangle row by row as `ANOVA_design()` takes it | Both between: no correction is needed. Both within: Superpower's default, no sphericity correction, unless `target_test > correction` asks for `"GG"` or `"HF"` (not a departure; `test-backend-factorial-covariance.R`). Both between: 2 x 2 uses its own template (E7, which also takes an SD per cell); equal cells, `goal.n` is the total, a multiple of the number of cells. Both within: 2 x 2 and larger; the correlation must be above -1 / (cells - 1) for one correlation to fit every pair. Exact power needs more people per cell than cells, and at least 5 [powerkit, `engine/R/backend-superpower.R`, `engine/R/spec-checks.R`] |
 
 ### Planned comparisons (contrasts)
 
@@ -428,6 +428,39 @@ for the maintainer, not yet made.
 | simr | `powerSim()` simulates data sets from a model built with `makeLmer()` (fixed effects, `VarCorr`, `sigma`) and refits each with lme4; `fixed(xname, method)` tests one fixed effect [simr help] | The model's own parameters, in the outcome's units | `fixed()`'s default `method = "z"` treats the t statistic as normal (its help calls it an asymptotic approximation for models not fitted with `glmer`); `"sa"` is lmerTest's Satterthwaite t test, `"kr"` Kenward-Roger. A data set whose fit or test fails counts as not significant |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E33, from 30 October 2026) [powerkit] | The difference between conditions and the SDs of participants' intercepts and condition slopes (with their correlation), items' intercepts (and slopes, with items in both conditions) and the residual, in the outcome's units; the condition coded -0.5 and 0.5 | `y ~ cond + (1 + cond \| participant) + (1 \| item)`, every participant responding to every item; items in one condition each (half per condition) or in both. With the conditions between participants (X a between factor, from 31 October 2026), `y ~ cond + (1 \| participant) + (1 \| item)` (or `(1 + cond \| item)` with items in both conditions), half the participants in each condition, each responding to every item or to their condition's half. `goal.n` is the number of participants, the number of items fixed. The Satterthwaite test is Departure 16 |
 
+With a yes/no outcome on each trial (E33, from 1 November 2026) the model
+is a logistic mixed model (simr's `makeGlmer()`, lme4's `glmer()`), each
+condition's probability that of a typical participant and item and every
+SD on the log-odds scale. The default test is glmer's Wald z test, simr's
+default for a numeric predictor; the likelihood-ratio test is offered.
+With powerkit's yes/no example (70% and 80% correct, 40 items, 30
+participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
+
+## Dyadic data: actor and partner effects (E44)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for dyadic data | — | — |
+| apimpower | A web app for APIM power; not callable from R, not compared | — | — |
+| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
+
+## Participants and items in three or more conditions (E63)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for crossed random effects | — | — |
+| simr | `powerSim()` on a model built with `makeLmer()`; for a factor, `fixed(xname)` tests by a likelihood ratio by default [simr help] | The model's own parameters | — |
+| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
+
+
+With a yes/no outcome (from 1 November 2026) the default test of the
+conditions is the likelihood-ratio test, simr's default for a factor,
+with glmer's Wald chi-square test (simr's "chisq", through car) offered;
+a pair is tested by car's Wald test of its contrast or by the likelihood
+ratio against the model in which the pair shares a mean. With three
+conditions (70%, 80% and 75%), 60 items and 30 participants, over 1,000
+simulated data sets: 58.3% with the likelihood ratio and 61.7% with Wald;
+with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
 ## People within groups, predictors at both levels (two-level model, E62)
 
 | Tool | Test | Effect size | Settings |
@@ -962,11 +995,16 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   (pupils in classes of 20; `inst/specs/mixed_two_level.json`) and 1,000
   simulated data sets, the group-level effect at 10 classes has 21.6%
   power with Satterthwaite and 31.4% with z, and at 40 classes 78.4% and
-  80.6%; the cross-level interaction at 10 classes 16.2% and 22.6%.
+  80.6%; the cross-level interaction at 10 classes 16.2% and 22.6%. With
+  three or more conditions (E63, from 31 October 2026) the F test of the
+  conditions is lmerTest's Satterthwaite F rather than simr's default for
+  a factor, a likelihood-ratio test: with powerkit's example
+  (`inst/specs/crossed_conditions.json`) and 1,000 simulated data sets,
+  21.5% against 22.9% at 20 participants, 31.1% against 32.3% at 40.
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's and E62's result screens
+- **Shown to users:** on E33's, E62's and E63's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")
@@ -995,7 +1033,13 @@ and Bonferroni first); Holm's method as the default is powerkit's.
   Bonferroni's power against `stats::power.t.test()` at alpha / 3.
 - **Shown to users:** on the E18 and E54 result screens when pairwise
   comparisons are adjusted (`app/routing/forms.yaml`, `departures`, key
-  "17"), and in the methods paragraph's full version.
+  "17"), and in the methods paragraph's full version; on E63's (three or
+  more conditions with participants and items, from 31 October 2026),
+  where the pair Neutral against Happy in powerkit's example has 25.0%
+  power with Holm's adjustment, 24.4% with Bonferroni's and 38.3% with
+  none at 40 participants (1,000 simulated data sets;
+  `test-backend-crossed-conditions.R` checks the order on the same data
+  sets).
 
 ### 18. Meta-analysis: the Hartung-Knapp test by default, not metapower's z test
 
@@ -1019,7 +1063,10 @@ preregistered test.
   fixed-effect model keeps the z test.
 - **Size:** less power, most with few studies: for d = 0.15, 40 per
   study, I-squared 0.5 and ten studies, about 16.5% against 21.4% with
-  the z test.
+  the z test. For subgroups (the test that kinds of study differ, from 1
+  November 2026; 20 studies of 40, d = 0.2 against 0.5, I-squared 0.5):
+  29.3% (2,000 simulated meta-analyses, Monte Carlo SE 1.0) against
+  31.9% with metapower's `mod_power()`.
 - **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
   the difference"; `test-validation-meta-analysis.R` checks the
   simulated power against a separately written simulation of IntHout et
@@ -1027,7 +1074,10 @@ preregistered test.
 - **Shown to users:** on the E61 result screen when the Hartung-Knapp test
   is used (`app/routing/forms.yaml`, `departures`, key "18"), and in the
   methods paragraph's full version. Known difference 9 (metapower's
-  rounding) then doesn't apply and isn't shown.
+  rounding) then doesn't apply and isn't shown, nor for subgroups, whose
+  `mod_power()` doesn't round. `test-validation-meta-subgroups.R` checks
+  the subgroup test against metafor called directly and its Type I
+  error.
 
 ## Known differences
 
@@ -1469,3 +1519,25 @@ Wired into the app on 18 October 2026 (E25, E26).*
   screens when the minimum-effect test is chosen (`app/routing/forms.yaml`,
   `known_differences`, key "10").
 - **Methods paragraph:** `known_differences_methods`, key "10".
+
+### 11. Justified alpha: minimising the weighted errors by default, where G\*Power's compromise balances them
+
+- **What differs:** a justified alpha (goal "justified_alpha", 31 October
+  2026) is found with JustifyAlpha's `optimal_alpha()`, whose default,
+  `error = "minimize"`, chooses the alpha that makes the weighted total of
+  the two error rates smallest. G\*Power's compromise power analysis takes
+  the ratio q = β/α and finds the alpha at which beta is q times alpha
+  (`docs/decision-tree.md`, analysis types): the same as `optimal_alpha()`
+  with `error = "balance"`, `costT1T2 = q` and `priorH1H0 = 1`. powerkit
+  follows JustifyAlpha's default and offers the balanced version as a
+  choice ("Make the weighted errors equal").
+- **Size:** for d = 0.5 and 64 people in two equal groups (two-sided,
+  equal weights), alpha is .184 (power 74.5%) when minimising and .221
+  (power 77.8%) when balancing.
+- **Test:** `engine/tests/testthat/test-backend-justify-alpha.R`,
+  "minimising the weighted errors gives a lower alpha than balancing them,
+  as G\*Power's compromise does (Known difference 11)".
+- **Shown to users:** on the one-sample, paired, two-group and correlation
+  result screens when the goal is a justified alpha
+  (`app/routing/forms.yaml`, `known_differences`, key "11").
+- **Methods paragraph:** `known_differences_methods`, key "11".

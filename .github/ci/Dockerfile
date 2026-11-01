@@ -18,14 +18,15 @@ LABEL org.opencontainers.image.source="https://github.com/JoelThornton/Powerkit"
 
 # System libraries. libglpk: igraph links to it (igraph comes in through
 # manymome, which power4mome needs). The rest are what the binaries of
-# curl, openssl, igraph, V8 and httpuv load, and git, which actions/checkout
-# and scripts/run-validation.R use. If a package fails to load in the check
+# curl, openssl, igraph, V8, httpuv, qpdf (libjpeg; qpdf comes in
+# through JustifyAlpha) and Rmpfr (libmpfr; through PMCMRplus) load, and
+# git, which actions/checkout and scripts/run-validation.R use. If a package fails to load in the check
 # below with "cannot open shared object file: libX.so", add the Ubuntu
 # package that provides libX here.
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       git ca-certificates \
-      libglpk-dev libgmp-dev libxml2-dev \
+      libglpk-dev libgmp-dev libjpeg-dev libmpfr-dev libxml2-dev \
       libcurl4-openssl-dev libssl-dev zlib1g-dev \
       libnode-dev libsodium-dev libzstd-dev \
  && rm -rf /var/lib/apt/lists/*

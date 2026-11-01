@@ -93,12 +93,13 @@ if (!exists("%||%", mode = "function")) {
 
 validation_chunks <- function() {
   list(
-    basic = "test-validation-basic-tests.R",
+    basic = c("test-validation-basic-tests.R", "test-validation-justified-alpha.R"),
     variances = "test-validation-variance-tests.R",
     manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
     rank = c("test-validation-rank-tests.R", "test-validation-friedman.R"),
     bayes = "test-validation-bayes-factor.R",
-    meta = "test-validation-meta-analysis.R",
+    meta = c("test-validation-meta-analysis.R", "test-validation-meta-subgroups.R"),
+    dyadic = "test-validation-apim.R",
     anova = c(
       "test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R",
       "test-validation-anova-oneway-within.R", "test-validation-anova-mixed.R",
@@ -126,12 +127,14 @@ validation_chunks <- function() {
     two_correlations = "test-validation-two-correlations.R",
     generic = "test-validation-generic-tests.R",
     equivalence = c("test-validation-equivalence-tests.R", "test-validation-minimum-effect.R"),
+    trend = "test-validation-trend.R",
+    precision = "test-validation-precision.R",
     whole_study = "test-validation-whole-study-crosscheck.R",
     cluster = "test-validation-cluster-randomised.R",
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",
     sem_latent = "test-validation-sem-latent.R",
-    mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R")
+    mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R", "test-validation-crossed-conditions.R", "test-validation-crossed-binary.R")
   )
 }
 
@@ -139,13 +142,13 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, variances = 2, manova = 3, rank = 2, bayes = 1, meta = 3, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
+  c(basic = 0.3, variances = 2, manova = 3, rank = 2, bayes = 1, meta = 3, dyadic = 10, anova = 15, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
-    contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3,
+    contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1,
     whole_study = 90, cluster = 0.3, multisite = 0.3, sem_fit = 0.3,
-    sem_latent = 0.3, mixed_model = 15)
+    sem_latent = 0.3, mixed_model = 300)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

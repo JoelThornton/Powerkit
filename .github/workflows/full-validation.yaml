@@ -76,6 +76,7 @@ on:
           - rank
           - bayes
           - meta
+          - dyadic
           - process_4
           - process_4_binary
           - process_6
@@ -94,6 +95,8 @@ on:
           - two_correlations
           - generic
           - equivalence
+          - trend
+          - precision
           - whole_study
           - cluster
           - multisite

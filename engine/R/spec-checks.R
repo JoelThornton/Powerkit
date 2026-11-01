@@ -13,7 +13,10 @@ population_problems <- function(spec) {
       if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
     },
     ordinal_regression = check_ordinal_two_groups,
-    mixed_model = function(spec) if (identical(spec$template, "two_level")) character() else check_crossed_two_condition(spec),
+    mixed_model = function(spec) {
+      switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
+        c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
+    },
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -22,24 +25,34 @@ population_problems <- function(spec) {
     moderated_mediation = check_path_model,
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test,
-    meta_analysis = check_meta_analysis
+    meta_analysis = check_meta_analysis,
+    precision = function(spec) character(),
+    dyadic = check_apim
   )
+  # Precision planning has no test to check, only its interval and goal.
+  if (identical(spec$design, "precision")) {
+    return(c(check_labels(spec), check_precision(spec)))
+  }
   design_problems <- design_check(spec)
   c(
     check_labels(spec),
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
     check_cell_ratio_allowed(spec),
+    check_group_ratio_allowed(spec),
     check_method_allowed(spec),
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
     check_minimum_effect(spec),
+    check_justified_alpha(spec),
+    check_precision(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
     check_pairwise(spec),
     check_friedman(spec),
+    check_jonckheere(spec),
     check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
@@ -111,7 +124,7 @@ uses_simulation <- function(spec) {
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
-    !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
+    !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       formula_test(spec) ||
@@ -177,15 +190,24 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec)
+    rank_correlation(spec) || proportion_trend(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
-# Mann-Whitney test (two groups) and the Kruskal-Wallis test (three or more
-# groups), simulated with Spower's p_wilcox.test() and p_kruskal.test().
+# Mann-Whitney test (two groups), the Kruskal-Wallis test (three or more
+# groups), simulated with Spower's p_wilcox.test() and p_kruskal.test(),
+# and the Jonckheere-Terpstra test (groups in order) and Friedman's test,
+# simulated by powerkit's own experiments with Spower.
 rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman", "jonckheere_terpstra"))
 }
+
+# The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
+# jonckheereTest()), on the one-way between-participants template.
+jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere_terpstra")
+
+# The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
+proportion_trend <- function(spec) identical(spec$template, "proportion_trend")
 
 # Welch's one-way ANOVA (unequal variances), simulated with Spower's
 # p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
@@ -215,6 +237,10 @@ check_pairwise <- function(spec) {
       problems <- c(problems, "'target_test > method' \"t_test\" is for pairwise comparisons: set 'target_test > effect' to \"pairwise\".")
     }
     return(problems)
+  }
+  if (identical(spec$template, "crossed_conditions")) {
+    # Checked with the design (check_crossed_conditions()).
+    return(character())
   }
   if (!spec$template %in% c("oneway_between", "oneway_within")) {
     return("Pairwise comparisons are available after a one-way ANOVA (between or within participants) only, so far.")
@@ -270,9 +296,14 @@ check_within_covariance <- function(spec) {
   pop <- spec$population
   correction <- spec$target_test$correction
   problems <- character()
+  if (spec$template %in% c("mixed", "factorial_within", "2x2_mixed")) {
+    return(check_factorial_covariance(spec))
+  }
   if (!identical(spec$template, "oneway_within")) {
     if (!is.null(correction)) {
-      problems <- c(problems, "'target_test > correction' only applies to the one-way repeated-measures ANOVA (template 'oneway_within'); remove it.")
+      problems <- c(problems, paste0(
+        "'target_test > correction' only applies to repeated-measures ANOVAs with a within-participants factor of ",
+        "three or more levels (templates 'oneway_within', 'mixed' and 'factorial_within'); remove it."))
     }
     return(problems)
   }
@@ -306,6 +337,68 @@ check_within_covariance <- function(spec) {
     }
   } else if (length(rs) == 1 && k > 1 && rs <= -1 / (k - 1)) {
     problems <- c(problems, sprintf("With %d conditions, one correlation for every pair must be above %s.", k, format_number(round(-1 / (k - 1), 3))))
+  }
+  problems
+}
+
+# Two-factor designs with repeated measures: an SD per cell (one row per
+# level of A, one SD per level of B, like the means), and a correlation per
+# pair of B's levels (mixed, the same in every group), per group (2 x 2
+# mixed, one pair) or per pair of cells (within). Each correlation matrix
+# must be possible, the means must be given (partial eta-squared has no
+# SDs), and a sphericity correction needs a within factor that can break
+# sphericity (three or more levels).
+check_factorial_covariance <- function(spec) {
+  pop <- spec$population
+  k <- length(spec$variables$A$levels)
+  m <- length(spec$variables$B$levels)
+  sds <- as.numeric(unlist(pop$sd))
+  rs <- as.numeric(unlist(pop$r))
+  correction <- spec$target_test$correction
+  several <- length(sds) > 1 || length(rs) > 1
+  if (several && identical(pop$metric, "eta_squared")) {
+    return("An SD per cell or more than one correlation needs the cell means ('population > means'), not partial eta-squared.")
+  }
+  problems <- character()
+  if (!is.null(correction) && !identical(correction, "none")) {
+    if (identical(spec$template, "2x2_mixed")) {
+      problems <- c(problems, "With two repeated measurements sphericity can't fail, so the 2 x 2 mixed ANOVA has no sphericity correction: remove 'target_test > correction'.")
+    } else if (identical(pop$metric, "eta_squared")) {
+      problems <- c(problems, paste0("A sphericity correction ('target_test > correction') needs the cell means, SDs and correlations: ",
+        "from partial eta-squared powerkit assumes sphericity (pwrss's epsilon = 1)."))
+    }
+  }
+  if (length(sds) > 1 && (!is.list(pop$sd) || length(pop$sd) != k || any(lengths(pop$sd) != m))) {
+    problems <- c(problems, sprintf(
+      "'population > sd' should have one SD per cell, as %d rows (levels of A) of %d SDs (levels of B), like the means.", k, m))
+  }
+  matrix_possible <- function(size, values) {
+    r <- diag(size)
+    r[upper.tri(r)] <- values
+    r[lower.tri(r)] <- t(r)[lower.tri(r)]
+    min(eigen(r, symmetric = TRUE, only.values = TRUE)$values) > 0
+  }
+  impossible <- "These correlations can't all hold at once (the correlation matrix they make isn't possible): check them, for example pairs that are much higher or lower than the rest."
+  if (length(rs) > 1) {
+    expected <- switch(spec$template, "2x2_mixed" = k, mixed = m * (m - 1) / 2, factorial_within = k * m * (k * m - 1) / 2)
+    what <- switch(spec$template,
+      "2x2_mixed" = "one correlation per group (levels of A, in order)",
+      mixed = "one correlation per pair of B's levels, in the order (1, 2), (1, 3), ..., (2, 3), ..., the same in every group",
+      factorial_within = "one correlation per pair of cells, the cells in the order A1 B1, A1 B2, ..., A2 B1, ... and the pairs in the order (1, 2), (1, 3), ..., (2, 3), ...")
+    if (length(rs) != expected) {
+      problems <- c(problems, sprintf("'population > r' should have %s: %d in all; it has %d.", what, expected, length(rs)))
+    } else if (identical(spec$template, "mixed") && !matrix_possible(m, rs)) {
+      problems <- c(problems, impossible)
+    } else if (identical(spec$template, "factorial_within") && !matrix_possible(k * m, rs)) {
+      problems <- c(problems, impossible)
+    }
+  } else if (length(rs) == 1 && identical(spec$template, "mixed")) {
+    # (The within design's single correlation is checked with its shape.)
+    size <- m
+    if (size > 2 && rs <= -1 / (size - 1)) {
+      problems <- c(problems, sprintf("With %d measurements per participant, one correlation for every pair must be above %s.",
+        size, format_number(round(-1 / (size - 1), 3))))
+    }
   }
   problems
 }
@@ -371,7 +464,7 @@ check_score_shape_allowed <- function(spec) {
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Kruskal-Wallis, Friedman) and the rank correlations (Spearman, ",
+    "Mann-Whitney, Kruskal-Wallis, Jonckheere-Terpstra, Friedman) and the rank correlations (Spearman, ",
     "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
     "or choose a rank test in 'target_test > method'."
   )
@@ -587,6 +680,96 @@ check_crossed_two_condition <- function(spec) {
     problems <- c(problems, paste0(
       "Give 'population > sd_participant_slope', how much the difference between conditions varies across participants ",
       "(0 if it doesn't), or make X a between factor if each participant is in one condition."))
+  }
+  problems
+}
+
+# The outcome of the participants-and-items designs (E33, E63): a score,
+# with means or a difference in its units, a residual SD and Satterthwaite's
+# tests; or yes/no, with probabilities, no residual SD and glmer's tests.
+check_crossed_outcome <- function(spec, conditions) {
+  pop <- spec$population
+  tt <- spec$target_test
+  binary <- identical(spec$variables$Y$type, "binary")
+  pairwise <- identical(tt$effect, "pairwise")
+  k <- length(spec$variables$X$levels)
+  problems <- character()
+  score_values <- if (conditions) "means" else "difference"
+  if (binary) {
+    if (!identical(pop$metric, "probability")) {
+      problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give the chance of 'yes' in each condition ('population > probabilities').")
+    }
+    if (length(unlist(pop$probabilities)) != k) {
+      problems <- c(problems, sprintf("Give 'population > probabilities', the chance of 'yes' in each of the %d conditions for a typical participant and item.", k))
+    }
+    for (key in c(score_values, "sd_residual")) {
+      if (!is.null(pop[[key]])) {
+        problems <- c(problems, sprintf("'population > %s' is for a score outcome; with a yes/no outcome the conditions are given as probabilities and there is no residual SD, so remove it.", key))
+      }
+    }
+    allowed <- c("wald", "likelihood_ratio")
+  } else {
+    if (!identical(pop$metric %||% "raw", "raw") || !is.null(pop$probabilities)) {
+      problems <- c(problems, "'population > probabilities' and the metric \"probability\" are for a yes/no outcome; with a score, give the outcome's means and residual SD.")
+    }
+    for (key in c(score_values, "sd_residual")) {
+      if (is.null(pop[[key]])) problems <- c(problems, sprintf("Give 'population > %s'.", key))
+    }
+    allowed <- if (pairwise || !conditions) "satterthwaite_t" else "satterthwaite_f"
+  }
+  if (!tt$method %in% allowed) {
+    problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome and test.",
+      paste(sprintf("\"%s\"", allowed), collapse = " or ")))
+  }
+  problems
+}
+
+# Participants and items in three or more conditions (E63): a mean per
+# condition, items split equally between the conditions (or every item in
+# every condition, the only design with an item-by-condition SD), and for
+# a pairwise comparison two of X's levels and the t test.
+check_crossed_conditions <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  levels <- unlist(spec$variables$X$levels)
+  k <- length(levels)
+  within <- identical(pop$item_design %||% "between", "within")
+  problems <- character()
+  if (!identical(spec$variables$Y$type, "binary") && length(unlist(pop$means)) != k) {
+    problems <- c(problems, sprintf("'population > means' has %d values, but X has %d conditions: give one mean per condition, in the order of its levels.",
+      length(unlist(pop$means)), k))
+  }
+  if (!within && pop$items %% k != 0) {
+    problems <- c(problems, sprintf(
+      "'population > items' is %s, but with each item in one condition the items are split equally between the %d conditions, so the number must be a multiple of %d.",
+      format_number(pop$items), k, k))
+  }
+  if (!within && !is.null(pop$sd_item_condition)) {
+    problems <- c(problems, paste0(
+      "'population > sd_item_condition' only applies when every item appears in every condition ",
+      "('population > item_design' \"within\"); remove it, or set item_design to \"within\"."))
+  }
+  if (identical(spec$variables$X$type, "between_factor")) {
+    if (!is.null(pop$sd_participant_condition)) {
+      problems <- c(problems, paste0("'population > sd_participant_condition' only applies when every participant takes part in every condition; ",
+        "with the conditions between participants each has one condition, so remove it."))
+    }
+  } else if (is.null(pop$sd_participant_condition)) {
+    problems <- c(problems, paste0("Give 'population > sd_participant_condition', how much participants' condition effects vary ",
+      "(0 if they don't), or make X a between factor if each participant is in one condition."))
+  }
+  pairwise <- identical(tt$effect, "pairwise")
+  problems <- c(problems, check_crossed_outcome(spec, conditions = TRUE))
+  if (!pairwise && (!is.null(tt$comparison) || !is.null(tt$p_adjust))) {
+    problems <- c(problems, paste0("'target_test > comparison' and 'target_test > p_adjust' only apply to a pairwise comparison ",
+      "('target_test > effect' \"pairwise\"); remove them."))
+  }
+  if (pairwise) {
+    pair <- unlist(tt$comparison)
+    if (length(pair) != 2 || length(unique(pair)) != 2 || !all(pair %in% levels)) {
+      problems <- c(problems, sprintf("'target_test > comparison' should name two different conditions of X (%s), the pair whose difference is tested.",
+        paste(levels, collapse = ", ")))
+    }
   }
   problems
 }
@@ -860,8 +1043,88 @@ check_basic_test <- function(spec) {
     hotelling_one = check_hotelling_one(spec),
     overlapping_correlations = ,
     nonoverlapping_correlations = check_dependent_correlations(spec),
+    proportion_trend = check_proportion_trend(spec),
     character()
   )
+}
+
+# The Cochran-Armitage test: one proportion and (if given) one score per
+# group, in the order of the groups; the scores must not all be the same,
+# or there is no trend to test.
+check_proportion_trend <- function(spec) {
+  k <- length(spec$variables$X$levels)
+  pop <- spec$population
+  problems <- character()
+  if (length(pop$proportions) != k) {
+    problems <- c(problems, sprintf(
+      "'population > proportions' should have one proportion per group: X has %d levels, and %d proportions were given.",
+      k, length(pop$proportions)))
+  }
+  if (!is.null(pop$scores)) {
+    scores <- as.numeric(unlist(pop$scores))
+    if (length(scores) != k) {
+      problems <- c(problems, sprintf(
+        "'population > scores' should have one score per group: X has %d levels, and %d scores were given.", k, length(scores)))
+    } else if (length(unique(scores)) < 2) {
+      problems <- c(problems, "'population > scores' are all the same, so there is no order to test a trend along: give each group its score (for example its dose).")
+    }
+  }
+  if (identical(spec$options$method, "exact")) {
+    problems <- c(problems, "'options > method' 'exact' isn't available for the Cochran-Armitage test: it is simulated. Remove 'options > method'.")
+  }
+  problems
+}
+
+# Unequal groups in a trend test (options > group_ratio): the
+# Jonckheere-Terpstra and Cochran-Armitage tests only, one whole number per
+# group in the groups' order.
+unequal_groups <- function(spec) {
+  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec))
+}
+
+group_ratio_vector <- function(spec) as.numeric(unlist(spec$options$group_ratio))
+
+check_group_ratio_allowed <- function(spec) {
+  ratio <- spec$options$group_ratio
+  if (is.null(ratio)) {
+    return(character())
+  }
+  if (!jonckheere_test(spec) && !proportion_trend(spec)) {
+    return(paste0(
+      "'options > group_ratio' only applies to the trend tests (the Jonckheere-Terpstra ",
+      "and Cochran-Armitage tests). Remove it."
+    ))
+  }
+  k <- length(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels)
+  if (length(ratio) != k) {
+    return(sprintf(
+      "'options > group_ratio' should have one number per group: there are %d groups, and %d numbers were given.",
+      k, length(ratio)
+    ))
+  }
+  character()
+}
+
+# The scores of a trend in proportions: those given, or 1, 2, ..., k
+# (prop.trend.test()'s default).
+trend_scores <- function(spec) {
+  scores <- spec$population$scores
+  if (is.null(scores)) seq_along(spec$population$proportions) else as.numeric(unlist(scores))
+}
+
+# The Jonckheere-Terpstra test is for groups in order: the one-way
+# between-participants template, with its means (not eta-squared).
+check_jonckheere <- function(spec) {
+  if (!jonckheere_test(spec)) {
+    return(character())
+  }
+  if (!identical(spec$template, "oneway_between")) {
+    return("The Jonckheere-Terpstra test is for three or more groups of different people in a set order (template 'oneway_between').")
+  }
+  if (identical(spec$target_test$effect, "pairwise")) {
+    return("The Jonckheere-Terpstra test tests a trend across all the groups, not one pair: set 'target_test > effect' to \"main_effect_A\".")
+  }
+  character()
 }
 
 # MANOVA: one row of means per group and one mean per outcome, outcomes
@@ -1155,7 +1418,7 @@ check_mixed_shape <- function(spec) {
       k, var_label(spec, "A"), m, var_label(spec, "B")
     ))
   }
-  if (spec$template == "factorial_within" && spec$population$r <= -1 / (k * m - 1)) {
+  if (spec$template == "factorial_within" && length(unlist(spec$population$r)) == 1 && spec$population$r <= -1 / (k * m - 1)) {
     # The same correlation between every pair of the k x m cells is only
     # possible above -1 / (cells - 1).
     return(sprintf(
@@ -1805,6 +2068,13 @@ minimum_n <- function(spec) {
       },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
       chi_square_gof = length(spec$variables$Y$levels),
+      # Two people in each group.
+      proportion_trend = if (unequal_groups(spec)) {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      } else {
+        2 * length(spec$variables$X$levels)
+      },
       # Fisher's z needs more than 3 people in each group (its SE is
       # 1 / sqrt(n - 3)).
       two_correlations = 10,
@@ -1868,7 +2138,12 @@ minimum_n <- function(spec) {
       }, integer(1))),
       # Two participants per group, so the error df is at least the number
       # of groups.
-      oneway_between = ,
+      oneway_between = if (unequal_groups(spec)) {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      } else {
+        2 * length(spec$variables$A$levels)
+      },
       oneway_contrast = 2 * length(spec$variables$A$levels),
       # Everyone is in every condition: Superpower's exact data set needs at
       # least five participants (backend-superpower.R, exact_min_n).
@@ -1897,7 +2172,11 @@ minimum_n <- function(spec) {
     mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
-    meta_analysis = 2,
+    # Subgroups: two studies of each kind, so the within-kind variance has
+    # a degree of freedom.
+    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else 2,
+    # Dyads: enough pairs for lavaan to fit the APIM's 10 parameters.
+    dyadic = 20,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -1922,6 +2201,10 @@ minimum_n <- function(spec) {
 
 group_split <- function(spec) {
   whole <- function(x) abs(x - round(x)) < 1e-9
+  if (identical(spec$design, "meta_analysis") && identical(spec$template, "subgroups")) {
+    g <- length(unlist(spec$population$effects))
+    return(list(rule = sprintf("split equally between the %d kinds of study", g), valid = function(n) n %% g == 0))
+  }
   if (spec$template == "2x2_between" && unequal_cells(spec)) {
     w <- cell_ratio_vector(spec)
     return(list(
@@ -1945,12 +2228,27 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
+  if (identical(spec$template, "crossed_conditions") && identical(spec$variables$X$type, "between_factor")) {
+    k <- length(spec$variables$X$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per condition", k), valid = function(n) n %% k == 0))
+  }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
+  if (unequal_groups(spec)) {
+    w <- group_ratio_vector(spec)
+    return(list(
+      rule = sprintf("split into %d whole groups in the ratio %s", length(w), paste(format_number(w), collapse = " : ")),
+      valid = function(n) all(whole(n * w / sum(w)))
+    ))
+  }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
     k <- length(spec$variables$A$levels)
+    return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
+  if (identical(spec$template, "proportion_trend")) {
+    k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
   if (spec$template %in% c("factorial_between", "factorial_ancova", "factorial")) {
@@ -2018,6 +2316,8 @@ target_effect_is_zero <- function(spec) {
       overlapping_correlations = ,
       nonoverlapping_correlations = dependent_correlation_difference(spec),
       one_variance = pop$var - pop$var0,
+      # No trend when every group has the same proportion.
+      proportion_trend = diff(range(as.numeric(unlist(pop$proportions)))),
       two_variances = ,
       paired_variances = pop$var1 - pop$var2,
       # The largest difference between two groups on any outcome.
@@ -2072,6 +2372,17 @@ target_effect_is_zero <- function(spec) {
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+    } else if (identical(spec$template, "crossed_conditions")) {
+      means <- as.numeric(unlist(pop$means %||% pop$probabilities))
+      pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
+      if (identical(spec$target_test$effect, "pairwise")) {
+        if (length(pair) == 2 && !anyNA(pair)) diff(means[pair]) else 1
+      } else {
+        max(abs(means - mean(means)))
+      }
+    } else if (identical(spec$variables$Y$type, "binary")) {
+      p <- as.numeric(unlist(pop$probabilities))
+      if (length(p) == 2) diff(p) else 1
     } else {
       pop$difference
     },
@@ -2098,7 +2409,23 @@ target_effect_is_zero <- function(spec) {
       process_7 = paths[[paste0("XW->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "->Y")]],
       process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]]
     ),
-    meta_analysis = pop$effect
+    meta_analysis = if (identical(spec$template, "subgroups")) {
+      e <- as.numeric(unlist(pop$effects))
+      max(abs(e - mean(e)))
+    } else {
+      pop$effect
+    },
+    dyadic = {
+      # Several effects tested together: joint power needs every one, so
+      # the smallest of them counts.
+      b <- apim_paths(spec)
+      labels <- list(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12", partner_21 = "p21",
+        actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"), both_partners = c("p12", "p21"),
+        all_four = c("a1", "a2", "p12", "p21"))
+      at <- labels[[spec$target_test$effect]]
+      values <- b[at]
+      if (is.null(at) || anyNA(values)) 1 else min(abs(values))
+    }
   )
   isTRUE(abs(value) < 1e-12)
 }
@@ -2131,11 +2458,50 @@ modmed_mediator <- function(spec) {
 # A planned meta-analysis (metapower): a correlation between -1 and 1, a
 # one-sided test in the direction of the effect, and no sensitivity
 # analysis yet (metapower solves for power only).
+# Dyadic data (E44): the paths that match how the members are told apart,
+# the effect tested among them, and variances that stay positive.
+check_apim <- function(spec) {
+  pop <- spec$population
+  distinguishable <- isTRUE(pop$distinguishable)
+  own <- if (distinguishable) c("actor_1", "actor_2", "partner_12", "partner_21") else c("actor", "partner")
+  other <- if (distinguishable) c("actor", "partner") else c("actor_1", "actor_2", "partner_12", "partner_21")
+  effects <- c(own, if (distinguishable) c("both_actors", "both_partners", "all_four") else "actor_and_partner")
+  problems <- character()
+  missing <- own[vapply(own, function(k) is.null(pop[[k]]), logical(1))]
+  if (length(missing)) {
+    problems <- c(problems, sprintf("Give %s (0 for no effect).", paste(sprintf("'population > %s'", missing), collapse = ", ")))
+  }
+  extra <- other[!vapply(other, function(k) is.null(pop[[k]]), logical(1))]
+  if (length(extra)) {
+    problems <- c(problems, sprintf("%s %s for %s members; remove %s.", paste(sprintf("'population > %s'", extra), collapse = ", "),
+      if (length(extra) == 1) "is" else "are", if (distinguishable) "indistinguishable" else "distinguishable",
+      if (length(extra) == 1) "it" else "them"))
+  }
+  if (!distinguishable && !is.null(pop$members)) {
+    problems <- c(problems, "'population > members' names the members of distinguishable dyads; remove it, or set 'distinguishable' to true.")
+  }
+  if (!spec$target_test$effect %in% effects) {
+    problems <- c(problems, sprintf("'target_test > effect' should be one of %s for %s members.",
+      paste(sprintf("\"%s\"", effects), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable"))
+  }
+  if (length(problems)) return(problems)
+  r2 <- apim_r_squared(spec)
+  bad <- names(r2)[r2 >= 1]
+  if (length(bad)) {
+    problems <- c(problems, sprintf("These effects are impossible together: they explain all of the variance in a member's %s (R-squared %s). Make them smaller.",
+      var_label(spec, "Y"), format_number(round(max(r2), 3))))
+  }
+  problems
+}
+
 check_meta_analysis <- function(spec) {
   pop <- spec$population
   problems <- character()
-  if (identical(pop$metric, "r") && abs(pop$effect) >= 1) {
-    problems <- c(problems, "A correlation ('population > effect' with metric \"r\") must be between -1 and 1.")
+  subgroups <- meta_subgroups(spec)
+  effects <- as.numeric(unlist(if (subgroups) pop$effects else pop$effect))
+  if (identical(pop$metric, "r") && any(abs(effects) >= 1)) {
+    problems <- c(problems, sprintf("A correlation ('population > %s' with metric \"r\") must be between -1 and 1.",
+      if (subgroups) "effects" else "effect"))
   }
   if (identical(pop$metric, "d") && pop$study_size %% 2 != 0) {
     problems <- c(problems, sprintf(paste0(
@@ -2143,7 +2509,10 @@ check_meta_analysis <- function(spec) {
       "%d isn't."), as.integer(pop$study_size)))
   }
   alternative <- spec$target_test$alternative %||% "two_sided"
-  if (!identical(alternative, "two_sided") && pop$effect != 0 &&
+  if (subgroups && !identical(alternative, "two_sided")) {
+    problems <- c(problems, "The test that kinds of study differ has no direction (a Q test): remove 'target_test > alternative' or set it to \"two_sided\".")
+  }
+  if (!subgroups && !identical(alternative, "two_sided") && pop$effect != 0 &&
       !identical(alternative, if (pop$effect > 0) "greater" else "less")) {
     problems <- c(problems, "A one-sided test of a meta-analysis runs in the direction of the expected effect.")
   }
@@ -2226,6 +2595,7 @@ check_eta_squared_anova <- function(spec) {
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
     test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
+      jonckheere_terpstra = "The Jonckheere-Terpstra test",
       t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
       "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",

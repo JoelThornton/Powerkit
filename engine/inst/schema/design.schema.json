@@ -38,7 +38,9 @@
         "sem",
         "ordinal_regression",
         "mixed_model",
-        "meta_analysis"
+        "meta_analysis",
+        "precision",
+        "dyadic"
       ]
     },
     "template": {
@@ -153,6 +155,12 @@
     },
     {
       "$ref": "#/definitions/design_meta_analysis"
+    },
+    {
+      "$ref": "#/definitions/design_precision"
+    },
+    {
+      "$ref": "#/definitions/design_dyadic"
     }
   ],
   "definitions": {
@@ -553,7 +561,7 @@
       ]
     },
     "goal": {
-      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'.",
+      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'. justified_alpha: the significance level that minimises or balances the weighted error rates at 'n' (JustifyAlpha's optimal_alpha(); the one-sample, paired and two-group t-tests and the correlation, by formula), with target_test > alpha kept as the conventional level to compare with. precision (design 'precision' only): with 'width', the smallest n whose confidence interval is expected to be no wider than 'width' (for Cohen's d, optionally with an 'assurance' that it is); with 'n', the width expected at that n. The interval is the 100(1 - target_test > alpha)% two-sided confidence interval.",
       "type": "object",
       "required": [
         "type"
@@ -564,7 +572,9 @@
           "enum": [
             "sample_size",
             "power",
-            "sensitivity"
+            "sensitivity",
+            "justified_alpha",
+            "precision"
           ]
         },
         "power": {
@@ -577,6 +587,34 @@
           "description": "Total number of participants analysed.",
           "type": "integer",
           "minimum": 2
+        },
+        "cost_ratio": {
+          "description": "Justified alpha only: how many times worse a false positive (Type I error) is than a missed effect (Type II error), above 0; JustifyAlpha's costT1T2. Default 1 (equally bad).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_odds": {
+          "description": "Justified alpha only: how likely a true effect is compared with no effect (the prior odds of H1 to H0), above 0; JustifyAlpha's priorH1H0. Default 1 (equally likely).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "error_rule": {
+          "description": "Justified alpha only: 'minimize' (the default) chooses the alpha with the smallest weighted error rate, (cost_ratio alpha + prior_odds beta) / (cost_ratio + prior_odds); 'balance' the alpha at which cost_ratio alpha equals prior_odds beta (G*Power's compromise power analysis when prior_odds is 1, with cost_ratio its beta/alpha ratio).",
+          "enum": [
+            "minimize",
+            "balance"
+          ]
+        },
+        "width": {
+          "description": "Precision only: the full width of the confidence interval wanted (upper limit minus lower), on the effect's own scale (d, r or the proportion).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "assurance": {
+          "description": "Precision for Cohen's d only: the chance that the interval's width is no more than 'width' (MBESS's assurance, above 0.5 and below 1). Without it the sample size gives the expected width.",
+          "type": "number",
+          "exclusiveMinimum": 0.5,
+          "exclusiveMaximum": 1
         }
       },
       "allOf": [
@@ -634,6 +672,49 @@
               "power"
             ]
           }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "justified_alpha"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "n"
+            ],
+            "properties": {
+              "power": false
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "precision"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "power": false
+            }
+          },
+          "else": {
+            "properties": {
+              "width": false,
+              "assurance": false
+            }
+          }
         }
       ]
     },
@@ -684,6 +765,15 @@
               "type": "integer",
               "minimum": 1
             }
+          }
+        },
+        "group_ratio": {
+          "description": "Trend tests only (the Jonckheere-Terpstra test, template oneway_between with target_test > method 'jonckheere_terpstra', and the Cochran-Armitage test, template proportion_trend): the relative size of each group, one positive whole number per group in the order of the groups' levels; for example [1, 1, 2] puts twice as many people in the third group. goal > n is the total, split in this ratio, so it must give whole groups. Default: equal groups.",
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "proportions_formula": {
@@ -861,7 +951,8 @@
               "two_variances",
               "paired_variances",
               "manova",
-              "hotelling_one"
+              "hotelling_one",
+              "proportion_trend"
             ]
           },
           "target_test": {
@@ -1124,6 +1215,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_hotelling_one"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "proportion_trend"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_proportion_trend"
             }
           }
         ]
@@ -1788,6 +1894,85 @@
         }
       }
     },
+    "template_proportion_trend": {
+      "description": "Three or more groups in a set order (doses, age bands), compared on a yes/no outcome: the Cochran-Armitage test of a linear trend in the proportions (stats::prop.trend.test()), simulated with Spower, two-sided or one-sided. Group sizes are equal unless options > group_ratio gives them.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                }
+              ],
+              "properties": {
+                "levels": {
+                  "minItems": 3
+                }
+              },
+              "required": [
+                "levels"
+              ]
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "proportions"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "proportions": {
+              "description": "Proportion of 'yes' in each group, in the order of the groups' levels.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/definitions/proportion"
+              }
+            },
+            "scores": {
+              "description": "The score given to each group in the trend test, in the order of the groups' levels (for example the doses). Default: 1, 2, 3, ..., equally spaced, as stats::prop.trend.test() uses.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "trend"
+            },
+            "method": {
+              "description": "cochran_armitage: the Cochran-Armitage test of a linear trend (stats::prop.trend.test(), a chi-square test with 1 df), simulated.",
+              "const": "cochran_armitage"
+            },
+            "alternative": {
+              "description": "'greater': the proportion rises along the scores (the groups' order); 'less': it falls. One-sided tests use the two-sided p-value of stats::prop.trend.test() halved when the observed trend goes the way predicted (the signed square root of its 1-df chi-square, the Cochran-Armitage z statistic).",
+              "enum": [
+                "two_sided",
+                "greater",
+                "less"
+              ]
+            }
+          }
+        }
+      }
+    },
     "design_factorial_anova": {
       "if": {
         "required": [
@@ -1819,7 +2004,31 @@
           "target_test": {
             "allOf": [
               {
-                "$ref": "#/definitions/two_sided_only"
+                "if": {
+                  "required": [
+                    "method"
+                  ],
+                  "properties": {
+                    "method": {
+                      "const": "jonckheere_terpstra"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternative": {
+                      "description": "Jonckheere-Terpstra test only: 'greater', the scores rise across the groups in the order of their levels; 'less', they fall (PMCMRplus::jonckheereTest(alternative)).",
+                      "enum": [
+                        "two_sided",
+                        "greater",
+                        "less"
+                      ]
+                    }
+                  }
+                },
+                "else": {
+                  "$ref": "#/definitions/two_sided_only"
+                }
               },
               {
                 "properties": {
@@ -1846,7 +2055,8 @@
                       "kruskal_wallis",
                       "welch_f",
                       "t_test",
-                      "friedman"
+                      "friedman",
+                      "jonckheere_terpstra"
                     ]
                   }
                 }
@@ -2154,8 +2364,20 @@
               "$ref": "#/definitions/cell_sd"
             },
             "r": {
-              "description": "Correlation between the two repeated measurements (levels of B) within a participant.",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between the two repeated measurements (levels of B) within a participant: one number for both groups, or one per group (levels of A, in order).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
@@ -2296,13 +2518,40 @@
               }
             },
             "sd": {
-              "description": "Standard deviation in every cell (the same in every cell).",
-              "type": "number",
-              "exclusiveMinimum": 0
+              "description": "Standard deviation: one number for every cell, or one per cell, as one array per level of A (rows) with one SD per level of B, like 'means'.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "r": {
-              "description": "Correlation between any two levels of B within a participant (the same for every pair).",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between a participant's scores at two levels of B: one number for every pair, or one per pair in the order (1, 2), (1, 3), ..., (1, m), (2, 3), ... (the upper triangle of the correlation matrix, row by row), the same in every group.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 3,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
@@ -2383,6 +2632,14 @@
             },
             "method": {
               "const": "anova_f"
+            },
+            "correction": {
+              "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
+              "enum": [
+                "none",
+                "GG",
+                "HF"
+              ]
             }
           }
         }
@@ -2573,13 +2830,40 @@
               }
             },
             "sd": {
-              "description": "Standard deviation in every cell (the same in every cell).",
-              "type": "number",
-              "exclusiveMinimum": 0
+              "description": "Standard deviation: one number for every cell, or one per cell, as one array per level of A (rows) with one SD per level of B, like 'means'.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "r": {
-              "description": "Correlation between a participant's scores in any two cells (the same for every pair).",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between a participant's scores in two cells: one number for every pair, or one per pair of cells, with the cells in the order a1_b1, a1_b2, ..., a2_b1, ... (A's levels, then B's within them, as Superpower orders them) and the pairs in the order (1, 2), (1, 3), ..., (2, 3), ... (the upper triangle of the correlation matrix, row by row, as Superpower's ANOVA_design() takes it).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 6,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             }
           }
         },
@@ -2594,6 +2878,14 @@
             },
             "method": {
               "const": "anova_f"
+            },
+            "correction": {
+              "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
+              "enum": [
+                "none",
+                "GG",
+                "HF"
+              ]
             }
           }
         }
@@ -3391,7 +3683,7 @@
       }
     },
     "template_oneway_between": {
-      "description": "One between-participants factor with three or more levels (one-way ANOVA, omnibus F test). Group sizes are equal.",
+      "description": "One between-participants factor with three or more levels (one-way ANOVA, omnibus F test). Group sizes are equal. The Jonckheere-Terpstra test (target_test > method 'jonckheere_terpstra', PMCMRplus's jonckheereTest(), simulated) tests for a trend across the groups in the order of the factor's levels, two-sided or one-sided, with equal groups or the sizes in options > group_ratio.",
       "properties": {
         "variables": {
           "required": [
@@ -3452,7 +3744,7 @@
               }
             },
             "score_shape": {
-              "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "description": "Rank tests only (the Kruskal-Wallis and Jonckheere-Terpstra tests): the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
                 "normal",
                 "skewed",
@@ -3521,7 +3813,8 @@
                 "anova_f",
                 "kruskal_wallis",
                 "welch_f",
-                "t_test"
+                "t_test",
+                "jonckheere_terpstra"
               ]
             }
           }
@@ -7410,7 +7703,8 @@
           "template": {
             "enum": [
               "crossed_two_condition",
-              "two_level"
+              "two_level",
+              "crossed_conditions"
             ]
           }
         },
@@ -7444,12 +7738,27 @@
             "then": {
               "$ref": "#/definitions/template_two_level"
             }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "crossed_conditions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_crossed_conditions"
+            }
           }
         ]
       }
     },
     "template_crossed_two_condition": {
-      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants (or, when X is a between factor, between them: half the participants in each, each with a random intercept only; with item_design 'within' every participant responds to every item, with 'between' each condition has its own half of the items): a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within).",
+      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants (or, when X is a between factor, between them: half the participants in each, each with a random intercept only; with item_design 'within' every participant responds to every item, with 'between' each condition has its own half of the items): a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within). With a yes/no outcome (Y binary, population > metric 'probability'), a logistic mixed model fitted by glmer: the probabilities per condition for a typical participant and item, every SD on the log-odds scale, no residual SD, and the test target_test > method 'wald' (glmer's Wald z test; for three or more conditions simr's Wald chi-square test; for a pair car's Wald test of its contrast) or 'likelihood_ratio' (the model against one without the conditions' differences, or for a pair without that pair's difference).",
       "properties": {
         "variables": {
           "required": [
@@ -7469,23 +7778,42 @@
               ]
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "difference",
             "sd_participant",
             "sd_item",
-            "sd_residual",
             "items"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "description": "'raw' for a score outcome (means or a difference in the outcome's units); 'probability' for a yes/no outcome (Y binary), whose probabilities are those of a typical participant and item and whose SDs are on the log-odds scale.",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (two, in the order of X's levels) for a typical participant and item, that is with every random effect 0.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
             },
             "difference": {
               "description": "The mean in X's second condition minus the mean in its first, in the outcome's units (the fixed effect of the condition). 0 is allowed, to check the Type I error rate.",
@@ -7547,7 +7875,11 @@
                   "const": "condition"
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }
@@ -7757,7 +8089,8 @@
         "properties": {
           "template": {
             "enum": [
-              "mean_effect"
+              "mean_effect",
+              "subgroups"
             ]
           },
           "goal": {
@@ -7804,6 +8137,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_meta_mean_effect"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "subgroups"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_subgroups"
             }
           }
         ]
@@ -7972,6 +8320,789 @@
                 },
                 "method": {
                   "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_crossed_conditions": {
+      "description": "Participants respond to many items (stimuli) in three or more conditions, every participant in every condition (or, when X is a between factor, each participant in one condition: the participants split equally, a participant intercept only, every participant responding to every item or to their condition's block of items): a linear mixed model y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with cond a factor in treatment coding (each coefficient a condition's mean minus the first condition's), one participant-by-condition variance shared by every condition, and, with every item in every condition (item_design 'within'), an optional item-by-condition variance, (1 | item:cond). Simulated with simr's powerSim() on a model built by makeLmer(), testing that the conditions differ with lmerTest's Satterthwaite F test (effect 'condition'), or one pair of conditions with the Satterthwaite t test adjusted for all the pairs by stats::p.adjust() (effect 'pairwise'). goal > n is the number of participants; every participant responds to every item. With a yes/no outcome (Y binary, population > metric 'probability'), a logistic mixed model fitted by glmer: the probabilities per condition for a typical participant and item, every SD on the log-odds scale, no residual SD, and the test target_test > method 'wald' (glmer's Wald z test; for three or more conditions simr's Wald chi-square test; for a pair car's Wald test of its contrast) or 'likelihood_ratio' (the model against one without the conditions' differences, or for a pair without that pair's difference).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "within_factor",
+                    "between_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "sd_participant",
+            "sd_item",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'raw' for a score outcome (means or a difference in the outcome's units); 'probability' for a yes/no outcome (Y binary), whose probabilities are those of a typical participant and item and whose SDs are on the log-odds scale.",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (one per condition, in the order of X's levels) for a typical participant and item, that is with every random effect 0.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "means": {
+              "description": "Each condition's mean, in the order of X's levels, in the outcome's units.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd_participant": {
+              "description": "SD of the participants' random intercepts: how much participants' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_participant_condition": {
+              "description": "Conditions within participants (X a within factor; required): sD of the participant-by-condition effects: how much each participant's responses in a condition differ from what their average and the condition's mean predict, the same for every condition (random intercepts for participant:cond). Not used when X is a between factor.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item": {
+              "description": "SD of the items' random intercepts: how much items' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_condition": {
+              "description": "Every item in every condition only (item_design 'within'): SD of the item-by-condition effects (random intercepts for item:cond). 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_residual": {
+              "description": "SD of the residual: trial-to-trial variation within a participant and item.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "items": {
+              "description": "Total number of items. With items between conditions, they are split equally, one block per condition, so the number must be a multiple of the number of conditions.",
+              "type": "integer",
+              "minimum": 6
+            },
+            "item_design": {
+              "description": "'between' (the default): each item appears in one condition only. 'within': every item appears in every condition.",
+              "enum": [
+                "between",
+                "within"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "enum": [
+                    "condition",
+                    "pairwise"
+                  ]
+                },
+                "method": {
+                  "enum": [
+                    "satterthwaite_f",
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_meta_subgroups": {
+      "description": "A planned meta-analysis that tests whether the average effect differs between kinds of studies (a categorical moderator, subgroup analysis): the k studies split equally between the kinds, each kind with its own average effect, every study of the same size. The test is the between-groups Q test: under the fixed-effect model metapower's mod_power(); under the random-effects model the Hartung-Knapp test by default (metafor's rma() with the kinds as a moderator, test = 'knha', simulated with Spower), or metapower's test (target_test > test \"z\"). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effects",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Heterogeneity as I-squared: the share of the variation between the studies' effects that isn't sampling error (0 for none). Used by the random-effects model; Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."
+            },
+            "effects": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              },
+              "description": "Each kind of study's average effect (Cohen's d, or r between -1 and 1), e.g. lab then online; the studies are split equally between the kinds."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "moderator"
+            },
+            "method": {
+              "const": "q_test"
+            },
+            "model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the random-effects model, whose test allows for the studies' true effects differing; 'fixed': the fixed-effect model, which assumes they don't."
+            },
+            "test": {
+              "enum": [
+                "hartung_knapp",
+                "z"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "design_precision": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "precision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "two_groups",
+              "one_group",
+              "paired",
+              "correlation",
+              "proportion"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "const": "precision"
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "allocation_ratio": false,
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "effect": {
+                "const": "confidence_interval"
+              },
+              "alternative": {
+                "const": "two_sided"
+              },
+              "path": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_groups"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_two_groups"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "one_group"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_one_group"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "paired"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_paired"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "proportion"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_proportion"
+            }
+          }
+        ]
+      }
+    },
+    "template_precision_two_groups": {
+      "description": "The confidence interval for Cohen's d between two equal groups (MBESS's ss.aipe.smd(), with the interval from the noncentral t, MBESS's ci.smd()). n is the total; each group has half.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d expected in the population (the interval's width depends on it a little).",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "template_precision_one_group": {
+      "description": "The confidence interval for a standardised mean (the mean's distance from a fixed value, in SDs), one group (MBESS's ss.aipe.sm(), with the interval from the noncentral t, MBESS's ci.sm()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "The standardised mean expected: (mean - fixed value) / SD.",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_paired": {
+      "description": "The confidence interval for d_z, the mean difference between two paired measurements divided by the SD of the differences (MBESS's ss.aipe.sm() on the differences). n is the number of pairs.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "dz"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "dz": {
+              "description": "d_z expected in the population.",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_correlation": {
+      "description": "The confidence interval for a correlation (presize's prec_cor(): Fisher's z for Pearson's r, with the variance corrections presize uses for Spearman's and Kendall's).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r": {
+              "description": "The correlation expected in the population.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "pearson",
+                "spearman",
+                "kendall"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_proportion": {
+      "description": "The confidence interval for one proportion (presize's prec_prop()): Wilson's interval by default, or Agresti-Coull, the exact (Clopper-Pearson) or the Wald interval.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p": {
+              "description": "The proportion expected in the population.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "wilson",
+                "agresti_coull",
+                "exact",
+                "wald"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "design_dyadic": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "dyadic"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "apim"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "n": {
+                "description": "For dyadic data: the number of dyads (pairs), not people."
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "simulation"
+                ]
+              },
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "comparison": false,
+              "p_adjust": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "apim"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_apim"
+            }
+          }
+        ]
+      }
+    },
+    "template_apim": {
+      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "distinguishable",
+            "r_x",
+            "r_y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "distinguishable": {
+              "description": "true when the members can be told apart in a way that matters (woman and man, parent and child); false when they can't (same-sex friends, twins).",
+              "type": "boolean"
+            },
+            "members": {
+              "description": "Distinguishable members only: their names, first member first. 'Member 1' and 'Member 2' if omitted.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "actor": {
+              "description": "Indistinguishable members: the standardised actor effect (a person's X on their own Y).",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner": {
+              "description": "Indistinguishable members: the standardised partner effect (a person's X on their partner's Y).",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "actor_1": {
+              "description": "Distinguishable members: member 1's X on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "actor_2": {
+              "description": "Distinguishable members: member 2's X on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner_12": {
+              "description": "Distinguishable members: member 1's X on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner_21": {
+              "description": "Distinguishable members: member 2's X on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "r_x": {
+              "description": "The correlation of the two members' X.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_y": {
+              "description": "The correlation of the two members' Y beyond what their X explain (the residual correlation, often called non-independence).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "enum": [
+                    "actor",
+                    "partner",
+                    "actor_1",
+                    "actor_2",
+                    "partner_12",
+                    "partner_21",
+                    "actor_and_partner",
+                    "both_actors",
+                    "both_partners",
+                    "all_four"
+                  ],
+                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'."
+                },
+                "method": {
+                  "const": "wald_z"
                 }
               }
             }

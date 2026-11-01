@@ -99,7 +99,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # crossed mixed model and the four sources of the latent profile card
   # (30 October 2026), and the formulas for converting t into d (31
   # October 2026), and the meta-analysis card's method paper, worked
-  # examples and the Hartung-Knapp paper (31 October 2026).
+  # examples and the Hartung-Knapp paper (31 October 2026), and presize's
+  # method paper (1 November 2026; MBESS's citation() gives no DOI, so it
+  # is exported from the package alone).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -110,7 +112,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Rubin2022_twosided = "verified", Rubin2024_typeI = "verified",
       FrancisThunell2021_reversing = "verified", Mayo2018_severe = "verified",
       Perugini2014_safeguard = "verified", Lakens2013_effectsizes = "verified", semPower_method = "verified",
-      bfpwr_method = "citation", Brysbaert2018_mixed = "verified",
+      bfpwr_method = "citation", presize_method = "citation", Brysbaert2018_mixed = "verified",
       Tein2013_lpa = "verified", Nylund2007_classes = "verified",
       NylundGibson2018_lca = "verified", Spurk2020_lpa = "verified",
       metapower_method = "verified", Valentine2010_metapower = "verified",
