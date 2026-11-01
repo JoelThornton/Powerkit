@@ -99,3 +99,76 @@ test_that("three levels: matches a published example (published)", {
   skip_if_todo(population, n, published_power, reference_nrep)
   expect_power_near(engine_power(three_validation_spec(population, seed = 6504, n = n)), published_power, reference_nrep = reference_nrep)
 })
+
+# A yes/no outcome (1 November 2026): a logistic mixed model, each
+# condition's chance of 'yes' for a typical site and group and the SDs on
+# the log-odds scale. The independent simulation draws the site and group
+# effects directly, each person's 'yes' from the logistic, and fits each
+# data set with lme4::glmer() without simr: the Wald z test from its
+# summary, or the likelihood ratio against the model without the
+# condition. 1,000 replications for power, 2,000 for the Type I error.
+three_binary_reps <- 1000L
+
+three_binary_spec <- function(p, method, seed, n, nrep = three_binary_reps) {
+  validation_spec(
+    design = "mixed_model",
+    template = "three_level",
+    variables = list(X = validation_variable("between_factor", "Condition", levels = list("First", "Second")),
+      Y = validation_variable("binary", "Outcome")),
+    population = c(list(metric = "probability"), p),
+    target_test = list(effect = "condition", method = method, alpha = 0.05),
+    seed = seed,
+    n = n,
+    options = list(nrep = nrep)
+  )
+}
+
+three_binary_by_hand <- function(p, method, n, nrep, seed) {
+  sites <- n / (p$group_size * p$groups_per_site)
+  d <- expand.grid(person = seq_len(p$group_size), group = seq_len(p$groups_per_site), site = seq_len(sites))
+  half <- switch(p$assignment, site = d$site <= sites / 2, group = d$group <= p$groups_per_site / 2, person = d$person <= p$group_size / 2)
+  d$cond <- ifelse(half, -0.5, 0.5)
+  d$g <- (d$site - 1) * p$groups_per_site + d$group
+  groups <- sites * p$groups_per_site
+  effect_site <- p$sd_effect_site %||% 0
+  terms <- c(if (effect_site > 0) "(1 + cond | site)" else "(1 | site)", "(1 | site:group)")
+  full <- stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")))
+  reduced <- stats::as.formula(paste("y ~ 1 +", paste(terms, collapse = " + ")))
+  logits <- stats::qlogis(unlist(p$probabilities))
+  with_seed(seed, mean(vapply(seq_len(nrep), function(i) {
+    u <- stats::rnorm(sites, sd = p$sd_site)
+    us <- stats::rnorm(sites, sd = effect_site)
+    v <- stats::rnorm(groups, sd = p$sd_group)
+    data <- d
+    eta <- mean(logits) + diff(logits) * d$cond + u[d$site] + us[d$site] * d$cond + v[d$g]
+    data$y <- stats::rbinom(nrow(d), 1, stats::plogis(eta))
+    data$site <- factor(data$site)
+    data$group <- factor(data$group)
+    fit <- tryCatch(suppressMessages(suppressWarnings(lme4::glmer(full, data = data, family = stats::binomial()))), error = function(e) NULL)
+    if (is.null(fit)) return(FALSE)
+    if (identical(method, "wald")) return(isTRUE(summary(fit)$coefficients["cond", "Pr(>|z|)"] < 0.05))
+    small <- tryCatch(suppressMessages(suppressWarnings(lme4::glmer(reduced, data = data, family = stats::binomial()))), error = function(e) NULL)
+    !is.null(small) && isTRUE(stats::anova(small, fit)[["Pr(>Chisq)"]][2] < 0.05)
+  }, logical(1))))
+}
+
+three_binary_population <- list(sd_site = 0.4, sd_group = 0.3, group_size = 10, groups_per_site = 4)
+three_binary_cases <- list(
+  list(assignment = "site", method = "wald", probabilities = list(0.4, 0.6), n = 960),
+  list(assignment = "group", method = "likelihood_ratio", probabilities = list(0.45, 0.6), n = 400, sd_effect_site = 0.2)
+)
+
+for (case in three_binary_cases) {
+  test_that(sprintf("three levels, yes/no outcome, %s assigned, %s: agrees with an independent simulation (analytic)", case$assignment, case$method), {
+    skip_unless_full_validation()
+    p <- c(three_binary_population, case[setdiff(names(case), c("n", "method"))])
+    reference <- three_binary_by_hand(p, case$method, case$n, three_binary_reps, seed = 6511)
+    expect_power_near(engine_power(three_binary_spec(p, case$method, seed = 6512, n = case$n)), reference, reference_nrep = three_binary_reps)
+  })
+}
+
+test_that("three levels, yes/no outcome: Type I error near alpha by the Wald test", {
+  skip_unless_full_validation()
+  p <- c(three_binary_population, list(assignment = "group", probabilities = list(0.5, 0.5)))
+  expect_type1_near(engine_power(three_binary_spec(p, "wald", seed = 6513, n = 400, nrep = 2000L)), alpha = 0.05)
+})

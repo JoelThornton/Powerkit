@@ -1117,7 +1117,7 @@ forms:
   # Three levels (simr): people in groups in sites, the condition
   # assigned to sites, groups or people (1 November 2026).
   E68:
-    methods_name: "a three-level linear mixed model (Satterthwaite t test)"
+    methods_name: "a three-level mixed model"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1130,19 +1130,42 @@ forms:
           - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
           - {id: Y_label, label: "Outcome (for example, reading score)", type: text, path: variables.Y.label, required: true}
+          - {id: three_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a reading score)", binary: "Yes or no (for example, passed or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer): you give each condition's chance of 'yes', and how much schools and classes differ as SDs on the log-odds scale."}
+          - {id: three_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: three_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the condition)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a two-condition predictor"}
           - {id: three_assignment, label: "What is assigned to the conditions", type: select, path: population.assignment, required: true,
              choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"},
              default: site, default_source: "whole sites, the commonest three-level trial"}
       - input: "The effect, and how alike people in the same group and site are"
         fields:
           - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true,
+             shown_if: {field: three_outcome, is: continuous},
              help: "The total SD is how much people vary on the outcome across everyone, not only within one group."}
-          - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "The share of the outcome's variation between larger groups, e.g. schools (an intraclass correlation, 0 to 1)", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1}
-          - {id: icc_group, writeup_label: "intraclass correlation of the groups", label: "The share of the outcome's variation between groups within the larger groups, e.g. classes within schools (0 to 1)", type: number, path: population.icc_group, effect: true, min: 0, max_exclusive: 1}
+          - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "The share of the outcome's variation between larger groups, e.g. schools (an intraclass correlation, 0 to 1)", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: continuous}}
+          - {id: icc_group, writeup_label: "intraclass correlation of the groups", label: "The share of the outcome's variation between groups within the larger groups, e.g. classes within schools (0 to 1)", type: number, path: population.icc_group, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: continuous}}
           - {id: icc_effect_site, label: "How much the effect varies between larger groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_site, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
-             shown_if: {field: three_assignment, is_not: site}}
+             shown_if: [{field: three_assignment, is_not: site}, {field: three_outcome, is: continuous}]}
           - {id: icc_effect_group, label: "How much the effect varies between groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_group, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
-             shown_if: {field: three_assignment, is: person}}
+             shown_if: [{field: three_assignment, is: person}, {field: three_outcome, is: continuous}]}
+          - {id: three_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition, separated by a comma (for a typical school and class)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: binary}}
+          - {id: sd_site, writeup_label: "SD of the larger groups (log odds)", label: "SD of the larger groups' averages, e.g. schools (on the log-odds scale)", type: number, path: population.sd_site, effect: true, min: 0,
+             shown_if: {field: three_outcome, is: binary},
+             help: "On the log-odds scale; 0.5 is a moderate difference between schools."}
+          - {id: sd_group, writeup_label: "SD of the groups (log odds)", label: "SD of the groups' averages within larger groups, e.g. classes (log-odds scale)", type: number, path: population.sd_group, effect: true, min: 0,
+             shown_if: {field: three_outcome, is: binary}}
+          - {id: sd_effect_site, label: "SD of the effect across larger groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_site, optional: true, empty_text: "0", min: 0,
+             shown_if: [{field: three_assignment, is_not: site}, {field: three_outcome, is: binary}]}
+          - {id: sd_effect_group, label: "SD of the effect across groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_group, optional: true, empty_text: "0", min: 0,
+             shown_if: [{field: three_assignment, is: person}, {field: three_outcome, is: binary}]}
       - input: "The sizes of the groups and sites"
         fields:
           - {id: group_size, label: "People in each group (for example, pupils per class)", type: number, path: population.group_size, required: true, min: 2, integer: true}
@@ -1204,7 +1227,7 @@ forms:
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
   E62:
-    methods_name: "a two-level linear mixed model with a person-level and a group-level predictor (Satterthwaite t test)"
+    methods_name: "a two-level mixed model with a person-level and a group-level predictor"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1217,16 +1240,28 @@ forms:
           - {id: Y_label, label: "Outcome (for example, maths score)", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Measured on each person (X; for example, homework time)", type: text, path: variables.X.label, required: true}
           - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
+          - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a maths score)", binary: "Yes or no (for example, passed or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
+          - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: two_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
       - input: "Each effect, how much the groups differ, and the residual SD"
         fields:
-          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
+          - {id: two_probability, writeup_label: "chance of yes for a typical group", label: "The chance of 'yes' for a typical group, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: two_outcome, is: binary}}
+          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome (or its log odds, for yes/no) for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
           - {id: b_W, writeup_label: "W's effect between groups", label: "W's effect between groups: the change in a group's average for one SD more of W", type: number, path: population.b_W, effect: true}
           - {id: b_XW, writeup_label: "cross-level interaction", label: "The cross-level interaction: how much X's effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
           - {id: sd_group, writeup_label: "SD of the groups' averages", label: "SD of the groups' averages beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
              help: "In the outcome's units. With a residual SD of 1, an SD of 0.33 means about 10% of the variance lies between groups (an intraclass correlation of 0.1)."}
           - {id: sd_group_slope, writeup_label: "SD of X's effect across groups", label: "SD of X's effect across groups beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
           - {id: r_group, label: "Correlation of the groups' averages and X's effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
-          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: two_outcome, is: continuous}}
       - input: "The number of people in each group, and the effect to test"
         fields:
           - {id: cluster_size, label: "People in each group (the same in every group)", type: number, path: population.cluster_size, required: true, min: 2, integer: true}
