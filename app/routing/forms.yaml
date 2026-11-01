@@ -167,6 +167,11 @@ simulations:
       preview: {power: 35}
       full: {power: 350}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E63:
+      full_run: [power]
+      preview: {power: 40}
+      full: {power: 400}
+      script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E62:
       full_run: [power]
       preview: {power: 30}
@@ -948,6 +953,55 @@ forms:
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+
+  # Participants and items in three or more conditions (simr), 31 October
+  # 2026: the Satterthwaite F test, or one pair adjusted for all the pairs.
+  E63:
+    methods_name: "a linear mixed model with participants and items as random factors and three or more conditions (Satterthwaite tests)"
+    tool: simr
+    departures: ["16", "17"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: crossed_conditions,
+           variables: {X: {type: within_factor}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {effect: condition, method: satterthwaite_f}}
+    groups:
+      - input: "The conditions and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, face expression)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true}
+          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+      - input: "Each condition's mean, in the outcome's units"
+        fields:
+          - {id: means, writeup_label: "means", label: "The mean in each condition, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.means, effect: true}
+      - input: "How much participants and items vary (the variance components)"
+        fields:
+          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
+          - {id: sd_participant_condition, writeup_label: "SD of participants' condition effects", label: "SD of how much each participant's mean in a condition departs from their average plus the condition's effect (the same for every condition)", type: number, path: population.sd_participant_condition, effect: true, min: 0,
+             help: "The several-condition counterpart of the SD of participants' condition differences: with two conditions, a participant's difference varies with an SD of about 1.4 times this value."}
+          - {id: sd_item, writeup_label: "SD of items' averages", label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+      - input: "The items: how many, and whether each appears in one condition or all"
+        fields:
+          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 6, integer: true}
+          - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
+             choices: {between: "In one condition each (split equally between the conditions)", within: "In every condition"},
+             default: between, default_source: "as for two conditions (decided 30 October 2026, docs/decisions.md)"}
+          - {id: sd_item_condition, label: "SD of how much an item's mean in a condition departs from its average plus the condition's effect (optional; empty = 0)", type: number, path: population.sd_item_condition, optional: true, empty_text: "0", min: 0,
+             shown_if: {field: item_design, is: within}}
+      - input: "The test: any difference between the conditions, or one pair"
+        fields:
+          - {id: conditions_test, label: "Test", type: select, path: target_test.method, required: true,
+             choices: {satterthwaite_f: "Whether the conditions differ at all (Satterthwaite F test)",
+                       satterthwaite_t: "One pair of conditions (Satterthwaite t test, adjusted for all the pairs)"},
+             sets: {satterthwaite_t: [{path: target_test.effect, value: pairwise}]},
+             default: satterthwaite_f, default_source: "the test of the design's main question, as on the one-way ANOVA cards"}
+          - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
+             shown_if: {field: conditions_test, is: satterthwaite_t},
+             help: "The test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+          - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
+             shown_if: {field: conditions_test, is: satterthwaite_t},
+             choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
+             default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).

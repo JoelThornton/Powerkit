@@ -95,6 +95,16 @@ to read small.
   neutral options. The maintainer accepts or overrules it. When a call is decided, move
   its entry to docs/archive/judgement-calls-decided.md and record it in
   docs/decisions.md.
+- A statistician reviews powerkit's methods at the end, not along the
+  way. Until then, make the best method decision the literature supports,
+  as if no later review were coming: never defer, simplify or skip a
+  design, a method question or a validation because a statistician will
+  check it later. Cards still say "validation in progress" until their
+  published checks are in, because that is what users need to know.
+- Build each design properly the first time when that saves coming back
+  to it (every variant researchers commonly need, with its validation),
+  rather than a small first version; split it into several PRs by
+  design only when one would be too big to review.
 - docs/status.md is current state only: replace old entries, don't append
   history (git, NEWS.md and docs/archive/ hold that).
 - Prefer updating an existing doc to adding a new one.

@@ -122,6 +122,7 @@ route_spec <- function(spec, seed = NULL) {
     "meta_analysis/mean_effect" = if (hartung_knapp_test(spec)) meta_hk_backend(spec, seed) else metapower_backend(spec, seed),
     "mixed_model/crossed_two_condition" = simr_backend(spec, seed),
     "mixed_model/two_level" = simr_backend(spec, seed),
+    "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "logistic_regression/factorial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
       # Given by its R-squared change, as G*Power takes it: pwrss's F test.

@@ -3766,6 +3766,14 @@ merges when its checks pass, unless a doubt is stated in it.
   guided plan already offers for two groups measured twice (E23); a plan
   that chooses the mixed ANOVA's group x time test is not simulated as a
   whole study.
+- **Multilevel models, three or more conditions (31 October 2026):** a
+  card of its own (E63): a mean per condition, one SD for participants'
+  condition effects shared by every condition (participant:cond random
+  intercepts, so no covariance matrix is asked for), lmerTest's
+  Satterthwaite F test by default, and a pair of conditions as an option,
+  adjusted for all the pairs by Holm's method unless Bonferroni's or none
+  is chosen, as on the one-way ANOVA cards, since a study's hypothesis is
+  often one pair.
 - **Multilevel models (3):** E41 next, simulated with simr as E33 is.
   Landed as its own card, E62 (a two-level model: a person-level and a
   group-level predictor and their cross-level interaction), since E41

@@ -20,13 +20,16 @@
 
 simr_backend <- function(spec, seed = NULL) {
   two_level <- identical(spec$template, "two_level")
-  inputs <- if (two_level) two_level_inputs(spec) else simr_inputs(spec)
+  conditions <- identical(spec$template, "crossed_conditions")
+  inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else simr_inputs(spec)
+  if (conditions) inputs$test <- crossed_conditions_test(inputs)
   list(
     name = "simr",
     packages = c("simr", "lme4", "lmerTest"),
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = sprintf("simr::powerSim with simr::fixed(\"%s\", \"sa\")", inputs$term %||% "cond")),
+    functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
+      sprintf("simr::powerSim with simr::fixed(\"%s\", \"sa\")", inputs$term %||% "cond")),
     n_step = if (two_level) inputs$cluster_size else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
@@ -35,7 +38,10 @@ simr_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
-    check_run = function() if (two_level) two_level_check_run(spec, inputs, seed) else simr_check_run(spec, inputs, seed)
+    check_run = function() {
+      if (two_level) two_level_check_run(spec, inputs, seed) else if (conditions) crossed_conditions_check_run(spec, inputs, seed) else
+        simr_check_run(spec, inputs, seed)
+    }
   )
 }
 
@@ -109,7 +115,7 @@ simr_model <- function(inputs, n) {
 simr_rejections <- function(inputs, n, nrep, seed) {
   result <- call_backend("simr", quietly(simr::powerSim(
     simr_model(inputs, n),
-    test = simr::fixed(inputs$term %||% "cond", "sa"),
+    test = inputs$test %||% simr::fixed(inputs$term %||% "cond", "sa"),
     nsim = as.integer(nrep),
     alpha = inputs$alpha,
     seed = seed,
@@ -294,6 +300,210 @@ two_level_script <- function(spec, result) {
     "",
     batch_section(result, "powerSim()"),
     simulation_goal_section(spec, result, inputs$cluster_size),
+    comparison_section()
+  )
+}
+
+# Participants responding to many items in three or more conditions within
+# participants (mixed_model / crossed_conditions, E63):
+#   y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item)
+# with cond a factor in treatment coding (its coefficients are each
+# condition's mean minus the first's), a participant intercept and one
+# participant-by-condition variance shared by every condition, and an
+# item intercept; with every item in every condition, an item-by-condition
+# variance may be added, (1 | item:cond). The test is lmerTest's
+# Satterthwaite F test that the conditions differ (the several-condition
+# form of E33's Satterthwaite t test, Departure 16), or the Satterthwaite t
+# test of one pair of conditions, adjusted with stats::p.adjust() for all
+# the pairs as on the one-way ANOVA cards (Departure 17); each is passed to
+# simr's powerSim() as its test function.
+crossed_conditions_inputs <- function(spec) {
+  pop <- spec$population
+  levels <- unlist(spec$variables$X$levels)
+  k <- length(levels)
+  means <- as.numeric(unlist(pop$means))
+  within <- identical(pop$item_design %||% "between", "within")
+  item_condition <- within && (pop$sd_item_condition %||% 0) > 0
+  terms <- c("(1 | participant)", "(1 | participant:cond)", "(1 | item)", if (item_condition) "(1 | item:cond)")
+  var_corr <- list(participant = pop$sd_participant^2, "participant:cond" = pop$sd_participant_condition^2,
+    item = pop$sd_item^2)
+  if (item_condition) var_corr[["item:cond"]] <- pop$sd_item_condition^2
+  pairwise <- identical(spec$target_test$effect, "pairwise")
+  list(
+    formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
+    fixef = c(means[1], means[-1] - means[1]),
+    VarCorr = var_corr,
+    sigma = pop$sd_residual,
+    items = pop$items,
+    levels = levels,
+    within = within,
+    pairwise = pairwise,
+    pair = if (pairwise) match(unlist(spec$target_test$comparison), levels),
+    p_adjust = spec$target_test$p_adjust %||% "holm",
+    alpha = spec$target_test$alpha,
+    design = crossed_conditions_design,
+    test_label = if (pairwise) "lmerTest::contest() (Satterthwaite), adjusted by stats::p.adjust()" else
+      "lmerTest's anova() (Satterthwaite F)"
+  )
+}
+
+# One data set's design: every participant responds to every item, the
+# items split into equal blocks, one per condition (items between
+# conditions), or every item in every condition (within).
+crossed_conditions_design <- function(inputs, n) {
+  k <- length(inputs$levels)
+  if (inputs$within) {
+    data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items), cond = inputs$levels,
+      stringsAsFactors = FALSE)
+  } else {
+    data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
+    data$cond <- inputs$levels[ceiling(data$item / (inputs$items / k))]
+  }
+  data$participant <- factor(data$participant)
+  data$item <- factor(data$item)
+  data$cond <- factor(data$cond, levels = inputs$levels)
+  data
+}
+
+# The p-value of the test, for simr's powerSim(): the Satterthwaite F test
+# of cond, or the chosen pair's Satterthwaite t test adjusted for all the
+# pairs. A fit lmerTest can't test counts as not significant (NA).
+crossed_conditions_test <- function(inputs) {
+  k <- length(inputs$levels)
+  pairs <- utils::combn(k, 2)
+  chosen <- if (inputs$pairwise) which(pairs[1, ] == min(inputs$pair) & pairs[2, ] == max(inputs$pair))
+  function(fit) {
+    model <- if (inherits(fit, "lmerModLmerTest")) fit else lmerTest::as_lmerModLmerTest(fit)
+    if (!inputs$pairwise) {
+      return(stats::anova(model, ddf = "Satterthwaite")["cond", "Pr(>F)"])
+    }
+    p <- apply(pairs, 2, function(ij) {
+      contrast <- numeric(k)
+      contrast[ij[2]] <- 1
+      if (ij[1] > 1) contrast[ij[1]] <- -1
+      lmerTest::contest(model, contrast, ddf = "Satterthwaite")[["Pr(>F)"]]
+    })
+    stats::p.adjust(p, inputs$p_adjust)[[chosen]]
+  }
+}
+
+# Check run: one large data set (300 participants, at least 60 items per
+# condition) simulated from simr's model and refitted with lme4: each
+# condition's difference from the first within 5 of its standard errors,
+# each SD within 5 of its approximate standard errors, as for E33.
+crossed_conditions_check_run <- function(spec, inputs, seed) {
+  n <- 300L
+  k <- length(inputs$levels)
+  big <- inputs
+  big$items <- max(inputs$items, 60L * k)
+  if (!big$within) big$items <- k * ceiling(big$items / k)
+  model <- simr_model(big, n)
+  data <- crossed_conditions_design(big, n)
+  data$y <- with_seed(seed, stats::simulate(model)[[1]])
+  fit <- call_backend("lme4", quietly(lme4::lmer(inputs$formula, data = data)))
+  coefs <- summary(fit)$coefficients
+  vc <- as.data.frame(lme4::VarCorr(fit))
+  sd_of <- function(group) vc$sdcor[vc$grp == group]
+  pop <- spec$population
+  sd_row <- function(label, specified, recovered, groups) {
+    check_run_rows(label, specified, recovered, max(specified, 0.05) / sqrt(2 * (groups - 1)))
+  }
+  names <- paste0("cond", inputs$levels[-1])
+  rows <- list(
+    check_run_rows(sprintf("%s minus %s", inputs$levels[-1], inputs$levels[1]), inputs$fixef[-1],
+      coefs[names, "Estimate"], coefs[names, "Std. Error"]),
+    sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant"), n),
+    sd_row("SD of participant-by-condition effects", pop$sd_participant_condition, sd_of("participant:cond"), n * k),
+    sd_row("SD of item intercepts", pop$sd_item, sd_of("item"), big$items),
+    if ("item:cond" %in% names(inputs$VarCorr)) {
+      sd_row("SD of item-by-condition effects", pop$sd_item_condition, sd_of("item:cond"), big$items * k)
+    },
+    check_run_rows("residual SD", pop$sd_residual, sd_of("Residual"), pop$sd_residual / sqrt(2 * nrow(data)))
+  )
+  check <- do.call(rbind, rows)
+  rownames(check) <- NULL
+  check
+}
+
+# The standalone script: simr alone, with the same design and test
+# (export_script()).
+crossed_conditions_script <- function(spec, result) {
+  inputs <- crossed_conditions_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr), vapply(inputs$VarCorr, r_code, "")), collapse = ", ")
+  c(
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with %s", inputs$test_label)),
+    "library(simr)",
+    "library(lmerTest) # Satterthwaite's tests",
+    "",
+    "# Inputs ----",
+    sprintf("# The outcome, %s, in its own units; cond is %s, a factor whose", comment_text(v$Y$label), comment_text(v$X$label)),
+    "# coefficients are each condition's mean minus the first condition's.",
+    sprintf("conditions <- %s", r_code(inputs$levels)),
+    sprintf("means <- %s # each condition's mean", r_code(as.numeric(unlist(pop$means)))),
+    sprintf("variances <- list(%s) # participant, participant-by-condition and item variances", var_corr),
+    sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    sprintf("items <- %s # number of items", r_code(pop$items)),
+    sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
+      if (inputs$within) "every item in every condition" else "the items split equally, one block per condition"),
+    if (inputs$pairwise) c(
+      sprintf("pair <- %s # the pair of conditions tested", r_code(inputs$levels[sort(inputs$pair)])),
+      sprintf("p_adjust <- %s # adjustment for all the pairwise comparisons", r_code(inputs$p_adjust))
+    ),
+    goal_inputs(spec, result),
+    "",
+    "design_for <- function(n_participants) {",
+    "  k <- length(conditions)",
+    "  if (item_design == \"within\") {",
+    "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items), cond = conditions,",
+    "      stringsAsFactors = FALSE)",
+    "  } else {",
+    "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
+    "    data$cond <- conditions[ceiling(data$item / (items / k))]",
+    "  }",
+    "  data$participant <- factor(data$participant)",
+    "  data$item <- factor(data$item)",
+    "  data$cond <- factor(data$cond, levels = conditions)",
+    "  data",
+    "}",
+    "",
+    "model_for <- function(n_participants) {",
+    sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
+    "    fixef = c(means[1], means[-1] - means[1]), VarCorr = variances,",
+    "    sigma = sd_residual, data = design_for(n_participants))",
+    "}",
+    "",
+    if (inputs$pairwise) c(
+      "# The chosen pair's Satterthwaite t test, adjusted for all the pairs.",
+      "test_p <- function(fit) {",
+      "  model <- as_lmerModLmerTest(fit)",
+      "  k <- length(conditions)",
+      "  pairs <- combn(k, 2)",
+      "  p <- apply(pairs, 2, function(ij) {",
+      "    contrast <- numeric(k)",
+      "    contrast[ij[2]] <- 1",
+      "    if (ij[1] > 1) contrast[ij[1]] <- -1",
+      "    contest(model, contrast, ddf = \"Satterthwaite\")[[\"Pr(>F)\"]]",
+      "  })",
+      "  at <- sort(match(pair, conditions))",
+      "  p.adjust(p, p_adjust)[[which(pairs[1, ] == at[1] & pairs[2, ] == at[2])]]",
+      "}"
+    ) else c(
+      "# The Satterthwaite F test that the conditions differ.",
+      "test_p <- function(fit) anova(as_lmerModLmerTest(fit), ddf = \"Satterthwaite\")[\"cond\", \"Pr(>F)\"]"
+    ),
+    "",
+    "# One batch of simulated data sets: significant results and data sets.",
+    "# simr counts a data set whose fit or test fails as not significant.",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  result <- powerSim(model_for(batch_n), test = test_p,",
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, 1),
     comparison_section()
   )
 }

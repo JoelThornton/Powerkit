@@ -340,13 +340,15 @@ nodes:
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
-    help: "powerkit calculates two conditions with a score on each trial: every participant responding in both, or each in one of them."
+    help: "powerkit calculates two conditions with a score on each trial, every participant responding in both or each in one of them, and three or more conditions that every participant responds in."
     options:
       - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: score}, help: "e.g. emotional and neutral words, each person reading both kinds."}
       - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [yesno, count, ordinal]}}
       - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: score}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
       - {label: "Two conditions, and each person is in one of them", next: E41, when: {outcome: [yesno, count, ordinal]}}
-      - {label: "Something else: three or more conditions, or a predictor measured on each trial", next: E41}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: score}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E41, when: {outcome: [yesno, count, ordinal]}}
+      - {label: "Something else: conditions given to different people with three or more conditions, or a predictor measured on each trial", next: E41}
   s3:
     doc_id: S3
     text: "How many times is each person measured on the outcome?"
@@ -1442,6 +1444,23 @@ endpoints:
     inputs: ["The outcome, the person-level predictor and the group-level predictor", "Each effect, how much the groups differ, and the residual SD", "The number of people in each group, and the effect to test"]
     tier: v2
     alternatives: ["a cluster-randomised or multisite trial, if groups or people were assigned to conditions", "a regression ignoring the groups, which overstates the evidence when people in a group are alike"]
+  E63:
+    doc_name: "Crossed participants and stimuli, three or more conditions"
+    plain_name: "Each person responds to many items or stimuli in three or more conditions"
+    search_words: "mixed model mixed effects random effects stimuli items three conditions pairwise"
+    template: "mixed_model / crossed_conditions"
+    backend: "simr: powerSim() on y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with lmerTest's Satterthwaite F test or a pair's Satterthwaite t test adjusted for all the pairs (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-crossed-conditions.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for the F test and for a pair, recovers every mean difference and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Each participant responds to many items (words, faces, trials) in three or more conditions, every participant in every condition: for example, response times to happy, angry and neutral faces."
+      - "You give each condition's mean and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
+      - "Tests whether the conditions differ at all (Satterthwaite's F test), or one pair of conditions, adjusted for all the pairs (Holm's method unless you choose otherwise)."
+      - "Simulated with simr, as for two conditions, so the answer carries a little random error. Power at a given number of participants runs here; the number you need comes as an R script."
+    inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
+    tier: v2
+    alternatives: ["averaging over items and using a repeated-measures ANOVA, which ignores the variation between items and overstates power", "two conditions only: the two-condition card"]
   E42:
     doc_name: "Mediation with a condition of three or more groups (multi-category X)"
     plain_name: "Mediation where X has three or more conditions or groups"
@@ -1952,7 +1971,7 @@ analysis_families:
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E34, E41, E35, E45, E44]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E34, E41, E35, E45, E44]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
