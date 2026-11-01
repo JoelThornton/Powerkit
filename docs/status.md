@@ -72,7 +72,7 @@ fully validated. Validation runs are recorded in
   MANOVA (pwrss's exact F). 17 published examples are transcribed and
   pass; the rest keep `TODO_PUBLISHED_VALUE` for the maintainer. Six cards
   are marked validated; eight still say "validation in progress"
-  ([`next.md`](next.md), item 10). Validation runs per design before a PR
+  ([`next.md`](next.md), "Waiting on the maintainer"). Validation runs per design before a PR
   merges, every night the engine changed and in full every Sunday
   (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
   29 and 30 October failed on two unit tests that compared runs on
@@ -99,7 +99,7 @@ fully validated. Validation runs are recorded in
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan, for a
-  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, item 8);
+  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
@@ -107,15 +107,16 @@ fully validated. Validation runs are recorded in
   and Bayesian planning for the Bayes factor t-tests from bfpwr, at a
   fixed N or, since 0.28.0, sequential: checked as the data come in,
   stopping when the evidence is strong).
-- **Waiting on others:** moderated mediation with W on the direct path
-  (E38, model 8) on an upstream question to manymome (`next.md`,
-  item 7); E17 on questions for power4mome (item 9); Spower's faults
-  are ready to raise upstream (`docs/upstream/spower-var-test.R`).
+- **Next for moderated mediation:** W on both links or the direct path
+  (E38, models 8, 58 and 59) and a yes/no X or W (E17) are Ready
+  (`next.md`, items 7 and 8, decided 1 November 2026).
+- **Waiting on others:** Spower's faults are ready to raise upstream
+  (`docs/upstream/spower-var-test.R`).
 
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 12). Every repeated-measures card takes an SD per cell and
+  item 10). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
 - Simulated data sets are missing for the three-way regression
@@ -126,9 +127,9 @@ fully validated. Validation runs are recorded in
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 11).
+  groups or occasions (item 9).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 20).
+  semPower, powertools, TOSTER and bfpwr designs (item 18).
 
 ## Working environment
 

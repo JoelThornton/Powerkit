@@ -943,3 +943,26 @@ and not for the smallest detectable effect, which E15 doesn't offer.
   several outcomes is the candidate), and otherwise left out with a note
   (`next.md`).
 
+### E4. Phase 3b: binary X and W
+
+**Decided 1 November 2026** (`decisions.md`): the last open part, how power4mome standardises a binary W in moderated mediation (E17), is answered by powerkit's own check rather than a question to power4mome's author: E17 is built with power4mome and checked against a simulation written separately, for the standardisation and for the Monte Carlo CI's coverage with a binary X. The entry is kept below as the record.
+
+- **Question:** the statistical decisions needed before coding binary X
+  and W:
+  - how users specify a 0/1 X's effect when paths are standardised;
+  - whether the group proportion is an input;
+  - how power4mome generates binary variables;
+  - how this interacts with the planned Cohen's d departure;
+  - the validation targets.
+- **Where:** [`phase-3b-questions.md`](phase-3b-questions.md), with the
+  options and what the backends' documentation says. Not copied here.
+- **Knock-on effects:** the E15, E16 and E17 cards.
+- **Partly decided (29 October 2026, `decisions.md`):** the effect is
+  entered as a standardised path or correlation, with the group
+  difference it implies shown beside it (option B; a Cohen's d input
+  later, as a departure); the split is asked on the mediation cards
+  (50/50 by default) and fixed at 50/50 for interactions. E15 and E16 are
+  built on these (E16's Monte Carlo CI with a binary X agrees with an
+  independent simulation in `test-validation-mediation-binary.R`). Still
+  open for E17: how power4mome standardises a binary W in moderated
+  mediation (a question for power4mome's author).
