@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "A tidier input screen that says what's left"
+    text: >-
+      The screen where you enter your numbers is easier to read, and the bar
+      at the bottom now counts the answers still needed. Click it to jump to
+      the next empty one.
+  - date: "2026-11-01"
     title: "An easier list of analyses"
     text: >-
       "I know my analysis" has a bigger search box that counts the matches
