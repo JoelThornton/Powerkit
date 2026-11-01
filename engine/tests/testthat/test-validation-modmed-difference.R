@@ -7,7 +7,8 @@
 #      as correlated standard normals, M and Y from the standardised paths,
 #      each residual variance set so that M and Y have variance 1 (worked
 #      out from a million draws of the systematic part). Each data set is
-#      fitted by OLS, one equation at a time (PROCESS's way), and the
+#      fitted by OLS, one equation at a time (PROCESS's way, each model
+#      with its own terms), and the
 #      difference gets its own Monte Carlo interval: the coefficients drawn
 #      from each equation's estimated sampling distribution, independently,
 #      without power4mome or manymome
@@ -44,16 +45,22 @@ difference_by_hand <- function(paths, n, nrep, seed) {
     m <- m_sys + stats::rnorm(big, 0, sqrt(e_m))
     y_sys <- get("X->Y") * x + get("M->Y") * m + get("W->Y") * w + get("XW->Y") * x * w + get("MW->Y") * m * w
     e_y <- 1 - stats::var(y_sys)
+    # Each model's own Y equation: W on the direct path (models 8 and 59)
+    # and on M -> Y (models 58 and 59) only where the model has them.
+    has_mw <- !is.null(paths[["MW->Y"]])
+    y_terms <- c("x", "m", "w", if (!is.null(paths[["XW->Y"]])) "x:w", if (has_mw) "m:w")
+    y_formula <- stats::reformulate(y_terms, response = "y")
     mean(vapply(seq_len(nrep), function(i) {
       d <- data.frame(x = stats::rnorm(n), w = stats::rnorm(n))
       d$m <- get("X->M") * d$x + get("W->M") * d$w + get("XW->M") * d$x * d$w + stats::rnorm(n, 0, sqrt(e_m))
       d$y <- get("X->Y") * d$x + get("M->Y") * d$m + get("W->Y") * d$w + get("XW->Y") * d$x * d$w +
         get("MW->Y") * d$m * d$w + stats::rnorm(n, 0, sqrt(e_y))
       fm <- stats::lm(m ~ x + w + x:w, data = d)
-      fy <- stats::lm(y ~ x + m + w + x:w + m:w, data = d)
+      fy <- stats::lm(y_formula, data = d)
       a <- MASS::mvrnorm(difference_draws, stats::coef(fm), stats::vcov(fm))
       b <- MASS::mvrnorm(difference_draws, stats::coef(fy), stats::vcov(fy))
-      indirect <- function(wv) (a[, "x"] + a[, "x:w"] * wv) * (b[, "m"] + b[, "m:w"] * wv)
+      b_mw <- if (has_mw) b[, "m:w"] else 0
+      indirect <- function(wv) (a[, "x"] + a[, "x:w"] * wv) * (b[, "m"] + b_mw * wv)
       ci <- stats::quantile(indirect(1) - indirect(-1), c(0.025, 0.975))
       ci[1] > 0 || ci[2] < 0
     }, logical(1)))
