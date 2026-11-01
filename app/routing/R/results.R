@@ -335,42 +335,77 @@ dyad_units <- function(text) {
 }
 
 is_hartung_knapp <- function(spec) {
-  identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
-    !identical(spec$target_test$test, "z")
+  identical(spec$design, "meta_analysis") && !isTRUE(spec$template %in% c("dependent_effects", "heterogeneity")) &&
+    !identical(spec$target_test$model, "fixed") && !identical(spec$target_test$test, "z")
 }
 
 # A planned meta-analysis (E61): n is the number of studies, and the
 # heterogeneity matters as much as the effect (Jackson and Turner, 2017).
+# The methods paragraph's name for each meta-analysis question (E61).
+meta_methods_name <- function(spec) {
+  test <- if (is_hartung_knapp(spec)) "the Hartung-Knapp test" else "the z test"
+  switch(spec$template,
+    dependent_effects = "a meta-analysis of dependent effect sizes (the correlated and hierarchical effects model, the robust variance test of the average effect)",
+    meta_regression = sprintf("a random-effects meta-regression (%s of the moderator's slope)", test),
+    heterogeneity = "a meta-analysis's test of heterogeneity (Cochran's Q)",
+    subgroups = sprintf("a %s subgroup analysis (%s that the kinds of study differ)",
+      if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects", if (is_hartung_knapp(spec)) test else "the Q test"),
+    sprintf("a %s meta-analysis (%s of the average effect)", if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects", test))
+}
+
 meta_sentences <- function(spec, result) {
   pop <- spec$population
+  template <- spec$template
+  dependent <- identical(template, "dependent_effects")
+  regression <- identical(template, "meta_regression")
+  heterogeneity <- identical(template, "heterogeneity")
   random <- !identical(spec$target_test$model, "fixed")
-  model <- if (random) "the random-effects model" else "the fixed-effect model"
-  subgroups <- identical(spec$template, "subgroups")
+  model <- if (dependent) "the correlated and hierarchical effects model" else if (regression) "a random-effects meta-regression" else
+    if (heterogeneity) "Cochran's Q test" else if (random) "the random-effects model" else "the fixed-effect model"
+  subgroups <- identical(template, "subgroups")
+  metric <- if (identical(pop$metric, "r")) "r" else "d"
   effect <- if (subgroups) {
-    sprintf("average effects of %s = %s in the kinds of study", if (identical(pop$metric, "r")) "r" else "d",
-      paste(format(as.numeric(unlist(pop$effects))), collapse = ", "))
+    sprintf("average effects of %s = %s in the kinds of study", metric, paste(format(as.numeric(unlist(pop$effects))), collapse = ", "))
+  } else if (regression) {
+    sprintf("a change of %s in the effect for one SD more of the moderator (%s = %s at its mean)", format(pop$slope), metric, format(pop$effect))
+  } else if (heterogeneity) {
+    sprintf("heterogeneity of I-squared = %s", format(pop$i2))
   } else {
-    sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+    sprintf("%s = %s", metric, format(pop$effect))
   }
-  aim <- if (subgroups) "detect that the kinds of study differ, with" else "detect an average effect of"
-  test <- sprintf("%s%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
-    if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test",
-    alpha_text(spec$target_test$alpha),
-    if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "" else " one-sided",
-    whole(pop$study_size), format(pop$i2))
-  source <- if (is_hartung_knapp(spec)) {
+  aim <- if (subgroups) "detect that the kinds of study differ, with" else if (regression) "detect" else if (heterogeneity) "detect" else
+    "detect an average effect of"
+  test_name <- if (dependent) " and the robust (RVE) test" else if (heterogeneity) "" else
+    if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test"
+  studies <- if (dependent) {
+    sprintf("studies of %s participants giving %s effects each (tau = %s between studies, omega = %s within, sampling correlation %s)",
+      whole(pop$study_size), whole(pop$effects_per_study), format(pop$tau), format(pop$omega), format(pop$rho))
+  } else {
+    sprintf("studies of %s participants and %sI-squared = %s", whole(pop$study_size), if (regression) "residual " else "", format(pop$i2))
+  }
+  test <- sprintf("%s%s, alpha = %s%s, %s", model, test_name, alpha_text(spec$target_test$alpha),
+    if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "" else " one-sided", studies)
+  simulated <- identical(result$provenance$method, "simulation")
+  source <- if (simulated) {
     sprintf("Simulated: %s meta-analyses at each number of studies (Spower with metafor), so the answer carries a little random error.",
       whole(result$provenance$nrep))
   } else {
     sprintf("Calculated by formula (%s).", exact_source(result))
   }
-  caution <- if (random) {
+  caution <- if (dependent) {
+    paste("Each study's effects are allowed to differ and their estimates to be correlated; POMADE's authors advise trying",
+          "a few values of the correlation and the heterogeneity when they aren't known.")
+  } else if (heterogeneity) {
+    "Cochran's Q test has little power with few studies, so a non-significant result says little about whether the studies differ."
+  } else if (random) {
     paste("The random-effects model allows for the studies' true effects differing, which costs power; Jackson and",
           "Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis",
           "reasonably consistently has more power than the studies in it.")
   } else {
     "The fixed-effect model assumes every study estimates the same effect; if they differ, its test is too optimistic."
   }
+  finding <- if (subgroups) "find that the kinds of study differ" else if (regression) "find the moderator's slope significant" else
+    if (heterogeneity) "find significant heterogeneity" else "find it significant"
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
     c(
@@ -381,9 +416,9 @@ meta_sentences <- function(spec, result) {
   } else {
     row <- result$curve[1, ]
     c(
-      headline = if (subgroups) {
-        sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would find that the kinds of study differ, with %s.",
-          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      headline = if (subgroups || regression || heterogeneity) {
+        sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would %s, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), finding, test)
       } else {
         sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
           whole(row$n), percent(row$power), effect, round(100 * row$power), test)
@@ -1506,12 +1541,18 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
   }
+  if (is_bayes_proportions(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; contingency table Bayes factor, group sizes fixed, prior concentration %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
+      if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
 is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
+is_bayes_proportions <- function(spec) is_bayes_test(spec) && identical(spec$template, "two_proportions")
 
 # The design prior SD of a Bayes factor test, whichever name it has.
 bayes_design_sd <- function(spec) spec$population$effect_sd %||% spec$population$p_sd %||% spec$population$r_sd %||% 0
@@ -1520,6 +1561,7 @@ bayes_test_name <- function(spec) {
   switch(spec$template,
     one_proportion = "a Bayes factor test of one proportion",
     correlation = "a Bayes factor test of Pearson's correlation",
+    two_proportions = "a Bayes factor test of two proportions",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test")
@@ -1543,7 +1585,7 @@ bayes_sentence <- function(spec, result) {
   k <- format(b$evidence_threshold)
   c(
     if (b$effect_sd > 0) sprintf(paste(
-      if (is_bayes_binomial(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
+      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
       if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
@@ -1580,9 +1622,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")
-  # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
-  # test's departures, nor the continuity correction, apply.
-  if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
+  # Fisher's exact test and the Bayes factor test (E5's options) are exact:
+  # none of the z test's departures, nor the continuity correction, apply.
+  if (identical(spec$target_test$method, "fisher_exact") || is_bayes_test(spec)) keys <- setdiff(keys, c("5", "9", "10", "11"))
   # Departure 14 is about the smallest detectable d of a group treatment
   # trial with a score outcome only.
   if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised") &&
@@ -1599,7 +1641,7 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # doesn't use.
   # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
   # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
-  if (!is.null(spec) && (is_hartung_knapp(spec) || identical(spec$template, "subgroups"))) keys <- setdiff(keys, "9")
+  if (!is.null(spec) && (isTRUE(is_hartung_knapp(spec)) || isTRUE(spec$template %in% c("subgroups", "dependent_effects", "meta_regression", "heterogeneity")))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
   # Some apply to one goal (Known difference 11, a justified alpha).
@@ -2009,10 +2051,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
   if (is_pairwise(spec)) name <- pairwise_test_name(spec)
-  if (is_hartung_knapp(spec)) name <- "a random-effects meta-analysis (the Hartung-Knapp test of the average effect)"
-  if (is_meta(spec) && !is_hartung_knapp(spec)) {
-    name <- sprintf("a %s meta-analysis (the z test of the average effect)", if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects")
-  }
+  if (is_meta(spec)) name <- meta_methods_name(spec)
   # A sphericity correction (E54, when the SDs or correlations differ).
   correction <- spec$target_test$correction %||% "none"
   if (!identical(correction, "none") && !is_pairwise(spec)) {
@@ -2049,6 +2088,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_proportions(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and prior concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",

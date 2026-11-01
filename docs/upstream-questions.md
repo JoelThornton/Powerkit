@@ -73,8 +73,8 @@ Questions about metapower 0.2.2, from its source (opened 31 October
    directions (58.2% against 48.5%, 19.6% against 25.8%, 27.5% against
    31.3%). In `compute_homogen_power()` the variance of Q uses one study's
    weight where the line before it sums over the studies, and its second
-   term is always 0. powerkit doesn't offer this
-   test until it is resolved.
+   term is always 0. powerkit doesn't use `homogen_power()`: since 1
+   November 2026 it simulates the Q test with metafor instead.
 2. **Fisher's z rounded to two decimals.** `mpower()` with `es_type = "r"`
    rounds z before computing power, which moves power by up to about 1.3
    points (Known difference 9 in `docs/conventions.md`). Is the rounding

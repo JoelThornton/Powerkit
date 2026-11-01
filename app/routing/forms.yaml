@@ -277,6 +277,7 @@ known_differences:
   "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
+  "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -294,6 +295,7 @@ known_differences_methods:
   "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
   "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
+  "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 forms:
   E1:
@@ -557,7 +559,7 @@ forms:
 
   E5:
     methods_name: "a test of two proportions (z test)"
-    departures: ["9", "11", "5"]
+    departures: ["9", "11", "5", "15"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -582,14 +584,26 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwr.2p.test() (pwr 1.3-0) and Spower's default (p_prop.test(n.ratios = rep(1, length(prop))), Spower 0.7)"}
-      - input: "The z test or Fisher's exact test"
+      - input: "The z test, Fisher's exact test or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {z_test: "The z test (a large-sample test)", fisher_exact: "Fisher's exact test (pwrss's power.exact.fisher()): for small samples or small expected counts"},
+             choices: {z_test: "The z test (a large-sample test)", fisher_exact: "Fisher's exact test (pwrss's power.exact.fisher()): for small samples or small expected counts", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value"},
              default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions"}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the groups' proportions differ than if they are the same. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 1, default_source: "JASP's Bayesian contingency tables ('Prior concentration' 1, with 'Indep. multinomial, rows fixed') and BayesFactor's contingencyTableBF()",
+             help: "The prior you will use when you analyse the data: 1 gives every proportion in each group the same weight (JASP's default); larger values expect the groups to be more alike. Use the same value as in your analysis plan."}
+          - {id: p_sd, label: "How unsure you are about each group's proportion, as an SD (0 = exactly these proportions)", type: number, path: population.p_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the proportions you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over proportions spread around yours in each group (a beta design prior with this SD): the study's assurance."}
     # Known differences that apply only with one test version.
-    known_differences_if_method: {"2": fisher_exact}
-    known_differences: ["2"]
+    known_differences_if_method: {"2": fisher_exact, "13": bayes_factor}
+    known_differences: ["2", "13"]
     method_extra:
       - {id: proportions_formula, label: "Which formula", type: select, path: options.proportions_formula, optional: true,
          shown_if: [{field: calc_method, is: exact}, {field: method, is: z_test}],
@@ -2291,7 +2305,7 @@ forms:
   # A planned meta-analysis (metapower's mpower()): the test of the
   # average effect, with n the number of studies.
   E61:
-    methods_name: "a meta-analysis (the z test of the average effect)"
+    methods_name: "a meta-analysis"
     tool: metapower
     directional: true
     meta: true
@@ -2305,8 +2319,14 @@ forms:
         fields:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
           - {id: meta_question, label: "What the meta-analysis tests", type: select, path: template, required: true,
-             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)"},
-             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}]},
+             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)",
+                       dependent_effects: "The average effect, when studies give several effects each (several outcomes or time points)",
+                       meta_regression: "Whether the effect changes with a score measured on each study (a meta-regression, e.g. the studies' mean age)",
+                       heterogeneity: "Whether the studies' true effects differ at all (the test of heterogeneity, Cochran's Q)"},
+             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}],
+                    dependent_effects: [{path: target_test.method, value: rve_t}],
+                    meta_regression: [{path: target_test.effect, value: moderator_slope}],
+                    heterogeneity: [{path: target_test.effect, value: heterogeneity}, {path: target_test.method, value: q_test}]},
              default: mean_effect, default_source: "the average effect, a meta-analysis's main question"}
           - {id: meta_metric, label: "The effect size the studies give", type: select, path: population.metric, required: true,
              choices: {d: "Cohen's d: two groups compared in each study", r: "A correlation r"}, default: d,
@@ -2316,22 +2336,41 @@ forms:
           - {id: meta_effects, writeup_label: "average effects of the kinds of study", label: "The average effect in each kind of study, separated by commas (for example, lab then online: 0.2, 0.5); the studies are split equally between the kinds", type: numbers, path: population.effects, effect: true,
              shown_if: {field: meta_question, is: subgroups}}
           - {id: meta_effect, writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
-             shown_if: {field: meta_question, is: mean_effect},
+             shown_if: {field: meta_question, is_one_of: [mean_effect, dependent_effects, meta_regression, heterogeneity]},
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
+          - {id: meta_slope, writeup_label: "change in the effect per SD of the moderator", label: "How much the effect changes for one SD more of the moderator (on the effect's scale)", type: number, path: population.slope, effect: true,
+             shown_if: {field: meta_question, is: meta_regression},
+             help: "For example 0.15: studies one SD older on average have an effect 0.15 larger. The average effect above is at the moderator's mean."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}
           - {id: i2, label: "Heterogeneity, as I-squared (0 to just under 1)", type: number, path: population.i2, required: true, min: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "I-squared",
+             shown_if: {field: meta_question, is_not: dependent_effects},
              help: "The share of the variation between the studies' effects that isn't chance. Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."}
+          - {id: effects_per_study, label: "Effect sizes each study gives (the same in every study)", type: number, path: population.effects_per_study, required: true, min: 2, integer: true, in_effect_text: true, writeup_label: "effect sizes per study",
+             shown_if: {field: meta_question, is: dependent_effects}}
+          - {id: meta_tau, writeup_label: "SD between studies (tau)", label: "SD of the studies' average true effects (tau: heterogeneity between studies)", type: number, path: population.tau, effect: true, min: 0,
+             shown_if: {field: meta_question, is: dependent_effects},
+             help: "On the effect's own scale (Fisher's z for r). 0.1 for d is modest heterogeneity."}
+          - {id: meta_omega, writeup_label: "SD within studies (omega)", label: "SD of the true effects within a study (omega: heterogeneity within studies)", type: number, path: population.omega, effect: true, min: 0,
+             shown_if: {field: meta_question, is: dependent_effects}}
+          - {id: meta_rho, writeup_label: "correlation of a study's sampling errors", label: "Correlation between a study's effect sizes' sampling errors (0 to just under 1)", type: number, path: population.rho, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: meta_question, is: dependent_effects},
+             help: "How alike the estimates from the same participants are, for example 0.6 for outcomes measured on the same people. POMADE's authors suggest trying several values when it isn't known."}
       - input: "The fixed-effect or the random-effects model, and the test"
         fields:
           - {id: meta_model, label: "Model", type: select, path: target_test.model, required: true,
              choices: {random: "Random effects: the studies' true effects differ", fixed: "Fixed effect: every study estimates the same effect"},
+             shown_if: {field: meta_question, is_one_of: [mean_effect, subgroups]},
              default: random, default_source: "powerkit's choice: the random-effects model, which allows for the studies' true effects differing (metapower reports both)"}
           - {id: meta_test, label: "Test of the average effect", type: select, path: target_test.test, required: true,
              choices: {hartung_knapp: "Hartung-Knapp (recommended; simulated)", z: "z test (metapower's formula)"}, default: hartung_knapp,
              default_source: "powerkit's choice (Departure 18): the Hartung-Knapp test keeps false positives closer to alpha, especially with few studies (IntHout, Ioannidis & Borm, 2014)",
              help: "Plan with the test you will run. The z test is what metapower and many older meta-analyses use; it is too often significant when there are few studies.",
-             shown_if: {field: meta_model, is: random}}
+             shown_if: [{field: meta_model, is: random}, {field: meta_question, is_one_of: [mean_effect, subgroups]}]}
+          - {id: meta_reg_test, label: "Test of the moderator's slope", type: select, path: target_test.test, required: true,
+             choices: {hartung_knapp: "Hartung-Knapp (recommended)", z: "z test"}, default: hartung_knapp,
+             default_source: "powerkit's choice (Departure 18), as for the average effect: the Hartung-Knapp test keeps false positives closer to alpha with few studies",
+             shown_if: {field: meta_question, is: meta_regression}}
 
   # Logistic regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its odds ratio is per SD; a yes/no X compares

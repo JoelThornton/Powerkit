@@ -32,10 +32,12 @@ fully validated. Validation runs are recorded in
   since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
-  of studies since 1 November. Bayes factor versions: the three t-tests
+  of studies, several effects per study (POMADE), a moderator that is a
+  score and the test of heterogeneity (both simulated with metafor) since
+  1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
   JASP's prior and one-sided test by default) and the correlation (E4;
-  BayesFactor, JASP's Bayes factor and prior width by default). **Twelve are simulated with a
+  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default). **Twelve are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
@@ -129,11 +131,12 @@ fully validated. Validation runs are recorded in
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan, for a
-  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
+  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement, including two mediators and moderated mediation of one link; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
-  visualiser for the two-group t-test and, since 0.27.0, the correlation,
+  visualiser for the two-group t-test and, since 0.27.0, the correlation
+  (since 0.28.0 also the paired t-test, the one-way ANOVA and two proportions),
   and Bayesian planning for the Bayes factor t-tests from bfpwr, at a
   fixed N or, since 0.28.0, sequential: checked as the data come in,
   stopping when the evidence is strong).

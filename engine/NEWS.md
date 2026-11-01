@@ -28,6 +28,55 @@
 
 A batch of new features, built as one round.
 
+* The Labs picture of power covers three more tests:
+  `power_picture_paired()` (pwr's paired t-test, the central and
+  noncentral t with n - 1 df), `power_picture_anova()` (pwr's one-way
+  ANOVA, the central and noncentral F with k - 1 and n - k df, the
+  smallest significant Cohen's f) and `power_picture_2p()` (pwr's
+  two-proportion test on Cohen's h, the z statistic's two normal curves).
+
+* A Bayes factor version of the test of two proportions (`target_test >
+  method` "bayes_factor" on `two_proportions`): BayesFactor's
+  `contingencyTableBF()` with independent multinomial sampling and the
+  group sizes fixed, prior concentration `target_test >
+  prior_concentration` (1 by default), the default of JASP's Bayesian
+  contingency tables. Power is summed exactly over every possible table,
+  scored with the closed form of that Bayes factor (equal to
+  `contingencyTableBF()`, tested and in the check run). One-sided tests
+  follow JASP's rule, with the posterior probability calculated exactly
+  (Known difference 13); `population > p_sd` gives the assurance
+  (Departure 15). Unequal groups as on the z test.
+
+* Meta-analysis (E61): a moderator that is a score (template
+  `meta_regression`: the average effect at the moderator's mean and the
+  slope per SD of a moderator measured on each study, residual
+  I-squared), tested by the Hartung-Knapp test by default (Departure 18)
+  or the z test; and the test of heterogeneity (template
+  `heterogeneity`: Cochran's Q from the fixed-effect fit). Both simulated
+  with Spower and metafor's `rma()`, since no package computes the first
+  and metapower's formula for the second disagrees with simulation.
+  Checked against simulations written separately with metafor, with the
+  Type I error near alpha.
+* Meta-analyses whose studies give several correlated effect sizes each
+  (E61, template `dependent_effects`): POMADE's `power_MADE()` for the
+  test of the average effect under the correlated and hierarchical
+  effects (CHE) model with robust variance estimation (J - 1 degrees of
+  freedom), POMADE's default. The inputs are the average effect (d or r),
+  a typical study's size (each effect's sampling variance computed as
+  metapower computes it), the effects per study, the SD of the studies'
+  average effects (`tau`), the SD of the effects within a study (`omega`)
+  and the correlation of a study's sampling errors (`rho`); n is the
+  number of studies. Checked against a simulation written separately
+  with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
+  furrr).
+* Whole-study simulation measured twice now covers mediation through two
+  mediators (side by side or in a chain) and moderated mediation of one
+  link (X to the mediator, or the mediator to the outcome); the guided
+  routes ask how the mediators connect and which link the moderator
+  changes, as they do measured once. New agreement checks against the
+  serial mediation and second-stage moderated mediation cards
+  (test-validation-whole-study-twice.R, in the `whole_study` chunk).
+
 * A predictor measured on each trial (E67, template `item_predictor`,
   `population > x_level` "trial"): a value that varies from trial to
   trial, such as how long a stimulus is shown, rather than one per item.

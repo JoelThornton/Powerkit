@@ -839,7 +839,7 @@ rank_test_text: "Planning {rank_test} instead? The figure here is for the parame
 rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
 # On the cards with a Bayes factor version (`bayes_test: true`: the
 # t-tests, one proportion and the correlation).
-bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by exact calculation (bfpwr, or BayesFactor for the correlation, with JASP's default prior for the correlation and one proportion)."
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by exact calculation (bfpwr, or BayesFactor for the correlation and two proportions, with JASP's default prior for the correlation and for proportions)."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -953,14 +953,16 @@ endpoints:
     plain_name: "Compare two groups on a yes/no outcome"
     search_words: "two proportions fisher exact"
     template: "basic_test / two_proportions"
-    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher()"
-    refs: "Departures 5, 9 and 11 (docs/conventions.md)"
+    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
+    refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test or Fisher's exact test"]
+    inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test, Fisher's exact test or a Bayes factor test"]
     status: runs_validated
+    bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
       - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
+      - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:
@@ -1813,7 +1815,7 @@ endpoints:
     doc_name: "A planned meta-analysis: the test of the average effect"
     plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
     search_words: "meta analysis random effects moderator subgroup"
-    template: "meta_analysis / mean_effect, subgroups"
+    template: "meta_analysis / mean_effect, subgroups, dependent_effects, meta_regression or heterogeneity"
     backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
     method: "Simulation (Hartung-Knapp) or formula (z test)"
     status: runs_validation_in_progress
@@ -1824,7 +1826,9 @@ endpoints:
       - "Under the random-effects model, heterogeneity costs power: Jackson and Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis reasonably consistently has more power than the studies in it."
       - "Under the random-effects model powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
       - "It can also test whether the effect differs between kinds of study (a subgroup or moderator analysis, such as lab against online studies), by the between-groups Q test, with the Hartung-Knapp version by default under the random-effects model."
-      - "Every study is taken to be the same size. Not yet: power for the test of heterogeneity (metapower's formula disagrees with simulation), or for a moderator that is a score."
+      - "When studies give several effect sizes each (several outcomes or time points), POMADE plans for the robust test of the average effect, allowing for heterogeneity between and within studies and for the correlation of a study's estimates."
+      - "It can also plan a meta-regression on a score measured on each study (such as the participants' mean age), and the test of heterogeneity (whether the studies' true effects differ at all), both simulated with metafor."
+      - "Every study is taken to be the same size."
     inputs: ["The outcome, and whether the studies give Cohen's d or a correlation", "The average effect, the size of a typical study and the heterogeneity (I-squared)", "The fixed-effect or the random-effects model, and the test"]
     tier: v2
     alternatives: ["the power of each included study for a range of effects (study-level power, the metameta package), to judge how informative the studies themselves are"]
@@ -1894,7 +1898,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, BayesFactor."
+      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation and two proportions, BayesFactor."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
@@ -1992,6 +1996,15 @@ guided:
       label: "Whether X affects the outcome through the mediator(s)"
       requires: {mediators: [one, several, notscore]}
       rules:
+        # Measured twice: no card yet (E41), but the whole-study simulation
+        # covers two mediators and needs to know how they connect.
+        - when: {times: twice, x: [score, cond2], mediators: several, outcome: score}
+          ask:
+            doc_id: ME3
+            text: "How do the mediators connect?"
+            options:
+              - {label: "Side by side: X affects each one separately", endpoint: E41}
+              - {label: "In a chain: X affects the first, which affects the next", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
@@ -2010,6 +2023,16 @@ guided:
       label: "Whether the mediation depends on the moderator (moderated mediation)"
       requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
       rules:
+        # Measured twice: no card yet (E41), but the whole-study simulation
+        # covers one moderated link and needs to know which.
+        - when: {times: twice, x: score, moderator: score, mediators: one, outcome: score}
+          ask:
+            doc_id: MM4
+            text: "Which link depends on the moderator?"
+            options:
+              - {label: "The link from X to the mediator", endpoint: E41}
+              - {label: "The link from the mediator to the outcome", endpoint: E41}
+              - {label: "Both links, or X to the mediator and the direct link", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}

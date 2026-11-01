@@ -38,13 +38,15 @@ test_that("measured twice, every analysis adjusts for the first measurement; the
   expect_equal(plan$roles, c("X", "W", "M", "B", "Y"))
   skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list(compare = list(Y_label = "Exhaustion"))))
   expect_identical(skeleton$variables$B, list(type = "continuous", label = "Exhaustion, first measurement"))
-  # The mixed ANOVA's group x time test, moderated mediation and two
-  # mediators are not simulated as a whole study measured twice.
+  # The mixed ANOVA's group x time test is not simulated as a whole study
+  # measured twice.
   mixed <- list(compare = "The 2 x 2 mixed ANOVA interaction (group x time)")
   plan <- whole_study_plan(tree, twice, "compare", "compare", mixed)
   expect_false(plan$ok)
   expect_true(any(grepl("not yet", plan$reasons, fixed = TRUE)))
+  # Moderated mediation needs a measured X and the moderated link chosen.
   expect_false(whole_study_plan(tree, twice, "modmed", "modmed", list())$ok)
+  # Two mediators need how they connect.
   expect_false(whole_study_plan(tree, modifyList(twice, list(mediators = "several")), "mediation", "mediation", list())$ok)
   # Measured three times or more stays outside.
   expect_false(whole_study_plan(tree, modifyList(twice, list(times = "many_conditions")), "compare", "compare", ancova)$ok)
@@ -53,6 +55,44 @@ test_that("measured twice, every analysis adjusts for the first measurement; the
   params <- params_of(skeleton)
   expect_true("B->Y" %in% params$paths)
   expect_setequal(params$correlations, "W<->B")
+})
+
+test_that("measured twice: two mediators side by side or in a chain, and moderated mediation of one link", {
+  twice <- modifyList(ws_answers, list(times = "twice"))
+  several <- modifyList(twice, list(mediators = "several", moderator = "none"))
+  route <- resolve_analysis(tree, analysis_by_id(tree, "mediation"), several)
+  expect_identical(route$ask$doc_id, "ME3")
+  chain <- whole_study_plan(tree, several, "mediation", "mediation",
+    list(mediation = "In a chain: X affects the first, which affects the next"))
+  expect_true(chain$ok)
+  expect_identical(chain$mediators, "serial")
+  expect_identical(chain$analyses[[1]]$path, "X->M1->M2->Y")
+  expect_equal(chain$roles, c("X", "M1", "M2", "B", "Y"))
+  side <- whole_study_plan(tree, several, "mediation", "mediation",
+    list(mediation = "Side by side: X affects each one separately"))
+  expect_true(side$ok)
+  expect_identical(side$mediators, "parallel")
+  expect_identical(side$analyses[[1]]$path, "X->M1->Y")
+  # Moderated mediation: the chosen link is the one the index tests.
+  expect_identical(resolve_analysis(tree, analysis_by_id(tree, "modmed"), twice)$ask$doc_id, "MM4")
+  for (choice in list(c("The link from X to the mediator", "x_m"), c("The link from the mediator to the outcome", "m_y"))) {
+    plan <- whole_study_plan(tree, twice, c("modmed", "mediation"), "modmed", list(modmed = choice[1]))
+    expect_true(plan$ok)
+    expect_identical(plan$analyses[[1]]$test, "index_of_mome")
+    expect_identical(plan$analyses[[1]]$moderated_link, choice[2])
+    expect_equal(plan$roles, c("X", "W", "M", "B", "Y"))
+  }
+  # Both links moderated is not simulated (nor is it measured once).
+  both <- whole_study_plan(tree, twice, "modmed", "modmed", list(modmed = "Both links, or X to the mediator and the direct link"))
+  expect_false(both$ok)
+  # A yes/no X with moderated mediation stays outside, as measured once.
+  expect_false(whole_study_plan(tree, modifyList(twice, list(x = "cond2")), "modmed", "modmed",
+    list(modmed = "The link from X to the mediator"))$ok)
+  skeleton <- whole_study_skeleton(chain, whole_study_labels(chain$roles, list()))
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  params <- params_of(skeleton)
+  expect_true(all(c("B->Y", "M1->M2") %in% params$paths))
 })
 
 test_that("two mediators in a chain test the whole chain unless another path is chosen", {

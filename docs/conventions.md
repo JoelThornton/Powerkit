@@ -465,6 +465,22 @@ log-odds scale in place of the shares of variance. The test is glmer's
 Wald z test, simr's default for a two-condition predictor, or the
 likelihood ratio; not a departure.
 
+## Meta-analysis with several effects per study (E61, POMADE)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No meta-analysis | — | — |
+| POMADE | `power_MADE()`: the test of the average effect under a working model, with `model = "CHE"` and `var_df = "RVE"` by default [POMADE help] | The average effect, with tau, omega and rho | Study sizes and numbers of effects may be drawn from distributions; balanced by default when given single values |
+| **powerkit** | POMADE's `power_MADE()` with its defaults, the CHE model and the RVE test (E61, from 1 November 2026) [powerkit] | Cohen's d or r (on Fisher's z), tau, omega and rho on the same scale | Every study the same size with the same number of effects; each effect's sampling variance a typical study's, as metapower computes it (`4/n + d^2/(2n)`, or `1/(n - 3)` for r). Not a departure |
+
+## Meta-analysis: a score moderator and the test of heterogeneity (E61)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No meta-analysis | — | — |
+| metapower | `mod_power()` for a categorical moderator only; `homogen_power()` for heterogeneity, which disagrees with simulation (`upstream-questions.md`) [metapower help] | d or r, I-squared | — |
+| **powerkit** | A score moderator: metafor's `rma(mods = ~ x)` simulated with Spower, the Hartung-Knapp test by default (Departure 18) or z. Heterogeneity: Cochran's Q from metafor's fixed-effect `rma()`, simulated with Spower (E61, from 1 November 2026) [powerkit] | d or r (Fisher's z), the slope per SD of the moderator, I-squared | The moderator standardised across the studies (normal quantiles, a fixed design); every study the same size, its sampling variance as metapower computes it |
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |
@@ -490,6 +506,15 @@ likelihood ratio; not a departure.
 | JASP (Bayesian correlation; analysis only, no planning) | Pearson's rho = 0 against rho != 0 (or one side, the prior truncated to it), a stretched beta prior on rho; exact Bayes factor (jaspRegression's bstats, Ly, Marsman and Wagenmakers, 2018) | — | Prior width 1 (uniform) by default |
 | BayesFactor | `correlationBF()`: the same Bayes factor; one-sided by `nullInterval` | — | `rscale` "medium" (1/3) by default |
 | **powerkit** | BayesFactor's `correlationBF()`, which rises with r (or |r|), so strong evidence is exactly a sample correlation past a critical value, found by root-finding; its chance from the exact distribution of r for bivariate normal scores (SuppDists' `pPearson()`), with no simulation (E4, from 1 November 2026) [powerkit] | The expected correlation, exactly, or a stretched beta design prior with its mean and an SD (`population > r_sd`) | Prior width 1 by default, JASP's (Known difference 12); Departure 15 is the design prior's default. The one-sided Bayes factor comes from `correlationBF()`'s interval method, within 0.1% of the exact value JASP computes (tested) |
+
+## Bayes factor test of two proportions (E5)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian contingency tables; analysis only, no planning) | Independence in a 2 x 2 table, by BayesFactor's `contingencyTableBF()`; one-sided ("Group one > Group two"): BF10 times the posterior probability of that direction, estimated from 10,000 posterior draws, over 0.5 | — | "Indep. multinomial, rows fixed" and prior concentration 1 by default |
+| BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
+| **powerkit** | `contingencyTableBF()` with JASP's sampling plan (independent multinomial, group sizes fixed), in its closed form for a 2 x 2 table so that every possible table can be scored (equal to `contingencyTableBF()` to ten digits, tested and in the check run); power summed exactly over the tables; one-sided by JASP's rule with the posterior probability calculated exactly (E5, from 1 November 2026) [powerkit] | Each group's expected proportion, exactly, or a beta design prior on each with its mean and an SD (`population > p_sd`) | Prior concentration 1 by default, JASP's and BayesFactor's; Departure 15 is the design prior's default; Known difference 13 for the one-sided test. "greater" means group 2's proportion is the higher, as for the z test |
 
 ## Sequential Bayes factor designs (Labs)
 
@@ -1066,6 +1091,17 @@ as an experimental option, for a statistician's check
   (`test-backend-bayes-correlation.R`, "Departure 15's size for a
   correlation"). Shown on the correlation result screen (E4) when the
   Bayes factor test is chosen and the SD is left at 0.
+- **The Bayes factor test of two proportions (1 November 2026):** the same
+  choice. No package plans this test; the analogue of bfpwr's default, a
+  design prior equal to JASP's analysis prior under the alternative (each
+  group's proportion uniform), is a very different question. powerkit
+  plans for exactly the proportions entered unless the user gives an SD
+  (`population > p_sd`, a beta design prior on each group's proportion).
+  Size: for .4 against .6, two-sided, BF10 of at least 10, 80% needs 354
+  people; at 354, uniform design priors give 75.3%
+  (`test-backend-bayes-proportions.R`, "Departure 15's size for two
+  proportions"). Shown on the two-proportion result screen (E5) when the
+  Bayes factor test is chosen and the SD is left at 0.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
 
@@ -1166,9 +1202,15 @@ preregistered test.
   the z test. For subgroups (the test that kinds of study differ, from 1
   November 2026; 20 studies of 40, d = 0.2 against 0.5, I-squared 0.5):
   29.3% (2,000 simulated meta-analyses, Monte Carlo SE 1.0) against
-  31.9% with metapower's `mod_power()`.
+  31.9% with metapower's `mod_power()`. For a moderator that is a score (a
+  meta-regression, from 1 November 2026; d = 0.3 at the moderator's
+  mean, a slope of 0.15 per SD, 40 per study, residual I-squared 0.3):
+  17.95% against 22.0% with the z test at 10 studies, and 55.9% against
+  58.75% at 30 (the same 2,000 simulated meta-analyses tested both ways,
+  Monte Carlo SE 1.1); no package computes either, so both are
+  simulated.
 - **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
-  the difference"; `test-validation-meta-analysis.R` checks the
+  the difference", and for the moderator `test-backend-meta-more.R`; `test-validation-meta-analysis.R` checks the
   simulated power against a separately written simulation of IntHout et
   al.'s formulas, and the Type I error.
 - **Shown to users:** on the E61 result screen when the Hartung-Knapp test
@@ -1660,3 +1702,24 @@ Wired into the app on 18 October 2026 (E25, E26).*
   factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
   key "12").
 - **Methods paragraph:** `known_differences_methods`, key "12".
+
+### 13. One-sided Bayes factor test of two proportions: an exact posterior probability, where JASP estimates it
+
+- **What differs:** JASP's one-sided Bayes factor for a 2 x 2 table is the
+  two-sided one times the posterior probability that group 1's proportion
+  is the higher (or the lower), over its prior probability, 0.5. JASP
+  estimates that probability from 10,000 draws from the posterior
+  (`BayesFactor::posterior()`), so its one-sided Bayes factor changes a
+  little with the seed. powerkit uses the same rule with the probability
+  integrated exactly from the two Beta posteriors. The two-sided Bayes
+  factor is the same in both.
+- **Size:** for 20 of 50 against 30 of 50, JASP's estimate of the
+  probability varies by about 0.1% (SD of the log ratio below 0.002), and
+  its average equals the exact value to three decimals.
+- **Test:** `engine/tests/testthat/test-backend-bayes-proportions.R`,
+  "Known difference 13: JASP's one-sided Bayes factor estimates the
+  posterior probability from 10,000 draws".
+- **Shown to users:** on the two-proportion result screen when the Bayes
+  factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
+  key "13").
+- **Methods paragraph:** `known_differences_methods`, key "13".

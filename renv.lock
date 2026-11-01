@@ -1434,6 +1434,21 @@
       ],
       "Hash": "1715c7eb48d2d38ee5784bf8e857544b"
     },
+    "furrr": {
+      "Package": "furrr",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "future",
+        "globals",
+        "purrr",
+        "rlang",
+        "vctrs"
+      ],
+      "Hash": "fe9f6c435f0414d91239025eef7b524c"
+    },
     "future.apply": {
       "Package": "future.apply",
       "Version": "1.20.2",
@@ -3745,6 +3760,27 @@
         "SuppDists"
       ],
       "Hash": "f8de2251d038370300412802bb809927"
+    },
+    "POMADE": {
+      "Package": "POMADE",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "dplyr",
+        "furrr",
+        "future",
+        "ggplot2",
+        "magrittr",
+        "purrr",
+        "stats",
+        "stringr",
+        "tibble",
+        "tidyr",
+        "utils"
+      ],
+      "Hash": "112e892d7225fc198ce6f491dd753879"
     },
     "presize": {
       "Package": "presize",

@@ -118,7 +118,7 @@ test_that("the settings are checked in plain words", {
   expect_match(paste(population_problems(t_spec), collapse = " "), "belong to the Bayes factor test of one proportion")
   plain <- example_spec("one_proportion")
   plain$population$p_sd <- 0.1
-  expect_match(paste(population_problems(plain), collapse = " "), "only used by the Bayes factor test of one proportion")
+  expect_match(paste(population_problems(plain), collapse = " "), "only used by the Bayes factor tests of proportions")
 })
 
 test_that("Departure 15's size for a proportion: exactly p against bfpwr's default design prior", {

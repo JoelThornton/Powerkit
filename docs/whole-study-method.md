@@ -36,7 +36,16 @@ and 80% together, about 89.4% each).
      with X (0 for two groups, drawn on their own) and W. Every
      analysis's model then adds B to the equation for Y, as an ANCOVA
      does; the mediators are not adjusted for B, since the population
-     has no B -> M path (question 7).
+     has no B -> M path (question 7). Measured twice covers the group
+     comparison (ANCOVA), the moderation, a mediation through one
+     mediator or two (side by side or in a chain; 1 November 2026) and a
+     moderated mediation in which W moderates one link, X -> M or M -> Y
+     (1 November 2026). The routes ask how the mediators connect and
+     which link W moderates, as they do measured once. With B unrelated
+     to the other predictors, each of these agrees with the matching card
+     (serial mediation, PROCESS model 6; moderated mediation, model 14)
+     run at the paths to Y divided by sqrt(1 - p_BY^2)
+     (test-validation-whole-study-twice.R).
 
    Every observed variable has variance 1; the residual variances follow
    from the paths (powerkit's existing check, `implied_r_squared()`,

@@ -71,3 +71,50 @@ test_that("the correlation's curves are normal densities over both critical valu
   expect_error(power_picture_r(3, 0.3), "at least 4", class = "powerkit_error")
   expect_error(power_picture_r(50, 1), "below 1", class = "powerkit_error")
 })
+
+test_that("the paired t-test's picture is pwr.t.test(type = 'paired')'s calculation", {
+  picture <- power_picture_paired(34, 0.5, alpha = 0.05)
+  expect_equal(picture$power, pwr::pwr.t.test(n = 34, d = 0.5, sig.level = 0.05, type = "paired")$power)
+  expect_equal(picture$df, 33)
+  expect_equal(picture$ncp, 0.5 * sqrt(34))
+  # The blue curve's tails beyond the critical values are the power.
+  tails <- stats::pt(picture$t_crit, 33, picture$ncp, lower.tail = FALSE) + stats::pt(-picture$t_crit, 33, picture$ncp)
+  expect_equal(tails, picture$power, tolerance = 1e-8)
+  # An observed d_z at the smallest significant value gives t at the critical value.
+  expect_equal(picture$dz_crit * sqrt(34), picture$t_crit)
+  expect_equal(picture$curves$alternative, stats::dt(picture$curves$t, 33, ncp = picture$ncp))
+  expect_equal(power_picture_paired(20, 0, alpha = 0.05)$power, 0.05, tolerance = 1e-8)
+  expect_error(power_picture_paired(2.5, 0.5), "whole number", class = "powerkit_error")
+})
+
+test_that("the one-way ANOVA's picture is pwr.anova.test()'s calculation, with the F densities", {
+  picture <- power_picture_anova(156, 0.25, k = 3, alpha = 0.05)
+  expect_equal(picture$power, pwr::pwr.anova.test(k = 3, n = 52, f = 0.25, sig.level = 0.05)$power)
+  expect_equal(c(picture$df1, picture$df2), c(2, 153))
+  expect_equal(picture$ncp, 0.25^2 * 156)
+  # The upper tail of the noncentral F beyond the critical value is the power.
+  expect_equal(stats::pf(picture$f_crit, 2, 153, ncp = picture$ncp, lower.tail = FALSE), picture$power, tolerance = 1e-8)
+  # The smallest significant f, as an F: f^2 df2 / df1 is the critical F.
+  expect_equal(picture$effect_crit^2 * 153 / 2, picture$f_crit)
+  curves <- picture$curves
+  expect_equal(curves$alternative, stats::df(curves$F, 2, 153, ncp = picture$ncp))
+  expect_gt(max(curves$F), picture$f_crit)
+  expect_gt(sum(curves$alternative) * diff(curves$F)[2], 0.98)
+  expect_equal(power_picture_anova(60, 0, k = 4, alpha = 0.05)$power, 0.05, tolerance = 1e-8)
+  expect_error(power_picture_anova(100, 0.25, k = 3), "3 equal groups", class = "powerkit_error")
+  expect_error(power_picture_anova(100, 0.25, k = 12), "from 2 to 10", class = "powerkit_error")
+})
+
+test_that("the two-proportion picture is pwr.2p.test()'s calculation, on the z scale", {
+  picture <- power_picture_2p(194, 0.4, 0.6, alpha = 0.05)
+  h <- pwr::ES.h(0.6, 0.4)
+  expect_equal(picture$h, h)
+  expect_equal(picture$power, pwr::pwr.2p.test(h = h, n = 97, sig.level = 0.05)$power)
+  expect_equal(picture$centre, h * sqrt(97 / 2))
+  tails <- stats::pnorm(picture$z_crit, picture$centre, lower.tail = FALSE) + stats::pnorm(-picture$z_crit, picture$centre)
+  expect_equal(tails, picture$power, tolerance = 1e-10)
+  expect_equal(picture$h_crit * sqrt(97 / 2), picture$z_crit)
+  # A decrease has the same power as the same-sized increase.
+  expect_equal(power_picture_2p(194, 0.6, 0.4)$power, picture$power)
+  expect_error(power_picture_2p(194, 0, 0.6), "between 0 and 1", class = "powerkit_error")
+})
