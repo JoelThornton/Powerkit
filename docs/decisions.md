@@ -4050,3 +4050,20 @@ the data set's note (`simulated_data_note()`).
   need the regression weights worked out from the correlations it takes,
   which no package does), the meta-analysis, SEM, McNemar's test and the
   generic tests.
+
+## 2026-11-01 · Three method choices from the 0.27.0 round, confirmed
+
+- **Yes/no trials, three or more conditions (E63):** the likelihood-ratio
+  test stays the default, and the Wald test is offered; with two
+  conditions the Wald z test stays the default. With no difference, the
+  Wald chi-square test rejected 6.2% of 2,000 simulated studies at alpha
+  .05 and the likelihood ratio 5.65%. The likelihood ratio is also simr's
+  default for a factor, so it is not a departure.
+- **Three levels, few sites (E68):** the Satterthwaite t test stays,
+  though it is conservative when few sites are assigned (3.1% at alpha
+  .05, against 3.65% in a simulation written without simr). The test
+  causes this, not powerkit, so the validation checks that the Type I
+  error is at most alpha and agrees with that simulation.
+- **POMADE (several effects per study, `next.md` item 5):** its own pull
+  request in the next round. It needs a new dependency, and so a rebuilt
+  CI image.
