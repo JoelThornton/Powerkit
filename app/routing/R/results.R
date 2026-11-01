@@ -324,7 +324,7 @@ dyad_units <- function(text) {
 }
 
 is_hartung_knapp <- function(spec) {
-  identical(spec$design, "meta_analysis") && !spec$template %in% c("dependent_effects", "heterogeneity") &&
+  identical(spec$design, "meta_analysis") && !isTRUE(spec$template %in% c("dependent_effects", "heterogeneity")) &&
     !identical(spec$target_test$model, "fixed") && !identical(spec$target_test$test, "z")
 }
 
@@ -1612,7 +1612,7 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # doesn't use.
   # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
   # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
-  if (!is.null(spec) && (is_hartung_knapp(spec) || spec$template %in% c("subgroups", "dependent_effects", "meta_regression", "heterogeneity"))) keys <- setdiff(keys, "9")
+  if (!is.null(spec) && (isTRUE(is_hartung_knapp(spec)) || isTRUE(spec$template %in% c("subgroups", "dependent_effects", "meta_regression", "heterogeneity")))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
   # Some apply to one goal (Known difference 11, a justified alpha).
