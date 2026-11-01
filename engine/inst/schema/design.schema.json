@@ -7758,7 +7758,7 @@
       }
     },
     "template_crossed_two_condition": {
-      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants (or, when X is a between factor, between them: half the participants in each, each with a random intercept only; with item_design 'within' every participant responds to every item, with 'between' each condition has its own half of the items): a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within).",
+      "description": "Participants respond to many items (stimuli) in two conditions, with the condition varying within participants (or, when X is a between factor, between them: half the participants in each, each with a random intercept only; with item_design 'within' every participant responds to every item, with 'between' each condition has its own half of the items): a linear mixed model y ~ condition + (1 + condition | participant) + (1 | item), with the condition coded -0.5 and 0.5 so its coefficient is the difference between conditions. With population > item_design 'within', every item appears in both conditions and a by-item condition slope may be given. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test (simr's method 'sa'). goal > n is the number of participants; every participant responds to every item (in one condition each when items are between conditions, in both when within). With a yes/no outcome (Y binary, population > metric 'probability'), a logistic mixed model fitted by glmer: the probabilities per condition for a typical participant and item, every SD on the log-odds scale, no residual SD, and the test target_test > method 'wald' (glmer's Wald z test; for three or more conditions simr's Wald chi-square test; for a pair car's Wald test of its contrast) or 'likelihood_ratio' (the model against one without the conditions' differences, or for a pair without that pair's difference).",
       "properties": {
         "variables": {
           "required": [
@@ -7778,23 +7778,42 @@
               ]
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "difference",
             "sd_participant",
             "sd_item",
-            "sd_residual",
             "items"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "description": "'raw' for a score outcome (means or a difference in the outcome's units); 'probability' for a yes/no outcome (Y binary), whose probabilities are those of a typical participant and item and whose SDs are on the log-odds scale.",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (two, in the order of X's levels) for a typical participant and item, that is with every random effect 0.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
             },
             "difference": {
               "description": "The mean in X's second condition minus the mean in its first, in the outcome's units (the fixed effect of the condition). 0 is allowed, to check the Type I error rate.",
@@ -7856,7 +7875,11 @@
                   "const": "condition"
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }
@@ -8305,7 +8328,7 @@
       }
     },
     "template_crossed_conditions": {
-      "description": "Participants respond to many items (stimuli) in three or more conditions, every participant in every condition: a linear mixed model y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with cond a factor in treatment coding (each coefficient a condition's mean minus the first condition's), one participant-by-condition variance shared by every condition, and, with every item in every condition (item_design 'within'), an optional item-by-condition variance, (1 | item:cond). Simulated with simr's powerSim() on a model built by makeLmer(), testing that the conditions differ with lmerTest's Satterthwaite F test (effect 'condition'), or one pair of conditions with the Satterthwaite t test adjusted for all the pairs by stats::p.adjust() (effect 'pairwise'). goal > n is the number of participants; every participant responds to every item.",
+      "description": "Participants respond to many items (stimuli) in three or more conditions, every participant in every condition (or, when X is a between factor, each participant in one condition: the participants split equally, a participant intercept only, every participant responding to every item or to their condition's block of items): a linear mixed model y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with cond a factor in treatment coding (each coefficient a condition's mean minus the first condition's), one participant-by-condition variance shared by every condition, and, with every item in every condition (item_design 'within'), an optional item-by-condition variance, (1 | item:cond). Simulated with simr's powerSim() on a model built by makeLmer(), testing that the conditions differ with lmerTest's Satterthwaite F test (effect 'condition'), or one pair of conditions with the Satterthwaite t test adjusted for all the pairs by stats::p.adjust() (effect 'pairwise'). goal > n is the number of participants; every participant responds to every item. With a yes/no outcome (Y binary, population > metric 'probability'), a logistic mixed model fitted by glmer: the probabilities per condition for a typical participant and item, every SD on the log-odds scale, no residual SD, and the test target_test > method 'wald' (glmer's Wald z test; for three or more conditions simr's Wald chi-square test; for a pair car's Wald test of its contrast) or 'likelihood_ratio' (the model against one without the conditions' differences, or for a pair without that pair's difference).",
       "properties": {
         "variables": {
           "required": [
@@ -8317,7 +8340,10 @@
             "X": {
               "properties": {
                 "type": {
-                  "const": "within_factor"
+                  "enum": [
+                    "within_factor",
+                    "between_factor"
+                  ]
                 },
                 "levels": {
                   "minItems": 3
@@ -8325,24 +8351,42 @@
               }
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "means",
             "sd_participant",
-            "sd_participant_condition",
             "sd_item",
-            "sd_residual",
             "items"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "description": "'raw' for a score outcome (means or a difference in the outcome's units); 'probability' for a yes/no outcome (Y binary), whose probabilities are those of a typical participant and item and whose SDs are on the log-odds scale.",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (one per condition, in the order of X's levels) for a typical participant and item, that is with every random effect 0.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
             },
             "means": {
               "description": "Each condition's mean, in the order of X's levels, in the outcome's units.",
@@ -8358,7 +8402,7 @@
               "minimum": 0
             },
             "sd_participant_condition": {
-              "description": "SD of the participant-by-condition effects: how much each participant's responses in a condition differ from what their average and the condition's mean predict, the same for every condition (random intercepts for participant:cond).",
+              "description": "Conditions within participants (X a within factor; required): sD of the participant-by-condition effects: how much each participant's responses in a condition differ from what their average and the condition's mean predict, the same for every condition (random intercepts for participant:cond). Not used when X is a between factor.",
               "type": "number",
               "minimum": 0
             },
@@ -8409,7 +8453,9 @@
                 "method": {
                   "enum": [
                     "satterthwaite_f",
-                    "satterthwaite_t"
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
                   ]
                 }
               }

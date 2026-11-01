@@ -1536,6 +1536,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
+  # Departure 16 (Satterthwaite's tests) is for a score on each trial; a
+  # yes/no outcome is tested by glmer's Wald or likelihood-ratio test.
+  if (identical(spec$variables$Y$type, "binary") && identical(spec$design, "mixed_model")) keys <- setdiff(keys, "16")
   # Departure 18 is about the Hartung-Knapp test, when it is used.
   if (!is_hartung_knapp(spec)) keys <- setdiff(keys, "18")
   # Departure 17 is about adjusting pairwise comparisons, when they are

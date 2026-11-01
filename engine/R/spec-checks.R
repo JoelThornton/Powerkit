@@ -15,7 +15,7 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
-        check_crossed_two_condition(spec))
+        c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
@@ -684,6 +684,46 @@ check_crossed_two_condition <- function(spec) {
   problems
 }
 
+# The outcome of the participants-and-items designs (E33, E63): a score,
+# with means or a difference in its units, a residual SD and Satterthwaite's
+# tests; or yes/no, with probabilities, no residual SD and glmer's tests.
+check_crossed_outcome <- function(spec, conditions) {
+  pop <- spec$population
+  tt <- spec$target_test
+  binary <- identical(spec$variables$Y$type, "binary")
+  pairwise <- identical(tt$effect, "pairwise")
+  k <- length(spec$variables$X$levels)
+  problems <- character()
+  score_values <- if (conditions) "means" else "difference"
+  if (binary) {
+    if (!identical(pop$metric, "probability")) {
+      problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give the chance of 'yes' in each condition ('population > probabilities').")
+    }
+    if (length(unlist(pop$probabilities)) != k) {
+      problems <- c(problems, sprintf("Give 'population > probabilities', the chance of 'yes' in each of the %d conditions for a typical participant and item.", k))
+    }
+    for (key in c(score_values, "sd_residual")) {
+      if (!is.null(pop[[key]])) {
+        problems <- c(problems, sprintf("'population > %s' is for a score outcome; with a yes/no outcome the conditions are given as probabilities and there is no residual SD, so remove it.", key))
+      }
+    }
+    allowed <- c("wald", "likelihood_ratio")
+  } else {
+    if (!identical(pop$metric %||% "raw", "raw") || !is.null(pop$probabilities)) {
+      problems <- c(problems, "'population > probabilities' and the metric \"probability\" are for a yes/no outcome; with a score, give the outcome's means and residual SD.")
+    }
+    for (key in c(score_values, "sd_residual")) {
+      if (is.null(pop[[key]])) problems <- c(problems, sprintf("Give 'population > %s'.", key))
+    }
+    allowed <- if (pairwise || !conditions) "satterthwaite_t" else "satterthwaite_f"
+  }
+  if (!tt$method %in% allowed) {
+    problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome and test.",
+      paste(sprintf("\"%s\"", allowed), collapse = " or ")))
+  }
+  problems
+}
+
 # Participants and items in three or more conditions (E63): a mean per
 # condition, items split equally between the conditions (or every item in
 # every condition, the only design with an item-by-condition SD), and for
@@ -695,7 +735,7 @@ check_crossed_conditions <- function(spec) {
   k <- length(levels)
   within <- identical(pop$item_design %||% "between", "within")
   problems <- character()
-  if (length(unlist(pop$means)) != k) {
+  if (!identical(spec$variables$Y$type, "binary") && length(unlist(pop$means)) != k) {
     problems <- c(problems, sprintf("'population > means' has %d values, but X has %d conditions: give one mean per condition, in the order of its levels.",
       length(unlist(pop$means)), k))
   }
@@ -709,12 +749,17 @@ check_crossed_conditions <- function(spec) {
       "'population > sd_item_condition' only applies when every item appears in every condition ",
       "('population > item_design' \"within\"); remove it, or set item_design to \"within\"."))
   }
-  pairwise <- identical(tt$effect, "pairwise")
-  wanted <- if (pairwise) "satterthwaite_t" else "satterthwaite_f"
-  if (!identical(tt$method, wanted)) {
-    problems <- c(problems, sprintf("'target_test > method' should be \"%s\" for %s.", wanted,
-      if (pairwise) "a pairwise comparison (a t test)" else "the test that the conditions differ (an F test)"))
+  if (identical(spec$variables$X$type, "between_factor")) {
+    if (!is.null(pop$sd_participant_condition)) {
+      problems <- c(problems, paste0("'population > sd_participant_condition' only applies when every participant takes part in every condition; ",
+        "with the conditions between participants each has one condition, so remove it."))
+    }
+  } else if (is.null(pop$sd_participant_condition)) {
+    problems <- c(problems, paste0("Give 'population > sd_participant_condition', how much participants' condition effects vary ",
+      "(0 if they don't), or make X a between factor if each participant is in one condition."))
   }
+  pairwise <- identical(tt$effect, "pairwise")
+  problems <- c(problems, check_crossed_outcome(spec, conditions = TRUE))
   if (!pairwise && (!is.null(tt$comparison) || !is.null(tt$p_adjust))) {
     problems <- c(problems, paste0("'target_test > comparison' and 'target_test > p_adjust' only apply to a pairwise comparison ",
       "('target_test > effect' \"pairwise\"); remove them."))
@@ -2183,6 +2228,10 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
+  if (identical(spec$template, "crossed_conditions") && identical(spec$variables$X$type, "between_factor")) {
+    k <- length(spec$variables$X$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per condition", k), valid = function(n) n %% k == 0))
+  }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
@@ -2324,13 +2373,16 @@ target_effect_is_zero <- function(spec) {
     mixed_model = if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
     } else if (identical(spec$template, "crossed_conditions")) {
-      means <- as.numeric(unlist(pop$means))
+      means <- as.numeric(unlist(pop$means %||% pop$probabilities))
       pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
       if (identical(spec$target_test$effect, "pairwise")) {
         if (length(pair) == 2 && !anyNA(pair)) diff(means[pair]) else 1
       } else {
         max(abs(means - mean(means)))
       }
+    } else if (identical(spec$variables$Y$type, "binary")) {
+      p <- as.numeric(unlist(pop$probabilities))
+      if (length(p) == 2) diff(p) else 1
     } else {
       pop$difference
     },

@@ -13,6 +13,7 @@ library(psych)     # safeguard power's confidence interval
 
 # Backends
 library(bfpwr)
+library(car)
 library(InteractionPoweR)
 library(JustifyAlpha) # a justified alpha (optimal_alpha())
 library(lavaan)

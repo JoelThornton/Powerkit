@@ -938,13 +938,26 @@ forms:
           - {id: X_label, label: "What the conditions are (for example, word type)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every SD below is on the log-odds scale."}
           - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
              choices: {within_factor: "Both conditions", between_factor: "One condition (half the participants in each)"},
              default: within_factor, default_source: "the design as decided on 30 October 2026 (docs/decisions.md); between participants since 31 October 2026"}
-      - input: "The difference between conditions (the fixed effect), in the outcome's units"
+      - input: "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'"
         fields:
           - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true,
+             shown_if: {field: outcome_type, is: continuous},
              help: "For example, 16 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+          - {id: probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical participant and item, as proportions in the same order, separated by commas (for example, 0.75, 0.85)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
+             shown_if: {field: outcome_type, is: binary}}
+          - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: outcome_type, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the difference)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a predictor with one coefficient",
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
       - input: "How much participants and items vary (the variance components)"
         fields:
           - {id: sd_participant, label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0,
@@ -958,6 +971,7 @@ forms:
           - {id: sd_item, label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0,
              help: "For example, 43.6 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
           - {id: sd_residual, label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: outcome_type, is: continuous},
              help: "For example, 148.8 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
       - input: "The items: how many, and whether each appears in one condition or both"
         fields:
@@ -985,16 +999,29 @@ forms:
           - {id: X_label, label: "What the conditions are (for example, face expression)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true}
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
-      - input: "Each condition's mean, in the outcome's units"
+          - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every SD below is on the log-odds scale."}
+          - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
+             choices: {within_factor: "Every condition", between_factor: "One condition (the participants split equally)"},
+             default: within_factor, default_source: "every participant in every condition, the commoner design"}
+      - input: "Each condition's mean, in the outcome's units, or its chance of 'yes'"
         fields:
-          - {id: means, writeup_label: "means", label: "The mean in each condition, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.means, effect: true}
+          - {id: means, writeup_label: "means", label: "The mean in each condition, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.means, effect: true,
+             shown_if: {field: outcome_type, is: continuous}}
+          - {id: probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical participant and item, as proportions in the same order, separated by commas (for example, 0.75, 0.85)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
+             shown_if: {field: outcome_type, is: binary}}
       - input: "How much participants and items vary (the variance components)"
         fields:
           - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
           - {id: sd_participant_condition, writeup_label: "SD of participants' condition effects", label: "SD of how much each participant's mean in a condition departs from their average plus the condition's effect (the same for every condition)", type: number, path: population.sd_participant_condition, effect: true, min: 0,
+             shown_if: {field: crossed_participants, is: within_factor},
              help: "The several-condition counterpart of the SD of participants' condition differences: with two conditions, a participant's difference varies with an SD of about 1.4 times this value."}
           - {id: sd_item, writeup_label: "SD of items' averages", label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0}
-          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: outcome_type, is: continuous}}
       - input: "The items: how many, and whether each appears in one condition or all"
         fields:
           - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 6, integer: true}
@@ -1005,16 +1032,21 @@ forms:
              shown_if: {field: item_design, is: within}}
       - input: "The test: any difference between the conditions, or one pair"
         fields:
-          - {id: conditions_test, label: "Test", type: select, path: target_test.method, required: true,
-             choices: {satterthwaite_f: "Whether the conditions differ at all (Satterthwaite F test)",
-                       satterthwaite_t: "One pair of conditions (Satterthwaite t test, adjusted for all the pairs)"},
-             sets: {satterthwaite_t: [{path: target_test.effect, value: pairwise}]},
-             default: satterthwaite_f, default_source: "the test of the design's main question, as on the one-way ANOVA cards"}
+          - {id: conditions_test, label: "Test", type: select, path: target_test.effect, required: true,
+             choices: {condition: "Whether the conditions differ at all (with a score, Satterthwaite's F test)",
+                       pairwise: "One pair of conditions, adjusted for all the pairs (with a score, Satterthwaite's t test)"},
+             sets: {pairwise: [{path: target_test.method, value: satterthwaite_t}]},
+             default: condition, default_source: "the test of the design's main question, as on the one-way ANOVA cards"}
+          - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: outcome_type, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences, or the pair's difference)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor: with three conditions and 30 participants, glmer's Wald chi-square test rejected 6.2% of 2,000 simulated studies with no difference at alpha .05, the likelihood ratio 5.65% (powerkit's checks, 1 November 2026)",
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison. Running both shows how much the choice matters for your design."}
           - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
-             shown_if: {field: conditions_test, is: satterthwaite_t},
+             shown_if: {field: conditions_test, is: pairwise},
              help: "The test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
-             shown_if: {field: conditions_test, is: satterthwaite_t},
+             shown_if: {field: conditions_test, is: pairwise},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
 

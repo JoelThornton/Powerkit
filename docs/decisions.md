@@ -3766,6 +3766,19 @@ merges when its checks pass, unless a doubt is stated in it.
   guided plan already offers for two groups measured twice (E23); a plan
   that chooses the mixed ANOVA's group x time test is not simulated as a
   whole study.
+- **Yes/no trials with participants and items (1 November 2026):** the
+  Wald test by default (the p-value glmer's summary reports), with the
+  likelihood-ratio test offered on the form; for a pair of conditions,
+  the likelihood ratio compares the model with one in which the pair
+  shares a mean. For three or more conditions the likelihood ratio is
+  the default instead: with no difference (three conditions, 30
+  participants, 2,000 simulated studies), glmer's Wald chi-square test
+  rejected 6.2% at alpha .05 and the likelihood ratio 5.65%, so the Wald
+  test's extra power there (61.7% against 58.3% in powerkit's example)
+  comes partly from rejecting too often. The likelihood ratio is also
+  simr's default for a factor, so no departure is needed.
+- **Three-level designs (1 November 2026):** conditions assigned at the
+  top level first, then predictors at every level.
 - **Dyadic data (1 November 2026):** the actor-partner interdependence
   model as its own card (E44), simulated with power4mome and tested by
   lavaan's Wald z test; distinguishable and indistinguishable members

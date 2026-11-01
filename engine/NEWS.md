@@ -60,6 +60,34 @@ A batch of new features, built as one round.
   simulation written separately without simr, with the Type I error near
   alpha; published value to come. Reached from the design finder's
   question on many trials or stimuli.
+* Participants and items in three or more conditions (E63) may have the
+  conditions between participants (`variables > X > type`
+  "between_factor"): the participants split equally between the
+  conditions, each with a random intercept only
+  (`sd_participant_condition` doesn't apply), every participant
+  responding to every item or to their condition's own block of items.
+  The check run allows for the residual noise in each group's estimate
+  when it checks an SD. Checked against a simulation written separately,
+  with the Type I error near alpha.
+* A yes/no outcome on each trial (correct or not) for participants and
+  items (E33 and E63, `variables > Y > type` "binary", `population >
+  metric` "probability"): each condition's chance of "yes" for a typical
+  participant and item (`population > probabilities`), every SD on the
+  log-odds scale and no residual SD, simulated as a logistic mixed model
+  (simr's `makeGlmer()`, lme4's `glmer()`). The test is the Wald test
+  (`target_test > method` "wald": glmer's z test for two conditions,
+  simr's Wald chi-square through car for three or more, car's
+  `linearHypothesis()` for a pair) or the likelihood-ratio test
+  ("likelihood_ratio"; for a pair, against the model in which that pair
+  shares a mean). The app's default is the Wald test for two
+  conditions and the likelihood-ratio test for three or more, simr's
+  default for a factor: there, with no difference, the Wald chi-square
+  test rejected 6.2% of 2,000 simulated studies at alpha .05 and the
+  likelihood ratio 5.65%. New dependency: car (already installed with
+  simr).
+  Checked against a simulation written separately with glmer, with the
+  Type I error near alpha. The design finder's question on many trials
+  or stimuli takes yes/no outcomes to these cards.
 * Dyadic data (E44, design `dyadic`, template `apim`): the actor-partner
   interdependence model for pairs of people, each member's X predicting
   their own Y (actor) and their partner's (partner), with the members'

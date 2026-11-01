@@ -428,6 +428,14 @@ for the maintainer, not yet made.
 | simr | `powerSim()` simulates data sets from a model built with `makeLmer()` (fixed effects, `VarCorr`, `sigma`) and refits each with lme4; `fixed(xname, method)` tests one fixed effect [simr help] | The model's own parameters, in the outcome's units | `fixed()`'s default `method = "z"` treats the t statistic as normal (its help calls it an asymptotic approximation for models not fitted with `glmer`); `"sa"` is lmerTest's Satterthwaite t test, `"kr"` Kenward-Roger. A data set whose fit or test fails counts as not significant |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E33, from 30 October 2026) [powerkit] | The difference between conditions and the SDs of participants' intercepts and condition slopes (with their correlation), items' intercepts (and slopes, with items in both conditions) and the residual, in the outcome's units; the condition coded -0.5 and 0.5 | `y ~ cond + (1 + cond \| participant) + (1 \| item)`, every participant responding to every item; items in one condition each (half per condition) or in both. With the conditions between participants (X a between factor, from 31 October 2026), `y ~ cond + (1 \| participant) + (1 \| item)` (or `(1 + cond \| item)` with items in both conditions), half the participants in each condition, each responding to every item or to their condition's half. `goal.n` is the number of participants, the number of items fixed. The Satterthwaite test is Departure 16 |
 
+With a yes/no outcome on each trial (E33, from 1 November 2026) the model
+is a logistic mixed model (simr's `makeGlmer()`, lme4's `glmer()`), each
+condition's probability that of a typical participant and item and every
+SD on the log-odds scale. The default test is glmer's Wald z test, simr's
+default for a numeric predictor; the likelihood-ratio test is offered.
+With powerkit's yes/no example (70% and 80% correct, 40 items, 30
+participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |
@@ -442,8 +450,17 @@ for the maintainer, not yet made.
 | --- | --- | --- | --- |
 | G\*Power | No test for crossed random effects | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`; for a factor, `fixed(xname)` tests by a likelihood ratio by default [simr help] | The model's own parameters | — |
-| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
+| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). With the conditions between participants (X a between factor), the participants are split equally and the participant term is `(1 \| participant)` alone. The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
 
+
+With a yes/no outcome (from 1 November 2026) the default test of the
+conditions is the likelihood-ratio test, simr's default for a factor,
+with glmer's Wald chi-square test (simr's "chisq", through car) offered;
+a pair is tested by car's Wald test of its contrast or by the likelihood
+ratio against the model in which the pair shares a mean. With three
+conditions (70%, 80% and 75%), 60 items and 30 participants, over 1,000
+simulated data sets: 58.3% with the likelihood ratio and 61.7% with Wald;
+with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
 ## People within groups, predictors at both levels (two-level model, E62)
 
 | Tool | Test | Effect size | Settings |
