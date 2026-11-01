@@ -19,6 +19,13 @@ entries:
       several effect sizes, such as several outcomes or time points,
       allowing for how alike the results from one study are.
   - date: "2026-11-01"
+    title: "Faster screens"
+    text: >-
+      Moving from one screen to the next, such as opening the list of
+      analyses or an input screen, is quicker: the app now keeps the parts
+      of a screen it has already built instead of building them again on
+      every click.
+  - date: "2026-11-01"
     title: "A predictor that changes from trial to trial"
     text: >-
       The card for participants responding to many items now also plans

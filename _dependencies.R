@@ -48,8 +48,10 @@ library(testthat)
 # The app (app/routing/; it calls the engine above). All are in
 # renv.lock.
 library(bslib)
+library(cachem)  # keeps built parts of screens (R/ui.R, cached_html())
 library(callr)   # E9's calculation runs in a background R process
 library(curl)    # the Feedback tab's Send button
 library(pkgload) # loads the engine from engine/ when it isn't installed
+library(rlang)   # the keys of those kept parts (rlang::hash())
 library(shiny)
 library(yaml)
