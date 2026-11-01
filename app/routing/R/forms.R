@@ -249,6 +249,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # A meta-analysis (E61): n is the number of studies.
   meta <- isTRUE(form$meta)
   if (meta) goals <- list(sample_size = "The number of studies I need", power = "The power I'd have with a given number of studies")
+  # Dyadic data (E44): n is the number of pairs.
+  pairs <- identical(form$units, "pairs")
+  if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
@@ -291,6 +294,10 @@ closing_groups <- function(forms, ep_id, start = list()) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)
     at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
     test[[at]]$label <- "Number of studies"
+  }
+  if (pairs) {
+    at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
+    test[[at]]$label <- "Number of pairs"
   }
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),

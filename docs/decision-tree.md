@@ -246,7 +246,9 @@ flowchart TD
   S1 -->|The time until<br/>something happens| E43["E43 Time-to-event"]
   S1 -->|A score, or yes/no<br/>or categories| S2{"S2 How are the<br/>data grouped?"}
   S2 -->|People within groups, then S4: detect an effect| E34["E34 Multilevel or<br/>cluster design"]
-  S2 -->|Pairs| E44["E44 Paired or<br/>dyadic data"]
+  S2 -->|Pairs| D1{"D1 Pairs: what does<br/>the hypothesis involve?"}
+  D1 -->|Measured on<br/>each member| E44["E44 Actor and<br/>partner effects"]
+  D1 -->|Something else| E65["E65 Other<br/>dyadic designs"]
   S2 -->|Many trials or<br/>stimuli per person| S2A{"S2a What does the<br/>hypothesis compare?"}
   S2A -->|Two conditions, each person<br/>in both; a score| E33["E33 Crossed participants<br/>and stimuli"]
   S2A -->|Anything else| E41["E41 Within-person or<br/>multilevel analysis"]
@@ -261,7 +263,7 @@ flowchart TD
   S4 -->|Detect an effect| R["The route continues: the shortcut<br/>list, Q1 (chart 0) or the guided planner"]
   ANY["Every question also offers<br/>'None of these fit / I'm not sure'"] --> EU["E-unsure: powerkit can't advise<br/>on this design yet; discuss it<br/>with a statistician"]
   class S0,S1,O5a,S2,S2A,S3,T1,S4 q
-  class E28,E43,E34,E44,E45,E35,E36,E46,E41,EU later
+  class E28,E43,E34,E65,E45,E35,E36,E46,E41,EU later
   class E33 avail
   class R,ANY jump
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
@@ -529,6 +531,7 @@ engine can use the answer today.
 | S0 | Do you already know which analysis you want? | Yes (searchable list) / No | `design`, `template` directly | Yes |
 | S1 | What kind of outcome will you measure? (screening, every route) | A score or scale / yes-no, or one of several categories / a count / ordered categories (e.g. a single rating item) / the time until something happens | `variables.Y.type`: `continuous`, `binary`, `categorical` | Score, yes/no and categories: yes, and the route continues. Count → E28, ordered categories → O5a, time until an event → E43: **no (flag)**. Sets Q2's answer, which isn't asked again |
 | S2 | How are the data grouped? (screening) | Independent people / people within groups (including whole groups assigned) / pairs (e.g. couples) / many trials or stimuli per person | — | Independent people: routing only, the route continues. Within groups → E34, pairs → E44, trials or stimuli → S2a |
+| D1 | What does your main hypothesis involve? (pairs, 1 November 2026) | Something measured on each member / conditions given to whole pairs / something else | `dyadic / apim` | Measured on each member, with a score → E44; conditions given to whole pairs → E34 (groups of two); anything else, or another outcome → E65 |
 | S2a | What does your main hypothesis compare? (many trials or stimuli) | Two conditions, each person responds in both / two conditions, each person in one / three or more conditions, each person in all / something else | `mixed_model / crossed_two_condition, crossed_conditions` | Two conditions with a score, within or (since 31 October 2026) between participants → E33: yes. Three or more conditions within participants with a score → E63 (31 October 2026). A yes/no or count outcome, or anything else → E41 |
 | S3 | How many times is each person measured on the outcome? (screening) | Once / twice / many times (→ T1) | Once: `between_factor`; twice: `within_factor` (as Q3) | Once and twice: yes. Sets Q3's answer, which isn't asked again, and hides options that contradict it (e.g. "the same people" after "once") |
 | T1 | What are the repeated measurements? (after S3 "many times") | The same people in three or more conditions / over time, to see whether a trend changes at a known point / over time, to see how people change | — | Three or more conditions: routing only, the route continues (E18–E21 and E26 are reached later). A trend that changes → E45, how people change → E35: **no (flag)** |
@@ -669,6 +672,7 @@ the two in step.
 | E57 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E59 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E60 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E44 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E61 | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
 | E54 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E55 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -736,7 +740,8 @@ taken from coverage.md, where they are proposals.
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
 | E43 | Time-to-event (survival) outcome | — | Generic card: "Established tools exist for this design; powerkit hasn't checked them." (open question 18) | — | — | No | later | Not in spec |
-| E44 | Paired or dyadic data (pairs of people whose scores are related) | — | Generic card, as E43. Matched pairs analysed with a paired t-test may belong at E3 instead (open question 19) | — | — | No | later | Not in spec |
+| E44 | Dyadic data: actor and partner effects (the actor-partner interdependence model) | `dyadic / apim` | power4mome's `power4test()` on the APIM (each member's Y on both members' X, the X correlated, the Y residuals correlated), fitted with lavaan, the effect tested by `test_parameters()` (Wald z); indistinguishable members with equal actor and partner effects. Reached from D1 (1 November 2026) | Simulation | The actor and partner effects (standardised), the correlation of the members' X, the residual correlation of their Y; whether the members are distinguishable | No: agrees with an independent simulation in `test-validation-apim.R` (published value TODO) | v2 | Runs |
+| E65 | Other dyadic designs (pairs of people whose scores are related) | — | Generic card, as E43. Matched pairs analysed with a paired t-test may belong at E3 instead (open question 19) | — | — | No | later | Not in spec |
 | E45 | Many measurements over time: segmented regression or interrupted time series | — | Card text (17 October 2026): "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it." The package (PITS, on CRAN since 30 June 2026) isn't named on the card while open question 18 is undecided. For an estimated breakpoint: custom simulation in R (e.g. with Spower) or advice from a statistician. The card says: with a known breakpoint, the slope change can be treated as an added regression predictor; with an estimated breakpoint, a custom simulation is needed; autocorrelation makes standard calculations wrong: too optimistic when it's positive, too pessimistic when it's negative (changed 17 October 2026; Zhang et al., 2011, Table 1). Whether it shares an end point with E35 is open question 17 | — | Depends on the model: number and spacing of measurements, breakpoint, change in level and slope, autocorrelation | No | later | Not in spec |
 | E46 | Precision planning (a target confidence-interval width) | — | Generic card, as E43 | — | — | No | later | Not in spec |
 | E47 | Yes/no outcome with two or more crossed factors (factorial logistic regression) | `logistic_regression / factorial` | `Spower::p_glm(family = binomial())`: logistic regression with both factors and their interaction, effect (sum-to-zero) coding, the Wald chi-square test of the effect's coefficients (`car::lht()`), simulated; equal cells; two between-participants factors. Reached from Q3 (yes/no difference, two or more factors) and from the guided route's moderation analysis (yes/no outcome, X and W of two groups each), so both routes give the same card | Simulation | Proportion of 'yes' in each cell; which effect | No: recovers every cell's proportion in its check run, matches Spower called directly and holds alpha in `test-backend-logistic-factorial.R` and `test-validation-logistic-factorial.R` (published value TODO) | later | Runs |

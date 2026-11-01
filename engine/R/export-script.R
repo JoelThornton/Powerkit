@@ -67,7 +67,7 @@ export_script <- function(spec, result, file = NULL) {
     Spower = if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
-    power4mome = power4mome_script(spec, result),
+    power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
     metapower = metapower_script(spec, result),
@@ -200,6 +200,15 @@ design_description <- function(spec) {
   }
   if (identical(spec$design, "meta_analysis")) {
     return(meta_design_description(spec, label))
+  }
+  if (identical(spec$design, "dyadic")) {
+    members <- unlist(spec$population$members %||% list("member 1", "member 2"))
+    effect <- switch(spec$target_test$effect, actor = "the actor effect", partner = "the partner effect",
+      actor_1 = sprintf("the actor effect for %s", members[1]), actor_2 = sprintf("the actor effect for %s", members[2]),
+      partner_12 = sprintf("the partner effect of %s on %s", members[1], members[2]),
+      partner_21 = sprintf("the partner effect of %s on %s", members[2], members[1]))
+    return(sprintf("actor-partner interdependence model for %s dyads: %s predicting %s; effect tested: %s",
+      if (isTRUE(spec$population$distinguishable)) "distinguishable" else "indistinguishable", label("X"), label("Y"), effect))
   }
   switch(
     paste(spec$design, spec$template, sep = "/"),

@@ -100,18 +100,21 @@
   "example": "We will recruit 150 couples and measure each partner's stress and relationship satisfaction once. We want to know whether one partner's stress relates to the other partner's satisfaction.",
   "choose": [
    "A score or scale",
-   "Pairs"
+   "Pairs",
+   "Something measured on each member, and how it relates to their own and their partner's outcome"
   ],
   "known": {
    "answers": [
     "A score or scale",
-    "Pairs"
+    "Pairs",
+    "Something measured on each member, and how it relates to their own and their partner's outcome"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
-    "Pairs"
+    "Pairs",
+    "Something measured on each member, and how it relates to their own and their partner's outcome"
    ]
   },
   "reaches": {

@@ -38,7 +38,8 @@
         "sem",
         "ordinal_regression",
         "mixed_model",
-        "meta_analysis"
+        "meta_analysis",
+        "dyadic"
       ]
     },
     "template": {
@@ -153,6 +154,9 @@
     },
     {
       "$ref": "#/definitions/design_meta_analysis"
+    },
+    {
+      "$ref": "#/definitions/design_dyadic"
     }
   ],
   "definitions": {
@@ -8102,6 +8106,186 @@
                     "satterthwaite_f",
                     "satterthwaite_t"
                   ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "design_dyadic": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "dyadic"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "apim"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "n": {
+                "description": "For dyadic data: the number of dyads (pairs), not people."
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "simulation"
+                ]
+              },
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "comparison": false,
+              "p_adjust": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "apim"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_apim"
+            }
+          }
+        ]
+      }
+    },
+    "template_apim": {
+      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "distinguishable",
+            "r_x",
+            "r_y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "distinguishable": {
+              "description": "true when the members can be told apart in a way that matters (woman and man, parent and child); false when they can't (same-sex friends, twins).",
+              "type": "boolean"
+            },
+            "members": {
+              "description": "Distinguishable members only: their names, first member first. 'Member 1' and 'Member 2' if omitted.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "actor": {
+              "description": "Indistinguishable members: the standardised actor effect (a person's X on their own Y).",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner": {
+              "description": "Indistinguishable members: the standardised partner effect (a person's X on their partner's Y).",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "actor_1": {
+              "description": "Distinguishable members: member 1's X on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "actor_2": {
+              "description": "Distinguishable members: member 2's X on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner_12": {
+              "description": "Distinguishable members: member 1's X on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "partner_21": {
+              "description": "Distinguishable members: member 2's X on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "r_x": {
+              "description": "The correlation of the two members' X.",
+              "$ref": "#/definitions/correlation"
+            },
+            "r_y": {
+              "description": "The correlation of the two members' Y beyond what their X explain (the residual correlation, often called non-independence).",
+              "$ref": "#/definitions/correlation"
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "enum": [
+                    "actor",
+                    "partner",
+                    "actor_1",
+                    "actor_2",
+                    "partner_12",
+                    "partner_21"
+                  ]
+                },
+                "method": {
+                  "const": "wald_z"
                 }
               }
             }

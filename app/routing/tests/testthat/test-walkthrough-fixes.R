@@ -60,7 +60,7 @@ test_that("F5: the end-point list offers only the analyses that fit the screenin
   expect_false(any(c("E1", "E2", "E3", "E4") %in% yesno))
   # Designs the screening sends elsewhere are never listed after it.
   for (ctx in list(once_score, twice_score, list(outcome = "score", times = "many_conditions"), list(outcome = "yesno", times = "twice"))) {
-    expect_false(any(c("E28", "E29", "E33", "E34", "E35", "E43", "E44", "E45", "E46") %in% shown(ctx)))
+    expect_false(any(c("E28", "E29", "E33", "E34", "E35", "E43", "E44", "E65", "E45", "E46") %in% shown(ctx)))
   }
   html <- as.character(known_ui(tree, list(), twice_score))
   expect_match(html, "fit your screening answers", fixed = TRUE)
@@ -69,7 +69,7 @@ test_that("F5: the end-point list offers only the analyses that fit the screenin
 })
 
 test_that("F9: the dyadic card says power can be overstated or understated, and why", {
-  text <- tree$endpoints$E44$card_text
+  text <- tree$endpoints$E65$card_text
   expect_match(text, "overstate or understate", fixed = TRUE)
   expect_match(text, "between dyads", fixed = TRUE)
   expect_match(text, "within dyads", fixed = TRUE)

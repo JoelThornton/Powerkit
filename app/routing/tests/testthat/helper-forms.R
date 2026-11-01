@@ -173,6 +173,10 @@ form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Ha
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "satterthwaite_t",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
+# E44: couples, indistinguishable; the partner effect.
+form_examples$E44 <- c(list(X_label = "Daily stress", Y_label = "Relationship satisfaction", distinguishable = "false",
+                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", r_x = "0.2", r_y = "0.3"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",

@@ -254,6 +254,7 @@ zero_effect_cases <- list(
   mixed_two_level = function(s) within(s, population$b_XW <- 0),
   crossed_conditions = function(s) within(s, population$means <- list(600, 600, 590)),
   meta_mean_effect = function(s) within(s, population$effect <- 0),
+  dyadic_apim = function(s) within(s, population$partner <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
