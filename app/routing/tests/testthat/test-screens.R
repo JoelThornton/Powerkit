@@ -124,6 +124,26 @@ test_that("'I know my analysis' lists every analysis in closed family groups, wi
   expect_match(filtered, sprintf("Showing the %d of %d analyses", fits, length(tree$endpoints)), fixed = TRUE)
 })
 
+test_that("the analysis list offers common starting points and labels what doesn't run yet", {
+  html <- as.character(known_ui(tree, list(), NULL))
+  # Every shortcut is a real analysis in one of the families, and opens its card.
+  shortcuts <- unlist(tree$known_shortcuts)
+  expect_true(length(shortcuts) > 0)
+  expect_true(all(shortcuts %in% unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))
+  for (id in shortcuts) expect_match(html, sprintf("class=\"known-shortcut\" data-ep=\"%s\"", id), fixed = TRUE, label = id)
+  # Status is a small label, not a run-on sentence; validated analyses have none.
+  n_not <- sum(vapply(tree$endpoints[setdiff(names(tree$endpoints), tree$safety_net$endpoint)],
+    function(ep) identical(ep$status, "not_in_powerkit"), logical(1)))
+  expect_equal(lengths(regmatches(html, gregexpr("known-badge-not\">Not in powerkit yet<", html, fixed = TRUE))), n_not)
+  expect_no_match(html, "the card points to tools that do it", fixed = TRUE)
+  # A live count, and a way back from no matches to the questions.
+  expect_match(html, "id=\"known_count\"", fixed = TRUE)
+  expect_match(html, "aria-live=\"polite\"", fixed = TRUE)
+  expect_match(html, "powerkitRestoreAnalyses()", fixed = TRUE)
+  # The search and open groups are remembered in the page only.
+  expect_no_match(known_search_js, "localStorage|sessionStorage")
+})
+
 test_that("the skip is part of 'where you are', so Back and Forward restore it", {
   expect_true("skip_screening" %in% nav_fields)
 })
