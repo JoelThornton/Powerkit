@@ -36,7 +36,7 @@ feedback:
   issues_url: https://github.com/JoelThornton/Powerkit/issues/new
   email: null
 
-banner: "Prototype, still being checked. Most analyses psychologists use calculate here: t-tests, correlations, ANOVA (between, repeated measures and mixed), ANCOVA, regression, proportions and chi-square tests, rank tests, equivalence tests, MANOVA, multilevel and cluster designs, SEM and planned meta-analyses. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. The cards for the rest point to tools that do them."
+banner: "Prototype, still being checked. Most common analyses calculate here: t-tests, correlations, ANOVA (between, repeated measures and mixed), ANCOVA, regression, proportions and chi-square tests, rank tests, equivalence tests, MANOVA, multilevel and cluster designs, SEM and planned meta-analyses. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. The cards for the rest point to tools that do them."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions
@@ -1261,11 +1261,11 @@ endpoints:
     doc_name: "One proportion against a fixed value"
     plain_name: "Compare one group's proportion with a fixed value"
     template: "basic_test / one_proportion"
-    backend: "pwrss: power.exact.oneprop() (the exact binomial test)"
+    backend: "pwrss: power.exact.oneprop() (the exact binomial test); bfpwr: pbinbf01() (the Bayes factor test)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
-    inputs: ["Your outcome's name", "The expected proportion", "The fixed value"]
+    inputs: ["Your outcome's name", "The expected proportion", "The fixed value", "The exact binomial test, or a Bayes factor test"]
     tier: v2
     alternatives: ["the exact binomial test", "a z test for one proportion"]
   E26:

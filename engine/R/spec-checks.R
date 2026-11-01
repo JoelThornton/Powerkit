@@ -417,7 +417,21 @@ check_bayes_factor <- function(spec) {
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
+    if (!is.null(spec$population$p_sd)) {
+      return(paste0(
+        "'population > p_sd' is only used by the Bayes factor test of one proportion; ",
+        "remove it, or set 'target_test > method' to 'bayes_factor'."
+      ))
+    }
     return(character())
+  }
+  if (bfbin_test(spec)) {
+    return(check_bayes_binomial(spec))
+  }
+  if (!is.null(spec$target_test$prior_a) || !is.null(spec$target_test$prior_b) || !is.null(spec$target_test$one_sided_null)) {
+    return(paste0(
+      "'target_test > prior_a', 'prior_b' and 'one_sided_null' belong to the Bayes factor test of one proportion; ",
+      "a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'."))
   }
   ratio <- spec$options$allocation_ratio %||% 1
   if (!isTRUE(all.equal(ratio, 1))) {
@@ -428,6 +442,29 @@ check_bayes_factor <- function(spec) {
     ))
   }
   character()
+}
+
+# The binomial Bayes factor: a design prior SD the beta distribution can
+# have, and the choice of null only for a one-sided test.
+check_bayes_binomial <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  problems <- character()
+  if (!is.null(tt$prior_scale) || !is.null(pop$effect_sd)) {
+    problems <- c(problems, paste0(
+      "The Bayes factor test of one proportion has a beta analysis prior ('target_test > prior_a' and 'prior_b') ",
+      "and its uncertainty as 'population > p_sd'; 'prior_scale' and 'effect_sd' belong to the Bayes factor t-tests."))
+  }
+  p_sd <- pop$p_sd %||% 0
+  if (is.numeric(pop$p) && is.numeric(p_sd) && p_sd > 0 && p_sd^2 >= pop$p * (1 - pop$p)) {
+    problems <- c(problems, sprintf(paste0(
+      "'population > p_sd' (%s) is too large for a proportion of %s: a beta distribution with that mean ",
+      "has an SD below %s. Give a smaller uncertainty."), format(p_sd), format(pop$p), format(signif(sqrt(pop$p * (1 - pop$p)), 3))))
+  }
+  if (!is.null(tt$one_sided_null) && identical(tt$alternative %||% "two_sided", "two_sided")) {
+    problems <- c(problems, "'target_test > one_sided_null' applies to a one-sided test only; remove it, or set 'target_test > alternative'.")
+  }
+  problems
 }
 
 # Each group's SD is an input to Welch's F only, and needs one per group.

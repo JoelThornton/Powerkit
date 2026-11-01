@@ -4182,3 +4182,38 @@ needed first.
   meta-analyses report. With the score moderator and POMADE, the
   meta-analysis row in `next.md` is done; study-level power (metameta)
   moves to the Labs row.
+## 2026-11-01 · Bayes factor test of one proportion (E25)
+
+Item 3 of `next.md`: the other Bayes factor cards, giving researchers who
+analyse in JASP answers that match JASP's.
+
+- **What JASP does.** Read from its source (jaspFrequencies,
+  `R/binomialtestbayesian.R` and `inst/qml/BinomialTestBayesian.qml`): a
+  Beta(a, b) prior, Beta(1, 1) by default; two-sided, p = p0 against p !=
+  p0; one-sided, p = p0 against p > p0 (or < p0) with the prior truncated
+  to that side. Two-sided, this is bfpwr's `binbf01(type = "point")`
+  exactly. bfpwr's one-sided test (`type = "direction"`) is a different
+  hypothesis: p <= p0 against p > p0.
+- **Decision.** JASP's tests by default: two-sided from bfpwr's
+  `pbinbf01()`, one-sided against a point null computed as bfpwr's
+  two-sided Bayes factor times the ratio of the posterior to the prior
+  probability of the side (which follows from the Bayes factor's
+  definition, checked against that definition integrated numerically),
+  summed over the outcomes 0 to n. bfpwr's directional test is an option
+  (`one_sided_null` "directional"), labelled on the card. No new package.
+- **Design prior.** The expected proportion exactly, or a beta design
+  prior with its mean and an SD, as the t-tests' SD (Departure 15 extended:
+  bfpwr's default is the analysis prior, which for p = 0.65 against 0.5
+  needs 229 people where exactly 0.65 needs 161).
+- **Sample size.** Power goes up and down with n, as for the exact
+  binomial test: the smallest n that reaches the target, every n below the
+  bisection's answer checked (`sawtooth`).
+- **Not used.** Kelter and Pawel's preprint on these Bayes factors (arXiv
+  2502.02914) asks not to be cited without the authors' permission, so it
+  is not in `refs.bib`; bfpwr's own citation is cited.
+- **Correlations next.** JASP's correlation Bayes factor (jaspRegression,
+  `R/correlationbayesian.R`) calls `bstats::bcor.test()` with a stretched
+  beta prior of width 1 (`inst/qml/CorrelationBayesian.qml`); bstats is on
+  GitHub only and bfpwr computes a z-test Bayes factor on Fisher's z
+  instead. Whether CRAN's BayesFactor matches JASP is to be checked once
+  CRAN is reachable from the cloud environment.

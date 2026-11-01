@@ -246,7 +246,7 @@ result screen and the methods paragraph say so.
 - The app's suite: `testthat::test_dir("tests/testthat")` in
   `app/routing/`.
 - Read the eight boxes again. The tests catch a missed card, a missed
-  "What's new" entry, a stale roadmap count and a version out of step —
+  Updates entry, a stale roadmap count and a version out of step —
   but not a card that says the wrong thing.
 
 ## Version numbers
@@ -274,7 +274,7 @@ In practice: the first pull request of a batch sets the next number in
 the rest of the batch keep that number and add their entries under the
 same heading. Never reserve a number ahead for a pull request that isn't
 in the current batch: parallel pull requests that each took their own
-number are how 0.4.0 became 0.8.0 in about a day. The "What's new" tab is
+number are how 0.4.0 became 0.8.0 in about a day. The Updates tab is
 dated rather than numbered, so users still see each change as it lands.
 
 Shipped so far: 0.1.0 the first working prototype (17 October 2026),
