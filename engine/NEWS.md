@@ -40,6 +40,18 @@ A batch of new features, built as one round.
   simulation written separately without simr, with the Type I error near
   alpha; published value to come. Reached from the design finder's
   question on many trials or stimuli.
+* Meta-analysis subgroups (E61, template `subgroups`): does the average
+  effect differ between kinds of study (a categorical moderator, such as
+  lab against online)? The studies are split equally between the kinds,
+  each with its own average effect (`population > effects`), and the test
+  is the between-groups Q test: metapower's `mod_power()` under the
+  fixed-effect model and on request under the random-effects model
+  (checked against simulated meta-analyses first: 55.8% against 57.2%
+  for the fixed-effect model, 31.9% against 33.9% for the random-effects
+  model), or by default under the random-effects model the Hartung-Knapp
+  test (metafor's `rma()` with the kinds as a moderator, `test = "knha"`,
+  simulated with Spower; Departure 18). The card asks what the
+  meta-analysis tests.
 
 # powerkit 0.26.0
 

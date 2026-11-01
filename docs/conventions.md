@@ -1038,7 +1038,10 @@ preregistered test.
   fixed-effect model keeps the z test.
 - **Size:** less power, most with few studies: for d = 0.15, 40 per
   study, I-squared 0.5 and ten studies, about 16.5% against 21.4% with
-  the z test.
+  the z test. For subgroups (the test that kinds of study differ, from 1
+  November 2026; 20 studies of 40, d = 0.2 against 0.5, I-squared 0.5):
+  29.3% (2,000 simulated meta-analyses, Monte Carlo SE 1.0) against
+  31.9% with metapower's `mod_power()`.
 - **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
   the difference"; `test-validation-meta-analysis.R` checks the
   simulated power against a separately written simulation of IntHout et
@@ -1046,7 +1049,10 @@ preregistered test.
 - **Shown to users:** on the E61 result screen when the Hartung-Knapp test
   is used (`app/routing/forms.yaml`, `departures`, key "18"), and in the
   methods paragraph's full version. Known difference 9 (metapower's
-  rounding) then doesn't apply and isn't shown.
+  rounding) then doesn't apply and isn't shown, nor for subgroups, whose
+  `mod_power()` doesn't round. `test-validation-meta-subgroups.R` checks
+  the subgroup test against metafor called directly and its Type I
+  error.
 
 ## Known differences
 

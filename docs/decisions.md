@@ -3766,6 +3766,12 @@ merges when its checks pass, unless a doubt is stated in it.
   guided plan already offers for two groups measured twice (E23); a plan
   that chooses the mixed ANOVA's group x time test is not simulated as a
   whole study.
+- **Meta-analysis moderators (1 November 2026):** metapower's
+  `mod_power()` checked against simulation first (20 studies of 40, d =
+  0.2 against 0.5, I-squared 0.5: 55.8% against 57.2% fixed-effect, 31.9%
+  against 33.9% random-effects with tau-squared estimated), close enough
+  to use; under the random-effects model the Hartung-Knapp test is the
+  default, as for the average effect, simulated with metafor.
 - **Multilevel models, three or more conditions (31 October 2026):** a
   card of its own (E63): a mean per condition, one SD for participants'
   condition effects shared by every condition (participant:cond random

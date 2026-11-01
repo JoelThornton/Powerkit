@@ -98,7 +98,7 @@ validation_chunks <- function() {
     manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
     rank = c("test-validation-rank-tests.R", "test-validation-friedman.R"),
     bayes = "test-validation-bayes-factor.R",
-    meta = "test-validation-meta-analysis.R",
+    meta = c("test-validation-meta-analysis.R", "test-validation-meta-subgroups.R"),
     anova = c(
       "test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R",
       "test-validation-anova-oneway-within.R", "test-validation-anova-mixed.R",

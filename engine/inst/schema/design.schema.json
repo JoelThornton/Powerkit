@@ -7773,7 +7773,8 @@
         "properties": {
           "template": {
             "enum": [
-              "mean_effect"
+              "mean_effect",
+              "subgroups"
             ]
           },
           "goal": {
@@ -7820,6 +7821,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_meta_mean_effect"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "subgroups"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_subgroups"
             }
           }
         ]
@@ -8106,6 +8122,79 @@
               }
             }
           ]
+        }
+      }
+    },
+    "template_meta_subgroups": {
+      "description": "A planned meta-analysis that tests whether the average effect differs between kinds of studies (a categorical moderator, subgroup analysis): the k studies split equally between the kinds, each kind with its own average effect, every study of the same size. The test is the between-groups Q test: under the fixed-effect model metapower's mod_power(); under the random-effects model the Hartung-Knapp test by default (metafor's rma() with the kinds as a moderator, test = 'knha', simulated with Spower), or metapower's test (target_test > test \"z\"). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effects",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Heterogeneity as I-squared: the share of the variation between the studies' effects that isn't sampling error (0 for none). Used by the random-effects model; Valentine, Pigott and Rothstein (2010), following Higgins and colleagues, describe 0.25, 0.5 and 0.75 as small, moderate and large degrees of heterogeneity."
+            },
+            "effects": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              },
+              "description": "Each kind of study's average effect (Cohen's d, or r between -1 and 1), e.g. lab then online; the studies are split equally between the kinds."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "moderator"
+            },
+            "method": {
+              "const": "q_test"
+            },
+            "model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the random-effects model, whose test allows for the studies' true effects differing; 'fixed': the fixed-effect model, which assumes they don't."
+            },
+            "test": {
+              "enum": [
+                "hartung_knapp",
+                "z"
+              ]
+            }
+          }
         }
       }
     }
