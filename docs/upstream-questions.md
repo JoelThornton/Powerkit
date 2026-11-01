@@ -163,3 +163,19 @@ Questions about metapower 0.2.2, from its source (opened 31 October
    powerkit's analytic route is unaffected; the validation cross-check for
    measurement invariance simulates the same chi-square difference test
    with lavaan directly instead (`test-validation-sem-latent.R`).
+
+## PMCMRplus
+
+Questions about PMCMRplus 1.9.12, from its source (opened 1 November
+2026).
+
+1. **`jonckheereTest()` given a list of groups ignores `alternative`.**
+   With `x` a list, the default method reads the direction from
+   `x$alternative` (an element of the list) rather than from its
+   `alternative` argument, so `jonckheereTest(groups, alternative =
+   "greater")` returns the two-sided p-value; `continuity` is read the same
+   way. Given the scores and their groups (`jonckheereTest(x, g,
+   alternative = )`), the argument is used. powerkit's experiment
+   (`p_jonckheere()`) passes the scores and groups, and a test checks that
+   the list form is still two-sided (`test-backend-trend.R`). Is reading
+   these from the list intended?

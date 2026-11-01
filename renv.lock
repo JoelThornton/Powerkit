@@ -777,6 +777,17 @@
       ],
       "Hash": "b2d0b0a17142ed4858f252d88eb56223"
     },
+    "BWStest": {
+      "Package": "BWStest",
+      "Version": "0.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "memoise",
+        "Rcpp"
+      ],
+      "Hash": "7d4cbde55d00bd2b796b96d38c38be61"
+    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.1.0",
@@ -3566,6 +3577,16 @@
       ],
       "Hash": "bcfd54f0fc37f6cfbfefb167d8cc2572"
     },
+    "gmp": {
+      "Package": "gmp",
+      "Version": "0.7-5.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "8c5adf06139c3491c3ffa93f1dca19a2"
+    },
     "hypergeo": {
       "Package": "hypergeo",
       "Version": "1.2-15",
@@ -3595,6 +3616,42 @@
       ],
       "Hash": "6f0ca23a3c6acff7fee1d5954f18ed1a"
     },
+    "kSamples": {
+      "Package": "kSamples",
+      "Version": "1.2-12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "SuppDists"
+      ],
+      "Hash": "aac7514963490939905daf6fb47a938a"
+    },
+    "multcompView": {
+      "Package": "multcompView",
+      "Version": "0.1-12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "9b4782acb7684558e63c0255331b9aed"
+    },
+    "PMCMRplus": {
+      "Package": "PMCMRplus",
+      "Version": "1.9.12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "BWStest",
+        "gmp",
+        "kSamples",
+        "MASS",
+        "multcompView",
+        "mvtnorm",
+        "R",
+        "Rmpfr",
+        "SuppDists"
+      ],
+      "Hash": "f8de2251d038370300412802bb809927"
+    },
     "qpdf": {
       "Package": "qpdf",
       "Version": "1.4.1",
@@ -3619,6 +3676,27 @@
         "utils"
       ],
       "Hash": "90854718eef863386e926e881315d426"
+    },
+    "Rmpfr": {
+      "Package": "Rmpfr",
+      "Version": "1.1-3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "gmp",
+        "R"
+      ],
+      "Hash": "188310d301e68ae656d6c5bff0c45253"
+    },
+    "SuppDists": {
+      "Package": "SuppDists",
+      "Version": "1.1-9.9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "472dda0e78c33b2867842b046fa22f11"
     }
   }
 }

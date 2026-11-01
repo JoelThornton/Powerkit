@@ -89,6 +89,11 @@ form_examples <- list(
   E52 = c(list(Y_label = "Reaction time", var = "1", var0 = "1.5", alternative = "less"), closing_ok),
   E53 = c(list(G_label = "Group", G_level1 = "Trained", G_level2 = "Untrained", Y_label = "Reaction time",
                var1 = "1.5", var2 = "1", alternative = "two_sided"), closing_ok),
+  E64 = c(list(A_label = "Dose", A_levels = "None, Low, High", Y_label = "Wellbeing",
+               metric = "raw", means = "10, 11, 13", sd = "6", score_shape = "normal", group_ratio = "1, 1, 2",
+               alternative = "greater"), closing_ok),
+  E66 = c(list(X_label = "Weekly sessions", X_levels = "None, One, Two, Three", Y_label = "Recovered",
+               proportions = "0.2, 0.25, 0.3, 0.35", scores = "0, 1, 2, 3", alternative = "two_sided"), closing_ok),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)

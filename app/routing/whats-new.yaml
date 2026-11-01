@@ -11,6 +11,14 @@ entries:
       The meta-analysis card can now plan a subgroup analysis: whether the
       effect differs between kinds of study, such as lab and online
       studies, as well as the test of the average effect.
+  - date: "2026-11-01"
+    title: "Trend tests for groups in a set order"
+    text: >-
+      Two new analyses for three or more groups in an order, such as doses
+      or age bands: the Jonckheere-Terpstra test, for a steady rise or fall
+      in scores, and the Cochran-Armitage test, for a rising or falling
+      proportion of "yes". Both can be one- or two-sided, with equal or
+      unequal groups, and the design finder leads to them.
   - date: "2026-10-31"
     title: "The power visualiser shows a correlation too"
     text: >-

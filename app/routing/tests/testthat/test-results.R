@@ -895,6 +895,40 @@ test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test
   expect_match(w[["short"]], "the Pitman-Morgan test of two paired variances", fixed = TRUE)
 })
 
+test_that("the trend tests (E64, E66) run one-sided with unequal groups, and their write-ups say so", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E64"))
+  expect_equal(form_problems(fields, form_examples$E64), character())
+  spec <- build_spec(forms, "E64", fields, form_examples$E64)
+  expect_identical(spec$target_test$method, "jonckheere_terpstra")
+  expect_identical(spec$target_test$alternative, "greater")
+  expect_equal(as.numeric(unlist(spec$options$group_ratio)), c(1, 1, 2))
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "jonckheereTest", fixed = TRUE)
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms$E64, calc$spec, calc$result, fields, form_examples$E64)
+  expect_match(w[["short"]], "a Jonckheere-Terpstra test of a trend across groups in order (one-sided, a rising trend", fixed = TRUE)
+  expect_match(test_text(calc$spec), "a one-sided test (a rising trend)", fixed = TRUE)
+
+  fields <- form_fields(form_groups(forms, "E66"))
+  values <- modifyList(form_examples$E66, list(group_ratio = "2, 1, 1, 2", alternative = "less", proportions = "0.35, 0.3, 0.25, 0.2"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E66", fields, values)
+  expect_identical(spec$template, "proportion_trend")
+  spec$goal <- list(type = "power", n = 396L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "prop.trend.test", fixed = TRUE)
+  w <- writeup_text(forms$forms$E66, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "one-sided, a falling trend", fixed = TRUE)
+  # Two-sided, equal groups: the example as given.
+  spec <- build_spec(forms, "E66", fields, form_examples$E66)
+  expect_null(spec$options$group_ratio)
+  expect_identical(spec$target_test$alternative, "two_sided")
+})
+
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
   skip_without_run()
   for (ep in c("E1", "E2", "E3")) {

@@ -269,6 +269,11 @@ design_description <- function(spec) {
       "chi-square test of one variance: is the variance of %s different from a fixed value?",
       label("Y")
     ),
+    "basic_test/proportion_trend" = sprintf(
+      "Cochran-Armitage test of a linear trend in %s = %s across the %d groups of %s in order (%s), scores %s",
+      label("Y"), comment_text(unlist(v$Y$levels)[2] %||% "yes"), length(unlist(v$X$levels)), label("X"), levels("X"),
+      paste(format_number(trend_scores(spec)), collapse = ", ")
+    ),
     "basic_test/two_variances" = sprintf(
       "F test of two variances: does the variance of %s differ between the groups of %s (%s)?",
       label("Y"), label("G"), levels("G")
@@ -513,8 +518,10 @@ rank_design_description <- function(spec, label, levels) {
       "Mann-Whitney (Wilcoxon rank-sum) test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
     ),
     oneway_between = sprintf(
-      "Kruskal-Wallis test of %s across the %d groups of %s (%s)",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "%s test of %s across the %d groups of %s (%s)%s",
+      if (jonckheere_test(spec)) "Jonckheere-Terpstra" else "Kruskal-Wallis",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
+      if (jonckheere_test(spec)) ", a trend in the order given" else ""
     ),
     oneway_within = sprintf(
       "Friedman's test of %s across the %d conditions of %s (%s), everyone in every condition",
@@ -763,12 +770,15 @@ add_recruitment_section <- function(lines, spec, result) {
       length(spec$variables$A$levels) * length(spec$variables$B$levels)
     ),
     "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    oneway_between = ,
+    oneway_between = if (jonckheere_test(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
+      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
+    ),
     oneway_contrast = ,
     mixed = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
+    proportion_trend = "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share",
     "groups_analysed <- n_analysed # one group"
   )
   section <- c(
@@ -1333,6 +1343,16 @@ spower_script_inputs <- function(spec) {
         r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
       )
     ),
+    proportion_trend = c(
+      sprintf(
+        "proportions <- %s # proportion with %s = %s in each group, in order (%s)",
+        r_code(as.numeric(unlist(pop$proportions))), comment_text(v$Y$label), lv("Y", 2),
+        paste(comment_text(unlist(v$X$levels)), collapse = ", ")
+      ),
+      sprintf("scores <- %s # each group's score in the trend test%s", r_code(trend_scores(spec)),
+        if (is.null(pop$scores)) " (1, 2, 3, ...: equally spaced, prop.trend.test()'s default)" else ""),
+      group_ratio_line(spec)
+    ),
     chi_square_independence = if (chisq_by_w(spec)) {
       c(
         sprintf("w <- %s # Cohen's w for the association of %s and %s, taken as the population value (as in G*Power)",
@@ -1358,6 +1378,13 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (jonckheere_test(spec) || spec$template == "proportion_trend") {
+    return(c(
+      "  # The experiment's n is one share of the total: each group has n times",
+      "  # its share in group_ratio.",
+      "  n_share <- batch_n / sum(group_ratio)"
+    ))
+  }
   if (spec$template == "oneway_between") {
     return(c(
       "  # Spower's n is the size of each group; the groups are equal.",
@@ -1478,6 +1505,12 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = batch_n, # total sample size",
       "P = probabilities, # probability of each combination",
       "correct = FALSE # no continuity correction (Spower's default is TRUE; powerkit's Departure 5)"
+    ),
+    proportion_trend = c(
+      "n = n_share, # one share of the total",
+      "proportions = proportions,",
+      "scores = scores,",
+      "n.ratios = group_ratio # each group's share"
     )
   )
   if (one_sided) {
@@ -1518,9 +1551,19 @@ spower_alternative_line <- function(spec, inputs) {
       "your test expects the first measurement's variance to be %s than the second's (the sum and difference correlate %s)",
       if (positive) "larger" else "smaller", if (positive) "positively" else "negatively"
     ),
+    oneway_between = sprintf("your test expects the scores to %s across the groups in order", if (positive) "rise" else "fall"),
+    proportion_trend = sprintf("your test expects the proportion to %s with the scores", if (positive) "rise" else "fall"),
     sprintf("one-sided: the effect is expected to be %s", if (positive) "positive" else "negative")
   )
   sprintf("alternative = %s # %s", r_code(alternative), why)
+}
+
+# A trend test's relative group sizes (options > group_ratio; 1 each for
+# equal groups).
+group_ratio_line <- function(spec) {
+  levels <- unlist(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels)
+  sprintf("group_ratio <- %s # relative size of each group (%s)%s", r_code(trend_group_shares(spec)),
+    paste(comment_text(levels), collapse = ", "), if (unequal_groups(spec)) "" else ": equal groups")
 }
 
 # Put a comma after every argument but the last, before any comment.
@@ -1562,6 +1605,23 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    proportion_trend = c(
+      "# The experiment, as powerkit runs it: each group's count of yes out of n,",
+      "# drawn from its proportion, and the p-value of the Cochran-Armitage test",
+      "# of a linear trend along the scores (prop.trend.test(), chi-square, 1 df).",
+      "# prop.trend.test() is two-sided; a one-sided test halves its p-value when",
+      "# the observed trend goes the way predicted (\"greater\": the proportion",
+      "# rises with the scores), and otherwise gives 1 minus half of it.",
+      "p_cochran_armitage <- function(n, proportions, scores, n.ratios = rep(1, length(proportions)),",
+      "                               alternative = \"two.sided\") {",
+      "  sizes <- n * n.ratios",
+      "  yes <- rbinom(length(proportions), sizes, proportions)",
+      "  p <- prop.trend.test(yes, sizes, score = scores)$p.value",
+      "  if (alternative == \"two.sided\") return(p)",
+      "  rising <- sum(yes * (scores - sum(sizes * scores) / sum(sizes))) > 0",
+      "  if (rising == (alternative == \"greater\")) p / 2 else 1 - p / 2",
+      "}"
+    ),
     factorial = c(
       "# The cells, with sum-to-zero (effect) coding, so that each factor's",
       "# coefficients are its main effect averaged over the other factor.",
@@ -1664,10 +1724,13 @@ rank_script_inputs <- function(spec) {
         r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
       )
     ),
-    oneway_between = sprintf(
-      "means <- %s / %s # group means (%s) in SD units: the means over the SD",
-      r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
-      paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+    oneway_between = c(
+      sprintf(
+        "means <- %s / %s # group means (%s) in SD units: the means over the SD",
+        r_code(as.numeric(unlist(pop$means))), r_code(pop$sd),
+        paste(comment_text(unlist(v$A$levels)), collapse = ", ")
+      ),
+      if (jonckheere_test(spec)) group_ratio_line(spec)
     ),
     oneway_within = c(
       sprintf(
@@ -1716,7 +1779,19 @@ rank_derived_lines <- function(spec) {
       "# Each group's scores: its mean plus scores in the chosen shape.",
       "gen_groups <- function(n, k, n.ratios, means, ...) {",
       "  lapply(seq_len(k), function(g) means[g] + draw_scores(n * n.ratios[g]))",
-      "}"
+      "}",
+      if (jonckheere_test(spec)) c(
+        "# The experiment, as powerkit runs it: the groups in the order of their",
+        "# levels, and the p-value of PMCMRplus's Jonckheere-Terpstra test (its",
+        "# default: the normal approximation, no continuity correction; \"greater\"",
+        "# is a rise across the groups). The scores and their groups go in as x and",
+        "# g: given a list of groups, jonckheereTest() ignores `alternative`.",
+        "p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = \"two.sided\") {",
+        "  groups <- gen_fun(n, k, n.ratios, means)",
+        "  g <- factor(rep(seq_len(k), lengths(groups)))",
+        "  unname(PMCMRplus::jonckheereTest(unlist(groups), g, alternative = alternative)$p.value)",
+        "}"
+      )
     ),
     oneway_within = c(
       "# The experiment, as powerkit runs it: each score is the condition's mean,",
@@ -1758,7 +1833,13 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "parent1 = shifted,",
       "parent2 = unshifted"
     ),
-    oneway_between = c(
+    oneway_between = if (jonckheere_test(spec)) c(
+      "n = n_share, # one share of the total",
+      "k = length(means), # number of groups",
+      "means = means, # group means in SD units",
+      "gen_fun = gen_groups,",
+      "n.ratios = group_ratio # each group's share"
+    ) else c(
       "n = n_group, # size of each group",
       "k = length(means), # number of groups",
       "means = means, # group means in SD units",

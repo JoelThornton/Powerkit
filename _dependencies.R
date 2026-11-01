@@ -24,6 +24,7 @@ library(metapower) # E61's planned meta-analysis
 library(power4mome)
 library(powertools)
 library(PUMP)      # joint power for several outcomes in the study plan
+library(PMCMRplus) # the Jonckheere-Terpstra test (jonckheereTest())
 library(pwr)
 library(pwrss)     # also the mediation_crosscheck validation chunk, with simsem
 library(semPower)
