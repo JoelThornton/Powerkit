@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Three levels: pupils in classes in schools"
+    text: >-
+      A new card plans studies with groups inside larger groups, such as
+      pupils in classes in schools, with the conditions given to whole
+      schools, to classes within each school or to pupils within each
+      class. "Help me choose" asks whether your groups are part of larger
+      groups.
+  - date: "2026-11-01"
     title: "Correct or not on each trial"
     text: >-
       The cards for participants responding to many items or stimuli now

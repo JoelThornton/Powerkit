@@ -68,6 +68,20 @@ A batch of new features, built as one round.
   Checked against a simulation written separately with glmer, with the
   Type I error near alpha. The design finder's question on many trials
   or stimuli takes yes/no outcomes to these cards.
+* Three levels (E64, design `mixed_model`, template `three_level`):
+  people in groups in larger groups (pupils in classes in schools), with
+  two conditions assigned to whole sites, to groups within each site or
+  to people within each group (`population > assignment`). The inputs
+  are Cohen's d over the outcome's total SD, the sites' and groups'
+  shares of the variance (`icc_site`, `icc_group`), how much the effect
+  varies across sites or groups where it can (`icc_effect_site`,
+  `icc_effect_group`), the group size and the groups per site; n is a
+  whole number of sites. Simulated with simr on y ~ cond + (1 | site) +
+  (1 | site:group) (with the condition's random effects where they
+  apply), tested by Satterthwaite's t test (Departure 16). Agrees with a
+  simulation written separately, with the Type I error near alpha;
+  published value to come. The design finder asks whether the groups
+  are part of larger groups (C2).
 
 # powerkit 0.26.0
 
