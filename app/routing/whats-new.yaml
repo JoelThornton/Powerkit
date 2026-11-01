@@ -21,6 +21,13 @@ entries:
       at two values of the moderator, such as one SD below and above its
       mean.
   - date: "2026-11-01"
+    title: "A Bayes factor test for two groups' proportions"
+    text: >-
+      The card for two groups' proportions now offers a Bayes factor test,
+      with the same Bayes factor and default prior as JASP's Bayesian
+      contingency tables. It shows the chance of strong evidence, and what
+      the study would show if the groups didn't differ.
+  - date: "2026-11-01"
     title: "Meta-analysis: moderators that are scores, and heterogeneity"
     text: >-
       The meta-analysis card can now plan a meta-regression, whether the

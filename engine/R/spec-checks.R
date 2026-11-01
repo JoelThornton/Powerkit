@@ -419,7 +419,7 @@ check_bayes_factor <- function(spec) {
     }
     if (!is.null(spec$population$p_sd)) {
       return(paste0(
-        "'population > p_sd' is only used by the Bayes factor test of one proportion; ",
+        "'population > p_sd' is only used by the Bayes factor tests of proportions; ",
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
@@ -429,13 +429,25 @@ check_bayes_factor <- function(spec) {
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
+    if (!is.null(spec$target_test$prior_concentration)) {
+      return(paste0(
+        "'target_test > prior_concentration' is only used by the Bayes factor test of two proportions; ",
+        "remove it, or set 'target_test > method' to 'bayes_factor'."
+      ))
+    }
     return(character())
+  }
+  if (!bfprop_test(spec) && !is.null(spec$target_test$prior_concentration)) {
+    return("'target_test > prior_concentration' belongs to the Bayes factor test of two proportions; remove it.")
   }
   if (bfbin_test(spec)) {
     return(check_bayes_binomial(spec))
   }
   if (bfcor_test(spec)) {
     return(check_bayes_correlation(spec))
+  }
+  if (bfprop_test(spec)) {
+    return(check_bayes_proportions(spec))
   }
   if (!is.null(spec$target_test$prior_width)) {
     return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
@@ -506,6 +518,42 @@ check_bayes_correlation <- function(spec) {
   }
   if (is.numeric(pop$r) && abs(pop$r) >= 0.95) {
     problems <- c(problems, "For the Bayes factor test, the expected correlation must be between -0.95 and 0.95.")
+  }
+  problems
+}
+
+# The two-proportion Bayes factor: a prior concentration, a design prior SD
+# a beta distribution can have for both groups' proportions, and an exact
+# calculation (no simulation, no z-test formula options).
+check_bayes_proportions <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  problems <- character()
+  if (!is.null(tt$prior_scale) || !is.null(tt$prior_a) || !is.null(tt$prior_b) || !is.null(tt$one_sided_null) ||
+    !is.null(tt$prior_width) || !is.null(pop$effect_sd) || !is.null(pop$r_sd)) {
+    problems <- c(problems, paste0(
+      "The Bayes factor test of two proportions has a prior concentration, set by 'target_test > prior_concentration', ",
+      "and its uncertainty as 'population > p_sd'; remove the other Bayes factor settings."))
+  }
+  if (!is.null(spec$options$proportions_formula) || identical(spec$options$method, "simulation")) {
+    problems <- c(problems, paste0(
+      "The Bayes factor test of two proportions is calculated exactly over every possible table; ",
+      "remove 'options > proportions_formula' and 'options > method'."))
+  }
+  for (p in c(pop$p1, pop$p2)) {
+    if (is.numeric(p) && (p <= 0 || p >= 1)) {
+      problems <- c(problems, "For the Bayes factor test, each group's proportion must be between 0 and 1, not 0 or 1 itself.")
+      break
+    }
+  }
+  p_sd <- pop$p_sd %||% 0
+  if (is.numeric(p_sd) && p_sd > 0 && length(problems) == 0) {
+    limit <- min(sqrt(pop$p1 * (1 - pop$p1)), sqrt(pop$p2 * (1 - pop$p2)))
+    if (p_sd >= limit) {
+      problems <- c(problems, sprintf(paste0(
+        "'population > p_sd' (%s) is too large for proportions of %s and %s: a beta distribution with those means ",
+        "has an SD below %s. Give a smaller uncertainty."), format(p_sd), format(pop$p1), format(pop$p2), format(signif(limit, 3))))
+    }
   }
   problems
 }

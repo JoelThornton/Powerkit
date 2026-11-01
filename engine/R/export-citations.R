@@ -123,9 +123,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       s("lavaan", "which fits the model to each simulated data set"),
       s("manymome", "which computes the indirect effect or index and its confidence interval")
     ),
-    BayesFactor = list(
-      s("SuppDists", "whose pPearson() gives the exact distribution of the sample correlation")
-    ),
+    BayesFactor = if ("SuppDists" %in% used) {
+      list(s("SuppDists", "whose pPearson() gives the exact distribution of the sample correlation"))
+    },
     semPower = if ("lavaan" %in% used) {
       list(s("lavaan", "which semPower uses to count a model's degrees of freedom or to fit the models it compares"))
     },

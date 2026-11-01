@@ -839,7 +839,7 @@ rank_test_text: "Planning {rank_test} instead? The figure here is for the parame
 rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
 # On the cards with a Bayes factor version (`bayes_test: true`: the
 # t-tests, one proportion and the correlation).
-bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by exact calculation (bfpwr, or BayesFactor for the correlation, with JASP's default prior for the correlation and one proportion)."
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by exact calculation (bfpwr, or BayesFactor for the correlation and two proportions, with JASP's default prior for the correlation and for proportions)."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -953,14 +953,16 @@ endpoints:
     plain_name: "Compare two groups on a yes/no outcome"
     search_words: "two proportions fisher exact"
     template: "basic_test / two_proportions"
-    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher()"
-    refs: "Departures 5, 9 and 11 (docs/conventions.md)"
+    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
+    refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test or Fisher's exact test"]
+    inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test, Fisher's exact test or a Bayes factor test"]
     status: runs_validated
+    bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
       - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
+      - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
     tier: MVP
     alternatives: ["the z test with or without a continuity correction", "Fisher's exact test", "logistic regression"]
   E6:
@@ -1907,7 +1909,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, BayesFactor."
+      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation and two proportions, BayesFactor."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}

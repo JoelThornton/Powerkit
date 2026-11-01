@@ -1554,12 +1554,18 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
   }
+  if (is_bayes_proportions(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; contingency table Bayes factor, group sizes fixed, prior concentration %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
+      if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
 is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
+is_bayes_proportions <- function(spec) is_bayes_test(spec) && identical(spec$template, "two_proportions")
 
 # The design prior SD of a Bayes factor test, whichever name it has.
 bayes_design_sd <- function(spec) spec$population$effect_sd %||% spec$population$p_sd %||% spec$population$r_sd %||% 0
@@ -1568,6 +1574,7 @@ bayes_test_name <- function(spec) {
   switch(spec$template,
     one_proportion = "a Bayes factor test of one proportion",
     correlation = "a Bayes factor test of Pearson's correlation",
+    two_proportions = "a Bayes factor test of two proportions",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test")
@@ -1591,7 +1598,7 @@ bayes_sentence <- function(spec, result) {
   k <- format(b$evidence_threshold)
   c(
     if (b$effect_sd > 0) sprintf(paste(
-      if (is_bayes_binomial(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
+      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
       if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
@@ -1628,9 +1635,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")
-  # Fisher's exact test (E5's option) is pwrss's exact test: none of the z
-  # test's departures, nor the continuity correction, apply.
-  if (identical(spec$target_test$method, "fisher_exact")) keys <- setdiff(keys, c("5", "9", "10", "11"))
+  # Fisher's exact test and the Bayes factor test (E5's options) are exact:
+  # none of the z test's departures, nor the continuity correction, apply.
+  if (identical(spec$target_test$method, "fisher_exact") || is_bayes_test(spec)) keys <- setdiff(keys, c("5", "9", "10", "11"))
   # Departure 14 is about the smallest detectable d of a group treatment
   # trial with a score outcome only.
   if (!(identical(spec$template, "group_treatment") && identical(spec$population$metric, "standardised") &&
@@ -2094,6 +2101,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_proportions(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and prior concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",

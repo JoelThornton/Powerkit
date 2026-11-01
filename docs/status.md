@@ -37,7 +37,7 @@ fully validated. Validation runs are recorded in
   1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
   JASP's prior and one-sided test by default) and the correlation (E4;
-  BayesFactor, JASP's Bayes factor and prior width by default). **Fourteen are simulated with a
+  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default). **Fourteen are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14,
   E17 (a yes/no X or W), E38 (W on both links or the direct path, both
   1 November 2026) and E40
