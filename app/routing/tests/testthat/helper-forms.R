@@ -183,6 +183,11 @@ form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Re
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
                             group_size = "20", groups_per_site = "4"), closing_ok)
 
+# E67: word frequency and response times.
+form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous",
+                            slope = "-15", sd_participant = "60", sd_participant_slope = "10", sd_item = "30",
+                            sd_residual = "120", items = "60"), closing_ok)
+
 # E44: couples, indistinguishable; the partner effect.
 form_examples$E44 <- c(list(X_label = "Daily stress", Y_label = "Relationship satisfaction", distinguishable = "false",
                             actor = "-0.3", partner = "-0.15", apim_effect = "partner", r_x = "0.2", r_y = "0.3"), closing_ok)

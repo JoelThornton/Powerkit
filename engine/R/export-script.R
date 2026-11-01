@@ -77,6 +77,7 @@ export_script <- function(spec, result, file = NULL) {
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
+      item_predictor = item_predictor_script(spec, result),
       crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
@@ -476,6 +477,11 @@ design_description <- function(spec) {
       } else {
         "any difference between the conditions"
       }
+    ),
+    "mixed_model/item_predictor" = sprintf(
+      "participants responding to %s items that differ on %s (measured on each item, per SD); outcome %s%s",
+      format_number(spec$population$items), label("X"), label("Y"),
+      if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/three_level" = sprintf(
       "three levels, people in groups of %s in sites of %s groups; %s (%s) assigned to %s; outcome %s",

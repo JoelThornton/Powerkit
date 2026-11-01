@@ -22,8 +22,9 @@ simr_backend <- function(spec, seed = NULL) {
   two_level <- identical(spec$template, "two_level")
   conditions <- identical(spec$template, "crossed_conditions")
   three <- identical(spec$template, "three_level")
+  item <- identical(spec$template, "item_predictor")
   inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else
-    if (three) three_level_inputs(spec) else simr_inputs(spec)
+    if (three) three_level_inputs(spec) else if (item) item_predictor_inputs(spec) else simr_inputs(spec)
   if (conditions) inputs$test <- crossed_conditions_test(inputs)
   list(
     name = "simr",
@@ -42,7 +43,8 @@ simr_backend <- function(spec, seed = NULL) {
     sensitivity = NULL,
     check_run = function() {
       if (two_level) two_level_check_run(spec, inputs, seed) else if (conditions) crossed_conditions_check_run(spec, inputs, seed) else
-        if (three) three_level_check_run(spec, inputs, seed) else simr_check_run(spec, inputs, seed)
+        if (three) three_level_check_run(spec, inputs, seed) else if (item) item_predictor_check_run(spec, inputs, seed) else
+          simr_check_run(spec, inputs, seed)
     }
   )
 }
@@ -817,6 +819,142 @@ three_level_script <- function(spec, result) {
     "",
     batch_section(result, "powerSim()"),
     simulation_goal_section(spec, result, inputs$site_size),
+    comparison_section()
+  )
+}
+
+# A predictor measured on each item (mixed_model / item_predictor, E67):
+# participants respond to many items that differ on a score X (word
+# frequency, a face's rated attractiveness), standardised across the items
+# (normal quantiles, centred, SD 1):
+#   y ~ x + (1 + x | participant) + (1 | item)
+# with the effect of X per SD of X, each participant's own slope on X
+# (sd_participant_slope, correlated r_participant with their intercept),
+# and the items varying beyond what X explains (sd_item). A score outcome
+# is tested by Satterthwaite's t test (Departure 16); a yes/no outcome
+# (Y binary: the chance of 'yes' at the items' mean X for a typical
+# participant, every SD on the log-odds scale) by glmer's Wald z test or
+# the likelihood ratio, as for E33.
+item_predictor_inputs <- function(spec) {
+  pop <- spec$population
+  binary <- crossed_binary(spec)
+  r <- pop$r_participant %||% 0
+  participant <- matrix(c(pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
+    r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2), nrow = 2)
+  list(
+    formula = stats::as.formula("y ~ x + (1 + x | participant) + (1 | item)", env = globalenv()),
+    binary = binary,
+    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    term = "x",
+    fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$slope),
+    VarCorr = list(participant = participant, item = pop$sd_item^2),
+    sigma = if (!binary) pop$sd_residual,
+    items = pop$items,
+    alpha = spec$target_test$alpha,
+    design = item_predictor_design
+  )
+}
+
+# One data set's design: every participant responds to every item; the
+# items' X are evenly spread standard normal values (normal quantiles),
+# centred with SD 1.
+item_predictor_design <- function(inputs, n) {
+  x <- stats::qnorm(seq_len(inputs$items) / (inputs$items + 1))
+  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
+  data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
+  data$x <- x[data$item]
+  data$participant <- factor(data$participant)
+  data$item <- factor(data$item)
+  data
+}
+
+# Check run: one large data set (300 participants, at least 200 items),
+# refitted with lme4: the slope within 5 of its standard errors, each SD
+# within 5 of its approximate standard errors allowing for the noise in
+# each group's own estimate.
+item_predictor_check_run <- function(spec, inputs, seed) {
+  n <- 300L
+  big <- inputs
+  big$items <- max(inputs$items, 200L)
+  model <- simr_model(big, n)
+  data <- item_predictor_design(big, n)
+  data$y <- with_seed(seed, stats::simulate(model)[[1]])
+  fit <- simr_refit(inputs, data)
+  coefs <- summary(fit)$coefficients
+  vc <- as.data.frame(lme4::VarCorr(fit))
+  sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
+  pop <- spec$population
+  sd_row <- function(label, specified, recovered, groups, per_group) {
+    se_var <- (specified^2 + simr_noise(inputs, pop, per_group)) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
+  }
+  rows <- list(
+    check_run_rows(if (inputs$binary) "slope of X (log odds per SD)" else "slope of X (per SD)", pop$slope,
+      coefs["x", "Estimate"], coefs["x", "Std. Error"]),
+    sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n, big$items),
+    sd_row("SD of participant slopes on X", pop$sd_participant_slope, sd_of("participant", "x"), n, big$items),
+    sd_row("SD of item intercepts beyond X", pop$sd_item, sd_of("item", "(Intercept)"), big$items, n),
+    if (!inputs$binary) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
+  )
+  check <- do.call(rbind, rows)
+  rownames(check) <- NULL
+  check
+}
+
+# The standalone script: simr alone, with the same design and test.
+item_predictor_script <- function(spec, result) {
+  inputs <- item_predictor_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  c(
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"x\", \"%s\")", inputs$method)),
+    "library(simr)",
+    if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
+      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    "",
+    "# Inputs ----",
+    sprintf("# x is %s, measured on each item and standardised across the items; the outcome is %s.",
+      comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("slope <- %s # the effect of one SD more of x%s", r_code(pop$slope), if (inputs$binary) ", on the log odds" else ""),
+    if (inputs$binary) sprintf("probability <- %s # the chance of 'yes' at the items' mean x, for a typical participant", r_code(pop$probability)),
+    sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
+    sprintf("sd_participant_slope <- %s # SD of participants' slopes on x", r_code(pop$sd_participant_slope)),
+    sprintf("r_participant <- %s # correlation of participants' intercepts and slopes", r_code(pop$r_participant %||% 0)),
+    sprintf("sd_item <- %s # SD of items beyond what x explains", r_code(pop$sd_item)),
+    if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    sprintf("items <- %s # number of items", r_code(pop$items)),
+    goal_inputs(spec, result),
+    "",
+    "design_for <- function(n_participants) {",
+    "  x <- qnorm(seq_len(items) / (items + 1))",
+    "  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))",
+    "  data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
+    "  data$x <- x[data$item]",
+    "  data$participant <- factor(data$participant)",
+    "  data$item <- factor(data$item)",
+    "  data",
+    "}",
+    "",
+    "model_for <- function(n_participants) {",
+    "  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
+    "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)",
+    if (inputs$binary) {
+      c("  makeGlmer(y ~ x + (1 + x | participant) + (1 | item), family = \"binomial\", fixef = c(qlogis(probability), slope),",
+        "    VarCorr = list(participant = participant, item = sd_item^2), data = design_for(n_participants))")
+    } else {
+      c("  makeLmer(y ~ x + (1 + x | participant) + (1 | item), fixef = c(0, slope),",
+        "    VarCorr = list(participant = participant, item = sd_item^2), sigma = sd_residual, data = design_for(n_participants))")
+    },
+    "}",
+    "",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(\"x\", \"%s\"),", inputs$method),
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, 1),
     comparison_section()
   )
 }

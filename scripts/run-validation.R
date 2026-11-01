@@ -134,7 +134,7 @@ validation_chunks <- function() {
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",
     sem_latent = "test-validation-sem-latent.R",
-    mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R", "test-validation-crossed-conditions.R", "test-validation-crossed-binary.R", "test-validation-three-level.R")
+    mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R", "test-validation-crossed-conditions.R", "test-validation-crossed-binary.R", "test-validation-three-level.R", "test-validation-item-predictor.R")
   )
 }
 

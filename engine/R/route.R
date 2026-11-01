@@ -128,6 +128,7 @@ route_spec <- function(spec, seed = NULL) {
     "mixed_model/two_level" = simr_backend(spec, seed),
     "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "mixed_model/three_level" = simr_backend(spec, seed),
+    "mixed_model/item_predictor" = simr_backend(spec, seed),
     "logistic_regression/factorial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
       # Given by its R-squared change, as G*Power takes it: pwrss's F test.
