@@ -481,6 +481,22 @@ likelihood ratio; not a departure.
 | power4mome | `x_fun` with `rbinary_rs()`: a yes/no variable rescaled to mean 0 and SD 1 [power4mome help] | Standardised paths | — |
 | **powerkit** | power4mome with `rbinary_rs()` for X, W or both (E17, from 1 November 2026); with a yes/no W, the difference between the two groups' conditional indirect effects, the index times the distance between W's two rescaled values (manymome treats a two-valued W as categorical) [powerkit] | Standardised paths, per SD of a yes/no variable | A yes/no X or W uncorrelated with the other predictor. Departures 6 and 8 apply as for models 7 and 14 |
 
+## Meta-analysis with several effects per study (E61, POMADE)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No meta-analysis | — | — |
+| POMADE | `power_MADE()`: the test of the average effect under a working model, with `model = "CHE"` and `var_df = "RVE"` by default [POMADE help] | The average effect, with tau, omega and rho | Study sizes and numbers of effects may be drawn from distributions; balanced by default when given single values |
+| **powerkit** | POMADE's `power_MADE()` with its defaults, the CHE model and the RVE test (E61, from 1 November 2026) [powerkit] | Cohen's d or r (on Fisher's z), tau, omega and rho on the same scale | Every study the same size with the same number of effects; each effect's sampling variance a typical study's, as metapower computes it (`4/n + d^2/(2n)`, or `1/(n - 3)` for r). Not a departure |
+
+## Meta-analysis: a score moderator and the test of heterogeneity (E61)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No meta-analysis | — | — |
+| metapower | `mod_power()` for a categorical moderator only; `homogen_power()` for heterogeneity, which disagrees with simulation (`upstream-questions.md`) [metapower help] | d or r, I-squared | — |
+| **powerkit** | A score moderator: metafor's `rma(mods = ~ x)` simulated with Spower, the Hartung-Knapp test by default (Departure 18) or z. Heterogeneity: Cochran's Q from metafor's fixed-effect `rma()`, simulated with Spower (E61, from 1 November 2026) [powerkit] | d or r (Fisher's z), the slope per SD of the moderator, I-squared | The moderator standardised across the studies (normal quantiles, a fixed design); every study the same size, its sampling variance as metapower computes it |
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |
@@ -1182,9 +1198,15 @@ preregistered test.
   the z test. For subgroups (the test that kinds of study differ, from 1
   November 2026; 20 studies of 40, d = 0.2 against 0.5, I-squared 0.5):
   29.3% (2,000 simulated meta-analyses, Monte Carlo SE 1.0) against
-  31.9% with metapower's `mod_power()`.
+  31.9% with metapower's `mod_power()`. For a moderator that is a score (a
+  meta-regression, from 1 November 2026; d = 0.3 at the moderator's
+  mean, a slope of 0.15 per SD, 40 per study, residual I-squared 0.3):
+  17.95% against 22.0% with the z test at 10 studies, and 55.9% against
+  58.75% at 30 (the same 2,000 simulated meta-analyses tested both ways,
+  Monte Carlo SE 1.1); no package computes either, so both are
+  simulated.
 - **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
-  the difference"; `test-validation-meta-analysis.R` checks the
+  the difference", and for the moderator `test-backend-meta-more.R`; `test-validation-meta-analysis.R` checks the
   simulated power against a separately written simulation of IntHout et
   al.'s formulas, and the Type I error.
 - **Shown to users:** on the E61 result screen when the Hartung-Knapp test

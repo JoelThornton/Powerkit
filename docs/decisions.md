@@ -4212,6 +4212,50 @@ needed first.
   is the index times a constant, so the decision is the same.
 - **A yes/no X or W must be uncorrelated with the other predictor**, as
   the card already said: `rbinary_rs()` draws it on its own.
+## 2026-11-01 · Several effects per study in a meta-analysis (E61, POMADE)
+
+- **POMADE's defaults:** the correlated and hierarchical effects (CHE)
+  working model, with the average effect tested by robust variance
+  estimation on J - 1 degrees of freedom, as POMADE recommends.
+- **Balanced studies,** as for E61's other questions: every study the
+  same size with the same number of effects, each effect's sampling
+  variance that of a typical study computed as metapower computes it, so
+  a researcher moving between E61's questions gives the same inputs.
+  POMADE's notice that balanced assumptions can mislead is noted on the
+  form's help for rho (try several values); drawing study sizes from a
+  distribution is left for later.
+- **Heterogeneity as SDs (tau, omega),** POMADE's own inputs, not
+  I-squared, which has no single meaning with two levels of variation.
+
+## 2026-11-01 · A score moderator and the test of heterogeneity (E61)
+
+- **Simulated with metafor in Spower,** as the Hartung-Knapp tests are:
+  no package computes a meta-regression's power, and metapower's
+  `homogen_power()` disagrees with simulated Q tests
+  (`upstream-questions.md`), so powerkit doesn't wait for it.
+- **The moderator** is standardised across the studies and spread
+  evenly (normal quantiles), a fixed design as in simr's models, so the
+  slope is per SD of the moderator and the average effect is at its
+  mean. The moderator's test defaults to Hartung-Knapp, as the average
+  effect's does (Departure 18, sized for the moderator).
+- **Heterogeneity** is Cochran's Q from the fixed-effect fit, the test
+  meta-analyses report; the row in `next.md` is done.
+
+## 2026-11-01 · A score moderator and the test of heterogeneity (E61)
+
+- **Simulated with metafor in Spower,** as the Hartung-Knapp tests are:
+  no package computes a meta-regression's power, and metapower's
+  `homogen_power()` disagrees with simulated Q tests
+  (`upstream-questions.md`), so powerkit doesn't wait for it.
+- **The moderator** is standardised across the studies and spread
+  evenly (normal quantiles), a fixed design as in simr's models, so the
+  slope is per SD of the moderator and the average effect is at its
+  mean. The moderator's test defaults to Hartung-Knapp, as the average
+  effect's does (Departure 18, sized for the moderator).
+- **Heterogeneity** is Cochran's Q from the fixed-effect fit, the test
+  meta-analyses report. With the score moderator and POMADE, the
+  meta-analysis row in `next.md` is done; study-level power (metameta)
+  moves to the Labs row.
 ## 2026-11-01 · Precision for more estimates (E46)
 
 - **Packages, as for the first estimates:** presize for a raw mean

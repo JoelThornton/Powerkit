@@ -1,0 +1,34 @@
+{
+  "spec_version": "0.1",
+  "design": "meta_analysis",
+  "template": "heterogeneity",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Depressive symptoms"
+    }
+  },
+  "population": {
+    "metric": "d",
+    "effect": 0.3,
+    "study_size": 40,
+    "i2": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: moderate heterogeneity (I-squared 0.5) is expected."
+  },
+  "target_test": {
+    "effect": "heterogeneity",
+    "method": "q_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 20
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 2026
+  }
+}

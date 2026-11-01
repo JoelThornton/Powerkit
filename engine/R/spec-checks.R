@@ -2473,7 +2473,8 @@ minimum_n <- function(spec) {
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
     # a degree of freedom.
-    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else 2,
+    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else
+      if (identical(spec$template, "dependent_effects")) 3 else if (identical(spec$template, "meta_regression")) 4 else 2,
     # Dyads: enough pairs for lavaan to fit the APIM's 10 parameters.
     dyadic = 20,
     # Two groups in each condition (cluster-randomised), or two groups
@@ -2733,6 +2734,10 @@ target_effect_is_zero <- function(spec) {
     meta_analysis = if (identical(spec$template, "subgroups")) {
       e <- as.numeric(unlist(pop$effects))
       max(abs(e - mean(e)))
+    } else if (identical(spec$template, "meta_regression")) {
+      pop$slope
+    } else if (identical(spec$template, "heterogeneity")) {
+      pop$i2
     } else {
       pop$effect
     },
@@ -2830,10 +2835,13 @@ check_meta_analysis <- function(spec) {
       "%d isn't."), as.integer(pop$study_size)))
   }
   alternative <- spec$target_test$alternative %||% "two_sided"
+  if (identical(spec$template, "dependent_effects") && !identical(alternative, "two_sided")) {
+    problems <- c(problems, "POMADE's test of the average effect is two-sided: remove 'target_test > alternative' or set it to \"two_sided\".")
+  }
   if (subgroups && !identical(alternative, "two_sided")) {
     problems <- c(problems, "The test that kinds of study differ has no direction (a Q test): remove 'target_test > alternative' or set it to \"two_sided\".")
   }
-  if (!subgroups && !identical(alternative, "two_sided") && pop$effect != 0 &&
+  if (!subgroups && !spec$template %in% c("meta_regression", "heterogeneity") && !identical(alternative, "two_sided") && pop$effect != 0 &&
       !identical(alternative, if (pop$effect > 0) "greater" else "less")) {
     problems <- c(problems, "A one-sided test of a meta-analysis runs in the direction of the expected effect.")
   }
@@ -2848,13 +2856,22 @@ check_meta_analysis <- function(spec) {
     problems <- c(problems, "The Hartung-Knapp test is for the random-effects model; the fixed-effect model uses the z test.")
   }
   method <- spec$options$method
+  simulated <- hartung_knapp_test(spec) || spec$template %in% c("meta_regression", "heterogeneity")
+  if (spec$template %in% c("meta_regression", "heterogeneity") && !identical(alternative, "two_sided")) {
+    problems <- c(problems, sprintf("%s is two-sided here: remove 'target_test > alternative' or set it to \"two_sided\".",
+      if (identical(spec$template, "heterogeneity")) "The test of heterogeneity (a Q test) has no direction and" else "The test of the moderator's slope"))
+  }
+  if (!hartung_knapp_test(spec) && spec$template %in% c("meta_regression", "heterogeneity") && identical(method, "exact")) {
+    problems <- c(problems, "No package has a formula for this test's power, so it is simulated: remove 'options > method' \"exact\".")
+  }
   if (hartung_knapp_test(spec) && identical(method, "exact")) {
     problems <- c(problems, paste0(
       "The Hartung-Knapp test is simulated (no package has a formula for its power); for metapower's formula, ",
       "set 'target_test > test' to \"z\"."))
   }
-  if (!hartung_knapp_test(spec) && (identical(method, "simulation") || !is.null(spec$options$nrep))) {
-    problems <- c(problems, "The z test is worked out by formula (metapower), so there is nothing to simulate; remove 'options > nrep'.")
+  if (!simulated && (identical(method, "simulation") || !is.null(spec$options$nrep))) {
+    problems <- c(problems, sprintf("%s, so there is nothing to simulate; remove 'options > nrep'.",
+      if (identical(spec$template, "dependent_effects")) "POMADE works out power by formula" else "The z test is worked out by formula (metapower)"))
   }
   problems
 }

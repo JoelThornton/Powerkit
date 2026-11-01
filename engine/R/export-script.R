@@ -67,6 +67,7 @@ export_script <- function(spec, result, file = NULL) {
       pwr_script(spec, result)
     },
     Spower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
+      if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -75,6 +76,7 @@ export_script <- function(spec, result, file = NULL) {
     bfpwr = bfpwr_script(spec, result),
     BayesFactor = bfcor_script(spec, result),
     metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
+    POMADE = pomade_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),

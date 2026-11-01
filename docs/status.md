@@ -32,7 +32,9 @@ fully validated. Validation runs are recorded in
   since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
-  of studies since 1 November. Bayes factor versions: the three t-tests
+  of studies, several effects per study (POMADE), a moderator that is a
+  score and the test of heterogeneity (both simulated with metafor) since
+  1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
   JASP's prior and one-sided test by default) and the correlation (E4;
   BayesFactor, JASP's Bayes factor and prior width by default). **Fourteen are simulated with a

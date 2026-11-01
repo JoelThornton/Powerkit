@@ -8210,7 +8210,10 @@
           "template": {
             "enum": [
               "mean_effect",
-              "subgroups"
+              "subgroups",
+              "dependent_effects",
+              "meta_regression",
+              "heterogeneity"
             ]
           },
           "goal": {
@@ -8272,6 +8275,51 @@
             },
             "then": {
               "$ref": "#/definitions/template_meta_subgroups"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "dependent_effects"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_dependent_effects"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "meta_regression"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_meta_regression"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "heterogeneity"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_meta_heterogeneity"
             }
           }
         ]
@@ -9844,6 +9892,208 @@
                 "t"
               ]
             }
+          }
+        }
+      }
+    },
+    "template_meta_dependent_effects": {
+      "description": "A planned meta-analysis in which each study gives several correlated effect sizes (for example, several outcomes or time points), testing the average effect: POMADE's power_MADE() under the correlated and hierarchical effects (CHE) working model with robust variance estimation (RVE, J - 1 degrees of freedom), POMADE's default. The studies' average true effects vary with SD tau, the effects within a study with SD omega, and a study's sampling errors are correlated rho. Every study has the same size and the same number of effects; each effect's sampling variance is a typical study's, computed as metapower computes it. For r the analysis is on Fisher's z, and tau and omega are on that scale. goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "study_size",
+            "effects_per_study",
+            "tau",
+            "omega",
+            "rho"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect the meta-analysis should detect (Cohen's d, or r between -1 and 1)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "effects_per_study": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "The number of effect sizes each study gives (the same in every study)."
+            },
+            "tau": {
+              "type": "number",
+              "minimum": 0,
+              "description": "SD of the studies' average true effects (between-study heterogeneity), on the effect's scale (Fisher's z for r)."
+            },
+            "omega": {
+              "type": "number",
+              "minimum": 0,
+              "description": "SD of the true effects within a study (within-study heterogeneity), on the same scale."
+            },
+            "rho": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The correlation between the sampling errors of a study's effect sizes (for example 0.6 for outcomes measured on the same people)."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "mean_effect"
+            },
+            "method": {
+              "const": "rve_t"
+            },
+            "model": false,
+            "test": false
+          }
+        }
+      }
+    },
+    "template_meta_meta_regression": {
+      "description": "A random-effects meta-regression on a moderator that is a score, measured on each study (for example the studies' mean age), standardised across the studies: the true effects are effect + slope x + u, u with the residual heterogeneity (I-squared). Tested by the Hartung-Knapp test (the default) or the z test of the slope, metafor's rma(mods = ~ x), simulated with Spower (no package computes this power). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "slope",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect at the moderator's mean (Cohen's d, or r)."
+            },
+            "slope": {
+              "type": "number",
+              "description": "The change in the effect for one SD more of the moderator, on the effect's scale (Fisher's z for r)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "Residual heterogeneity as I-squared: the share of the variation in the studies' effects beyond the moderator that isn't sampling error."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "moderator_slope"
+            },
+            "method": {
+              "const": "z_test"
+            },
+            "model": false,
+            "test": {
+              "enum": [
+                "hartung_knapp",
+                "z"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "template_meta_heterogeneity": {
+      "description": "The test of heterogeneity: Cochran's Q test that the studies' true effects are all equal (metafor's fixed-effect rma(), its QE), when they vary with I-squared. Simulated with Spower: metapower's homogen_power() disagrees with simulated Q tests (docs/upstream-questions.md). goal > n is the number of studies.",
+      "properties": {
+        "variables": {
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "effect",
+            "study_size",
+            "i2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "d",
+                "r"
+              ],
+              "description": "The effect size each study gives: 'd', a standardised mean difference between two groups, or 'r', a correlation."
+            },
+            "effect": {
+              "type": "number",
+              "description": "The average effect the meta-analysis should detect (Cohen's d, or r between -1 and 1)."
+            },
+            "study_size": {
+              "type": "integer",
+              "minimum": 4,
+              "description": "The number of participants in a typical study, both groups together for d (metapower splits them equally)."
+            },
+            "i2": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The heterogeneity the test should detect, as I-squared (0 for none)."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "heterogeneity"
+            },
+            "method": {
+              "const": "q_test"
+            },
+            "model": false,
+            "test": false
           }
         }
       }
