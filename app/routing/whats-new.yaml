@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Bayesian planning in Labs"
+    text: >-
+      A new Labs tool for a Bayes factor t-test: choose the prior the Bayes
+      factor will use and, separately, what you believe about the effect,
+      and see how often a study of the size you set would give strong
+      evidence for an effect, strong evidence for no effect, or neither,
+      both if your belief is right and if there is no effect.
+  - date: "2026-11-01"
     title: "Different SDs and correlations in mixed and two-factor repeated-measures designs"
     text: >-
       The 2 x 2 mixed ANOVA, the larger mixed ANOVA (for example group by

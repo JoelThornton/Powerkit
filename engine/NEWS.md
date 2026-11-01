@@ -108,6 +108,21 @@ A batch of new features, built as one round.
   sphericity is assumed when the SDs or correlations differ (this also
   corrects the one-way repeated-measures card's wording).
 
+* `bayes_planning()`: the Labs Bayesian planning tool for a Bayes factor
+  t-test (one sample, paired or two groups) at a fixed sample size. The
+  analysis prior (a Cauchy prior with the scale chosen) and the design
+  prior (a normal belief about the effect, with an SD for uncertainty) are
+  set apart, as bfpwr keeps them. It returns bfpwr's chances of strong
+  evidence for an effect, strong evidence for no effect and neither, both
+  under the design prior and with no effect (`ptbf01()`); the largest
+  evidence for no effect the study can give (`tbf01()` at t = 0); the
+  sample size for a chosen chance of strong evidence for an effect
+  (`powertbf01()`); the curves against the sample size; and the two
+  priors' densities. At 120 per group, d about 0.5 give or take 0.15 and a
+  threshold of 10: 71.1% for an effect, 0% for no effect (BF01 can reach
+  only 7.1), and 159 per group for 80%. Checked against simulated Bayes
+  factors (`test-validation-bayes-factor.R`, section 5).
+
 # powerkit 0.26.0
 
 Fixes from a review of 0.25.0, and its follow-ups.

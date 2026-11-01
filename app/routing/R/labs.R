@@ -19,6 +19,8 @@ labs_tools <- list(
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
   list(id = "picture", title = "Power visualiser",
        text = "For a two-group t-test or a correlation: move the sample size and the effect, choose alpha, and see the two distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
+  list(id = "bayes", title = "Bayesian planning",
+       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither."),
   list(id = "published", title = "Effect size converter",
        text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
@@ -109,15 +111,15 @@ labs_provenance <- function(calc) {
 
 # --- The citation, from refs.bib ---------------------------------------------
 
-labs_citation <- function(path = labs_refs_path()) {
-  fallback <- "See https://doi.org/10.15626/MP.2024.4155"
+labs_citation <- function(path = labs_refs_path(), key = labs_ref_key,
+                          fallback = "See https://doi.org/10.15626/MP.2024.4155") {
   if (!nzchar(path) || !file.exists(path)) return(fallback)
   ns <- tryCatch(asNamespace("powerkit"), error = function(e) NULL)
   # A partly loaded engine (no bib reader) or a reading error gives the
   # fallback, never an error page.
   if (is.null(ns) || !is.function(ns$read_bib) || !is.function(ns$bib_entry_text)) return(fallback)
   tryCatch({
-    entry <- ns$read_bib(path)[[labs_ref_key]]
+    entry <- ns$read_bib(path)[[key]]
     if (is.null(entry)) return(fallback)
     text <- paste(ns$bib_entry_text(entry), collapse = " ")
     gsub("\\s+", " ", gsub("[*_]{1,2}([^*_]+)[*_]{1,2}", "\\1", text))
@@ -194,6 +196,7 @@ labs_ui <- function(tree) {
         "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
       map_ui(tree)),
     picture_ui(),
+    bayes_ui(),
     published_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
@@ -564,4 +567,143 @@ published_ui <- function() {
         choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95"))),
     actionButton("pub_run", "Work it out", class = "btn btn-primary"),
     uiOutput("pub_result"))
+}
+
+# Bayesian planning (Labs): the engine's bayes_planning() gives every chance
+# (bfpwr's ptbf01(), powertbf01() and tbf01()) and the prior densities; the
+# app draws them. The analysis prior and the design prior are set apart, as
+# bfpwr keeps them (its vignette "using-bfpwr"), and no single power figure
+# is shown: the three outcomes appear under the belief and with no effect.
+bayes_types <- c("Two groups (people in each group)" = "two.sample",
+  "One group against a fixed value (people)" = "one.sample",
+  "Paired or repeated measures (pairs)" = "paired")
+bayes_thresholds <- c("3" = "3", "6" = "6", "10" = "10", "30" = "30")
+bayes_directions <- c("Either direction (two-sided)" = "two.sided",
+  "A positive effect (one-sided)" = "greater", "A negative effect (one-sided)" = "less")
+
+bayes_ui <- function() {
+  conditionalPanel("input.labs_tool == 'bayes'",
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
+    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
+      "Every number comes from powerkit's engine, with the R package bfpwr (Pawel and Held); nothing is sent anywhere."),
+    h3("Bayesian planning"),
+    p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: strong evidence for an effect, strong evidence for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The study"),
+      selectInput("bayes_type", "The design", choices = bayes_types, selectize = FALSE, width = "100%"),
+      numericInput("bayes_n", "Sample size (in each group, for two groups)", value = 120, min = 3, max = 10000, step = 1, width = "100%"),
+      radioButtons("bayes_alternative", "The hypothesis", choices = bayes_directions, selected = "two.sided", width = "100%")),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. The analysis prior: what the Bayes factor will assume"),
+      p(class = "group-note", "When the data are in, the Bayes factor compares no effect with a spread of possible effects: a Cauchy distribution centred on 0. Its scale says how large effects are expected to be; 0.707 is the usual default (bfpwr's, and JASP's). A reader should be able to accept it, so it is chosen before the data and reported."),
+      numericInput("bayes_scale", "Scale of the Cauchy prior", value = 0.707, min = 0.05, max = 5, step = 0.05, width = "100%")),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "3. The design prior: what you believe about the effect now"),
+      p(class = "group-note", "Separate from the analysis prior. This is your honest belief about the true standardised effect (Cohen's d, or d_z for pairs), with your uncertainty about it as an SD. An SD of 0 plans for exactly that effect, as most power analyses do; a larger SD averages over the effects you think plausible, which usually lowers the chances."),
+      numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
+      numericInput("bayes_effect_sd", "Your uncertainty about it (an SD; 0 for none)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
+      radioButtons("bayes_threshold", "A Bayes factor of at least (either way)", choices = bayes_thresholds, selected = "10", inline = TRUE),
+      p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
+      numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
+    actionButton("bayes_run", "Work it out", class = "btn btn-primary"),
+    uiOutput("bayes_result"))
+}
+
+# The engine's refusal in the words of the form: its messages name the
+# argument, which is swapped for the field's label; anything else is a
+# plain apology, never R's own text.
+bayes_problem <- function(e) {
+  if (!inherits(e, "powerkit_error")) {
+    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+  }
+  labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "Your uncertainty about the effect",
+    "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the Cauchy prior",
+    "'threshold'" = "The threshold", "'target'" = "The chance to aim for")
+  message <- conditionMessage(e)
+  for (arg in names(labels)) message <- sub(arg, labels[[arg]], message, fixed = TRUE)
+  message
+}
+
+bayes_ref_key <- "bfpwr_method"
+bayes_citation <- function(path = labs_refs_path()) {
+  labs_citation(path, key = bayes_ref_key, fallback = "Pawel, S., & Held, L. (2025), the R package bfpwr.")
+}
+
+# Fewer than 50 degrees of freedom: where powerkit's validation finds bfpwr's
+# normal approximation a few points below simulation (conventions.md,
+# "Known differences").
+bayes_small <- function(plan) {
+  df <- if (identical(plan$type, "two.sample")) 2 * plan$n - 2 else plan$n - 1
+  df < 50
+}
+
+bayes_size_words <- function(plan) {
+  if (identical(plan$type, "two.sample")) sprintf("%s in each group", format(plan$n)) else
+    sprintf("%s %s", format(plan$n), if (identical(plan$type, "paired")) "pairs" else "people")
+}
+
+# The three outcomes under the belief and with no effect, as a table, with
+# the misleading outcomes named.
+bayes_numbers <- function(plan) {
+  pct <- function(x) sprintf("%.1f%%", 100 * x)
+  o <- plan$outcomes
+  belief <- o[o$truth == "belief", ]
+  null <- o[o$truth == "null", ]
+  k <- format(plan$threshold)
+  belief_words <- if (plan$effect_sd > 0) sprintf("If the effect is about %s (give or take %s)", format(plan$effect), format(plan$effect_sd)) else
+    sprintf("If the effect is exactly %s", format(plan$effect))
+  target <- paste0(format(100 * plan$target), "%")
+  a_target <- paste(if (grepl("^(8|11|18)", target)) "an" else "a", target)
+  needed <- if (is.na(plan$n_needed)) sprintf("More than 10,000 %s would be needed for %s chance of strong evidence for an effect.",
+      if (identical(plan$type, "two.sample")) "in each group" else "participants", a_target) else
+    sprintf("For %s chance of strong evidence for an effect, under your belief: %s %s.", a_target, format(plan$n_needed),
+      if (identical(plan$type, "two.sample")) "in each group" else if (identical(plan$type, "paired")) "pairs" else "people")
+  tagList(
+    h4(class = "h5 mt-3", sprintf("With %s", bayes_size_words(plan))),
+    tags$table(class = "table table-sm bayes-outcomes",
+      tags$caption(sprintf("How often the study ends each way (strong evidence: a Bayes factor of at least %s).", k)),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Strong evidence for an effect"),
+        tags$th(scope = "col", "Strong evidence for no effect"), tags$th(scope = "col", "Neither"))),
+      tags$tbody(
+        tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
+          tags$td(pct(belief$for_null), if (plan$effect != 0) " (misleading)"), tags$td(pct(belief$neither))),
+        tags$tr(tags$th(scope = "row", "If there is no effect"), tags$td(pct(null$for_effect), " (misleading)"),
+          tags$td(pct(null$for_null)), tags$td(pct(null$neither))))),
+    tags$ul(class = "bayes-notes",
+      tags$li(needed),
+      if (!is.na(plan$largest_bf01)) tags$li(sprintf(
+        "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",
+        plan$largest_bf01, if (plan$largest_bf01 < plan$threshold) sprintf(", so it can never reach %s in favour of no effect, however true that is", k) else "")),
+      tags$li("These chances are not power in the usual sense: they don't depend on a significance level, and a study can end with neither, which is a result, not a failure."),
+      if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of strong evidence for an effect a few points lower than simulated Bayes factors do.")),
+    p(class = "small text-muted", sprintf("From %s, bfpwr version %s.", plan$function_used, plan$package$version)),
+    p(class = "small text-muted", "Reference: ", bayes_citation()))
+}
+
+# The two priors: the analysis prior (Cauchy) and the design prior (normal,
+# or a line at the effect when there is no uncertainty).
+bayes_priors_plot <- function(plan) {
+  pr <- plan$priors
+  top <- max(pr$analysis, pr$design, na.rm = TRUE) * 1.05
+  graphics::par(mar = c(4, 4, 1, 1))
+  graphics::plot(pr$x, pr$analysis, type = "l", lwd = 2, col = "grey40", ylim = c(0, top), las = 1, bty = "l",
+    xlab = "True standardised effect", ylab = "Density")
+  if (plan$effect_sd > 0) graphics::lines(pr$x, pr$design, lwd = 2, col = "#2166ac") else
+    graphics::abline(v = plan$effect, lwd = 2, col = "#2166ac")
+  graphics::legend("topright", bty = "n", cex = 0.85, lwd = 2, col = c("grey40", "#2166ac"),
+    legend = c(sprintf("Analysis prior (Cauchy, scale %s)", format(plan$prior_scale)),
+      if (plan$effect_sd > 0) sprintf("Design prior (normal, %s ± %s)", format(plan$effect), format(plan$effect_sd)) else
+        sprintf("Design prior (exactly %s)", format(plan$effect))))
+}
+
+# The chance of strong evidence for an effect (under the belief) and for no
+# effect (with none), as the sample size grows.
+bayes_curves_plot <- function(plan) {
+  cu <- plan$curves
+  graphics::par(mar = c(4, 4, 1, 1))
+  graphics::plot(cu$n, 100 * cu$for_effect, type = "l", lwd = 2, col = "#2166ac", ylim = c(0, 100), las = 1, bty = "l",
+    xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
+    ylab = "Chance of strong evidence (%)")
+  graphics::lines(cu$n, 100 * cu$for_null, lwd = 2, col = "#b2182b", lty = 2)
+  graphics::abline(v = plan$n, lty = 3)
+  graphics::legend("bottomright", bty = "n", cex = 0.85, lwd = 2, col = c("#2166ac", "#b2182b"), lty = c(1, 2),
+    legend = c("For an effect, if your belief is right", "For no effect, if there is none"))
 }
