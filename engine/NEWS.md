@@ -66,6 +66,19 @@ A batch of new features, built as one round.
   its two buttons side by side. Names of groups and outcomes that are all
   optional fold into one closed line (open once one is filled in). The
   status box drops its repeated "Runs, validation in progress". What is asked and checked is unchanged.
+* App: the methods map in Labs opens full screen, as a dark map of all
+  the analyses. Each family of analyses is a region, with the analyses
+  inside it; search and clicks fly to an analysis. Each analysis is
+  tagged with the kind of test it usually reports (t, F, chi-square, z,
+  rank, a test in a fitted model, a confidence interval, a Bayes factor),
+  and can be coloured by test, family or status. Lines join related
+  analyses ("with three or more groups becomes"), and a panel gives the
+  test in plain words, related analyses and a route through "Help me
+  choose". The four analyses chosen only by name (precision, Bayes factor
+  t-tests, generic tests, meta-analysis) now appear too. The tags and
+  connections are in `app/routing/methods-map.yaml`, a test checks that
+  every analysis has a tag, and they await the statistician's review with
+  the rest of the methods. Nothing on the map is calculated.
 * Participants and items in three or more conditions (E63, design
   `mixed_model`, template `crossed_conditions`): every participant in
   every condition, a mean per condition, the SDs of participants'

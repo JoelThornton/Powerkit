@@ -1,0 +1,194 @@
+# The methods map (Labs): what each analysis is, beyond the design finder's
+# questions. R/map.R reads this file with tree.yaml; a test checks that
+# every analysis on the map has a test here and that every relation joins
+# two analyses that exist.
+#
+# `tests`: the kind of test (or other basis for a decision) each analysis
+# usually reports, with a plain explanation shown on the map. These are
+# textbook classifications, listed for the statistician's review with the
+# rest of the methods; they cite nothing.
+# `endpoints`: each analysis's test, by the id in `tests`.
+# `relations`: how analyses relate, from the simpler to the more general
+# (or to a variant); `label` completes "<from> ... <to>" in plain words.
+
+tests:
+  t:
+    label: "t test"
+    colour: "#5cc8ff"
+    text: "Compares a difference (or a slope) with how much it would vary by chance, using the t distribution."
+  F:
+    label: "F test"
+    colour: "#ff7eb6"
+    text: "Compares the variation explained by a model (differences among groups, or predictors) with the variation left over, using the F distribution. With one numerator degree of freedom it is a t test squared."
+  chi2:
+    label: "Chi-square test"
+    colour: "#ffd166"
+    text: "Compares counts, or a model's misfit, with what would be expected by chance, using the chi-square distribution."
+  z:
+    label: "z test"
+    colour: "#4fe0b6"
+    text: "Compares an estimate with its standard error on the normal distribution: common for proportions and for comparing correlations."
+  rank:
+    label: "Rank test"
+    colour: "#c792ea"
+    text: "Works on the ranks of the scores rather than the scores themselves, so it needs fewer assumptions about their shape."
+  model:
+    label: "Test in a fitted model"
+    colour: "#9be15d"
+    text: "A coefficient's test (Wald z or t) or a likelihood-ratio test in a model such as logistic, multilevel or survival regression."
+  ci:
+    label: "Confidence interval"
+    colour: "#ff9f68"
+    text: "Decides from whether a confidence interval excludes zero (mediation's indirect effects, by Monte Carlo or bootstrap), or plans for how narrow the interval will be."
+  bayes:
+    label: "Bayes factor"
+    colour: "#f78fb3"
+    text: "Weighs how much more likely the data are under one hypothesis than another, instead of a p-value."
+  any:
+    label: "Any of these"
+    colour: "#b0c4de"
+    text: "A general tool for any test that has a known distribution."
+  other:
+    label: "Other"
+    colour: "#9aa7c7"
+    text: "Decided by comparing models (for example, how many classes or profiles fit best) rather than by a single test."
+
+endpoints:
+  E1: t
+  E2: t
+  E3: t
+  E4: t
+  E5: z
+  E6: chi2
+  E7: F
+  E8: F
+  E9: t
+  E10: ci
+  E11: ci
+  E12: ci
+  E13: ci
+  E14: ci
+  E15: t
+  E16: ci
+  E17: ci
+  E18: F
+  E19: t
+  E20: F
+  E21: F
+  E22: F
+  E23: F
+  E24: F
+  E25: z
+  E26: chi2
+  E27: model
+  E28: model
+  E29: model
+  E30: F
+  E31: t
+  E32: model
+  E33: model
+  E34: model
+  E35: model
+  E36: t
+  E37: chi2
+  E38: ci
+  E39: ci
+  E40: ci
+  E41: model
+  E42: ci
+  E43: model
+  E44: model
+  E45: model
+  E46: ci
+  E47: model
+  E48: chi2
+  E49: z
+  E50: any
+  E51: z
+  E52: chi2
+  E53: F
+  E54: F
+  E55: F
+  E56: F
+  E57: t
+  E58: other
+  E59: F
+  E60: F
+  E61: t
+  E62: model
+  E63: model
+  E64: rank
+  E65: model
+  E66: z
+  E-bayes: bayes
+
+relations:
+  # Comparing averages
+  - {from: E1, to: E3, label: "applied to each person's difference is"}
+  - {from: E2, to: E18, label: "with three or more groups becomes"}
+  - {from: E3, to: E54, label: "with three or more conditions becomes"}
+  - {from: E2, to: E36, label: "turned round, to show a difference is too small to matter, is"}
+  - {from: E2, to: E46, label: "planned for precision instead of a test is"}
+  - {from: E2, to: E-bayes, label: "judged by a Bayes factor instead of a p-value is"}
+  - {from: E2, to: E61, label: "pooled across many studies is"}
+  # ANOVA family
+  - {from: E18, to: E19, label: "narrowed to one planned comparison is"}
+  - {from: E18, to: E7, label: "with a second factor becomes"}
+  - {from: E7, to: E21, label: "with more levels becomes"}
+  - {from: E7, to: E22, label: "with unequal groups is"}
+  - {from: E21, to: E56, label: "with a third factor becomes"}
+  - {from: E54, to: E20, label: "with a second within-person factor becomes"}
+  - {from: E7, to: E8, label: "with one factor within people becomes"}
+  - {from: E8, to: E55, label: "beyond 2 x 2 becomes"}
+  - {from: E18, to: E23, label: "adjusting for a covariate becomes"}
+  - {from: E18, to: E64, label: "for groups in order, on ranks, becomes"}
+  - {from: E18, to: E24, label: "is a special case of"}
+  # Several outcomes and spread
+  - {from: E2, to: E59, label: "with several outcomes at once becomes"}
+  - {from: E1, to: E60, label: "with several outcomes at once becomes"}
+  - {from: E52, to: E53, label: "for two groups becomes"}
+  - {from: E53, to: E57, label: "in the same people becomes"}
+  # Correlation and regression
+  - {from: E4, to: E24, label: "with more predictors becomes"}
+  - {from: E4, to: E49, label: "compared between two groups is"}
+  - {from: E4, to: E51, label: "compared within the same people is"}
+  - {from: E24, to: E9, label: "with an interaction becomes"}
+  - {from: E9, to: E15, label: "with a yes/no X or W is"}
+  - {from: E9, to: E31, label: "with a third variable in the interaction becomes"}
+  - {from: E9, to: E30, label: "with a moderator of three or more groups becomes"}
+  - {from: E24, to: E27, label: "for a yes/no outcome becomes"}
+  - {from: E24, to: E28, label: "for a count outcome becomes"}
+  - {from: E27, to: E29, label: "for ordered categories becomes"}
+  - {from: E27, to: E47, label: "with crossed factors becomes"}
+  - {from: E24, to: E43, label: "for the time until an event becomes"}
+  - {from: E24, to: E45, label: "for a trend over time is"}
+  - {from: E9, to: E32, label: "with an outcome that isn't a score becomes"}
+  # Proportions and categories
+  - {from: E25, to: E5, label: "for two groups becomes"}
+  - {from: E5, to: E6, label: "with more categories becomes"}
+  - {from: E25, to: E48, label: "with more categories becomes"}
+  - {from: E5, to: E26, label: "in the same people becomes"}
+  - {from: E5, to: E66, label: "for groups in order becomes"}
+  # Mediation
+  - {from: E24, to: E10, label: "with an effect through a go-between becomes"}
+  - {from: E10, to: E11, label: "with several go-betweens side by side becomes"}
+  - {from: E10, to: E12, label: "with a chain of go-betweens becomes"}
+  - {from: E10, to: E13, label: "with W changing the X -> M link becomes"}
+  - {from: E10, to: E14, label: "with W changing the M -> Y link becomes"}
+  - {from: E10, to: E16, label: "with a yes/no X is"}
+  - {from: E10, to: E39, label: "with a mediator that isn't a score is"}
+  - {from: E10, to: E42, label: "with X of three or more groups is"}
+  - {from: E13, to: E40, label: "with several mediators becomes"}
+  - {from: E13, to: E17, label: "with a yes/no X or W is"}
+  - {from: E13, to: E38, label: "with W on both links becomes"}
+  # Multilevel, latent and dyadic
+  - {from: E24, to: E62, label: "with people in groups becomes"}
+  - {from: E2, to: E34, label: "with whole groups randomised becomes"}
+  - {from: E3, to: E33, label: "with many items per person becomes"}
+  - {from: E33, to: E63, label: "with three or more conditions becomes"}
+  - {from: E54, to: E35, label: "over many occasions, as a growth model, becomes"}
+  - {from: E62, to: E41, label: "for relationships within people is"}
+  - {from: E62, to: E44, label: "for pairs of people becomes"}
+  - {from: E44, to: E65, label: "in other designs for pairs is"}
+  - {from: E24, to: E37, label: "with latent variables becomes"}
+  - {from: E37, to: E58, label: "with types of people instead of factors is"}

@@ -350,6 +350,8 @@ labs_js <- "
       window.pkLabsTool = tool || '';
       var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
       var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
+      // The methods map opens full screen.
+      if (tool === 'map') window.pkMapWantFull = true;
       if (tool === 'map' && window.pkMapShown) setTimeout(window.pkMapShown, 100);
     };
     $(document).on('shiny:connected', function() {
@@ -357,7 +359,7 @@ labs_js <- "
       // A shared link (?page=labs&tool=...) opens that tool.
       var linked = new URLSearchParams(window.location.search).get('tool');
       if (linked && /^[a-z]+$/.test(linked)) t = linked;
-      if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; }
+      if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; if (t === 'map') window.pkMapWantFull = true; }
     });
     // The map can only measure itself once it is on screen.
     $(document).on('shown.bs.tab shiny:conditional', function() {
