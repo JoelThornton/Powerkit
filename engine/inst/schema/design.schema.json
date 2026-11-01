@@ -553,7 +553,7 @@
       ]
     },
     "goal": {
-      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'.",
+      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'. justified_alpha: the significance level that minimises or balances the weighted error rates at 'n' (JustifyAlpha's optimal_alpha(); the one-sample, paired and two-group t-tests and the correlation, by formula), with target_test > alpha kept as the conventional level to compare with.",
       "type": "object",
       "required": [
         "type"
@@ -564,7 +564,8 @@
           "enum": [
             "sample_size",
             "power",
-            "sensitivity"
+            "sensitivity",
+            "justified_alpha"
           ]
         },
         "power": {
@@ -577,6 +578,23 @@
           "description": "Total number of participants analysed.",
           "type": "integer",
           "minimum": 2
+        },
+        "cost_ratio": {
+          "description": "Justified alpha only: how many times worse a false positive (Type I error) is than a missed effect (Type II error), above 0; JustifyAlpha's costT1T2. Default 1 (equally bad).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_odds": {
+          "description": "Justified alpha only: how likely a true effect is compared with no effect (the prior odds of H1 to H0), above 0; JustifyAlpha's priorH1H0. Default 1 (equally likely).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "error_rule": {
+          "description": "Justified alpha only: 'minimize' (the default) chooses the alpha with the smallest weighted error rate, (cost_ratio alpha + prior_odds beta) / (cost_ratio + prior_odds); 'balance' the alpha at which cost_ratio alpha equals prior_odds beta (G*Power's compromise power analysis when prior_odds is 1, with cost_ratio its beta/alpha ratio).",
+          "enum": [
+            "minimize",
+            "balance"
+          ]
         }
       },
       "allOf": [
@@ -633,6 +651,26 @@
             "required": [
               "power"
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "justified_alpha"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "n"
+            ],
+            "properties": {
+              "power": false
+            }
           }
         }
       ]

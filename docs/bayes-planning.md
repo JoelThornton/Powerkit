@@ -113,7 +113,7 @@ A different goal avoids thresholds altogether: plan for how precise the
 estimate will be, for example how narrow the posterior (or credible)
 interval for d is likely to be, or how likely it is to fall inside a region
 of practical equivalence. This is the Bayesian counterpart of precision
-planning (`next.md`, item 6, decided for the frequentist interval) and
+planning (`next.md`, item 4, decided for the frequentist interval) and
 fits powerkit's aim of moving away from ritual. No package has been checked
 for it yet.
 

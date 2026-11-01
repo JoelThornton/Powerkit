@@ -318,7 +318,7 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   situation <- function(start) Filter(function(f) f$id == "situation", form_fields(form_groups(forms, "E2", start = start)))[[1]]
   expect_equal(situation(list())$default, "choose")
   expect_equal(situation(list(situation = "fixed"))$default, "fixed")
-  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity"))
+  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity", "justified_alpha"))
 })
 
 test_that("the claim is asked under Settings, starts at one test, and notes each other claim", {

@@ -619,6 +619,25 @@
       ],
       "Hash": "5edb675b7baa6e9a0d86dd2c28de1676"
     },
+    "BayesFactor": {
+      "Package": "BayesFactor",
+      "Version": "0.9.12-4.8",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "coda",
+        "hypergeo",
+        "Matrix",
+        "MatrixModels",
+        "mvtnorm",
+        "pbapply",
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "stringr"
+      ],
+      "Hash": "b8b6b9c7b553d66d5722dde893d93915"
+    },
     "bayestestR": {
       "Package": "bayestestR",
       "Version": "0.20.0",
@@ -908,6 +927,17 @@
       ],
       "Hash": "b169b4db7bee7172f7679eeff6f6028e"
     },
+    "coda": {
+      "Package": "coda",
+      "Version": "0.19-4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "lattice",
+        "R"
+      ],
+      "Hash": "af436915c590afc6fffc3ce3a5be1569"
+    },
     "codetools": {
       "Package": "codetools",
       "Version": "0.2-20",
@@ -939,6 +969,16 @@
       "Repository": "CRAN",
       "Requirements": [],
       "Hash": "8cba62334c1088d21689d353a7e87663"
+    },
+    "contfrac": {
+      "Package": "contfrac",
+      "Version": "1.1-13",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "3e1217c76390cb029b31fb4a7c161548"
     },
     "cowplot": {
       "Package": "cowplot",
@@ -3504,6 +3544,68 @@
       "Repository": "CRAN",
       "Requirements": [],
       "Hash": "f52d5babd10d348f9c0771386b61ea4a"
+    },
+    "deSolve": {
+      "Package": "deSolve",
+      "Version": "1.42",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "a60b26ba379ce931820ba53b325a8322"
+    },
+    "elliptic": {
+      "Package": "elliptic",
+      "Version": "1.5-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R"
+      ],
+      "Hash": "bcfd54f0fc37f6cfbfefb167d8cc2572"
+    },
+    "hypergeo": {
+      "Package": "hypergeo",
+      "Version": "1.2-15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "contfrac",
+        "deSolve",
+        "elliptic",
+        "R",
+        "Rcpp",
+        "RcppArmadillo"
+      ],
+      "Hash": "62d9566a019f6273903c272f1112e606"
+    },
+    "JustifyAlpha": {
+      "Package": "JustifyAlpha",
+      "Version": "0.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "BayesFactor",
+        "ggplot2",
+        "qpdf",
+        "shiny",
+        "stringr"
+      ],
+      "Hash": "6f0ca23a3c6acff7fee1d5954f18ed1a"
+    },
+    "qpdf": {
+      "Package": "qpdf",
+      "Version": "1.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "askpass",
+        "curl",
+        "Rcpp"
+      ],
+      "Hash": "34911880d3b48d7deae5f1f3ade92236"
     },
     "randomizr": {
       "Package": "randomizr",

@@ -261,6 +261,7 @@ known_differences:
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
   "8": "MANOVA with three or more groups: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
   "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
+  "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
 
 # The same known differences as one sentence for the methods paragraph
@@ -276,6 +277,7 @@ known_differences_methods:
   "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
   "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Pillai's trace with an F approximation."
   "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
+  "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
 
 forms:
@@ -283,9 +285,11 @@ forms:
     methods_name: "a one-sample t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -342,9 +346,11 @@ forms:
     methods_name: "an independent-samples t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": mann_whitney, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -419,9 +425,11 @@ forms:
     methods_name: "a paired-samples t-test"
     departures: ["9", "15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10"]
+    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true
@@ -488,8 +496,11 @@ forms:
   E4:
     methods_name: "a Pearson correlation"
     departures: ["9", "10"]
+    known_differences: ["11"]
+    known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
+    justified_alpha: true
     sensitivity_without_effect: true
     basic_method: true
     directional: true

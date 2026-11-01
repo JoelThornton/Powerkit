@@ -14,6 +14,7 @@ library(psych)     # safeguard power's confidence interval
 # Backends
 library(bfpwr)
 library(InteractionPoweR)
+library(JustifyAlpha) # a justified alpha (optimal_alpha())
 library(lavaan)
 library(lme4)      # E33's mixed model (with simr)
 library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")

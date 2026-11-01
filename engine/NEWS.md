@@ -21,6 +21,20 @@ A batch of new features, built as one round.
   in group 2, which gives the model's power at any allocation (G\*Power's
   example, r = .25 one-sided with power .95, needs 164). The smallest
   detectable effect is also given as r.
+* A justified alpha (`goal > type` "justified_alpha", at a fixed `goal > n`):
+  the significance level that minimises the weighted total of the two
+  error rates, or (`goal > error_rule` "balance") makes them equal, with
+  JustifyAlpha's `optimal_alpha()` on pwr's power, for the one-sample,
+  paired and two-group t-tests and the correlation. The weights are how
+  many times worse a false positive is than a missed effect
+  (`goal > cost_ratio`, default 1) and the prior odds of an effect
+  (`goal > prior_odds`, default 1). The result gives the alpha, the power
+  and beta at it, and the power at the conventional alpha
+  (`target_test > alpha`) for comparison; the exported script reruns
+  `optimal_alpha()`. Balancing with a cost ratio q is G\*Power's
+  compromise power analysis (Known difference 11: minimising, the
+  default, gives a lower alpha). New dependency: JustifyAlpha (with
+  BayesFactor, qpdf and their dependencies).
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.
