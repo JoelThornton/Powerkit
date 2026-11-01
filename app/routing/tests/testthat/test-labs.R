@@ -165,6 +165,42 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   expect_no_match(paste(deparse(map_ui), collapse = "\n"), "engine_function", fixed = TRUE)
 })
 
+test_that("the methods map names a test for every analysis, and its connections join real ones", {
+  meta <- map_meta()
+  graph <- map_graph(tree, meta)
+  ids <- vapply(graph$nodes, `[[`, "", "id")
+  kinds <- vapply(graph$nodes, `[[`, "", "kind")
+  # A new analysis needs a line in methods-map.yaml before it shows on the map.
+  missing <- setdiff(names(tree$endpoints), c(names(meta$endpoints), "E-unsure"))
+  expect_equal(missing, character(), info = "add these to methods-map.yaml's endpoints")
+  expect_true(all(unlist(meta$endpoints) %in% names(meta$tests)))
+  expect_true(all(names(meta$endpoints) %in% names(tree$endpoints)))
+  for (t in meta$tests) expect_true(nzchar(t$label) && nzchar(t$text) && grepl("^#[0-9a-f]{6}$", t$colour))
+  # Each connection joins two analyses that exist, once, with words for it.
+  pairs <- vapply(meta$relations, function(r) paste(r$from, r$to), "")
+  expect_false(any(duplicated(pairs)))
+  for (r in meta$relations) {
+    expect_true(r$from %in% names(tree$endpoints) && r$to %in% names(tree$endpoints), info = paste(r$from, r$to))
+    expect_true(nzchar(r$label), info = paste(r$from, r$to))
+  }
+  rel <- Filter(function(e) isTRUE(e$rel == 1), graph$edges)
+  expect_length(rel, length(meta$relations))
+  # Each family is a region on the map, and opens full screen from Labs.
+  expect_setequal(ids[kinds == "family"], paste0("fam_", vapply(tree$analysis_families, `[[`, "", "id")))
+  expect_true(all(unlist(lapply(tree$analysis_families, `[[`, "endpoints")) %in% ids))
+  html <- as.character(map_ui(tree))
+  expect_match(html, "methods-map.js", fixed = TRUE)
+  # With nothing chosen, the panel offers the common starting points, each
+  # opening its analysis in focus.
+  for (id in unlist(tree$known_shortcuts)) {
+    expect_match(html, paste0('data-id="', id, '" onclick="pkMapGo(this.dataset.id, false)"'), fixed = TRUE)
+  }
+  # "Plan this study" asks before it replaces a plan in progress.
+  expect_match(as.character(map_replace_modal()), "map_plan_confirm", fixed = TRUE)
+  js <- paste(readLines(file.path(getOption("powerkit.routing_dir", "."), "www", "methods-map.js")), collapse = "\n")
+  expect_match(js, "Shiny.setInputValue('map_plan'", fixed = TRUE)
+})
+
 test_that("plan from a published result: the engine converts and gives the safeguard value", {
   html <- as.character(labs_ui(tree))
   expect_match(html, "Open Effect size converter", fixed = TRUE)

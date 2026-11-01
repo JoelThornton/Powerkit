@@ -18,6 +18,26 @@ A batch of new features, built as one round.
   exported script and simulated data set follow the model. Checked against
   a simulation written separately with glmer, with the Type I error near
   alpha.
+* A Bayes factor version of the test of one proportion (`target_test >
+  method` "bayes_factor" on `one_proportion`), by exact calculation with
+  bfpwr: the binomial Bayes factor with a Beta(a, b) analysis prior
+  (`target_test > prior_a`, `prior_b`; Beta(1, 1) by default, as in JASP
+  and bfpwr), the threshold as BF10 (`evidence_threshold`), and the
+  expected proportion exactly or with an SD (`population > p_sd`, a beta
+  design prior). Two-sided, it is bfpwr's `pbinbf01()` (the same Bayes
+  factor as JASP's two-sided test). One-sided, the default is JASP's test
+  of p = p0 against one side (`one_sided_null` "point"): bfpwr's two-sided
+  Bayes factor times the ratio of the posterior to the prior probability
+  of that side, summed over the outcomes 0 to n; bfpwr's directional test
+  (p <= p0 against p > p0) is `one_sided_null` "directional". Power goes
+  up and down with n, as for the exact binomial test, so the sample size
+  is the smallest that reaches the target. With no effect, the chances of
+  strong evidence for none and of misleading evidence are given, as for
+  the Bayes factor t-tests. The exported script reproduces every version.
+  Departure 15 now covers this test too (bfpwr's default design prior is
+  the analysis prior). Validation: `test-validation-bayes-binomial.R` in
+  the `bayes` chunk, against Bayes factors computed from their definition
+  for simulated studies.
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from
@@ -45,6 +65,26 @@ A batch of new features, built as one round.
   O'Hagan et al. (2005), Schonbrodt and Wagenmakers (2018) and Schonbrodt,
   Wagenmakers, Zehetleitner and Perugini (2017), each checked against the
   full text.
+* App: the methods map in Labs is rebuilt around the questions
+  researchers bring to it: where is a study like mine, what is it, what is
+  it next to, and can powerkit plan it. It opens full screen with the
+  families of analyses as regions; search suggests analyses as you type,
+  and a panel offers common starting points. Choosing an analysis puts it
+  in focus: the simpler designs that lead to it gather on its left and
+  the ways to change it on its right, each line saying what changes ("with
+  three or more groups", "adjusting for a covariate"), and a trail leads
+  back. Its panel gives the kind of test it usually reports (t, F,
+  chi-square, z, rank, a test in a fitted model, a confidence interval, a
+  Bayes factor) in plain words, and "Plan this study" opens it on "Plan a
+  power analysis" (asking first if a plan is in progress). The analyses
+  chosen only by name (precision, Bayes factor t-tests, generic tests,
+  meta-analysis) now appear too. The tags and connections are in
+  `app/routing/methods-map.yaml`, a test checks that every analysis has a
+  tag and every connection joins two analyses, and they await the
+  statistician's review with the rest of the methods. Nothing on the map
+  is calculated. The question-tree and aims views are replaced by the
+  focus view (the list under the map keeps every route).
+
 * App: the result is easier to read and use. It opens with the answer
   as one large figure (the sample size, the power, the smallest
   detectable effect or the justified alpha, the same number as the
@@ -56,6 +96,29 @@ A batch of new features, built as one round.
   appear once a value is entered). "Write it up and save it" puts the
   methods paragraph first, with a Copy button on each version, and the
   downloads after it. What is calculated is unchanged.
+
+* App: the About and What's new tabs are redesigned, and What's new is
+  renamed Updates and moved between Labs and Feedback (`?page=updates`;
+  old `?page=whats-new` links still open it). About leads with what
+  powerkit does and its prototype status, links to its sections, and says
+  in three steps how it works. "What it can plan" shows every analysis
+  that calculates, grouped by family (`tree.yaml`'s `analysis_families`)
+  and marked by how it calculates (in a second, in the background,
+  simulated here, or a preview with an R script); clicking one opens its
+  card, as the methods map's "Plan this study" does. Trust, limits and
+  feedback are cards, and each package's own `citation()` folds under
+  "How to cite". Updates opens as a timeline of titles, each opening its
+  description, with "Full details" showing every description (the choice
+  is remembered); the latest day is open and older days fold by month; a
+  search box filters them; and the browser remembers (localStorage only)
+  the newest change seen, so later changes are marked New and the tab
+  shows a dot until they are read. Every tab now uses the same column as
+  the tab bar, the page keeps its scrollbar space so switching tabs no
+  longer shifts it sideways, the top bar spans the window at every width
+  (its side margins follow Bootstrap's gutter, which grows with the root
+  font size), and on a phone the tabs stay on one row that scrolls
+  sideways. The About page and the start banner no longer say powerkit is
+  only for psychology.
 
 # powerkit 0.27.0
 

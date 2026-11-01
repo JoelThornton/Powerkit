@@ -12,3 +12,6 @@ validation-results/
 # testthat leftovers from failed runs
 **/tests/testthat/_problems/
 **/tests/testthat/testthat-problems.rds
+
+# Plots R writes when a test draws without a device open
+Rplots.pdf

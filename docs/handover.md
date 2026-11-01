@@ -41,7 +41,7 @@ bottom. It is the one place to look.
 [`adding-a-test.md`](adding-a-test.md) is the process, start to finish
 (what to add next is in [`next.md`](next.md)). The short version: a test is added
 when a researcher can run it and see that it exists, so the engine, the
-card, the input screen, the "What's new" entry and the batch's version
+card, the input screen, the Updates entry and the batch's version
 land together (one batch of features raises the middle number by one).
 
 ## Rules
@@ -85,7 +85,7 @@ land together (one batch of features raises the middle number by one).
   `CLAUDE.md`, "Before finishing any task"), and update `engine/NEWS.md`
   and `status.md`. A PR that changes what users see also adds a dated,
   plain-words entry at the top of `app/routing/whats-new.yaml` (the app's
-  "What's new" tab; no internal codes such as E5).
+  Updates tab; no internal codes such as E5).
 - **Saving usage:** report only failures from tests and checks, and read
   full logs only when something failed.
 

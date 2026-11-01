@@ -267,7 +267,7 @@ or run it with the environment variable `POWERKIT_MAINTAINER_VIEW=true`.
 
 ## Links to a page
 
-Each tab has its own address: `?page=about`, `?page=whats-new`,
+Each tab has its own address: `?page=about`, `?page=updates`,
 `?page=labs` or `?page=feedback` at the end of the app's address (the plan
 tab is the plain address; `?view=maintainer&page=maintainer` opens the
 maintainer's tab). The online app runs inside Posit Connect Cloud's frame,
