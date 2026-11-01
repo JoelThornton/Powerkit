@@ -482,6 +482,15 @@ likelihood ratio; not a departure.
 | bfpwr | `binbf01()`, `pbinbf01()`: the two-sided test (`type = "point"`, the same Bayes factor as JASP's) and a directional test (`type = "direction"`: p <= p0 against p > p0) | A fixed proportion, or a truncated beta design prior (by default the analysis prior) | Beta(1, 1) by default; power summed over the outcomes 0 to n |
 | **powerkit** | Two-sided and the directional test from bfpwr's `pbinbf01()`; the one-sided test against a point null, JASP's, from bfpwr's two-sided Bayes factor times the ratio of the posterior to the prior probability of that side, summed over the outcomes 0 to n (E25, from 1 November 2026) [powerkit] | The expected proportion, exactly, or a beta design prior with its mean and an SD (`population > p_sd`) | Beta(1, 1) by default; one-sided: JASP's test by default (`target_test > one_sided_null` "point"), bfpwr's as "directional". Not a departure from JASP, which has no planning; Departure 15 is the design prior's default |
 
+## Bayes factor test of a correlation (E4)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian correlation; analysis only, no planning) | Pearson's rho = 0 against rho != 0 (or one side, the prior truncated to it), a stretched beta prior on rho; exact Bayes factor (jaspRegression's bstats, Ly, Marsman and Wagenmakers, 2018) | — | Prior width 1 (uniform) by default |
+| BayesFactor | `correlationBF()`: the same Bayes factor; one-sided by `nullInterval` | — | `rscale` "medium" (1/3) by default |
+| **powerkit** | BayesFactor's `correlationBF()`, which rises with r (or |r|), so strong evidence is exactly a sample correlation past a critical value, found by root-finding; its chance from the exact distribution of r for bivariate normal scores (SuppDists' `pPearson()`), with no simulation (E4, from 1 November 2026) [powerkit] | The expected correlation, exactly, or a stretched beta design prior with its mean and an SD (`population > r_sd`) | Prior width 1 by default, JASP's (Known difference 12); Departure 15 is the design prior's default. The one-sided Bayes factor comes from `correlationBF()`'s interval method, within 0.1% of the exact value JASP computes (tested) |
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -1046,6 +1055,17 @@ as an experimental option, for a statistician's check
   "Departure 15's size for a proportion"). Shown on the one-proportion
   result screen (E25) when the Bayes factor test is chosen and the SD is
   left at 0.
+- **The Bayes factor test of a correlation (1 November 2026):** the same
+  choice. No package plans this test; the analogue of bfpwr's default, a
+  design prior equal to JASP's uniform analysis prior on rho, is a very
+  different question (a correlation anywhere from -1 to 1). powerkit plans
+  for exactly the correlation entered unless the user gives an SD
+  (`population > r_sd`, a stretched beta design prior with that mean and
+  SD). Size: for r = .3, two-sided, BF10 of at least 10, 80% needs 162
+  people; at 162, the uniform design prior gives 76.4%
+  (`test-backend-bayes-correlation.R`, "Departure 15's size for a
+  correlation"). Shown on the correlation result screen (E4) when the
+  Bayes factor test is chosen and the SD is left at 0.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
 
@@ -1621,3 +1641,22 @@ Wired into the app on 18 October 2026 (E25, E26).*
   result screens when the goal is a justified alpha
   (`app/routing/forms.yaml`, `known_differences`, key "11").
 - **Methods paragraph:** `known_differences_methods`, key "11".
+
+### 12. Bayes factor test of a correlation: JASP's prior width, where BayesFactor's default is narrower
+
+- **What differs:** the Bayes factor is BayesFactor's `correlationBF()`,
+  whose stretched beta prior on rho has width `rscale`, "medium" (1/3) by
+  default. JASP's Bayesian correlation, which most psychologists analyse
+  with, uses width 1 (a uniform prior on rho) by default. powerkit follows
+  JASP and offers any width ("Prior width"); at the same width the two
+  give the same two-sided Bayes factor (tested to eight digits against
+  JASP's exact formula).
+- **Size:** for r = .3, BF10 of at least 10 and 80% (two-sided), 162
+  people at JASP's width and 146 at BayesFactor's default.
+- **Test:** `engine/tests/testthat/test-backend-bayes-correlation.R`,
+  "JASP's prior width (1) against BayesFactor's default (1/3): the size of
+  the difference".
+- **Shown to users:** on the correlation result screen when the Bayes
+  factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
+  key "12").
+- **Methods paragraph:** `known_differences_methods`, key "12".

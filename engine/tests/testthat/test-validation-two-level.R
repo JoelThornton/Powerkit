@@ -108,12 +108,17 @@ two_level_binary_population <- list(probability = 0.6, b_X = 0.3, b_W = 0.35, b_
 two_level_binary_reps <- 1000L
 
 two_level_binary_spec <- function(population, effect, method, seed, n, nrep = two_level_binary_reps) {
-  spec <- two_level_validation_spec(c(population), effect, seed, n)
-  spec$variables$Y <- validation_variable("binary", "Outcome")
-  spec$population$metric <- "probability"
-  spec$target_test$method <- method
-  spec$options$nrep <- nrep
-  spec
+  validation_spec(
+    design = "mixed_model",
+    template = "two_level",
+    variables = list(X = validation_variable("continuous", "Person level"), W = validation_variable("continuous", "Group level"),
+      Y = validation_variable("binary", "Outcome")),
+    population = c(list(metric = "probability"), population),
+    target_test = list(effect = effect, method = method, alpha = 0.05),
+    seed = seed,
+    n = n,
+    options = list(nrep = nrep)
+  )
 }
 
 two_level_binary_by_hand <- function(population, term, method, n, nrep, seed) {

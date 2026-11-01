@@ -423,10 +423,22 @@ check_bayes_factor <- function(spec) {
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
+    if (!is.null(spec$population$r_sd)) {
+      return(paste0(
+        "'population > r_sd' is only used by the Bayes factor test of a correlation; ",
+        "remove it, or set 'target_test > method' to 'bayes_factor'."
+      ))
+    }
     return(character())
   }
   if (bfbin_test(spec)) {
     return(check_bayes_binomial(spec))
+  }
+  if (bfcor_test(spec)) {
+    return(check_bayes_correlation(spec))
+  }
+  if (!is.null(spec$target_test$prior_width)) {
+    return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
   }
   if (!is.null(spec$target_test$prior_a) || !is.null(spec$target_test$prior_b) || !is.null(spec$target_test$one_sided_null)) {
     return(paste0(
@@ -450,6 +462,9 @@ check_bayes_binomial <- function(spec) {
   pop <- spec$population
   tt <- spec$target_test
   problems <- character()
+  if (!is.null(tt$prior_width)) {
+    problems <- c(problems, "'target_test > prior_width' belongs to the Bayes factor test of a correlation; remove it.")
+  }
   if (!is.null(tt$prior_scale) || !is.null(pop$effect_sd)) {
     problems <- c(problems, paste0(
       "The Bayes factor test of one proportion has a beta analysis prior ('target_test > prior_a' and 'prior_b') ",
@@ -463,6 +478,34 @@ check_bayes_binomial <- function(spec) {
   }
   if (!is.null(tt$one_sided_null) && identical(tt$alternative %||% "two_sided", "two_sided")) {
     problems <- c(problems, "'target_test > one_sided_null' applies to a one-sided test only; remove it, or set 'target_test > alternative'.")
+  }
+  problems
+}
+
+# The correlation's Bayes factor: a stretched beta analysis prior (its
+# width), a design prior SD the stretched beta distribution can have, and
+# Pearson's r on normal scores.
+check_bayes_correlation <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  problems <- character()
+  if (!is.null(tt$prior_scale) || !is.null(tt$prior_a) || !is.null(tt$prior_b) || !is.null(tt$one_sided_null) ||
+    !is.null(pop$effect_sd) || !is.null(pop$p_sd)) {
+    problems <- c(problems, paste0(
+      "The Bayes factor test of a correlation has a stretched beta analysis prior, set by 'target_test > prior_width', ",
+      "and its uncertainty as 'population > r_sd'; remove the other Bayes factor settings."))
+  }
+  if (!is.null(pop$score_shape)) {
+    problems <- c(problems, "'population > score_shape' belongs to the rank correlations; the Bayes factor test is of Pearson's r on normal scores. Remove it.")
+  }
+  r_sd <- pop$r_sd %||% 0
+  if (is.numeric(pop$r) && is.numeric(r_sd) && r_sd > 0 && r_sd^2 >= 1 - pop$r^2) {
+    problems <- c(problems, sprintf(paste0(
+      "'population > r_sd' (%s) is too large for a correlation of %s: a stretched beta distribution with that mean ",
+      "has an SD below %s. Give a smaller uncertainty."), format(r_sd), format(pop$r), format(signif(sqrt(1 - pop$r^2), 3))))
+  }
+  if (is.numeric(pop$r) && abs(pop$r) >= 0.95) {
+    problems <- c(problems, "For the Bayes factor test, the expected correlation must be between -0.95 and 0.95.")
   }
   problems
 }

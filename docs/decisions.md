@@ -4215,3 +4215,37 @@ analyse in JASP answers that match JASP's.
   GitHub only and bfpwr computes a z-test Bayes factor on Fisher's z
   instead. Whether CRAN's BayesFactor matches JASP is to be checked once
   CRAN is reachable from the cloud environment.
+
+## 2026-11-01 · Bayes factor test of a correlation (E4)
+
+Item 3 of `next.md`, giving researchers who analyse in JASP answers that
+match JASP's.
+
+- **What JASP does.** Read from its source (jaspRegression,
+  `R/correlationbayesian.R`, which calls the GitHub package bstats): a
+  stretched beta prior on rho, width 1 (uniform) by default, and the exact
+  Bayes factor of Ly, Marsman and Wagenmakers (2018), bstats'
+  `bf10CorExact()`; one-sided, rho = 0 against one side with the prior
+  truncated to it.
+- **Package.** CRAN's BayesFactor `correlationBF(rscale = w)` gives the
+  same two-sided Bayes factor at the same width (equal to eight digits
+  against JASP's formula, and to the Bayes factor integrated from the
+  exact density of r); its one-sided interval Bayes factor is within 0.1%
+  of the exact one. So BayesFactor is the backend; bstats isn't on CRAN.
+- **Default width.** JASP's 1, not BayesFactor's 1/3 ("medium"): JASP is
+  where psychologists run this test. Recorded as Known difference 12 (162
+  people against 146 for r = .3, BF10 of at least 10, 80%).
+- **Power.** No package computes it. The Bayes factor depends on the data
+  only through n and r, and rises with r (or |r|), so strong evidence is a
+  sample correlation past a critical value, found by root-finding on
+  `correlationBF()`; its chance is from SuppDists' exact distribution of r
+  for bivariate normal scores (`pPearson()`, lower tail, which is the more
+  accurate). No new maths beyond the root-finding; no simulation.
+- **Design prior.** The expected correlation exactly, or a stretched beta
+  design prior with its mean and an SD (Departure 15 extended: a design
+  prior equal to the uniform analysis prior gives 76.4% at 162 people,
+  where exactly r = .3 gives 80%).
+- **Not built.** bfpwr's z-test Bayes factor on Fisher's z as a second
+  version: it needs a normal analysis prior on z that no common tool uses
+  for correlations, and researchers who analyse in R with BayesFactor get
+  their answer by setting the width to 1/3.

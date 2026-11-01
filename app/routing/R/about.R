@@ -17,7 +17,8 @@ about_foundation_tools <- list(
   list(package = "powertools", role = "cluster-randomised, multisite and group treatment trials"),
   list(package = "semPower", role = "model fit, measurement invariance, factor correlations and latent paths in SEM"),
   list(package = "TOSTER", role = "equivalence tests"),
-  list(package = "bfpwr", role = "Bayes factor t-tests"),
+  list(package = "bfpwr", role = "Bayes factor t-tests and the Bayes factor test of one proportion"),
+  list(package = "BayesFactor", role = "the Bayes factor test of a correlation (the same Bayes factor as JASP's)"),
   list(package = "metapower", role = "the planned meta-analysis's z test"),
   list(package = "simr", role = "participants responding to many items (mixed models)"),
   list(package = "PUMP", role = "joint power for several outcomes in a study plan")
@@ -32,6 +33,7 @@ about_supporting_tools <- list(
   list(package = "lme4", role = "which fits simr's mixed models"),
   list(package = "effectsize", role = "which converts published effect sizes"),
   list(package = "psych", role = "which converts published t and F statistics, and gives safeguard power's interval"),
+  list(package = "SuppDists", role = "which gives the exact distribution of a sample correlation, for the correlation Bayes factor"),
   list(package = "base", label = "R", role = "in which everything runs; its power.prop.test() gives the z test for two proportions in equal groups, and its chi-square and F distributions the variance tests of one or two groups"),
   list(package = "shiny", role = "which draws this app")
 )
