@@ -22,6 +22,23 @@ entries:
       describes what your study can show, not the effect you expect, and
       goes into the methods paragraph too.
   - date: "2026-11-01"
+    title: "A simpler start, and tidier Labs and Feedback"
+    text: >-
+      The start screen keeps to three short choices. When you come back,
+      it shows the analyses you opened last, so you can go straight back
+      to them. Labs shows its tools side by side, the Feedback tab is
+      shorter, and on a phone the About page folds its list of analyses.
+  - date: "2026-11-01"
+    title: "Clearer precision, study plan and whole-study screens"
+    text: >-
+      A precision result now opens with its sample size in large type and
+      what it assumes, and can be added to your study plan. The study plan
+      shows the sample size your study needs at the top, each analysis by
+      name with its own number, and a Remove button. The whole-study
+      result shows the chance that your main analyses succeed together in
+      large type, each analysis's power as a bar, and a methods paragraph
+      you can copy.
+  - date: "2026-11-01"
     title: "The power visualiser shows more tests"
     text: >-
       In Labs, the power visualiser now also draws a paired t-test, a

@@ -84,3 +84,10 @@ test_that("the About panel says what powerkit doesn't do and how far along it is
   expect_match(html, "How far along it is", fixed = TRUE)
   expect_match(html, "until a statistician has checked it", fixed = TRUE)
 })
+
+test_that("the analysis families fold, and start folded on a phone", {
+  html <- as.character(about_plans_ui(tree, forms))
+  expect_match(html, '<details class="about-family" open>', fixed = TRUE)
+  expect_match(html, '<summary class="about-family-head">', fixed = TRUE)
+  expect_match(about_js, "(max-width: 767px)", fixed = TRUE)
+})

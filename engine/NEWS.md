@@ -27,6 +27,30 @@
   and side; the article's worked examples are left for the maintainer.
   Not given for Welch's t, the minimum-effect, rank or Bayes factor
   versions, or a justified alpha.
+* The start screen keeps to three short choices, each with a small icon;
+  "Help me choose" is tagged as a good first choice. A returning visitor
+  sees the analyses they opened last ("Recently opened", kept in the
+  browser's local storage, `powerkit-recent`), which open the card
+  directly (`pick` value `recent:<id>`). Labs lists its tools in a
+  two-column grid. The Feedback tab shows the reasons as buttons, keeps
+  the exact message to be sent a click away, and puts the form in one
+  card. On a phone, About's analysis families start folded. The study
+  plan's row styles no longer reach the whole-study plan, which shares
+  the `plan-item` class. App only; engine unchanged.
+
+* The precision, study plan and whole-study screens are laid out like the
+  other results. A precision result has the section links, a big figure
+  (the sample size, or the width) with what it assumes, and the write-up
+  before the downloads; a precision result that finds a sample size can
+  now join the study plan (`plan_n()`). The study plan puts the largest
+  sample size first, shows each analysis's N, marks the one that sets the
+  sample size, lets an analysis be removed (`input$plan_remove`), and names
+  each analysis by its card's plain name (`plan_label()`), where it had
+  shown the card's code. The whole-study result has section links, the
+  joint chance as its big figure, each analysis's power as a bar with its
+  95% interval, and the methods paragraph in the copyable write-up box.
+  App only; engine unchanged.
+
 * The app moves between screens faster: about 40 ms on a laptop for the
   list of analyses and an input screen, from 160-200 ms. The list's
   groups, and each group of fields on an input screen, are built once and
