@@ -4180,6 +4180,31 @@ needed first.
   cards still marked "validation in progress" move from the queue to
   "Waiting on the maintainer, not a PR" in `next.md`.
 
+## 2026-11-01 · Precision for more estimates (E46)
+
+- **Packages, as for the first estimates:** presize for a raw mean
+  difference (two equal groups, equal variances), an odds ratio and an
+  ICC; MBESS for a standardised regression coefficient (with assurance).
+- **The odds ratio's direction:** the second group's odds over the
+  first's, as powerkit's other two-group results run; presize's own is
+  the other way, so the groups are passed to `prec_or()` reversed. Its
+  interval defaults to presize's own default, the independence-smoothed
+  logit interval, with Gart's and Woolf's offered.
+- **The regression coefficient at a given n:** MBESS gives the sample
+  size for a width, not the width at a size, so powerkit reports the
+  narrowest width for which `ss.aipe.reg.coef()` needs no more than n,
+  rather than computing a standard error itself.
+- **gsl** is a new dependency (MBESS needs it for this function), with
+  the system library in the CI image and the online app's build.
+
+## 2026-11-01 · The number of items as the sample size (E33)
+
+- **The same simulation, counted the other way:** the participants are
+  fixed and the search varies the number of items; the power at a given
+  number of items is the same as the power with those items and
+  participants planned the usual way (tested). With each item in one
+  condition the number of items is even. Attrition isn't offered here:
+  the participants given are those analysed.
 ## 2026-11-01 · Bayes factor test of one proportion (E25)
 
 Item 3 of `next.md`: the other Bayes factor cards, giving researchers who

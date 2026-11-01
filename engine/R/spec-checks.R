@@ -735,7 +735,27 @@ check_crossed_two_condition <- function(spec) {
   pop <- spec$population
   within <- identical(pop$item_design %||% "between", "within")
   problems <- character()
-  if (!within && pop$items %% 2 == 1) {
+  # The number of items as the sample size: the participants are given,
+  # and the items are what the goal finds or fixes.
+  if (identical(spec$goal$unit, "items")) {
+    if (is.null(pop$participants)) {
+      problems <- c(problems, "With the number of items as the sample size ('goal > unit' \"items\"), give 'population > participants', the participants you will have.")
+    } else if (identical(spec$variables$X$type, "between_factor") && pop$participants %% 2 == 1) {
+      problems <- c(problems, sprintf("'population > participants' is %s, but with the conditions between participants half go in each, so it must be even.", format_number(pop$participants)))
+    }
+    if (!is.null(pop$items)) {
+      problems <- c(problems, "With the number of items as the sample size, 'goal > n' is the number of items: remove 'population > items'.")
+    }
+    if (!is.null(spec$options$attrition)) {
+      problems <- c(problems, "'options > attrition' is for participants who drop out; with the number of items as the sample size, give the participants you expect to analyse.")
+    }
+    return(problems)
+  }
+  if (is.null(pop$items)) problems <- c(problems, "Give 'population > items', the number of items each participant responds to.")
+  if (!is.null(pop$participants)) {
+    problems <- c(problems, "'population > participants' is for 'goal > unit' \"items\" (the number of items as the sample size); here 'goal > n' is the participants, so remove it.")
+  }
+  if (!within && !is.null(pop$items) && pop$items %% 2 == 1) {
     problems <- c(problems, sprintf(
       "'population > items' is %s, but with each item in one condition half the items go in each, so the number must be even.",
       format_number(pop$items)
@@ -2435,6 +2455,10 @@ group_split <- function(spec) {
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)
     return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
+  }
+  if (identical(spec$template, "crossed_two_condition") && identical(spec$goal$unit, "items")) {
+    if (identical(spec$population$item_design %||% "between", "within")) return(NULL)
+    return(list(rule = "an even number of items, half in each condition", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))

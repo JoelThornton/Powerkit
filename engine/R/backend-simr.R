@@ -33,11 +33,17 @@ simr_backend <- function(spec, seed = NULL) {
     default_method = "simulation",
     functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
-    n_step = if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
+    n_step = if (isTRUE(inputs$vary_items)) (if (inputs$within) 1 else 2) else if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
-        simr_rejections(inputs, n, k, chunk_seed)
+        if (isTRUE(inputs$vary_items)) {
+          at <- inputs
+          at$items <- n
+          simr_rejections(at, inputs$participants, k, chunk_seed)
+        } else {
+          simr_rejections(inputs, n, k, chunk_seed)
+        }
       })
     },
     sensitivity = NULL,
@@ -99,11 +105,17 @@ simr_inputs <- function(spec) {
     fixef = if (binary) c(mean(logits), diff(logits)) else c(0, pop$difference),
     VarCorr = list(participant = participant, item = item),
     sigma = if (!binary) pop$sd_residual,
-    items = pop$items,
+    items = pop$items %||% spec$goal$n,
     within = within,
+    # The number of items as the sample size (1 November 2026): the
+    # participants are fixed and the search varies the items.
+    vary_items = simr_vary_items(spec),
+    participants = pop$participants,
     alpha = spec$target_test$alpha
   )
 }
+
+simr_vary_items <- function(spec) identical(spec$goal$unit, "items")
 
 # One data set's design. Conditions within participants: every
 # participant responds to every item, in one condition (items between
@@ -191,6 +203,7 @@ simr_check_run <- function(spec, inputs, seed) {
   big <- inputs
   big$items <- max(inputs$items, 200L)
   if (!big$within && big$items %% 2 == 1) big$items <- big$items + 1L
+  big$vary_items <- FALSE
   model <- simr_model(big, n)
   data <- simr_design(big, n)
   data$y <- with_seed(seed, stats::simulate(model)[[1]])

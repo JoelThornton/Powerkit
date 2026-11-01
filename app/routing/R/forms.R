@@ -243,7 +243,7 @@ offers_bayes_factor <- function(form) {
 # goals are the engine's goal type "precision" (build_spec()): with a
 # width it finds the sample size, with a sample size the width.
 precision_goal_fields <- function(tool) {
-  mbess <- list(field = "estimate", is_one_of = c("two_groups", "paired", "one_group"))
+  mbess <- list(field = "estimate", is_one_of = c("two_groups", "paired", "one_group", "regression_coefficient"))
   list(
     list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
          choices = list(precision_n = "The sample size for an interval this narrow",
@@ -252,7 +252,7 @@ precision_goal_fields <- function(tool) {
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
     list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
-         help = "Left empty, the sample size makes the interval's expected width this narrow, so about half of studies get a wider one. With 0.8, 80% of studies would get an interval no wider (MBESS's assurance). Only for d and standardised means.",
+         help = "Left empty, the sample size makes the interval's expected width this narrow, so about half of studies get a wider one. With 0.8, 80% of studies would get an interval no wider (MBESS's assurance). Only for d, standardised means and regression coefficients (MBESS).",
          type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
          shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
@@ -890,7 +890,9 @@ build_spec <- function(forms, ep_id, fields, values) {
   if (isTRUE(form$precision)) {
     spec$goal$type <- "precision"
     spec$target_test$alpha <- 1 - parse_number(values$conf_level)
-    if (!identical(spec$template, "proportion") && !identical(spec$template, "correlation")) spec$target_test$method <- "noncentral_t"
+    # MBESS's d, d_z and standardised mean use the noncentral t; the other
+    # estimates set their own interval (forms.yaml, E46's `sets`).
+    if (spec$template %in% c("two_groups", "paired", "one_group")) spec$target_test$method <- "noncentral_t"
     return(spec)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)

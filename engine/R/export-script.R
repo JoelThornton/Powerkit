@@ -430,6 +430,14 @@ design_description <- function(spec) {
       label("Y"), levels("X"), spec$population$dz),
     "precision/correlation" = sprintf("confidence interval for the %s correlation of %s and %s (expected r = %s)",
       spec$target_test$method, label("X"), label("Y"), spec$population$r),
+    "precision/mean_difference" = sprintf("confidence interval for the difference in mean %s (expected %s, SD %s; two equal groups)",
+      label("Y"), format_number(spec$population$difference), format_number(spec$population$sd)),
+    "precision/odds_ratio" = sprintf("confidence interval for the odds ratio of %s (expected proportions %s and %s; two equal groups)",
+      label("Y"), format_number(spec$population$p1), format_number(spec$population$p2)),
+    "precision/icc" = sprintf("confidence interval for the ICC of %s (expected %s, %s ratings per subject)",
+      label("Y"), format_number(spec$population$icc), format_number(spec$population$raters)),
+    "precision/regression_coefficient" = sprintf("confidence interval for the standardised coefficient of %s on %s (expected %s; %s predictors, R-squared %s)",
+      label("Y"), label("X"), format_number(spec$population$b), format_number(spec$population$predictors), format_number(spec$population$r2)),
     "precision/proportion" = sprintf("confidence interval for the proportion %s (expected %s; %s interval)",
       label("Y"), spec$population$p, switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald")),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
@@ -2580,7 +2588,10 @@ simr_script <- function(spec, result) {
     sprintf("sd_item <- %s # SD of items' intercepts", r_code(pop$sd_item)),
     if (item_slope) sprintf("sd_item_slope <- %s # SD of items' condition slopes", r_code(pop$sd_item_slope)),
     if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
-    sprintf("items <- %s # number of items", r_code(pop$items)),
+    if (isTRUE(inputs$vary_items)) {
+      c(sprintf("participants <- %s # the participants, fixed: the sample size below is the number of items", r_code(pop$participants)),
+        "items <- NA # set for each number of items tried")
+    } else sprintf("items <- %s # number of items", r_code(pop$items)),
     sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
       if (inputs$within) "every item in both conditions" else "each item in one condition: the first half in the first"),
     sprintf("participant_design <- %s # %s", r_code(if (inputs$participants_between) "between" else "within"),
@@ -2627,6 +2638,15 @@ simr_script <- function(spec, result) {
     },
     "}",
     "",
+    if (isTRUE(inputs$vary_items)) c(
+      "# The sample size searched is the number of items, with the participants fixed.",
+      "model_for_participants <- model_for",
+      "model_for <- function(n_items) {",
+      "  items <<- n_items",
+      "  model_for_participants(participants)",
+      "}",
+      ""
+    ),
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
     if (!inputs$binary) c(
