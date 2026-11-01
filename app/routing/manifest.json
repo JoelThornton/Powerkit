@@ -10,6 +10,35 @@
     "has_parameters": false
   },
   "packages": {
+    "BWStest": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "BWStest",
+        "Type": "Package",
+        "Maintainer": "Steven E. Pav <shabbychef@gmail.com>",
+        "Authors@R": "c(person(c(\"Steven\", \"E.\"), \"Pav\", \n    role=c(\"aut\",\"cre\"),\n    email=\"shabbychef@gmail.com\",\n\t\tcomment = c(ORCID = \"0000-0002-4197-6195\")))",
+        "Version": "0.2.3",
+        "Date": "2023-10-10",
+        "License": "LGPL-3",
+        "Title": "Baumgartner Weiss Schindler Test of Equal Distributions",
+        "BugReports": "https://github.com/shabbychef/BWStest/issues",
+        "Description": "Performs the 'Baumgartner-Weiss-Schindler' two-sample test of equal\n   probability distributions, <doi:10.2307/2533862>. Also performs\n   similar rank-based tests for equal probability distributions due to\n   Neuhauser <doi:10.1080/10485250108832874> and\n   Murakami <doi:10.1080/00949655.2010.551516>.",
+        "Imports": "memoise, Rcpp (>= 0.12.3)",
+        "LinkingTo": "Rcpp",
+        "Suggests": "testthat",
+        "RoxygenNote": "7.2.1",
+        "URL": "https://github.com/shabbychef/BWStest",
+        "Collate": "'BWStest.r' 'RcppExports.R' 'bws_test.r' 'zzz_murakami_dist.r'",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-10-10 23:27:55 UTC; spav",
+        "Author": "Steven E. Pav [aut, cre] (<https://orcid.org/0000-0002-4197-6195>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-10-10 23:50:06 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 11:51:31 UTC; unix"
+      }
+    },
     "BayesFactor": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -314,6 +343,38 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-03-26 08:50:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:44:59 UTC; unix"
+      }
+    },
+    "PMCMRplus": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "PMCMRplus",
+        "Type": "Package",
+        "Title": "Calculate Pairwise Multiple Comparisons of Mean Rank Sums\nExtended",
+        "Version": "1.9.12",
+        "Date": "2024-09-07",
+        "Authors@R": "person(given = \"Thorsten\", family = \"Pohlert\",\n                 email = \"thorsten.pohlert@gmx.de\",\n                 comment = c(ORCID = \"0000-0003-3855-3025\"),\n                 role = c(\"aut\", \"cre\"))",
+        "Description": "For one-way layout experiments the one-way ANOVA can\n\t     be performed as an omnibus test. All-pairs multiple comparisons \n\t     tests (Tukey-Kramer test, Scheffe test, LSD-test) \n\t     and many-to-one tests (Dunnett test) for normally distributed \n\t     residuals and equal within variance are available. Furthermore,\n\t     all-pairs tests (Games-Howell test, Tamhane's T2 test, \n\t     Dunnett T3 test, Ury-Wiggins-Hochberg test) and many-to-one\n\t     (Tamhane-Dunnett Test) for normally distributed residuals \n\t     and heterogeneous variances are provided. Van der Waerden's normal\n\t     scores test for omnibus, all-pairs and many-to-one tests is\n\t     provided for non-normally distributed residuals and homogeneous\n\t     variances. The Kruskal-Wallis, BWS and Anderson-Darling\n\t     omnibus test and all-pairs tests\n\t     (Nemenyi test, Dunn test, Conover test, Dwass-Steele-Critchlow-\n\t     Fligner test) as well as many-to-one (Nemenyi test, Dunn test,\n\t     U-test) are given for the analysis of variance by ranks. \n             Non-parametric trend tests (Jonckheere test, Cuzick test,\n\t     Johnson-Mehrotra test, Spearman test) are included. \n\t     In addition, a Friedman-test for one-way ANOVA with repeated \n\t     measures on ranks (CRBD) and Skillings-Mack test for unbalanced \n\t     CRBD is provided with consequent all-pairs tests (Nemenyi test, \n\t     Siegel test, Miller test, Conover test, Exact test)\n\t     and many-to-one tests (Nemenyi test, Demsar test, Exact test). \n\t     A trend can be tested with Pages's test. Durbin's test \n\t     for a two-way balanced incomplete block design (BIBD) is given \n\t     in this package as well as Gore's test for CRBD with multiple\n\t     observations per cell is given.  Outlier tests, Mandel's k- and\n\t     h statistic as well as functions for Type I error and Power \n\t     analysis as well as generic summary, print and plot methods \n             are provided.",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "mvtnorm (>= 1.0), multcompView, gmp, Rmpfr, SuppDists,\nkSamples (>= 1.2.7), BWStest (>= 0.2.1), MASS, stats",
+        "Suggests": "xtable, graphics, knitr, rmarkdown, car, e1071, multcomp,\npwr, NSM3",
+        "SystemRequirements": "gmp (>= 4.2.3), mpfr (>= 3.0.0) | file README.md",
+        "SystemRequirementsNote": "see >> README.md",
+        "SysDataCompression": "gzip",
+        "VignetteBuilder": "knitr, rmarkdown",
+        "Classification/MSC-2010": "62J15, 62J10, 62G10, 62F03, 62G30",
+        "NeedsCompilation": "yes",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.3.1",
+        "License": "GPL (>= 3)",
+        "Packaged": "2024-09-08 09:18:42 UTC; thorsten",
+        "Author": "Thorsten Pohlert [aut, cre] (<https://orcid.org/0000-0003-3855-3025>)",
+        "Maintainer": "Thorsten Pohlert <thorsten.pohlert@gmx.de>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-09-08 10:10:03 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 22:33:50 UTC; unix"
       }
     },
     "PUMP": {
@@ -695,6 +756,39 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:48:39 UTC; unix"
       }
     },
+    "Rmpfr": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "Rmpfr",
+        "Title": "Interface R to MPFR - Multiple Precision Floating-Point Reliable",
+        "Version": "1.1-3",
+        "VersionNote": "Last CRAN: 1.1-2 on 2025-10-27; 1.1-1 on 2025-07-18; 1.1-0\non 2025-05-08; 1.0-0 on 2024-11-15",
+        "Date": "2026-09-05",
+        "Type": "Package",
+        "Authors@R": "c(person(\"Martin\",\"Maechler\", role = c(\"aut\",\"cre\"),\n\t     email = \"maechler@stat.math.ethz.ch\", comment = c(ORCID=\"0000-0002-8685-9910\"))\n\t, person(c(\"Richard\", \"M.\"), \"Heiberger\", role = \"ctb\", email=\"rmh@temple.edu\",\n\t\t\t\t\tcomment = \"formatHex(), *Bin, *Dec\")\n\t, person(c(\"John\", \"C.\"), \"Nash\", role = \"ctb\", email=\"nashjc@uottawa.ca\",\n\t\t\t\t\tcomment = \"hjkMpfr(), origin of unirootR()\")\n\t, person(c(\"Hans\", \"W.\"), \"Borchers\", role = \"ctb\", email=\"hwborchers@googlemail.com\",\n\t\t\t\t\tcomment = \"optimizeR(*, \\\"GoldenRatio\\\"); origin of hjkMpfr()\")\n\t, person(\"Mikael\", \"Jagan\", role = \"ctb\", comment = c(\"safer convert.c; configure.ac etc\", ORCID = \"0000-0002-3542-2938\"))\n\t)",
+        "Description": "Arithmetic (via S4 classes and methods) for\n  arbitrary precision floating point numbers, including transcendental\n  (\"special\") functions.  To this end, the package interfaces to\n  the 'LGPL' licensed 'MPFR' (Multiple Precision Floating-Point Reliable) Library\n  which itself is based on the 'GMP' (GNU Multiple Precision) Library.",
+        "SystemRequirements": "gmp (>= 4.2.3), mpfr (>= 3.2.0), pdfcrop (part of\nTexLive) is required to rebuild the vignettes.",
+        "SystemRequirementsNote": "'MPFR' (MP Floating-Point Reliable Library,\nhttps://www.mpfr.org/) and 'GMP' (GNU Multiple Precision\nlibrary, https://gmplib.org/), see >> README.md",
+        "Depends": "gmp (>= 0.6-1), R (>= 3.6.0)",
+        "Imports": "stats, utils, methods",
+        "Suggests": "DPQmpfr, MASS, Bessel, polynom, sfsmisc (>= 1.1-14)",
+        "SuggestsNote": "MASS, polynom, sfsmisc: only for vignette;",
+        "Enhances": "dfoptim, pracma, DPQ",
+        "EnhancesNote": "mentioned in Rd xrefs | used in example",
+        "URL": "https://rmpfr.r-forge.r-project.org/",
+        "BugReports": "https://r-forge.r-project.org/tracker/?group_id=386",
+        "License": "GPL (>= 2)",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-09-05 20:30:33 UTC; maechler",
+        "Author": "Martin Maechler [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8685-9910>),\n  Richard M. Heiberger [ctb] (formatHex(), *Bin, *Dec),\n  John C. Nash [ctb] (hjkMpfr(), origin of unirootR()),\n  Hans W. Borchers [ctb] (optimizeR(*, \"GoldenRatio\"); origin of\n    hjkMpfr()),\n  Mikael Jagan [ctb] (safer convert.c; configure.ac etc, ORCID:\n    <https://orcid.org/0000-0002-3542-2938>)",
+        "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-06 11:40:08 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-07 03:50:06 UTC; unix"
+      }
+    },
     "S7": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -833,6 +927,30 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-08-22 15:50:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-24 03:48:36 UTC; unix"
+      }
+    },
+    "SuppDists": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "SuppDists",
+        "Type": "Package",
+        "Title": "Supplementary Distributions",
+        "Version": "1.1-9.9",
+        "Date": "2025-03-23",
+        "Authors@R": "c(person(given = \"Bob\", family = \"Wheeler\", \n                    role = \"aut\"),\n             person(given = \"Thorsten\", family = \"Pohlert\",\n                 email = \"thorsten.pohlert@gmx.de\",\n                 comment = c(ORCID = \"0000-0003-3855-3025\"),\n                 role = c(\"ctb\", \"cre\"))\n              )",
+        "Description": "Ten distributions supplementing those built into R.\n  Inverse Gauss, Kruskal-Wallis, Kendall's Tau, Friedman's chi\n  squared, Spearman's rho, maximum F ratio, the Pearson product\n  moment correlation coefficient, Johnson distributions, normal\n  scores and generalized hypergeometric distributions.",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "yes",
+        "Depends": "R (>= 3.3.0)",
+        "Suggests": "RcppZiggurat",
+        "Packaged": "2025-03-23 12:44:21 UTC; thorsten",
+        "Author": "Bob Wheeler [aut],\n  Thorsten Pohlert [ctb, cre] (<https://orcid.org/0000-0003-3855-3025>)",
+        "Maintainer": "Thorsten Pohlert <thorsten.pohlert@gmx.de>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-03-24 01:20:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:52:25 UTC; unix"
       }
     },
     "TOSTER": {
@@ -3153,6 +3271,34 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:47 UTC; unix"
       }
     },
+    "gmp": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "gmp",
+        "Version": "0.7-5.1",
+        "Date": "2024-08-23",
+        "Title": "Multiple Precision Arithmetic",
+        "Authors@R": "c(person(\"Antoine\",\"Lucas\",role = c(\"aut\",\"cre\"),\n\t  email = \"antoinelucas@gmail.com\", comment = c(ORCID=\"0000-0002-8059-9767\")),\n\t  person(\"Immanuel\",\"Scholz\", role= \"aut\"),\n\t  person(\"Rainer\",\"Boehme\", role = \"ctb\", email= \"rb-gmp@reflex-studio.de\"),\n \t  person(\"Sylvain\",\"Jasson\", role = \"ctb\", email= \"Sylvain.Jasson@inrae.fr\"),\n\t  person(\"Martin\", \"Maechler\", role = \"ctb\", email=\"maechler@stat.math.ethz.ch\"))",
+        "Maintainer": "Antoine Lucas <antoinelucas@gmail.com>",
+        "Description": "Multiple Precision Arithmetic (big integers and rationals,\n prime number tests, matrix computation), \"arithmetic without limitations\"\n using the C library GMP (GNU Multiple Precision Arithmetic).",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "methods",
+        "Suggests": "Rmpfr, MASS, round",
+        "SystemRequirements": "gmp (>= 4.2.3)",
+        "License": "GPL (>= 2)",
+        "BuildResaveData": "no",
+        "LazyDataNote": "not available, as we use data/*.R *and* our classes",
+        "NeedsCompilation": "yes",
+        "URL": "https://forgemia.inra.fr/sylvain.jasson/gmp",
+        "Packaged": "2026-02-09 09:14:53 UTC; ripley",
+        "Author": "Antoine Lucas [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8059-9767>),\n  Immanuel Scholz [aut],\n  Rainer Boehme [ctb],\n  Sylvain Jasson [ctb],\n  Martin Maechler [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-02-09 09:19:08 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 21:27:36 UTC; unix"
+      }
+    },
     "gridExtra": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -3728,6 +3874,31 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-02-07 11:20:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-23 21:38:33 UTC; unix"
+      }
+    },
+    "kSamples": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "kSamples",
+        "Type": "Package",
+        "Title": "K-Sample Rank Tests and their Combinations",
+        "Version": "1.2-12",
+        "Date": "2025-08-25",
+        "Authors@R": "c(person(\"Fritz\", \"Scholz\",role=c(\"aut\",\"cre\"),email =\n        \"fscholz@u.washington.edu\"), person(\"Angie\", \"Zhu\", role=c(\"aut\"),\n        email= \"a.zhu.stat@gmail.com\"))",
+        "Author": "Fritz Scholz [aut, cre],\n  Angie Zhu [aut]",
+        "Maintainer": "Fritz Scholz <fscholz@u.washington.edu>",
+        "Depends": "SuppDists",
+        "Imports": "methods, graphics, stats",
+        "Description": "Compares k samples using the Anderson-Darling test, Kruskal-Wallis type tests \n\twith different rank score criteria, Steel's multiple comparison test, and the \n        Jonckheere-Terpstra (JT) test. It computes asymptotic, simulated or (limited) exact \n        P-values, all valid under randomization, with or without ties, or conditionally \n        under random sampling from populations, given the observed tie pattern.  Except for \n        Steel's test and the JT test it also combines these tests across several blocks of \n\tsamples.  Also analyzed are 2 x t contingency tables and their blocked combinations \n\tusing the Kruskal-Wallis criterion.  Steel's test is inverted to provide simultaneous \n\tconfidence bounds for shift parameters.  A plotting function compares tail probabilities\n\tobtained under asymptotic approximation with those obtained via simulation or exact \n\tcalculations.",
+        "License": "GPL (>= 2)",
+        "LazyLoad": "yes",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-08-26 19:04:09 UTC; fritz",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-08-26 23:20:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:56:04 UTC; unix"
       }
     },
     "knitr": {
@@ -4535,6 +4706,33 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:52:56 UTC; unix"
       }
     },
+    "multcompView": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "multcompView",
+        "Type": "Package",
+        "Title": "Visualizations of Paired Comparisons",
+        "Version": "0.1-12",
+        "Authors@R": "c(\n    person(\"Spencer\", \"Graves\", role = \"aut\"),\n    person(\"Hans-Peter\", \"Piepho\", role = \"aut\"),\n    person(\"Luciano\", \"Selzer\", email = \"luciano.selzer@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Sundar\", \"Dorai-Raj\", role = \"ctb\"))",
+        "Description": "Convert a logical vector or a vector of p-values or a correlation,\n    difference, or distance matrix into a display identifying the pairs for\n    which the differences were not significantly different. Designed for use\n    in conjunction with the output of functions like TukeyHSD, dist (stats),\n    simint, simtest, csimint, csimtest (multcomp), friedmanmc, kruskalmc (pgirmess).",
+        "License": "GPL-2",
+        "Imports": "grid",
+        "Suggests": "multcomp, pgirmess, MASS, testthat (>= 3.0.0)",
+        "RoxygenNote": "7.3.3",
+        "URL": "https://lselzer.github.io/multcompview/",
+        "BugReports": "https://github.com/lselzer/multcompview/issues",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-26 18:41:04 UTC; lucia",
+        "Author": "Spencer Graves [aut],\n  Hans-Peter Piepho [aut],\n  Luciano Selzer [aut, cre],\n  Sundar Dorai-Raj [ctb]",
+        "Maintainer": "Luciano Selzer <luciano.selzer@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-26 19:30:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:32 UTC; unix"
+      }
+    },
     "mvtnorm": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5314,7 +5512,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, lme4, lmerTest,\nmanymome, metafor, metapower, parallel, psych, power4mome, pwr,\npowertools, pwrss, PUMP, semPower, simr, SimDesign, Spower (>=\n0.7), stats, Superpower, TOSTER, utils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, PMCMRplus, lme4,\nlmerTest, manymome, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, pwrss, PUMP, semPower, simr,\nSimDesign, Spower (>= 0.7), stats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5324,19 +5522,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "de1815ef2d4a39811ad4322db9dcb4541582f5c6",
-        "RemoteSha": "de1815ef2d4a39811ad4322db9dcb4541582f5c6",
+        "RemoteRef": "37cbfc553f732edb74494cc038ee4e5306c7ac66",
+        "RemoteSha": "37cbfc553f732edb74494cc038ee4e5306c7ac66",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "de1815ef2d4a39811ad4322db9dcb4541582f5c6",
-        "GithubSHA1": "de1815ef2d4a39811ad4322db9dcb4541582f5c6",
+        "GithubRef": "37cbfc553f732edb74494cc038ee4e5306c7ac66",
+        "GithubSHA1": "37cbfc553f732edb74494cc038ee4e5306c7ac66",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-01 05:04:07 UTC; runner",
+        "Packaged": "2026-11-01 05:22:36 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-01 05:04:19 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-01 05:22:47 UTC; unix"
       }
     },
     "powertools": {
@@ -7138,7 +7336,7 @@
       "checksum": "94ed2eb84d7920781ce2c29b7d3eae8e"
     },
     "forms.yaml": {
-      "checksum": "013d9ec418dde93c8483bd24dc8d5863"
+      "checksum": "1e2cb2022c0c852055a448cdee9b9855"
     },
     "R/about.R": {
       "checksum": "8ff582fd1a83306947634b764b8e8cf7"
@@ -7162,7 +7360,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "7105a4f05144c7674137765699abe426"
+      "checksum": "9e5c0fe8b22739c7b90f199465e99fab"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7189,7 +7387,7 @@
       "checksum": "db557c9178b4b042487758bc930e8482"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "91807d1d0e42953beb2eefdd79c43bc7"
+      "checksum": "e1ddcdd599403850f7be8698fbd0fa51"
     },
     "tests/testthat/setup.R": {
       "checksum": "9e0197dca2881b76838e3eeb10588c81"
@@ -7222,10 +7420,10 @@
       "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "5d2152b551893431a9de5ef673a70b02"
+      "checksum": "bc5f0774fee9eae11b6c6336ff175286"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "db3b1d3897cece4a20b5a23a8818cd51"
+      "checksum": "512ad88af7a1c608383cfafe97cc7419"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "72e7435089b837ddaeaf1597c2201ce3"
@@ -7246,7 +7444,7 @@
       "checksum": "d15be88c94831522cccbc987e581728d"
     },
     "tree.yaml": {
-      "checksum": "525feb287a8a33231d8036cc3d6b37bd"
+      "checksum": "c90cec9ec3cb6e387ba30320c327a163"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7261,7 +7459,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "5e241bff70a243514d7810258d50b550"
+      "checksum": "59d0dbacce48725f7b0ca2e731397789"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
