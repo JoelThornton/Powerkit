@@ -2,6 +2,18 @@
 
 A batch of new features, built as one round.
 
+* Precision planning (E46) for four more estimates: a difference between
+  two groups' means in the outcome's units (template `mean_difference`,
+  presize's `prec_meandiff()`), an odds ratio between two groups
+  (`odds_ratio`, `prec_or()`, the second group's odds over the first's,
+  with presize's default independence-smoothed logit interval or Gart's
+  or Woolf's), an intraclass correlation (`icc`, `prec_icc()`, which gives
+  the expected width but not the limits) and a standardised regression
+  coefficient (`regression_coefficient`, MBESS's `ss.aipe.reg.coef()`,
+  with assurance; the width at a given n is the narrowest for which the
+  same function needs no more than n). New dependency: gsl (MBESS needs
+  it for the regression coefficient), with the system library libgsl in
+  the CI image and the online app.
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from

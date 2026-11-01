@@ -220,7 +220,7 @@ precision_regression_calculate <- function(spec, effect, level, goal) {
   } else {
     n <- as.integer(goal$n)
     needs <- function(w) precision_regression_n(spec, w, level) - n
-    width <- stats::uniroot(function(w) needs(w) + 0.5, c(1e-3, 4), tol = 1e-6)$root
+    width <- stats::uniroot(function(w) needs(w) - 0.5, c(1e-3, 4), tol = 1e-8)$root
   }
   list(
     n = n, lower = effect - width / 2, upper = effect + width / 2, width = width,
@@ -364,7 +364,8 @@ precision_script_more <- function(spec, result) {
       sprintf("sd <- %s # the outcome's SD within each group", r_code(pop$sd))),
     odds_ratio = c(sprintf("p1 <- %s # the chance of 'yes' in the first group", r_code(pop$p1)),
       sprintf("p2 <- %s # the chance of 'yes' in the second group", r_code(pop$p2)),
-      sprintf("method <- %s", r_code(precision_presize_method(spec)))),
+      sprintf("method <- %s", r_code(precision_presize_method(spec))),
+      "# presize's odds ratio is its p1's odds over p2's, so the groups go in reversed: group 2's odds over group 1's."),
     icc = c(sprintf("icc <- %s # the expected ICC", r_code(pop$icc)),
       sprintf("raters <- %s # ratings of each subject", r_code(pop$raters))),
     regression_coefficient = c(sprintf("b <- %s # the expected standardised coefficient", r_code(pop$b)),
@@ -374,7 +375,7 @@ precision_script_more <- function(spec, result) {
   )
   presize_call <- function(size_arg) switch(template,
     mean_difference = sprintf("prec_meandiff(delta = difference, sd1 = sd, %s, conf.level = conf_level, variance = \"equal\")", size_arg),
-    odds_ratio = sprintf("prec_or(p1 = p2, p2 = p1, %s, conf.level = conf_level, method = method) # the second group's odds over the first's", size_arg),
+    odds_ratio = sprintf("prec_or(p1 = p2, p2 = p1, %s, conf.level = conf_level, method = method)", size_arg),
     icc = sprintf("prec_icc(rho = icc, k = raters, %s, conf.level = conf_level)", size_arg))
   two <- template %in% c("mean_difference", "odds_ratio")
   reg_call <- function(width_arg, assurance_arg = "") sprintf(
@@ -393,7 +394,7 @@ precision_script_more <- function(spec, result) {
     c(if (is.null(goal$width)) {
       c("# The narrowest width for which ss.aipe.reg.coef() needs no more than n.",
         sprintf("needs <- function(w) as.integer(unlist(%s)[1]) - n", reg_call("w")),
-        "width <- uniroot(function(w) needs(w) + 0.5, c(1e-3, 4), tol = 1e-6)$root")
+        "width <- uniroot(function(w) needs(w) - 0.5, c(1e-3, 4), tol = 1e-8)$root")
     },
       "lower <- b - width / 2",
       "upper <- b + width / 2")

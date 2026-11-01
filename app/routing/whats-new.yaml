@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Precise estimates for more kinds of result"
+    text: >-
+      Planning for a narrow confidence interval now also covers a
+      difference between two groups' means in the outcome's own units, an
+      odds ratio, an intraclass correlation (agreement between raters) and
+      one predictor's coefficient in a multiple regression.
+  - date: "2026-11-01"
     title: "A new methods map"
     text: >-
       The methods map in Labs now opens full screen. Find a study like

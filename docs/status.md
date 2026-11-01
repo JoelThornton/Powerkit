@@ -95,8 +95,10 @@ fully validated. Validation runs are recorded in
   than power. Cohen's d between two groups, d_z and a standardised mean
   by MBESS (`ss.aipe.smd()`, `ss.aipe.sm()`, with optional assurance);
   a correlation (Pearson's, Spearman's or Kendall's) and a proportion
-  (Wilson's interval by default) by presize. MBESS brings OpenMx with it,
-  the heaviest new dependency.
+  (Wilson's interval by default) by presize; since 1 November 2026 also a
+  raw mean difference, an odds ratio and an ICC (presize) and a
+  standardised regression coefficient (MBESS's `ss.aipe.reg.coef()`, which
+  needs gsl). MBESS brings OpenMx with it, the heaviest new dependency.
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026) and Spearman's and Kendall's correlations (E4).

@@ -4137,3 +4137,20 @@ needed first.
   of the whole-study simulation and the published values for the eight
   cards still marked "validation in progress" move from the queue to
   "Waiting on the maintainer, not a PR" in `next.md`.
+
+## 2026-11-01 · Precision for more estimates (E46)
+
+- **Packages, as for the first estimates:** presize for a raw mean
+  difference (two equal groups, equal variances), an odds ratio and an
+  ICC; MBESS for a standardised regression coefficient (with assurance).
+- **The odds ratio's direction:** the second group's odds over the
+  first's, as powerkit's other two-group results run; presize's own is
+  the other way, so the groups are passed to `prec_or()` reversed. Its
+  interval defaults to presize's own default, the independence-smoothed
+  logit interval, with Gart's and Woolf's offered.
+- **The regression coefficient at a given n:** MBESS gives the sample
+  size for a width, not the width at a size, so powerkit reports the
+  narrowest width for which `ss.aipe.reg.coef()` needs no more than n,
+  rather than computing a standard error itself.
+- **gsl** is a new dependency (MBESS needs it for this function), with
+  the system library in the CI image and the online app's build.
