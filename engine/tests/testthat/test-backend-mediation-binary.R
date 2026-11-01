@@ -35,14 +35,15 @@ test_that("the path from X is shown as the group difference it implies, for any 
   expect_equal(mean(data$Condition == "Self-affirmation"), 0.3, tolerance = 0.02)
 })
 
-test_that("x_prob needs a yes/no X, and moderated mediation still refuses a yes/no variable", {
+test_that("x_prob needs a yes/no X, and a yes/no mediator is still refused", {
   spec <- read_spec(system.file("specs", "mediation_simple.json", package = "powerkit"))
   spec$variables$X <- list(type = "continuous", label = "Score")
   spec$population$x_prob <- 0.4
   expect_error(validate_spec(spec), "x_prob")
   spec <- sim_spec("process_7")
   spec$variables$W$reliability <- NULL
-  expect_error(run_quietly(spec), "aren't available yet", class = "powerkit_not_available")
+  spec$variables$M <- list(type = "binary", label = "Threatened")
+  expect_error(validate_spec(spec), "must be 'continuous'", class = "powerkit_spec_error")
 })
 
 test_that("the exported script draws X with rbinary_rs()", {

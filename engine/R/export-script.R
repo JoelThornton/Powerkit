@@ -2474,9 +2474,12 @@ power4mome_script <- function(spec, result) {
     "    model = model,",
     "    pop_es = pop_es,",
     "    n = batch_n, # sample size",
-    if (!is.null(inputs$x_prob)) sprintf(
-      "    x_fun = list(X = list(rbinary_rs, p1 = %s)), # X is yes/no: %s in its second level, rescaled to SD 1",
-      r_code(inputs$x_prob), r_code(inputs$x_prob)
+    if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) sprintf(
+      "    x_fun = list(%s), # yes/no: %s, rescaled to mean 0 and SD 1",
+      paste(c(if (!is.null(inputs$x_prob)) sprintf("X = list(rbinary_rs, p1 = %s)", r_code(inputs$x_prob)),
+        if (!is.null(inputs$w_prob)) sprintf("W = list(rbinary_rs, p1 = %s)", r_code(inputs$w_prob))), collapse = ", "),
+      paste(c(if (!is.null(inputs$x_prob)) sprintf("%s of X in its second level", r_code(inputs$x_prob)),
+        if (!is.null(inputs$w_prob)) sprintf("%s of W in its second level", r_code(inputs$w_prob))), collapse = " and ")
     ),
     "    R = ci_draws,",
     sprintf(

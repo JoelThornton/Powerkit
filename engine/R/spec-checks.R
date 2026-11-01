@@ -1747,12 +1747,35 @@ check_path_model <- function(spec) {
   problems <- c(
     check_path_names(spec, model),
     check_correlation_names(spec, model),
-    check_target_path(spec, model)
+    check_target_path(spec, model),
+    check_modmed_binary(spec)
   )
   if (length(problems) > 0) {
     return(problems)
   }
   check_implied_variances(spec, model)
+}
+
+# A yes/no X or W in moderated mediation (E17): each proportion only with a
+# yes/no variable, and no correlation of X with W, since rbinary_rs() draws
+# a yes/no variable on its own (as for a randomised condition).
+check_modmed_binary <- function(spec) {
+  if (!identical(spec$design, "moderated_mediation")) return(character())
+  problems <- character()
+  for (role in c("X", "W")) {
+    key <- paste0(tolower(role), "_prob")
+    if (!is.null(spec$population[[key]]) && !identical(spec$variables[[role]]$type, "binary")) {
+      problems <- c(problems, sprintf("'population > %s' is the proportion in the second group of a yes/no %s, but %s is a score; remove it, or make %s binary.",
+        key, role, var_label(spec, role), role))
+    }
+  }
+  binary <- vapply(c("X", "W"), function(r) identical(spec$variables[[r]]$type, "binary"), logical(1))
+  r <- as.numeric(spec$population$correlations[["X<->W"]] %||% 0)
+  if (any(binary) && r != 0) {
+    problems <- c(problems, sprintf("With a yes/no %s, X and W must be uncorrelated (a yes/no variable is drawn on its own, as a randomised condition is): remove 'population > correlations > X<->W' or set it to 0.",
+      paste(names(binary)[binary], collapse = " and ")))
+  }
+  problems
 }
 
 check_mediator_names <- function(spec, model) {

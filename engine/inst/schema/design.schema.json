@@ -3554,6 +3554,18 @@
               "residual_correlations": {
                 "description": "Parallel mediators only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
                 "$ref": "#/definitions/correlation_map"
+              },
+              "x_prob": {
+                "description": "A yes/no X only: the proportion in X's second level (0.5 if omitted). X is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so paths from X are per SD.",
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              },
+              "w_prob": {
+                "description": "A yes/no W only: the proportion in W's second level (0.5 if omitted), drawn and rescaled as for X.",
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
               }
             }
           },

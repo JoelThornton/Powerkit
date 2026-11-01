@@ -39,6 +39,10 @@ power4mome_backend <- function(spec, seed = NULL) {
 check_power4mome_supported <- function(spec) {
   binary <- names(Filter(function(v) identical(v$type, "binary"), spec$variables))
   if (spec$design == "mediation") binary <- setdiff(binary, "X")
+  # A yes/no X or W in moderated mediation (E17, 1 November 2026): drawn
+  # by rbinary_rs() as for E16's X, and checked against a separately
+  # written simulation (test-validation-modmed-binary.R).
+  if (spec$design == "moderated_mediation") binary <- setdiff(binary, c("X", "W"))
   if (length(binary) > 0) {
     abort_not_available(sprintf(
       "Mediation designs with a yes/no (binary) variable aren't available yet (%s %s yes/no). Treating %s as continuous may give an inaccurate power estimate.",
@@ -128,6 +132,7 @@ power4mome_inputs <- function(spec) {
     pop_es = paste(c(pop_paths, pop_covariances), collapse = "\n"),
     # A yes/no X: the proportion in its second level, for rbinary_rs().
     x_prob = if (identical(spec$variables$X$type, "binary")) spec$population$x_prob %||% 0.5,
+    w_prob = if (identical(spec$variables$W$type, "binary")) spec$population$w_prob %||% 0.5,
     equations = model$equations,
     term = term,
     test_name = test_name,
@@ -175,7 +180,10 @@ format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = 
 power4mome_call <- function(inputs, n, nrep, seed, ...) {
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
-    if (!is.null(inputs$x_prob)) list(x_fun = list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob))),
+    if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) list(x_fun = c(
+      if (!is.null(inputs$x_prob)) list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob)),
+      if (!is.null(inputs$w_prob)) list(W = list(power4mome::rbinary_rs, p1 = inputs$w_prob))
+    )),
     list(...),
     list(iseed = seed, parallel = FALSE, progress = FALSE)
   )
@@ -250,13 +258,15 @@ power4mome_check_run <- function(spec, inputs, seed) {
   }
   # A yes/no X: the share of people in its second level (rbinary_rs()
   # puts them above X's mean).
-  if (!is.null(inputs$x_prob)) {
-    share <- mean(data$X > 0)
-    split_row <- data.frame(
-      parameter = "proportion in X's second level", specified = inputs$x_prob, recovered = share,
-      ok = abs(share - inputs$x_prob) <= 5 * sqrt(inputs$x_prob * (1 - inputs$x_prob) / n)
+  split_row_for <- function(v, prob) {
+    share <- mean(data[[v]] > 0)
+    data.frame(
+      parameter = sprintf("proportion in %s's second level", v), specified = prob, recovered = share,
+      ok = abs(share - prob) <= 5 * sqrt(prob * (1 - prob) / n)
     )
   }
+  split_rows <- c(if (!is.null(inputs$x_prob)) list(split_row_for("X", inputs$x_prob)),
+    if (!is.null(inputs$w_prob)) list(split_row_for("W", inputs$w_prob)))
   lookup <- correlation_lookup(spec)
   correlation_rows <- list()
   if (spec$design == "moderated_mediation") {
@@ -277,7 +287,7 @@ power4mome_check_run <- function(spec, inputs, seed) {
       )
     }))
   }
-  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows, if (!is.null(inputs$x_prob)) list(split_row)))
+  check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows, split_rows))
   rownames(check) <- NULL
   check
 }

@@ -1103,11 +1103,15 @@ endpoints:
     doc_name: "Moderated mediation with a yes/no X or W"
     plain_name: "Moderated mediation where X or W is two groups"
     template: "moderated_mediation / process_7 or process_14 (X or W yes/no)"
-    backend: "power4mome: power4test() with rbinary_rs() (planned)"
+    backend: "power4mome: power4test() with rbinary_rs() and test_index_of_mome()"
     method: Simulation
-    inputs: ["Fully standardised paths", "A yes/no X or W must be uncorrelated with the other predictors (fits a randomised condition)"]
-    status: coming_soon
-    coming_soon_note: "Planned next: a yes/no X or W."
+    inputs: ["Which link W changes, and which variables are yes/no", "Standardised paths (per SD of a yes/no variable, as power4mome rescales it)"]
+    status: runs_validation_in_progress
+    validation: {file: test-validation-modmed-binary.R, note: "Agrees with a simulation written separately (a yes/no variable standardised by its population mean and SD, OLS for each equation and its own Monte Carlo interval), and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Moderated mediation (PROCESS model 7 or 14) where X is two groups, such as a randomised condition, or W is two groups, or both."
+      - "A yes/no variable is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so its paths are per SD, as for a score; it must be uncorrelated with the other predictor, as a randomised condition is."
+      - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
     alternatives: ["conditional indirect effects for each group"]
