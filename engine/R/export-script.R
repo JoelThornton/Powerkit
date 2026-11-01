@@ -590,8 +590,8 @@ goal_description <- function(spec) {
   if (bayes_factor_test(spec)) {
     return(switch(
       goal$type,
-      power = sprintf("the probability of strong evidence (BF10 at least %s) at a total sample size of %s", bfpwr_inputs(spec)$threshold, goal$n),
-      sample_size = sprintf("the smallest total sample size with a probability of at least %s of strong evidence (BF10 at least %s)", goal$power, bfpwr_inputs(spec)$threshold)
+      power = sprintf("the probability of strong evidence (BF10 at least %s) at a total sample size of %s", bayes_threshold(spec), goal$n),
+      sample_size = sprintf("the smallest total sample size with a probability of at least %s of strong evidence (BF10 at least %s)", goal$power, bayes_threshold(spec))
     ))
   }
   if (precision_goal(spec)) {

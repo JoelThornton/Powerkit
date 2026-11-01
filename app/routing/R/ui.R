@@ -153,7 +153,7 @@ nav_key <- function(screen, node, endpoint, n_answers, tab) {
 # Each tab has its own address (?page=labs and so on), so a page can be
 # shared by link. The plan tab is the plain address.
 page_slugs <- function() {
-  c(plan = "Plan a power analysis", about = "About", "whats-new" = "What's new",
+  c(plan = "Plan a power analysis", about = "About", updates = "Updates",
     labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
 }
 
@@ -163,6 +163,8 @@ page_from_query <- function(query = "") {
   slug <- shiny::parseQueryString(query %||% "")$page
   if (is.null(slug)) return(NULL)
   slug <- tolower(slug)
+  # The Updates tab was called "What's new"; old links still open it.
+  if (identical(slug, "whats-new")) slug <- "updates"
   if (identical(slug, "maintainer") && !maintainer_view_requested(query)) return(NULL)
   tab <- page_slugs()[slug]
   if (is.na(tab)) NULL else unname(tab)
@@ -224,6 +226,10 @@ share_page_ui <- function() {
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
+  // On a phone the tab bar scrolls sideways: keep the open tab in view.
+  document.addEventListener('shown.bs.tab', function(e) {
+    if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
+  });
   window.pkPageUrl = function(page) {
     var url = new URL(window.location.href);
     if (page && page !== 'plan') url.searchParams.set('page', page); else url.searchParams.delete('page');

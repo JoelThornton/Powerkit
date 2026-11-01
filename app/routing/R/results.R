@@ -1064,10 +1064,10 @@ explore_ui <- function(spec, result = NULL) {
   planned <- result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
-    h4(class = "h6", "Explore: what if the effect were different?"),
-    p(class = "small", "Move the slider to see how power changes with the sample size for other effect sizes. Exploring doesn't change your plan: it keeps the effect size and reasoning you entered."),
+    h5(class = "h6", "If the effect were different"),
+    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks your plan. Exploring doesn't change your plan."),
     sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
-    plotOutput("explore_plot", height = "280px")
+    plotOutput("explore_plot", height = "300px")
   )
 }
 
@@ -1143,16 +1143,17 @@ scenarios_ui <- function(spec, result = NULL) {
   # with no effect.
   if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || planned == 0) return(NULL)
   div(class = "scenario-panel",
-    h4(class = "h6", "How much does the answer depend on the effect?"),
+    h5(class = "h6", "A cautious and a hopeful guess"),
     p(class = "small", sprintf(paste0(
       "Your plan uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
-      "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them, and they don't change your plan."),
+      "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
-    plotOutput("scenario_plot", height = "300px"),
-    uiOutput("scenario_n"))
+    conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
+      plotOutput("scenario_plot", height = "300px"),
+      uiOutput("scenario_n")))
 }
 
 # "The smallest effect I could detect across a range of sample sizes": the
@@ -1343,7 +1344,7 @@ technical_details_ui <- function(result) {
   tags$details(class = "result-more result-technical",
     tags$summary("Technical details (for checking against G*Power or R)"),
     tags$ul(lapply(Filter(Negate(is.null), lines), tags$li)),
-    p(class = "small", "The R script (under \u201cSave and share\u201d) reproduces the whole calculation with the package alone."))
+    p(class = "small", "The R script (under \u201cWrite it up and save it\u201d) reproduces the whole calculation with the package alone."))
 }
 
 # The n the result is about: the required n, or the goal's n.
@@ -1483,12 +1484,21 @@ is_bayes_test <- function(spec) identical(spec$target_test$method, "bayes_factor
 
 bayes_settings_text <- function(spec) {
   tt <- spec$target_test
+  if (is_bayes_binomial(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; Beta(%s, %s) prior%s",
+      format(tt$evidence_threshold %||% 10), format(tt$prior_a %||% 1), format(tt$prior_b %||% 1),
+      if (identical(tt$alternative %||% "two_sided", "two_sided")) "" else if (identical(tt$one_sided_null, "directional"))
+        "; at or below the fixed value against above it" else "; the fixed value against one side, as in JASP"))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
+is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
+
 bayes_test_name <- function(spec) {
   switch(spec$template,
+    one_proportion = "a Bayes factor test of one proportion",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test")
@@ -1512,6 +1522,7 @@ bayes_sentence <- function(spec, result) {
   k <- format(b$evidence_threshold)
   c(
     if (b$effect_sd > 0) sprintf(paste(
+      if (is_bayes_binomial(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
@@ -1535,7 +1546,7 @@ departures_for <- function(forms, ep_id, spec) {
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
-  if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
+  if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% spec$population$p_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
@@ -1620,6 +1631,117 @@ provenance_lines <- function(result) {
 }
 
 # The whole result panel. `calc` is run_calculation()'s value.
+# The answer as one figure (1 November 2026): the number a researcher came
+# for, in large type, with what it is and what it assumes beside it. Only
+# words the engine's result; NULL where a design has no single figure, and
+# the sentence underneath says it all.
+result_figure <- function(spec, result) {
+  unit <- n_unit(spec) %||% "participants"
+  fig <- tryCatch(switch(
+    result$goal_type %||% "",
+    sample_size = {
+      n <- result$n_required$n
+      if (is.null(n) || is.na(n)) NULL else list(value = whole(n), label = paste(unit, "in total"),
+        sub = trimws(gsub("^ *\\(|\\) *$", "", group_text(spec, n))))
+    },
+    power = {
+      row <- result$curve[1, ]
+      if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
+        sub = sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
+    },
+    sensitivity = {
+      s <- result$sensitivity
+      if (is.null(s$effect) || is.na(s$effect)) NULL else {
+        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", "effect")
+        value <- if (!is.null(s$cohen_f)) sprintf("%.3f", s$cohen_f) else format(round(s$effect, 3), nsmall = 2)
+        list(value = value, label = if (identical(name, "group 2's proportion")) "group 2's proportion you could detect" else paste("the smallest", name, "you could detect"),
+          sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power)))
+      }
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      if (is.null(j$alpha)) NULL else list(value = justified_alpha_text(j$alpha), label = "the justified alpha",
+        sub = sprintf("with %s %s; power at that level %s", whole(spec$goal$n), unit, percent(j$power)))
+    },
+    NULL), error = function(e) NULL)
+  if (is.null(fig)) return(NULL)
+  if (is_dyadic(spec)) fig <- lapply(fig, function(x) gsub("participants", "pairs", x, fixed = TRUE))
+  if (is_bayes_test(spec)) fig <- lapply(fig, bayes_wording)
+  if (is_sem_fit(spec)) fig <- lapply(fig, sem_wording)
+  if (!nzchar(fig$sub %||% "")) fig$sub <- NULL
+  fig
+}
+
+# What the figure assumes, as short tags beside it: the effect, the test
+# and the target power (or the sample size it was given).
+result_assumptions <- function(spec, result, fields, values) {
+  test <- test_text(spec)
+  out <- c(
+    effect = writeup_effect(fields, values) %||% NA_character_,
+    test = paste0(toupper(substr(test, 1, 1)), substr(test, 2, nchar(test))),
+    target = if (!is.null(spec$goal$power) && !identical(result$goal_type, "power")) sprintf("Target power %s", percent(spec$goal$power)) else NA_character_
+  )
+  out <- out[!is.na(out) & nzchar(out)]
+  if (is_bayes_test(spec)) out[] <- vapply(out, bayes_wording, character(1))
+  out
+}
+
+result_hero_ui <- function(spec, result, fields, values) {
+  fig <- result_figure(spec, result)
+  if (is.null(fig)) return(NULL)
+  assumes <- result_assumptions(spec, result, fields, values)
+  div(class = "result-hero",
+    div(class = "result-figure",
+      tags$span(class = "result-figure-value", fig$value),
+      tags$span(class = "result-figure-label", fig$label),
+      if (!is.null(fig$sub)) tags$span(class = "result-figure-sub", fig$sub)),
+    if (length(assumes)) div(class = "result-assumes",
+      tags$span(class = "result-assumes-title", "Assuming"),
+      tags$ul(lapply(unname(assumes), tags$li))))
+}
+
+# The sections of a result, as links along its top.
+result_sections_ui <- function(items) {
+  tags$nav(class = "result-sections", `aria-label` = "Parts of this result",
+    lapply(names(items), function(id) tags$a(href = paste0("#", id), onclick = sprintf(
+      "var e = document.getElementById('%s'); if (e) { e.scrollIntoView({behavior: 'smooth', block: 'start'}); } return false;", id), items[[id]])))
+}
+
+# A power curve drawn in powerkit's style: power by N, the target power,
+# and the plan's N marked. `df` has n and power; more lines (scenarios)
+# come as a list of data frames with their colours and labels.
+power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Participants analysed") {
+  navy <- "#14284B"; grid <- "#e3e7ef"; ink <- "#4a5568"
+  ns <- unlist(lapply(lines, function(l) l$df$n))
+  op <- par(mar = c(4.4, 4.6, 1.2, 1.2), mgp = c(2.8, 0.7, 0), family = "sans", col.axis = ink, col.lab = ink, cex.lab = 1.05)
+  on.exit(par(op))
+  plot(NA, xlim = range(c(ns, planned_n), na.rm = TRUE), ylim = c(0, 1), axes = FALSE, xlab = xlab, ylab = "Power")
+  abline(h = seq(0, 1, 0.2), col = grid, lwd = 1)
+  axis(1, col = NA, col.ticks = grid, tcl = -0.3)
+  axis(2, at = seq(0, 1, 0.2), labels = paste0(seq(0, 100, 20), "%"), las = 1, col = NA, col.ticks = NA)
+  if (!is.null(target)) {
+    abline(h = target, col = "#d08a1c", lty = 2, lwd = 1.5)
+    text(par("usr")[2], target, sprintf("Target %s", percent(target)), adj = c(1, -0.5), col = "#a0660a", cex = 0.85)
+  }
+  for (l in lines) {
+    d <- l$df[order(l$df$n), ]
+    d <- d[!is.na(d$power), ]
+    if (isTRUE(l$fill) && nrow(d) > 1) polygon(c(d$n, rev(d$n)), c(d$power, rep(0, nrow(d))), col = grDevices::adjustcolor(l$col, 0.08), border = NA)
+    lines(d$n, d$power, col = l$col, lwd = 3, lty = l$lty %||% 1)
+  }
+  if (!is.null(planned_n) && !is.na(planned_n) && length(lines)) {
+    d <- lines[[1]]$df
+    d <- d[order(d$n) & !is.na(d$power), ]
+    if (nrow(d) > 1 && planned_n >= min(d$n) && planned_n <= max(d$n)) {
+      y <- stats::approx(d$n, d$power, xout = planned_n)$y
+      segments(planned_n, 0, planned_n, y, col = navy, lty = 3, lwd = 1.5)
+      points(planned_n, y, pch = 21, bg = "#ffffff", col = navy, cex = 1.8, lwd = 2.5)
+      text(planned_n, y - 0.1, sprintf("Your plan: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
+    }
+  }
+  invisible()
+}
+
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   # Dyadic data: every count of the sample on the screen counts pairs.
   if (identical(calc$status, "ok") && is_dyadic(calc$spec)) {
@@ -1652,10 +1774,18 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   # powerkit differs from the usual tools, and the technical records. The
   # details a reader rarely needs (the values used, the seed, what power
   # can't tell you) are folded under "More about this result".
+  hero <- result_hero_ui(spec, result, fields, values)
+  explore <- explore_ui(spec, result)
+  scen <- scenarios_ui(spec, result)
+  sections <- c(`result-answer` = "The answer",
+    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table)) "How sure can you be?",
+    `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
   div(
     class = "result-panel", role = "status", tabindex = "-1",
-    div(class = "result-card result-main",
+    result_sections_ui(as.list(sections[!is.na(sections)])),
+    div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
     h3(class = "h4", "Your result"),
+    hero,
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
@@ -1672,11 +1802,17 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table)) div(class = "result-card", curve_table_ui(spec, result, calc$curve_table)),
-    div(class = "result-card result-explore", explore_ui(spec, result)),
-    if (!is.null(scen <- scenarios_ui(spec, result))) div(class = "result-card result-scenarios", scen),
-    div(class = "result-card result-save",
-    h4(class = "h5", "Save and share"),
+    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen)) div(class = "result-card result-sure", id = "result-sure",
+      h4(class = "h5", "How sure can you be?"),
+      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes your plan."),
+      if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
+      explore,
+      scen),
+    div(class = "result-card result-save", id = "result-take",
+    h4(class = "h5", "Write it up and save it"),
+    writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
+      vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
+    h4(class = "h6 mt-3", "Downloads"),
     if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
@@ -1686,10 +1822,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
-    simulated_data_ui(spec, result),
-    writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
-      vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known))),
-    div(class = "result-card result-how",
+    simulated_data_ui(spec, result)),
+    div(class = "result-card result-how", id = "result-how-card",
     h4(class = "h5", "How it was calculated"),
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-credit",
@@ -1885,7 +2019,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sides <- if (spec$template %in% c("t", "z")) writeup_sides(spec)
   }
   test <- if (!is.null(spec$target_test$alpha)) sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
-  if (is_bayes_test(spec)) {
+  if (is_bayes_binomial(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(tt$prior_a %||% 1), format(tt$prior_b %||% 1), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
@@ -2132,19 +2270,22 @@ writeup_ui <- function(text) {
   if (is.null(text)) return(NULL)
   # The short version is open; the longer ones are a click away, so the
   # card stays short.
+  copy <- function(id) tagList(
+    tags$button(type = "button", class = "btn btn-sm btn-outline-primary writeup-copy",
+      onclick = sprintf("pkCopyText(document.getElementById('%s').value, this.parentNode.querySelector('.writeup-copied'))", id), "Copy"),
+    tags$span(class = "writeup-copied small visually-hidden", role = "status"))
   div(class = "result-writeup",
-    h4(class = "h6", "Write-up"),
-    p(class = "small", "Edit as you like before you copy it."),
-    tags$label(`for` = "writeup_short", "Short version (for the paper)"),
+    p(class = "small", "A methods paragraph built from your answers. Edit it as you like, then copy it."),
+    div(class = "writeup-head", tags$label(`for` = "writeup_short", "Short version (for the paper)"), copy("writeup_short")),
     tags$textarea(id = "writeup_short", class = "form-control writeup", rows = 6, text[["short"]]),
     tags$details(class = "result-more",
       tags$summary("Full version (for a supplement or preregistration)"),
-      tags$label(`for` = "writeup_full", class = "visually-hidden", "Full version (for a supplement or preregistration)"),
+      div(class = "writeup-head", tags$label(`for` = "writeup_full", class = "visually-hidden", "Full version (for a supplement or preregistration)"), copy("writeup_full")),
       tags$textarea(id = "writeup_full", class = "form-control writeup", rows = 10, text[["full"]])),
     if (!is.na(text["ethics"])) tags$details(class = "result-more",
       tags$summary("Plain-words version (for an ethics application)"),
-      tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"),
       p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
+      div(class = "writeup-head", tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"), copy("writeup_ethics")),
       tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
 }
 
@@ -2259,7 +2400,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-detail", words[["detail"]]),
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
     div(class = "result-card result-save",
-      h4(class = "h5", "Save and share"),
+      h4(class = "h5", "Write it up and save it"),
       if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("To save this plan, download its R script or get its write-up, "),
         "write your reasoning under “Where your effect size comes from” and press “Check my answers” again."),

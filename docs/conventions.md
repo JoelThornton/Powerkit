@@ -473,6 +473,15 @@ likelihood ratio; not a departure.
 | apimpower | A web app for APIM power; not callable from R, not compared | — | — |
 | **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
 
+## Bayes factor test of one proportion (E25)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian binomial test; analysis only, no planning) | Two-sided: p = p0 against p != p0, a Beta(a, b) prior; one-sided: p = p0 against p > p0 (or < p0), the prior truncated to that side | — | Beta(1, 1) by default |
+| bfpwr | `binbf01()`, `pbinbf01()`: the two-sided test (`type = "point"`, the same Bayes factor as JASP's) and a directional test (`type = "direction"`: p <= p0 against p > p0) | A fixed proportion, or a truncated beta design prior (by default the analysis prior) | Beta(1, 1) by default; power summed over the outcomes 0 to n |
+| **powerkit** | Two-sided and the directional test from bfpwr's `pbinbf01()`; the one-sided test against a point null, JASP's, from bfpwr's two-sided Bayes factor times the ratio of the posterior to the prior probability of that side, summed over the outcomes 0 to n (E25, from 1 November 2026) [powerkit] | The expected proportion, exactly, or a beta design prior with its mean and an SD (`population > p_sd`) | Beta(1, 1) by default; one-sided: JASP's test by default (`target_test > one_sided_null` "point"), bfpwr's as "directional". Not a departure from JASP, which has no planning; Departure 15 is the design prior's default |
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -1025,6 +1034,18 @@ as an experimental option, for a statistician's check
   screens when the Bayes factor t-test is chosen and the SD is left at 0
   (`app/routing/forms.yaml`, `departures`, key "15"), and in the methods
   paragraph's full version.
+- **The Bayes factor test of one proportion (1 November 2026):** the
+  same choice. bfpwr's `pbinbf01()` takes a fixed proportion (`dp`) or,
+  by default, a beta design prior equal to the analysis prior (`dp = NA`,
+  `da = a`, `db = b`: a uniform proportion with JASP's Beta(1, 1)).
+  powerkit plans for exactly the proportion entered unless the user gives
+  an SD (`population > p_sd`, a beta design prior with that mean and SD).
+  Size: for p = 0.65 against 0.5, two-sided, BF10 of at least 10, 80%
+  needs 161 people with powerkit's default and 229 with bfpwr's; at 161,
+  bfpwr's default gives 76.5% (`test-backend-bayes-binomial.R`,
+  "Departure 15's size for a proportion"). Shown on the one-proportion
+  result screen (E25) when the Bayes factor test is chosen and the SD is
+  left at 0.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
 

@@ -1,4 +1,4 @@
-# "What's new" tab: changes people using the app would notice, in plain
+# The Updates tab (once "What's new"): changes people using the app would notice, in plain
 # words, newest first. Add an entry with every PR that changes what users
 # see (engine/NEWS.md keeps the developer notes). Rules, checked by
 # tests/testthat/test-whats-new.R: a date (YYYY-MM-DD), a short title and a
@@ -26,6 +26,39 @@ entries:
       and one on each group) and the three-level card (pupils in classes in
       schools) now also plan studies where the outcome is yes or no, such as
       passed or not, as a logistic mixed model.
+    title: "A clearer About page, and Updates"
+    text: >-
+      The About page now says in three steps how powerkit works, shows
+      every analysis that calculates grouped by family (click one to plan
+      it), and folds each package's citation under "How to cite". The
+      "What's new" tab is now Updates, next to Feedback: a timeline of the
+      changes, each opening to say more, with Full details showing them
+      all, a search box, and the changes since you last looked marked New.
+      Every tab now sits in the same place, and the blue bar spans the
+      whole window.
+  - date: "2026-11-01"
+    title: "A Bayes factor test for one proportion"
+    text: >-
+      The card for one proportion (for example, guessing right more often
+      than chance) now offers a Bayes factor test as well as the exact
+      binomial test, with the same prior as JASP's Bayesian binomial test.
+      It shows the chance of strong evidence, and what the study would show
+      if there were no effect.
+  - date: "2026-11-01"
+    title: "A new methods map"
+    text: >-
+      The methods map in Labs now opens full screen. Find a study like
+      yours and it moves to the middle, with the simpler designs that lead
+      to it on one side and the ways to change it on the other, each saying
+      what changes. It shows which test each analysis uses, and "Plan this
+      study" takes you straight to it.
+  - date: "2026-11-01"
+    title: "A clearer result"
+    text: >-
+      The result now starts with the answer in large type, with what it
+      assumes beside it. Below it, "How sure can you be?" shows how the
+      answer changes if the effect is smaller or larger, and the write-up
+      comes with a Copy button.
   - date: "2026-11-01"
     title: "Bayes factors checked as the data come in"
     text: >-

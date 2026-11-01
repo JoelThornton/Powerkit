@@ -70,8 +70,9 @@ it affects.
 what named people have said, unless a source is given.
 
 The statistical decisions phase 3b needs before coding are in
-[`phase-3b-questions.md`](phase-3b-questions.md) and are only linked here
-(E4).
+[`phase-3b-questions.md`](phase-3b-questions.md) and were
+E4, now decided and in
+[`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md).
 
 For the session itself, [`judgement-session.md`](judgement-session.md)
 condenses the calls that change what users see into one page each,
@@ -1307,28 +1308,6 @@ Setting `consistency_approach` records it.
   - Separate documents suit different readers.
 - **Knock-on effects:** the docs-match tests.
 - **Recorded in:** open question 9. No setting.
-
-### E4. Phase 3b: binary X and W
-
-- **Question:** the statistical decisions needed before coding binary X
-  and W:
-  - how users specify a 0/1 X's effect when paths are standardised;
-  - whether the group proportion is an input;
-  - how power4mome generates binary variables;
-  - how this interacts with the planned Cohen's d departure;
-  - the validation targets.
-- **Where:** [`phase-3b-questions.md`](phase-3b-questions.md), with the
-  options and what the backends' documentation says. Not copied here.
-- **Knock-on effects:** the E15, E16 and E17 cards.
-- **Partly decided (29 October 2026, `decisions.md`):** the effect is
-  entered as a standardised path or correlation, with the group
-  difference it implies shown beside it (option B; a Cohen's d input
-  later, as a departure); the split is asked on the mediation cards
-  (50/50 by default) and fixed at 50/50 for interactions. E15 and E16 are
-  built on these (E16's Monte Carlo CI with a binary X agrees with an
-  independent simulation in `test-validation-mediation-binary.R`). Still
-  open for E17: how power4mome standardises a binary W in moderated
-  mediation (a question for power4mome's author).
 
 ### E6. Saving projects
 

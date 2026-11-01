@@ -487,7 +487,9 @@ test_that("app.R parses (the other tests read it as text)", {
 test_that("each tab has its own address, so a page can be shared by link", {
   expect_identical(page_from_query("?page=labs"), labs_tab_title)
   expect_identical(page_from_query("?page=About"), "About")
-  expect_identical(page_from_query("?page=whats-new"), "What's new")
+  expect_identical(page_from_query("?page=updates"), "Updates")
+  # Links from when the tab was called "What's new" still open it.
+  expect_identical(page_from_query("?page=whats-new"), "Updates")
   expect_null(page_from_query(""))
   expect_null(page_from_query("?page=nowhere"))
   # The maintainer's tab only opens in the maintainer's view.
@@ -514,7 +516,7 @@ test_that("the top bar's share button copies a working link to the page", {
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "share_page_ui())", fixed = TRUE)
   # Each shared page name is one the app opens.
-  for (p in c("about", "whats-new", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
+  for (p in c("about", "updates", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
   expect_true("prereplication" %in% vapply(labs_tools, `[[`, "", "id"))
   expect_match(labs_js, "get('tool')", fixed = TRUE)
 })
