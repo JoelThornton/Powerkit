@@ -361,55 +361,92 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
 # closed groups, with a search box that filters them all (the maintainer's
 # decision of 31 October 2026): someone who knows their analysis goes
 # straight here, without the screening questions. With screening answers
-# (`ctx`), only the end points that fit them are listed.
-known_status_text <- list(
-  runs_validated = NULL, runs_validation_in_progress = "Runs; validation in progress",
-  coming_soon = "Coming soon", not_in_powerkit = "Not in powerkit yet: the card points to tools that do it"
+# (`ctx`), only the end points that fit them are listed. Common starting
+# points (`known_shortcuts`) sit above the groups, one click away.
+known_status_badge <- list(
+  runs_validated = NULL,
+  runs_validation_in_progress = c("known-badge known-badge-progress", "Validation in progress"),
+  coming_soon = c("known-badge known-badge-soon", "Coming soon"),
+  not_in_powerkit = c("known-badge known-badge-not", "Not in powerkit yet")
 )
 
 known_ui <- function(tree, history = list(), ctx = NULL) {
   eps <- tree$endpoints
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
+  shown_name <- function(id) {
+    name <- standard_name(eps[[id]]$doc_name)$name
+    if (maintainer_view()) sprintf("%s (%s)", name, id) else name
+  }
   item <- function(id, family) {
     ep <- eps[[id]]
-    name <- standard_name(ep$doc_name)$name
-    status <- known_status_text[[ep$status]]
-    shown <- if (maintainer_view()) sprintf("%s (%s)", name, id) else name
+    badge <- known_status_badge[[ep$status]]
     # The other name underneath: the technical one by default, the plain
     # one with explanations off.
-    help <- tagList(tags$span(class = "name-tech-alt", shown), tags$span(class = "name-plain-alt", ep$plain_name),
-      if (!is.null(status)) paste0(" \u00b7 ", status))
+    help <- tagList(tags$span(class = "name-tech-alt", shown_name(id)), tags$span(class = "name-plain-alt", ep$plain_name))
     words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words)
     div(class = "known-item", `data-search` = words,
-      pick_button(name_swap(ep$plain_name, name), paste0("ep:", id), help,
-        class = if (identical(ep$status, "not_in_powerkit")) "btn btn-outline-secondary choice" else "btn btn-outline-primary choice"))
+      tags$button(type = "button", `data-ep` = id,
+        class = if (identical(ep$status, "not_in_powerkit")) "btn choice known-choice known-choice-not" else "btn choice known-choice",
+        onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", id),
+        tags$span(class = "choice-label", name_swap(ep$plain_name, shown_name(id))),
+        tags$span(class = "choice-help", help),
+        if (!is.null(badge)) tags$span(class = badge[[1]], badge[[2]])))
   }
   families <- Filter(function(f) any(unlist(f$endpoints) %in% names(eps)), tree$analysis_families)
+  shortcuts <- intersect(unlist(tree$known_shortcuts), names(eps))
   tagList(
     screen_nav_ui(),
     trail_ui(history),
     h2("Which analysis do you want?"),
-    p(class = "lead", "Search for it, or open its group. Each one opens its card, which says what the test assumes and needs."),
+    p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs."),
     if (!is.null(ctx)) {
       p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.",
         length(eps), length(tree$endpoints)))
     },
-    tags$label(`for` = "known_search", class = "form-label", "Search the analyses"),
-    tags$input(id = "known_search", type = "search", class = "form-control mb-3", autocomplete = "off",
-      placeholder = "For example: repeated measures, logistic, mediation, meta-analysis",
-      oninput = "powerkitFilterAnalyses(this.value)"),
-    p(id = "known_none", class = "text-muted", hidden = NA,
-      "No analysis matches those words. Try fewer words, or open the groups below."),
+    div(class = "known-search",
+      tags$label(`for` = "known_search", class = "form-label", "Search the analyses"),
+      div(class = "known-search-box",
+        tags$svg(class = "known-search-icon", `aria-hidden` = "true", viewBox = "0 0 20 20", width = "18", height = "18",
+          tags$circle(cx = "8.5", cy = "8.5", r = "5.75", fill = "none", stroke = "currentColor", `stroke-width` = "2"),
+          tags$line(x1 = "13", y1 = "13", x2 = "17.5", y2 = "17.5", stroke = "currentColor", `stroke-width` = "2", `stroke-linecap` = "round")),
+        tags$input(id = "known_search", type = "search", class = "form-control", autocomplete = "off",
+          `aria-describedby` = "known_count",
+          placeholder = "For example: repeated measures, logistic, mediation, meta-analysis",
+          oninput = "powerkitFilterAnalyses(this.value)",
+          onkeydown = "if (event.key === 'Escape' && this.value) { this.value = ''; powerkitFilterAnalyses(''); }")),
+      p(id = "known_count", class = "known-count-line", role = "status", `aria-live` = "polite",
+        sprintf("%d analyses in %d groups.", sum(vapply(families, function(f) length(intersect(unlist(f$endpoints), names(eps))), 1L)), length(families)))),
+    p(id = "known_none", class = "known-none", hidden = NA,
+      "No analysis matches those words. Try fewer words or another name for the test, open the groups below, or ",
+      tags$button(type = "button", class = "btn btn-link known-inline-link",
+        onclick = "Shiny.setInputValue('pick', 'route:choose', {priority: 'event'})", "answer a few questions instead"), "."),
+    if (length(shortcuts) > 0) {
+      div(class = "known-shortcuts", id = "known_shortcuts",
+        h3(class = "known-section-title", "Common starting points"),
+        div(class = "known-shortcut-list", lapply(shortcuts, function(id) {
+          tags$button(type = "button", class = "known-shortcut", `data-ep` = id,
+            onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", id),
+            name_swap(eps[[id]]$plain_name, shown_name(id)))
+        })))
+    },
+    div(class = "known-groups-head",
+      h3(class = "known-section-title", id = "known_groups_title", "All analyses, by group"),
+      tags$button(type = "button", class = "btn btn-link known-open-all", id = "known_open_all",
+        onclick = "powerkitOpenAllFamilies(this)", "Open all groups")),
     lapply(families, function(f) {
       ids <- intersect(unlist(f$endpoints), names(eps))
-      tags$details(class = "known-family mb-2", `data-family` = f$id,
-        tags$summary(class = "h5", sprintf("%s (%d)", f$label, length(ids))),
-        div(class = "choices list", lapply(ids, item, family = f)))
+      tags$details(class = "known-family", `data-family` = f$id,
+        tags$summary(
+          tags$span(class = "known-family-label", f$label),
+          tags$span(class = "known-family-count", `data-total` = length(ids),
+            `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
+        div(class = "known-family-items", lapply(ids, item, family = f)))
     }),
     div(class = "choices list mt-4",
       pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"),
       pick_button("Not sure which? Answer a few questions instead", "route:choose", class = "btn btn-outline-secondary choice choice-safety")),
-    tags$script(HTML(known_search_js))
+    tags$script(HTML(known_search_js)),
+    tags$script(HTML("powerkitRestoreAnalyses();"))
   )
 }
 
@@ -417,18 +454,22 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
 # brackets and other punctuation as spaces, so "t-test" and "t test" match.
 search_text <- function(...) {
   text <- tolower(paste(unlist(list(...)), collapse = " "))
-  text <- gsub("[^a-z0-9\u00b2\u00d7]+", " ", text)
+  text <- gsub("[^a-z0-9²×]+", " ", text)
   paste0(" ", trimws(gsub("\\s+", " ", text)), " ")
 }
 
 # Filters the list as the user types: every word must appear in an
 # analysis's names, its group's or its other search words; a word of one
 # or two letters (such as "t" or "r") must be a whole word. Groups with
-# matches open, the rest hide; an empty box shows every group closed again.
+# matches open and show how many match, the rest hide, and the common
+# starting points step aside; an empty box shows every group closed again.
+# The search and the open groups are remembered in the page (not stored
+# anywhere), so Back from a card returns to the same place in the list.
 known_search_js <- "
+window.powerkitKnown = window.powerkitKnown || { query: '', open: [], back: null };
 function powerkitFilterAnalyses(query) {
   var words = query.toLowerCase().replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
-  var any = false;
+  var any = false, items = 0, groups = 0;
   document.querySelectorAll('.known-family').forEach(function(family) {
     var shown = 0;
     family.querySelectorAll('.known-item').forEach(function(item) {
@@ -439,10 +480,60 @@ function powerkitFilterAnalyses(query) {
     });
     family.hidden = shown === 0;
     family.open = words.length > 0 && shown > 0;
-    if (shown > 0) any = true;
+    var count = family.querySelector('.known-family-count');
+    if (count) {
+      var total = count.getAttribute('data-total');
+      count.textContent = words.length > 0 && String(shown) !== total ? shown + ' of ' + total : total;
+      count.setAttribute('aria-label', words.length > 0 ? shown + ' of ' + total + ' analyses match' : total + ' analyses');
+    }
+    if (shown > 0) { any = true; groups++; items += shown; }
   });
   var none = document.getElementById('known_none');
   if (none) none.hidden = any;
+  var shortcuts = document.getElementById('known_shortcuts');
+  if (shortcuts) shortcuts.hidden = words.length > 0;
+  var title = document.getElementById('known_groups_title');
+  if (title) title.textContent = words.length > 0 ? 'Analyses that match' : 'All analyses, by group';
+  var openAll = document.getElementById('known_open_all');
+  if (openAll) { openAll.hidden = words.length > 0; openAll.textContent = 'Open all groups'; }
+  var line = document.getElementById('known_count');
+  if (line) {
+    var plural = function(n, one, many) { return n + ' ' + (n === 1 ? one : many); };
+    line.textContent = words.length === 0 ? plural(items, 'analysis', 'analyses') + ' in ' + plural(groups, 'group.', 'groups.') :
+      any ? plural(items, 'analysis matches', 'analyses match') + ', in ' + plural(groups, 'group.', 'groups.') : 'No analysis matches.';
+  }
+  window.powerkitKnown.query = query;
+}
+function powerkitOpenAllFamilies(button) {
+  var families = document.querySelectorAll('.known-family');
+  var open = !Array.prototype.every.call(families, function(f) { return f.open; });
+  families.forEach(function(f) { f.open = open; });
+  button.textContent = open ? 'Close all groups' : 'Open all groups';
+}
+function powerkitRestoreAnalyses() {
+  var state = window.powerkitKnown, back = state.back;
+  state.back = null;
+  var screen = document.getElementById('screen') || document;
+  // Remember which analysis was opened, the search and the open groups.
+  screen.querySelectorAll('.known-choice, .known-shortcut').forEach(function(b) {
+    b.addEventListener('click', function() {
+      state.back = b.getAttribute('data-ep');
+      state.open = Array.prototype.map.call(document.querySelectorAll('.known-family[open]'), function(f) { return f.getAttribute('data-family'); });
+    });
+  });
+  if (!back) { state.query = ''; state.open = []; return; }
+  var box = document.getElementById('known_search');
+  if (box && state.query) { box.value = state.query; powerkitFilterAnalyses(state.query); }
+  state.open.forEach(function(id) {
+    var f = document.querySelector('.known-family[data-family=\"' + id + '\"]');
+    if (f && !f.hidden) f.open = true;
+  });
+  // After the screen's heading takes focus, move it to the analysis the
+  // user came back from.
+  setTimeout(function() {
+    var target = document.querySelector('.known-choice[data-ep=\"' + back + '\"]');
+    if (target && target.offsetParent !== null) { target.scrollIntoView({ block: 'center' }); target.focus({ preventScroll: true }); }
+  }, 50);
 }
 "
 

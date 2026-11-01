@@ -20,6 +20,13 @@ entries:
       class. "Help me choose" asks whether your groups are part of larger
       groups.
   - date: "2026-11-01"
+    title: "An easier list of analyses"
+    text: >-
+      "I know my analysis" has a bigger search box that counts the matches
+      as you type, one-click shortcuts to common analyses, and tidier groups
+      with labels for analyses that don't run yet. Going back from a card
+      now returns you to the same place in the list.
+  - date: "2026-11-01"
     title: "Correct or not on each trial"
     text: >-
       The cards for participants responding to many items or stimuli now

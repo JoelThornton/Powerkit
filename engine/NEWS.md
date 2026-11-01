@@ -44,6 +44,17 @@ A batch of new features, built as one round.
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.
+* App: the "I know my analysis" list is easier to scan and use. The search
+  box is larger, with a live count of matching analyses (announced to
+  screen readers); common starting points (`tree.yaml`,
+  `known_shortcuts`) open a card in one click; each group is a card with
+  its count ("5 of 11" while searching) and its analyses in an even grid;
+  the status of an analysis is a small label ("Validation in progress",
+  "Coming soon", "Not in powerkit yet") instead of a line of text; "Open
+  all groups" opens every group at once; Escape clears the search; and
+  Back from a card returns to the same search and open groups, with focus
+  on the analysis just viewed. Layout only: what each analysis opens is
+  unchanged.
 * Participants and items in three or more conditions (E63, design
   `mixed_model`, template `crossed_conditions`): every participant in
   every condition, a mean per condition, the SDs of participants'

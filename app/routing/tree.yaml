@@ -2076,6 +2076,11 @@ guided:
 # sizes come from is an open judgement call, 3.2). docs/glossary.md lists
 # the same terms; a test keeps the two in step.
 # ---------------------------------------------------------------------------
+# "Common starting points" at the top of "I know my analysis": everyday
+# analyses, one click away without searching or opening a group. Each is
+# also in its family below.
+known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
+
 # The families "I know my analysis" groups its list into, in order (the
 # maintainer's decision of 31 October 2026, docs/decisions.md): every end
 # point but the safety net is in exactly one (a test checks).
