@@ -4318,3 +4318,49 @@ match JASP's.
   version: it needs a normal analysis prior on z that no common tool uses
   for correlations, and researchers who analyse in R with BayesFactor get
   their answer by setting the width to 1/3.
+
+## 2026-11-01 · Bayes factor test of two proportions (E5)
+
+Item 3 of `next.md`, with answers matching JASP's by default.
+
+- **What JASP does.** Read from its source (jaspFrequencies,
+  `inst/qml/ContingencyTablesBayesian.qml` and
+  `R/contingencytablesbayesian.R`): BayesFactor's `contingencyTableBF()`,
+  with "Indep. multinomial, rows fixed" and prior concentration 1 by
+  default; one-sided ("Group one > Group two"), BF10 times the share of
+  10,000 posterior draws in that direction, over 0.5.
+- **Package.** BayesFactor is the backend: JASP calls it, so the two-sided
+  Bayes factor is the same by construction.
+- **Power.** No package computes it. Power is the chance of the tables
+  whose BF10 reaches the threshold, summed exactly over every possible
+  table (each group's count binomial). `contingencyTableBF()` scores one
+  table at a time (about 5 ms each), too slow for every table at every n
+  of a sample size search, so powerkit uses its closed form for a 2 x 2
+  table with rows fixed (each group's proportion Beta(a, a) under the
+  alternative, one shared Beta(2a - 1, 2a - 1) under the null, as
+  BayesFactor's internal `contingencyIndepMultinomial()` computes it;
+  Gunel and Dickey, 1974, the reference in BayesFactor's help). It equals
+  `contingencyTableBF()` to ten digits (tested on several tables and
+  concentrations, and in every run's check run), and power by brute force
+  with `contingencyTableBF()` on every table matches to ten digits at
+  n = 30.
+- **One-sided.** JASP's rule, with the posterior probability calculated
+  exactly instead of estimated from draws (for a whole-number
+  concentration, a beta-binomial tail sum: P(p2 > x) is a binomial lower
+  tail when p2's Beta parameters are whole numbers; otherwise numerical
+  integration; both tested against each other and against posterior
+  draws): Known difference 13 (JASP's
+  estimate varies by about 0.1%). "greater" means group 2's proportion is
+  the higher, as on the z test.
+- **No effect.** Both groups at group 1's proportion, as the z test's
+  smallest detectable effect keeps group 1's.
+- **Design prior.** Each group's expected proportion exactly, or a beta
+  design prior on each with the same SD (beta-binomial counts; Departure
+  15 extended: uniform design priors give 75.3% at 354 people, where
+  exactly .4 and .6 give 80%).
+- **Not built.** JASP's other sampling plans (Poisson, joint multinomial,
+  columns fixed, hypergeometric): for two groups compared on a yes/no
+  outcome the group sizes are fixed by the design, which is JASP's
+  default; tables larger than 2 x 2 (the chi-square card, E6) are left
+  for later.
+

@@ -15,6 +15,18 @@
 
 A batch of new features, built as one round.
 
+* A Bayes factor version of the test of two proportions (`target_test >
+  method` "bayes_factor" on `two_proportions`): BayesFactor's
+  `contingencyTableBF()` with independent multinomial sampling and the
+  group sizes fixed, prior concentration `target_test >
+  prior_concentration` (1 by default), the default of JASP's Bayesian
+  contingency tables. Power is summed exactly over every possible table,
+  scored with the closed form of that Bayes factor (equal to
+  `contingencyTableBF()`, tested and in the check run). One-sided tests
+  follow JASP's rule, with the posterior probability calculated exactly
+  (Known difference 13); `population > p_sd` gives the assurance
+  (Departure 15). Unequal groups as on the z test.
+
 * Meta-analysis (E61): a moderator that is a score (template
   `meta_regression`: the average effect at the moderator's mean and the
   slope per SD of a moderator measured on each study, residual

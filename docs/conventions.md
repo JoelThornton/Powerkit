@@ -507,6 +507,15 @@ likelihood ratio; not a departure.
 | BayesFactor | `correlationBF()`: the same Bayes factor; one-sided by `nullInterval` | — | `rscale` "medium" (1/3) by default |
 | **powerkit** | BayesFactor's `correlationBF()`, which rises with r (or |r|), so strong evidence is exactly a sample correlation past a critical value, found by root-finding; its chance from the exact distribution of r for bivariate normal scores (SuppDists' `pPearson()`), with no simulation (E4, from 1 November 2026) [powerkit] | The expected correlation, exactly, or a stretched beta design prior with its mean and an SD (`population > r_sd`) | Prior width 1 by default, JASP's (Known difference 12); Departure 15 is the design prior's default. The one-sided Bayes factor comes from `correlationBF()`'s interval method, within 0.1% of the exact value JASP computes (tested) |
 
+## Bayes factor test of two proportions (E5)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian contingency tables; analysis only, no planning) | Independence in a 2 x 2 table, by BayesFactor's `contingencyTableBF()`; one-sided ("Group one > Group two"): BF10 times the posterior probability of that direction, estimated from 10,000 posterior draws, over 0.5 | — | "Indep. multinomial, rows fixed" and prior concentration 1 by default |
+| BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
+| **powerkit** | `contingencyTableBF()` with JASP's sampling plan (independent multinomial, group sizes fixed), in its closed form for a 2 x 2 table so that every possible table can be scored (equal to `contingencyTableBF()` to ten digits, tested and in the check run); power summed exactly over the tables; one-sided by JASP's rule with the posterior probability calculated exactly (E5, from 1 November 2026) [powerkit] | Each group's expected proportion, exactly, or a beta design prior on each with its mean and an SD (`population > p_sd`) | Prior concentration 1 by default, JASP's and BayesFactor's; Departure 15 is the design prior's default; Known difference 13 for the one-sided test. "greater" means group 2's proportion is the higher, as for the z test |
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -1081,6 +1090,17 @@ as an experimental option, for a statistician's check
   people; at 162, the uniform design prior gives 76.4%
   (`test-backend-bayes-correlation.R`, "Departure 15's size for a
   correlation"). Shown on the correlation result screen (E4) when the
+  Bayes factor test is chosen and the SD is left at 0.
+- **The Bayes factor test of two proportions (1 November 2026):** the same
+  choice. No package plans this test; the analogue of bfpwr's default, a
+  design prior equal to JASP's analysis prior under the alternative (each
+  group's proportion uniform), is a very different question. powerkit
+  plans for exactly the proportions entered unless the user gives an SD
+  (`population > p_sd`, a beta design prior on each group's proportion).
+  Size: for .4 against .6, two-sided, BF10 of at least 10, 80% needs 354
+  people; at 354, uniform design priors give 75.3%
+  (`test-backend-bayes-proportions.R`, "Departure 15's size for two
+  proportions"). Shown on the two-proportion result screen (E5) when the
   Bayes factor test is chosen and the SD is left at 0.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
@@ -1682,3 +1702,24 @@ Wired into the app on 18 October 2026 (E25, E26).*
   factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
   key "12").
 - **Methods paragraph:** `known_differences_methods`, key "12".
+
+### 13. One-sided Bayes factor test of two proportions: an exact posterior probability, where JASP estimates it
+
+- **What differs:** JASP's one-sided Bayes factor for a 2 x 2 table is the
+  two-sided one times the posterior probability that group 1's proportion
+  is the higher (or the lower), over its prior probability, 0.5. JASP
+  estimates that probability from 10,000 draws from the posterior
+  (`BayesFactor::posterior()`), so its one-sided Bayes factor changes a
+  little with the seed. powerkit uses the same rule with the probability
+  integrated exactly from the two Beta posteriors. The two-sided Bayes
+  factor is the same in both.
+- **Size:** for 20 of 50 against 30 of 50, JASP's estimate of the
+  probability varies by about 0.1% (SD of the log ratio below 0.002), and
+  its average equals the exact value to three decimals.
+- **Test:** `engine/tests/testthat/test-backend-bayes-proportions.R`,
+  "Known difference 13: JASP's one-sided Bayes factor estimates the
+  posterior probability from 10,000 draws".
+- **Shown to users:** on the two-proportion result screen when the Bayes
+  factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
+  key "13").
+- **Methods paragraph:** `known_differences_methods`, key "13".
