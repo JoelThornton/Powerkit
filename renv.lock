@@ -579,6 +579,22 @@
       ],
       "Hash": "6c39f50fabf90cf4e0ba5f2f69de1ee6"
     },
+    "arm": {
+      "Package": "arm",
+      "Version": "1.15-3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "abind",
+        "coda",
+        "lme4",
+        "MASS",
+        "Matrix",
+        "nlme",
+        "R"
+      ],
+      "Hash": "43444938a924c3665089860269791fdc"
+    },
     "askpass": {
       "Package": "askpass",
       "Version": "1.2.1",
@@ -686,6 +702,14 @@
         "lamW"
       ],
       "Hash": "a79ac074d35e9fd1d09ddd7640237d90"
+    },
+    "BH": {
+      "Package": "BH",
+      "Version": "1.90.0-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "87905902999e70199a81869ef4ccaf82"
     },
     "bit": {
       "Package": "bit",
@@ -3616,6 +3640,16 @@
       ],
       "Hash": "6f0ca23a3c6acff7fee1d5954f18ed1a"
     },
+    "kappaSize": {
+      "Package": "kappaSize",
+      "Version": "1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "44c40e76deeab39daddb161773c904bb"
+    },
     "kSamples": {
       "Package": "kSamples",
       "Version": "1.2-12",
@@ -3626,6 +3660,36 @@
       ],
       "Hash": "aac7514963490939905daf6fb47a938a"
     },
+    "MBESS": {
+      "Package": "MBESS",
+      "Version": "5.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "boot",
+        "lavaan",
+        "MASS",
+        "mnormt",
+        "nlme",
+        "OpenMx",
+        "R",
+        "sem",
+        "semTools"
+      ],
+      "Hash": "415d2871ea686b7a384456473bc1491b"
+    },
+    "mi": {
+      "Package": "mi",
+      "Version": "1.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "arm",
+        "Matrix",
+        "R"
+      ],
+      "Hash": "8ba86f70ccb2fbf5d0974863fda7aab5"
+    },
     "multcompView": {
       "Package": "multcompView",
       "Version": "0.1-12",
@@ -3633,6 +3697,26 @@
       "Repository": "CRAN",
       "Requirements": [],
       "Hash": "9b4782acb7684558e63c0255331b9aed"
+    },
+    "OpenMx": {
+      "Package": "OpenMx",
+      "Version": "2.22.11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "BH",
+        "digest",
+        "lifecycle",
+        "MASS",
+        "Matrix",
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "RcppParallel",
+        "rpf",
+        "StanHeaders"
+      ],
+      "Hash": "61bfe0ff9c9c90f6cb8b7d43eeeba3e8"
     },
     "PMCMRplus": {
       "Package": "PMCMRplus",
@@ -3651,6 +3735,17 @@
         "SuppDists"
       ],
       "Hash": "f8de2251d038370300412802bb809927"
+    },
+    "presize": {
+      "Package": "presize",
+      "Version": "0.3.11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "kappaSize",
+        "shiny"
+      ],
+      "Hash": "0b8fc40aada34d124c5366e231f6b6eb"
     },
     "qpdf": {
       "Package": "qpdf",
@@ -3687,6 +3782,45 @@
         "R"
       ],
       "Hash": "188310d301e68ae656d6c5bff0c45253"
+    },
+    "rpf": {
+      "Package": "rpf",
+      "Version": "1.0.15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "lifecycle",
+        "mvtnorm",
+        "R",
+        "Rcpp",
+        "RcppEigen"
+      ],
+      "Hash": "80ed74edc36a88b5957308c54877a105"
+    },
+    "sem": {
+      "Package": "sem",
+      "Version": "3.1-16",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "boot",
+        "MASS",
+        "mi",
+        "R"
+      ],
+      "Hash": "780e2fbf377bcd8365788eacaea36170"
+    },
+    "StanHeaders": {
+      "Package": "StanHeaders",
+      "Version": "2.39.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "RcppEigen",
+        "RcppParallel"
+      ],
+      "Hash": "24cc040a2ce9d8c177c95b34a2164687"
     },
     "SuppDists": {
       "Package": "SuppDists",

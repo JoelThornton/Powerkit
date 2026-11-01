@@ -3976,3 +3976,34 @@ bfpwr (`ptbf01()`, `powertbf01()`, `tbf01()`; Pawel and Held, 2025).
   term "assurance" and does not cover sequential designs, so no new
   reference was needed; adding Schönbrodt and Wagenmakers (2018) and an
   assurance source to `refs.bib` comes with those steps.
+
+## 2026-11-01 · Precision planning (E46)
+
+Planning for the width of a confidence interval rather than power, as
+`next.md` set out on 31 October 2026: a new design, `precision`, with a
+goal of a target width (find n) or a given n (find the width).
+
+- **Packages.** MBESS for Cohen's d between two equal groups
+  (`ss.aipe.smd()`), d_z and a standardised mean (`ss.aipe.sm()`, the
+  paired case on the differences), the noncentral t interval that
+  `ci.smd()` and `ci.sm()` compute; presize for a correlation
+  (`prec_cor()`, Fisher's z, with its corrections for Spearman's and
+  Kendall's coefficients) and a proportion (`prec_prop()`). Each is cited
+  from the package's own `citation()` (Kelley, 2007; Haynes et al., 2021).
+- **Assurance.** For d and standardised means, an optional chance that the
+  interval is no wider than the target (MBESS's `assurance`); without it
+  the plan is for the expected width, which about half of studies exceed.
+  The result says so in words. presize has no assurance option, so the
+  correlation and proportion plan for the expected width only.
+- **Proportion interval.** Wilson's by default, presize's own default;
+  Agresti-Coull, Clopper-Pearson (exact) and Wald are options, Wald only
+  with at least 5 expected in each outcome. There is no G\*Power
+  convention to follow for precision, so nothing here is a departure.
+- **Confidence level** is entered as such (0.95 by default) and stored as
+  `target_test > alpha` = 1 - level, so the spec keeps one place for it.
+- **Validation.** The engine's tests match each package called directly;
+  `test-validation-precision.R` simulates studies at the planned n and
+  checks the average width, and with assurance the share narrow enough,
+  against intervals computed independently (a noncentral t inversion,
+  Fisher's z and Wilson's formula). A published example for d and for a
+  proportion is left as `TODO_PUBLISHED_VALUE`.

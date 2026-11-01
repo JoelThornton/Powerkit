@@ -96,6 +96,7 @@ on:
           - generic
           - equivalence
           - trend
+          - precision
           - whole_study
           - cluster
           - multisite

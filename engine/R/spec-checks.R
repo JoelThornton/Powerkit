@@ -26,8 +26,13 @@ population_problems <- function(spec) {
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test,
     meta_analysis = check_meta_analysis,
+    precision = function(spec) character(),
     dyadic = check_apim
   )
+  # Precision planning has no test to check, only its interval and goal.
+  if (identical(spec$design, "precision")) {
+    return(c(check_labels(spec), check_precision(spec)))
+  }
   design_problems <- design_check(spec)
   c(
     check_labels(spec),
@@ -41,6 +46,7 @@ population_problems <- function(spec) {
     check_bayes_factor(spec),
     check_minimum_effect(spec),
     check_justified_alpha(spec),
+    check_precision(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
