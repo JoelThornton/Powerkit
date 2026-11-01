@@ -2173,6 +2173,26 @@ test_that("the two-group card takes a point-biserial r, as G*Power's point-biser
   expect_match(paste(result_sentences(spec, calc$result), collapse = " "), "From the point-biserial r of 0.25", fixed = TRUE)
 })
 
+test_that("dyadic data: the result and the write-up count pairs, and both kinds of dyad build valid specs", {
+  fields <- form_fields(form_groups(forms, "E44"))
+  values <- modifyList(form_examples$E44, list(goal = "power", n = "120"))
+  spec <- build_spec(forms, "E44", fields, values)
+  expect_identical(spec$population$distinguishable, FALSE)
+  distinct <- modifyList(values, list(distinguishable = "true", member_1 = "Woman", member_2 = "Man", actor = NULL, partner = NULL,
+    actor_1 = "-0.3", actor_2 = "-0.25", partner_12 = "-0.1", partner_21 = "-0.2", apim_effect_d = "partner_21"))
+  spec_d <- build_spec(forms, "E44", fields, distinct)
+  expect_identical(spec_d$population$distinguishable, TRUE)
+  expect_identical(unlist(spec_d$population$members), c("Woman", "Man"))
+  expect_identical(spec_d$target_test$effect, "partner_21")
+  skip_without_run()
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  html <- as.character(result_panel_ui(tree, forms, "E44", fields, values, calc))
+  expect_match(html, "120 pairs", fixed = TRUE)
+  expect_no_match(html, "120 participants", fixed = TRUE)
+})
+
 test_that("the t-test and correlation cards find a justified alpha, and say how the errors were weighed", {
   for (ep in c("E1", "E2", "E3", "E4")) {
     fields <- form_fields(form_groups(forms, ep))

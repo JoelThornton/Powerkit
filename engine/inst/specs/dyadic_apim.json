@@ -1,0 +1,24 @@
+{
+  "spec_version": "0.1",
+  "design": "dyadic",
+  "template": "apim",
+  "variables": {
+    "X": {"type": "continuous", "label": "Daily stress"},
+    "Y": {"type": "continuous", "label": "Relationship satisfaction"}
+  },
+  "population": {
+    "metric": "standardised",
+    "distinguishable": false,
+    "actor": -0.3,
+    "partner": -0.15,
+    "r_x": 0.2,
+    "r_y": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: couples; a partner effect of -0.15 (one SD more of a partner's stress, 0.15 SD less satisfaction) is the smallest of interest."
+  },
+  "target_test": {"effect": "partner", "method": "wald_z", "alpha": 0.05},
+  "goal": {"type": "power", "n": 150},
+  "options": {"nrep": 200, "seed": 44}
+}

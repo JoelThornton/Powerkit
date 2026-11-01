@@ -309,6 +309,19 @@ generic_sentences <- function(spec, result) {
 # is chosen.
 # A planned meta-analysis (E61): its n is the number of studies.
 is_meta <- function(spec) identical(spec$design, "meta_analysis")
+is_dyadic <- function(spec) identical(spec$design, "dyadic")
+
+# What n counts, when it isn't participants: studies (a meta-analysis) or
+# pairs (dyadic data).
+n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else NULL
+
+# Dyadic data: the write-up counts pairs.
+dyad_units <- function(text) {
+  text <- gsub(" participants are needed in total", " pairs are needed", text, fixed = TRUE)
+  text <- gsub("power at this sample size is", "power with this many pairs is", text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", "with \\2 pairs", text)
+  text
+}
 
 is_hartung_knapp <- function(spec) {
   identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
@@ -495,6 +508,8 @@ result_sentences <- function(spec, result) {
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
+  # Dyadic data: n counts pairs.
+  if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -994,7 +1009,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
     "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
-    together, whole(n80), if (is_meta(spec)) "studies" else "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
+    together, whole(n80), n_unit(spec) %||% "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
   )
 }
 
@@ -1243,8 +1258,8 @@ actual_power_sentence <- function(spec, result) {
   at_n <- if (fitted) result$n_required$power %||% NA_real_ else result$curve$power[result$curve$n == n]
   if (length(at_n) != 1 || is.na(at_n)) return(NULL)
   sizes <- group_sizes(spec, n)
-  who <- if (is_meta(spec)) {
-    sprintf("With %s studies", whole(n))
+  who <- if (!is.null(n_unit(spec))) {
+    sprintf("With %s %s", whole(n), n_unit(spec))
   } else if (is.null(sizes)) {
     sprintf("With %s participants", whole(n))
   } else if (length(unique(sizes)) == 1) {
@@ -1600,6 +1615,15 @@ provenance_lines <- function(result) {
 
 # The whole result panel. `calc` is run_calculation()'s value.
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
+  # Dyadic data: every count of the sample on the screen counts pairs.
+  if (identical(calc$status, "ok") && is_dyadic(calc$spec)) {
+    panel <- result_panel_core(tree, forms, ep_id, fields, values, calc, check_advice)
+    return(HTML(gsub("([0-9][0-9,]*) participants", "\\1 pairs", as.character(panel))))
+  }
+  result_panel_core(tree, forms, ep_id, fields, values, calc, check_advice)
+}
+
+result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
@@ -1960,6 +1984,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- c(main, bayes_sentence(spec, result))
   }
   if (is_meta(spec)) main <- meta_units(main)
+  if (is_dyadic(spec)) main <- dyad_units(main)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -2060,6 +2085,7 @@ ethics_text <- function(spec, result, fields, values) {
           alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), percent(j$power)))
     })
   if (is_meta(spec)) body <- meta_units(body)
+  if (is_dyadic(spec)) body <- dyad_units(body)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")

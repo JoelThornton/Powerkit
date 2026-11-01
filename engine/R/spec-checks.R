@@ -26,7 +26,8 @@ population_problems <- function(spec) {
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test,
     meta_analysis = check_meta_analysis,
-    precision = function(spec) character()
+    precision = function(spec) character(),
+    dyadic = check_apim
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2129,6 +2130,8 @@ minimum_n <- function(spec) {
     # Subgroups: two studies of each kind, so the within-kind variance has
     # a degree of freedom.
     meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else 2,
+    # Dyads: enough pairs for lavaan to fit the APIM's 10 parameters.
+    dyadic = 20,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2359,6 +2362,12 @@ target_effect_is_zero <- function(spec) {
       max(abs(e - mean(e)))
     } else {
       pop$effect
+    },
+    dyadic = {
+      b <- apim_paths(spec)
+      labels <- c(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12", partner_21 = "p21")
+      at <- labels[[spec$target_test$effect]]
+      if (is.null(b[at]) || is.na(b[at])) 1 else b[[at]]
     }
   )
   isTRUE(abs(value) < 1e-12)
@@ -2392,6 +2401,41 @@ modmed_mediator <- function(spec) {
 # A planned meta-analysis (metapower): a correlation between -1 and 1, a
 # one-sided test in the direction of the effect, and no sensitivity
 # analysis yet (metapower solves for power only).
+# Dyadic data (E44): the paths that match how the members are told apart,
+# the effect tested among them, and variances that stay positive.
+check_apim <- function(spec) {
+  pop <- spec$population
+  distinguishable <- isTRUE(pop$distinguishable)
+  own <- if (distinguishable) c("actor_1", "actor_2", "partner_12", "partner_21") else c("actor", "partner")
+  other <- if (distinguishable) c("actor", "partner") else c("actor_1", "actor_2", "partner_12", "partner_21")
+  problems <- character()
+  missing <- own[vapply(own, function(k) is.null(pop[[k]]), logical(1))]
+  if (length(missing)) {
+    problems <- c(problems, sprintf("Give %s (0 for no effect).", paste(sprintf("'population > %s'", missing), collapse = ", ")))
+  }
+  extra <- other[!vapply(other, function(k) is.null(pop[[k]]), logical(1))]
+  if (length(extra)) {
+    problems <- c(problems, sprintf("%s %s for %s members; remove %s.", paste(sprintf("'population > %s'", extra), collapse = ", "),
+      if (length(extra) == 1) "is" else "are", if (distinguishable) "indistinguishable" else "distinguishable",
+      if (length(extra) == 1) "it" else "them"))
+  }
+  if (!distinguishable && !is.null(pop$members)) {
+    problems <- c(problems, "'population > members' names the members of distinguishable dyads; remove it, or set 'distinguishable' to true.")
+  }
+  if (!spec$target_test$effect %in% own) {
+    problems <- c(problems, sprintf("'target_test > effect' should be one of %s for %s members.",
+      paste(sprintf("\"%s\"", own), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable"))
+  }
+  if (length(problems)) return(problems)
+  r2 <- apim_r_squared(spec)
+  bad <- names(r2)[r2 >= 1]
+  if (length(bad)) {
+    problems <- c(problems, sprintf("These effects are impossible together: they explain all of the variance in a member's %s (R-squared %s). Make them smaller.",
+      var_label(spec, "Y"), format_number(round(max(r2), 3))))
+  }
+  problems
+}
+
 check_meta_analysis <- function(spec) {
   pop <- spec$population
   problems <- character()

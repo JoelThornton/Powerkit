@@ -121,6 +121,7 @@ route_spec <- function(spec, seed = NULL) {
       spower_backend(spec, seed)
     },
     "ordinal_regression/ordinal_two_groups" = propodds_backend(spec),
+    "dyadic/apim" = apim_backend(spec, seed),
     "meta_analysis/subgroups" = if (hartung_knapp_test(spec)) meta_hk_mod_backend(spec, seed) else metapower_mod_backend(spec, seed),
     "meta_analysis/mean_effect" = if (hartung_knapp_test(spec)) meta_hk_backend(spec, seed) else metapower_backend(spec, seed),
     "mixed_model/crossed_two_condition" = simr_backend(spec, seed),

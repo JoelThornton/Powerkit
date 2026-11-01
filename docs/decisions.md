@@ -3766,6 +3766,13 @@ merges when its checks pass, unless a doubt is stated in it.
   guided plan already offers for two groups measured twice (E23); a plan
   that chooses the mixed ANOVA's group x time test is not simulated as a
   whole study.
+- **Dyadic data (1 November 2026):** the actor-partner interdependence
+  model as its own card (E44), simulated with power4mome and tested by
+  lavaan's Wald z test; distinguishable and indistinguishable members
+  (equal actor and partner effects, fitted with equality constraints);
+  pairs asked what the hypothesis involves, with conditions given to
+  whole pairs sent to the cluster-randomised card and other dyadic
+  designs to a "not yet covered" card (E65).
 - **Meta-analysis moderators (1 November 2026):** metapower's
   `mod_power()` checked against simulation first (20 studies of 40, d =
   0.2 against 0.5, I-squared 0.5: 55.8% against 57.2% fixed-effect, 31.9%
