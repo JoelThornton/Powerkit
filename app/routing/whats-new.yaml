@@ -14,6 +14,14 @@ entries:
       conditions also plans studies where each participant is in one of
       the conditions.
   - date: "2026-11-01"
+    title: "Couples and other pairs: actor and partner effects"
+    text: >-
+      A new card plans studies of pairs of people, such as couples, where
+      each person's score (for example, stress) can affect their own
+      outcome and their partner's: the actor-partner interdependence
+      model, for pairs whose members can be told apart (a woman and a man)
+      or not (two friends).
+  - date: "2026-11-01"
     title: "Simulated data sets for more designs"
     text: >-
       The made-up practice data set you can download with a result is now

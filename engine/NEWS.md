@@ -88,6 +88,24 @@ A batch of new features, built as one round.
   Checked against a simulation written separately with glmer, with the
   Type I error near alpha. The design finder's question on many trials
   or stimuli takes yes/no outcomes to these cards.
+* Dyadic data (E44, design `dyadic`, template `apim`): the actor-partner
+  interdependence model for pairs of people, each member's X predicting
+  their own Y (actor) and their partner's (partner), with the members'
+  X correlated (`r_x`) and their Y residuals correlated (`r_y`), as
+  standardised paths. Distinguishable members (`population >
+  distinguishable` true, `members`) have their own actor and partner
+  effects (`actor_1`, `actor_2`, `partner_12`, `partner_21`);
+  indistinguishable members share one of each (`actor`, `partner`),
+  fitted with the two constrained equal. Simulated with power4mome (the
+  model fitted by lavaan in every replication), the chosen effect tested
+  by `test_parameters()`, lavaan's Wald z test; n is the number of pairs.
+  The check run, exported script and simulated data set (one row per
+  pair) follow the design. Agrees with a simulation written separately
+  (MASS and lavaan), with the Type I error near alpha; published value to
+  come. App: the design finder asks pairs what the hypothesis involves
+  (D1): something measured on each member (E44), conditions given to
+  whole pairs (the cluster-randomised card, groups of two) or another
+  design (E65, not yet covered); the result screen counts pairs.
 * Meta-analysis subgroups (E61, template `subgroups`): does the average
   effect differ between kinds of study (a categorical moderator, such as
   lab against online)? The studies are split equally between the kinds,

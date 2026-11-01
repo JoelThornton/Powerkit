@@ -144,6 +144,7 @@ simulated_data_code <- function(spec, n, seed) {
     equivalence_test = sim_equivalence_code(spec, n),
     logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n) else sim_glm_code(spec, n),
     ordinal_regression = sim_ordinal_code(spec, n),
+    dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
     poisson_regression = sim_glm_code(spec, n),
     cluster_trial = sim_cluster_code(spec, n),
@@ -169,7 +170,7 @@ simulated_data_code <- function(spec, n, seed) {
     "simulated <- data.frame(",
     "  SIMULATED_NOT_REAL_DATA = \"simulated by powerkit\",",
     # Long data (one row per trial) number their participants themselves.
-    if (!identical(spec$design, "mixed_model")) "  participant = seq_len(nrow(simulated)),",
+    if (!spec$design %in% c("mixed_model", "dyadic")) "  participant = seq_len(nrow(simulated)),",
     "  simulated, check.names = FALSE, row.names = NULL",
     ")"
   )
@@ -1205,6 +1206,25 @@ sim_crossed_conditions_code <- function(spec, n) {
     "  item = design$item,",
     sprintf("  %s = design$cond,", sim_label(spec, "X")),
     sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# Dyadic data (E44): one row per dyad, each member's X and Y, from
+# power4mome's generator for the same population model.
+sim_apim_code <- function(spec, n) {
+  inputs <- apim_inputs(spec)
+  members <- unlist(spec$population$members %||% list("member 1", "member 2"))
+  name <- function(role, i) csv_name(paste(spec$variables[[role]]$label %||% role, members[i]))
+  c(
+    # power4test() takes its own seed, drawn here from the data set's seed.
+    sprintf("sim <- power4mome::power4test(nrep = 1, model = %s, pop_es = %s, n = %d, do_the_test = FALSE, iseed = sample.int(1e8, 1), progress = FALSE)",
+      r_code(inputs$model), r_code(inputs$pop_es), n),
+    "pooled <- as.data.frame(power4mome::pool_sim_data(sim))",
+    "simulated <- data.frame(",
+    "  dyad = seq_len(nrow(pooled)),",
+    sprintf("  %s = pooled$X1, %s = pooled$X2,", name("X", 1), name("X", 2)),
+    sprintf("  %s = pooled$Y1, %s = pooled$Y2", name("Y", 1), name("Y", 2)),
     ")"
   )
 }

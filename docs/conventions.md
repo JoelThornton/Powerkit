@@ -436,6 +436,14 @@ default for a numeric predictor; the likelihood-ratio test is offered.
 With powerkit's yes/no example (70% and 80% correct, 40 items, 30
 participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 
+## Dyadic data: actor and partner effects (E44)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for dyadic data | — | — |
+| apimpower | A web app for APIM power; not callable from R, not compared | — | — |
+| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
+
 ## Participants and items in three or more conditions (E63)
 
 | Tool | Test | Effect size | Settings |

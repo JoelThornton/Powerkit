@@ -122,7 +122,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -1049,6 +1049,57 @@ forms:
              shown_if: {field: conditions_test, is: pairwise},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
+
+  # Dyadic data (power4mome): the actor-partner interdependence model
+  # (1 November 2026).
+  E44:
+    methods_name: "an actor-partner interdependence model"
+    tool: power4mome
+    units: pairs
+    directional: false
+    base: {spec_version: "0.1", design: dyadic, template: apim,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {method: wald_z}}
+    groups:
+      - input: "The variables, and whether the members can be told apart"
+        fields:
+          - {id: X_label, label: "Measured on each member (X; for example, daily stress)", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "The outcome, measured on each member (Y; for example, relationship satisfaction)", type: text, path: variables.Y.label, required: true}
+          - {id: distinguishable, label: "Can the two members be told apart in a way that matters?", type: select, required: true,
+             choices: {"false": "No (for example, same-sex friends or twins): one actor and one partner effect, shared", "true": "Yes (for example, a woman and a man, or a parent and child): each member has their own"},
+             sets: {"false": [{path: population.distinguishable, value: false}], "true": [{path: population.distinguishable, value: true}]},
+             default: "false", default_source: "indistinguishable members, the model with fewer effects to give"}
+          - {id: member_1, label: "Member 1 (for example, woman)", type: text, path: population.members.1, required: true,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: member_2, label: "Member 2 (for example, man)", type: text, path: population.members.2, required: true,
+             shown_if: {field: distinguishable, is: "true"}}
+      - input: "The actor and partner effects"
+        fields:
+          - {id: actor, writeup_label: "actor effect", label: "Actor effect: a person's X on their own Y (a standardised path, -1 to 1)", type: number, path: population.actor, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "false"}}
+          - {id: partner, writeup_label: "partner effect", label: "Partner effect: a person's X on their partner's Y (a standardised path)", type: number, path: population.partner, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "false"}}
+          - {id: actor_1, writeup_label: "member 1's actor effect", label: "Member 1's actor effect: member 1's X on member 1's Y", type: number, path: population.actor_1, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: actor_2, writeup_label: "member 2's actor effect", label: "Member 2's actor effect: member 2's X on member 2's Y", type: number, path: population.actor_2, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: partner_12, writeup_label: "partner effect of member 1 on member 2", label: "Partner effect of member 1 on member 2: member 1's X on member 2's Y", type: number, path: population.partner_12, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: partner_21, writeup_label: "partner effect of member 2 on member 1", label: "Partner effect of member 2 on member 1: member 2's X on member 1's Y", type: number, path: population.partner_21, effect: true, min: -1, max: 1,
+             shown_if: {field: distinguishable, is: "true"}}
+          - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
+             shown_if: {field: distinguishable, is: "false"},
+             choices: {partner: "The partner effect", actor: "The actor effect"},
+             default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
+          - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
+             shown_if: {field: distinguishable, is: "true"},
+             choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect"},
+             default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
+      - input: "How alike the members are"
+        fields:
+          - {id: r_x, writeup_label: "correlation of the members' X", label: "Correlation of the two members' X", type: number, path: population.r_x, effect: true, min: -1, max: 1}
+          - {id: r_y, writeup_label: "residual correlation of the members' Y", label: "How alike the two members' Y are beyond their X (the residual correlation)", type: number, path: population.r_y, effect: true, min: -1, max: 1,
+             help: "Often called non-independence: how much the two members' outcomes go together once both members' X are allowed for."}
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).

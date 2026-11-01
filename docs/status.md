@@ -19,9 +19,10 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
-  **43 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
-  E46, precision planning (below), since 1 November 2026; E64
+  **44 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E44, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
+  E44, the actor-partner model for pairs, and E46, precision planning
+  (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
   since 1 November 2026; E61, a planned
