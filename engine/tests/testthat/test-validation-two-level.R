@@ -222,7 +222,7 @@ test_that("three levels with predictors: Type I error at most alpha for Z's effe
     spec$options$nrep <- 2000L
     # Satterthwaite's test is never liberal; with 20 sites it can be a
     # little conservative, as for E68 (decisions.md, 1 November 2026).
-    estimate <- engine_power(spec)
+    estimate <- engine_power(spec)$power
     expect_lte(estimate, 0.05 + 2 * sqrt(0.05 * 0.95 / 2000), label = effect)
     expect_gte(estimate, 0.025, label = effect)
   }
