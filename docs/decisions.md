@@ -4140,9 +4140,8 @@ needed first.
 
 ## 2026-11-01 · Bayes factor test of one proportion (E25)
 
-Item 3 of `next.md`: the other Bayes factor cards, with the maintainer's
-instruction (1 November 2026) that researchers who analyse in JASP get
-answers matching JASP's.
+Item 3 of `next.md`: the other Bayes factor cards, giving researchers who
+analyse in JASP answers that match JASP's.
 
 - **What JASP does.** Read from its source (jaspFrequencies,
   `R/binomialtestbayesian.R` and `inst/qml/BinomialTestBayesian.qml`): a
