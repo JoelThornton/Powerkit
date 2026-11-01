@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Items that differ on a score, such as word frequency"
+    text: >-
+      A new card plans studies where each participant responds to many
+      items that differ on something measured on each item, such as how
+      often a word is used, with a score or a yes/no answer on each trial.
+  - date: "2026-11-01"
     title: "Three levels: pupils in classes in schools"
     text: >-
       A new card plans studies with groups inside larger groups, such as

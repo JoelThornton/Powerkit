@@ -178,6 +178,11 @@ form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Re
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
                             group_size = "20", groups_per_site = "4"), closing_ok)
 
+# E67: word frequency and response times.
+form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous",
+                            slope = "-15", sd_participant = "60", sd_participant_slope = "10", sd_item = "30",
+                            sd_residual = "120", items = "60"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",

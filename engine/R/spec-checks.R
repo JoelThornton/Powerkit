@@ -15,7 +15,7 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
-        three_level = check_three_level(spec),
+        three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
     poisson_regression = check_single_predictor_x,
@@ -595,6 +595,30 @@ check_crossed_two_condition <- function(spec) {
     problems <- c(problems, paste0(
       "Give 'population > sd_participant_slope', how much the difference between conditions varies across participants ",
       "(0 if it doesn't), or make X a between factor if each participant is in one condition."))
+  }
+  problems
+}
+
+# A predictor measured on each item (E67): a score outcome takes a
+# residual SD and Satterthwaite's test; a yes/no outcome a probability and
+# glmer's tests.
+check_item_predictor <- function(spec) {
+  pop <- spec$population
+  binary <- identical(spec$variables$Y$type, "binary")
+  problems <- character()
+  if (binary) {
+    if (!identical(pop$metric, "probability") || is.null(pop$probability)) {
+      problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probability', the chance of 'yes' at the items' average X.")
+    }
+    if (!is.null(pop$sd_residual)) problems <- c(problems, "A yes/no outcome has no residual SD: remove 'population > sd_residual'.")
+    allowed <- c("wald", "likelihood_ratio")
+  } else {
+    if (is.null(pop$sd_residual)) problems <- c(problems, "Give 'population > sd_residual'.")
+    if (!is.null(pop$probability)) problems <- c(problems, "'population > probability' is for a yes/no outcome; remove it.")
+    allowed <- "satterthwaite_t"
+  }
+  if (!spec$target_test$method %in% allowed) {
+    problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome.", paste(sprintf("\"%s\"", allowed), collapse = " or ")))
   }
   problems
 }
@@ -2208,6 +2232,8 @@ target_effect_is_zero <- function(spec) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
     } else if (identical(spec$template, "three_level")) {
       pop$d
+    } else if (identical(spec$template, "item_predictor")) {
+      pop$slope
     } else if (identical(spec$template, "crossed_conditions")) {
       means <- as.numeric(unlist(pop$means %||% pop$probabilities))
       pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))

@@ -7412,7 +7412,8 @@
               "crossed_two_condition",
               "two_level",
               "crossed_conditions",
-              "three_level"
+              "three_level",
+              "item_predictor"
             ]
           }
         },
@@ -7475,6 +7476,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_three_level"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "item_predictor"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_item_predictor"
             }
           }
         ]
@@ -8266,6 +8282,115 @@
                 },
                 "method": {
                   "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_item_predictor": {
+      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "slope",
+            "sd_participant",
+            "sd_participant_slope",
+            "sd_item",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'raw' for a score outcome (in its own units); 'probability' for a yes/no outcome (the SDs and the slope on the log-odds scale).",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "slope": {
+              "description": "The effect of one SD more of X: in the outcome's units, or on the log odds for a yes/no outcome.",
+              "type": "number"
+            },
+            "probability": {
+              "description": "Yes/no outcome only: the chance of 'yes' at the items' average X, for a typical participant and item.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "sd_participant": {
+              "description": "SD of the participants' intercepts.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_participant_slope": {
+              "description": "SD of the participants' slopes on X: how much X's effect differs between participants.",
+              "type": "number",
+              "minimum": 0
+            },
+            "r_participant": {
+              "description": "Correlation of participants' intercepts and slopes. 0 if omitted.",
+              "$ref": "#/definitions/correlation"
+            },
+            "sd_item": {
+              "description": "SD of the items' intercepts beyond what X explains.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_residual": {
+              "description": "Score outcome only: the residual SD.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "items": {
+              "description": "Number of items.",
+              "type": "integer",
+              "minimum": 6
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "const": "slope"
+                },
+                "method": {
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }

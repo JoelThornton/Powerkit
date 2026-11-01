@@ -436,6 +436,14 @@ default for a numeric predictor; the likelihood-ratio test is offered.
 With powerkit's yes/no example (70% and 80% correct, 40 items, 30
 participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 
+## Participants and items: a predictor measured on each item (E67)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for crossed random effects | — | — |
+| simr | `powerSim()` on a model built with `makeLmer()` or `makeGlmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
+| **powerkit** | simr's `powerSim()` with `fixed("x", "sa")` for a score, or `fixed("x", "z")` (default) or `"lr"` for a yes/no outcome (E67, from 1 November 2026) [powerkit] | The effect per SD of the item score, the SDs of participants' intercepts and slopes and of items beyond the score, and the residual SD, in the outcome's units (log odds for yes/no) | `y ~ x + (1 + x \| participant) + (1 \| item)`, x evenly spread across the items (normal quantiles, centred, SD 1), every participant responding to every item. The Satterthwaite test is Departure 16 |
+
 ## Three levels: people in groups in larger groups (E68)
 
 | Tool | Test | Effect size | Settings |
@@ -1008,7 +1016,7 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's, E62's, E63's and E68's result screens
+- **Shown to users:** on E33's, E62's, E63's, E68's and E67's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")

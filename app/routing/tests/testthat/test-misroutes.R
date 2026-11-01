@@ -35,7 +35,7 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped cards (through C1).
       # Many trials per person leave after S2's follow-up for E33.
-      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E68")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
+      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E68")) || ("s2_trials" %in% p && end %in% c("E33", "E63", "E67"))
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -191,7 +191,9 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
   # logistic mixed model; a count still reaches the multilevel card.
   expect_all_routes(c("Yes/no, or one of several categories", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
-  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else: a predictor measured on each trial"), "E41")
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Something else"), "E41")
+  # A score measured on each item (1 November 2026): E67.
+  expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "A score measured on each item, and how it relates to the response"), "E67")
   # Conditions given to different people (31 October 2026): E33 with the
   # condition between participants; a yes/no outcome per trial still E41.
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person is in one of them"), "E33")
