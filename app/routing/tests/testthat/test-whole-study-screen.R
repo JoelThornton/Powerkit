@@ -182,6 +182,12 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(html, "Methods paragraph", fixed = TRUE)
   expect_match(html, "power4mome", fixed = TRUE)
   expect_match(html, "experimental)", fixed = TRUE)
+  # Laid out like every result: section links, the joint chance as the big
+  # figure, each analysis's power as a bar, and a methods paragraph to copy.
+  expect_match(html, "result-sections", fixed = TRUE)
+  expect_match(html, "result-figure-value", fixed = TRUE)
+  expect_match(html, "ws-bar-fill", fixed = TRUE)
+  expect_match(html, "writeup_short", fixed = TRUE)
 
   failed <- whole_study_result_ui(list(status = "error", message = "Something plain."))
   expect_match(as.character(failed), "Something plain.", fixed = TRUE)
