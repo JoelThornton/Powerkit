@@ -10,7 +10,7 @@ engine's `run_spec()`. How to run it, record decisions and run the tests:
 - `tree.yaml`: the single source of truth for routes, questions, end points,
   the guided route and the undecided settings.
 - `forms.yaml`: the input screens, and which end points calculate.
-- `whats-new.yaml`: the "What's new" tab.
+- `whats-new.yaml`: the Updates tab.
 - `app.R`: the Shiny app (reads the three files above).
 - `R/tree.R`: helpers for the routing data (reachability, guided-route rules).
 - `R/ui.R`: screen builders for the design finder and the cards.

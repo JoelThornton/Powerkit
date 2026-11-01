@@ -1,4 +1,4 @@
-# "What's new" tab: changes people using the app would notice, in plain
+# The Updates tab (once "What's new"): changes people using the app would notice, in plain
 # words, newest first. Add an entry with every PR that changes what users
 # see (engine/NEWS.md keeps the developer notes). Rules, checked by
 # tests/testthat/test-whats-new.R: a date (YYYY-MM-DD), a short title and a
@@ -19,6 +19,24 @@ entries:
       path (PROCESS models 8, 58 and 59), by comparing the indirect effect
       at two values of the moderator, such as one SD below and above its
       mean.
+    title: "A clearer About page, and Updates"
+    text: >-
+      The About page now says in three steps how powerkit works, shows
+      every analysis that calculates grouped by family (click one to plan
+      it), and folds each package's citation under "How to cite". The
+      "What's new" tab is now Updates, next to Feedback: a timeline of the
+      changes, each opening to say more, with Full details showing them
+      all, a search box, and the changes since you last looked marked New.
+      Every tab now sits in the same place, and the blue bar spans the
+      whole window.
+  - date: "2026-11-01"
+    title: "A Bayes factor test for one proportion"
+    text: >-
+      The card for one proportion (for example, guessing right more often
+      than chance) now offers a Bayes factor test as well as the exact
+      binomial test, with the same prior as JASP's Bayesian binomial test.
+      It shows the chance of strong evidence, and what the study would show
+      if there were no effect.
   - date: "2026-11-01"
     title: "A new methods map"
     text: >-

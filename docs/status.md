@@ -29,7 +29,9 @@ fully validated. Validation runs are recorded in
   since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
-  of studies since 1 November. **Fourteen are simulated with a
+  of studies since 1 November. Bayes factor versions: the three t-tests
+  and, since 1 November 2026, the test of one proportion (E25; bfpwr,
+  JASP's prior and one-sided test by default). **Fourteen are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14,
   E17 (a yes/no X or W), E38 (W on both links or the direct path, both
   1 November 2026) and E40
@@ -53,6 +55,12 @@ fully validated. Validation runs are recorded in
   choose" asks the screening questions first; the search also knows other
   names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
   default, shows technical names first and hides the hints when off.
+- **About and Updates** (1 November 2026): About says how powerkit
+  works in three steps and lists every analysis that calculates by family,
+  each opening its card; Updates (once "What's new", between Labs and
+  Feedback) is a timeline of titles that open, with Full details, a search
+  and the changes since your last visit marked. Every tab shares one
+  column.
 - **Results** open with the answer as one large figure and what it
   assumes, then "How sure can you be?" (the effect slider and cautious and
   hopeful guesses), then the write-up with Copy buttons and the downloads
