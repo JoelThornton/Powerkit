@@ -4154,3 +4154,12 @@ needed first.
   rather than computing a standard error itself.
 - **gsl** is a new dependency (MBESS needs it for this function), with
   the system library in the CI image and the online app's build.
+
+## 2026-11-01 · The number of items as the sample size (E33)
+
+- **The same simulation, counted the other way:** the participants are
+  fixed and the search varies the number of items; the power at a given
+  number of items is the same as the power with those items and
+  participants planned the usual way (tested). With each item in one
+  condition the number of items is even. Attrition isn't offered here:
+  the participants given are those analysed.

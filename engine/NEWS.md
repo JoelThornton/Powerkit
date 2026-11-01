@@ -2,6 +2,11 @@
 
 A batch of new features, built as one round.
 
+* Participants and items in two conditions (E33) can plan the number of
+  items (stimuli) instead of participants: `goal > unit` "items", with
+  `population > participants` fixed; `goal > n` is then the number of
+  items (an even number when each item is in one condition). The search,
+  the exported script and the write-up count items.
 * Precision planning (E46) for four more estimates: a difference between
   two groups' means in the outcome's units (template `mean_difference`,
   presize's `prec_meandiff()`), an odds ratio between two groups
