@@ -145,8 +145,8 @@ fully validated. Validation runs are recorded in
   models 7 and 14 (E17, 1 November 2026) the same way, drawn by
   power4mome's `rbinary_rs()` and checked against a separately written
   simulation; with a yes/no X and no moderation its Type I error is about
-  6.7%, against 5.3% for the separate simulation, a question for
-  power4mome (`upstream-questions.md`) and the maintainer.
+  6.7%, against 5.3% for the separate simulation, stated on the results
+  screen until power4mome answers (`upstream-questions.md`).
 - **Waiting on others:** Spower's faults are ready to raise upstream
   (`docs/upstream/spower-var-test.R`).
 

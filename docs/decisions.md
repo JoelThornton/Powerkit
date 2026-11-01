@@ -4203,15 +4203,23 @@ needed first.
 - **Answered by checking, not by asking power4mome's author:** the
   separately written simulation standardises a yes/no variable by its
   population mean and SD and forms the product from the standardised
-  variables; powerkit's power agrees with it (the standardisation), and
-  the Type I error with no moderation stays at most alpha (the Monte Carlo
-  interval with a yes/no X).
+  variables; powerkit's power agrees with it (the standardisation). The
+  Monte Carlo interval with a yes/no X is slightly liberal: with no
+  moderation it rejected in about 6.7% of 3,000 simulated studies at
+  alpha .05, against 5.3% for the separate simulation
+  (`upstream-questions.md`, power4mome, question 6).
+- **Released with the excess stated** (maintainer, 1 November 2026): the
+  card stays "validation in progress" and the results screen says, for a
+  yes/no X, that the test was found slightly liberal and the power shown
+  may be a little high, until power4mome answers. The power checks agree,
+  and the excess is small.
 - **A yes/no W is tested as the difference between its two groups'
   conditional indirect effects**, because manymome's `index_of_mome()`
   treats a two-valued moderator as categorical; for models 7 and 14 that
   is the index times a constant, so the decision is the same.
 - **A yes/no X or W must be uncorrelated with the other predictor**, as
   the card already said: `rbinary_rs()` draws it on its own.
+
 ## 2026-11-01 · Several effects per study in a meta-analysis (E61, POMADE)
 
 - **POMADE's defaults:** the correlated and hierarchical effects (CHE)

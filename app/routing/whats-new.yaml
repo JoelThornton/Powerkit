@@ -10,7 +10,8 @@ entries:
     text: >-
       Moderated mediation now also works when the predictor is two groups,
       such as a randomised condition, when the moderator is two groups, or
-      both.
+      both. With a two-group predictor the results say the test was found
+      slightly generous in powerkit's checks.
   - date: "2026-11-01"
     title: "Moderated mediation where the moderator changes both links"
     text: >-

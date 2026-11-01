@@ -2347,3 +2347,13 @@ test_that("the result's sections are linked along its top, and the write-up can 
   # The write-up comes before the downloads.
   expect_lt(regexpr("writeup_short", html), regexpr("download_script", html))
 })
+
+test_that("moderated mediation with a yes/no X says the test was found slightly liberal, and nothing else does", {
+  binary_x <- list(design = "moderated_mediation", variables = list(X = list(type = "binary"), W = list(type = "continuous")))
+  note <- binary_x_modmed_note(binary_x)
+  expect_match(note, "6.7%", fixed = TRUE)
+  expect_match(note, "5.3%", fixed = TRUE)
+  binary_w <- list(design = "moderated_mediation", variables = list(X = list(type = "continuous"), W = list(type = "binary")))
+  expect_null(binary_x_modmed_note(binary_w))
+  expect_null(binary_x_modmed_note(list(design = "mediation", variables = list(X = list(type = "binary")))))
+})

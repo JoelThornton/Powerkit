@@ -25,8 +25,10 @@ A batch of new features, built as one round.
   the distance between W's two rescaled values, from the same Monte Carlo
   draws: the same decision). Checked against a simulation written
   separately (a yes/no variable standardised by its population mean and
-  SD, OLS for each equation and its own Monte Carlo interval), with the
-  Type I error at most alpha. A yes/no mediator is still not available.
+  SD, OLS for each equation and its own Monte Carlo interval). With a
+  yes/no X the test is slightly liberal (about 6.7% at alpha .05 with no
+  moderation, against 5.3% for the separate simulation), and the results
+  screen says so. A yes/no mediator is still not available.
 * Moderated mediation with W on both links or the direct path (E38,
   templates `process_8`, `process_58` and `process_59`, one mediator):
   these models have no single index of moderated mediation, so the test
