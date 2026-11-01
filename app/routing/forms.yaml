@@ -276,6 +276,7 @@ known_differences:
   "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
   "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
+  "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -292,6 +293,7 @@ known_differences_methods:
   "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
   "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
+  "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
 
 forms:
   E1:
@@ -508,9 +510,10 @@ forms:
 
   E4:
     methods_name: "a Pearson correlation"
-    departures: ["9", "10"]
-    known_differences: ["11"]
+    departures: ["9", "10", "15"]
+    known_differences: ["11", "12"]
     known_differences_if_goal: {"11": justified_alpha}
+    known_differences_if_method: {"12": bayes_factor}
     tool: pwr
     sensitivity: true
     justified_alpha: true
@@ -528,10 +531,10 @@ forms:
       - input: "The expected correlation r"
         fields:
           - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
-      - input: "Pearson's r, Spearman's rho or Kendall's tau"
+      - input: "Pearson's r, Spearman's rho, Kendall's tau or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated"},
+             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r (as in JASP's Bayesian correlation), instead of a p-value"},
              default: pearson, default_source: "Pearson's r, the correlation pwr computes (pwr.r.test(), pwr 1.3-0)",
              help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
           - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
@@ -539,6 +542,18 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_r(), Spower 0.7)",
              help: "A rank correlation's advantage over Pearson's r is in skewed or heavy-tailed data. The second score is drawn as r times the first plus another draw of the same shape, so its shape is close to, not exactly, the one chosen."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the two scores are correlated than if they aren't. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_width, label: "Width of the analysis prior on the correlation (a stretched beta distribution)", type: number, path: target_test.prior_width, required: true, min_exclusive: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 1, default_source: "JASP's Bayesian correlation ('Stretched beta prior width' 1); BayesFactor's own default is 1/3",
+             help: "The prior you will use when you analyse the data: 1 gives every correlation from -1 to 1 the same weight (JASP's default); smaller values put more weight near 0 (1/3 is BayesFactor's default). Use the same value as in your analysis plan."}
+          - {id: r_sd, label: "How unsure you are about the correlation, as an SD (0 = exactly this correlation)", type: number, path: population.r_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the correlation you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over correlations spread around yours (a stretched beta design prior with this SD): the study's assurance."}
 
   E5:
     methods_name: "a test of two proportions (z test)"

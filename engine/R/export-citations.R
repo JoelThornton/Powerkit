@@ -95,7 +95,8 @@ powerkit_paper_key <- function() "powerkit"
 # Superpower fits its ANOVAs with afex::aov_car() and generates data with
 # MASS::mvrnorm(); power4mome fits with lavaan and computes indirect effects
 # and their confidence intervals with manymome; semPower counts a CFA's
-# degrees of freedom, and fits the models it compares, with lavaan; InteractionPoweR uses base
+# degrees of freedom, and fits the models it compares, with lavaan; for the
+# correlation Bayes factor, SuppDists gives the distribution of r; InteractionPoweR uses base
 # R only), then R itself (except for stats, which is R). `citation` is the package whose citation() is
 # used ("base" for R).
 #
@@ -121,6 +122,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
     power4mome = list(
       s("lavaan", "which fits the model to each simulated data set"),
       s("manymome", "which computes the indirect effect or index and its confidence interval")
+    ),
+    BayesFactor = list(
+      s("SuppDists", "whose pPearson() gives the exact distribution of the sample correlation")
     ),
     semPower = if ("lavaan" %in% used) {
       list(s("lavaan", "which semPower uses to count a model's degrees of freedom or to fit the models it compares"))

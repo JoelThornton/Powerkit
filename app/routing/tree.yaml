@@ -837,8 +837,9 @@ established_tools_text: "Established tools exist for this design; powerkit hasn'
 # rank_test_simulated_text replaces it.
 rank_test_text: "Planning {rank_test} instead? The figure here is for the parametric test, and only approximates the rank-based one: how closely depends on how your data are distributed, and powerkit hasn't checked it."
 rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
-# On the t-test cards (`bayes_test: true`): the Bayes factor version.
-bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor t-test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by formula with bfpwr."
+# On the cards with a Bayes factor version (`bayes_test: true`: the
+# t-tests, one proportion and the correlation).
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, by exact calculation (bfpwr, or BayesFactor for the correlation, with JASP's default prior for the correlation and one proportion)."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -938,11 +939,12 @@ endpoints:
     plain_name: "Test whether two scores are related"
     search_words: "pearson r association"
     template: "basic_test / correlation"
-    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations"
-    refs: "Departures 9 and 10 (docs/conventions.md)"
+    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations; BayesFactor's correlationBF() for the Bayes factor test (JASP's Bayes factor), with SuppDists for the distribution of r"
+    refs: "Departures 9, 10 and 15, Known differences 11 and 12 (docs/conventions.md)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two variables", "The expected correlation r", "Pearson's r, Spearman's rho or Kendall's tau"]
+    inputs: ["Names of the two variables", "The expected correlation r", "Pearson's r, Spearman's rho, Kendall's tau or a Bayes factor test"]
     status: runs_validated
+    bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
     alternatives: ["Pearson's, Spearman's or Kendall's correlation"]
@@ -1264,6 +1266,7 @@ endpoints:
     backend: "pwrss: power.exact.oneprop() (the exact binomial test); bfpwr: pbinbf01() (the Bayes factor test)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
+    bayes_test: true
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     inputs: ["Your outcome's name", "The expected proportion", "The fixed value", "The exact binomial test, or a Bayes factor test"]
     tier: v2
@@ -1889,7 +1892,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, powerkit plans this itself: on that design's card, choose the Bayes factor t-test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr."
+      - "For a one-sample, paired or two-group t-test, one proportion or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, BayesFactor."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
