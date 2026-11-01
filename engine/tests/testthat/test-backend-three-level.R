@@ -50,3 +50,16 @@ test_that("the exported script reproduces the result with simr alone, and the da
   expect_script_reproduces_power(spec, suppressWarnings(run_spec(spec)))
   expect_true(any(grepl("design$group <=", simulated_data_code(validate_spec(spec), 960, 1), fixed = TRUE)))
 })
+
+test_that("Satterthwaite's test is never more liberal than simr's z test (Departure 16)", {
+  # The same t statistic referred to a t distribution: on the same data
+  # sets every rejection by Satterthwaite's test is one by z too
+  # (docs/conventions.md, 16, gives the size at 12 and 30 schools).
+  inputs <- three_level_inputs(validate_spec(three_spec("site")))
+  model <- simr_model(inputs, 960)
+  power <- vapply(c("sa", "z"), function(m) {
+    r <- suppressMessages(suppressWarnings(simr::powerSim(model, test = simr::fixed("cond", m), nsim = 100, seed = 11, progress = FALSE)))
+    r$x / r$n
+  }, numeric(1))
+  expect_lte(power[["sa"]], power[["z"]])
+})
