@@ -212,6 +212,10 @@ simulations:
       full_run: []
       preview: {power: 170}
       script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E38:
+      full_run: []
+      preview: {power: 200}
+      script: {power: "about 30 minutes on one core (an estimate: two product terms take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E40:
       full_run: []
       preview: {power: 200}
@@ -1365,6 +1369,45 @@ forms:
              shown_if: {field: modmed_stage, is: process_14}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
              help: "A yes/no variable is rescaled to mean 0 and SD 1, so a path from it is per SD, as for a score. With X and W uncorrelated, as a yes/no variable must be here."}
+  # W on both links or the direct path too (PROCESS models 8, 58 and 59;
+  # 1 November 2026): no single index, so the difference between the
+  # conditional indirect effects at two values of W (decisions.md).
+  E38:
+    methods_name: "a moderated mediation model (the difference between conditional indirect effects)"
+    tool: power4mome
+    departures: ["6", "8"]
+    directional: false
+    base: {spec_version: "0.1", design: moderated_mediation, template: process_58,
+           variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: conditional_indirect_difference, method: monte_carlo_ci}}
+    names: [X, W, M, "Y"]
+    groups:
+      - input: "Which links W changes"
+        fields:
+          - {id: modmed_model, label: "W changes", type: select, path: template, required: true,
+             choices: {process_8: "X -> M and the direct path X -> Y (PROCESS model 8)", process_58: "X -> M and M -> Y (PROCESS model 58)", process_59: "X -> M, M -> Y and the direct path (PROCESS model 59)"},
+             default: process_58, default_source: "W on both links of the indirect effect, the commonest of the three",
+             help: "None of these has a single index of moderated mediation, so powerkit tests the difference between the indirect effects at two values of W."}
+      - input: "Standardised paths, including the interactions"
+        fields:
+          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
+          - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true}
+          - {id: p_XW_M, label: "Path XW -> M (W changing the X -> M link)", type: number, path: "population.paths.XW->M", effect: true}
+          - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
+          - {id: p_W_Y, label: "Path W -> Y", type: number, path: "population.paths.W->Y", effect: true}
+          - {id: p_MW_Y, label: "Path MW -> Y (W changing the M -> Y link)", type: number, path: "population.paths.MW->Y", effect: true,
+             shown_if: {field: modmed_model, is_one_of: [process_58, process_59]}}
+          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
+          - {id: p_XW_Y, label: "Path XW -> Y (W changing the direct path)", type: number, path: "population.paths.XW->Y", effect: true,
+             shown_if: {field: modmed_model, is_one_of: [process_8, process_59]}}
+          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+      - input: "The two values of W to compare"
+        fields:
+          - {id: w_from, label: "The lower value of W, in SDs from its mean", type: number, path: target_test.w_values.1, required: true,
+             default: "-1", default_source: "one SD below the mean, as PROCESS's conditional effects use"}
+          - {id: w_to, label: "The higher value of W, in SDs from its mean", type: number, path: target_test.w_values.2, required: true,
+             default: "1", default_source: "one SD above the mean, as PROCESS's conditional effects use",
+             help: "Power is for the indirect effect at this value minus the one at the lower value."}
 
   E40:
     methods_name: "a moderated mediation model with parallel mediators (index of moderated mediation)"

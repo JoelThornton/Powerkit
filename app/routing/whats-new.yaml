@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Moderated mediation where the moderator changes both links"
+    text: >-
+      A new card plans moderated mediation where the moderator changes
+      both links of the indirect effect, or the first link and the direct
+      path (PROCESS models 8, 58 and 59), by comparing the indirect effect
+      at two values of the moderator, such as one SD below and above its
+      mean.
+  - date: "2026-11-01"
     title: "A new methods map"
     text: >-
       The methods map in Labs now opens full screen. Find a study like

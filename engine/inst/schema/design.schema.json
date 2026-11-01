@@ -529,6 +529,15 @@
             "hartung_knapp",
             "z"
           ]
+        },
+        "w_values": {
+          "description": "Moderated mediation, models 8, 58 and 59 only: the two values of W whose conditional indirect effects are compared.",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
         }
       },
       "allOf": [
@@ -3506,7 +3515,10 @@
           "template": {
             "enum": [
               "process_7",
-              "process_14"
+              "process_14",
+              "process_8",
+              "process_58",
+              "process_59"
             ]
           },
           "variables": {
@@ -3581,13 +3593,26 @@
                     "type": "string"
                   },
                   "effect": {
-                    "const": "index_of_moderated_mediation"
+                    "description": "'index_of_moderated_mediation' (models 7 and 14), or for models 8, 58 and 59 'conditional_indirect_difference': the indirect effect at W = w_values[2] minus that at W = w_values[1], tested by its confidence interval.",
+                    "enum": [
+                      "index_of_moderated_mediation",
+                      "conditional_indirect_difference"
+                    ]
                   },
                   "method": {
                     "enum": [
                       "monte_carlo_ci",
                       "percentile_bootstrap"
                     ]
+                  },
+                  "w_values": {
+                    "description": "Models 8, 58 and 59: the two values of W (in SDs, W being standardised) whose conditional indirect effects are compared, first the one subtracted. Default -1 and 1 (one SD below and above the mean).",
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
                   }
                 }
               }

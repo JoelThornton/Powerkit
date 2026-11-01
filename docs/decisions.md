@@ -4137,3 +4137,21 @@ needed first.
   of the whole-study simulation and the published values for the eight
   cards still marked "validation in progress" move from the queue to
   "Waiting on the maintainer, not a PR" in `next.md`.
+
+## 2026-11-01 · Moderated mediation with W on both links or the direct path (E38)
+
+- **The effect tested:** the difference between the conditional indirect
+  effects at two values of W, by default one SD below and above its mean,
+  for models 8, 58 and 59 alike (decided 1 November 2026, this page,
+  "Moderated mediation decisions"). For model 8 it is the index of
+  moderated mediation times the distance between the two values.
+- **Its test:** manymome's `cond_indirect_effects()` and
+  `cond_indirect_diff()` with power4mome's Monte Carlo draws, through a
+  powerkit test function in the shape power4mome's own take; the
+  confidence-interval rule, as for the other moderated mediation cards
+  (Departure 8).
+- **One mediator:** models 8, 58 and 59 with parallel mediators are left
+  for later; nobody has asked for them.
+- **The fitted model for 58 and 59** leaves out power4mome's residual
+  covariance of M with W, which lavaan can't estimate when W predicts M
+  (`upstream-questions.md`, power4mome).

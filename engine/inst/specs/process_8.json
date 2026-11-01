@@ -1,0 +1,60 @@
+{
+  "spec_version": "0.1",
+  "design": "moderated_mediation",
+  "template": "process_8",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Abusive supervision"
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Coping self-efficacy"
+    },
+    "M": {
+      "type": "continuous",
+      "label": "Emotional exhaustion"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Job performance"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "paths": {
+      "X->M": 0.3,
+      "W->M": 0.1,
+      "XW->M": 0.15,
+      "M->Y": 0.3,
+      "X->Y": 0.1,
+      "W->Y": 0.1,
+      "XW->Y": 0.1
+    },
+    "correlations": {
+      "X<->W": -0.1
+    }
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the indirect effect expected to differ between one SD below and above W's mean."
+  },
+  "target_test": {
+    "effect": "conditional_indirect_difference",
+    "method": "monte_carlo_ci",
+    "w_values": [
+      -1,
+      1
+    ],
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "nrep": 100,
+    "seed": 38,
+    "ci_draws": 200
+  }
+}
