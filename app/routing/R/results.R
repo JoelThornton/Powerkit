@@ -2084,9 +2084,15 @@ simulated_data_ui <- function(spec, result) {
 }
 
 # The n the simulated data set uses: the required n for a sample-size
-# goal, otherwise the n entered.
+# goal, the n of a precision plan, otherwise the n entered.
 simulated_data_n_for <- function(spec, result) {
-  n <- if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
+  n <- if (identical(result$goal_type, "sample_size")) {
+    result$n_required$n
+  } else if (identical(result$goal_type, "precision")) {
+    result$precision$n
+  } else {
+    spec$goal$n
+  }
   if (is.numeric(n) && length(n) == 1 && !is.na(n)) n else NA_real_
 }
 
@@ -2230,6 +2236,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
         if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed)."),
+      simulated_data_ui(spec, result),
       writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values))),
     div(class = "result-card result-how",
       h4(class = "h5", "How it was calculated"),

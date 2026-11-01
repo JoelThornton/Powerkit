@@ -4000,3 +4000,30 @@ goal of a target width (find n) or a given n (find the width).
   against intervals computed independently (a noncentral t inversion,
   Fisher's z and Wilson's formula). A published example for d and for a
   proportion is left as `TODO_PUBLISHED_VALUE`.
+
+## 2026-11-01 · Simulated data sets for the remaining designs
+
+`next.md` set the choices on 31 October 2026: simple ones, each stated in
+the data set's note (`simulated_data_note()`).
+
+- **Regression.** The R-squared tests draw independent standard normal
+  predictors with equal weights within each set (the predictors already
+  in the model, then those tested). Logistic and Poisson regression with
+  other predictors get one column carrying their overlap with X (pwrss's
+  `r.squared.predictor`) and no effect of its own on the outcome.
+- **Cluster trials** follow the model each powertools formula assumes:
+  site means and site effects with `multisite.cont()`'s ICCs (the effect's
+  variance 4 times its ICC, the conditions coded -1/2 and +1/2); a random
+  intercept on the log odds with SD `sigma_u` (`crt.parallel.bin()`); a
+  log odds ratio varying between sites with SD `sigma_u`
+  (`multisite.bin()`); and, for a group treatment trial's yes/no outcome,
+  group proportions from a beta distribution with the ICC, under which
+  `irgtt.bin()`'s design effect holds. A baseline score has the outcome's
+  ICC and explains the two R-squared values the spec gives. Groups are all
+  of the planned size.
+- **Paired precision plans** draw the two measurements with correlation
+  0.5, so that the difference has SD 1 and mean d_z.
+- **Left without:** the three-way regression interaction (its data would
+  need the regression weights worked out from the correlations it takes,
+  which no package does), the meta-analysis, SEM, McNemar's test and the
+  generic tests.
