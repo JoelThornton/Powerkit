@@ -186,12 +186,128 @@ test_that("MANOVA, one-sample Hotelling's T-squared and one-way ANCOVA recover t
   expect_null(simulated_data_note(manova))
 })
 
+test_that("ANCOVA with two factors, R-squared tests, other predictors and the trend test recover their populations", {
+  big <- 30000
+  spec <- read_spec(spec_file("anova_factorial_ancova"))
+  data <- simulated_data(spec, big, seed = 4)
+  means <- tapply(data$Anxiety_after, list(data$Intervention, data$Delivery), mean)
+  means <- means[unlist(spec$variables$A$levels), unlist(spec$variables$B$levels)]
+  expect_equal(unname(means), do.call(rbind, lapply(spec$population$means, as.numeric)), tolerance = 0.02)
+  within <- data$Anxiety_after - ave(data$Anxiety_after, data$Intervention, data$Delivery)
+  expect_lt(abs(stats::cor(data$Covariate, within)^2 - spec$population$r2_covariates), 0.03)
+
+  spec <- read_spec(spec_file("regression_r2_increase"))
+  data <- simulated_data(spec, big, seed = 4)
+  full <- summary(stats::lm(Wellbeing_score ~ ., data = data[, -(1:2)]))$r.squared
+  reduced <- summary(stats::lm(Wellbeing_score ~ Control_1 + Control_2 + Control_3, data = data))$r.squared
+  expect_equal(c(full, reduced), c(spec$population$r2_full, spec$population$r2_reduced), tolerance = 0.06)
+  expect_equal(stats::sd(data$Wellbeing_score), 1, tolerance = 0.02)
+  spec <- read_spec(spec_file("regression_r2_zero"))
+  data <- simulated_data(spec, big, seed = 4)
+  expect_equal(summary(stats::lm(Wellbeing_score ~ ., data = data[, -(1:2)]))$r.squared, spec$population$r2, tolerance = 0.06)
+
+  spec <- read_spec(spec_file("logistic_regression"))
+  spec$population$r2_other_predictors <- 0.25
+  data <- simulated_data(spec, big, seed = 4)
+  expect_equal(stats::cor(data[[3]], data$Other_predictor)^2, 0.25, tolerance = 0.06)
+  fit <- stats::glm(data[[5]] == sim_levels(spec, "Y")[2] ~ data[[3]] + data$Other_predictor, family = stats::binomial())
+  expect_equal(unname(exp(stats::coef(fit)[2])), spec$population$odds_ratio, tolerance = 0.05)
+  expect_lt(abs(stats::coef(fit)[3]), 0.05)
+  expect_match(simulated_data_note(spec), "Other_predictor, which shares R-squared 0.25", fixed = TRUE)
+
+  spec <- read_spec(spec_file("proportion_trend"))
+  spec$options$group_ratio <- list(1, 1, 2, 2)
+  spec$goal <- list(type = "power", n = 600)
+  data <- simulated_data(spec, 6000, seed = 4)
+  expect_equal(as.numeric(table(factor(data[[3]], levels = unlist(spec$variables$X$levels)))), c(1000, 1000, 2000, 2000))
+  shares <- tapply(data[[4]] == "Yes", data[[3]], mean)[unlist(spec$variables$X$levels)]
+  expect_equal(as.numeric(shares), as.numeric(unlist(spec$population$proportions)), tolerance = 0.1)
+})
+
+test_that("multisite trials, yes/no cluster outcomes and a baseline score recover their models", {
+  spec <- read_spec(spec_file("multisite"))
+  data <- simulated_data(spec, 40000, seed = 5)
+  m <- spec$population$cluster_size
+  expect_true(all(table(data$cluster) == m))
+  expect_true(all(tapply(data[[3]], data$cluster, function(x) length(unique(x))) == 2))
+  treated <- data[[3]] == sim_levels(spec, "X")[2]
+  expect_equal(mean(data[[5]][treated]) - mean(data[[5]][!treated]), spec$population$d, tolerance = 0.15)
+  effects <- tapply(seq_len(nrow(data)), data$cluster, function(i) mean(data[[5]][i][treated[i]]) - mean(data[[5]][i][!treated[i]]))
+  # The effect varies between sites with variance 4 icc_effect, plus each
+  # site's sampling variance of a difference of two means of m / 2.
+  expect_equal(stats::var(effects) - 4 * (1 - spec$population$icc - spec$population$icc_effect) / m, 4 * spec$population$icc_effect, tolerance = 0.3)
+  # Within a condition, the sites' means, effects and people's own scores
+  # add up to the total variance, 1.
+  expect_equal(stats::var(data[[5]][!treated]), 1, tolerance = 0.05)
+
+  spec <- read_spec(spec_file("cluster_randomised_binary"))
+  data <- simulated_data(spec, 40000, seed = 5)
+  frame <- data.frame(yes = data[[5]] == "Yes", treated = data[[3]] == sim_levels(spec, "X")[2], cluster = data$cluster)
+  fit <- lme4::glmer(yes ~ treated + (1 | cluster), data = frame, family = stats::binomial())
+  expect_equal(unname(lme4::fixef(fit)), c(stats::qlogis(spec$population$p1), stats::qlogis(spec$population$p2) - stats::qlogis(spec$population$p1)), tolerance = 0.1)
+  expect_equal(as.numeric(attr(lme4::VarCorr(fit)$cluster, "stddev")), spec$population$sigma_u, tolerance = 0.2)
+
+  spec <- read_spec(spec_file("multisite_binary"))
+  data <- simulated_data(spec, 40000, seed = 5)
+  shares <- tapply(data[[5]] == "Yes", data[[3]], mean)[sim_levels(spec, "X")]
+  # Averaged over sites the proportions move a little towards 0.5.
+  expect_equal(as.numeric(shares), c(spec$population$p1, spec$population$p2), tolerance = 0.1)
+
+  spec <- read_spec(spec_file("group_treatment_binary"))
+  data <- simulated_data(spec, 40000, seed = 5)
+  grouped <- !is.na(data$cluster)
+  expect_equal(c(mean(data[[5]][!grouped] == "Yes"), mean(data[[5]][grouped] == "Yes")), c(spec$population$p1, spec$population$p2), tolerance = 0.05)
+  group_p <- tapply(data[[5]][grouped] == "Yes", data$cluster[grouped], mean)
+  m <- spec$population$cluster_size
+  p2 <- spec$population$p2
+  icc <- (stats::var(group_p) - p2 * (1 - p2) / m) / (p2 * (1 - p2) * (1 - 1 / m))
+  expect_equal(icc, spec$population$icc, tolerance = 0.5)
+
+  spec <- read_spec(spec_file("cluster_randomised"))
+  spec$population$baseline_r2_within <- 0.4
+  spec$population$baseline_r2_between <- 0.6
+  data <- simulated_data(spec, 40000, seed = 5)
+  expect_named(data, c("SIMULATED_NOT_REAL_DATA", "participant", sim_label(spec, "X"), "cluster", "Baseline", sim_label(spec, "Y")))
+  y <- data[[6]] - ave(data[[6]], data[[3]])
+  own_y <- y - ave(y, data$cluster)
+  own_b <- data$Baseline - ave(data$Baseline, data$cluster)
+  expect_equal(stats::cor(own_y, own_b)^2, 0.4, tolerance = 0.05)
+  expect_equal(stats::cor(tapply(y, data$cluster, mean), tapply(data$Baseline, data$cluster, mean))^2, 0.6, tolerance = 0.2)
+  expect_equal(stats::sd(y), 1, tolerance = 0.05)
+})
+
+test_that("precision plans give data for their interval", {
+  spec <- read_spec(spec_file("precision_two_groups"))
+  data <- simulated_data(spec, 20000, seed = 6)
+  y <- split(data[[4]], data[[3]])[sim_levels(spec, "X")]
+  expect_equal(mean(y[[2]]) - mean(y[[1]]), spec$population$d, tolerance = 0.1)
+  spec <- read_spec(spec_file("precision_correlation"))
+  data <- simulated_data(spec, 20000, seed = 6)
+  expect_equal(stats::cor(data[[3]], data[[4]]), spec$population$r, tolerance = 0.05)
+  spec <- read_spec(spec_file("precision_proportion"))
+  data <- simulated_data(spec, 20000, seed = 6)
+  expect_equal(mean(data[[3]] == sim_yes_no_levels(spec)[2]), spec$population$p, tolerance = 0.05)
+  spec$goal <- list(type = "precision", width = 0.1)
+  result <- run_spec(spec)
+  expect_equal(simulated_data_n(spec, result), result$precision$n)
+  expect_match(export_script(spec, result), "A simulated data set (NOT real data)", fixed = TRUE)
+  paired <- spec
+  paired$template <- "paired"
+  paired$population <- list(metric = "standardised", dz = 0.4)
+  paired$target_test$method <- "noncentral_t"
+  paired$variables <- list(X = list(type = "within_factor", label = "Time", levels = list("Before", "After")), Y = list(type = "continuous", label = "Mood"))
+  data <- simulated_data(paired, 20000, seed = 6)
+  expect_equal(mean(data$Mood_After - data$Mood_Before), 0.4, tolerance = 0.05)
+  expect_equal(stats::sd(data$Mood_After - data$Mood_Before), 1, tolerance = 0.03)
+  expect_match(simulated_data_note(paired), "correlation 0.5", fixed = TRUE)
+})
+
 test_that("designs without a generator say so", {
   spec <- read_spec(spec_file("sem_model_fit"))
   expect_false(simulated_data_available(spec))
   expect_false(simulated_data_available(read_spec(spec_file("mcnemar"))))
-  expect_false(simulated_data_available(read_spec(spec_file("multisite"))))
-  expect_false(simulated_data_available(read_spec(spec_file("cluster_randomised_binary"))))
+  expect_false(simulated_data_available(read_spec(spec_file("regression_three_way"))))
+  expect_false(simulated_data_available(read_spec(spec_file("meta_mean_effect"))))
   expect_error(simulated_data(spec, 100), class = "powerkit_not_available")
   expect_true(simulated_data_available(read_spec(spec_file("mediation_simple"))))
 })

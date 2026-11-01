@@ -10,6 +10,30 @@
     "has_parameters": false
   },
   "packages": {
+    "BH": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "BH",
+        "Type": "Package",
+        "Title": "Boost C++ Header Files",
+        "Version": "1.90.0-1",
+        "Date": "2025-12-13",
+        "Authors@R": "c(person(\"Dirk\", \"Eddelbuettel\", role = c(\"aut\", \"cre\"), email = \"edd@debian.org\",\n                    comment = c(ORCID = \"0000-0001-6419-907X\")),\n             person(\"John W.\", \"Emerson\", role = \"aut\"), \n             person(\"Michael J.\", \"Kane\", role = \"aut\", \n                    comment = c(ORCID = \"0000-0003-1899-6662\")))",
+        "Description": "Boost provides free peer-reviewed portable C++ source \n libraries.  A large part of Boost is provided as C++ template code\n which is resolved entirely at compile-time without linking.  This \n package aims to provide the most useful subset of Boost libraries \n for template use among CRAN packages. By placing these libraries in \n this package, we offer a more efficient distribution system for CRAN \n as replication of this code in the sources of other packages is \n avoided. As of release 1.84.0-0, the following Boost libraries are\n included: 'accumulators' 'algorithm' 'align' 'any' 'atomic' 'beast'\n 'bimap' 'bind' 'circular_buffer' 'compute' 'concept' 'config'\n 'container' 'date_time' 'detail' 'dynamic_bitset' 'exception'\n 'flyweight' 'foreach' 'functional' 'fusion' 'geometry' 'graph' 'heap'\n 'icl' 'integer' 'interprocess' 'intrusive' 'io' 'iostreams'\n 'iterator' 'lambda2' 'math' 'move' 'mp11' 'mpl' 'multiprecision'\n 'numeric' 'pending' 'phoenix' 'polygon' 'preprocessor' 'process'\n 'propery_tree' 'qvm' 'random' 'range' 'scope_exit' 'smart_ptr' 'sort'\n 'spirit' 'tuple' 'type_traits' 'typeof' 'unordered' 'url' 'utility'\n 'uuid'.",
+        "License": "BSL-1.0",
+        "URL": "https://github.com/eddelbuettel/bh,\nhttps://dirk.eddelbuettel.com/code/bh.html",
+        "BugReports": "https://github.com/eddelbuettel/bh/issues",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-12-13 23:51:39 UTC; edd",
+        "Author": "Dirk Eddelbuettel [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-6419-907X>),\n  John W. Emerson [aut],\n  Michael J. Kane [aut] (ORCID: <https://orcid.org/0000-0003-1899-6662>)",
+        "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-12-14 10:20:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:35 UTC; unix"
+      }
+    },
     "BWStest": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -283,6 +307,33 @@
         "Built": "R 4.5.3; x86_64-pc-linux-gnu; 2026-04-21 20:41:52 UTC; unix"
       }
     },
+    "MBESS": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "MBESS",
+        "Type": "Package",
+        "Title": "The MBESS R Package",
+        "Version": "5.0.1",
+        "Date": "2026-06-03",
+        "Authors@R": "c(person(\"Ken\", \"Kelley\", role=c(\"aut\", \"cre\"), email=\"kkelley@nd.edu\"))",
+        "Maintainer": "Ken Kelley <kkelley@nd.edu>",
+        "Depends": "R (>= 3.5.0), stats",
+        "Imports": "boot, lavaan, MASS, methods, mnormt, nlme, OpenMx, parallel,\nsem, semTools",
+        "Suggests": "gsl",
+        "Encoding": "UTF-8",
+        "Description": "Implements methods that are useful in designing research studies and analyzing data, with \n\tparticular emphasis on methods that are developed for or used within the behavioral, \n\teducational, and social sciences (broadly defined). That being said, many of the methods \n\timplemented within MBESS are applicable to a wide variety of disciplines. MBESS has a \n\tsuite of functions for a variety of related topics, such as effect sizes, confidence intervals \n\tfor effect sizes (including standardized effect sizes and noncentral effect sizes), sample size\n\tplanning (from the accuracy in parameter estimation [AIPE], power analytic, equivalence, and \n\tminimum-risk point estimation perspectives), mediation analysis, various properties of \n\tdistributions, and a variety of utility functions. MBESS (pronounced 'em-bes') was originally \n\tan acronym for 'Methods for the Behavioral, Educational, and Social Sciences,' but MBESS became\n\tmore general and now contains methods applicable and used in a wide variety of fields and is an \n\torphan acronym, in the sense that what was an acronym is now literally its name. MBESS has \n\tgreatly benefited from the contributions of many people over the years, who are\n\tacknowledged in the package documentation.",
+        "License": "GPL-2 | GPL-3",
+        "URL": "https://kenkelley.org/r-packages/",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-06-03 23:11:11 UTC; kkelley",
+        "Author": "Ken Kelley [aut, cre]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-06-04 15:30:08 UTC",
+        "Built": "R 4.5.0; ; 2026-06-05 14:08:47 UTC; unix"
+      }
+    },
     "Matrix": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -343,6 +394,43 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-03-26 08:50:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:44:59 UTC; unix"
+      }
+    },
+    "OpenMx": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Encoding": "UTF-8",
+        "Package": "OpenMx",
+        "Date": "2026-02-27",
+        "Title": "Extended Structural Equation Modelling",
+        "Authors@R": "c(person(c(\"Steven\", \"M.\"), \"Boker\", role=\"aut\"),\n    person(c(\"Michael\", \"C.\"), \"Neale\", role=\"aut\"), person(c(\"Hermine\", \"H.\"),\n    \"Maes\", role=\"aut\"), person(c(\"Michael\", \"J.\"), \"Wilde\", role=\"ctb\"), person(\"Michael\",\n    \"Spiegel\", role=\"aut\"), person(c(\"Timothy\", \"R.\"), \"Brick\", role=\"aut\"),\n    person(\"Ryne\", \"Estabrook\", role=\"aut\"), person(c(\"Timothy\", \"C.\"),\n    \"Bates\", role=\"aut\"), person(\"Paras\", \"Mehta\", role=\"ctb\"), person(\"Timo\", c(\"von\",\n    \"Oertzen\"), role=\"ctb\"), person(c(\"Ross\", \"J.\"), \"Gore\", role=\"aut\"),\n    person(c(\"Michael\", \"D.\"), \"Hunter\", role=\"aut\"), person(c(\"Daniel\", \"C.\"), \"Hackett\", role=\"ctb\"),\n    person(\"Julian\", \"Karch\", role=\"ctb\"), person(c(\"Andreas\", \"M.\"), \"Brandmaier\", role=\"ctb\"),\n    person(c(\"Joshua\", \"N.\"), \"Pritikin\", role=\"aut\"), \n    person(\"Mahsa\", \"Zahery\", role=\"aut\"),\n    person(c(\"Robert\", \"M.\"), \"Kirkpatrick\", email=\"rkirkpatrick2@vcu.edu\", role=c(\"aut\",\"cre\")),\n    person(c(\"Yang\"), \"Wang\", role=\"ctb\"),\n\t\tperson(\"Ben\", \"Goodrich\", email=\"goodrich.ben@gmail.com\", role=\"ctb\"),\n    person(c(\"Charles\"), \"Driver\", email=\"driver@mpib-berlin.mpg.de\", role=\"ctb\"),\n    person(c(\"Jannik\", \"H.\"), \"Orzek\", email=\"jannik.orzek@mailbox.org\", role=\"ctb\"),\n    person(c(\"Don\"), \"van den Bergh\", email=\"d.vandenbergh@uva.nl\", role=\"ctb\"),\n    person(\"Massachusetts Institute of Technology\", role=\"cph\"),\n    person(\"S. G.\", \"Johnson\", role=\"cph\"),\n    person(\"Association for Computing Machinery\", role=\"cph\"),\n    person(\"Dieter\", \"Kraft\", role=\"cph\"),\n    person(\"Stefan\", \"Wilhelm\", role=\"cph\"),\n    person(\"Sarah\", \"Medland\", role=\"cph\"),\n    person(c(\"Carl\", 'F.'), \"Falk\", role=\"cph\"),\n    person(\"Matt\", \"Keller\", role=\"cph\"),\n    person(\"Manjunath B G\", role=\"cph\"),\n    person(\"The Regents of the University of California\", role=\"cph\"),\n    person(\"Lester\", \"Ingber\", role=\"cph\"),\n    person(\"Wong\", \"Shao Voon\", role=\"cph\"),\n    person(\"Juan\", \"Palacios\", role=\"cph\"),\n    person(\"Jiang\", \"Yang\", role=\"cph\"),\n\t\tperson(\"Gael\", \"Guennebaud\", role=\"cph\"),\n\t\tperson(\"Jitse\", \"Niesen\", role=\"cph\"))",
+        "URL": "https://openmx.ssri.psu.edu/, https://github.com/OpenMx/OpenMx",
+        "BugReports": "https://openmx.ssri.psu.edu/forums/",
+        "Description": "Create structural equation models that can be manipulated programmatically.\n    Models may be specified with matrices or paths (LISREL or RAM)\n    Example models include confirmatory factor, multiple group, mixture\n    distribution, categorical threshold, modern test theory, differential\n    Fit functions include full information maximum likelihood, maximum likelihood, and weighted least squares.\n    equations, state space, and many others.\n\tSupport and advanced package binaries available at <https://openmx.ssri.psu.edu>.\n    The software is described in Neale, Hunter, Pritikin, Zahery, Brick,\n    Kirkpatrick, Estabrook, Bates, Maes, & Boker (2016) <doi:10.1007/s11336-014-9435-8>.",
+        "SystemRequirements": "GNU make, C++17",
+        "ByteCompile": "yes",
+        "Language": "en-US",
+        "License": "Apache License (== 2.0)",
+        "LinkingTo": "Rcpp, RcppEigen (>= 0.3.3.9.4), RcppParallel, StanHeaders\n(>= 2.10.0.2), BH (>= 1.69.0-1), rpf (>= 0.45), Matrix",
+        "Imports": "digest, MASS, Matrix (>= 1.2-16), methods, Rcpp, RcppParallel,\nparallel, lifecycle",
+        "Depends": "R (>= 3.5.0)",
+        "Suggests": "mvtnorm, numDeriv, roxygen2 (>= 6.1), rpf (>= 0.45),\nsnowfall, lme4, covr, testthat, ifaTools, knitr, markdown,\nrmarkdown, reshape2, ggplot2",
+        "VignetteBuilder": "knitr",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "Collate": "'0ClassUnion.R' 'cache.R' 'MxBaseNamed.R' 'MxData.R'\n'MxDataWLS.R' 'DefinitionVars.R' 'MxReservedNames.R'\n'MxNamespace.R' 'MxSearchReplace.R' 'MxFlatSearchReplace.R'\n'MxUntitled.R' 'MxAlgebraFunctions.R' 'MxExponential.R'\n'MxMatrix.R' 'DiagMatrix.R' 'FullMatrix.R' 'IdenMatrix.R'\n'LowerMatrix.R' 'SdiagMatrix.R' 'StandMatrix.R' 'SymmMatrix.R'\n'UnitMatrix.R' 'ZeroMatrix.R' 'MxMatrixFunctions.R'\n'MxAlgebra.R' 'MxCycleDetection.R' 'MxDependencies.R'\n'MxAlgebraConvert.R' 'MxSquareBracket.R' 'MxEval.R'\n'MxRename.R' 'MxPath.R' 'MxObjectiveMetaData.R'\n'MxExpectation.R' 'MxExpectationNormal.R' 'MxExpectationRAM.R'\n'MxExpectationLISREL.R' 'MxFitFunction.R'\n'MxFitFunctionAlgebra.R' 'MxFitFunctionML.R'\n'MxFitFunctionMultigroup.R' 'MxFitFunctionRow.R'\n'MxFitFunctionWLS.R' 'MxRAMObjective.R' 'MxLISRELObjective.R'\n'MxFIMLObjective.R' 'MxMLObjective.R' 'MxRowObjective.R'\n'MxAlgebraObjective.R' 'MxBounds.R' 'MxConstraint.R'\n'MxInterval.R' 'MxTypes.R' 'MxCompute.R' 'MxModel.R'\n'MxRAMModel.R' 'MxLISRELModel.R' 'MxModelDisplay.R'\n'MxFlatModel.R' 'MxMultiModel.R' 'MxModelFunctions.R'\n'MxModelParameters.R' 'MxUnitTesting.R' 'MxApply.R' 'MxRun.R'\n'MxRunHelperFunctions.R' 'MxSummary.R' 'MxCompare.R'\n'MxSwift.R' 'MxOptions.R' 'MxThreshold.R' 'OriginalMx.R'\n'MxGraph.R' 'MxGraphviz.R' 'MxDeparse.R' 'MxCommunication.R'\n'MxRestore.R' 'MxVersion.R' 'MxPPML.R' 'MxRAMtoML.R'\n'MxErrorHandling.R' 'MxDetectCores.R' 'MxSaturatedModel.R'\n'omxBrownie.R' 'omxConstrainThresholds.R' 'omxGetNPSOL.R'\n'MxFitFunctionR.R' 'MxRObjective.R'\n'MxExpectationHiddenMarkov.R' 'MxExpectationMixture.R'\n'MxExpectationStateSpace.R' 'MxExpectationBA81.R'\n'MxFitFunctionGREML.R' 'MxExpectationGREML.R' 'MxMI.R'\n'MxFactorScores.R' 'MxRobustSE.R' 'MxAvailableOptimizers.R'\n'MxTryHard.R' 'MxSE.R' 'MxAutoStart.R' 'MxRetro.R'\n'MxPenalty.R' 'MxMMI.R' 'omxReadGRMBin.R' 'MxPredict.R' 'zzz.R'",
+        "RdMacros": "lifecycle",
+        "Biarch": "true",
+        "Version": "2.22.11",
+        "RoxygenNote": "7.3.3",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-03-06 14:21:40 UTC; rmk",
+        "Author": "Steven M. Boker [aut],\n  Michael C. Neale [aut],\n  Hermine H. Maes [aut],\n  Michael J. Wilde [ctb],\n  Michael Spiegel [aut],\n  Timothy R. Brick [aut],\n  Ryne Estabrook [aut],\n  Timothy C. Bates [aut],\n  Paras Mehta [ctb],\n  Timo von Oertzen [ctb],\n  Ross J. Gore [aut],\n  Michael D. Hunter [aut],\n  Daniel C. Hackett [ctb],\n  Julian Karch [ctb],\n  Andreas M. Brandmaier [ctb],\n  Joshua N. Pritikin [aut],\n  Mahsa Zahery [aut],\n  Robert M. Kirkpatrick [aut, cre],\n  Yang Wang [ctb],\n  Ben Goodrich [ctb],\n  Charles Driver [ctb],\n  Jannik H. Orzek [ctb],\n  Don van den Bergh [ctb],\n  Massachusetts Institute of Technology [cph],\n  S. G. Johnson [cph],\n  Association for Computing Machinery [cph],\n  Dieter Kraft [cph],\n  Stefan Wilhelm [cph],\n  Sarah Medland [cph],\n  Carl F. Falk [cph],\n  Matt Keller [cph],\n  Manjunath B G [cph],\n  The Regents of the University of California [cph],\n  Lester Ingber [cph],\n  Wong Shao Voon [cph],\n  Juan Palacios [cph],\n  Jiang Yang [cph],\n  Gael Guennebaud [cph],\n  Jitse Niesen [cph]",
+        "Maintainer": "Robert M. Kirkpatrick <rkirkpatrick2@vcu.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-08 06:10:55 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-03 06:49:25 UTC; unix"
       }
     },
     "PMCMRplus": {
@@ -902,6 +990,36 @@
         "Built": "R 4.5.0; ; 2026-10-17 04:34:38 UTC; unix"
       }
     },
+    "StanHeaders": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "StanHeaders",
+        "Title": "C++ Header Files for Stan",
+        "Version": "2.39.1",
+        "Authors@R": "c(person(\"Ben\",family=\"Goodrich\", email=\"benjamin.goodrich@columbia.edu\", role=c('cre','aut')),\n             person(\"Joshua\", \"Pritikin\", role = \"ctb\"),\n             person(\"Andrew\", \"Gelman\", role = \"aut\"),\n             person(\"Bob\", \"Carpenter\",  role = \"aut\"),\n             person(\"Matt\", \"Hoffman\", role = \"aut\"),\n             person(\"Daniel\", \"Lee\", role = \"aut\"),\n             person(\"Michael\", \"Betancourt\", role = \"aut\"),\n             person(\"Marcus\", \"Brubaker\", role = \"aut\"),\n             person(\"Jiqiang\", \"Guo\", role = \"aut\"),\n             person(\"Peter\", \"Li\", role = \"aut\"),\n             person(\"Allen\", \"Riddell\", role = \"aut\"),\n             person(\"Marco\", \"Inacio\", role = \"aut\"),\n             person(\"Mitzi\", \"Morris\", role = \"aut\"),\n             person(\"Jeffrey\", \"Arnold\", role = \"aut\"),\n             person(\"Rob\", \"Goedman\", role = \"aut\"),\n             person(\"Brian\", \"Lau\", role = \"aut\"),\n             person(\"Rob\", \"Trangucci\", role = \"aut\"),\n             person(\"Jonah\", \"Gabry\", role = \"aut\"),\n             person(\"Alp\", \"Kucukelbir\", role = \"aut\"),\n             person(\"Robert\", \"Grant\", role = \"aut\"),\n             person(\"Dustin\", \"Tran\", role = \"aut\"),\n             person(\"Michael\", \"Malecki\", role = \"aut\"),\n             person(\"Yuanjun\", \"Gao\", role = \"aut\"),\n             person(\"Hamada S.\", \"Badr\", role = c(\"aut\"),\n                    email = \"badr@jhu.edu\",\n                    comment = c(ORCID = \"0000-0002-9808-2344\")),\n             person(\"Trustees of\", \"Columbia University\", role = \"cph\"),\n             person(\"Lawrence Livermore\", \"National Security\", role = \"cph\", comment = \"CVODES\"),\n             person(\"The Regents of the\", \"University of California\", role = \"cph\", comment = \"CVODES\"),\n             person(\"Southern Methodist\", \"University\", role = \"cph\", comment = \"CVODES\"))",
+        "URL": "https://mc-stan.org/, https://github.com/stan-dev/rstan",
+        "BugReports": "https://github.com/stan-dev/rstan/issues",
+        "Description": "The C++ header files of the Stan project are provided by this package, but it contains little R code or documentation. The main reference is the vignette. There is a shared object containing part of the 'CVODES' library, but its functionality is not accessible from R. 'StanHeaders' is primarily useful for developers who want to utilize the 'LinkingTo' directive of their package's DESCRIPTION file to build on the Stan library without incurring unnecessary dependencies. The Stan project develops a probabilistic programming language that implements full or approximate Bayesian statistical inference via Markov Chain Monte Carlo or 'variational' methods and implements (optionally penalized) maximum likelihood estimation via optimization. The Stan library includes an advanced automatic differentiation scheme, 'templated' statistical and linear algebra functions that can handle the automatically 'differentiable' scalar types (and doubles, 'ints', etc.), and a parser for the Stan language. The 'rstan' package provides user-facing R functions to parse, compile, test, estimate, and analyze Stan models.",
+        "Imports": "RcppParallel (>= 5.1.4)",
+        "Suggests": "Rcpp, BH (>= 1.75.0-0), knitr (>= 1.36), rmarkdown, Matrix,\nmethods, rstan, withr",
+        "LinkingTo": "RcppEigen (>= 0.3.3.9.3), RcppParallel (>= 5.1.4)",
+        "VignetteBuilder": "knitr",
+        "SystemRequirements": "GNU make, pandoc",
+        "Depends": "R (>= 3.4.0)",
+        "License": "BSD_3_clause + file LICENSE",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.2",
+        "Config/build/compilation-database": "true",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-09-01 13:37:43 UTC; bgoodri",
+        "Author": "Ben Goodrich [cre, aut],\n  Joshua Pritikin [ctb],\n  Andrew Gelman [aut],\n  Bob Carpenter [aut],\n  Matt Hoffman [aut],\n  Daniel Lee [aut],\n  Michael Betancourt [aut],\n  Marcus Brubaker [aut],\n  Jiqiang Guo [aut],\n  Peter Li [aut],\n  Allen Riddell [aut],\n  Marco Inacio [aut],\n  Mitzi Morris [aut],\n  Jeffrey Arnold [aut],\n  Rob Goedman [aut],\n  Brian Lau [aut],\n  Rob Trangucci [aut],\n  Jonah Gabry [aut],\n  Alp Kucukelbir [aut],\n  Robert Grant [aut],\n  Dustin Tran [aut],\n  Michael Malecki [aut],\n  Yuanjun Gao [aut],\n  Hamada S. Badr [aut] (ORCID: <https://orcid.org/0000-0002-9808-2344>),\n  Trustees of Columbia University [cph],\n  Lawrence Livermore National Security [cph] (CVODES),\n  The Regents of the University of California [cph] (CVODES),\n  Southern Methodist University [cph] (CVODES)",
+        "Maintainer": "Ben Goodrich <benjamin.goodrich@columbia.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-02 12:10:09 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-03 06:36:38 UTC; unix"
+      }
+    },
     "Superpower": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1089,6 +1207,31 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-12-14 16:40:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-24 03:11:23 UTC; unix"
+      }
+    },
+    "arm": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "arm",
+        "Version": "1.15-3",
+        "Date": "2026-4-15",
+        "Title": "Data Analysis Using Regression and Multilevel/Hierarchical\nModels",
+        "Authors@R": "c(person(\"Andrew\", \"Gelman\", role = \"aut\", email = \"gelman@stat.columbia.edu\"),\n             person(\"Yu-Sung\", \"Su\", role =  c(\"aut\", \"cre\"), \n\t\t          email = \"suyusung@tsinghua.edu.cn\", \n\t\t          comment = c(ORCID = \"0000-0001-5021-8209\")),\n             person(\"Masanao\", \"Yajima\", role =  \"ctb\", email = \"yajima@bu.edu\"),\n             person(\"Jennifer\", \"Hill\", role =  \"ctb\", email = \"jennifer.hill@nyu.edu\"),\n             person(\"Maria Grazia\", \"Pittau\", role =  \"ctb\", email = \"grazia@stat.columbia.edu\"),\n             person(\"Jouni\", \"Kerman\", role =  \"ctb\", email = \"jouni@kerman.com\"),\n             person(\"Tian\", \"Zheng\", role =  \"ctb\", email = \"tzheng@stat.columbia.edu\"),\n             person(\"Vincent\", \"Dorie\", role =  \"ctb\", email = \"vjd4@nyu.edu\")\n             )",
+        "Author": "Andrew Gelman [aut],\n  Yu-Sung Su [aut, cre] (ORCID: <https://orcid.org/0000-0001-5021-8209>),\n  Masanao Yajima [ctb],\n  Jennifer Hill [ctb],\n  Maria Grazia Pittau [ctb],\n  Jouni Kerman [ctb],\n  Tian Zheng [ctb],\n  Vincent Dorie [ctb]",
+        "Maintainer": "Yu-Sung Su <suyusung@tsinghua.edu.cn>",
+        "BugReports": "https://github.com/suyusung/arm/issues/",
+        "Depends": "R (>= 3.1.0), MASS, Matrix (>= 1.6-1.1), stats, lme4 (>= 1.0)",
+        "Imports": "abind, coda, graphics, grDevices, methods, nlme, utils",
+        "Description": "Functions to accompany A. Gelman and J. Hill, Data Analysis Using Regression and Multilevel/Hierarchical Models, Cambridge University Press, 2007.",
+        "License": "GPL (>= 2)",
+        "URL": "https://CRAN.R-project.org/package=arm",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-04-15 11:46:23 UTC; suyusung",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-04-15 14:00:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 22:27:22 UTC; unix"
       }
     },
     "askpass": {
@@ -3901,6 +4044,27 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:56:04 UTC; unix"
       }
     },
+    "kappaSize": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "kappaSize",
+        "Version": "1.2",
+        "Date": "2018-11-25",
+        "Title": "Sample Size Estimation Functions for Studies of Interobserver\nAgreement",
+        "Author": "Michael A Rotondi <mrotondi@yorku.ca>",
+        "Maintainer": "Michael A Rotondi <mrotondi@yorku.ca>",
+        "Depends": "R (>= 2.10)",
+        "Description": "Contains basic tools for sample size estimation in studies of interobserver/interrater agreement (reliability).  Includes functions for both the power-based and confidence interval-based methods, with binary or multinomial outcomes and two through six raters.",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "no",
+        "Packaged": "2018-11-26 17:04:39 UTC; mrotondi",
+        "Repository": "RSPM",
+        "Date/Publication": "2018-11-26 17:40:03 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 21:33:02 UTC; unix"
+      }
+    },
     "knitr": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4511,6 +4675,34 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-11-07 16:30:02 UTC",
         "Built": "R 4.5.3; x86_64-pc-linux-gnu; 2026-04-21 20:45:35 UTC; unix"
+      }
+    },
+    "mi": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "mi",
+        "Type": "Package",
+        "Title": "Missing Data Imputation and Model Checking",
+        "Version": "1.3.1",
+        "Date": "2026-07-27",
+        "Authors@R": "c(person(\"Andrew\", \"Gelman\", email = \"gelman@stat.columbia.edu\", role = \"ctb\"), \n             person(\"Jennifer\", \"Hill\", email = \"jennifer.hill@nyu.edu\", role = \"ctb\"),\n             person(\"Yu-Sung\", \"Su\", email = \"suyusung@tsinghua.edu.cn\", role = c(\"aut\")), \n             person(\"Masanao\", \"Yajima\", email = \"my2167@columbia.edu\", role = \"ctb\"), \n             person(\"Maria\", \"Pittau\", email = \"grazia@stat.columbia.edu\", role = \"ctb\"), \n             person(\"Ben\", \"Goodrich\", email = \"benjamin.goodrich@columbia.edu\", role = c(\"cre\", \"aut\")), \n             person(\"Yajuan\", \"Si\", email = \"sophie2012@gmail.com\", role = \"ctb\"),\n             person(\"Jon\", \"Kropko\", email = \"jkropko@gmail.com\", role = \"aut\"))",
+        "Description": "The mi package provides functions for data manipulation, imputing missing values in an approximate Bayesian framework, diagnostics of the models used to generate the imputations, confidence-building mechanisms to validate some of the assumptions of the imputation algorithm, and functions to analyze multiply imputed data sets with the appropriate degree of sampling uncertainty.",
+        "VignetteBuilder": "knitr",
+        "Depends": "R (>= 3.0.0), methods, Matrix, stats4",
+        "Imports": "arm (>= 1.4-11)",
+        "Suggests": "betareg, lattice, knitr, MASS, nnet, parallel, sn, survival,\ntruncnorm, foreign",
+        "URL": "https://sites.stat.columbia.edu/gelman/",
+        "License": "GPL (>= 2)",
+        "LazyLoad": "yes",
+        "Author": "Andrew Gelman [ctb],\n  Jennifer Hill [ctb],\n  Yu-Sung Su [aut],\n  Masanao Yajima [ctb],\n  Maria Pittau [ctb],\n  Ben Goodrich [cre, aut],\n  Yajuan Si [ctb],\n  Jon Kropko [aut]",
+        "Maintainer": "Ben Goodrich <benjamin.goodrich@columbia.edu>",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-28 02:55:47 UTC; bgoodri",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-28 03:30:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-07-28 07:30:39 UTC; unix"
       }
     },
     "mice": {
@@ -5512,7 +5704,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, PMCMRplus, lme4,\nlmerTest, manymome, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, pwrss, PUMP, semPower, simr,\nSimDesign, Spower (>= 0.7), stats, Superpower, TOSTER, utils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, PMCMRplus, presize,\nlme4, lmerTest, manymome, MBESS, metafor, metapower, parallel,\npsych, power4mome, pwr, powertools, pwrss, PUMP, semPower,\nsimr, SimDesign, Spower (>= 0.7), stats, Superpower, TOSTER,\nutils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5522,19 +5714,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "257f9d1d334252836346e10c5725c11b4f1731d0",
-        "RemoteSha": "257f9d1d334252836346e10c5725c11b4f1731d0",
+        "RemoteRef": "3055e5ec7be4c9d355926dabbb668a42b8fc047c",
+        "RemoteSha": "3055e5ec7be4c9d355926dabbb668a42b8fc047c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "257f9d1d334252836346e10c5725c11b4f1731d0",
-        "GithubSHA1": "257f9d1d334252836346e10c5725c11b4f1731d0",
+        "GithubRef": "3055e5ec7be4c9d355926dabbb668a42b8fc047c",
+        "GithubSHA1": "3055e5ec7be4c9d355926dabbb668a42b8fc047c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-01 06:05:27 UTC; runner",
+        "Packaged": "2026-11-01 07:08:31 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-01 06:05:39 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-01 07:08:41 UTC; unix"
       }
     },
     "powertools": {
@@ -5588,6 +5780,33 @@
         "Date/Publication": "2015-08-11 08:22:28",
         "Encoding": "UTF-8",
         "Built": "R 4.5.0; ; 2026-04-23 22:04:59 UTC; unix"
+      }
+    },
+    "presize": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "presize",
+        "Type": "Package",
+        "Title": "Precision Based Sample Size Calculation",
+        "Version": "0.3.11",
+        "Authors@R": "\n    c(person(given = \"Armando\",\n    family = \"Lenz\",\n    role = \"aut\"),\n    person(given = \"Alan G.\",\n    family = \"Haynes\",\n    role = c(\"cre\", \"aut\"),\n    email = \"alan.haynes@unibe.ch\"),\n    person(given = \"Andreas\",\n    family = \"Limacher\",\n    role = \"aut\",\n    email = \"andreas.limacher@paraplegie.ch\"),\n    person(given = \"Odile\",\n    family = \"Stalder\",\n    role = \"ctb\",\n    email = \"odile.stalder@unibe.ch\"),\n    person(given = \"Marie\",\n    family = \"Roumet\",\n    role = \"ctb\",\n    email = \"marie.roumet@unibe.ch\"))",
+        "Maintainer": "Alan G. Haynes <alan.haynes@unibe.ch>",
+        "Description": "Bland (2009) <doi:10.1136/bmj.b3985> recommended to\n    base study sizes on the width of the confidence interval rather the power of \n    a statistical test. The goal of 'presize' is to provide functions for such \n    precision based sample size calculations. For a given sample size, the \n    functions will return the precision (width of the confidence interval), and \n    vice versa. ",
+        "License": "GPL-3",
+        "URL": "https://github.com/dcr-unibe-ch/presize,\nhttps://dcr-unibe-ch.github.io/presize/",
+        "BugReports": "https://github.com/dcr-unibe-ch/presize/issues",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "Suggests": "binom, dplyr, ggplot2, gt, Hmisc, knitr, magrittr, markdown,\nrmarkdown, shinydashboard, shinytest, testthat, tidyr",
+        "Imports": "kappaSize (>= 1.2), shiny",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-03-11 07:09:59 UTC; haynes",
+        "Author": "Armando Lenz [aut],\n  Alan G. Haynes [cre, aut],\n  Andreas Limacher [aut],\n  Odile Stalder [ctb],\n  Marie Roumet [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-11 08:50:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 23:25:54 UTC; unix"
       }
     },
     "prettyunits": {
@@ -6276,6 +6495,40 @@
         "Built": "R 4.5.3; x86_64-pc-linux-gnu; 2026-04-21 20:45:25 UTC; unix"
       }
     },
+    "rpf": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Type": "Package",
+        "Package": "rpf",
+        "Title": "Response Probability Functions",
+        "Version": "1.0.15",
+        "Date": "2025-05-03",
+        "Authors@R": "\n    c(person(given = \"Joshua\",\n             family = \"Pritikin\",\n             role = c(\"cre\", \"aut\"),\n             email = \"jpritikin@pobox.com\"),\n      person(given = \"Jonathan\",\n             family = \"Weeks\",\n             role = \"ctb\",\n             email = \"weeksjp@gmail.com\"),\n      person(given = \"Li\",\n             family = \"Cai\",\n             role = \"ctb\"),\n      person(given = \"Carrie\",\n             family = \"Houts\",\n             role = \"ctb\"),\n      person(given = \"Phil\",\n             family = \"Chalmers\",\n             role = \"ctb\",\n             email = \"rphilip.chalmers@gmail.com\"),\n      person(given = c(\"Michael\", \"D.\"),\n             family = \"Hunter\",\n             role = \"ctb\"),\n      person(given = c(\"Carl\", \"F.\"),\n             family = \"Falk\",\n             role = \"ctb\",\n             email = \"falkcarl@msu.edu\"))",
+        "Maintainer": "Joshua Pritikin <jpritikin@pobox.com>",
+        "Description": "Factor out logic\n    and math common to Item Factor Analysis fitting, diagnostics, and\n    analysis. It is envisioned as core support code suitable for more\n    specialized IRT packages to build upon. Complete access to optimized C\n    functions are made available with R_RegisterCCallable().\n    This software is described in Pritikin & Falk (2020) <doi:10.1177/0146621620929431>.",
+        "License": "GPL (>= 3)",
+        "URL": "https://github.com/jpritikin/rpf",
+        "Depends": "methods, parallel, R (>= 2.14.0)",
+        "Imports": "Rcpp (>= 1.0.2), mvtnorm, lifecycle",
+        "Suggests": "testthat, roxygen2, ggplot2, reshape2, gridExtra, numDeriv,\nknitr, mirt, markdown",
+        "LinkingTo": "Rcpp, RcppEigen",
+        "VignetteBuilder": "knitr",
+        "RdMacros": "lifecycle",
+        "Encoding": "UTF-8",
+        "LazyData": "yes",
+        "LazyDataCompression": "xz",
+        "RoxygenNote": "7.3.2",
+        "SystemRequirements": "GNU make",
+        "Collate": "'init.R' 'classes.R' 'fit.R' 'drm.R' 'nrm.R' 'mcm.R' 'grm.R'\n'LSAT.R' 'sample.R' 'dataframe.R' 'diagnose.R' 'science.R'\n'kct.R' 'openmx.R' 'flexmirt.R' 'util.R' 'lmp.R' 'grmp.R'\n'gpcmp.R' 'RcppExports.R'",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-05-04 06:15:04 UTC; joshua",
+        "Author": "Joshua Pritikin [cre, aut],\n  Jonathan Weeks [ctb],\n  Li Cai [ctb],\n  Carrie Houts [ctb],\n  Phil Chalmers [ctb],\n  Michael D. Hunter [ctb],\n  Carl F. Falk [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-05-04 10:00:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 12:20:10 UTC; unix"
+      }
+    },
     "rprojroot": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6419,6 +6672,34 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-04-24 11:00:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:44:48 UTC; unix"
+      }
+    },
+    "sem": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "sem",
+        "Version": "3.1-16",
+        "Date": "2024-08-25",
+        "Title": "Structural Equation Models",
+        "Authors@R": "c(person(\"John\", \"Fox\", role = \"aut\", email = \"jfox@mcmaster.ca\"),\n\tperson(\"Zhenghua\", \"Nie\", role = c(\"aut\", \"cre\"), email=\"zhenghua.nie@gmail.com\"),\n    person(\"Jarrett\", \"Byrnes\", role = \"aut\", email=\"byrnes@nceas.ucsb.edu\"),\n    person(\"Michael\", \"Culbertson\", role = \"ctb\"),\n    person(\"Saikat\", \"DebRoy\", role = \"ctb\"),\n    person(\"Michael\", \"Friendly\", role = \"ctb\"),\n    person(\"Benjamin\", \"Goodrich\", role = \"ctb\"),\n    person(given=\"Richard H.\", family=\"Jones\", role = \"ctb\"),\n    person(\"Adam\", \"Kramer\", role = \"ctb\"),\n    person(\"Georges\", \"Monette\", role = \"ctb\"),\n    person(\"Frederick\", \"Novomestky\", role = \"ctb\"),\n    person(\"R-Core\", role = \"ctb\")\n\t)",
+        "Depends": "R (>= 3.5.0), stats",
+        "Imports": "MASS, boot, mi (>= 0.9-99), utils",
+        "Suggests": "polycor, DiagrammeR (>= 1.0.9)",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "ByteCompile": "yes",
+        "Description": "Functions for fitting general linear structural\n    equation models (with observed and latent variables) using the RAM approach, \n    and for fitting structural equations in observed-variable models by two-stage least squares.",
+        "License": "GPL (>= 2)",
+        "URL": "https://CRAN.R-project.org/package=sem",
+        "NeedsCompilation": "yes",
+        "Packaged": "2024-08-28 01:40:20 UTC; niez",
+        "Author": "John Fox [aut],\n  Zhenghua Nie [aut, cre],\n  Jarrett Byrnes [aut],\n  Michael Culbertson [ctb],\n  Saikat DebRoy [ctb],\n  Michael Friendly [ctb],\n  Benjamin Goodrich [ctb],\n  Richard H. Jones [ctb],\n  Adam Kramer [ctb],\n  Georges Monette [ctb],\n  Frederick Novomestky [ctb],\n  R-Core [ctb]",
+        "Maintainer": "Zhenghua Nie <zhenghua.nie@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-08-28 08:10:04 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 22:38:56 UTC; unix"
       }
     },
     "semPower": {
@@ -7336,7 +7617,7 @@
       "checksum": "7876864f7599fa754ad49e27a5d15e01"
     },
     "forms.yaml": {
-      "checksum": "7be8031b345e94635521a3064a2b8f30"
+      "checksum": "fd8f133296aa481d0fe160fad92b6d29"
     },
     "R/about.R": {
       "checksum": "8ff582fd1a83306947634b764b8e8cf7"
@@ -7348,7 +7629,7 @@
       "checksum": "f8d04b8589f94a830b4d38258b87454a"
     },
     "R/forms.R": {
-      "checksum": "b4ed4c916971a91bb77afc5b6927c21a"
+      "checksum": "29c059d2f3effd61704ea85b39dc7dd7"
     },
     "R/labs.R": {
       "checksum": "4a7835fc261d9689ec76ab9641933847"
@@ -7360,7 +7641,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "052b37a85545fdc1dc19418cc1500d94"
+      "checksum": "4f1801f68e9b051c134704fba2d82e91"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7387,7 +7668,10 @@
       "checksum": "db557c9178b4b042487758bc930e8482"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "576d2ad098f786bf02ef142b0baa3c23"
+      "checksum": "81ffea6bee83c0dda0a53f12088e8f5f"
+    },
+    "tests/testthat/Rplots.pdf": {
+      "checksum": "07c1eb43e01e2e72b7aafde6991c8032"
     },
     "tests/testthat/setup.R": {
       "checksum": "9e0197dca2881b76838e3eeb10588c81"
@@ -7402,7 +7686,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "b45962200f08e2772aa62ae4ac64e640"
+      "checksum": "1b848cae5a5371a0c531bf787fb9ee12"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "cbc4f5efbe7958cb25786e52c9f7c293"
@@ -7411,7 +7695,7 @@
       "checksum": "f35ce203732fd8ebf97d01f57bf26873"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "52849a9995f666daca8244f26a310829"
+      "checksum": "ce74bd11b795cb037836707342cf01f6"
     },
     "tests/testthat/test-project.R": {
       "checksum": "c83b5d0a62eccfac1e080e29de6bb9d6"
@@ -7420,10 +7704,10 @@
       "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "394883c17372fd3a64401de5cdd894c5"
+      "checksum": "4f375ec8a85981312c28c446156e0d99"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "cfe4224cd07653ad3c2432c4a53deb2b"
+      "checksum": "38b4e802f4461c06155694b089e67164"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "72e7435089b837ddaeaf1597c2201ce3"
@@ -7444,7 +7728,7 @@
       "checksum": "d15be88c94831522cccbc987e581728d"
     },
     "tree.yaml": {
-      "checksum": "70b1d37225af4febab5ad7594bef6dd1"
+      "checksum": "7405609b3d3e786c60ca4b8d2837a1d2"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7459,7 +7743,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "c98bf58a1eaa8cad69d9810e5619f601"
+      "checksum": "f5b36da63df7c40282dc57d6ceded4f6"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"

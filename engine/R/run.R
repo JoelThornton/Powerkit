@@ -246,6 +246,9 @@ run_spec <- function(spec) {
   if (spec$design == "generic_test") {
     return(run_generic(spec, seed))
   }
+  if (spec$design == "precision") {
+    return(run_precision(spec, seed))
+  }
   backend <- route_spec(spec, seed)
   method <- run_method(spec, backend)
   if (!identical(method, backend$sensitivity_method) && !method %in% backend$methods) {

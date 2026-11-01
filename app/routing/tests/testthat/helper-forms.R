@@ -199,3 +199,9 @@ form_examples$E29 <- c(list(X_label = "Condition", X_level1 = "Usual care", X_le
 form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", B_label = "Messenger", B_levels = "Doctor, Friend, Celebrity",
                             Y_label = "Booked a flu jab", probabilities = "0.3, 0.4, 0.25\n0.4, 0.45, 0.3",
                             effect = "main_effect_A"), closing_ok)
+
+# E46: precision planning, a proportion (presize; MBESS cases are in
+# test-results.R).
+form_examples$E46 <- list(estimate = "proportion", Y_label = "Reports burnout", p = "0.3", p_method = "wilson",
+  goal = "precision_n", width = "0.1", conf_level = "0.95",
+  just_type = "smallest_effect_of_interest", just_source = "Example only")

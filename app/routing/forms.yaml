@@ -73,6 +73,9 @@ tool_defaults:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
     power_source: "semPower has no default target power (semPower.aPriori(power = NULL)); enter one"
+  precision:
+    conf_level: 0.95
+    conf_level_source: "the default of MBESS (ss.aipe.smd(conf.level = .95), MBESS 5.0.1) and presize (prec_cor(conf.level = 0.95), presize 0.3.11)"
   metapower:
     alpha: 0.05
     alpha_source: "metapower's default (mpower(p = 0.05), metapower 0.2.2)"
@@ -119,7 +122,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -2478,6 +2481,60 @@ forms:
              shown_if: {field: generic_test, is: f}}
           - {id: df2, label: "Denominator degrees of freedom", type: number, path: population.df2, required: true, min_exclusive: 0,
              shown_if: {field: generic_test, is: f}}
+
+  # Precision planning (1 November 2026): the sample size for a target
+  # confidence-interval width, or the width at a given sample size, not
+  # power. Cohen's d, a standardised mean and d_z by MBESS (ss.aipe.smd(),
+  # ss.aipe.sm()); a correlation and a proportion by presize (prec_cor(),
+  # prec_prop()). The engine's design "precision".
+  E46:
+    methods_name: "a confidence interval"
+    tool: precision
+    precision: true
+    base: {spec_version: "0.1", design: precision, template: two_groups, variables: {},
+           target_test: {effect: confidence_interval}}
+    groups:
+      - input: "What you want to estimate"
+        fields:
+          - {id: estimate, label: "What will the confidence interval be for?", type: select, path: template, required: true,
+             choices: {two_groups: "A difference between two groups, as Cohen's d", paired: "A change or difference within the same people, as d_z (pairs of scores)",
+                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)"},
+             default: two_groups, default_source: "powerkit's first choice; pick the estimate your study reports",
+             sets: {two_groups: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    paired: [{path: variables.X.type, value: within_factor}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    one_group: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
+                    correlation: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: correlation}],
+                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}]}}
+      - input: "Names"
+        fields:
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: T_label, label: "What the two measurements are (for example, time)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: T_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: T_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: paired}}
+          - {id: C_label, label: "First variable", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: correlation}}
+          - {id: Y_label, label: "Outcome (for a correlation, the second variable; for a proportion, what is counted)", type: text, path: variables.Y.label, required: true}
+      - input: "The value you expect"
+        fields:
+          - {id: d, writeup_label: "expected d", label: "The Cohen's d you expect (group 2 minus group 1, in SDs)", type: number, path: population.d, effect: true,
+             shown_if: {field: estimate, is: two_groups}, help: "The interval's width depends a little on it; if unsure, a larger value gives a slightly larger sample size."}
+          - {id: dz, writeup_label: "expected d_z", label: "The d_z you expect (the mean difference divided by the SD of the differences)", type: number, path: population.dz, effect: true,
+             shown_if: {field: estimate, is: paired}}
+          - {id: sm, writeup_label: "expected standardised mean", label: "The standardised mean you expect: (mean minus the fixed value) / SD", type: number, path: population.d, effect: true,
+             shown_if: {field: estimate, is: one_group}}
+          - {id: r, writeup_label: "expected correlation", label: "The correlation you expect", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: estimate, is: correlation}, help: "Intervals are narrower for larger correlations, so a smaller guess is the cautious one."}
+          - {id: p, writeup_label: "expected proportion", label: "The proportion you expect (for example 0.3 for 30%)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none."}
+      - input: "The kind of interval"
+        fields:
+          - {id: r_method, label: "Which correlation", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: correlation},
+             choices: {pearson: "Pearson's r", spearman: "Spearman's rho", kendall: "Kendall's tau"}, default: pearson, default_source: "presize's default (prec_cor(method = \"pearson\"), presize 0.3.11)"}
+          - {id: p_method, label: "Which interval for the proportion", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: proportion},
+             choices: {wilson: "Wilson's interval", agresti_coull: "Agresti-Coull", exact: "Exact (Clopper-Pearson)", wald: "Wald (the textbook formula)"},
+             default: wilson, default_source: "presize's default (prec_prop(method = \"wilson\"), presize 0.3.11)",
+             help: "presize's help suggests Wilson's interval for fewer than 40 people and Agresti-Coull for more, and offers the Wald interval only because it is widely used."}
 
   # Trend tests (1 November 2026), simulated with Spower by powerkit's own
   # experiments: the Jonckheere-Terpstra test of a trend in scores across

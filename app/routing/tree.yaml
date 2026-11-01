@@ -772,15 +772,15 @@ closing_questions:
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
-    card_notes: {E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
+    card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all}
-  - {doc_id: Q-power, text: "What power do you want?", applies_to: all}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46]}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61]}
-  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all}
+  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46]}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.
@@ -1568,14 +1568,21 @@ endpoints:
   E46:
     tools:
       - {name: MBESS, url: "https://cran.r-project.org/package=MBESS", what: "the ss.aipe functions, for a target confidence-interval width."}
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "its precision criterion, by simulation."}
+      - {name: presize, url: "https://cran.r-project.org/package=presize", what: "precision-based sample sizes for correlations, proportions and more."}
     doc_name: "Precision planning (a target confidence-interval width)"
     plain_name: "Estimate an effect precisely (plan for a confidence-interval width)"
-    status: not_in_powerkit
-    generic: true
-    established_tools: true
-    card_text: "Planning a sample size for a target confidence-interval width is a different calculation from power. powerkit doesn't do it yet."
-    tier: later
+    template: "precision / two_groups, paired, one_group, correlation or proportion"
+    backend: "MBESS: ss.aipe.smd() and ss.aipe.sm() for Cohen's d, d_z and a standardised mean (with assurance on request), ci.smd() and ci.sm() for the width at a given n; presize: prec_cor() and prec_prop() for a correlation and a proportion (by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-precision.R, note: "Matches MBESS and presize called directly, and simulated intervals give the expected width and, with assurance, the chance of a narrow enough interval. Not yet checked against a published example."}
+    card_points:
+      - "Plans the sample size for how precisely the study estimates its result (the width of its confidence interval), rather than for power."
+      - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a correlation (Pearson's, Spearman's or Kendall's) or a proportion."
+      - "Gives the sample size for the width you set, or the width you would get at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
+    inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
+    tier: v2
+    alternatives: ["a power analysis on the card for your test, if you want to show an effect exists rather than estimate its size"]
   E47:
     doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
     plain_name: "Two or more factors crossed, with a yes/no outcome"

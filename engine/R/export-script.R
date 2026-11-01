@@ -43,7 +43,9 @@
 #' }
 export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
-  lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else switch(
+  lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else if (precision_goal(spec)) {
+    precision_script(spec, result)
+  } else switch(
     result$provenance$backend,
     pwr = ,
     stats = if (variance_formula_test(spec)) {
@@ -410,6 +412,15 @@ design_description <- function(spec) {
       length(spec$population$slopes), if (length(spec$population$slopes) == 1) "" else "s",
       spec$population$indicators, spec$population$loading
     ),
+    "precision/two_groups" = sprintf("confidence interval for Cohen's d of %s (%s) between %s (expected d = %s; two equal groups)",
+      label("Y"), "noncentral t", levels("X"), spec$population$d),
+    "precision/one_group" = sprintf("confidence interval for the standardised mean of %s (expected %s; noncentral t)", label("Y"), spec$population$d),
+    "precision/paired" = sprintf("confidence interval for d_z, the paired difference in %s between %s (expected d_z = %s; noncentral t)",
+      label("Y"), levels("X"), spec$population$dz),
+    "precision/correlation" = sprintf("confidence interval for the %s correlation of %s and %s (expected r = %s)",
+      spec$target_test$method, label("X"), label("Y"), spec$population$r),
+    "precision/proportion" = sprintf("confidence interval for the proportion %s (expected %s; %s interval)",
+      label("Y"), spec$population$p, switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald")),
     "generic_test/t" = sprintf("generic t test with %s degrees of freedom", spec$population$df),
     "generic_test/f" = sprintf("generic F test with %s and %s degrees of freedom", spec$population$df1, spec$population$df2),
     "generic_test/chi_square" = sprintf("generic chi-square test with %s degrees of freedom", spec$population$df),
@@ -557,6 +568,15 @@ goal_description <- function(spec) {
       power = sprintf("the probability of strong evidence (BF10 at least %s) at a total sample size of %s", bfpwr_inputs(spec)$threshold, goal$n),
       sample_size = sprintf("the smallest total sample size with a probability of at least %s of strong evidence (BF10 at least %s)", goal$power, bfpwr_inputs(spec)$threshold)
     ))
+  }
+  if (precision_goal(spec)) {
+    level <- sprintf("%s%%", format(100 * (1 - spec$target_test$alpha)))
+    return(if (!is.null(goal$width)) {
+      sprintf("the smallest total sample size whose %s confidence interval is %s no wider than %s", level,
+        if (is.null(goal$assurance)) "expected to be" else sprintf("with a %s chance", format(goal$assurance)), format(goal$width))
+    } else {
+      sprintf("the width of the %s confidence interval expected with a total sample size of %s", level, goal$n)
+    })
   }
   if (spec$design == "generic_test") {
     return(switch(

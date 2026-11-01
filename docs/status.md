@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.27.0). This page says where the
+*Last updated: 1 November 2026 (powerkit 0.27.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -19,8 +19,9 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
-  **42 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`); E64
+  **43 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
+  E46, precision planning (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
   since 1 November 2026; E61, a planned
@@ -63,7 +64,7 @@ fully validated. Validation runs are recorded in
   MANOVA (pwrss's exact F). 17 published examples are transcribed and
   pass; the rest keep `TODO_PUBLISHED_VALUE` for the maintainer. Six cards
   are marked validated; eight still say "validation in progress"
-  ([`next.md`](next.md), item 11). Validation runs per design before a PR
+  ([`next.md`](next.md), item 10). Validation runs per design before a PR
   merges, every night the engine changed and in full every Sunday
   (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
   29 and 30 October failed on two unit tests that compared runs on
@@ -76,6 +77,13 @@ fully validated. Validation runs are recorded in
   `optimal_alpha()` on pwr's power) is a goal on the one-sample, paired and
   two-group t-tests and the correlation (0.27.0; Known difference 11, the
   balanced version being G\*Power's compromise analysis).
+- **Precision planning** (E46, 1 November 2026): the sample size for a
+  confidence-interval width, or the width expected at a given n, rather
+  than power. Cohen's d between two groups, d_z and a standardised mean
+  by MBESS (`ss.aipe.smd()`, `ss.aipe.sm()`, with optional assurance);
+  a correlation (Pearson's, Spearman's or Kendall's) and a proportion
+  (Wilson's interval by default) by presize. MBESS brings OpenMx with it,
+  the heaviest new dependency.
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026) and Spearman's and Kendall's correlations (E4).
@@ -83,7 +91,7 @@ fully validated. Validation runs are recorded in
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan, for a
-  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, item 9);
+  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, item 8);
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
@@ -92,25 +100,26 @@ fully validated. Validation runs are recorded in
   bfpwr, 0.27.0).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
-  item 8); E17 on questions for power4mome (item 10); Spower's faults
+  item 7); E17 on questions for power4mome (item 9); Spower's faults
   are ready to raise upstream (`docs/upstream/spower-var-test.R`).
 
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 13). Every repeated-measures card takes an SD per cell and
+  item 12). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
-- Simulated data sets are missing for R², logistic and Poisson regression
-  with other predictors, the two-way ANCOVA, the three-way interaction,
-  multisite and yes/no cluster outcomes, SEM and McNemar's test (item 7).
+- Simulated data sets are missing for the three-way regression
+  interaction (no package generates its data from the correlations it
+  takes), the meta-analysis, SEM, McNemar's test and the generic tests;
+  every other card that runs has one (1 November 2026).
 - MANOVA with three or more groups is simulated (no formula in a package
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 12).
+  groups or occasions (item 11).
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 21).
+  semPower, powertools, TOSTER and bfpwr designs (item 20).
 
 ## Working environment
 
