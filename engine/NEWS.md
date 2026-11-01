@@ -6,7 +6,9 @@ A batch of new features, built as one round.
   items (stimuli) instead of participants: `goal > unit` "items", with
   `population > participants` fixed; `goal > n` is then the number of
   items (an even number when each item is in one condition). The search,
-  the exported script and the write-up count items.
+  the exported script and the write-up count items. Checked against the
+  E33 independent simulation at a fixed number of participants
+  (`test-validation-mixed-model.R`).
 * Precision planning (E46) for four more estimates: a difference between
   two groups' means in the outcome's units (template `mean_difference`,
   presize's `prec_meandiff()`), an odds ratio between two groups
@@ -18,7 +20,12 @@ A batch of new features, built as one round.
   with assurance; the width at a given n is the narrowest for which the
   same function needs no more than n). New dependency: gsl (MBESS needs
   it for the regression coefficient), with the system library libgsl in
-  the CI image and the online app.
+  the CI image and the online app. Validation
+  (`test-validation-precision.R`): for each, the median width of
+  intervals computed from their textbook formulas (the t interval, Woolf's
+  logit interval, the one-way ICC's F interval and the least-squares
+  interval) in simulated studies of the planned size is the width
+  planned; published examples are left for the maintainer.
 * A Bayes factor version of the test of one proportion (`target_test >
   method` "bayes_factor" on `one_proportion`), by exact calculation with
   bfpwr: the binomial Bayes factor with a Beta(a, b) analysis prior

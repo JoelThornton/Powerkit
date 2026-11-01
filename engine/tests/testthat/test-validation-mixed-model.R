@@ -66,6 +66,38 @@ test_that("crossed design: agrees with an independent simulation (analytic)", {
   expect_power_near(engine_power(spec), mean(rejected), reference_nrep = mixed_reps)
 })
 
+# The number of items as the sample size (1 November 2026): 30
+# participants fixed, power at 20 items, against the same independent
+# simulation with those 20 items.
+test_that("crossed design, the number of items as the sample size: agrees with an independent simulation (analytic)", {
+  skip_unless_full_validation()
+  participants <- 30
+  items <- 20
+  spec <- mixed_validation_spec(pop_crossed, seed = 3305, n = items)
+  spec$population$items <- NULL
+  spec$population$participants <- participants
+  spec$goal$unit <- "items"
+  p <- pop_crossed
+  design <- expand.grid(participant = seq_len(participants), item = seq_len(items))
+  design$cond <- ifelse(design$item <= items / 2, -0.5, 0.5)
+  sigma_p <- matrix(c(p$sd_participant^2, p$r_participant * p$sd_participant * p$sd_participant_slope,
+    p$r_participant * p$sd_participant * p$sd_participant_slope, p$sd_participant_slope^2), 2)
+  rejected <- with_seed(3306, vapply(seq_len(mixed_reps), function(i) {
+    u <- MASS::mvrnorm(participants, c(0, 0), sigma_p)
+    w <- stats::rnorm(items, sd = p$sd_item)
+    d <- design
+    d$y <- p$difference * d$cond + u[d$participant, 1] + u[d$participant, 2] * d$cond + w[d$item] +
+      stats::rnorm(nrow(d), sd = p$sd_residual)
+    d$participant <- factor(d$participant)
+    d$item <- factor(d$item)
+    fit <- tryCatch(suppressMessages(suppressWarnings(
+      lmerTest::lmer(y ~ cond + (1 + cond | participant) + (1 | item), data = d)
+    )), error = function(e) NULL)
+    !is.null(fit) && summary(fit)$coefficients["cond", "Pr(>|t|)"] < 0.05
+  }, logical(1)))
+  expect_power_near(engine_power(spec), mean(rejected), reference_nrep = mixed_reps)
+})
+
 # 2. Published example ------------------------------------------------------------
 
 test_that("crossed design: matches a published example (published)", {
