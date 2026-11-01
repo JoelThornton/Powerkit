@@ -206,14 +206,18 @@ format_pop_value <- function(x) format(as.numeric(x), digits = 15, scientific = 
 # data sets, so models without a product term give the same results as
 # before.
 power4mome_call <- function(inputs, n, nrep, seed, ...) {
+  extra <- list(...)
+  # The fitted model (E38's models 58 and 59) unless the caller gives its own
+  # (the APIM does).
+  fit <- if (!is.null(inputs$fit_model) && is.null(extra$fit_model_args)) list(fit_model_args = list(model = inputs$fit_model))
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
     if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) list(x_fun = c(
       if (!is.null(inputs$x_prob)) list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob)),
       if (!is.null(inputs$w_prob)) list(W = list(power4mome::rbinary_rs, p1 = inputs$w_prob))
     )),
-    if (!is.null(inputs$fit_model)) list(fit_model_args = list(model = inputs$fit_model)),
-    list(...),
+    fit,
+    extra,
     list(iseed = seed, parallel = FALSE, progress = FALSE)
   )
   call_backend("power4mome", with_seed(seed, quietly(do.call(power4mome::power4test, args))))

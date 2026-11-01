@@ -1109,7 +1109,7 @@ endpoints:
     method: Simulation
     inputs: ["Which link W changes, and which variables are yes/no", "Standardised paths (per SD of a yes/no variable, as power4mome rescales it)"]
     status: runs_validation_in_progress
-    validation: {file: test-validation-modmed-binary.R, note: "Agrees with a simulation written separately (a yes/no variable standardised by its population mean and SD, OLS for each equation and its own Monte Carlo interval), and keeps the Type I error at alpha. Not yet checked against a published example."}
+    validation: {file: test-validation-modmed-binary.R, note: "Agrees with a simulation written separately (a yes/no variable standardised by its population mean and SD, OLS for each equation and its own Monte Carlo interval). With a yes/no X and no moderation the Type I error is about 6.7% at alpha .05, against 5.3% for the separate simulation: a question for power4mome. Not yet checked against a published example."}
     card_points:
       - "Moderated mediation (PROCESS model 7 or 14) where X is two groups, such as a randomised condition, or W is two groups, or both."
       - "A yes/no variable is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so its paths are per SD, as for a score; it must be uncorrelated with the other predictor, as a randomised condition is."

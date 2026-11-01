@@ -6,7 +6,10 @@ difference_example <- function(name, ...) {
   spec <- example_spec(name)
   spec$options$nrep <- 100L
   spec$options$ci_draws <- 200L
-  spec$target_test <- utils::modifyList(spec$target_test, list(...))
+  # Replaced, not merged: modifyList() would merge an unnamed list such as
+  # w_values into the old one.
+  changes <- list(...)
+  spec$target_test[names(changes)] <- changes
   spec
 }
 

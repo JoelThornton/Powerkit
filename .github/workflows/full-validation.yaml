@@ -83,6 +83,8 @@ on:
           - process_7
           - process_14
           - modmed_parallel
+          - modmed_difference
+          - modmed_binary
           - mediation_crosscheck
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial
