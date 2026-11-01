@@ -279,6 +279,37 @@ test_that("the picture of power also shows a correlation, from the engine's powe
   grDevices::dev.off()
 })
 
+test_that("the picture of power also shows a paired t-test, a one-way ANOVA and two proportions", {
+  html <- as.character(labs_ui(tree))
+  for (label in c("A paired-samples t-test", "A one-way ANOVA \\(equal groups\\)", "Two groups&#39; proportions|Two groups' proportions")) expect_match(html, label)
+  skip_if(is.null(engine_function("power_picture_anova")), "powerkit's engine isn't available here")
+  inputs <- list(picture_design = "anova", picture_k = 4, picture_n_per = 30, picture_f = 0.3)
+  anova <- picture_for(function(id) inputs[[id]], 0.05)
+  expect_equal(anova$n, 120)
+  expect_identical(picture_design(anova), "anova")
+  text <- as.character(picture_numbers(anova))
+  expect_match(text, sprintf("%.1f%%", 100 * anova$power), fixed = TRUE)
+  expect_match(text, "Critical F", fixed = TRUE)
+  expect_match(text, "dashed line)", fixed = TRUE)
+  expect_match(picture_alt(anova), "Two F distributions", fixed = TRUE)
+  paired <- picture_for(function(id) list(picture_design = "paired")[[id]], 0.05)
+  expect_equal(paired$n, 34)
+  expect_match(as.character(picture_numbers(paired)), "Smallest significant d_z", fixed = TRUE)
+  props <- picture_for(function(id) list(picture_design = "two_proportions", picture_p1 = 0.3)[[id]], 0.01)
+  expect_equal(c(props$p1, props$p2, props$alpha), c(0.3, 0.6, 0.01))
+  expect_match(as.character(picture_numbers(props)), "Cohen&#39;s h|Cohen's h")
+  # The t-test and correlation pictures still come out as before.
+  expect_identical(picture_design(picture_for(function(id) NULL, 0.05)), "t")
+  expect_identical(picture_design(picture_for(function(id) list(picture_design = "r")[[id]], 0.05)), "r")
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file)
+  on.exit(unlink(file))
+  for (p in list(anova, paired, props, power_picture_anova_k2 <- engine_function("power_picture_anova")(40, 0.4, k = 2))) {
+    expect_no_error(picture_plot(p))
+  }
+  grDevices::dev.off()
+})
+
 test_that("Bayesian planning shows the engine's outcomes under the belief and with no effect, and no single power figure", {
   html <- as.character(labs_ui(tree))
   expect_match(html, "Bayesian planning", fixed = TRUE)

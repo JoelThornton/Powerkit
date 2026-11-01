@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "The power visualiser shows more tests"
+    text: >-
+      In Labs, the power visualiser now also draws a paired t-test, a
+      one-way ANOVA (with the F distribution and its single critical value)
+      and two groups' proportions, each with the numbers behind the
+      picture.
+  - date: "2026-11-01"
     title: "A Bayes factor test for two groups' proportions"
     text: >-
       The card for two groups' proportions now offers a Bayes factor test,
