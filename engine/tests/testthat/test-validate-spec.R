@@ -38,6 +38,8 @@ test_that("there is an example for every template", {
     "model_fit", "invariance", "factor_correlation", "latent_regression",
     # Planned comparisons (engine only).
     "oneway_contrast",
+    # Precision planning (a confidence-interval width).
+    "two_groups", "proportion",
     # Variance tests, simulated (engine only).
     "one_variance", "two_variances",
     # Generic tests (engine only).

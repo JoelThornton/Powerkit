@@ -239,6 +239,29 @@ offers_bayes_factor <- function(form) {
   any(vapply(form_fields(form$groups), function(f) identical(f$id, "method") && "bayes_factor" %in% names(f$choices), logical(1)))
 }
 
+# Precision planning (E46): the interval's width instead of power. Both
+# goals are the engine's goal type "precision" (build_spec()): with a
+# width it finds the sample size, with a sample size the width.
+precision_goal_fields <- function(tool) {
+  mbess <- list(field = "estimate", is_one_of = c("two_groups", "paired", "one_group"))
+  list(
+    list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
+         choices = list(precision_n = "The sample size for an interval this narrow",
+           precision_width = "How narrow the interval would be at a given sample size")),
+    list(id = "width", writeup_label = "interval width", label = "The widest interval you'd accept (upper limit minus lower, in the estimate's own units)",
+         help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
+         type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
+    list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
+         help = "Left empty, the sample size makes the interval's expected width this narrow, so about half of studies get a wider one. With 0.8, 80% of studies would get an interval no wider (MBESS's assurance). Only for d and standardised means.",
+         type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
+    list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
+         type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
+    list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",
+         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = tool[["conf_level"]], default_source = tool[["conf_level_source"]])
+  )
+}
+
 # The closing questions every form asks (decision-tree.md, table 2.2).
 closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
@@ -300,6 +323,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  if (isTRUE(form$precision)) test <- precision_goal_fields(tool)
   if (meta) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)
     at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
@@ -307,7 +331,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   }
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
-    claim_groups(start$claim, start$n_tests),
+    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
@@ -854,6 +878,13 @@ build_spec <- function(forms, ep_id, fields, values) {
     pair <- unlist(spec$target_test$comparison)
     at <- match(tolower(trimws(pair)), tolower(trimws(levels)))
     spec$target_test$comparison <- as.list(ifelse(is.na(at), pair, levels[at]))
+  }
+  # Precision (E46): one engine goal, and the interval's level as alpha.
+  if (isTRUE(form$precision)) {
+    spec$goal$type <- "precision"
+    spec$target_test$alpha <- 1 - parse_number(values$conf_level)
+    if (!identical(spec$template, "proportion") && !identical(spec$template, "correlation")) spec$target_test$method <- "noncentral_t"
+    return(spec)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)

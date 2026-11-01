@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 31 October 2026 (powerkit 0.27.0). This page says where the
+*Last updated: 1 November 2026 (powerkit 0.27.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -19,8 +19,9 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
-  **42 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`); E64
+  **43 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
+  E46, precision planning (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
   since 1 November 2026; E61, a planned
@@ -76,6 +77,13 @@ fully validated. Validation runs are recorded in
   `optimal_alpha()` on pwr's power) is a goal on the one-sample, paired and
   two-group t-tests and the correlation (0.27.0; Known difference 11, the
   balanced version being G\*Power's compromise analysis).
+- **Precision planning** (E46, 1 November 2026): the sample size for a
+  confidence-interval width, or the width expected at a given n, rather
+  than power. Cohen's d between two groups, d_z and a standardised mean
+  by MBESS (`ss.aipe.smd()`, `ss.aipe.sm()`, with optional assurance);
+  a correlation (Pearson's, Spearman's or Kendall's) and a proportion
+  (Wilson's interval by default) by presize. MBESS brings OpenMx with it,
+  the heaviest new dependency.
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026) and Spearman's and Kendall's correlations (E4).

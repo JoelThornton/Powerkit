@@ -27,8 +27,10 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E34" && !is.null(goal$n)) goal$n <- 80L
   # A factorial logistic regression needs ten people in every cell.
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
+  # Precision planning has no power: the width expected at n instead.
+  if (ep == "E46") goal <- list(type = "precision", n = goal$n %||% 48L)
   spec$goal <- goal
-  if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
+  if (!ep %in% c("E7", "E8", "E36", "E46")) spec$options$nrep <- 100L
   spec
 }
 
@@ -2194,4 +2196,58 @@ test_that("the t-test and correlation cards find a justified alpha, and say how 
     expect_match(text, "weighted 4 times as heavily as a missed effect", fixed = TRUE)
     expect_match(text, "JustifyAlpha's optimal_alpha()", fixed = TRUE)
   }
+})
+
+test_that("precision planning (E46) gives the sample size for an interval width, or the width at n, and words it without power", {
+  skip_without_run()
+  fields_of <- function(v) form_fields(form_groups(forms, "E46"))
+  calc_of <- function(v) {
+    fields <- fields_of(v)
+    expect_length(form_problems(fields, v), 0)
+    spec <- build_spec(forms, "E46", fields, v)
+    list(calc = run_calculation(spec, run, seed = 1L), fields = fields, values = v)
+  }
+  # A proportion (presize's prec_prop(), Wilson's interval).
+  out <- calc_of(form_examples$E46)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(width = 0.1, type = "precision"))
+  expect_equal(calc$spec$target_test$alpha, 0.05)
+  expect_identical(calc$result$provenance$backend, "presize")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("With %s participants, the 95%% Wilson confidence interval for the proportion Reports burnout is expected to be no wider than 0.1.",
+    whole(calc$result$precision$n)), fixed = TRUE)
+  expect_no_match(paste(words, collapse = " "), "\\bpower\\b", ignore.case = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E46", out$fields, out$values, calc))
+  expect_match(html, "Your result", fixed = TRUE)
+  expect_match(html, "presize", fixed = TRUE)
+  expect_no_match(html, "justified|adequate|sufficient power|well-powered", ignore.case = TRUE)
+  w <- precision_writeup(forms$forms$E46, calc$spec, calc$result, out$fields, out$values)
+  expect_match(w[["short"]], "for precision rather than power", fixed = TRUE)
+  expect_match(w[["short"]], "presize (version", fixed = TRUE)
+  expect_match(w[["ethics"]], "not from a power analysis", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+  # The width at a given sample size, for a correlation.
+  v <- modifyList(form_examples$E46, list(estimate = "correlation", C_label = "Sleep", Y_label = "Mood", r = "0.3", r_method = "spearman",
+    goal = "precision_width", n = "150"))
+  v$width <- NULL
+  calc <- calc_of(v)$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(n = 150L, type = "precision"))
+  expect_identical(calc$spec$target_test$method, "spearman")
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], "With 150 participants, the 95% confidence interval for Spearman's rho between Sleep and Mood would be about", fixed = TRUE)
+  # Cohen's d between two groups with assurance (MBESS).
+  skip_if_not_installed("MBESS")
+  v <- modifyList(form_examples$E46, list(estimate = "two_groups", X_label = "Condition", X_level1 = "Control", X_level2 = "Training",
+    Y_label = "Recall", d = "0.5", width = "0.4", assurance = "0.8"))
+  out <- calc_of(v)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$target_test$method, "noncentral_t")
+  expect_identical(calc$result$provenance$backend, "MBESS")
+  n <- calc$result$precision$n
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]],
+    sprintf("With %s participants in total (%s per group), the 95%% noncentral t confidence interval for Cohen's d for the difference in Recall between Control and Training would be no wider than 0.4 in 80%% of studies like this.", whole(n), whole(n / 2)), fixed = TRUE)
+  expect_match(precision_writeup(forms$forms$E46, calc$spec, calc$result, out$fields, out$values)[["short"]], "with 80% assurance", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
 })

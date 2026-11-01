@@ -279,7 +279,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; a correlation by `power_z_cor()` and two proportions by `power_twoprop()`, 29 October 2026; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
 | B55 | Non-inferiority | ML; Audit | E36 | Wired (29 October 2026: two groups, paired, one sample and two proportions, pwrss's one-sided tests against the margin, `power.t.student()` and `power.z.twoprops()`; matches pwrss called directly; published values to transcribe) | Now: AP, PN | **Engine: pwrss `power.t.student(margin, alternative = "one.sided")`, `power.z.twoprops(margin)`** | Transcribe published examples | — |
-| B56 | Precision (CI width) | ML; BG; Audit | E46 | Planned (phase 6: AIPE) | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
+| B56 | Precision (CI width) | ML; BG; Audit | E46 | Wired (1 November 2026): d, d_z and a standardised mean (MBESS, with assurance), a correlation and a proportion (presize); other estimates later | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
 | B57 | Group-sequential designs with interim analyses | ML; BG; Audit | none: not reachable | Planned (later in the build guide; no phase) | — | rpact `getDesignGroupSequential()`, `getSampleSizeMeans()`, `getPowerMeans()`; gsDesign `gsDesign()`; POSSA `sim()`, `pow()` | — | [C13][] |
 
 ### Bayesian
@@ -427,9 +427,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 19 | 0 | 48 |
+| Wired (validation not finished) | 29 | 20 | 0 | 49 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 11 | 2 | 14 |
+| Planned | 1 | 10 | 2 | 13 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |

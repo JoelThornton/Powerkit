@@ -65,9 +65,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E35", "E43", "E44", "E45", "E46")) {
+  for (id in c("E35", "E43", "E44", "E45")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
+  # Estimating precisely: the precision card calculates (MBESS, presize).
+  expect_identical(tree$endpoints$E46$status, "runs_validation_in_progress")
   # Ordered categories in two groups calculate (powertools' propodds()).
   expect_identical(tree$endpoints$E29$status, "runs_validation_in_progress")
   # People within groups: the cluster-randomised trial calculates (powertools).
