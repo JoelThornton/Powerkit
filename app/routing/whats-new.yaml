@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "A clearer About page, and a searchable What's new"
+    text: >-
+      The About page now says in three steps how powerkit works, shows
+      every analysis that calculates grouped by family (click one to plan
+      it), and folds each package's citation under "How to cite". What's
+      new can be searched, keeps older changes folded by month, and marks
+      the changes made since you last looked, with a dot on its tab.
+  - date: "2026-11-01"
     title: "A clearer result"
     text: >-
       The result now starts with the answer in large type, with what it

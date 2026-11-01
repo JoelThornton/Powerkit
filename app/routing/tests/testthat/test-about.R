@@ -5,7 +5,6 @@ about_html <- function() as.character(about_ui(tree, forms))
 test_that("the About panel says it's a prototype and what it does", {
   html <- about_html()
   expect_match(html, "About powerkit", fixed = TRUE)
-  expect_match(html, tree$banner, fixed = TRUE)
   expect_match(html, "This is a prototype.", fixed = TRUE)
   expect_match(html, "not yet fully validated", fixed = TRUE)
   expect_match(html, "never does the statistics itself", fixed = TRUE)
@@ -22,9 +21,28 @@ test_that("the About panel lists every end point that calculates, and only those
   expect_setequal(sub("data-endpoint=\"([^\"]+)\"", "\\1", listed), calculating)
   # Users see the analyses' names, not powerkit's internal codes.
   expect_false(grepl("<strong>E[0-9]+</strong>", html))
-  # E9 runs in the background; E10-E12 run the full analysis here; E13-E14 give a script.
-  expect_match(html, "data-endpoint=\"E9\">[^<]*<strong>[^<]*</strong>[^<]*Calculates here, in the background", perl = TRUE)
-  expect_match(html, "data-endpoint=\"E13\">[^<]*<strong>[^<]*</strong>[^<]*an R script to run the full analysis on your computer", perl = TRUE)
+  # Each says how it calculates: E9 runs in the background; E10-E12 run the
+  # full analysis here; E13-E14 give a script.
+  expect_match(html, "class=\"about-ep how-background\" data-endpoint=\"E9\"", fixed = TRUE)
+  expect_match(html, "class=\"about-ep how-full\" data-endpoint=\"E10\"", fixed = TRUE)
+  expect_match(html, "class=\"about-ep how-script\" data-endpoint=\"E13\"", fixed = TRUE)
+  expect_match(html, "an R script to run the full analysis on your computer", fixed = TRUE)
+  # Grouped by family, and each one opens its card.
+  expect_match(html, "Comparing averages (t-tests)", fixed = TRUE)
+  expect_match(html, "pkAboutPlan(this.dataset.endpoint)", fixed = TRUE)
+  expect_match(about_js, "Shiny.setInputValue('map_plan'", fixed = TRUE)
+})
+
+test_that("the About page leads with what powerkit does and links to its sections", {
+  html <- about_html()
+  for (id in c("about-how", "about-plans", "about-trust", "about-feedback", "about-credits")) {
+    expect_match(html, sprintf("id=\"%s\"", id), fixed = TRUE, label = id)
+    expect_match(html, sprintf("href=\"#%s\"", id), fixed = TRUE, label = id)
+  }
+  expect_match(html, "Start planning", fixed = TRUE)
+  expect_match(html, "pkAboutTab(&#39;Feedback&#39;)", fixed = TRUE)
+  # Each package's citation is folded away under "How to cite".
+  expect_match(html, "<summary>How to cite</summary>", fixed = TRUE)
 })
 
 test_that("the About panel explains how to report problems: the Feedback tab and 'Something doesn't fit?'", {

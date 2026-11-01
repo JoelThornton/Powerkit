@@ -41,6 +41,19 @@ A batch of new features, built as one round.
   methods paragraph first, with a Copy button on each version, and the
   downloads after it. What is calculated is unchanged.
 
+* App: the About and What's new tabs are redesigned. About leads with
+  what powerkit does and its prototype status, links to its sections, and
+  says in three steps how it works. "What it can plan" shows every
+  analysis that calculates, grouped by family (`tree.yaml`'s
+  `analysis_families`) and marked by how it calculates (in a second, in
+  the background, simulated here, or a preview with an R script); clicking
+  one opens its card, as the methods map's "Plan this study" does. Trust,
+  limits and feedback are cards, and each package's own `citation()` folds
+  under "How to cite". What's new keeps the latest day open and folds
+  older days by month, has a search box, and remembers in the browser
+  (localStorage only) the newest change seen, so later changes are marked
+  New and the tab shows a dot until they are read.
+
 # powerkit 0.27.0
 
 A batch of new features, built as one round.

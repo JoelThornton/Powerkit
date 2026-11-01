@@ -28,9 +28,23 @@ test_that("the What's new tab shows the entries newest first, grouped by day", {
   day <- as.Date(first$date)
   heading <- paste(as.integer(format(day, "%d")), format(day, "%B %Y"))
   expect_match(html, heading, fixed = TRUE)
-  # Each day appears once, as a heading.
+  # Each day appears once, as a heading; only the latest is open, and the
+  # older days fold by month.
   days <- unique(vapply(entries, `[[`, "", "date"))
-  expect_length(regmatches(html, gregexpr("<h3 class=\"h5\">", html))[[1]], length(days))
+  expect_length(regmatches(html, gregexpr("<h3 class=\"wn-day-head\">", html))[[1]], length(days))
+  months <- unique(format(as.Date(days[-1]), "%Y-%m"))
+  expect_length(regmatches(html, gregexpr("<details class=\"wn-month\">", html))[[1]], length(months))
+  expect_length(regmatches(html, gregexpr("<article class=\"wn-entry\"", html))[[1]], length(entries))
+})
+
+test_that("What's new can be searched and marks changes since your last visit", {
+  html <- as.character(whats_new_ui(load_whats_new(whats_new_path)))
+  expect_match(html, "id=\"wn-search\"", fixed = TRUE)
+  expect_match(html, "pkWhatsNewSearch(this.value)", fixed = TRUE)
+  expect_match(html, sprintf("data-latest=\"%s\"", load_whats_new(whats_new_path)[[1]]$date), fixed = TRUE)
+  # The newest change seen is kept in the browser only, never sent anywhere.
+  expect_match(whats_new_js, "localStorage", fixed = TRUE)
+  expect_false(grepl("Shiny.setInputValue", whats_new_js, fixed = TRUE))
 })
 
 test_that("the app has a What's new tab", {
