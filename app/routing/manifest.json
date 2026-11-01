@@ -10,6 +10,37 @@
     "has_parameters": false
   },
   "packages": {
+    "BayesFactor": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "BayesFactor",
+        "Type": "Package",
+        "Title": "Computation of Bayes Factors for Common Designs",
+        "Version": "0.9.12-4.8",
+        "Date": "2026-03-08",
+        "Authors@R": "c(person(\"Richard D.\", \"Morey\", role = c(\"aut\", \"cre\", \"cph\"), email = \"richarddmorey@gmail.com\"), \n    person(\"Jeffrey N.\", \"Rouder\", role = \"aut\", email = \"jrouder@uci.edu\"), \n    person(\"Tahira\", \"Jamil\", role = c(\"ctb\",\"cph\"), email = \"tahjamil@gmail.com\"), \n    person(\"Simon\", \"Urbanek\", role = c(\"ctb\", \"cph\"), email = \"simon.urbanek@r-project.org\"), \n    person(\"Karl\", \"Forner\", role = c(\"ctb\", \"cph\"), email = \"karl.forner@gmail.com\"), \n    person(\"Alexander\", \"Ly\", role = c(\"ctb\", \"cph\"), email = \"Alexander.Ly.NL@gmail.com\"))",
+        "Description": "A suite of functions for computing\n    various Bayes factors for simple designs, including contingency tables,\n    one- and two-sample designs, one-way designs, general ANOVA designs, and\n    linear regression.",
+        "License": "GPL-2",
+        "VignetteBuilder": "knitr",
+        "Depends": "R (>= 3.2.0), coda, Matrix (>= 1.1-1)",
+        "Imports": "pbapply, mvtnorm, stringr, utils, graphics, MatrixModels, Rcpp\n(>= 1.1.1), methods, hypergeo",
+        "Suggests": "doMC, foreach, testthat, knitr, markdown, rmarkdown, arm,\nlme4, xtable, languageR",
+        "URL": "https://richarddmorey.github.io/BayesFactor/",
+        "BugReports": "https://github.com/richarddmorey/BayesFactor/issues",
+        "LazyLoad": "yes",
+        "LinkingTo": "Rcpp (>= 1.1.1), RcppEigen (>= 0.3.2.2.0)",
+        "RoxygenNote": "7.3.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-03-07 09:53:12 UTC; saprm3",
+        "Author": "Richard D. Morey [aut, cre, cph],\n  Jeffrey N. Rouder [aut],\n  Tahira Jamil [ctb, cph],\n  Simon Urbanek [ctb, cph],\n  Karl Forner [ctb, cph],\n  Alexander Ly [ctb, cph]",
+        "Maintainer": "Richard D. Morey <richarddmorey@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-07 14:50:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 11:51:11 UTC; unix"
+      }
+    },
     "Deriv": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -168,6 +199,30 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-03-24 06:10:45 UTC",
         "Built": "R 4.5.0; ; 2026-04-24 01:40:44 UTC; unix"
+      }
+    },
+    "JustifyAlpha": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "JustifyAlpha",
+        "Title": "Justifying Alpha Levels for Hypothesis Tests",
+        "Version": "0.1.2",
+        "Authors@R": "\n    c(person(given = \"Maximilian\",\n           family = \"Maier\",\n           role = c(\"aut\", \"cre\"),\n           email = \"maximilianmaier0401@gmail.com\"),\n    person(given = \"Daniel\",\n           family = \"Lakens\",\n           role = c(\"aut\"),\n           email = \"D.Lakens@tue.nl\",\n           comment = c(ORCID = \"0000-0002-0247-239X\"))\n    )",
+        "Description": "Functions to justify alpha levels for statistical hypothesis tests by avoiding Lindley's paradox, or by minimizing or balancing error rates. For more information about the package please read the following: Maier & Lakens (2021) <doi:10.31234/osf.io/ts4r6>).",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "Imports": "stats, BayesFactor, ggplot2, stringr, shiny, qpdf",
+        "Suggests": "knitr, rmarkdown, testthat, Superpower, pwr, shinydashboard",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-07-02 13:34:36 UTC; maxim",
+        "Author": "Maximilian Maier [aut, cre],\n  Daniel Lakens [aut] (ORCID: <https://orcid.org/0000-0002-0247-239X>)",
+        "Maintainer": "Maximilian Maier <maximilianmaier0401@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-07-02 14:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 23:22:38 UTC; unix"
       }
     },
     "MASS": {
@@ -1645,6 +1700,29 @@
         "Built": "R 4.5.0; ; 2026-04-23 21:10:23 UTC; unix"
       }
     },
+    "coda": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "coda",
+        "Version": "0.19-4.1",
+        "Date": "2020-09-30",
+        "Title": "Output Analysis and Diagnostics for MCMC",
+        "Authors@R": "c(person(\"Martyn\", \"Plummer\", role=c(\"aut\",\"cre\",\"trl\"),\n       \t            email=\"martyn.plummer@gmail.com\"),\n             person(\"Nicky\", \"Best\", role=\"aut\"),\n             person(\"Kate\", \"Cowles\", role=\"aut\"),\n             person(\"Karen\", \"Vines\", role=\"aut\"),\n             person(\"Deepayan\", \"Sarkar\", role=\"aut\"),\n\t     person(\"Douglas\", \"Bates\", role=\"aut\"),\n             person(\"Russell\", \"Almond\", role=\"aut\"),\n\t     person(\"Arni\", \"Magnusson\", role=\"aut\"))",
+        "Depends": "R (>= 2.14.0)",
+        "Imports": "lattice",
+        "Description": "Provides functions for summarizing and plotting the\n\toutput from Markov Chain Monte Carlo (MCMC) simulations, as\n\twell as diagnostic tests of convergence to the equilibrium\n\tdistribution of the Markov chain.",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-01-31 09:50:53 UTC; ripley",
+        "Author": "Martyn Plummer [aut, cre, trl],\n  Nicky Best [aut],\n  Kate Cowles [aut],\n  Karen Vines [aut],\n  Deepayan Sarkar [aut],\n  Douglas Bates [aut],\n  Russell Almond [aut],\n  Arni Magnusson [aut]",
+        "Maintainer": "Martyn Plummer <martyn.plummer@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-01-31 09:52:36 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 21:36:13 UTC; unix"
+      }
+    },
     "codetools": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1719,6 +1797,30 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-07-07 13:40:02 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:30 UTC; unix"
+      }
+    },
+    "contfrac": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "contfrac",
+        "Title": "Continued Fractions",
+        "Depends": "R (>= 4.2.0)",
+        "Version": "1.1-13",
+        "Authors@R": "person(\n\t   given=c(\"Robin\", \"K. S.\"),\n\t   family=\"Hankin\",\n\t   role = c(\"aut\",\"cre\"),\n\t   email=\"hankin.robin@gmail.com\",\n\t   comment = c(ORCID = \"0000-0001-5982-0415\"))",
+        "Description": "Various utilities for evaluating continued fractions.",
+        "Maintainer": "Robin K. S. Hankin <hankin.robin@gmail.com>",
+        "License": "GPL-2",
+        "URL": "https://github.com/RobinHankin/contfrac",
+        "BugReports": "https://github.com/RobinHankin/contfrac/issues",
+        "Suggests": "testthat (>= 3.0.0)",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-10-13 14:23:51 UTC; rhankin",
+        "Author": "Robin K. S. Hankin [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5982-0415>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-13 15:20:15 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-14 04:08:36 UTC; unix"
       }
     },
     "corrplot": {
@@ -1976,6 +2078,31 @@
         "Built": "R 4.5.0; ; 2026-10-18 07:39:07 UTC; unix"
       }
     },
+    "deSolve": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "deSolve",
+        "Version": "1.42",
+        "Title": "Solvers for Initial Value Problems of Differential Equations\n('ODE', 'DAE', 'DDE')",
+        "Authors@R": "c(person(\"Karline\",\"Soetaert\", role = c(\"aut\"), \n                     email = \"karline.soetaert@nioz.nl\",\n                     comment = c(ORCID = \"0000-0003-4603-7100\")),\n             person(\"Thomas\",\"Petzoldt\", role = c(\"aut\", \"cre\"),\n                     email = \"thomas.petzoldt@tu-dresden.de\",\n                     comment = c(ORCID = \"0000-0002-4951-6468\")),\n             person(\"R. Woodrow\",\"Setzer\", role = c(\"aut\"),\n                     email = \"setzer.woodrow@epa.gov\",\n                     comment = c(ORCID = \"0000-0002-6709-9186\")),\n             person(\"Peter N.\",\"Brown\", role = \"ctb\", \n                     comment = \"files ddaspk.f, dvode.f, zvode.f\"),\n             person(\"George D.\",\"Byrne\", role = \"ctb\", \n                     comment = \"files dvode.f, zvode.f\"),\n             person(\"Ernst\",\"Hairer\", role = \"ctb\", \n                     comment = \"files radau5.f, radau5a\"),\n             person(\"Alan C.\",\"Hindmarsh\", role = \"ctb\", \n                     comment = \"files ddaspk.f, dlsode.f, dvode.f, zvode.f, opdkmain.f, opdka1.f\"),\n             person(\"Cleve\",\"Moler\", role = \"ctb\", \n                     comment = \"file dlinpck.f\"),\n             person(\"Linda R.\",\"Petzold\", role = \"ctb\", \n                     comment = \"files ddaspk.f, dlsoda.f\"),\n             person(\"Youcef\", \"Saad\", role = \"ctb\", \n                     comment = \"file dsparsk.f\"),\n             person(\"Clement W.\",\"Ulrich\", role = \"ctb\", \n                     comment = \"file ddaspk.f\")\n           )",
+        "Author": "Karline Soetaert [aut] (ORCID: <https://orcid.org/0000-0003-4603-7100>),\n  Thomas Petzoldt [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-4951-6468>),\n  R. Woodrow Setzer [aut] (ORCID:\n    <https://orcid.org/0000-0002-6709-9186>),\n  Peter N. Brown [ctb] (files ddaspk.f, dvode.f, zvode.f),\n  George D. Byrne [ctb] (files dvode.f, zvode.f),\n  Ernst Hairer [ctb] (files radau5.f, radau5a),\n  Alan C. Hindmarsh [ctb] (files ddaspk.f, dlsode.f, dvode.f, zvode.f,\n    opdkmain.f, opdka1.f),\n  Cleve Moler [ctb] (file dlinpck.f),\n  Linda R. Petzold [ctb] (files ddaspk.f, dlsoda.f),\n  Youcef Saad [ctb] (file dsparsk.f),\n  Clement W. Ulrich [ctb] (file ddaspk.f)",
+        "Maintainer": "Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>",
+        "Depends": "R (>= 3.3.0)",
+        "Imports": "methods, graphics, grDevices, stats",
+        "Suggests": "scatterplot3d, nlme, FME",
+        "Description": "Functions that solve initial value problems of a system\n        of first-order ordinary differential equations ('ODE'), of\n        partial differential equations ('PDE'), of differential\n        algebraic equations ('DAE'), and of delay differential\n        equations.  The functions provide an interface to the FORTRAN\n        functions 'lsoda', 'lsodar', 'lsode', 'lsodes' of the 'ODEPACK'\n        collection, to the FORTRAN functions 'dvode', 'zvode' and 'daspk'\n        and a C-implementation of solvers of the 'Runge-Kutta' family with\n        fixed or variable time steps.  The package contains routines\n        designed for solving 'ODEs' resulting from 1-D, 2-D and 3-D\n        partial differential equations ('PDE') that have been converted\n        to 'ODEs' by numerical differencing.",
+        "License": "GPL (>= 2)",
+        "URL": "https://github.com/tpetzoldt/deSolve/",
+        "LazyData": "yes",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-03-19 21:12:12 UTC; thpe",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-20 06:10:37 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 21:15:00 UTC; unix"
+      }
+    },
     "desc": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2230,6 +2357,32 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-07-07 14:30:02 UTC",
         "Built": "R 4.5.0; ; 2026-07-08 04:57:39 UTC; unix"
+      }
+    },
+    "elliptic": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "elliptic",
+        "Version": "1.5-1",
+        "Title": "Weierstrass and Jacobi Elliptic Functions",
+        "Authors@R": "person(given=c(\"Robin\", \"K. S.\"), family=\"Hankin\", role = c(\"aut\",\"cre\"), email=\"hankin.robin@gmail.com\", comment = c(ORCID = \"0000-0001-5982-0415\"))",
+        "Depends": "R (>= 2.5.0)",
+        "Imports": "MASS",
+        "Suggests": "emulator, calibrator (>= 1.2-8), testthat, hypergeo",
+        "SystemRequirements": "pari/gp",
+        "Description": "\n A suite of elliptic and related functions including Weierstrass and\n Jacobi forms.  Also includes various tools for manipulating and\n visualizing complex functions.",
+        "Maintainer": "Robin K. S. Hankin <hankin.robin@gmail.com>",
+        "License": "GPL-2",
+        "URL": "https://github.com/RobinHankin/elliptic,\nhttps://robinhankin.github.io/elliptic/",
+        "BugReports": "https://github.com/RobinHankin/elliptic/issues",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-11-10 15:44:10 UTC; rhankin",
+        "Author": "Robin K. S. Hankin [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5982-0415>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-11-10 17:50:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 20:45:30 UTC; unix"
       }
     },
     "emmeans": {
@@ -3288,6 +3441,32 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-09-01 13:20:02 UTC",
         "Built": "R 4.5.0; ; 2026-09-02 03:50:28 UTC; unix"
+      }
+    },
+    "hypergeo": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "hypergeo",
+        "Title": "The Gauss Hypergeometric Function",
+        "Version": "1.2-15",
+        "Authors@R": "c(\n\t   person(c(\"Robin\", \"K. S. \"), \"Hankin\", role=c(\"aut\",\"cre\"), email=\"hankin.robin@gmail.com\", comment = c(ORCID = \"0000-0001-5982-0415\")),\n\t   person(\"Richard D.\", \"Morey\", role = \"ctb\", email = \"richarddmorey@gmail.com\", comment = c(ORCID = \"0000-0001-9220-3179\"))\n\t   )",
+        "Maintainer": "Robin K. S. Hankin <hankin.robin@gmail.com>",
+        "Depends": "R (>= 3.1.0)",
+        "Imports": "elliptic (>= 1.3-5), contfrac (>= 1.1-9), deSolve, Rcpp (>=\n0.12.3)",
+        "Suggests": "magrittr,testthat",
+        "Description": "The Gaussian hypergeometric function for complex numbers.",
+        "LinkingTo": "Rcpp, RcppArmadillo",
+        "License": "GPL-2",
+        "URL": "https://github.com/RobinHankin/hypergeo",
+        "BugReports": "https://github.com/RobinHankin/hypergeo/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-10-08 08:52:27 UTC; rhankin",
+        "Author": "Robin K. S. Hankin [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5982-0415>),\n  Richard D. Morey [ctb] (ORCID: <https://orcid.org/0000-0001-9220-3179>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-08 10:40:19 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-18 09:29:42 UTC; unix"
       }
     },
     "igraph": {
@@ -5135,7 +5314,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), lme4, lmerTest, manymome, metafor,\nmetapower, parallel, psych, power4mome, pwr, powertools, pwrss,\nPUMP, semPower, simr, SimDesign, Spower (>= 0.7), stats,\nSuperpower, TOSTER, utils",
+        "Imports": "bfpwr, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, lme4, lmerTest,\nmanymome, metafor, metapower, parallel, psych, power4mome, pwr,\npowertools, pwrss, PUMP, semPower, simr, SimDesign, Spower (>=\n0.7), stats, Superpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5145,19 +5324,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "e509315b1c200a44b3b78cd53f6e5a724734b0d2",
-        "RemoteSha": "e509315b1c200a44b3b78cd53f6e5a724734b0d2",
+        "RemoteRef": "83973ebdefc85200a74f7a729a900bb1ebaa3d50",
+        "RemoteSha": "83973ebdefc85200a74f7a729a900bb1ebaa3d50",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "e509315b1c200a44b3b78cd53f6e5a724734b0d2",
-        "GithubSHA1": "e509315b1c200a44b3b78cd53f6e5a724734b0d2",
+        "GithubRef": "83973ebdefc85200a74f7a729a900bb1ebaa3d50",
+        "GithubSHA1": "83973ebdefc85200a74f7a729a900bb1ebaa3d50",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-01 01:15:44 UTC; runner",
+        "Packaged": "2026-11-01 04:13:26 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-01 01:15:53 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-01 04:13:35 UTC; unix"
       }
     },
     "powertools": {
@@ -5525,6 +5704,34 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-10-14 06:40:02 UTC",
         "Built": "R 4.5.0; ; 2026-10-15 04:06:13 UTC; unix"
+      }
+    },
+    "qpdf": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "qpdf",
+        "Type": "Package",
+        "Title": "Split, Combine and Compress PDF Files",
+        "Version": "1.4.1",
+        "Authors@R": "c(person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"), \n    email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\")),\n        person(\"Ben\", \"Raymond\", role = \"ctb\"),\n        person(\"Jay Berkenbilt\", role = \"cph\", comment = \"Author of libqpdf\"))",
+        "Description": "Content-preserving transformations transformations of PDF files such \n    as split, combine, and compress. This package interfaces directly to the 'qpdf' \n    C++ library <https://qpdf.sourceforge.io/> and does not require any command \n    line utilities. Note that 'qpdf' does not read actual content from PDF files: \n    to extract text and data you need the 'pdftools' package.",
+        "License": "Apache License 2.0",
+        "URL": "https://docs.ropensci.org/qpdf/\nhttps://ropensci.r-universe.dev/qpdf",
+        "BugReports": "https://github.com/ropensci/qpdf/issues",
+        "Encoding": "UTF-8",
+        "Imports": "Rcpp, askpass, curl",
+        "LinkingTo": "Rcpp",
+        "RoxygenNote": "7.2.1",
+        "Suggests": "testthat",
+        "SystemRequirements": "libjpeg",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-06-30 11:12:14 UTC; jeroen",
+        "Author": "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>),\n  Ben Raymond [ctb],\n  Jay Berkenbilt [cph] (Author of libqpdf)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-07-02 09:40:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 13:13:20 UTC; unix"
       }
     },
     "qs2": {
@@ -6931,7 +7138,7 @@
       "checksum": "b0269a6762d5bc08f41fc7a5eebf7b34"
     },
     "forms.yaml": {
-      "checksum": "620c7d85ab0fc843c8269b95bf22241d"
+      "checksum": "b0ad483d140c7ccb0bc5a927dc051a55"
     },
     "R/about.R": {
       "checksum": "8ff582fd1a83306947634b764b8e8cf7"
@@ -6943,7 +7150,7 @@
       "checksum": "f8d04b8589f94a830b4d38258b87454a"
     },
     "R/forms.R": {
-      "checksum": "00968513dd8e6171ff24339952776725"
+      "checksum": "b4ed4c916971a91bb77afc5b6927c21a"
     },
     "R/labs.R": {
       "checksum": "815cff595b5616013aad9cb84a2270d6"
@@ -6955,7 +7162,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "a5579e387980d14e56085c267826f803"
+      "checksum": "d14736654cb15c0891ada562763273e1"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -6997,7 +7204,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "8289f524cae846264ae228ca3070334e"
+      "checksum": "41e3853b6a6a4e19e83fb961d990a75c"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "325c7f7ed651830534eb9e817e710f8b"
@@ -7015,7 +7222,7 @@
       "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "09bc88b07aeb7afb54a7f804c88abc46"
+      "checksum": "5d2152b551893431a9de5ef673a70b02"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "4e9eab086233fc31944db7b6f0a214c0"
@@ -7054,7 +7261,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "27100dbbf1cf3f868e036c8e3b99d235"
+      "checksum": "c0134d6eed8cab92781c78b06043bbc2"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"

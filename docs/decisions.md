@@ -3773,6 +3773,12 @@ merges when its checks pass, unless a doubt is stated in it.
   pairs asked what the hypothesis involves, with conditions given to
   whole pairs sent to the cluster-randomised card and other dyadic
   designs to a "not yet covered" card (E65).
+- **Meta-analysis moderators (1 November 2026):** metapower's
+  `mod_power()` checked against simulation first (20 studies of 40, d =
+  0.2 against 0.5, I-squared 0.5: 55.8% against 57.2% fixed-effect, 31.9%
+  against 33.9% random-effects with tau-squared estimated), close enough
+  to use; under the random-effects model the Hartung-Knapp test is the
+  default, as for the average effect, simulated with metafor.
 - **Multilevel models, three or more conditions (31 October 2026):** a
   card of its own (E63): a mean per condition, one SD for participants'
   condition effects shared by every condition (participant:cond random
@@ -3887,3 +3893,18 @@ computer.
   margin of 0.2 and 80% power (one-sided, alpha .05) is the exact
   noncentral-t answer; 0.681 is the same calculation with one group's
   degrees of freedom (56) for the test's (112).
+
+## 2026-10-31 · Justified alpha
+
+- **The goal:** `goal > type` "justified_alpha" at a fixed N, on the
+  one-sample, paired and two-group t-tests and the correlation (the
+  designs pwr's formula covers). JustifyAlpha's `optimal_alpha()` searches
+  alpha with pwr's power for the spec, so no new maths is written.
+- **The question asked:** how many times worse a false positive is than a
+  missed effect (`cost_ratio`, JustifyAlpha's `costT1T2`), default 1; the
+  prior odds of an effect (`prior_odds`, `priorH1H0`) optional, default 1.
+- **The rule:** minimising the weighted total of the errors by default,
+  JustifyAlpha's default; balancing them is offered. Balancing with a cost
+  ratio q is G\*Power's compromise power analysis (Known difference 11).
+- **The conventional alpha** stays in the spec and is shown beside the
+  justified one, with its power, so the user sees what the choice changes.

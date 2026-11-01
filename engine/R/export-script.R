@@ -43,7 +43,7 @@
 #' }
 export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
-  lines <- switch(
+  lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else switch(
     result$provenance$backend,
     pwr = ,
     stats = if (variance_formula_test(spec)) {
@@ -64,13 +64,14 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    Spower = if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
+    Spower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
+      if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
-    metapower = metapower_script(spec, result),
+    metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result),
@@ -197,6 +198,13 @@ design_description <- function(spec) {
     base$target_test$method <- if (identical(spec$template, "independent_t")) "student_t" else "t_test"
     return(sprintf("minimum-effect test (smallest effect of interest %s = %s): %s",
       if (identical(spec$template, "paired_t")) "d_z" else "d", format_number(spec$population$margin), design_description(base)))
+  }
+  if (meta_subgroups(spec)) {
+    return(sprintf("%s meta-analysis of %s: does the average effect differ between %d kinds of study (%s = %s), %s, studies of %s participants with I-squared %s",
+      if (identical(spec$target_test$model, "fixed")) "fixed-effect" else "random-effects", label("Y"),
+      length(unlist(spec$population$effects)), if (identical(spec$population$metric, "r")) "r" else "Cohen's d",
+      paste(format_number(as.numeric(unlist(spec$population$effects))), collapse = ", "),
+      if (hartung_knapp_test(spec)) "Hartung-Knapp test" else "Q test", format_number(spec$population$study_size), format_number(spec$population$i2)))
   }
   if (identical(spec$design, "meta_analysis")) {
     return(meta_design_description(spec, label))

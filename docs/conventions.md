@@ -1046,7 +1046,10 @@ preregistered test.
   fixed-effect model keeps the z test.
 - **Size:** less power, most with few studies: for d = 0.15, 40 per
   study, I-squared 0.5 and ten studies, about 16.5% against 21.4% with
-  the z test.
+  the z test. For subgroups (the test that kinds of study differ, from 1
+  November 2026; 20 studies of 40, d = 0.2 against 0.5, I-squared 0.5):
+  29.3% (2,000 simulated meta-analyses, Monte Carlo SE 1.0) against
+  31.9% with metapower's `mod_power()`.
 - **Test:** `test-backend-metapower.R`, "Hartung-Knapp power: the size of
   the difference"; `test-validation-meta-analysis.R` checks the
   simulated power against a separately written simulation of IntHout et
@@ -1054,7 +1057,10 @@ preregistered test.
 - **Shown to users:** on the E61 result screen when the Hartung-Knapp test
   is used (`app/routing/forms.yaml`, `departures`, key "18"), and in the
   methods paragraph's full version. Known difference 9 (metapower's
-  rounding) then doesn't apply and isn't shown.
+  rounding) then doesn't apply and isn't shown, nor for subgroups, whose
+  `mod_power()` doesn't round. `test-validation-meta-subgroups.R` checks
+  the subgroup test against metafor called directly and its Type I
+  error.
 
 ## Known differences
 
@@ -1496,3 +1502,25 @@ Wired into the app on 18 October 2026 (E25, E26).*
   screens when the minimum-effect test is chosen (`app/routing/forms.yaml`,
   `known_differences`, key "10").
 - **Methods paragraph:** `known_differences_methods`, key "10".
+
+### 11. Justified alpha: minimising the weighted errors by default, where G\*Power's compromise balances them
+
+- **What differs:** a justified alpha (goal "justified_alpha", 31 October
+  2026) is found with JustifyAlpha's `optimal_alpha()`, whose default,
+  `error = "minimize"`, chooses the alpha that makes the weighted total of
+  the two error rates smallest. G\*Power's compromise power analysis takes
+  the ratio q = β/α and finds the alpha at which beta is q times alpha
+  (`docs/decision-tree.md`, analysis types): the same as `optimal_alpha()`
+  with `error = "balance"`, `costT1T2 = q` and `priorH1H0 = 1`. powerkit
+  follows JustifyAlpha's default and offers the balanced version as a
+  choice ("Make the weighted errors equal").
+- **Size:** for d = 0.5 and 64 people in two equal groups (two-sided,
+  equal weights), alpha is .184 (power 74.5%) when minimising and .221
+  (power 77.8%) when balancing.
+- **Test:** `engine/tests/testthat/test-backend-justify-alpha.R`,
+  "minimising the weighted errors gives a lower alpha than balancing them,
+  as G\*Power's compromise does (Known difference 11)".
+- **Shown to users:** on the one-sample, paired, two-group and correlation
+  result screens when the goal is a justified alpha
+  (`app/routing/forms.yaml`, `known_differences`, key "11").
+- **Methods paragraph:** `known_differences_methods`, key "11".

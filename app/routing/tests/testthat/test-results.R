@@ -2120,3 +2120,28 @@ test_that("dyadic data: the result and the write-up count pairs, and both kinds 
   expect_match(html, "120 pairs", fixed = TRUE)
   expect_no_match(html, "120 participants", fixed = TRUE)
 })
+
+test_that("the t-test and correlation cards find a justified alpha, and say how the errors were weighed", {
+  for (ep in c("E1", "E2", "E3", "E4")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+    expect_true("justified_alpha" %in% names(goal$choices), label = ep)
+    values <- modifyList(form_examples[[ep]], list(goal = "justified_alpha", n = "64", cost_ratio = "4",
+      method = if (ep == "E2") "student_t" else form_examples[[ep]]$method,
+      error_rule = "minimize", prior_odds = "1"))
+    expect_true(field_applies(by_id("cost_ratio"), values))
+    expect_false(field_applies(by_id("cost_ratio"), list(goal = "power")))
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$goal$type, "justified_alpha")
+    expect_equal(spec$goal$cost_ratio, 4)
+    skip_without_run()
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    j <- calc$result$justified_alpha
+    text <- paste(result_sentences(spec, calc$result), collapse = " ")
+    expect_match(text, sprintf("is alpha = %s", format(signif(j$alpha, 3))), fixed = TRUE)
+    expect_match(text, "weighted 4 times as heavily as a missed effect", fixed = TRUE)
+    expect_match(text, "JustifyAlpha's optimal_alpha()", fixed = TRUE)
+  }
+})

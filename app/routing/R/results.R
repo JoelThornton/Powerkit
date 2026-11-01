@@ -332,7 +332,14 @@ meta_sentences <- function(spec, result) {
   pop <- spec$population
   random <- !identical(spec$target_test$model, "fixed")
   model <- if (random) "the random-effects model" else "the fixed-effect model"
-  effect <- sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  subgroups <- identical(spec$template, "subgroups")
+  effect <- if (subgroups) {
+    sprintf("average effects of %s = %s in the kinds of study", if (identical(pop$metric, "r")) "r" else "d",
+      paste(format(as.numeric(unlist(pop$effects))), collapse = ", "))
+  } else {
+    sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  }
+  aim <- if (subgroups) "detect that the kinds of study differ, with" else "detect an average effect of"
   test <- sprintf("%s%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
     if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test",
     alpha_text(spec$target_test$alpha),
@@ -354,15 +361,20 @@ meta_sentences <- function(spec, result) {
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
     c(
-      headline = sprintf("You need %s studies for %s power to detect an average effect of %s, with %s.",
-        whole(k), percent(spec$goal$power), effect, test),
+      headline = sprintf("You need %s studies%s for %s power to %s %s, with %s.",
+        whole(k), if (subgroups) " (split equally between the kinds)" else "", percent(spec$goal$power), aim, effect, test),
       detail = paste(source, caution)
     )
   } else {
     row <- result$curve[1, ]
     c(
-      headline = sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
-        whole(row$n), percent(row$power), effect, round(100 * row$power), test),
+      headline = if (subgroups) {
+        sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would find that the kinds of study differ, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      } else {
+        sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      },
       detail = paste(source, caution)
     )
   }
@@ -799,9 +811,45 @@ goal_sentences <- function(spec, result) {
           detail = "The pattern of means you entered keeps its shape and is scaled until the effect reaches the target power (exact, Superpower)."
         )
       }
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(
+        headline = sprintf(
+          "With %s participants in total%s, the significance level that %s is alpha = %s. At that level, %s has %s power to detect the effect you entered.",
+          whole(spec$goal$n), group_text(spec, spec$goal$n), justified_alpha_rule_text(j), justified_alpha_text(j$alpha),
+          justified_alpha_test_text(spec), percent(j$power)
+        ),
+        detail = sprintf(
+          "%s At the usual alpha = %s, power would be %s. Found by JustifyAlpha's optimal_alpha(), which searches over alpha with power from pwr's formula (%s).",
+          justified_alpha_weights_text(j), alpha_text(j$conventional_alpha), percent(j$conventional_power), exact_source(result)
+        )
+      )
     }
   )
 }
+
+# Justified alpha (JustifyAlpha's optimal_alpha()): the wording of the
+# rule, the weights and the level found.
+justified_alpha_rule_text <- function(j) {
+  if (identical(j$error_rule, "balance")) "makes the two weighted errors equal" else "makes the weighted total of the two errors as small as possible"
+}
+
+justified_alpha_text <- function(alpha) format(signif(alpha, 3))
+
+justified_alpha_weights_text <- function(j, brief = FALSE) {
+  cost <- if (isTRUE(all.equal(j$cost_ratio, 1))) "A false positive was weighted the same as a missed effect" else
+    sprintf("A false positive was weighted %s times as heavily as a missed effect", format(j$cost_ratio))
+  odds <- if (isTRUE(all.equal(j$prior_odds, 1))) ", and the effect taken as being as likely to be real as not" else
+    sprintf(", and the effect taken as %s times as likely to be real as not", format(j$prior_odds))
+  if (brief) return(paste0(cost, odds))
+  rate <- if (identical(j$error_rule, "balance")) "" else sprintf("; the weighted error rate is %s", percent(j$error_rate))
+  sprintf("%s%s%s. The chance of a false positive is then %s and of missing the effect %s.", cost, odds, rate,
+    percent(j$alpha), percent(j$beta))
+}
+
+# The test, without the alpha (the alpha is the answer).
+justified_alpha_test_text <- function(spec) sub(" at alpha = .*$", "", test_text(spec))
 
 # The plain reading of a target power (the new design, 18 October 2026):
 # it keeps the condition, and says what power is a chance of. Out of 10
@@ -1486,9 +1534,14 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   keys <- unlist(form$known_differences)
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
-  if (!is.null(spec) && is_hartung_knapp(spec)) keys <- setdiff(keys, "9")
+  # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
+  # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
+  if (!is.null(spec) && (is_hartung_knapp(spec) || identical(spec$template, "subgroups"))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
+  # Some apply to one goal (Known difference 11, a justified alpha).
+  by_goal <- form$known_differences_if_goal
+  keys <- Filter(function(k) is.null(by_goal[[k]]) || identical(spec$goal$type, by_goal[[k]]), keys)
   # Some apply to one way of giving the effect (E9: Known difference 1 to
   # the correlations, which are simulated; 7 to the R-squared change).
   by_metric <- form$known_differences_if_metric
@@ -1739,6 +1792,11 @@ writeup_claim <- function(values, spec) {
 # it is measured in, the study size and the heterogeneity.
 meta_effect_text <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "subgroups")) {
+    return(sprintf("average effects of %s = %s in %d kinds of study (the studies split equally between them), in studies of %s participants each with I-squared = %s",
+      if (identical(pop$metric, "r")) "r" else "Cohen's d", paste(format(as.numeric(unlist(pop$effects))), collapse = ", "),
+      length(unlist(pop$effects)), whole(pop$study_size), format(pop$i2)))
+  }
   sprintf("an average effect of %s = %s, in studies of %s participants each with I-squared = %s",
     if (identical(pop$metric, "r")) "r" else "Cohen's d", format(pop$effect), whole(pop$study_size), format(pop$i2))
 }
@@ -1877,6 +1935,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
           whole(spec$goal$n), group_text(spec, spec$goal$n)),
         sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size),
         basis)
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(sprintf("The significance level for %s was chosen by weighing the two errors (the R package JustifyAlpha, version %s, optimal_alpha()).",
+          if (is.null(sides)) name else sprintf("%s (%s)", name, sides), result$provenance$packages[["JustifyAlpha"]] %||% "unknown"),
+        sprintf("The sample size was %s %s participants in total%s.", if (fixed) "fixed by resource constraints at" else "set at",
+          whole(spec$goal$n), group_text(spec, spec$goal$n)),
+        basis,
+        sprintf("%s, so alpha was set to %s the weighted errors: alpha = %s, giving %.1f%% power (at alpha = %s, power would be %.1f%%).",
+          justified_alpha_weights_text(j, brief = TRUE),
+          if (identical(j$error_rule, "balance")) "balance" else "minimise the total of",
+          justified_alpha_text(j$alpha), 100 * j$power, writeup_alpha(j$conventional_alpha), 100 * j$conventional_power))
     }
   )
   if (is_bayes_test(spec)) {
@@ -1978,6 +2048,12 @@ ethics_text <- function(spec, result, fields, values) {
         sprintf("A power analysis shows the smallest effect a study of this size would find %s of the time (using a %s threshold for statistical significance) is %s. Smaller effects would more often be missed.",
           percent(spec$goal$power), alpha, size),
         sprintf("Our reasoning about the size of the effect: %s.", reasoning))
+    },
+    justified_alpha = {
+      j <- result$justified_alpha
+      c(include, recruit_line, set_by, basis,
+        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with a %s chance of finding the effect if it is real.",
+          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), percent(j$power)))
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)

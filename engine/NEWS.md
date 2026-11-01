@@ -21,6 +21,20 @@ A batch of new features, built as one round.
   in group 2, which gives the model's power at any allocation (G\*Power's
   example, r = .25 one-sided with power .95, needs 164). The smallest
   detectable effect is also given as r.
+* A justified alpha (`goal > type` "justified_alpha", at a fixed `goal > n`):
+  the significance level that minimises the weighted total of the two
+  error rates, or (`goal > error_rule` "balance") makes them equal, with
+  JustifyAlpha's `optimal_alpha()` on pwr's power, for the one-sample,
+  paired and two-group t-tests and the correlation. The weights are how
+  many times worse a false positive is than a missed effect
+  (`goal > cost_ratio`, default 1) and the prior odds of an effect
+  (`goal > prior_odds`, default 1). The result gives the alpha, the power
+  and beta at it, and the power at the conventional alpha
+  (`target_test > alpha`) for comparison; the exported script reruns
+  `optimal_alpha()`. Balancing with a cost ratio q is G\*Power's
+  compromise power analysis (Known difference 11: minimising, the
+  default, gives a lower alpha). New dependency: JustifyAlpha (with
+  BayesFactor, qpdf and their dependencies).
 * An independent t-test with unequal groups started its sample-size search
   below two people in the smaller group (for example four in all at 1 : 3),
   which pwr refuses; the smallest n now keeps two in each group.
@@ -58,6 +72,18 @@ A batch of new features, built as one round.
   (D1): something measured on each member (E44), conditions given to
   whole pairs (the cluster-randomised card, groups of two) or another
   design (E65, not yet covered); the result screen counts pairs.
+* Meta-analysis subgroups (E61, template `subgroups`): does the average
+  effect differ between kinds of study (a categorical moderator, such as
+  lab against online)? The studies are split equally between the kinds,
+  each with its own average effect (`population > effects`), and the test
+  is the between-groups Q test: metapower's `mod_power()` under the
+  fixed-effect model and on request under the random-effects model
+  (checked against simulated meta-analyses first: 55.8% against 57.2%
+  for the fixed-effect model, 31.9% against 33.9% for the random-effects
+  model), or by default under the random-effects model the Hartung-Knapp
+  test (metafor's `rma()` with the kinds as a moderator, `test = "knha"`,
+  simulated with Spower; Departure 18). The card asks what the
+  meta-analysis tests.
 
 # powerkit 0.26.0
 

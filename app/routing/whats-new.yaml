@@ -13,6 +13,21 @@ entries:
       outcome and their partner's: the actor-partner interdependence
       model, for pairs whose members can be told apart (a woman and a man)
       or not (two friends).
+  - date: "2026-11-01"
+    title: "Meta-analysis: do kinds of study differ?"
+    text: >-
+      The meta-analysis card can now plan a subgroup analysis: whether the
+      effect differs between kinds of study, such as lab and online
+      studies, as well as the test of the average effect.
+  - date: "2026-10-31"
+    title: "Choose a significance level by weighing the two mistakes"
+    text: >-
+      The one-sample, paired and two-group t-tests and the correlation
+      have a new goal: instead of always using 5%, find the significance
+      level that best balances a false positive against a missed effect,
+      for the sample size you have. You say how much worse a false
+      positive would be; the result shows the level, the power at it and
+      the power at 5% for comparison.
   - date: "2026-10-31"
     title: "Many items per person in three or more conditions"
     text: >-
