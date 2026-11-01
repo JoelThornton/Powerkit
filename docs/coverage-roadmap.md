@@ -427,14 +427,14 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 19 | 0 | 48 |
+| Wired (validation not finished) | 29 | 20 | 0 | 49 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 11 | 2 | 14 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 16 | 0 | 17 |
+| Unknown | 1 | 15 | 0 | 16 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
