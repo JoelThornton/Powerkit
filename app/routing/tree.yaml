@@ -1992,6 +1992,15 @@ guided:
       label: "Whether X affects the outcome through the mediator(s)"
       requires: {mediators: [one, several, notscore]}
       rules:
+        # Measured twice: no card yet (E41), but the whole-study simulation
+        # covers two mediators and needs to know how they connect.
+        - when: {times: twice, x: [score, cond2], mediators: several, outcome: score}
+          ask:
+            doc_id: ME3
+            text: "How do the mediators connect?"
+            options:
+              - {label: "Side by side: X affects each one separately", endpoint: E41}
+              - {label: "In a chain: X affects the first, which affects the next", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
@@ -2010,6 +2019,16 @@ guided:
       label: "Whether the mediation depends on the moderator (moderated mediation)"
       requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
       rules:
+        # Measured twice: no card yet (E41), but the whole-study simulation
+        # covers one moderated link and needs to know which.
+        - when: {times: twice, x: score, moderator: score, mediators: one, outcome: score}
+          ask:
+            doc_id: MM4
+            text: "Which link depends on the moderator?"
+            options:
+              - {label: "The link from X to the mediator", endpoint: E41}
+              - {label: "The link from the mediator to the outcome", endpoint: E41}
+              - {label: "Both links, or X to the mediator and the direct link", endpoint: E41}
         - {when: {times: twice}, endpoint: E41}
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: [yesno, categories, count, ordinal]}, endpoint: E32}
