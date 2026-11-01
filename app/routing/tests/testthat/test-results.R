@@ -27,8 +27,10 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E34" && !is.null(goal$n)) goal$n <- 80L
   # A factorial logistic regression needs ten people in every cell.
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
+  # Precision planning has no power: the width expected at n instead.
+  if (ep == "E46") goal <- list(type = "precision", n = goal$n %||% 48L)
   spec$goal <- goal
-  if (!ep %in% c("E7", "E8", "E36")) spec$options$nrep <- 100L
+  if (!ep %in% c("E7", "E8", "E36", "E46")) spec$options$nrep <- 100L
   spec
 }
 
