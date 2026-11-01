@@ -49,6 +49,18 @@ A batch of new features, built as one round.
   is calculated. The question-tree and aims views are replaced by the
   focus view (the list under the map keeps every route).
 
+* App: the result is easier to read and use. It opens with the answer
+  as one large figure (the sample size, the power, the smallest
+  detectable effect or the justified alpha, the same number as the
+  sentence under it) with what it assumes beside it (the effect, the test
+  and the target power); links along its top lead to its parts. "How sure
+  can you be?" brings the effect slider and the cautious and hopeful
+  guesses into one card, and the power curves are redrawn with the target
+  power and the plan's sample size marked (the cautious and hopeful curves
+  appear once a value is entered). "Write it up and save it" puts the
+  methods paragraph first, with a Copy button on each version, and the
+  downloads after it. What is calculated is unchanged.
+
 # powerkit 0.27.0
 
 A batch of new features, built as one round.

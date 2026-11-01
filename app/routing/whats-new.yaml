@@ -14,6 +14,13 @@ entries:
       what changes. It shows which test each analysis uses, and "Plan this
       study" takes you straight to it.
   - date: "2026-11-01"
+    title: "A clearer result"
+    text: >-
+      The result now starts with the answer in large type, with what it
+      assumes beside it. Below it, "How sure can you be?" shows how the
+      answer changes if the effect is smaller or larger, and the write-up
+      comes with a Copy button.
+  - date: "2026-11-01"
     title: "Bayes factors checked as the data come in"
     text: >-
       The Bayesian planning tool in Labs now plans sequential studies,

@@ -51,7 +51,10 @@ fully validated. Validation runs are recorded in
   choose" asks the screening questions first; the search also knows other
   names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
   default, shows technical names first and hides the hints when off.
-- **Results** state their spec hash, seed, backend, R and package
+- **Results** open with the answer as one large figure and what it
+  assumes, then "How sure can you be?" (the effect slider and cautious and
+  hopeful guesses), then the write-up with Copy buttons and the downloads
+  (1 November 2026). They state their spec hash, seed, backend, R and package
   versions; save as a project file or a study plan and reopen (a project
   saved from 0.26.0 shows its saved result without running it again); export an
   R script that reproduces them with the backend alone, citations, a
