@@ -14,6 +14,14 @@ entries:
       new can be searched, keeps older changes folded by month, and marks
       the changes made since you last looked, with a dot on its tab.
   - date: "2026-11-01"
+    title: "A new methods map"
+    text: >-
+      The methods map in Labs now opens full screen. Find a study like
+      yours and it moves to the middle, with the simpler designs that lead
+      to it on one side and the ways to change it on the other, each saying
+      what changes. It shows which test each analysis uses, and "Plan this
+      study" takes you straight to it.
+  - date: "2026-11-01"
     title: "A clearer result"
     text: >-
       The result now starts with the answer in large type, with what it

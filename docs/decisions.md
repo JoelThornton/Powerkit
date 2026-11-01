@@ -4115,3 +4115,25 @@ needed first.
 - **POMADE (several effects per study, `next.md` item 5):** its own pull
   request in the next round. It needs a new dependency, and so a rebuilt
   CI image.
+
+## 2026-11-01 · Moderated mediation decisions, and the shape of the queue
+
+- **W on both links or the direct path (E38, PROCESS models 8, 58 and
+  59):** powerkit powers the difference between the conditional indirect
+  effects at two values of W the user chooses (by default the mean minus
+  and plus one SD), tested by its Monte Carlo confidence interval. Models
+  58 and 59 have no single index of moderated mediation (the indirect
+  effect is quadratic in W), and manymome's `index_of_mome()` refuses
+  model 8, so one comparison serves all three: the one reported when no
+  single index exists.
+- **A yes/no X or W in moderated mediation (E17, models 7 and 14):**
+  built with power4mome and checked against a simulation written
+  separately, for how a binary W is standardised in a model with a
+  product term and for the Monte Carlo CI's coverage with a binary X. If
+  they agree, it ships with the check recorded here; this replaces the
+  question for power4mome's author (judgement call E4, now archived).
+- **POMADE** moves into this round (0.28.0) rather than the next.
+- **The queue holds only work a thread can do.** The statistician's check
+  of the whole-study simulation and the published values for the eight
+  cards still marked "validation in progress" move from the queue to
+  "Waiting on the maintainer, not a PR" in `next.md`.

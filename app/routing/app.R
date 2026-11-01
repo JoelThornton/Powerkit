@@ -1322,6 +1322,20 @@ server <- function(input, output, session) {
   }, alt = "The chance of strong evidence for an effect, and for no effect, against the sample size.")
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
+  # "Plan this study" on the map opens that analysis's card on "Plan a
+  # power analysis", as "I know my analysis" does.
+  map_start_plan <- function(id) {
+    cancel_job()
+    state$history <- list(); state$node <- NULL; state$ctx <- list(); state$calc <- NULL
+    state$endpoint <- id; state$came_from <- "known"; state$screen <- "card"
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  }
+  observeEvent(input$map_plan, {
+    id <- input$map_plan
+    req(is.character(id), length(id) == 1, !is.null(tree$endpoints[[id]]))
+    if (plan_in_progress()) showModal(map_replace_modal()) else map_start_plan(id)
+  })
+  observeEvent(input$map_plan_confirm, { removeModal(); map_start_plan(input$map_plan) })
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
   labs_text <- function() labs_markdown(labs_answers(), input$labs_outcome, labs_sde_notes())
   output$labs_download <- downloadHandler(

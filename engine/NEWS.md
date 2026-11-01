@@ -29,6 +29,26 @@ A batch of new features, built as one round.
   O'Hagan et al. (2005), Schonbrodt and Wagenmakers (2018) and Schonbrodt,
   Wagenmakers, Zehetleitner and Perugini (2017), each checked against the
   full text.
+* App: the methods map in Labs is rebuilt around the questions
+  researchers bring to it: where is a study like mine, what is it, what is
+  it next to, and can powerkit plan it. It opens full screen with the
+  families of analyses as regions; search suggests analyses as you type,
+  and a panel offers common starting points. Choosing an analysis puts it
+  in focus: the simpler designs that lead to it gather on its left and
+  the ways to change it on its right, each line saying what changes ("with
+  three or more groups", "adjusting for a covariate"), and a trail leads
+  back. Its panel gives the kind of test it usually reports (t, F,
+  chi-square, z, rank, a test in a fitted model, a confidence interval, a
+  Bayes factor) in plain words, and "Plan this study" opens it on "Plan a
+  power analysis" (asking first if a plan is in progress). The analyses
+  chosen only by name (precision, Bayes factor t-tests, generic tests,
+  meta-analysis) now appear too. The tags and connections are in
+  `app/routing/methods-map.yaml`, a test checks that every analysis has a
+  tag and every connection joins two analyses, and they await the
+  statistician's review with the rest of the methods. Nothing on the map
+  is calculated. The question-tree and aims views are replaced by the
+  focus view (the list under the map keeps every route).
+
 * App: the result is easier to read and use. It opens with the answer
   as one large figure (the sample size, the power, the smallest
   detectable effect or the justified alpha, the same number as the
