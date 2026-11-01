@@ -772,3 +772,23 @@ test_that("the meta-analysis card tests subgroups: the kinds' effects go to the 
   skip_if(is.null(validate), "engine not available")
   expect_s3_class(validate(spec), "powerkit_spec")
 })
+
+test_that("the 'still needed' line counts the fields the check would ask for", {
+  for (ep in form_ids) {
+    groups <- form_groups(forms, ep)
+    html <- as.character(form_ui(tree, forms, ep, groups))
+    for (f in form_fields(groups)) {
+      needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
+      tag <- regmatches(html, regexpr(sprintf("<(input|select|textarea) [^>]*id=\"f_%s\"[^>]*>", f$id), html, perl = TRUE))
+      marked <- grepl("data-needed=", tag, fixed = TRUE)
+      expect_equal(marked, needed, label = paste(ep, f$id))
+      # An effect size that may stay empty says for which goals.
+      if (isTRUE(f$effect) && length(f$optional_for)) {
+        expect_match(tag, sprintf("data-optional-for=\"%s\"", paste(f$optional_for, collapse = " ")), fixed = TRUE, label = paste(ep, f$id))
+      }
+    }
+  }
+  expect_match(as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2"))), "id=\"form_needed\"", fixed = TRUE)
+  # The same exception as effect_optional(): no effect size to justify.
+  expect_match(needed_js, "value('f_just_type') === 'none'", fixed = TRUE)
+})

@@ -285,6 +285,44 @@ app_css <- "
   .known-badge-progress { background: #e8f0fb; color: #2c5a99; }
   .known-badge-soon { background: #fff0d1; color: #7a4f00; }
   .known-badge-not { background: #e9ecef; color: #3d4852; }
+  /* The input screen (1 November 2026): each group's title sits inside its
+     box instead of on its border; sections are spaced and marked; numbers
+     get a box their size; the two kinds of effect-size help look alike. */
+  .form-section { margin: 0 0 1.75rem 0; }
+  .form-section-title { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem; margin: 1.75rem 0 0.75rem 0;
+                        padding-bottom: 0.45rem; border-bottom: 1px solid var(--pk-line); }
+  .form-section:first-of-type .form-section-title { margin-top: 1rem; }
+  .form-group-box { padding: 1rem 1.25rem 0.5rem 1.25rem; margin-bottom: 0.9rem; }
+  .form-group-box > legend, .form-group-box legend.h6 { float: left; width: 100%; padding: 0; margin: 0 0 0.6rem 0;
+                                                     font-size: 1rem; font-weight: 650; color: var(--pk-navy); line-height: 1.35; }
+  .form-group-box > legend + * { clear: both; }
+  .form-section-effect > .form-group-box { border-width: 2px; }
+  .form-section-effect > .form-group-box > legend { color: var(--pk-blue); }
+  .form-field label, .form-field .control-label { font-weight: 550; color: #1d2733; margin-bottom: 0.3rem; }
+  .form-field .form-control, .form-field .form-select { border-radius: 10px; border-color: #c6cfdb; }
+  .form-field .form-control:focus, .form-field .form-select:focus { border-color: var(--pk-blue); box-shadow: 0 0 0 0.2rem rgba(10,90,140,.18); }
+  @media (min-width: 768px) {
+    .form-field input[inputmode='decimal'] { max-width: 16rem; }
+    .form-field .form-select, .form-field select.form-control { max-width: 42rem; }
+  }
+  .field-help, .default-source { color: #5a6573; }
+  .form-terms > summary, .effect-help > summary { list-style: none; }
+  .form-terms > summary::-webkit-details-marker, .effect-help > summary::-webkit-details-marker { display: none; }
+  .form-terms > summary::before, .effect-help > summary::before { content: '?'; display: inline-flex; align-items: center; justify-content: center;
+    width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 1.5px solid currentColor; font-size: 0.75rem; font-weight: 700; margin-right: 0.45rem; }
+  .effect-unsure, .effect-help { background: #eef3fa; border: 0; box-shadow: none; border-radius: var(--pk-radius); padding: 0.75rem 1.1rem; margin-bottom: 0.75rem; }
+  .effect-help > summary { min-height: 32px; }
+  .effect-unsure .btn { border-radius: 8px; }
+  .form-settings, .form-guess { padding: 0.6rem 1.25rem; }
+  .action-bar .form-needed { margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
+  .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
+  .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
+  /* On phones the bar stays short: the two buttons side by side, the line above them. */
+  @media (max-width: 575px) {
+    .action-bar { flex-wrap: wrap; gap: 0.4rem 0.5rem; padding: 0.5rem 0.75rem; }
+    .action-bar .form-needed { flex: 1 0 100%; min-height: 32px; font-size: 0.88rem; padding-top: 0; padding-bottom: 0; }
+    .action-bar .btn:not(.form-needed) { flex: 1 1 0; padding-left: 0.5rem; padding-right: 0.5rem; font-size: 0.92rem; }
+  }
   @media print { .topbar, .screen-nav, .action-bar, .saved-projects { display: none !important; } }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
 "
@@ -383,7 +421,7 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   tags$header(class = "topbar",

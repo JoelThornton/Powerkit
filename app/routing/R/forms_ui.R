@@ -25,6 +25,16 @@ field_ui <- function(f, value, described_by = character()) {
   # Attributes on the input element itself.
   attrs <- list(`aria-describedby` = if (length(described_by)) paste(described_by, collapse = " "))
   if (isTRUE(f$required) || isTRUE(f$effect)) attrs$`aria-required` <- "true"
+  # Counted by the "still needed" line in the action bar (needed_js), by
+  # the same rule as form_problems(): an effect size may stay empty for the
+  # goals in its `optional_for`, or with no effect size to justify
+  # (effect_optional()).
+  if (isTRUE(f$effect)) {
+    attrs$`data-needed` <- "effect"
+    if (length(f$optional_for)) attrs$`data-optional-for` <- paste(f$optional_for, collapse = " ")
+  } else if (isTRUE(f$required) || !is.null(f$needed_for) || !is.null(f$needed_if_just)) {
+    attrs$`data-needed` <- "yes"
+  }
   if (identical(f$type, "number")) attrs$inputmode <- "decimal"
   attrs <- attrs[!vapply(attrs, is.null, logical(1))]
   tag_name <- switch(f$type, select = "select", table = "textarea", "input")
@@ -121,11 +131,13 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
-      tags$span(class = "badge-progress", "Validation in progress"), tags$strong("Runs, validation in progress."), " ", ep$validation$note),
+      tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
     placeholders_at(tree, "form"),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
     action_bar(
+      tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
+        `aria-live` = "polite", onclick = "pkGoToNeeded()"),
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
       actionButton("form_check", "Check my answers", class = "btn btn-primary")
     ),
@@ -257,6 +269,46 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess first (optional)"), part("guess"))
   )
 }
+
+# How many needed answers are still empty, in the action bar, updated as
+# the user types; clicking it moves to the first one. Only fields in view
+# count (a field another choice hides isn't needed; one folded away in
+# Settings is, and clicking opens it), by the same rule as
+# form_problems(). The check still decides; this is a guide.
+needed_js <- "
+  window.pkNeededEmpty = function() {
+    var value = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+    return Array.prototype.filter.call(document.querySelectorAll('#screen [data-needed]'), function(el) {
+      // Hidden by another choice (a conditional panel); a field folded
+      // away in Settings still counts.
+      for (var a = el.parentElement; a; a = a.parentElement) {
+        if (a.classList.contains('shiny-panel-conditional') && getComputedStyle(a).display === 'none') return false;
+      }
+      var optionalFor = el.getAttribute('data-optional-for');
+      if (optionalFor && (optionalFor.split(' ').indexOf(value('f_goal')) >= 0 || value('f_just_type') === 'none')) return false;
+      return !el.value || !String(el.value).trim();
+    });
+  };
+  window.pkUpdateNeeded = function() {
+    var line = document.getElementById('form_needed');
+    if (!line) return;
+    var empty = pkNeededEmpty();
+    line.hidden = false;
+    line.textContent = empty.length === 0 ? 'Every needed answer is filled in' :
+      (empty.length === 1 ? '1 answer still needed' : empty.length + ' answers still needed');
+    line.classList.toggle('form-needed-done', empty.length === 0);
+    line.disabled = empty.length === 0;
+  };
+  window.pkGoToNeeded = function() {
+    var empty = pkNeededEmpty();
+    if (!empty.length) return;
+    var folded = empty[0].closest('details');
+    if (folded) folded.open = true;
+    empty[0].scrollIntoView({ block: 'center' }); empty[0].focus({ preventScroll: true });
+  };
+  $(document).on('input change', '#screen input, #screen select, #screen textarea', function() { setTimeout(pkUpdateNeeded, 60); });
+  $(document).on('shiny:value', function(e) { if (e.name === 'screen') setTimeout(pkUpdateNeeded, 120); });
+"
 
 # Keeps the settings line in step with the fields inside it.
 settings_js <- "
