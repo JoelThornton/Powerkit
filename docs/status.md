@@ -41,7 +41,8 @@ fully validated. Validation runs are recorded in
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026), common
   starting points and status labels, and keeps the search when you come
-  back from a card (1 November 2026); "Help me
+  back from a card (1 November 2026); the input screen counts the needed
+  answers still empty, in its bottom bar (1 November 2026); "Help me
   choose" asks the screening questions first; the search also knows other
   names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
   default, shows technical names first and hides the hints when off.
