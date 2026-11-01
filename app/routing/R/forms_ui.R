@@ -158,7 +158,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
   ep <- tree$endpoints[[ep_id]]
   tagList(
     screen_nav_ui("form_back", if (from_plan) "Back to my plan" else "Back to the card"),
-    trail_ui(history),
+    trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),

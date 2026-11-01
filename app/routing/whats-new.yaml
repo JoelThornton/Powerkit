@@ -19,6 +19,22 @@ entries:
       several effect sizes, such as several outcomes or time points,
       allowing for how alike the results from one study are.
   - date: "2026-11-01"
+    title: "Whole-study simulation: more designs measured twice"
+    text: >-
+      When each person is measured twice, the experimental whole-study
+      simulation now handles two mediators (side by side or in a chain)
+      and moderated mediation where the moderator changes one link, with
+      every analysis adjusting for the first measurement.
+  - date: "2026-11-01"
+    title: "Clearer questions and analysis cards"
+    text: >-
+      Each question in "Help me choose" now says which number it is, keeps
+      "None of these fit" apart from the answers, and can be answered with
+      the number keys. Your answers so far show the question each one
+      answered. An analysis card now says at a glance how it calculates,
+      which package does it and how far its checks are, lists what you'll
+      need before you start, and gathers its other versions in one box.
+  - date: "2026-11-01"
     title: "Faster screens"
     text: >-
       Moving from one screen to the next, such as opening the list of

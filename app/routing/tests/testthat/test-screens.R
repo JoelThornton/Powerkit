@@ -23,7 +23,9 @@ test_that("every end-point card renders, with its status and inputs", {
   for (id in names(tree$endpoints)) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
-    if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, "What you would enter", fixed = TRUE, label = id)
+    # A card that runs lists what you'll need openly; the others fold it.
+    runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
+    if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
       runs_validated = "Validated: ", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
@@ -468,11 +470,14 @@ test_that("the progress steps follow the four screens, with the current one mark
   expect_match(code, 'uiOutput("progress"), uiOutput("screen")', fixed = TRUE)
 })
 
-test_that("cards fold what you'd enter, the package and the next questions into one section", {
+test_that("cards list what you'll need, and fold the package and the next questions into one section", {
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, '<details class="card-more">', fixed = TRUE)
   more <- sub('.*<details class="card-more">', "", html)
-  for (text in c("What you would enter", "Backend:", "be asked next")) expect_match(more, text, fixed = TRUE)
+  for (text in c("Backend:", "be asked next")) expect_match(more, text, fixed = TRUE)
+  # What you'd enter is in view, before the fold, on a card that runs.
+  expect_match(sub('<details class="card-more">.*', "", html), "card-needs", fixed = TRUE)
+  expect_match(as.character(card_ui(tree, "E2", compact = TRUE)), "What you would enter", fixed = TRUE)
   # The rank-test note stays in view. The effect size's source is asked on
   # the input screen only, not listed on the card first (28 October 2026).
   before <- sub('<details class="card-more">.*', "", html)
@@ -600,4 +605,31 @@ test_that("the analysis search finds tests by their other names, and short words
   expect_setequal(find("t-test"), find("t test"))
   expect_true(all(find("t test") %in% c("E1", "E2", "E3", "E50")))
   expect_match(known_search_js, "w.length <= 2", fixed = TRUE)
+})
+
+test_that("a card says at a glance how it calculates, with what, and how far its checks are", {
+  html <- as.character(card_ui(tree, "E2"))
+  expect_match(html, "class=\"card-facts\"", fixed = TRUE)
+  expect_match(html, "In a second or two", fixed = TRUE)
+  expect_match(html, "Checked against published values", fixed = TRUE)
+  # Its other versions (rank test, Bayes factor) are gathered in one box.
+  expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
+  expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)
+  # Cards that don't calculate have no facts strip.
+  expect_no_match(as.character(card_ui(tree, "E43")), "card-facts", fixed = TRUE)
+  # Reached by answering questions, it says so.
+  expect_match(as.character(card_ui(tree, "E2", history = list(list(node = "s1", answer = "A score", ctx = list())))),
+    "The analysis that fits your answers", fixed = TRUE)
+})
+
+test_that("a question says which number it is, sets 'None of these fit' apart, and takes number keys", {
+  html <- as.character(node_ui(tree, start_node(tree), list()))
+  expect_match(html, "Question 1", fixed = TRUE)
+  expect_match(html, "choices choices-numbered", fixed = TRUE)
+  expect_match(html, "choices choices-way-out", fixed = TRUE)
+  expect_match(html, tree$safety_net$label, fixed = TRUE)
+  expect_match(nav_js, ".choices-numbered > .choice", fixed = TRUE)
+  # Answers so far show the question each one answered.
+  trail <- as.character(trail_ui(list(list(node = start_node(tree), answer = "A score or scale")), tree))
+  expect_match(trail, htmltools::htmlEscape(tree$nodes[[start_node(tree)]]$text), fixed = TRUE)
 })

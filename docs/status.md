@@ -67,6 +67,9 @@ fully validated. Validation runs are recorded in
   Feedback) is a timeline of titles that open, with Full details, a search
   and the changes since your last visit marked. Every tab shares one
   column.
+- **Questions and cards** (1 November 2026): each question shows its
+  number and takes number keys; a card opens with how it calculates, the
+  package and its checks, and lists what you'll need.
 - **Results** open with the answer as one large figure and what it
   assumes, then "How sure can you be?" (the effect slider and cautious and
   hopeful guesses), then the write-up with Copy buttons and the downloads
@@ -124,7 +127,7 @@ fully validated. Validation runs are recorded in
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
 - **Experimental:** whole-study simulation on the guided plan, for a
-  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
+  measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement, including two mediators and moderated mediation of one link; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power

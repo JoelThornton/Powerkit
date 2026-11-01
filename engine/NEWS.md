@@ -37,6 +37,14 @@ A batch of new features, built as one round.
   number of studies. Checked against a simulation written separately
   with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
   furrr).
+* Whole-study simulation measured twice now covers mediation through two
+  mediators (side by side or in a chain) and moderated mediation of one
+  link (X to the mediator, or the mediator to the outcome); the guided
+  routes ask how the mediators connect and which link the moderator
+  changes, as they do measured once. New agreement checks against the
+  serial mediation and second-stage moderated mediation cards
+  (test-validation-whole-study-twice.R, in the `whole_study` chunk).
+
 * A predictor measured on each trial (E67, template `item_predictor`,
   `population > x_level` "trial"): a value that varies from trial to
   trial, such as how long a stimulus is shown, rather than one per item.
@@ -216,6 +224,18 @@ A batch of new features, built as one round.
   font size), and on a phone the tabs stay on one row that scrolls
   sideways. The About page and the start banner no longer say powerkit is
   only for psychology.
+
+* App: the "Help me choose" questions and the analysis cards are easier
+  to read. Each question shows its number ("Question 3"), the answers are
+  numbered and the number keys choose them, and "None of these fit / I'm
+  not sure" sits on its own row under the answers. The answers so far show
+  the question each answered, as well as the answer. A card that runs now
+  opens with three facts (how it calculates, from forms.yaml; which
+  package; whether its published checks are in), lists what you'll need
+  openly (it was folded), and gathers the rank-test and Bayes factor
+  versions in one box; the package, the terms and the questions asked
+  next stay folded. A card reached by answering questions says it is the
+  analysis that fits your answers.
 
 # powerkit 0.27.0
 

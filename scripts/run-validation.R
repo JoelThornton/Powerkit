@@ -130,7 +130,7 @@ validation_chunks <- function() {
     equivalence = c("test-validation-equivalence-tests.R", "test-validation-minimum-effect.R"),
     trend = "test-validation-trend.R",
     precision = "test-validation-precision.R",
-    whole_study = "test-validation-whole-study-crosscheck.R",
+    whole_study = c("test-validation-whole-study-crosscheck.R", "test-validation-whole-study-twice.R"),
     cluster = "test-validation-cluster-randomised.R",
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",
@@ -148,7 +148,7 @@ validation_minutes <- function() {
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
     contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1,
-    whole_study = 90, cluster = 0.3, multisite = 0.3, sem_fit = 0.3,
+    whole_study = 150, cluster = 0.3, multisite = 0.3, sem_fit = 0.3,
     sem_latent = 0.3, mixed_model = 420)
 }
 

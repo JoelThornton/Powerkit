@@ -226,6 +226,14 @@ share_page_ui <- function() {
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
+  // On a question screen, the number keys choose an answer.
+  document.addEventListener('keydown', function(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || !/^[1-9]$/.test(e.key)) return;
+    var t = e.target; if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    var pane = document.querySelector('.tab-pane.active'); if (!pane) return;
+    var b = pane.querySelectorAll('.choices-numbered > .choice')[+e.key - 1];
+    if (b) { e.preventDefault(); b.click(); }
+  });
   // On a phone the tab bar scrolls sideways: keep the open tab in view.
   document.addEventListener('shown.bs.tab', function(e) {
     if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
@@ -309,25 +317,24 @@ start_ui <- function(tree, start = list()) {
 
 # Trail of answers so far ------------------------------------------------------
 
-trail_ui <- function(history) {
+trail_ui <- function(history, tree = NULL) {
   if (length(history) == 0) return(NULL)
   div(
     class = "trail",
     tags$span(class = "trail-title", "Your answers so far (click one to change it):"),
-    lapply(seq_along(history), function(i) {
+    div(class = "trail-list", lapply(seq_along(history), function(i) {
+      question <- if (!is.null(tree)) tree$nodes[[history[[i]]$node]]$text
       tags$button(
         type = "button", class = "chip",
+        title = if (!is.null(question)) paste0(question, " Click to change your answer."),
         onclick = sprintf("Shiny.setInputValue('pick', 'trail:%d', {priority: 'event'})", i),
-        history[[i]]$answer
+        if (!is.null(question)) tags$span(class = "chip-q", question),
+        tags$span(class = "chip-a", history[[i]]$answer)
       )
-    })
+    }))
   )
 }
 
-# One question screen ("Help me choose") ------------------------------------
-
-# `ctx` holds the screening answers so far; options are filtered by it and
-# the safety net comes last. "opt:i" refers to the i-th option shown.
 node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
   node <- tree$nodes[[node_id]]
   label <- node$sub_id %||% node$doc_id
@@ -338,20 +345,27 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
   # route at all, so the skip isn't offered there.
   skip <- tree$routes$skip_screening
   may_skip <- screening && identical(route, "known")
+  # "None of these fit" sits on its own row under the answers, so it reads
+  # as a way out rather than one more answer.
+  is_safety <- vapply(opts, function(o) isTRUE(o$safety), logical(1))
+  choice <- function(i) {
+    o <- opts[[i]]
+    pick_button(o$label, paste0("opt:", i), o$help,
+      class = if (isTRUE(o$safety)) "btn btn-outline-secondary choice choice-safety" else "btn btn-outline-primary choice")
+  }
   tagList(
     screen_nav_ui(),
-    trail_ui(history),
+    trail_ui(history, tree),
     # The question ID stays in the page source (for tests and reviewers) but
     # isn't shown to users or read out by screen readers.
     div(class = "question-id", hidden = NA, `aria-hidden` = "true", `data-question-id` = label,
       sprintf("%s %s", if (screening) "Screening question" else "Question", label)),
+    p(class = "question-step", sprintf("Question %d", length(history) + 1)),
     h2(node$text),
     if (!is.null(node$help)) p(class = "lead", node$help),
-    div(class = "choices", lapply(seq_along(opts), function(i) {
-      o <- opts[[i]]
-      pick_button(o$label, paste0("opt:", i), o$help,
-        class = if (isTRUE(o$safety)) "btn btn-outline-secondary choice choice-safety" else "btn btn-outline-primary choice")
-    })),
+    div(class = "choices choices-numbered", lapply(which(!is_safety), choice)),
+    if (any(is_safety)) div(class = "choices choices-way-out", lapply(which(is_safety), choice)),
+    p(class = "choices-keys", "Tip: press 1 to ", sum(!is_safety), " to choose."),
     if (may_skip) {
       div(class = "choices list mt-4",
         pick_button(skip$label, "skip_screening", skip$help,
@@ -402,7 +416,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
   shortcuts <- intersect(unlist(tree$known_shortcuts), names(eps))
   tagList(
     screen_nav_ui(),
-    trail_ui(history),
+    trail_ui(history, tree),
     h2("Which analysis do you want?"),
     p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs."),
     if (!is.null(ctx)) {
@@ -692,6 +706,37 @@ hints_ui <- function(tree, text, exclude = character()) {
   lapply(found, function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
 }
 
+# At a glance on a card: how it calculates, which package does it, and
+# whether its published checks are in (tree$calculate_how, from
+# forms.yaml when the app starts; about_endpoint_how()).
+card_how_words <- c(
+  now = "In a second or two",
+  background = "In the background, with a progress bar",
+  full = "Simulated here: a preview, then the full run (several minutes)",
+  script = "A preview here, then an R script to run on your computer"
+)
+
+card_facts_ui <- function(tree, ep_id, ep) {
+  how <- unname(tree$calculate_how[ep_id])
+  if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
+  checked <- if (identical(ep$status, "runs_validated")) "Checked against published values" else "Validation in progress"
+  fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
+  div(class = "card-facts",
+    fact("Calculates", card_how_words[[how]], paste0("how-", how)),
+    if (!is.null(ep$backend)) fact("Calculated by", sub("[:(].*", "", ep$backend)),
+    fact("Checks", checked, if (identical(ep$status, "runs_validated")) "is-validated" else "is-progress"))
+}
+
+# Other versions of the analysis offered on the input screen (a rank test,
+# a Bayes factor test), gathered in one box.
+card_versions_ui <- function(tree, ep) {
+  items <- list(rank_test_ui(tree, ep), if (isTRUE(ep$bayes_test)) p(class = "bayes-test-note", tree$bayes_test_text))
+  items <- Filter(Negate(is.null), items)
+  if (!length(items)) return(NULL)
+  div(class = "card-versions", tags$h3(class = "card-section-title", "Other versions, chosen on the next screen"),
+    tags$ul(lapply(items, tags$li)))
+}
+
 card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   ep <- tree$endpoints[[ep_id]]
   # Headings follow the page outline: the full card's title is the screen's
@@ -705,22 +750,31 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       # The end point's ID and engine template are for reviewers: kept in
       # the page source, shown only in the maintainer's view.
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
+      if (!compact) p(class = "card-eyebrow", if (length(history)) "The analysis that fits your answers" else "Analysis"),
       (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, standard_name(ep$doc_name)$name)),
       p(class = "standard-name", "Standard name: ", tags$strong(standard_name(ep$doc_name)$name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
       hints_ui(tree, standard_name(ep$doc_name)$name),
+      if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
       if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       other_analyses_ui(tree, ep),
-      rank_test_ui(tree, ep),
-      if (isTRUE(ep$bayes_test)) p(class = "bayes-test-note", tree$bayes_test_text),
-      # What the input screen will ask and which package calculates it:
-      # useful before starting, but it repeats the input screen, so it is
-      # folded (22 October 2026).
+      # What the input screen will ask, shown openly on a card that runs, so
+      # you can gather it before starting (1 November 2026).
+      if (!compact && runs && !is.null(ep$inputs)) div(class = "card-needs",
+        tags$h3(class = "card-section-title", "What you'll need"),
+        tags$ul(lapply(ep$inputs, tags$li)),
+        p(class = "card-needs-note", "The next screen asks for each of these, with help on what they mean.")),
+      card_versions_ui(tree, ep),
+      # Which package calculates it and the questions asked after the
+      # numbers: useful to some, so folded (22 October 2026).
       if (!is.null(ep$inputs) || runs) tags$details(class = "card-more",
-        tags$summary("More about this analysis: what you'd enter, and which package calculates it"),
-        if (!is.null(ep$inputs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
+        tags$summary(if (!compact && runs) "More about this analysis: which package calculates it, and what you'd be asked next"
+          else "More about this analysis: what you'd enter, and which package calculates it"),
+        if (!is.null(ep$inputs) && !compact && runs) tagList(section_heading("What the terms mean"),
+          hints_ui(tree, paste(ep$inputs, collapse = " "))),
+        if (!is.null(ep$inputs) && (compact || !runs)) tagList(section_heading("What you would enter"), tags$ul(lapply(ep$inputs, function(input) tags$li(
           input,
           hints_ui(tree, input)
         )))),
@@ -758,7 +812,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   if (identical(ctx$times, "many_conditions")) {
     return(tagList(
       screen_nav_ui(),
-      trail_ui(history),
+      trail_ui(history, tree),
       h2("Plan my whole study: your variables"),
       div(class = "status status-soon", g$many_conditions_note),
       placeholders_at(tree, "guided_variables"),
@@ -767,7 +821,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   }
   tagList(
     screen_nav_ui(back = NULL),
-    trail_ui(history),
+    trail_ui(history, tree),
     h2("Plan my whole study: your variables"),
     p(class = "lead", g$intro),
     p(class = "text-muted", g$scope_note),
