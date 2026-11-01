@@ -100,6 +100,8 @@ route_spec <- function(spec, seed = NULL) {
     "equivalence_test/noninf_paired" = ,
     "equivalence_test/noninf_one_sample" = ,
     "equivalence_test/noninf_two_proportions" = noninf_backend(spec, seed),
+    # The Cochran-Armitage test, simulated with Spower.
+    "basic_test/proportion_trend" = spower_backend(spec, seed),
     "basic_test/one_variance" = ,
     "basic_test/two_variances" = if (basic_test_method(spec) == "exact") {
       variance_backend(spec, seed)

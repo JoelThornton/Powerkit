@@ -515,9 +515,13 @@ until it goes through
 - **Barnard's unconditional exact test** for a 2x2 table: an alternative
   to Fisher's exact test (E5's test version), said to be more powerful.
 - **Cochran–Armitage trend test**: a linear trend in proportions across
-  ordered groups (dose, age band).
+  ordered groups (dose, age band). In the app since 1 November 2026 (E66,
+  simulated with Spower by powerkit's experiment calling
+  `stats::prop.trend.test()`; one- or two-sided, equal or unequal groups).
 - **Jonckheere–Terpstra trend test**: the rank-based equivalent for
-  ordered alternatives across k groups.
+  ordered alternatives across k groups. In the app since 1 November 2026
+  (E64, simulated with Spower by powerkit's experiment calling PMCMRplus's
+  `jonckheereTest()`; one- or two-sided, equal or unequal groups).
 - **Spearman's rho and Kendall's tau**: power for rank correlations. In
   the app since 29 October 2026 as a test version on E4 (Spower's
   `p_r(method =)`, normal scores).

@@ -33,6 +33,7 @@ population_problems <- function(spec) {
     check_reliability_allowed(spec),
     check_allocation_allowed(spec),
     check_cell_ratio_allowed(spec),
+    check_group_ratio_allowed(spec),
     check_method_allowed(spec),
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
@@ -44,6 +45,7 @@ population_problems <- function(spec) {
     check_weights_allowed(spec),
     check_pairwise(spec),
     check_friedman(spec),
+    check_jonckheere(spec),
     check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
@@ -115,7 +117,7 @@ uses_simulation <- function(spec) {
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
-    !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
+    !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       formula_test(spec) ||
@@ -181,15 +183,24 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec)
+    rank_correlation(spec) || proportion_trend(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
-# Mann-Whitney test (two groups) and the Kruskal-Wallis test (three or more
-# groups), simulated with Spower's p_wilcox.test() and p_kruskal.test().
+# Mann-Whitney test (two groups), the Kruskal-Wallis test (three or more
+# groups), simulated with Spower's p_wilcox.test() and p_kruskal.test(),
+# and the Jonckheere-Terpstra test (groups in order) and Friedman's test,
+# simulated by powerkit's own experiments with Spower.
 rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman", "jonckheere_terpstra"))
 }
+
+# The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
+# jonckheereTest()), on the one-way between-participants template.
+jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere_terpstra")
+
+# The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
+proportion_trend <- function(spec) identical(spec$template, "proportion_trend")
 
 # Welch's one-way ANOVA (unequal variances), simulated with Spower's
 # p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
@@ -379,7 +390,7 @@ check_score_shape_allowed <- function(spec) {
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Kruskal-Wallis, Friedman) and the rank correlations (Spearman, ",
+    "Mann-Whitney, Kruskal-Wallis, Jonckheere-Terpstra, Friedman) and the rank correlations (Spearman, ",
     "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
     "or choose a rank test in 'target_test > method'."
   )
@@ -913,8 +924,88 @@ check_basic_test <- function(spec) {
     hotelling_one = check_hotelling_one(spec),
     overlapping_correlations = ,
     nonoverlapping_correlations = check_dependent_correlations(spec),
+    proportion_trend = check_proportion_trend(spec),
     character()
   )
+}
+
+# The Cochran-Armitage test: one proportion and (if given) one score per
+# group, in the order of the groups; the scores must not all be the same,
+# or there is no trend to test.
+check_proportion_trend <- function(spec) {
+  k <- length(spec$variables$X$levels)
+  pop <- spec$population
+  problems <- character()
+  if (length(pop$proportions) != k) {
+    problems <- c(problems, sprintf(
+      "'population > proportions' should have one proportion per group: X has %d levels, and %d proportions were given.",
+      k, length(pop$proportions)))
+  }
+  if (!is.null(pop$scores)) {
+    scores <- as.numeric(unlist(pop$scores))
+    if (length(scores) != k) {
+      problems <- c(problems, sprintf(
+        "'population > scores' should have one score per group: X has %d levels, and %d scores were given.", k, length(scores)))
+    } else if (length(unique(scores)) < 2) {
+      problems <- c(problems, "'population > scores' are all the same, so there is no order to test a trend along: give each group its score (for example its dose).")
+    }
+  }
+  if (identical(spec$options$method, "exact")) {
+    problems <- c(problems, "'options > method' 'exact' isn't available for the Cochran-Armitage test: it is simulated. Remove 'options > method'.")
+  }
+  problems
+}
+
+# Unequal groups in a trend test (options > group_ratio): the
+# Jonckheere-Terpstra and Cochran-Armitage tests only, one whole number per
+# group in the groups' order.
+unequal_groups <- function(spec) {
+  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec))
+}
+
+group_ratio_vector <- function(spec) as.numeric(unlist(spec$options$group_ratio))
+
+check_group_ratio_allowed <- function(spec) {
+  ratio <- spec$options$group_ratio
+  if (is.null(ratio)) {
+    return(character())
+  }
+  if (!jonckheere_test(spec) && !proportion_trend(spec)) {
+    return(paste0(
+      "'options > group_ratio' only applies to the trend tests (the Jonckheere-Terpstra ",
+      "and Cochran-Armitage tests). Remove it."
+    ))
+  }
+  k <- length(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels)
+  if (length(ratio) != k) {
+    return(sprintf(
+      "'options > group_ratio' should have one number per group: there are %d groups, and %d numbers were given.",
+      k, length(ratio)
+    ))
+  }
+  character()
+}
+
+# The scores of a trend in proportions: those given, or 1, 2, ..., k
+# (prop.trend.test()'s default).
+trend_scores <- function(spec) {
+  scores <- spec$population$scores
+  if (is.null(scores)) seq_along(spec$population$proportions) else as.numeric(unlist(scores))
+}
+
+# The Jonckheere-Terpstra test is for groups in order: the one-way
+# between-participants template, with its means (not eta-squared).
+check_jonckheere <- function(spec) {
+  if (!jonckheere_test(spec)) {
+    return(character())
+  }
+  if (!identical(spec$template, "oneway_between")) {
+    return("The Jonckheere-Terpstra test is for three or more groups of different people in a set order (template 'oneway_between').")
+  }
+  if (identical(spec$target_test$effect, "pairwise")) {
+    return("The Jonckheere-Terpstra test tests a trend across all the groups, not one pair: set 'target_test > effect' to \"main_effect_A\".")
+  }
+  character()
 }
 
 # MANOVA: one row of means per group and one mean per outcome, outcomes
@@ -1858,6 +1949,13 @@ minimum_n <- function(spec) {
       },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
       chi_square_gof = length(spec$variables$Y$levels),
+      # Two people in each group.
+      proportion_trend = if (unequal_groups(spec)) {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      } else {
+        2 * length(spec$variables$X$levels)
+      },
       # Fisher's z needs more than 3 people in each group (its SE is
       # 1 / sqrt(n - 3)).
       two_correlations = 10,
@@ -1921,7 +2019,12 @@ minimum_n <- function(spec) {
       }, integer(1))),
       # Two participants per group, so the error df is at least the number
       # of groups.
-      oneway_between = ,
+      oneway_between = if (unequal_groups(spec)) {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      } else {
+        2 * length(spec$variables$A$levels)
+      },
       oneway_contrast = 2 * length(spec$variables$A$levels),
       # Everyone is in every condition: Superpower's exact data set needs at
       # least five participants (backend-superpower.R, exact_min_n).
@@ -2008,8 +2111,19 @@ group_split <- function(spec) {
     m <- spec$population$cluster_size
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
+  if (unequal_groups(spec)) {
+    w <- group_ratio_vector(spec)
+    return(list(
+      rule = sprintf("split into %d whole groups in the ratio %s", length(w), paste(format_number(w), collapse = " : ")),
+      valid = function(n) all(whole(n * w / sum(w)))
+    ))
+  }
   if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
     k <- length(spec$variables$A$levels)
+    return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
+  if (identical(spec$template, "proportion_trend")) {
+    k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
   if (spec$template %in% c("factorial_between", "factorial_ancova", "factorial")) {
@@ -2077,6 +2191,8 @@ target_effect_is_zero <- function(spec) {
       overlapping_correlations = ,
       nonoverlapping_correlations = dependent_correlation_difference(spec),
       one_variance = pop$var - pop$var0,
+      # No trend when every group has the same proportion.
+      proportion_trend = diff(range(as.numeric(unlist(pop$proportions)))),
       two_variances = ,
       paired_variances = pop$var1 - pop$var2,
       # The largest difference between two groups on any outcome.
@@ -2304,6 +2420,7 @@ check_eta_squared_anova <- function(spec) {
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
     test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
+      jonckheere_terpstra = "The Jonckheere-Terpstra test",
       t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
       "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",

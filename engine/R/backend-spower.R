@@ -27,7 +27,9 @@ spower_backend <- function(spec, seed = NULL) {
       "Spower", "SimDesign",
       if (identical(spec$template, "one_variance")) "EnvStats",
       # p_glm() tests the coefficients with car::lht().
-      if (identical(spec$template, "factorial")) "car"
+      if (identical(spec$template, "factorial")) "car",
+      # p_jonckheere() calls PMCMRplus's jonckheereTest().
+      if (jonckheere_test(spec)) "PMCMRplus"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -167,6 +169,19 @@ spower_inputs <- function(spec) {
       experiment = "p_var.test", generator = "gen_var.test",
       args = function(n) list(n = first_group(n), vars = c(pop$var1, pop$var2))
     ),
+    # A trend in proportions across groups in order: powerkit's own
+    # experiment, p_cochran_armitage(), draws each group's count of "yes"
+    # from its proportion and returns stats::prop.trend.test()'s p-value
+    # with the groups' scores. The experiment's n is one share of the total:
+    # each group has n times its share (options > group_ratio; 1 each for
+    # equal groups).
+    proportion_trend = list(
+      experiment = "p_cochran_armitage", own = TRUE,
+      args = function(n) {
+        w <- trend_group_shares(spec)
+        list(n = n / sum(w), proportions = as.numeric(unlist(pop$proportions)), scores = trend_scores(spec), n.ratios = w)
+      }
+    ),
     # A yes/no outcome with two crossed factors: p_glm() draws Y from the
     # logistic model with both factors and their interaction (effect
     # coding), whose coefficients reproduce the cell proportions exactly,
@@ -190,6 +205,9 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "proportion_trend")) {
+    sprintf("Spower::Spower(p_cochran_armitage(%s)) (stats::prop.trend.test(), the Cochran-Armitage test)",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
   } else if (identical(template, "manova")) {
@@ -250,6 +268,17 @@ rank_test_inputs <- function(spec, first_group) {
     gen <- function(n, k, n.ratios, means, ...) {
       lapply(seq_len(k), function(g) means[g] + draw(n * n.ratios[g]))
     }
+    # The Jonckheere-Terpstra test: powerkit's own experiment,
+    # p_jonckheere(), on the same groups as the Kruskal-Wallis test.
+    # The experiment's n is one share of the total: each group has n times
+    # its share (options > group_ratio; 1 each for equal groups).
+    if (jonckheere_test(spec)) {
+      w <- trend_group_shares(spec)
+      return(list(
+        experiment = "p_jonckheere", own = TRUE, rank = "jonckheere", draw = draw,
+        args = function(n) list(n = n / sum(w), k = k, means = means, gen_fun = gen, n.ratios = w)
+      ))
+    }
     return(list(
       experiment = "p_kruskal.test", rank = "kruskal", draw = draw,
       args = function(n) list(n = n / k, k = k, means = means, gen_fun = gen)
@@ -299,6 +328,10 @@ rank_test_description <- function(test, template, alternative) {
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
   }
+  if (identical(test$experiment, "p_jonckheere")) {
+    return(sprintf("Spower::Spower(p_jonckheere(%s)) (PMCMRplus::jonckheereTest())",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative)))
+  }
   type <- switch(template, one_sample_t = "one.sample", paired_t = "paired", independent_t = "two.sample", NULL)
   arguments <- c(
     if (!is.null(type)) sprintf("type = \"%s\"", type),
@@ -338,6 +371,52 @@ friedman_scores <- function(n, means, r, shape) {
 # Spower experiment for Friedman's test: its p-value on friedman_scores().
 p_friedman <- function(n, means, r, shape) {
   stats::friedman.test(friedman_scores(n, means, r, shape))$p.value
+}
+
+# Spower experiment for the Jonckheere-Terpstra test: k groups of
+# n * n.ratios drawn as for the Kruskal-Wallis test (gen_fun), in the order
+# of the factor's levels, and PMCMRplus's p-value for a trend across them
+# (its default: the normal approximation, no continuity correction).
+# "greater" is a rise across the groups in order. The scores and their
+# groups are passed as x and g: jonckheereTest() given a list of groups
+# ignores its `alternative` argument and is always two-sided
+# (docs/upstream-questions.md).
+p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = "two.sided") {
+  groups <- gen_fun(n, k, n.ratios, means)
+  g <- factor(rep(seq_len(k), lengths(groups)))
+  unname(PMCMRplus::jonckheereTest(unlist(groups), g, alternative = alternative)$p.value)
+}
+
+# Spower experiment for the Cochran-Armitage test: each group's count of
+# "yes" out of its size (n * n.ratios), drawn from its proportion, and
+# stats::prop.trend.test()'s p-value for a linear trend along the groups'
+# scores. prop.trend.test() is two-sided (its statistic is the square of
+# the Cochran-Armitage z statistic); a one-sided test halves its p-value
+# when the observed trend goes the way predicted ("greater": the
+# proportion rises with the scores) and otherwise gives 1 minus half of it,
+# the one-sided p-value of z.
+cochran_armitage_counts <- function(n, proportions, n.ratios = rep(1, length(proportions))) {
+  stats::rbinom(length(proportions), n * n.ratios, proportions)
+}
+
+p_cochran_armitage <- function(n, proportions, scores, n.ratios = rep(1, length(proportions)), alternative = "two.sided") {
+  sizes <- n * n.ratios
+  yes <- cochran_armitage_counts(n, proportions, n.ratios)
+  p <- stats::prop.trend.test(yes, sizes, score = scores)$p.value
+  if (identical(alternative, "two.sided")) {
+    return(p)
+  }
+  rising <- sum(yes * (scores - sum(sizes * scores) / sum(sizes))) > 0
+  if (rising == identical(alternative, "greater")) p / 2 else 1 - p / 2
+}
+
+# Relative group sizes in a trend test: options > group_ratio, or 1 per
+# group.
+trend_group_shares <- function(spec) {
+  if (unequal_groups(spec)) {
+    return(group_ratio_vector(spec))
+  }
+  rep(1, length(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels))
 }
 
 # Paired scores for the Pitman-Morgan test, returned as their sum and
@@ -425,6 +504,16 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "factorial")) {
     return(logistic_factorial_check_run(spec, args, seed))
+  }
+  # A trend in proportions: each group's proportion from one large draw.
+  if (identical(spec$template, "proportion_trend")) {
+    yes <- call_backend("Spower", with_seed(seed, cochran_armitage_counts(args$n, args$proportions, args$n.ratios)))
+    sizes <- args$n * args$n.ratios
+    p_hat <- yes / sizes
+    return(check_run_rows(
+      sprintf("proportion of %s in %s", spec$variables$Y$label %||% "yes", unlist(spec$variables$X$levels)),
+      args$proportions, p_hat, sqrt(p_hat * (1 - p_hat) / sizes)
+    ))
   }
   generator <- inputs$generate %||% getExportedValue("Spower", inputs$generator)
   data <- call_backend("Spower", with_seed(seed, do.call(generator, args)))
@@ -597,7 +686,7 @@ rank_check_run <- function(spec, args, seed) {
     ))
   }
   if (identical(spec$template, "oneway_between")) {
-    groups <- call_backend("Spower", with_seed(seed, args$gen_fun(args$n, args$k, rep(1, args$k), args$means)))
+    groups <- call_backend("Spower", with_seed(seed, args$gen_fun(args$n, args$k, args$n.ratios %||% rep(1, args$k), args$means)))
     return(check_run_rows(
       sprintf("mean of %s (SD units)", unlist(spec$variables$A$levels)),
       args$means,
