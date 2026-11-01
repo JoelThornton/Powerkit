@@ -434,7 +434,7 @@ for the maintainer, not yet made.
 | --- | --- | --- | --- |
 | G\*Power | No test for dyadic data | — | — |
 | apimpower | A web app for APIM power; not callable from R, not compared | — | — |
-| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
+| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
 
 ## Participants and items in three or more conditions (E63)
 

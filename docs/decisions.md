@@ -3773,6 +3773,9 @@ merges when its checks pass, unless a doubt is stated in it.
   pairs asked what the hypothesis involves, with conditions given to
   whole pairs sent to the cluster-randomised card and other dyadic
   designs to a "not yet covered" card (E65).
+  The whole-study simulation's dyadic step is joint power within the
+  APIM card (actor and partner effects together, counted in the same
+  simulated studies), the joint claim a dyadic study most often makes.
 - **Meta-analysis moderators (1 November 2026):** metapower's
   `mod_power()` checked against simulation first (20 studies of 40, d =
   0.2 against 0.5, I-squared 0.5: 55.8% against 57.2% fixed-effect, 31.9%
