@@ -508,6 +508,23 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "prior_a": {
+          "description": "Bayes factor test of one proportion only: the first shape parameter of the Beta(a, b) analysis prior on the proportion under the alternative. Default 1 (with b = 1, a uniform prior), bfpwr's default (binbf01(a = 1)) and JASP's.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_b": {
+          "description": "Bayes factor test of one proportion only: the second shape parameter of the Beta(a, b) analysis prior. Default 1.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "one_sided_null": {
+          "description": "Bayes factor test of one proportion, one-sided only: 'point' (the default, JASP's one-sided Bayesian binomial test) tests p = p0 against the side in 'alternative', the prior truncated to that side; 'directional' (bfpwr's binbf01(type = \"direction\")) tests p <= p0 against p > p0 (or the reverse).",
+          "enum": [
+            "point",
+            "directional"
+          ]
+        },
         "correction": {
           "description": "One-way repeated measures only: the sphericity correction (see template_oneway_within).",
           "enum": [
@@ -554,7 +571,10 @@
             ],
             "properties": {
               "evidence_threshold": false,
-              "prior_scale": false
+              "prior_scale": false,
+              "prior_a": false,
+              "prior_b": false,
+              "one_sided_null": false
             }
           }
         }
@@ -3592,7 +3612,7 @@
       }
     },
     "template_one_proportion": {
-      "description": "One group's proportion of 'yes' compared with a fixed value, by the exact binomial test.",
+      "description": "One group's proportion of 'yes' compared with a fixed value, by the exact binomial test or a Bayes factor test (method 'bayes_factor').",
       "properties": {
         "variables": {
           "required": [
@@ -3623,6 +3643,11 @@
             "p0": {
               "description": "The fixed value the proportion is compared with (the null hypothesis).",
               "$ref": "#/definitions/proportion"
+            },
+            "p_sd": {
+              "description": "Bayes factor test only: the uncertainty about the expected proportion, as the SD of a beta design prior with mean p (0, the default, plans for exactly p).",
+              "type": "number",
+              "minimum": 0
             }
           }
         },
@@ -3632,7 +3657,10 @@
               "const": "proportion_vs_constant"
             },
             "method": {
-              "const": "exact_binomial"
+              "enum": [
+                "exact_binomial",
+                "bayes_factor"
+              ]
             }
           }
         }

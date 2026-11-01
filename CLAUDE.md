@@ -18,7 +18,7 @@ maintainer's priorities beat it.
 ## Adding a power analysis
 Follow docs/adding-a-test.md, start to finish, in the same PR. A test is added when a
 researcher can run it and see that it exists: engine, validation placeholders,
-card, input screen, a plain-words "What's new" entry, the version (see
+card, input screen, a plain-words Updates entry, the version (see
 Non-negotiables) and the status update all land together. For a design whose power must be simulated,
 "run it" can mean the R script the app hands them to run themselves (as E10-E14
 do) — say which route they are on. Never leave a design the engine can compute
@@ -156,5 +156,5 @@ to read small.
   do the same locally.
   (validation tests with TODO placeholders may be skipped, not deleted).
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
-  app/routing/whats-new.yaml (the app's "What's new" tab) for any change users see.
+  app/routing/whats-new.yaml (the app's Updates tab) for any change users see.
 - Update docs/status.md (where the project is and what's next) in every PR.

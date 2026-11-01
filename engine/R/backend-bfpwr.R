@@ -49,7 +49,12 @@ bfpwr_alternative <- function(spec) {
 
 bayes_defaults <- list(evidence_threshold = 10, prior_scale = 1 / sqrt(2), effect_sd = 0)
 
+bayes_threshold <- function(spec) spec$target_test$evidence_threshold %||% bayes_defaults$evidence_threshold
+
 bfpwr_backend <- function(spec, seed = NULL) {
+  if (bfbin_test(spec)) {
+    return(bfbin_backend(spec, seed))
+  }
   inputs <- bfpwr_inputs(spec)
   step <- valid_n_step(spec)
   n_min <- step * ceiling(minimum_n(spec) / step)
@@ -121,6 +126,14 @@ bayes_summary <- function(spec, n) {
   if (!bayes_factor_test(spec) || is.null(n) || is.na(n)) {
     return(NULL)
   }
+  if (bfbin_test(spec)) {
+    inputs <- bfbin_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_a = inputs$prior_a, prior_b = inputs$prior_b,
+        effect_sd = inputs$p_sd, n = n, hypotheses = bfbin_hypotheses_words(inputs)),
+      bfbin_null_side(inputs, n)
+    ))
+  }
   inputs <- bfpwr_inputs(spec)
   c(
     list(
@@ -159,6 +172,9 @@ bfpwr_check_run <- function(spec, inputs) {
 # The R script for a Bayes factor t-test: the same bfpwr calls at each size
 # powerkit computed (export_script()).
 bfpwr_script <- function(spec, result) {
+  if (bfbin_test(spec)) {
+    return(bfbin_script(spec, result))
+  }
   inputs <- bfpwr_inputs(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
   size_line <- if (identical(inputs$type, "two.sample")) {
@@ -208,6 +224,9 @@ bayes_goal_inputs <- function(spec) {
 
 # The design line of the script header for a Bayes factor t-test.
 bayes_design_description <- function(spec, label, levels) {
+  if (bfbin_test(spec)) {
+    return(bfbin_design_description(spec, label))
+  }
   inputs <- bfpwr_inputs(spec)
   test <- switch(
     inputs$type,
