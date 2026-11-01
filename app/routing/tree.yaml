@@ -867,9 +867,9 @@ endpoints:
     plain_name: "Compare one group's average with a fixed value"
     search_words: "one sample t test"
     template: "basic_test / one_sample_t"
-    backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
+    backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
-    inputs: ["Your outcome's name", "The effect: Cohen's d, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"]
+    inputs: ["Your outcome's name", "The effect: Cohen's d, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -882,9 +882,9 @@ endpoints:
     plain_name: "Compare two separate groups on a score"
     search_words: "two sample t test unpaired welch student"
     template: "basic_test / independent_t"
-    backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; bfpwr's powertbf01() for the Bayes factor t-test"
+    backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney test, or a Bayes factor t-test"]
+    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), the means and SD in your measure's own units, or a point-biserial correlation", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -897,9 +897,9 @@ endpoints:
     plain_name: "Compare the same people in two conditions (or before and after)"
     search_words: "dependent t test within subjects before after pre post repeated measures"
     template: "basic_test / paired_t"
-    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test"
+    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
-    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"]
+    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -1361,7 +1361,7 @@ endpoints:
       - "Two one-sided tests (TOST): powerkit works out the chance of showing that the true difference lies inside the equivalence bounds, minus and plus the smallest difference that would matter."
       - "powerkit calculates this for two groups of different people, the same people measured twice, one mean against a fixed value, a correlation, or two groups' proportions, with the same bound on each side."
       - "Non-inferiority, a bound on one side only, is here too: whether a new condition is no worse than the comparison by more than a margin you set, for two groups, the same people twice, one mean or two proportions (pwrss, one-sided test against the margin)."
-      - "Not yet in powerkit: minimum-effect tests."
+      - "Minimum-effect tests, showing an effect is larger than a smallest effect of interest, are a test version on the one-sample, paired and two-group t-test cards (pwrss, a t-test against the margin)."
     inputs: ["What you are comparing, and the names", "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units", "For two groups: the size of group 2 relative to group 1 (1 = equal)", "For a correlation or two proportions: the equivalence bound and the value you expect", "For non-inferiority: the margin, which direction is better, and the difference you expect"]
     tier: v2
     alternatives: ["a Bayesian region of practical equivalence (ROPE)", "planning for the precision of the difference (the width of its confidence interval)"]

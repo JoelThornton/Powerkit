@@ -1458,3 +1458,33 @@ Wired into the app on 18 October 2026 (E25, E26).*
   "Where other established tools give a different answer"
   (`app/routing/forms.yaml`, `known_differences`, key "9").
 - **Methods paragraph:** `known_differences_methods`, key "9".
+
+### 10. Minimum-effect tests: a margin in SD units, slightly below a margin in the outcome's units
+
+- **What differs:** a minimum-effect test (the t-test cards' test version
+  "minimum_effect", 31 October 2026) is computed with pwrss's
+  `power.t.student()` with the margin on the effect's side. pwrss tests the
+  t statistic of the mean difference against a noncentral t distribution
+  whose noncentrality is the margin divided by the standard error: the
+  exact test of a smallest effect of interest given in SD units. A margin
+  fixed in the outcome's own units, tested with a central t shifted by the
+  margin (as TOSTER's `t_TOST(hypothesis = "MET")` does), has very
+  slightly more power at the same N. G\*Power has no minimum-effect test.
+- **Size:** for 57 per group, d = 0.5 and a margin of 0.2 (one-sided,
+  alpha .05): 47.2% against 47.9%; across N 20-200 per group, d 0.3-0.8
+  and margins 0.1-0.2, at most 1.2 points (20 per group, d = 0.8, margin
+  0.2). For 80% power, 141 per group against 139 (d = 0.5, margin 0.2) and
+  317 against 310 (margin 0.3). The smallest detectable d for 57 per group
+  and a margin of 0.2 is 0.6735 (pwrss), 0.6686 with the shifted test.
+- **Not a difference:** the same noncentral-t calculation with one
+  group's degrees of freedom (n - 1 = 56) in place of the test's (2n - 2 =
+  112) gives 0.681; that figure comes from the degrees of freedom, not
+  from pwrss.
+- **Test:** `engine/tests/testthat/test-backend-minimum-effect.R`, "a
+  margin in SD units differs very slightly from one in the outcome's own
+  units (Known difference 10)" and "pwrss's power is the exact power of
+  the t-test against a margin in SD units".
+- **Shown to users:** on the one-sample, paired and two-group result
+  screens when the minimum-effect test is chosen (`app/routing/forms.yaml`,
+  `known_differences`, key "10").
+- **Methods paragraph:** `known_differences_methods`, key "10".

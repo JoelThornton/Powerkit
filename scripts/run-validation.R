@@ -125,7 +125,7 @@ validation_chunks <- function() {
     ancova = "test-validation-anova-ancova.R",
     two_correlations = "test-validation-two-correlations.R",
     generic = "test-validation-generic-tests.R",
-    equivalence = "test-validation-equivalence-tests.R",
+    equivalence = c("test-validation-equivalence-tests.R", "test-validation-minimum-effect.R"),
     whole_study = "test-validation-whole-study-crosscheck.R",
     cluster = "test-validation-cluster-randomised.R",
     multisite = "test-validation-multisite.R",

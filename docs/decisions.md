@@ -3859,3 +3859,24 @@ visitors' email addresses and running long jobs on the shared online
 server; long runs already go to an R script run on the researcher's own
 computer.
 
+
+## 2026-10-31 · Point-biserial r and minimum-effect tests
+
+- **Point-biserial r (the two-group card):** `population > metric`
+  "point_biserial" takes r between group and outcome; d is worked out from
+  r and the planned share in group 2, d = r / sqrt(p (1 - p) (1 - r^2))
+  (psych's `r2d()` for equal groups), so the t-test's noncentrality is
+  r sqrt(N) / sqrt(1 - r^2) at any allocation, as in G\*Power's
+  point-biserial model; the same test, no new method. G\*Power's example
+  (r = .25, one-sided, power .95) gives N = 164.
+- **Minimum-effect tests (the t-test cards):** a test version,
+  `target_test > method` "minimum_effect", by pwrss's `power.t.student()`
+  with the margin on the effect's side: one-sided by the hypothesis's
+  direction, or outside both margins when two-sided ("two.one.sided").
+  pwrss tests against a noncentral t at the margin in SD units; the shifted
+  central t of a margin in raw units gives very slightly more power, and
+  is recorded as Known difference 10 rather than offered as an option.
+- **The smallest detectable effect:** pwrss's 0.6735 for 57 per group, a
+  margin of 0.2 and 80% power (one-sided, alpha .05) is the exact
+  noncentral-t answer; 0.681 is the same calculation with one group's
+  degrees of freedom (56) for the test's (112).

@@ -71,6 +71,7 @@ validate_spec <- function(spec) {
     conversion <- apply_conversion(spec)
     spec <- conversion$spec
     problems <- conversion$problems
+    spec <- apply_point_biserial(spec)
   }
   if (length(problems) == 0) {
     problems <- schema_problems(spec)
@@ -190,6 +191,10 @@ standardise_raw_effect <- function(spec) {
     paired_t = ,
     tost_paired = spec$population$dz <- (raw$mean_2 - raw$mean_1) / paired_sd()
   )
+  # Minimum-effect tests: the smallest effect of interest, likewise.
+  if (!is.null(raw$margin) && spec$template %in% c("one_sample_t", "independent_t", "paired_t")) {
+    spec$population$margin <- raw$margin / (if (identical(spec$template, "paired_t")) paired_sd() else raw$sd)
+  }
   # Equivalence tests: the bound, in the same SD units as the effect.
   if (identical(spec$design, "equivalence_test")) {
     sd <- if (identical(spec$template, "tost_paired")) paired_sd() else raw$sd
@@ -198,11 +203,47 @@ standardise_raw_effect <- function(spec) {
   spec
 }
 
+# The two-group t-test given by a point-biserial correlation (population >
+# metric "point_biserial", as G*Power's point-biserial model takes it):
+# before the schema is checked, d is worked out from r and the planned
+# share p in group 2, d = r / sqrt(p (1 - p) (1 - r^2)) (psych::r2d() for
+# equal groups; d_from_point_biserial()). The t-test's noncentrality is
+# then r sqrt(N) / sqrt(1 - r^2) whatever the allocation, which is the
+# point-biserial model's, so this is the same test. Any d already there is
+# replaced, so a spec read back from a result gives the same effect. An r
+# the schema will refuse is left for it to report.
+apply_point_biserial <- function(spec) {
+  pop <- spec$population
+  if (!identical(spec$template, "independent_t") || !identical(pop$metric, "point_biserial") ||
+      !is.numeric(pop$r) || length(pop$r) != 1 || !is.finite(pop$r) || abs(pop$r) >= 1) {
+    return(spec)
+  }
+  ratio <- spec$options$allocation_ratio
+  if (!is.numeric(ratio) || length(ratio) != 1 || !isTRUE(ratio > 0)) ratio <- 1
+  spec$population$d <- d_from_point_biserial(pop$r, point_biserial_share(ratio))
+  spec
+}
+
+# The share of the sample in group 2, from the allocation ratio n2 / n1.
+point_biserial_share <- function(ratio) ratio / (1 + ratio)
+
+# The point-biserial r for a d at a share p in group 2: the inverse of
+# d_from_point_biserial(), r = d sqrt(p (1 - p)) / sqrt(1 + d^2 p (1 - p)).
+point_biserial_from_d <- function(d, p) {
+  h <- p * (1 - p)
+  d * sqrt(h) / sqrt(1 + d^2 * h)
+}
+
 # The standardised effect worked out from the outcome's own units, for the
 # result: list(name, value, difference, sd), or NULL when the spec gave
-# the standardised effect itself.
+# the standardised effect itself. A point-biserial r gives list(name,
+# value, r, share) instead.
 effect_from_units <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "independent_t") && identical(pop$metric, "point_biserial")) {
+    return(list(name = "Cohen's d", value = pop$d, r = pop$r,
+      share = point_biserial_share(spec$options$allocation_ratio %||% 1)))
+  }
   # Only the t-tests and their equivalence tests turn raw means into d or
   # d_z; MANOVA and one-sample Hotelling's T-squared also take raw means,
   # but have no single standardised effect to report here.

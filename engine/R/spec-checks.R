@@ -37,6 +37,7 @@ population_problems <- function(spec) {
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
+    check_minimum_effect(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -111,7 +112,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+  bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
@@ -167,7 +168,8 @@ check_cell_ratio_allowed <- function(spec) {
 # Tests with no simulation in powerkit yet: they are computed by formula
 # only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
+  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec) ||
+    minimum_effect_test(spec))
 }
 
 # Basic tests powerkit computes by simulation only: no formula covers
@@ -1847,6 +1849,12 @@ minimum_n <- function(spec) {
       spec$template,
       one_sample_t = 3,
       paired_t = 3,
+      # Two people in the smaller group (pwr.t2n.test() needs them): with
+      # an allocation of 1 : 3, eight in all, not four.
+      independent_t = {
+        ratio <- spec$options$allocation_ratio %||% 1
+        max(4, ceiling(2 * (1 + ratio) / min(1, ratio)))
+      },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
       chi_square_gof = length(spec$variables$Y$levels),
       # Fisher's z needs more than 3 people in each group (its SE is

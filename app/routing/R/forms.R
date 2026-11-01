@@ -506,7 +506,10 @@ conversion_fields <- function(template, when = list()) {
 
 with_conversion <- function(group, template) {
   if (is.null(conversion_choices[[template %||% ""]])) return(group)
-  at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && grepl("^population\\.(d|dz|r|eta_squared)$", f$path %||% ""), logical(1)))
+  # A field marked no_conversion (the two-group card's point-biserial r)
+  # is another way to give the effect, not the one a conversion fills.
+  at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && !isTRUE(f$no_conversion) &&
+    grepl("^population\\.(d|dz|r|eta_squared)$", f$path %||% ""), logical(1)))
   if (length(at) != 1) return(group)
   effect <- group$fields[[at]]
   when <- shown_if_conditions(effect)
