@@ -741,10 +741,22 @@ forms:
           - {id: m22, label: "Mean: between level 2, within level 2", type: number, path: population.means.2.2, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same in both groups and at both measurements?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation between the two measurements", differ: "No: an SD for each cell and a correlation for each group"},
+             default: same, default_source: "one SD and one correlation, as G*Power's repeated-measures analysis and Superpower's examples take them",
+             help: "Groups whose spread or consistency differs (for example, a treatment that makes people's change more variable) change the power, so give each cell's SD and each group's correlation if you expect them to differ."}
+          - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: s11, writeup_label: "SD, between level 1, within level 1", label: "SD: between level 1, within level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s12, writeup_label: "SD, between level 1, within level 2", label: "SD: between level 1, within level 2", type: number, path: population.sd.1.2, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s21, writeup_label: "SD, between level 2, within level 1", label: "SD: between level 2, within level 1", type: number, path: population.sd.2.1, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
+          - {id: s22, writeup_label: "SD, between level 2, within level 2", label: "SD: between level 2, within level 2", type: number, path: population.sd.2.2, effect: true, min_exclusive: 0, shown_if: {field: spread, is: differ}}
       - input: "The correlation between the two repeated measurements"
         fields:
-          - {id: r, label: "Correlation between the two measurements", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, label: "Correlation between the two measurements", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: r1, writeup_label: "correlation between the measurements, between level 1", label: "Correlation between the two measurements: between level 1", type: number, path: population.r.1, effect: true, min: -1, max: 1, shown_if: {field: spread, is: differ}}
+          - {id: r2, writeup_label: "correlation between the measurements, between level 2", label: "Correlation between the two measurements: between level 2", type: number, path: population.r.2, effect: true, min: -1, max: 1, shown_if: {field: spread, is: differ}}
       - input: "Which effect: between factor, within factor or the interaction"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -1367,10 +1379,25 @@ forms:
              rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition"}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same everywhere?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation for every pair of timepoints or conditions", differ: "No: an SD for each cell and a correlation for each pair of timepoints or conditions"},
+             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per group, with one number per timepoint or condition, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "group", cols_name: "timepoint or condition", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two timepoints or conditions"
         fields:
-          - {id: r, writeup_label: "correlation between timepoints or conditions", label: "Correlation between people's scores at any two timepoints or in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, writeup_label: "correlation between timepoints or conditions", label: "Correlation between people's scores at any two timepoints or in any two conditions (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: rs, writeup_label: "correlations between timepoints or conditions", label: "Correlations: one for each pair of timepoints or conditions, in the order (1, 2), (1, 3), ..., (2, 3), ..., separated by commas (the same in every group)", type: numbers, path: population.r, effect: true,
+             shown_if: {field: spread, is: differ},
+             help: "With three timepoints: first with second, first with third, second with third."}
+          - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
+             shown_if: {field: spread, is: differ},
+             choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
+             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -1473,10 +1500,25 @@ forms:
              rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor"}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0}
+          - {id: spread, label: "Are the SD and the correlation the same in every combination?", type: select, required: true,
+             choices: {same: "Yes: one SD, and one correlation for every pair of combinations", differ: "No: an SD for each combination and a correlation for each pair"},
+             default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
+             help: "When they differ, sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per level of the first factor, with one number per level of the second, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
+             rows_from: A_levels, cols_from: B_levels, rows_name: "level of the first factor", cols_name: "level of the second factor", shown_if: {field: spread, is: differ}}
       - input: "The correlation between any two conditions"
         fields:
-          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two combinations of the factors (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1}
+          - {id: r, writeup_label: "correlation between conditions", label: "Correlation between people's scores in any two combinations of the factors (the same for every pair)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             shown_if: {field: spread, is_not: differ}}
+          - {id: rs, writeup_label: "correlations between combinations", label: "Correlations: one for each pair of combinations, separated by commas, with the combinations in the order first level of the first factor with each level of the second, then the second level, and so on", type: numbers, path: population.r, effect: true,
+             shown_if: {field: spread, is: differ},
+             help: "For a 2 x 2 design the combinations are A1 B1, A1 B2, A2 B1, A2 B2, and the six pairs come in the order (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)."}
+          - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
+             shown_if: {field: spread, is: differ},
+             choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
+             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,

@@ -2325,8 +2325,20 @@
               "$ref": "#/definitions/cell_sd"
             },
             "r": {
-              "description": "Correlation between the two repeated measurements (levels of B) within a participant.",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between the two repeated measurements (levels of B) within a participant: one number for both groups, or one per group (levels of A, in order).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
@@ -2467,13 +2479,40 @@
               }
             },
             "sd": {
-              "description": "Standard deviation in every cell (the same in every cell).",
-              "type": "number",
-              "exclusiveMinimum": 0
+              "description": "Standard deviation: one number for every cell, or one per cell, as one array per level of A (rows) with one SD per level of B, like 'means'.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "r": {
-              "description": "Correlation between any two levels of B within a participant (the same for every pair).",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between a participant's scores at two levels of B: one number for every pair, or one per pair in the order (1, 2), (1, 3), ..., (1, m), (2, 3), ... (the upper triangle of the correlation matrix, row by row), the same in every group.",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 3,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
@@ -2554,6 +2593,14 @@
             },
             "method": {
               "const": "anova_f"
+            },
+            "correction": {
+              "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
+              "enum": [
+                "none",
+                "GG",
+                "HF"
+              ]
             }
           }
         }
@@ -2744,13 +2791,40 @@
               }
             },
             "sd": {
-              "description": "Standard deviation in every cell (the same in every cell).",
-              "type": "number",
-              "exclusiveMinimum": 0
+              "description": "Standard deviation: one number for every cell, or one per cell, as one array per level of A (rows) with one SD per level of B, like 'means'.",
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "r": {
-              "description": "Correlation between a participant's scores in any two cells (the same for every pair).",
-              "$ref": "#/definitions/correlation"
+              "description": "Correlation between a participant's scores in two cells: one number for every pair, or one per pair of cells, with the cells in the order a1_b1, a1_b2, ..., a2_b1, ... (A's levels, then B's within them, as Superpower orders them) and the pairs in the order (1, 2), (1, 3), ..., (2, 3), ... (the upper triangle of the correlation matrix, row by row, as Superpower's ANOVA_design() takes it).",
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/correlation"
+                },
+                {
+                  "type": "array",
+                  "minItems": 6,
+                  "items": {
+                    "$ref": "#/definitions/correlation"
+                  }
+                }
+              ]
             }
           }
         },
@@ -2765,6 +2839,14 @@
             },
             "method": {
               "const": "anova_f"
+            },
+            "correction": {
+              "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
+              "enum": [
+                "none",
+                "GG",
+                "HF"
+              ]
             }
           }
         }

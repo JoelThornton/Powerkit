@@ -323,8 +323,8 @@ design_description <- function(spec) {
       if (welch_anova(spec)) "Welch's F test (variances not assumed equal)" else "omnibus F test"
     ),
     "factorial_anova/oneway_within" = sprintf(
-      "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, sphericity assumed",
-      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A")
+      "one-way repeated-measures ANOVA of %s across the %d conditions of %s (%s), the same people in every condition; omnibus F test, %s",
+      label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"), sphericity_words(spec)
     ),
     "ordinal_regression/ordinal_two_groups" = sprintf(
       "ordinal outcome: %s (%s, in order) compared between the groups of %s (%s), proportional odds",
@@ -431,16 +431,16 @@ design_description <- function(spec) {
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
     "factorial_anova/mixed" = sprintf(
-      "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; sphericity assumed",
-      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+      "mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s; %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec), sphericity_words(spec)
     ),
     "factorial_anova/factorial_between" = sprintf(
       "two-factor between-participants ANOVA of %s: %s (%s) by %s (%s); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
     "factorial_anova/factorial_within" = sprintf(
-      "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; sphericity assumed",
-      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+      "two-factor within-participants ANOVA of %s: %s (%s) by %s (%s), everyone in every condition; effect tested: %s; %s",
+      label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec), sphericity_words(spec)
     ),
     "factorial_anova/factorial_three" = sprintf(
       "three-factor ANOVA of %s: %s (%s, %s) by %s (%s, %s) by %s (%s, %s); effect tested: %s%s",
@@ -1575,6 +1575,20 @@ group_ratio_line <- function(spec) {
     paste(comment_text(levels), collapse = ", "), if (unequal_groups(spec)) "" else ": equal groups")
 }
 
+# How a repeated-measures design treats sphericity: with one SD and one
+# correlation it holds; otherwise the covariances may break it, and the F
+# test is corrected only if asked (target_test > correction).
+sphericity_words <- function(spec) {
+  pop <- spec$population
+  if (length(unlist(pop$sd)) == 1 && length(unlist(pop$r)) == 1) {
+    return("sphericity assumed")
+  }
+  switch(spec$target_test$correction %||% "none",
+    none = "SDs and correlations as given, F test not corrected for sphericity",
+    GG = "SDs and correlations as given, Greenhouse-Geisser correction",
+    HF = "SDs and correlations as given, Huynh-Feldt correction")
+}
+
 # Put a comma after every argument but the last, before any comment.
 ensure_commas <- function(args) {
   code <- sub(" #.*$", "", args)
@@ -1914,7 +1928,7 @@ superpower_script <- function(spec, result) {
         "  result <- ANOVA_power(",
         "    design,",
         "    alpha_level = alpha,",
-        if (identical(spec$template, "oneway_within")) "    correction = correction, # sphericity correction of the F test",
+        if (spec$template %in% c("oneway_within", "mixed", "factorial_within")) "    correction = correction, # sphericity correction of the F test",
         if (!is.null(inputs$pairwise_row)) "    p_adjust = p_adjust, # adjusts the p-values of all the pairwise t-tests",
         "    nsims = batch_replications,",
         "    seed = batch_seed,",
@@ -2042,13 +2056,18 @@ superpower_script_inputs <- function(spec, inputs) {
         "mu <- %s # cell means of %s, in Superpower's order a1_b1, a1_b2, ..., a2_b1, ...",
         r_code(inputs$mu), comment_text(v$Y$label)
       ),
-      sprintf("cell_sd <- %s # SD in every cell", r_code(inputs$sd)),
+      sprintf("cell_sd <- %s # %s", r_code(inputs$sd), if (length(inputs$sd) == 1) "SD in every cell" else "SD of each cell, in the same order"),
       sprintf("r <- %s # %s", r_code(inputs$r), switch(
         spec$template,
-        mixed = "correlation between any two levels of b, within a participant",
+        mixed = if (length(inputs$r) == 1) "correlation between any two levels of b, within a participant" else
+          "correlations: the upper triangle of the cells' correlation matrix, row by row (0 between different groups)",
         factorial_between = "no repeated measures: every cell is different people",
-        factorial_within = "correlation between any two cells, within a participant"
+        factorial_within = if (length(inputs$r) == 1) "correlation between any two cells, within a participant" else
+          "correlation between each pair of cells: (a1_b1, a1_b2), (a1_b1, a1_b3), ..., (a1_b2, a1_b3), ..."
       )),
+      if (spec$template != "factorial_between") sprintf(
+        "correction <- %s # sphericity correction of the within-participants F tests (none, GG or HF)", r_code(inputs$correction)
+      ),
       sprintf("groups <- %s # %s", inputs$groups, if (inputs$groups == 1) {
         "one group: everyone is in every cell"
       } else {
@@ -2077,8 +2096,9 @@ superpower_script_inputs <- function(spec, inputs) {
     ),
     sprintf(
       "r <- %s # %s", r_code(inputs$r),
-      if (between) "correlation between repeated measures (none in a between design)" else
-        "correlation between the two measurements of b"
+      if (between) "correlation between repeated measures (none in a between design)" else if (length(inputs$r) == 1)
+        "correlation between the two measurements of b" else
+        "correlations: the upper triangle of the cells' correlation matrix, row by row (one per group, 0 between groups)"
     ),
     sprintf(
       "groups <- %s # between-participants groups: %s", inputs$groups,
@@ -2108,7 +2128,7 @@ superpower_exact_sections <- function(spec, result, inputs) {
     "exact_result <- function(n_total, means = mu) {",
     "  design <- build_design(n_total, means)",
     "  set.seed(seed)",
-    if (identical(spec$template, "oneway_within")) {
+    if (spec$template %in% c("oneway_within", "mixed", "factorial_within")) {
       "  result <- ANOVA_exact(design, alpha_level = alpha, correction = correction, verbose = FALSE)"
     } else {
       "  result <- ANOVA_exact(design, alpha_level = alpha, verbose = FALSE)"

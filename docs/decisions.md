@@ -3929,3 +3929,23 @@ computer.
 - **Not built:** an exact (permutation) Jonckheere-Terpstra p-value, which
   matters only for very small groups; PMCMRplus's normal approximation is
   its default.
+
+## 2026-11-01 · Unequal SDs and correlations in the mixed and within designs (E8, E55, E20)
+
+- **Route:** Superpower, as for the one-way repeated-measures card (E54):
+  `ANOVA_design()` with an SD per cell and the upper triangle of the whole
+  correlation matrix, `ANOVA_exact(correction =)` and
+  `ANOVA_power(correction =)`. No new maths in powerkit.
+- **What is asked:** the 2 x 2 mixed design, an SD per cell and a
+  correlation per group (its one pair of measurements); the larger mixed
+  design, an SD per cell and a correlation per pair of the within
+  factor's levels, the same in every group (the usual pattern over time;
+  a different pattern per group would mean a table of correlations most
+  researchers can't supply); the two-factor within design, a correlation
+  per pair of cells, as E54 asks per pair of conditions.
+- **Correction:** none by default (Superpower's and G\*Power's epsilon of
+  1), Greenhouse-Geisser or Huynh-Feldt on request, only where a within
+  factor has three or more levels; not a departure.
+- **Not built:** mixed designs with unequal groups, which Superpower's
+  simulation refuses (`next.md`).
+

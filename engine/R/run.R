@@ -35,7 +35,10 @@
 #' Mixed ANOVA beyond 2 x 2 (template `mixed`): one between factor A by one
 #' within factor B, at least one with three or more levels (for example
 #' group by time with three timepoints), on Superpower's `ANOVA_exact()`
-#' (design `"kb*mw"`), with one SD and one correlation, so sphericity holds.
+#' (design `"kb*mw"`), with one SD and one correlation, so sphericity holds,
+#' or an SD per cell and a correlation per pair of B's levels (the same in
+#' every group), with the within-participants F tests corrected for
+#' sphericity if asked (`target_test > correction`, "GG" or "HF").
 #' `population > means` has one row per level of A, one mean per level of B.
 #' Rank tests (`target_test > method` `"wilcoxon_signed_rank"` for
 #' `one_sample_t` and `paired_t`, `"mann_whitney"` for `independent_t`,
@@ -52,7 +55,8 @@
 #' (template `factorial_between`, design `"kb*mb"`), or both within
 #' participants, 2 x 2 or larger (template `factorial_within`, design
 #' `"kw*mw"`, one correlation between every pair of cells, so sphericity
-#' holds): either main effect or the interaction on Superpower's
+#' holds, or an SD per cell and a correlation per pair of cells, with a
+#' sphericity correction if asked): either main effect or the interaction on Superpower's
 #' `ANOVA_exact()`, with means laid out as for `mixed`. `goal > n` is the
 #' total number of participants (split equally across the cells for the
 #' between design; each in every cell for the within design).

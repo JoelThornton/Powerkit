@@ -822,7 +822,7 @@ test_that("repeated measures with three or more conditions show the MANOVA appro
   calc <- run_calculation(spec, run, seed = 1L)
   expect_false(is.null(calc$result$manova))
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["detail"]], "The MANOVA approach, which doesn't, has", fixed = TRUE)
+  expect_match(words[["detail"]], "The MANOVA approach, which doesn't need sphericity, has", fixed = TRUE)
   w <- writeup_text(forms$forms$E54, calc$spec, calc$result, fields, form_examples$E54)
   expect_match(w[["full"]], "the MANOVA approach (Pillai's trace)", fixed = TRUE)
   # A between-participants design has no MANOVA sentence.
@@ -1633,6 +1633,42 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   bad <- build_spec(forms, "E54", fields, modifyList(values, list(rs = "0.8, 0.5")))
   check <- check_spec(bad, Filter(function(f) field_applies(f, values), fields))
   expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
+})
+
+test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
+  cases <- list(
+    E8 = list(spread = "differ", sd = NULL, r = NULL, metric = "raw", s11 = "1", s12 = "1.2", s21 = "1", s22 = "1.5", r1 = "0.6", r2 = "0.4"),
+    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG"),
+    E20 = list(spread = "differ", sd = NULL, r = NULL, sds = "80, 90, 100\n80, 90, 100",
+               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF")
+  )
+  for (ep in names(cases)) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_gt(length(unlist(spec$population$sd)), 1)
+    expect_gt(length(unlist(spec$population$r)), 1)
+    if (ep != "E8") expect_identical(spec$target_test$correction, cases[[ep]]$correction)
+    # With one SD and one correlation, nothing changes.
+    same <- build_spec(forms, ep, fields, modifyList(form_examples[[ep]], list(goal = "power", n = "40")))
+    expect_length(unlist(same$population$sd), 1)
+    expect_null(same$target_test$correction)
+  }
+  skip_without_run()
+  ep <- "E55"
+  fields <- form_fields(form_groups(forms, ep))
+  values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+  calc <- run_calculation(build_spec(forms, ep, fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_true(all(calc$result$check_run$ok))
+  expect_false(is.null(calc$result$manova))
+  text <- paste(writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, modifyList(values, list(just_type = "smallest_effect_of_interest",
+    just_source = "A pilot"))), collapse = " ")
+  expect_match(text, "with the Greenhouse-Geisser correction for sphericity", fixed = TRUE)
+  expect_match(text, "without assuming sphericity", fixed = TRUE)
+  expect_no_match(text, "Assuming sphericity", fixed = TRUE)
+  expect_match(paste(result_sentences(calc$spec, calc$result), collapse = " "), "need not keep sphericity, with the Greenhouse-Geisser correction", fixed = TRUE)
 })
 
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {

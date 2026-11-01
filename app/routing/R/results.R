@@ -521,7 +521,7 @@ result_sentences <- function(spec, result) {
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) {
     out[["detail"]] <- paste(out[["detail"]], sem_restriction_sentence(spec))
   }
-  if (!is.null(result$manova)) out[["detail"]] <- paste(out[["detail"]], manova_sentence(result))
+  if (!is.null(result$manova)) out[["detail"]] <- paste(out[["detail"]], manova_sentence(result, spec))
   sem <- if (is_sem_fit(spec)) sem_sentence(result)
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
@@ -535,13 +535,28 @@ is_sem_fit <- function(spec) identical(spec$design, "sem") && identical(spec$tem
 
 # Repeated measures: the MANOVA approach's power beside the univariate F's
 # (the engine's manova_summary(), from the same Superpower run).
-manova_sentence <- function(result) {
+manova_sentence <- function(result, spec = NULL) {
   m <- result$manova
-  sprintf(paste0(
-    "This assumes sphericity (equal variances of the differences between conditions). ",
-    "The MANOVA approach, which doesn't, has %s power with %s participants; ",
+  first <- if (is.null(spec) || assumes_sphericity(spec)) {
+    "This assumes sphericity (equal variances of the differences between conditions). "
+  } else {
+    sprintf("This F test uses the SDs and correlations you gave, which need not keep sphericity, %s. ", sphericity_correction_words(spec))
+  }
+  sprintf(paste0(first,
+    "The MANOVA approach, which doesn't need sphericity, has %s power with %s participants; ",
     "if you plan to report it instead, plan for it."),
     percent(m$power), whole(m$n))
+}
+
+# One SD and one correlation for every pair keep sphericity; an SD per cell
+# or a correlation per pair need not (E54, E55, E20).
+assumes_sphericity <- function(spec) {
+  length(unlist(spec$population$sd)) <= 1 && length(unlist(spec$population$r)) <= 1
+}
+
+sphericity_correction_words <- function(spec) {
+  switch(spec$target_test$correction %||% "none",
+    none = "with no correction", GG = "with the Greenhouse-Geisser correction", HF = "with the Huynh-Feldt correction")
 }
 
 # Invariance, a factor correlation, a latent slope: the test, and the
@@ -1970,7 +1985,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
-            if (!is.null(result$manova)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power),
+            if (!is.null(result$manova)) {
+              if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)
+              else sprintf("The F test used the SDs and correlations given, without assuming sphericity; the MANOVA approach (Pillai's trace) has %.1f%% power at this sample size.", 100 * result$manova$power)
+            },
             if (identical(spec$design, "sem") && !is_sem_fit(spec)) sprintf("The model was %s.", sem_model_description(spec)))
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
