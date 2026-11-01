@@ -345,6 +345,7 @@ run_spec <- function(spec) {
       bayes = bayes_summary(spec, n_analysed),
       manova = manova_summary(spec, backend, method, n_analysed),
       details = test_details(backend, goal$type, simulating, n_analysed),
+      critical_effect = if (!identical(goal$type, "justified_alpha")) critical_effect(spec, n_analysed),
       check_run = check,
       provenance = list(
         spec_hash = spec_hash(spec),

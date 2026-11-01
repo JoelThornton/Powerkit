@@ -4364,3 +4364,25 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
 
+## 2026-11-01 · The critical effect size (t-tests and correlation)
+
+- **Shown, as an observed value** (maintainer, 1 November 2026, with
+  Perugini et al., 2025, and Lakens, 2022, added to `refs.bib`): the
+  smallest observed effect that would be significant at the n analysed,
+  on the results screen and in the methods paragraph, worded as what the
+  data can show rather than an assumed population effect.
+- **Scope:** the one-sample, paired and two-group t-tests (Student's) and
+  Pearson's correlation, the designs Perugini et al.'s Table 1 covers and
+  pwr computes. Welch's t is left out: its critical d depends on the
+  sample variances (Perugini et al., p. 5), so it has no single value
+  before the data are in.
+- **The closed form, not a package:** criticalESvalue, the authors'
+  package, is on GitHub only, so the engine uses Table 1's formulas with
+  `stats::qt()`, checked against simulated studies (each study
+  significant exactly when its observed effect is beyond the critical
+  value).
+- **One worked example to check before transcribing:** for 42 and 15
+  participants, t(55), the article reports a critical d of 0.62, where
+  Table 1's formula for Student's t gives 0.603; its other examples (r =
+  .44 at n = 20, d = 0.75 with 15 per group, r = .03 at N = 5,000) match.
+

@@ -101,6 +101,10 @@ fully validated. Validation runs are recorded in
   (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
   29 and 30 October failed on two unit tests that compared runs on
   different numbers of cores; fixed in 0.24.0's conversion PR (#181).
+- **The critical effect size** (the smallest observed effect that would be
+  significant at the n analysed; Perugini et al., 2025) is on the results
+  and in the methods paragraph for the t-tests and the correlation (1
+  November 2026).
 - **Minimum-effect tests** (an effect larger than a smallest effect of
   interest) are a test version on the one-sample, paired and two-group
   t-tests, by pwrss (0.27.0; Known difference 10).
@@ -157,8 +161,8 @@ fully validated. Validation runs are recorded in
 - SEM has no test of close fit, nor invariance with several factors,
   groups or occasions (`next.md`, "SEM").
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Critical
-  effect size").
+  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Technical
+  details").
 
 ## Working environment
 

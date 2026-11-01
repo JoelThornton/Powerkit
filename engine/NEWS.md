@@ -1,5 +1,21 @@
 # powerkit 0.28.1
 
+* The critical effect size (Perugini et al., 2025; Lakens, 2022): for the
+  one-sample, paired and two-group t-tests (Student's) and Pearson's
+  correlation, every result now gives the smallest observed effect that
+  would be significant at the n analysed, the alpha and the sides
+  (`result$critical_effect`, `critical_effect()`), on the results screen
+  as an observed value, not an assumed effect, and in the methods
+  paragraph. No CRAN package computes it (the authors' criticalESvalue is
+  on GitHub only), so it is the closed form of Perugini et al.'s Table 1
+  from the critical t (d_c = t_c sqrt(1/n1 + 1/n2), d_c = t_c sqrt(1/n)
+  for one sample or d_z, r_c = t_c / sqrt(n - 2 + t_c^2)). Validation
+  (`test-validation-critical-effect.R`, in the `basic` chunk): in simulated
+  studies an observed effect beyond the critical value is exactly a
+  p-value below alpha by R's `t.test()` and `cor.test()`, for each test
+  and side; the article's worked examples are left for the maintainer.
+  Not given for Welch's t, the minimum-effect, rank or Bayes factor
+  versions, or a justified alpha.
 * The app moves between screens faster: about 40 ms on a laptop for the
   list of analyses and an input screen, from 160-200 ms. The list's
   groups, and each group of fields on an input screen, are built once and

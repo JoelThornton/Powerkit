@@ -86,7 +86,7 @@ reports them (pwrss and the generic tests, for example), and say so where
 it doesn't. Since 31 October 2026 the project rules allow a published
 closed-form result where no package gives one (`CLAUDE.md`), so the
 remaining designs, such as pwr's t-tests, can have them too: `next.md`,
-"Critical effect size, and technical details for the remaining designs".
+"Technical details for the remaining designs".
 
 ## E1: one-sample t-test
 

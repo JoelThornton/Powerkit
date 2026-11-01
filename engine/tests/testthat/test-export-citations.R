@@ -118,7 +118,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       NylundGibson2018_lca = "verified", Spurk2020_lpa = "verified",
       metapower_method = "verified", Valentine2010_metapower = "verified",
       IntHout2014_hksj = "verified", OHagan2005_assurance = "verified",
-      SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified"
+      SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified",
+      Perugini2025_critical = "verified", Lakens2022_justification = "verified"
     )
   )
 })

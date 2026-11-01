@@ -1324,6 +1324,37 @@ actual_power_sentence <- function(spec, result) {
   sprintf("%s, power is %.1f%%.", who, 100 * at_n)
 }
 
+# The critical effect size (Perugini et al., 2025): the smallest observed
+# effect that would be significant at the n analysed. The engine works it out
+# (critical_effect(), from Perugini et al.'s Table 1); this only words it, as
+# an observed value rather than an assumed population effect.
+critical_effect_value_text <- function(ce) {
+  label <- switch(ce$effect_name, d = "Cohen's d", d_z = "d_z", r = "r")
+  value <- formatC(ce$value, digits = 2, format = "f")
+  switch(ce$alternative,
+    two_sided = sprintf("%s beyond \u00b1%s", label, value),
+    greater = sprintf("%s above %s", label, value),
+    less = sprintf("%s below \u2212%s", label, value))
+}
+
+critical_effect_note <- function(spec, result) {
+  ce <- result$critical_effect
+  if (is.null(ce)) return(NULL)
+  sides <- if (identical(ce$alternative, "two_sided")) "two-sided" else "one-sided"
+  sprintf(paste(
+    "Critical effect size: at N = %s%s, alpha = %s, %s, an observed %s would be statistically significant, whatever the true effect",
+    "(Perugini et al., 2025). It describes the result your data can show, not the effect assumed for power: a smaller observed",
+    "effect would not be significant."),
+    whole(ce$n), group_text(spec, ce$n), writeup_alpha(ce$alpha), sides, critical_effect_value_text(ce))
+}
+
+critical_effect_sentence <- function(result) {
+  ce <- result$critical_effect
+  if (is.null(ce)) return(NULL)
+  sprintf("At this sample size, the critical effect size (the smallest observed effect that would be significant; Perugini et al., 2025) is an observed %s.",
+    critical_effect_value_text(ce))
+}
+
 # A yes/no predictor's correlation with Y, read as the difference between
 # its groups (E15): the engine works it out (implied_group_difference(),
 # psych::r2d() for equal groups); this only words it.
@@ -1830,7 +1861,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -2196,6 +2227,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     main <- gsub("A power analysis was conducted", "A Bayes factor design analysis was conducted", main, fixed = TRUE)
     main <- c(main, bayes_sentence(spec, result))
   }
+  main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
