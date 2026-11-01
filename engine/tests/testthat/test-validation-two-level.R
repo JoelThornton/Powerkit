@@ -170,9 +170,17 @@ test_that("two levels, yes/no outcome: Type I error near alpha for each effect, 
 three_predictor_population <- c(two_level_population, list(b_Z = 0.3, b_XZ = 0.1, sd_site = 0.3, sd_site_slope = 0.1, groups_per_site = 4))
 
 three_predictor_spec <- function(population, effect, seed, n) {
-  spec <- two_level_validation_spec(population, effect, seed, n)
-  spec$variables$Z <- validation_variable("continuous", "Site level")
-  spec
+  validation_spec(
+    design = "mixed_model",
+    template = "two_level",
+    variables = list(X = validation_variable("continuous", "Person level"), W = validation_variable("continuous", "Group level"),
+      Z = validation_variable("continuous", "Site level"), Y = validation_variable("continuous", "Outcome")),
+    population = c(list(metric = "raw"), population),
+    target_test = list(effect = effect, method = "satterthwaite_t", alpha = 0.05),
+    seed = seed,
+    n = n,
+    options = list(nrep = two_level_reps)
+  )
 }
 
 three_predictor_by_hand <- function(population, term, n, nrep, seed) {
