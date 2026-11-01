@@ -12,6 +12,7 @@ library(jsonvalidate)
 library(psych)     # safeguard power's confidence interval
 
 # Backends
+library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
 library(car)
 library(InteractionPoweR)
@@ -35,6 +36,7 @@ library(semPower)
 library(simr)
 library(SimDesign) # MANOVA's multivariate normal scores (rmvnorm())
 library(Spower)
+library(SuppDists) # the distribution of a sample correlation (pPearson())
 library(Superpower)
 library(TOSTER)
 

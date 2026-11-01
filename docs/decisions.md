@@ -4116,6 +4116,18 @@ needed first.
   request in the next round. It needs a new dependency, and so a rebuilt
   CI image.
 
+## 2026-11-01 · A yes/no outcome in the two- and three-level models (E62, E68)
+
+- **Inputs on the log-odds scale.** As for the participants-and-items
+  cards (E33, E63, E67): the chance of 'yes' for a typical group (E62) or
+  each condition's chance for a typical site and group (E68), and every
+  effect and SD on the log-odds scale. E68's score version takes shares of
+  variance (intraclass correlations); for a yes/no outcome it takes SDs
+  instead, since turning a latent-scale ICC into an SD needs a formula
+  with a published source, and none is in `refs.bib` yet.
+- **The test:** glmer's Wald z test by default, simr's default for a
+  numeric or two-condition predictor and the p-value glmer's summary
+  reports, with the likelihood ratio offered, as on E33 and E67.
 ## 2026-11-01 · Moderated mediation decisions, and the shape of the queue
 
 - **W on both links or the direct path (E38, PROCESS models 8, 58 and
@@ -4217,3 +4229,37 @@ analyse in JASP answers that match JASP's.
   GitHub only and bfpwr computes a z-test Bayes factor on Fisher's z
   instead. Whether CRAN's BayesFactor matches JASP is to be checked once
   CRAN is reachable from the cloud environment.
+
+## 2026-11-01 · Bayes factor test of a correlation (E4)
+
+Item 3 of `next.md`, giving researchers who analyse in JASP answers that
+match JASP's.
+
+- **What JASP does.** Read from its source (jaspRegression,
+  `R/correlationbayesian.R`, which calls the GitHub package bstats): a
+  stretched beta prior on rho, width 1 (uniform) by default, and the exact
+  Bayes factor of Ly, Marsman and Wagenmakers (2018), bstats'
+  `bf10CorExact()`; one-sided, rho = 0 against one side with the prior
+  truncated to it.
+- **Package.** CRAN's BayesFactor `correlationBF(rscale = w)` gives the
+  same two-sided Bayes factor at the same width (equal to eight digits
+  against JASP's formula, and to the Bayes factor integrated from the
+  exact density of r); its one-sided interval Bayes factor is within 0.1%
+  of the exact one. So BayesFactor is the backend; bstats isn't on CRAN.
+- **Default width.** JASP's 1, not BayesFactor's 1/3 ("medium"): JASP is
+  where psychologists run this test. Recorded as Known difference 12 (162
+  people against 146 for r = .3, BF10 of at least 10, 80%).
+- **Power.** No package computes it. The Bayes factor depends on the data
+  only through n and r, and rises with r (or |r|), so strong evidence is a
+  sample correlation past a critical value, found by root-finding on
+  `correlationBF()`; its chance is from SuppDists' exact distribution of r
+  for bivariate normal scores (`pPearson()`, lower tail, which is the more
+  accurate). No new maths beyond the root-finding; no simulation.
+- **Design prior.** The expected correlation exactly, or a stretched beta
+  design prior with its mean and an SD (Departure 15 extended: a design
+  prior equal to the uniform analysis prior gives 76.4% at 162 people,
+  where exactly r = .3 gives 80%).
+- **Not built.** bfpwr's z-test Bayes factor on Fisher's z as a second
+  version: it needs a normal analysis prior on z that no common tool uses
+  for correlations, and researchers who analyse in R with BayesFactor get
+  their answer by setting the width to 1/3.

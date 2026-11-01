@@ -24,6 +24,40 @@ A batch of new features, built as one round.
   number of studies. Checked against a simulation written separately
   with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
   furrr).
+* A yes/no outcome in the two-level (E62, template `two_level`) and
+  three-level (E68, template `three_level`) designs (`variables > Y >
+  type` "binary", `population > metric` "probability"): a logistic mixed
+  model built by simr's `makeGlmer()` and refitted with lme4's `glmer()`.
+  E62 takes the chance of 'yes' for a typical group at the average X and
+  W (`population > probability`), with every effect and SD on the
+  log-odds scale; E68 each condition's chance for a typical site and
+  group (`population > probabilities`) and, in place of the shares of
+  variance, the SDs of the sites' and groups' intercepts and of the
+  effect on the log-odds scale (`sd_site`, `sd_group`, `sd_effect_site`,
+  `sd_effect_group`). Tested by glmer's Wald z test (`target_test >
+  method` "wald", the default, simr's for a numeric or two-condition
+  predictor) or the likelihood ratio ("likelihood_ratio"). The check run,
+  exported script and simulated data set follow the model. Checked against
+  a simulation written separately with glmer, with the Type I error near
+  alpha.
+* A Bayes factor version of the test of a correlation (`target_test >
+  method` "bayes_factor" on `correlation`), by exact calculation with
+  BayesFactor's `correlationBF()`: a stretched beta analysis prior on rho
+  of width `target_test > prior_width`, 1 (uniform) by default, JASP's
+  default, where BayesFactor's own is 1/3 (Known difference 12). At the
+  same width the two-sided Bayes factor equals JASP's exact one (tested
+  against its formula). The Bayes factor rises with r, so strong evidence
+  is a sample correlation past a critical value, found by root-finding,
+  and its chance comes from the exact distribution of r (SuppDists'
+  `pPearson()`). BayesFactor and SuppDists are new imports, both already
+  in the lockfile. One-sided tests truncate the prior to that side,
+  against rho = 0, as JASP does. The expected correlation can carry an SD
+  (`population > r_sd`, a stretched beta design prior; Departure 15). As
+  for the other Bayes factor tests, the chances of strong evidence for no
+  effect and of misleading evidence are given, and the exported script
+  reproduces the result. Validation: `test-validation-bayes-correlation.R`
+  in the `bayes` chunk, against simulated studies whose Bayes factors are
+  computed without BayesFactor.
 * A Bayes factor version of the test of one proportion (`target_test >
   method` "bayes_factor" on `one_proportion`), by exact calculation with
   bfpwr: the binomial Bayes factor with a Beta(a, b) analysis prior

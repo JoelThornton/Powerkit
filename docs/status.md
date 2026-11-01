@@ -33,14 +33,16 @@ fully validated. Validation runs are recorded in
   score and the test of heterogeneity (both simulated with metafor) since
   1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
-  JASP's prior and one-sided test by default). **Twelve are simulated with a
+  JASP's prior and one-sided test by default) and the correlation (E4;
+  BayesFactor, JASP's Bayes factor and prior width by default). **Twelve are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
   groups, 31 October 2026; agrees with a separately written simulation,
-  published value and statistician review to come). No template
+  published value and statistician review to come); E62 and E68 with a
+  score or, since 1 November 2026, a yes/no outcome. No template
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026), common
@@ -131,7 +133,7 @@ fully validated. Validation runs are recorded in
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 9). Every repeated-measures card takes an SD per cell and
+  "Repeated measures"). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
 - Simulated data sets are missing for the three-way regression
@@ -142,9 +144,10 @@ fully validated. Validation runs are recorded in
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 8).
+  groups or occasions (`next.md`, "SEM").
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 17).
+  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Critical
+  effect size").
 
 ## Working environment
 

@@ -74,6 +74,7 @@ export_script <- function(spec, result, file = NULL) {
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
+    BayesFactor = bfcor_script(spec, result),
     metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
     POMADE = pomade_script(spec, result),
     powertools = powertools_script(spec, result),
@@ -486,14 +487,15 @@ design_description <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/three_level" = sprintf(
-      "three levels, people in groups of %s in sites of %s groups; %s (%s) assigned to %s; outcome %s",
+      "three levels, people in groups of %s in sites of %s groups; %s (%s) assigned to %s; outcome %s%s",
       format_number(spec$population$group_size), format_number(spec$population$groups_per_site), label("X"), levels("X"),
       switch(spec$population$assignment, site = "whole sites", group = "groups within each site", person = "people within each group"),
-      label("Y")
+      label("Y"), if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/two_level" = sprintf(
-      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s; effect tested: %s",
+      "people in groups of %s: %s (measured on each person, centred within groups) and %s (measured on each group) predicting %s%s; effect tested: %s",
       format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else "",
       switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
         between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction")
     ),

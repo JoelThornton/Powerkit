@@ -1156,8 +1156,13 @@ sim_two_level_code <- function(spec, n) {
     "  x = rep((x - mean(x)) / sqrt(mean((x - mean(x))^2)), groups),",
     "  w = rep((w - mean(w)) / sqrt(mean((w - mean(w))^2)), each = cluster_size))",
     sprintf("group_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$group))),
-    sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(group = group_var), sigma = %s, data = design)",
-      deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$sigma)),
+    if (isTRUE(inputs$binary)) {
+      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(group = group_var), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef))
+    } else {
+      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(group = group_var), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$sigma))
+    },
     "simulated <- data.frame(",
     "  group = design$group,",
     sprintf("  %s = design$x,", sim_label(spec, "X")),
@@ -1228,8 +1233,13 @@ sim_three_level_code <- function(spec, n) {
       person = sprintf("design$person <= %s", r_code(inputs$group_size / 2)))),
     "design$site <- factor(design$site)",
     "design$group <- factor(design$group)",
-    sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
-      deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma)),
+    if (isTRUE(inputs$binary)) {
+      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(%s), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr)
+    } else {
+      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma))
+    },
     "simulated <- data.frame(",
     "  site = design$site,",
     "  group = interaction(design$site, design$group, drop = TRUE),",
