@@ -394,6 +394,37 @@ app_css <- "
   .writeup-head label { margin: 0; font-weight: 600; }
   .writeup-copied { color: #1e6b3a; }
   @media (max-width: 600px) { .result-figure-value { font-size: 2.6rem; } .result-hero { padding: 0.9rem; } }
+  .study-plan-list { list-style: none; padding: 0; margin: 0 0 1rem 0; counter-reset: plan; display: flex; flex-direction: column; gap: 0.6rem; }
+  .plan-item { counter-increment: plan; position: relative; display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--pk-line);
+    border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 0.85rem 1rem 0.85rem 3.4rem; }
+  .plan-item::before { content: counter(plan); position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    background: #eef3f9; color: var(--pk-navy); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
+  .plan-item-sets { border-color: var(--pk-blue); }
+  .plan-item-sets::before { background: var(--pk-blue); color: #fff; }
+  .plan-item-body { flex: 1 1 auto; min-width: 0; }
+  .plan-item-body p { margin: 0.2rem 0 0; color: #4a5568; }
+  .plan-item-name { color: var(--pk-navy); }
+  .plan-item-tag { display: inline-block; margin-left: 0.5rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--pk-blue); background: #e8f1f8; border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: 0.1em; }
+  .plan-item-n { display: flex; flex-direction: column; align-items: flex-end; min-width: 5rem; }
+  .plan-item-n-value { font-size: 1.6rem; font-weight: 700; line-height: 1; color: var(--pk-navy); font-variant-numeric: tabular-nums; }
+  .plan-item-n-unit { font-size: 0.75rem; color: #5a6b85; }
+  .plan-remove { color: #5d6875; min-height: 44px; }
+  .plan-remove:hover, .plan-remove:focus { color: #b42318; }
+  .plan-hero .plan-hero-text { flex: 1 1 18rem; margin: 0; }
+  .plan-empty ol { margin-bottom: 0; }
+  .plan-note { background: #fff8eb; border: 1px solid #f1d9a6; border-left: 4px solid var(--pk-amber); border-radius: 10px; padding: 0.75rem 1rem; color: #4a3b16; }
+  .ws-quick-note { background: #eef5fb; border: 1px solid #cfe0ef; border-left: 4px solid var(--pk-blue); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.92rem; }
+  .ws-table td { vertical-align: middle; }
+  .ws-bar-col { min-width: 11rem; }
+  .ws-bar { position: relative; height: 0.7rem; background: #edf1f6; border-radius: 999px; overflow: hidden; margin: 0.2rem 0 0.25rem; }
+  .ws-bar-ci { position: absolute; top: 0; bottom: 0; background: rgba(20, 40, 75, 0.22); border-left: 2px solid var(--pk-navy); border-right: 2px solid var(--pk-navy); z-index: 2; }
+  .ws-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #7fb0d6; z-index: 1; }
+  .ws-bar-text { font-size: 0.8rem; color: #4a5568; }
+  .ws-implied-block + .ws-implied-block { margin-top: 0.75rem; }
+  .ws-implied-title { margin-bottom: 0.25rem; }
+  @media (max-width: 600px) { .plan-item { flex-wrap: wrap; padding-left: 3rem; } .plan-item::before { top: 1.1rem; transform: none; left: 0.8rem; }
+    .plan-item-n { flex-direction: row; align-items: baseline; gap: 0.35rem; } .plan-item-n-value { font-size: 1.3rem; } }
   .result-more { margin: 0.75rem 0 0 0; }
   .result-more > summary { cursor: pointer; color: var(--pk-blue); min-height: 44px; display: flex; align-items: center; }
   /* The screen's next step, pinned to the bottom of the window. */
@@ -1157,6 +1188,10 @@ server <- function(input, output, session) {
   })
   observeEvent(input$plan_view, { cancel_job(); state$screen <- "study_plan" })
   observeEvent(input$plan_clear, state$study_plan <- list())
+  observeEvent(input$plan_remove, {
+    i <- suppressWarnings(as.integer(input$plan_remove))
+    if (!is.na(i) && i >= 1 && i <= length(state$study_plan)) state$study_plan <- state$study_plan[-i]
+  })
   observeEvent(input$plan_joint, {
     entries <- state$study_plan
     joint <- engine_function("joint_power")

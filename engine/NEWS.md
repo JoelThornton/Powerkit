@@ -1,5 +1,18 @@
 # powerkit 0.28.1
 
+* The precision, study plan and whole-study screens are laid out like the
+  other results. A precision result has the section links, a big figure
+  (the sample size, or the width) with what it assumes, and the write-up
+  before the downloads; a precision result that finds a sample size can
+  now join the study plan (`plan_n()`). The study plan puts the largest
+  sample size first, shows each analysis's N, marks the one that sets the
+  sample size, lets an analysis be removed (`input$plan_remove`), and names
+  each analysis by its card's plain name (`plan_label()`), where it had
+  shown the card's code. The whole-study result has section links, the
+  joint chance as its big figure, each analysis's power as a bar with its
+  95% interval, and the methods paragraph in the copyable write-up box.
+  App only; engine unchanged.
+
 * The app moves between screens faster: about 40 ms on a laptop for the
   list of analyses and an input screen, from 160-200 ms. The list's
   groups, and each group of fields on an input screen, are built once and

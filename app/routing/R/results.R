@@ -2475,6 +2475,33 @@ precision_writeup <- function(form, spec, result, fields, values) {
   c(short = short, full = full, ethics = ethics)
 }
 
+# The precision result's big figure: the sample size for a width, or the
+# width a sample size gives, with what it assumes beside it.
+precision_hero_ui <- function(spec, result) {
+  pr <- result$precision
+  people <- precision_people(spec, pr$n)
+  count <- sub("^[0-9,]+ ", "", people)
+  interval <- precision_interval_name(spec)
+  fig <- if (!is.na(pr$target_width)) {
+    list(value = whole(pr$n), label = sub(" \\(.*$", "", count), sub = if (grepl("(", count, fixed = TRUE)) sub("^.*\\((.*)\\)$", "\\1", count))
+  } else {
+    list(value = precision_number(pr$width), label = "the expected width of the interval", sub = sprintf("with %s", people))
+  }
+  assumes <- c(
+    sprintf("Expected %s = %s", pr$effect_name, format(pr$effect)),
+    paste0(toupper(substr(interval, 1, 1)), substr(interval, 2, nchar(interval))),
+    if (!is.na(pr$target_width)) sprintf("Width no more than %s%s", format(pr$target_width),
+      if (is.na(pr$assurance)) " on average" else sprintf(", %s assurance", percent(pr$assurance))))
+  div(class = "result-hero",
+    div(class = "result-figure",
+      tags$span(class = "result-figure-value", fig$value),
+      tags$span(class = "result-figure-label", fig$label),
+      if (!is.null(fig$sub)) tags$span(class = "result-figure-sub", fig$sub)),
+    div(class = "result-assumes",
+      tags$span(class = "result-assumes-title", "Assuming"),
+      tags$ul(lapply(assumes, tags$li))))
+}
+
 precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
@@ -2482,10 +2509,15 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   words <- precision_sentences(spec, result)
   p_ <- result$provenance
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  hero <- tryCatch(precision_hero_ui(spec, result), error = function(e) NULL)
+  # The same order as a power result: the answer, then the write-up and
+  # downloads, then how it was calculated.
   div(
     class = "result-panel", role = "status", tabindex = "-1",
-    div(class = "result-card result-main",
+    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
+    div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", "Your result"),
+      hero,
       p(class = "result-headline lead", words[["headline"]]),
       p(class = "result-reading", words[["reading"]]),
       if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
@@ -2495,19 +2527,21 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         p(class = "small", recruit[["caveat"]])),
       p(class = "result-detail", words[["detail"]]),
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
-    div(class = "result-card result-save",
+    div(class = "result-card result-save", id = "result-take",
       h4(class = "h5", "Write it up and save it"),
+      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values)),
+      h4(class = "h6 mt-3", "Downloads"),
       if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("To save this plan, download its R script or get its write-up, "),
-        "write your reasoning under “Where your effect size comes from” and press “Check my answers” again."),
+        "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."),
       div(class = "nav-buttons",
         if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
         downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
         if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
-      p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed)."),
-      simulated_data_ui(spec, result),
-      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values))),
-    div(class = "result-card result-how",
+      if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
+      p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
+      simulated_data_ui(spec, result)),
+    div(class = "result-card result-how", id = "result-how-card",
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
