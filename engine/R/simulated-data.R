@@ -1146,27 +1146,43 @@ simulated_data_n <- function(spec, result) {
 # (two_level_design(), two_level_inputs()), one row per person.
 sim_two_level_code <- function(spec, n) {
   inputs <- two_level_inputs(spec)
-  n <- (n %/% inputs$cluster_size) * inputs$cluster_size
+  three <- isTRUE(inputs$three)
+  n <- (n %/% inputs$unit_size) * inputs$unit_size
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr),
+    vapply(inputs$VarCorr, function(x) if (length(x) > 1) sprintf("matrix(%s, nrow = 2)", r_code(as.vector(x))) else r_code(x), "")), collapse = ", ")
   c(
+    "spread <- function(k, inner) {",
+    "  v <- qnorm(if (inner) seq_len(k) / (k + 1) else (seq_len(k) - 0.5) / k)",
+    "  (v - mean(v)) / sqrt(mean((v - mean(v))^2))",
+    "}",
     sprintf("cluster_size <- %d", as.integer(inputs$cluster_size)),
-    sprintf("groups <- %d", as.integer(n / inputs$cluster_size)),
-    "x <- qnorm(seq_len(cluster_size) / (cluster_size + 1))",
-    "w <- qnorm((seq_len(groups) - 0.5) / groups)",
-    "design <- data.frame(group = factor(rep(seq_len(groups), each = cluster_size)),",
-    "  x = rep((x - mean(x)) / sqrt(mean((x - mean(x))^2)), groups),",
-    "  w = rep((w - mean(w)) / sqrt(mean((w - mean(w))^2)), each = cluster_size))",
-    sprintf("group_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$group))),
-    if (isTRUE(inputs$binary)) {
-      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(group = group_var), data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef))
+    if (three) {
+      c(sprintf("groups_per_site <- %d", as.integer(inputs$groups_per_site)),
+        sprintf("sites <- %d", as.integer(n / inputs$unit_size)),
+        "design <- data.frame(site = factor(rep(seq_len(sites), each = cluster_size * groups_per_site)),",
+        "  group = factor(rep(rep(seq_len(groups_per_site), each = cluster_size), sites)),",
+        "  x = rep(spread(cluster_size, TRUE), sites * groups_per_site),",
+        "  w = rep(rep(spread(groups_per_site, FALSE), each = cluster_size), sites),",
+        "  z = rep(spread(sites, FALSE), each = cluster_size * groups_per_site))")
     } else {
-      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(group = group_var), sigma = %s, data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$sigma))
+      c(sprintf("groups <- %d", as.integer(n / inputs$cluster_size)),
+        "design <- data.frame(group = factor(rep(seq_len(groups), each = cluster_size)),",
+        "  x = rep(spread(cluster_size, TRUE), groups),",
+        "  w = rep(spread(groups, FALSE), each = cluster_size))")
+    },
+    if (isTRUE(inputs$binary)) {
+      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(%s), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr)
+    } else {
+      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma))
     },
     "simulated <- data.frame(",
-    "  group = design$group,",
+    if (three) "  site = design$site,",
+    if (three) "  group = interaction(design$site, design$group, drop = TRUE)," else "  group = design$group,",
     sprintf("  %s = design$x,", sim_label(spec, "X")),
     sprintf("  %s = design$w,", sim_label(spec, "W")),
+    if (three) sprintf("  %s = design$z,", sim_label(spec, "Z")),
     sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
     ")"
   )
@@ -1254,20 +1270,22 @@ sim_three_level_code <- function(spec, n) {
 # row per participant per item.
 sim_item_predictor_code <- function(spec, n) {
   inputs <- item_predictor_inputs(spec)
+  item_var <- if (length(inputs$VarCorr$item) > 1) sprintf("diag(%s)", r_code(diag(inputs$VarCorr$item))) else r_code(inputs$VarCorr$item)
   c(
     sprintf("x <- stats::qnorm(seq_len(%d) / %d)", inputs$items, inputs$items + 1),
-    "x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # standardised across the items",
+    "x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # standardised",
     sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
-    "design$x <- x[design$item]",
+    if (isTRUE(inputs$trial)) sprintf("design$x <- x[(design$participant + design$item - 2) %%%% %d + 1] # measured on each trial, rotated across the items", inputs$items) else
+      "design$x <- x[design$item]",
     "design$participant <- factor(design$participant)",
     "design$item <- factor(design$item)",
     sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant))),
     if (inputs$binary) {
       sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(participant = participant_var, item = %s), data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item))
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var)
     } else {
       sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item), r_code(inputs$sigma))
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma))
     },
     "simulated <- data.frame(",
     "  participant = design$participant,",

@@ -444,6 +444,11 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()` or `makeGlmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("x", "sa")` for a score, or `fixed("x", "z")` (default) or `"lr"` for a yes/no outcome (E67, from 1 November 2026) [powerkit] | The effect per SD of the item score, the SDs of participants' intercepts and slopes and of items beyond the score, and the residual SD, in the outcome's units (log odds for yes/no) | `y ~ x + (1 + x \| participant) + (1 \| item)`, x evenly spread across the items (normal quantiles, centred, SD 1), every participant responding to every item. The Satterthwaite test is Departure 16 |
 
+With the predictor measured on each trial (from 1 November 2026) each
+participant meets every value once, rotated across the items, and the
+model gains the items' slopes on X: `y ~ x + (1 + x | participant) + (1 +
+x | item)`, tested as for an item predictor.
+
 ## Three levels: people in groups in larger groups (E68)
 
 | Tool | Test | Effect size | Settings |
@@ -525,6 +530,13 @@ mixed model (simr's `makeGlmer()`, lme4's `glmer()`): the chance of 'yes'
 for a typical group at the average X and W, and every effect and SD on the
 log-odds scale. The test is glmer's Wald z test, simr's default for a
 numeric predictor, or the likelihood ratio; not a departure.
+
+With the groups in sites (E62, from 1 November 2026) the model gains a
+predictor Z on each site, its interaction with X, and the sites' random
+intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
+(1 + x | site:group)`, tested as at two levels (Satterthwaite's t test,
+Departure 16, or for a yes/no outcome glmer's Wald z test or the
+likelihood ratio).
 
 ## Effect-size conversion (a published t, F, r, d or odds ratio)
 

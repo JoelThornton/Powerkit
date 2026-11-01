@@ -1504,7 +1504,8 @@ endpoints:
       - "You give each effect in the outcome's units per SD of the predictor, how much groups differ in their average and in X's effect, the residual SD, and the number of people in each group."
       - "Simulated with simr, as for crossed participants and items, so the answer carries a little random error. X is centred within each group; the groups are the same size."
       - "The outcome can be a score or yes or no (passed or not): with yes or no, a logistic mixed model, each effect and SD on the log-odds scale, tested by the Wald or the likelihood-ratio test."
-    inputs: ["The outcome, the person-level predictor and the group-level predictor", "Each effect, how much the groups differ, and the residual SD", "The number of people in each group, and the effect to test"]
+      - "The groups can themselves be in larger groups (classes in schools), with a predictor measured on each larger group (Z), its interaction with X, and the larger groups' own averages and X effects: predictors at all three levels."
+    inputs: ["The outcome, and the predictors at each level", "Each effect, how much the groups differ, and the residual SD", "The sizes of the groups, and the effect to test"]
     tier: v2
     alternatives: ["a cluster-randomised or multisite trial, if groups or people were assigned to conditions", "a regression ignoring the groups, which overstates the evidence when people in a group are alike"]
   E63:
@@ -1538,6 +1539,7 @@ endpoints:
       - "Each participant responds to many items that differ on something measured on each item, such as a word's frequency or a face's rated attractiveness: does the response depend on it?"
       - "You give the effect of one SD more of that score, how much participants differ in their average and in the effect, how much items differ beyond the score, and the number of items; powerkit finds the number of participants."
       - "A score on each trial is tested with Satterthwaite's t test; a yes/no answer (correct or not) with the Wald test glmer reports or the likelihood-ratio test. Simulated with simr, so the answer carries a little random error."
+      - "The predictor can instead be measured on each trial (such as how long the stimulus is shown), so it varies within items too and its effect can differ between items."
     inputs: ["The item score and the outcome", "The effect, and how participants and items vary", "The items"]
     tier: v2
     alternatives: ["two or more conditions instead of a score: the participants-and-items cards", "averaging over items and correlating, which ignores the variation between participants and items"]

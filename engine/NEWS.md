@@ -2,6 +2,26 @@
 
 A batch of new features, built as one round.
 
+* A predictor measured on each trial (E67, template `item_predictor`,
+  `population > x_level` "trial"): a value that varies from trial to
+  trial, such as how long a stimulus is shown, rather than one per item.
+  Each participant meets every value once, rotated across the items, so
+  X varies within items too and its effect may vary across items
+  (`population > sd_item_slope`): y ~ x + (1 + x | participant) + (1 + x
+  | item). Checked against a simulation written separately with
+  lmerTest, with the Type I error near alpha.
+* Predictors at all three levels (E62, template `two_level`): with
+  `population > groups_per_site` the groups are in sites (classes in
+  schools), with a predictor Z on each site (`variables > Z`), its
+  effect between sites (`b_Z`) and its interaction with X (`b_XZ`), and
+  the sites' own intercepts (`sd_site`) and, optionally, X slopes
+  (`sd_site_slope`): y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x
+  | site:group). W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated. `target_test > effect` also
+  takes "site_effect" and "site_interaction"; n is a whole number of
+  sites. Works with a score or a yes/no outcome. Checked against a
+  simulation written separately with lmerTest, with the Type I error at
+  most alpha.
 * Participants and items in two conditions (E33) can plan the number of
   items (stimuli) instead of participants: `goal > unit` "items", with
   `population > participants` fixed; `goal > n` is then the number of
