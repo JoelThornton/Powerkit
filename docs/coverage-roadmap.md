@@ -253,7 +253,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B37 | Crossed random effects | ML; BG; Audit | E33 | Wired (30 October 2026: two conditions within participants, and from 31 October between them; items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; As B34 | Transcribe a published example; more designs (E41) | — |
 | B38 | Mixed models with binary outcomes | ML | E33 or E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mixpower `mp_scenario_lme4_binomial()`; simr `powerSim()` (glmer models) | Phase 6 | — |
 | B39 | Cluster-randomised | ML; Audit | E34 | Wired (score or yes/no outcome, two conditions, equal numbers of groups, a baseline score optional for a score; also multisite trials, people randomised within groups, and group treatment trials, only one condition in groups; matches powertools called directly and the design-effect calculation in the engine's tests; published values to transcribe) | Now: AP, PN, S (powertools). Could: more covariates, unequal numbers of groups | **Engine: powertools `crt.parallel.cont()` and `multisite.cont()`** (27 October 2026), `crt.parallel.bin()` and `multisite.bin()` (yes/no outcome, 28 October 2026), `irgtt.cont()` and `irgtt.bin()` (only one condition in groups, 28 October 2026). Also WebPower `wp.crt2arm()`, `wp.crt3arm()` | Next: simulated models (package decision) | — |
-| B40 | Dyadic (APIM) | ML; Audit | E44 | Unknown (no APIM power function in the packages opened; check for a dedicated tool) | — | unknown | Search | [A5][], [C2][] |
+| B40 | Dyadic (APIM) | ML; Audit | E44 | Wired (1 November 2026: actor and partner effects, distinguishable or indistinguishable members; simulated with power4mome, lavaan's z test; published value to transcribe) | Now: AP (in the app), PN (R script) | **Engine: power4mome `power4test()` with `test_parameters()`**; apimpower (web app, not callable) | Transcribe a published example | [A5][], [C2][] |
 | B41 | Growth curves | ML; BG; Audit | E35 | Planned (later in the build guide; no phase) | — | longpower `lmmpower()`, `power.mmrm()`; mlmpower `power_analysis()` with `within_time_predictor()`; powerlmm `study_parameters()`, `get_power()` *(archived on CRAN in 2021; 0.4.0)*; semPower `semPower.powerLGCM()`; WebPower `wp.lcsm()` | — | [A6][] |
 | B42 | Diary/EMA and intensive longitudinal | ML; BG; Audit | E35 or E41 | Planned (later in the build guide; no phase) | — | PowerAnalysisIL *(coverage.md; GitHub, not on CRAN)* | — | [C3][] |
 | B43 | Cross-lagged panel models (including random-intercept versions) | ML; BG | E35 | Planned (later in the build guide; no phase) | — | powRICLPM `powRICLPM()`; semPower `semPower.powerCLPM()`, `semPower.powerRICLPM()` | — | — |
@@ -279,7 +279,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B54 | Equivalence (TOST) | ML; BG; Audit | E36 | Wired (in the app: two groups, paired, one sample by TOSTER's `power_t_TOST()`; a correlation by `power_z_cor()` and two proportions by `power_twoprop()`, 29 October 2026; published values to transcribe) | Now: AP, PN. Could: S, Co, Cr (Spower) | TOSTER `power_t_TOST()`, `powerTOSTone()`, `powerTOSTpaired()`, `powerTOSTtwo()`, `power_twoprop()`, `power_z_cor()`, `power_eq_f()`; Spower `is.CI_within()` (vignette "Equivalence testing") | Phase 6 | — |
 | B55 | Non-inferiority | ML; Audit | E36 | Wired (29 October 2026: two groups, paired, one sample and two proportions, pwrss's one-sided tests against the margin, `power.t.student()` and `power.z.twoprops()`; matches pwrss called directly; published values to transcribe) | Now: AP, PN | **Engine: pwrss `power.t.student(margin, alternative = "one.sided")`, `power.z.twoprops(margin)`** | Transcribe published examples | — |
-| B56 | Precision (CI width) | ML; BG; Audit | E46 | Planned (phase 6: AIPE) | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
+| B56 | Precision (CI width) | ML; BG; Audit | E46 | Wired (1 November 2026): d, d_z and a standardised mean (MBESS, with assurance), a correlation and a proportion (presize); other estimates later | Could: AP | MBESS `ss.aipe.smd()` and the other `ss.aipe.*()` functions; presize `prec_mean()`, `prec_meandiff()`; Spower precision criterion (vignette "Precision criterion", user-written) | Phase 6 | — |
 | B57 | Group-sequential designs with interim analyses | ML; BG; Audit | none: not reachable | Planned (later in the build guide; no phase) | — | rpact `getDesignGroupSequential()`, `getSampleSizeMeans()`, `getPowerMeans()`; gsDesign `gsDesign()`; POSSA `sim()`, `pow()` | — | [C13][] |
 
 ### Bayesian
@@ -306,7 +306,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B68 | Meta-analysis | ML; Audit | E61 (the average effect) | Wired (validation not finished): the average effect, 31 October 2026; heterogeneity, moderators and several effects per study are `next.md` item 7 | — | metapower `mpower()`; POMADE `power_MADE()` | Moderators (metapower, checked against simulation) and POMADE | — |
+| B68 | Meta-analysis | ML; Audit | E61 (the average effect, subgroups) | Wired (validation not finished): the average effect, 31 October 2026; subgroups of studies (a categorical moderator), 1 November 2026; heterogeneity, a score moderator and several effects per study are in `next.md` | — | metapower `mpower()`, `mod_power()`; metafor `rma(test = "knha")`; POMADE `power_MADE()` | POMADE | — |
 | B69 | Replication-study power (e.g. small telescopes, safeguard power) | ML | none: not reachable | Unknown (decide whether this is an effect-size input option or its own card) | — | RSmallTelescopes `SmallTelescopes()`; BUCSS `ss_buc_*()` functions; mixpower `mp_safeguard_effect()` | Decide | [B2][] |
 
 ## Wave 2 (engine groundwork, 18 October 2026)
@@ -427,14 +427,14 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 19 | 0 | 48 |
+| Wired (validation not finished) | 29 | 21 | 0 | 50 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 11 | 2 | 14 |
+| Planned | 1 | 10 | 2 | 13 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 16 | 0 | 17 |
+| Unknown | 1 | 15 | 0 | 16 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
@@ -515,9 +515,13 @@ until it goes through
 - **Barnard's unconditional exact test** for a 2x2 table: an alternative
   to Fisher's exact test (E5's test version), said to be more powerful.
 - **Cochran–Armitage trend test**: a linear trend in proportions across
-  ordered groups (dose, age band).
+  ordered groups (dose, age band). In the app since 1 November 2026 (E66,
+  simulated with Spower by powerkit's experiment calling
+  `stats::prop.trend.test()`; one- or two-sided, equal or unequal groups).
 - **Jonckheere–Terpstra trend test**: the rank-based equivalent for
-  ordered alternatives across k groups.
+  ordered alternatives across k groups. In the app since 1 November 2026
+  (E64, simulated with Spower by powerkit's experiment calling PMCMRplus's
+  `jonckheereTest()`; one- or two-sided, equal or unequal groups).
 - **Spearman's rho and Kendall's tau**: power for rank correlations. In
   the app since 29 October 2026 as a test version on E4 (Spower's
   `p_r(method =)`, normal scores).

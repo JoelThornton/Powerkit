@@ -60,7 +60,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     }
     # E24's, E34's, E36's, E37's and E51's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
-                    E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), list())
+                    E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
@@ -73,7 +73,13 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
 
 test_that("other settings start at the wrapped tool's default, and say whose default it is", {
   alpha <- function(ep) Filter(function(f) f$id == "alpha", fields_for(ep))[[1]]
-  for (ep in form_ids) {
+  # Precision planning (E46) has a confidence level, not alpha: its
+  # default is the packages' own.
+  level <- Filter(function(f) f$id == "conf_level", fields_for("E46"))[[1]]
+  expect_equal(level[["default"]], 0.95)
+  expect_match(level$default_source, "MBESS", fixed = TRUE)
+  expect_match(level$default_source, "presize", fixed = TRUE)
+  for (ep in setdiff(form_ids, "E46")) {
     f <- alpha(ep)
     expect_equal(f[["default"]], 0.05, label = ep)
     expect_match(f$default_source, forms$forms[[ep]]$tool, fixed = TRUE, label = ep)
@@ -129,7 +135,7 @@ test_that("the example values build the spec the engine expects", {
     expect_length(form_problems(fields, v), 0)
     spec <- build_spec(forms, ep, fields, v)
     # The generic tests (E50) have no sample size to find.
-    goal <- if (ep == "E50") list(type = "power") else list(type = "sample_size", power = 0.8)
+    goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else list(type = "sample_size", power = 0.8)
     expect_identical(spec$goal, goal, label = ep)
     expect_null(spec$goal$n)
   }
@@ -318,7 +324,7 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   situation <- function(start) Filter(function(f) f$id == "situation", form_fields(form_groups(forms, "E2", start = start)))[[1]]
   expect_equal(situation(list())$default, "choose")
   expect_equal(situation(list(situation = "fixed"))$default, "fixed")
-  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity"))
+  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity", "justified_alpha"))
 })
 
 test_that("the claim is asked under Settings, starts at one test, and notes each other claim", {
@@ -749,4 +755,20 @@ test_that("the participants-and-items cards take a yes/no outcome: probabilities
   spec <- build_spec(forms, "E63", fields, values)
   expect_identical(spec$target_test$effect, "pairwise")
   expect_identical(spec$target_test$method, "wald")
+})
+
+test_that("the meta-analysis card tests subgroups: the kinds' effects go to the engine's subgroups template", {
+  fields <- form_fields(form_groups(forms, "E61"))
+  values <- modifyList(form_examples$E61, list(meta_question = "subgroups", meta_effects = "0.2, 0.5", meta_effect = NULL,
+    goal = "power", n = "20"))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("meta_effect" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E61", fields, values)
+  expect_identical(spec$template, "subgroups")
+  expect_identical(spec$target_test$effect, "moderator")
+  expect_equal(unlist(spec$population$effects), c(0.2, 0.5))
+  validate <- engine_function("validate_spec")
+  skip_if(is.null(validate), "engine not available")
+  expect_s3_class(validate(spec), "powerkit_spec")
 })

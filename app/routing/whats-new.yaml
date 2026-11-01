@@ -21,6 +21,78 @@ entries:
       not, as a logistic mixed model; and the card for three or more
       conditions also plans studies where each participant is in one of
       the conditions.
+  - date: "2026-11-01"
+    title: "Couples and other pairs: actor and partner effects"
+    text: >-
+      A new card plans studies of pairs of people, such as couples, where
+      each person's score (for example, stress) can affect their own
+      outcome and their partner's: the actor-partner interdependence
+      model, for pairs whose members can be told apart (a woman and a man)
+      or not (two friends).
+  - date: "2026-11-01"
+    title: "Simulated data sets for more designs"
+    text: >-
+      The made-up practice data set you can download with a result is now
+      there for multiple regression, regression with other predictors,
+      ANCOVA with two factors, the trend test for proportions, multisite
+      and group trials with a yes/no outcome or a baseline score, and
+      precision planning. Where the plan leaves something open, a note
+      says what the data set assumes.
+  - date: "2026-11-01"
+    title: "Plan for a precise estimate"
+    text: >-
+      A new analysis plans the sample size for how narrow a confidence
+      interval you want, rather than for power: for Cohen's d between two
+      groups, paired scores, a standardised mean, a correlation or a
+      proportion. You can also see how wide the interval would be at a
+      sample size you have, and for d ask for a chance that it is narrow
+      enough.
+  - date: "2026-11-01"
+    title: "Bayesian planning in Labs"
+    text: >-
+      A new Labs tool for a Bayes factor t-test: choose the prior the Bayes
+      factor will use and, separately, what you believe about the effect,
+      and see how often a study of the size you set would give strong
+      evidence for an effect, strong evidence for no effect, or neither,
+      both if your belief is right and if there is no effect.
+  - date: "2026-11-01"
+    title: "Different SDs and correlations in mixed and two-factor repeated-measures designs"
+    text: >-
+      The 2 x 2 mixed ANOVA, the larger mixed ANOVA (for example group by
+      three timepoints) and the two-factor within-participants ANOVA can
+      now take a different SD in each cell and a different correlation
+      for each pair of measurements, with a Greenhouse-Geisser or
+      Huynh-Feldt correction where it applies.
+  - date: "2026-11-01"
+    title: "Meta-analysis: do kinds of study differ?"
+    text: >-
+      The meta-analysis card can now plan a subgroup analysis: whether the
+      effect differs between kinds of study, such as lab and online
+      studies, as well as the test of the average effect.
+  - date: "2026-11-01"
+    title: "Trend tests for groups in a set order"
+    text: >-
+      Two new analyses for three or more groups in an order, such as doses
+      or age bands: the Jonckheere-Terpstra test, for a steady rise or fall
+      in scores, and the Cochran-Armitage test, for a rising or falling
+      proportion of "yes". Both can be one- or two-sided, with equal or
+      unequal groups, and the design finder leads to them.
+  - date: "2026-10-31"
+    title: "The power visualiser shows a correlation too"
+    text: >-
+      In Labs, the power visualiser now also draws power for a
+      correlation: move the number of participants and the correlation,
+      and see how the two curves pull apart, with the smallest correlation
+      that would be significant.
+  - date: "2026-10-31"
+    title: "Choose a significance level by weighing the two mistakes"
+    text: >-
+      The one-sample, paired and two-group t-tests and the correlation
+      have a new goal: instead of always using 5%, find the significance
+      level that best balances a false positive against a missed effect,
+      for the sample size you have. You say how much worse a false
+      positive would be; the result shows the level, the power at it and
+      the power at 5% for comparison.
   - date: "2026-10-31"
     title: "Many items per person in three or more conditions"
     text: >-

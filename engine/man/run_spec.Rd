@@ -27,6 +27,11 @@ and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
 applied to the specified pattern, the scaled cell \code{means} and the
 \code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
 \code{r}, \code{w} or \code{p2});
+\item \code{justified_alpha}: \code{NULL} unless the goal is \code{justified_alpha};
+otherwise JustifyAlpha's \code{optimal_alpha()} result: the \code{alpha}, the
+\code{beta} and \code{power} at it, the weighted \code{error_rate}, the weights
+(\code{cost_ratio}, \code{prior_odds}), the \code{error_rule}, and the
+\code{conventional_alpha} with its \code{conventional_power};
 \item \code{effect_from_units}: \code{NULL} unless the effect was given in the
 outcome's own units (\code{population > metric} "raw", the t-tests);
 otherwise a list with the standardised effect's \code{name} ("Cohen's d"
@@ -125,7 +130,10 @@ holds. \code{goal > n} is the number of participants, each in every condition.
 Mixed ANOVA beyond 2 x 2 (template \code{mixed}): one between factor A by one
 within factor B, at least one with three or more levels (for example
 group by time with three timepoints), on Superpower's \code{ANOVA_exact()}
-(design \code{"kb*mw"}), with one SD and one correlation, so sphericity holds.
+(design \code{"kb*mw"}), with one SD and one correlation, so sphericity holds,
+or an SD per cell and a correlation per pair of B's levels (the same in
+every group), with the within-participants F tests corrected for
+sphericity if asked (\code{target_test > correction}, "GG" or "HF").
 \code{population > means} has one row per level of A, one mean per level of B.
 Rank tests (\code{target_test > method} \code{"wilcoxon_signed_rank"} for
 \code{one_sample_t} and \code{paired_t}, \code{"mann_whitney"} for \code{independent_t},
@@ -142,7 +150,8 @@ Two-factor ANOVA with both factors between participants, beyond 2 x 2
 (template \code{factorial_between}, design \code{"kb*mb"}), or both within
 participants, 2 x 2 or larger (template \code{factorial_within}, design
 \code{"kw*mw"}, one correlation between every pair of cells, so sphericity
-holds): either main effect or the interaction on Superpower's
+holds, or an SD per cell and a correlation per pair of cells, with a
+sphericity correction if asked): either main effect or the interaction on Superpower's
 \code{ANOVA_exact()}, with means laid out as for \code{mixed}. \code{goal > n} is the
 total number of participants (split equally across the cells for the
 between design; each in every cell for the within design).

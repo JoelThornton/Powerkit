@@ -257,6 +257,8 @@ zero_effect_cases <- list(
   # people are a whole number of them (30), above the minimum of six.
   mixed_three_level = function(s) within(s, {population$d <- 0; population$group_size <- 4L; population$groups_per_site <- 2L}),
   meta_mean_effect = function(s) within(s, population$effect <- 0),
+  dyadic_apim = function(s) within(s, population$partner <- 0),
+  meta_subgroups = function(s) within(s, population$effects <- list(0.3, 0.3)),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
@@ -305,6 +307,7 @@ zero_effect_cases <- list(
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   one_variance = function(s) within(s, population$var0 <- population$var),
   two_variances = function(s) within(s, population$var2 <- population$var1),
+  proportion_trend = function(s) within(s, population$proportions <- list(0.3, 0.3, 0.3, 0.3)),
   paired_variances = function(s) within(s, population$var2 <- population$var1),
   manova = function(s) within(s, population$means <- rep(population$means[1], length(population$means))),
   hotelling_one = function(s) within(s, population$means <- population$mu0),
@@ -322,8 +325,9 @@ test_that("a zero target effect can't be the basis of a sample size search", {
   # difference by design (what it needs is a bound above 0, which the
   # schema requires), so they aren't in this list. Nor is model fit for a
   # structural equation model: the schema refuses an RMSEA of 0, because
-  # semPower does.
-  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|noninf|sem)_", example_spec_names(), value = TRUE, invert = TRUE))
+  # semPower does. Precision planning has no power goal: an expected
+  # value of zero is a value like any other to estimate.
+  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|noninf|sem|precision)_", example_spec_names(), value = TRUE, invert = TRUE))
   for (name in names(zero_effect_cases)) {
     spec <- zero_effect_cases[[name]](example_spec(name))
     spec$goal <- list(type = "sample_size", power = 0.8)

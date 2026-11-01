@@ -281,3 +281,193 @@ meta_hk_script <- function(spec, result) {
     comparison_section()
   )
 }
+
+# Subgroups of studies (meta_analysis / subgroups, E66): does the average
+# effect differ between kinds of studies (a categorical moderator, e.g.
+# lab and online)? The k studies are split equally between the g kinds,
+# each with its own average effect; every study has the sampling variance
+# of a typical study at the effects' overall mean, and under the
+# random-effects model the true effects vary within each kind with
+# tau^2 = I^2 v / (1 - I^2), as metapower's mod_power() assumes. The test
+# is the between-groups Q test (QM, g - 1 df): metapower's mod_power()
+# under the fixed-effect model and on request under the random-effects
+# model (its z-based chi-square test), or by default under the
+# random-effects model the Hartung-Knapp version (metafor's rma() with the
+# kinds as a moderator, test = "knha", an F test), simulated with Spower
+# (Departure 18).
+
+meta_subgroups <- function(spec) identical(spec$template, "subgroups")
+
+# The effects on the analysis scale (Fisher's z for r), the typical
+# study's variance at their mean, and tau^2.
+meta_subgroup_model <- function(spec) {
+  pop <- spec$population
+  effects <- as.numeric(unlist(pop$effects))
+  n <- pop$study_size
+  if (identical(pop$metric, "r")) {
+    theta <- atanh(effects)
+    v <- 1 / (n - 3)
+  } else {
+    theta <- effects
+    v <- 4 / n + mean(effects)^2 / (2 * n)
+  }
+  list(theta = theta, v = v, tau2 = pop$i2 * v / (1 - pop$i2), groups = length(effects))
+}
+
+metapower_mod_backend <- function(spec, seed = NULL) {
+  pop <- spec$population
+  model <- spec$target_test$model %||% "random"
+  power_at <- function(n) {
+    out <- call_backend("metapower", quietly(metapower::mod_power(
+      n_groups = length(unlist(pop$effects)), effect_sizes = as.numeric(unlist(pop$effects)), study_size = pop$study_size,
+      k = n, i2 = pop$i2, es_type = pop$metric, p = spec$target_test$alpha)))$mod_power
+    if (identical(model, "fixed")) out$fixed_power_b else out$random_power_b
+  }
+  list(
+    name = "metapower",
+    packages = "metapower",
+    methods = "exact",
+    default_method = "exact",
+    functions = c(exact = "metapower::mod_power"),
+    n_step = length(unlist(pop$effects)),
+    exact_min_n = minimum_n(spec),
+    exact_power = power_at,
+    bracket_power = power_at,
+    simulate = NULL,
+    sensitivity = NULL,
+    check_run = function() metapower_mod_check_run(spec)
+  )
+}
+
+# Check run: no data are simulated, so the check confirms metapower uses
+# the effects, the study size and the heterogeneity the spec gives, and
+# its sampling variance is the typical study's at the effects' mean.
+metapower_mod_check_run <- function(spec) {
+  pop <- spec$population
+  out <- call_backend("metapower", quietly(metapower::mod_power(
+    n_groups = length(unlist(pop$effects)), effect_sizes = as.numeric(unlist(pop$effects)), study_size = pop$study_size,
+    k = 2 * length(unlist(pop$effects)), i2 = pop$i2, es_type = pop$metric, p = spec$target_test$alpha)))
+  model <- meta_subgroup_model(spec)
+  row <- function(parameter, specified, passed) {
+    data.frame(parameter = parameter, specified = specified, recovered = passed,
+      ok = isTRUE(all.equal(specified, passed, tolerance = 1e-3)))
+  }
+  rbind(
+    row("number of kinds of study", model$groups, out$n_groups),
+    row("participants in a typical study", pop$study_size, out$study_size),
+    row("heterogeneity, I-squared", pop$i2, out$i2),
+    row("a typical study's sampling variance", model$v, out$variance)
+  )
+}
+
+# Spower experiment: the p-value of the Hartung-Knapp test that the kinds
+# of study differ, from k studies split equally between them.
+p_meta_hk_mod <- function(k, theta, v, tau2) {
+  groups <- length(theta)
+  kind <- rep(seq_len(groups), each = k / groups)
+  yi <- stats::rnorm(k, stats::rnorm(k, theta[kind], sqrt(tau2)), sqrt(v))
+  fit <- metafor::rma(yi = yi, vi = rep(v, k), mods = ~ factor(kind), method = "DL", test = "knha")
+  fit$QMp
+}
+
+meta_hk_mod_backend <- function(spec, seed = NULL) {
+  model <- meta_subgroup_model(spec)
+  list(
+    name = "Spower",
+    packages = c("Spower", "SimDesign", "metafor"),
+    methods = "simulation",
+    default_method = "simulation",
+    functions = c(simulation = "Spower::Spower(p_meta_hk_mod()) (metafor::rma(mods = ~ kind, method = \"DL\", test = \"knha\"), the Hartung-Knapp test of the moderator)"),
+    n_step = model$groups,
+    exact_min_n = minimum_n(spec),
+    simulate = function(n, nrep, seed, cores) {
+      simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) {
+        result <- spower_eval(as.name("p_meta_hk_mod"), list(k = n, theta = model$theta, v = model$v, tau2 = model$tau2),
+          chunk, spec$target_test$alpha, chunk_seed)
+        round(result$power * chunk)
+      })
+    },
+    sensitivity = NULL,
+    check_run = function() meta_hk_mod_check_run(spec, model, seed)
+  )
+}
+
+# Check run: many simulated studies of each kind recover its average
+# effect and the spread of their estimates.
+meta_hk_mod_check_run <- function(spec, model, seed) {
+  k <- check_run_n() %/% model$groups * model$groups
+  kind <- rep(seq_len(model$groups), each = k / model$groups)
+  yi <- with_seed(seed %||% 1, stats::rnorm(k, stats::rnorm(k, model$theta[kind], sqrt(model$tau2)), sqrt(model$v)))
+  total <- model$v + model$tau2
+  per <- k / model$groups
+  do.call(rbind, c(
+    lapply(seq_len(model$groups), function(g) {
+      check_run_rows(sprintf("average effect of kind %d", g), model$theta[g], mean(yi[kind == g]), sqrt(total / per))
+    }),
+    list(check_run_rows("variance of the estimates within a kind (sampling variance plus tau-squared)", total,
+      mean(tapply(yi, kind, stats::var)), total * sqrt(2 / (k - model$groups))))
+  ))
+}
+
+# The standalone scripts: metapower's own call, or Spower with the same
+# experiment and metafor (export_script()).
+meta_subgroups_script <- function(spec, result) {
+  pop <- spec$population
+  model <- meta_subgroup_model(spec)
+  hk <- hartung_knapp_test(spec)
+  c(
+    script_header(spec, result, if (hk) "Spower" else "metapower", result$provenance$backend_function),
+    if (hk) c("library(Spower)", "library(metafor)") else "library(metapower)",
+    "",
+    "# Inputs ----",
+    if (hk) c(
+      sprintf("theta <- %s # each kind of study's average effect%s", r_code(model$theta),
+        if (identical(pop$metric, "r")) " (Fisher's z of r)" else " (Cohen's d)"),
+      sprintf("v <- %s # a typical study's sampling variance, at the effects' mean", r_code(model$v)),
+      sprintf("tau2 <- %s # between-study variance within a kind: I-squared %s times v / (1 - I-squared)", r_code(model$tau2), format(pop$i2))
+    ) else c(
+      sprintf("effects <- %s # each kind of study's average effect, as %s", r_code(as.numeric(unlist(pop$effects))),
+        if (identical(pop$metric, "r")) "r" else "Cohen's d"),
+      sprintf("es_type <- %s", r_code(pop$metric)),
+      sprintf("study_size <- %s # participants in a typical study", r_code(pop$study_size)),
+      sprintf("i2 <- %s # heterogeneity, I-squared", r_code(pop$i2)),
+      sprintf("model <- %s", r_code(spec$target_test$model %||% "random"))
+    ),
+    "# n_total below is the number of studies (k), split equally between the kinds.",
+    goal_inputs(spec, result),
+    "",
+    if (hk) c(
+      "p_meta_hk_mod <- function(k, theta, v, tau2) {",
+      "  groups <- length(theta)",
+      "  kind <- rep(seq_len(groups), each = k / groups)",
+      "  yi <- rnorm(k, rnorm(k, theta[kind], sqrt(tau2)), sqrt(v))",
+      "  fit <- rma(yi = yi, vi = rep(v, k), mods = ~ factor(kind), method = \"DL\", test = \"knha\")",
+      "  fit$QMp",
+      "}",
+      "",
+      "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+      "  set.seed(batch_seed)",
+      "  result <- Spower(",
+      "    p_meta_hk_mod(k = batch_n, theta = theta, v = v, tau2 = tau2),",
+      "    sig.level = alpha,",
+      "    replications = batch_replications,",
+      "    parallel = FALSE,",
+      "    verbose = FALSE",
+      "  )",
+      "  c(round(result$power * batch_replications), batch_replications)",
+      "}",
+      "",
+      batch_section(result, "Spower()"),
+      simulation_goal_section(spec, result, model$groups)
+    ) else c(
+      "power_at <- function(k) {",
+      "  out <- mod_power(n_groups = length(effects), effect_sizes = effects, study_size = study_size, k = k,",
+      "    i2 = i2, es_type = es_type, p = alpha)$mod_power",
+      "  if (model == \"fixed\") out$fixed_power_b else out$random_power_b",
+      "}",
+      "",
+      pwr_goal_section(spec, result)
+    ),
+    comparison_section()
+  )
+}

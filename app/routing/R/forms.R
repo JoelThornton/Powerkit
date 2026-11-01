@@ -239,6 +239,29 @@ offers_bayes_factor <- function(form) {
   any(vapply(form_fields(form$groups), function(f) identical(f$id, "method") && "bayes_factor" %in% names(f$choices), logical(1)))
 }
 
+# Precision planning (E46): the interval's width instead of power. Both
+# goals are the engine's goal type "precision" (build_spec()): with a
+# width it finds the sample size, with a sample size the width.
+precision_goal_fields <- function(tool) {
+  mbess <- list(field = "estimate", is_one_of = c("two_groups", "paired", "one_group"))
+  list(
+    list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
+         choices = list(precision_n = "The sample size for an interval this narrow",
+           precision_width = "How narrow the interval would be at a given sample size")),
+    list(id = "width", writeup_label = "interval width", label = "The widest interval you'd accept (upper limit minus lower, in the estimate's own units)",
+         help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
+         type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
+    list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
+         help = "Left empty, the sample size makes the interval's expected width this narrow, so about half of studies get a wider one. With 0.8, 80% of studies would get an interval no wider (MBESS's assurance). Only for d and standardised means.",
+         type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
+    list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
+         type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
+    list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",
+         required = TRUE, min_exclusive = 0.5, max_exclusive = 1, default = tool[["conf_level"]], default_source = tool[["conf_level_source"]])
+  )
+}
+
 # The closing questions every form asks (decision-tree.md, table 2.2).
 closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
@@ -249,8 +272,14 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # A meta-analysis (E61): n is the number of studies.
   meta <- isTRUE(form$meta)
   if (meta) goals <- list(sample_size = "The number of studies I need", power = "The power I'd have with a given number of studies")
+  # Dyadic data (E44): n is the number of pairs.
+  pairs <- identical(form$units, "pairs")
+  if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
+  # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
+  # paired and two-group t-tests and the correlation (E1-E4).
+  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "The significance level that best balances the two errors at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
@@ -266,7 +295,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     choices = list(choose = "No: I'm seeing what power a sample this size gives",
       fixed = "Yes: a participant pool, a budget or a rare group sets it"),
     default = if (identical(start$situation, "fixed")) "fixed" else "choose",
-    shown_for_goals = c("power", "sensitivity"), optional = TRUE)
+    shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
     list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor t-test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
@@ -275,10 +304,20 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
-         type = "number", path = "goal.n", needed_for = c("power", "sensitivity"), min = 2, integer = TRUE),
+         type = "number", path = "goal.n", needed_for = c("power", "sensitivity", "justified_alpha"), min = 2, integer = TRUE),
     list(id = "n_max", label = "The largest number of participants you could analyse",
          type = "number", needed_for = "sensitivity_curve", min = 16, integer = TRUE),
     situation,
+    list(id = "cost_ratio", label = "How many times worse is a false positive than a missed effect?",
+         help = "1 if the two mistakes are equally bad; 4 if a false positive is four times worse (the ratio behind the usual 5% and 80%).",
+         type = "number", path = "goal.cost_ratio", needed_for = "justified_alpha", min_exclusive = 0, default = 1,
+         default_source = "both mistakes weighted equally"),
+    list(id = "prior_odds", label = "How much more likely is the effect to be real than not, before the study?",
+         help = "1 if you think it as likely as not. Leave at 1 if you have no view.",
+         type = "number", path = "goal.prior_odds", optional = TRUE, shown_for_goals = "justified_alpha", min_exclusive = 0, default = 1),
+    list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
+         choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
+         default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
     # Shown only when alpha is changed from its default (decided 18 October
@@ -287,14 +326,19 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  if (isTRUE(form$precision)) test <- precision_goal_fields(tool)
   if (meta) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)
     at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
     test[[at]]$label <- "Number of studies"
   }
+  if (pairs) {
+    at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
+    test[[at]]$label <- "Number of pairs"
+  }
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
-    claim_groups(start$claim, start$n_tests),
+    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
@@ -841,6 +885,13 @@ build_spec <- function(forms, ep_id, fields, values) {
     pair <- unlist(spec$target_test$comparison)
     at <- match(tolower(trimws(pair)), tolower(trimws(levels)))
     spec$target_test$comparison <- as.list(ifelse(is.na(at), pair, levels[at]))
+  }
+  # Precision (E46): one engine goal, and the interval's level as alpha.
+  if (isTRUE(form$precision)) {
+    spec$goal$type <- "precision"
+    spec$target_test$alpha <- 1 - parse_number(values$conf_level)
+    if (!identical(spec$template, "proportion") && !identical(spec$template, "correlation")) spec$target_test$method <- "noncentral_t"
+    return(spec)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)

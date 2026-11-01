@@ -35,7 +35,7 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped cards (through C1).
       # Many trials per person leave after S2's follow-up for E33.
-      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E68")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
+      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E68", "E44", "E65")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -62,15 +62,17 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # Equivalence for grouped data: not the equivalence card, which assumes
   # separate people; the grouped card says it isn't covered yet.
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
-  expect_all_routes(c("A score or scale", "Pairs"), "E44")
+  expect_all_routes(c("A score or scale", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E44")
   expect_all_routes(c("A score or scale", "Many trials or stimuli per person", "Two conditions, and each person responds in both"), "E33")
   expect_all_routes(c(screen_score, "Many times", "Measurements over time, to see how people change"), "E35")
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E35", "E43", "E44", "E45", "E46")) {
+  for (id in c("E35", "E43", "E65", "E45")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
+  # Estimating precisely: the precision card calculates (MBESS, presize).
+  expect_identical(tree$endpoints$E46$status, "runs_validation_in_progress")
   # Ordered categories in two groups calculate (powertools' propodds()).
   expect_identical(tree$endpoints$E29$status, "runs_validation_in_progress")
   # People within groups: the cluster-randomised trial calculates (powertools).
@@ -203,7 +205,12 @@ test_that("trials or stimuli with a yes/no outcome no longer reach McNemar's tes
 
 test_that("dyadic data no longer reach a test that treats partners as independent", {
   # On main: rel > score > measured once > score > E4 (not reachable by name).
-  expect_all_routes(c("A score or scale", "Pairs"), "E44")
+  # Pairs (1 November 2026): actor and partner effects calculate (E44);
+  # conditions given to whole pairs are a cluster trial with groups of two.
+  expect_all_routes(c("A score or scale", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E44")
+  expect_all_routes(c("A score or scale", "Pairs", "Conditions given to whole pairs"), "E34")
+  expect_all_routes(c("A score or scale", "Pairs", "Something else, such as a condition given to one member of each pair"), "E65")
+  expect_all_routes(c("Yes/no, or one of several categories", "Pairs", "Something measured on each member, and how it relates to their own and their partner's outcome"), "E65")
 })
 
 test_that("growth curves and diary studies in the guided route reach the longitudinal card", {

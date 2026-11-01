@@ -1,0 +1,35 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "proportion",
+  "variables": {
+    "Y": {
+      "type": "binary",
+      "label": "Reports burnout",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: about 30% expected; the interval should be no wider than 10 percentage points."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "wilson",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 0.1
+  },
+  "options": {
+    "seed": 20261101
+  }
+}

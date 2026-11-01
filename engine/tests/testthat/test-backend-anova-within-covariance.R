@@ -46,7 +46,7 @@ test_that("impossible or mismatched SDs and correlations are refused in plain wo
   expect_spec_problem(eta, "needs the condition means, SDs and correlations")
   between <- example_spec("anova_oneway_between")
   between$target_test$correction <- "GG"
-  expect_spec_problem(between, "only applies to the one-way repeated-measures ANOVA")
+  expect_spec_problem(between, "only applies to repeated-measures ANOVAs")
 })
 
 test_that("the exported script reproduces a corrected test with unequal SDs and correlations", {

@@ -1,0 +1,58 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "proportion_trend",
+  "variables": {
+    "X": {
+      "type": "categorical",
+      "label": "Weekly sessions",
+      "levels": [
+        "None",
+        "One",
+        "Two",
+        "Three"
+      ]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Recovered",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "proportions": [
+      0.2,
+      0.25,
+      0.3,
+      0.35
+    ],
+    "scores": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning."
+  },
+  "target_test": {
+    "effect": "trend",
+    "method": "cochran_armitage",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 400
+  },
+  "options": {
+    "attrition": 0.1,
+    "nrep": 1000,
+    "seed": 20261101
+  }
+}
