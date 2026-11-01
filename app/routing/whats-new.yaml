@@ -17,6 +17,14 @@ entries:
       Every tab now sits in the same place, and the blue bar spans the
       whole window.
   - date: "2026-11-01"
+    title: "A Bayes factor test for one proportion"
+    text: >-
+      The card for one proportion (for example, guessing right more often
+      than chance) now offers a Bayes factor test as well as the exact
+      binomial test, with the same prior as JASP's Bayesian binomial test.
+      It shows the chance of strong evidence, and what the study would show
+      if there were no effect.
+  - date: "2026-11-01"
     title: "A new methods map"
     text: >-
       The methods map in Labs now opens full screen. Find a study like

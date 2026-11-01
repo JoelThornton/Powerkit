@@ -380,6 +380,12 @@ pwrss_goal_section <- function(spec, result) {
   if (spec$goal$type != "sample_size" || !isTRUE(pwrss_backend(spec)$sawtooth)) {
     return(pwr_goal_section(spec, result))
   }
+  sawtooth_goal_section(spec, result)
+}
+
+# The required-n section for a test whose exact power goes up and down
+# with n (pwrss's tests of counts, and the binomial Bayes factor).
+sawtooth_goal_section <- function(spec, result) {
   # Exact tests of counts: power goes up and down with n, so the script
   # checks every n up to powerkit's, as search_n_exact() does.
   step <- valid_n_step(spec)
