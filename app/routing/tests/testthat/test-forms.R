@@ -60,7 +60,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     }
     # E24's, E34's, E36's, E37's and E51's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
-                    E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), list())
+                    E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
@@ -318,7 +318,7 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   situation <- function(start) Filter(function(f) f$id == "situation", form_fields(form_groups(forms, "E2", start = start)))[[1]]
   expect_equal(situation(list())$default, "choose")
   expect_equal(situation(list(situation = "fixed"))$default, "fixed")
-  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity"))
+  expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity", "justified_alpha"))
 })
 
 test_that("the claim is asked under Settings, starts at one test, and notes each other claim", {
@@ -749,4 +749,20 @@ test_that("the participants-and-items cards take a yes/no outcome: probabilities
   spec <- build_spec(forms, "E63", fields, values)
   expect_identical(spec$target_test$effect, "pairwise")
   expect_identical(spec$target_test$method, "wald")
+})
+
+test_that("the meta-analysis card tests subgroups: the kinds' effects go to the engine's subgroups template", {
+  fields <- form_fields(form_groups(forms, "E61"))
+  values <- modifyList(form_examples$E61, list(meta_question = "subgroups", meta_effects = "0.2, 0.5", meta_effect = NULL,
+    goal = "power", n = "20"))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("meta_effect" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E61", fields, values)
+  expect_identical(spec$template, "subgroups")
+  expect_identical(spec$target_test$effect, "moderator")
+  expect_equal(unlist(spec$population$effects), c(0.2, 0.5))
+  validate <- engine_function("validate_spec")
+  skip_if(is.null(validate), "engine not available")
+  expect_s3_class(validate(spec), "powerkit_spec")
 })

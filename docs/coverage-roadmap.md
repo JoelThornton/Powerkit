@@ -306,7 +306,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B68 | Meta-analysis | ML; Audit | E61 (the average effect) | Wired (validation not finished): the average effect, 31 October 2026; heterogeneity, moderators and several effects per study are `next.md` item 7 | — | metapower `mpower()`; POMADE `power_MADE()` | Moderators (metapower, checked against simulation) and POMADE | — |
+| B68 | Meta-analysis | ML; Audit | E61 (the average effect, subgroups) | Wired (validation not finished): the average effect, 31 October 2026; subgroups of studies (a categorical moderator), 1 November 2026; heterogeneity, a score moderator and several effects per study are in `next.md` | — | metapower `mpower()`, `mod_power()`; metafor `rma(test = "knha")`; POMADE `power_MADE()` | POMADE | — |
 | B69 | Replication-study power (e.g. small telescopes, safeguard power) | ML | none: not reachable | Unknown (decide whether this is an effect-size input option or its own card) | — | RSmallTelescopes `SmallTelescopes()`; BUCSS `ss_buc_*()` functions; mixpower `mp_safeguard_effect()` | Decide | [B2][] |
 
 ## Wave 2 (engine groundwork, 18 October 2026)
@@ -515,9 +515,13 @@ until it goes through
 - **Barnard's unconditional exact test** for a 2x2 table: an alternative
   to Fisher's exact test (E5's test version), said to be more powerful.
 - **Cochran–Armitage trend test**: a linear trend in proportions across
-  ordered groups (dose, age band).
+  ordered groups (dose, age band). In the app since 1 November 2026 (E66,
+  simulated with Spower by powerkit's experiment calling
+  `stats::prop.trend.test()`; one- or two-sided, equal or unequal groups).
 - **Jonckheere–Terpstra trend test**: the rank-based equivalent for
-  ordered alternatives across k groups.
+  ordered alternatives across k groups. In the app since 1 November 2026
+  (E64, simulated with Spower by powerkit's experiment calling PMCMRplus's
+  `jonckheereTest()`; one- or two-sided, equal or unequal groups).
 - **Spearman's rho and Kendall's tau**: power for rank correlations. In
   the app since 29 October 2026 as a test version on E4 (Spower's
   `p_r(method =)`, normal scores).

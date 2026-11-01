@@ -109,6 +109,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       list(s("SimDesign", "which runs Spower's simulations")),
       if ("EnvStats" %in% used) {
         list(s("EnvStats", "whose varTest() is the chi-square test of one variance that Spower's p_var.test() runs"))
+      },
+      if ("PMCMRplus" %in% used) {
+        list(s("PMCMRplus", "whose jonckheereTest() is the Jonckheere-Terpstra test powerkit's experiment runs"))
       }
     ),
     Superpower = list(
@@ -126,6 +129,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
   )
   if ("effectsize" %in% used) {
     packages <- c(packages, list(s("effectsize", "which converted the effect size entered into the one the calculation uses")))
+  }
+  if ("JustifyAlpha" %in% used) {
+    packages <- c(packages, list(s("JustifyAlpha", "which found the justified alpha (optimal_alpha())")))
   }
   if ("psych" %in% used && length(psych_roles) > 0) {
     packages <- c(packages, list(s("psych", paste("which", paste(psych_roles, collapse = " and ")))))

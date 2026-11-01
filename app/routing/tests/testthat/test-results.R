@@ -822,7 +822,7 @@ test_that("repeated measures with three or more conditions show the MANOVA appro
   calc <- run_calculation(spec, run, seed = 1L)
   expect_false(is.null(calc$result$manova))
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["detail"]], "The MANOVA approach, which doesn't, has", fixed = TRUE)
+  expect_match(words[["detail"]], "The MANOVA approach, which doesn't need sphericity, has", fixed = TRUE)
   w <- writeup_text(forms$forms$E54, calc$spec, calc$result, fields, form_examples$E54)
   expect_match(w[["full"]], "the MANOVA approach (Pillai's trace)", fixed = TRUE)
   # A between-participants design has no MANOVA sentence.
@@ -893,6 +893,40 @@ test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test
   expect_true(all(calc$result$check_run$ok))
   w <- writeup_text(forms$forms$E57, calc$spec, calc$result, fields, form_examples$E57)
   expect_match(w[["short"]], "the Pitman-Morgan test of two paired variances", fixed = TRUE)
+})
+
+test_that("the trend tests (E64, E66) run one-sided with unequal groups, and their write-ups say so", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E64"))
+  expect_equal(form_problems(fields, form_examples$E64), character())
+  spec <- build_spec(forms, "E64", fields, form_examples$E64)
+  expect_identical(spec$target_test$method, "jonckheere_terpstra")
+  expect_identical(spec$target_test$alternative, "greater")
+  expect_equal(as.numeric(unlist(spec$options$group_ratio)), c(1, 1, 2))
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "jonckheereTest", fixed = TRUE)
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms$E64, calc$spec, calc$result, fields, form_examples$E64)
+  expect_match(w[["short"]], "a Jonckheere-Terpstra test of a trend across groups in order (one-sided, a rising trend", fixed = TRUE)
+  expect_match(test_text(calc$spec), "a one-sided test (a rising trend)", fixed = TRUE)
+
+  fields <- form_fields(form_groups(forms, "E66"))
+  values <- modifyList(form_examples$E66, list(group_ratio = "2, 1, 1, 2", alternative = "less", proportions = "0.35, 0.3, 0.25, 0.2"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E66", fields, values)
+  expect_identical(spec$template, "proportion_trend")
+  spec$goal <- list(type = "power", n = 396L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_match(calc$result$provenance$backend_function, "prop.trend.test", fixed = TRUE)
+  w <- writeup_text(forms$forms$E66, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "one-sided, a falling trend", fixed = TRUE)
+  # Two-sided, equal groups: the example as given.
+  spec <- build_spec(forms, "E66", fields, form_examples$E66)
+  expect_null(spec$options$group_ratio)
+  expect_identical(spec$target_test$alternative, "two_sided")
 })
 
 test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr, with no alpha", {
@@ -1601,6 +1635,42 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   expect_match(check$problems, "Correlations: one for each pair", fixed = TRUE, all = FALSE)
 })
 
+test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
+  cases <- list(
+    E8 = list(spread = "differ", sd = NULL, r = NULL, metric = "raw", s11 = "1", s12 = "1.2", s21 = "1", s22 = "1.5", r1 = "0.6", r2 = "0.4"),
+    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG"),
+    E20 = list(spread = "differ", sd = NULL, r = NULL, sds = "80, 90, 100\n80, 90, 100",
+               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF")
+  )
+  for (ep in names(cases)) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_gt(length(unlist(spec$population$sd)), 1)
+    expect_gt(length(unlist(spec$population$r)), 1)
+    if (ep != "E8") expect_identical(spec$target_test$correction, cases[[ep]]$correction)
+    # With one SD and one correlation, nothing changes.
+    same <- build_spec(forms, ep, fields, modifyList(form_examples[[ep]], list(goal = "power", n = "40")))
+    expect_length(unlist(same$population$sd), 1)
+    expect_null(same$target_test$correction)
+  }
+  skip_without_run()
+  ep <- "E55"
+  fields <- form_fields(form_groups(forms, ep))
+  values <- modifyList(form_examples[[ep]], c(cases[[ep]], list(goal = "power", n = "40")))
+  calc <- run_calculation(build_spec(forms, ep, fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_true(all(calc$result$check_run$ok))
+  expect_false(is.null(calc$result$manova))
+  text <- paste(writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields, modifyList(values, list(just_type = "smallest_effect_of_interest",
+    just_source = "A pilot"))), collapse = " ")
+  expect_match(text, "with the Greenhouse-Geisser correction for sphericity", fixed = TRUE)
+  expect_match(text, "without assuming sphericity", fixed = TRUE)
+  expect_no_match(text, "Assuming sphericity", fixed = TRUE)
+  expect_match(paste(result_sentences(calc$spec, calc$result), collapse = " "), "need not keep sphericity, with the Greenhouse-Geisser correction", fixed = TRUE)
+})
+
 test_that("between-participants ANOVA by its effect size: partial eta-squared, or converted from F, goes to pwrss", {
   for (ep in c("E7", "E18", "E21")) {
     fields <- form_fields(form_groups(forms, ep))
@@ -2099,4 +2169,29 @@ test_that("the two-group card takes a point-biserial r, as G*Power's point-biser
   # G*Power's point-biserial example (r = .25, one-sided, power .95) needs 164.
   expect_equal(calc$result$n_required$n, 164)
   expect_match(paste(result_sentences(spec, calc$result), collapse = " "), "From the point-biserial r of 0.25", fixed = TRUE)
+})
+
+test_that("the t-test and correlation cards find a justified alpha, and say how the errors were weighed", {
+  for (ep in c("E1", "E2", "E3", "E4")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+    expect_true("justified_alpha" %in% names(goal$choices), label = ep)
+    values <- modifyList(form_examples[[ep]], list(goal = "justified_alpha", n = "64", cost_ratio = "4",
+      method = if (ep == "E2") "student_t" else form_examples[[ep]]$method,
+      error_rule = "minimize", prior_odds = "1"))
+    expect_true(field_applies(by_id("cost_ratio"), values))
+    expect_false(field_applies(by_id("cost_ratio"), list(goal = "power")))
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$goal$type, "justified_alpha")
+    expect_equal(spec$goal$cost_ratio, 4)
+    skip_without_run()
+    calc <- run_calculation(spec, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = ep)
+    j <- calc$result$justified_alpha
+    text <- paste(result_sentences(spec, calc$result), collapse = " ")
+    expect_match(text, sprintf("is alpha = %s", format(signif(j$alpha, 3))), fixed = TRUE)
+    expect_match(text, "weighted 4 times as heavily as a missed effect", fixed = TRUE)
+    expect_match(text, "JustifyAlpha's optimal_alpha()", fixed = TRUE)
+  }
 })

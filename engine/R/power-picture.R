@@ -52,3 +52,64 @@ power_picture <- function(n, d, alpha = 0.05, points = 401) {
     package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
   )
 }
+
+
+# The correlation (Labs): on the scale of Fisher's z, the sampling
+# distribution of the observed correlation when there is none and when it
+# is r, as pwr.r.test() computes power: each normal with SD 1 / sqrt(n -
+# 3), centred on 0 and on atanh(r) + r / (2 (n - 1)), with the critical
+# value atanh(r_crit), where r_crit = t_crit / sqrt(t_crit^2 + n - 2) is
+# the critical correlation of the t test with n - 2 df (pwr 1.3-0's
+# source for pwr.r.test()). Power is pwr's; the curves are base R's
+# normal densities (stats::dnorm()).
+
+#' The picture of power for a correlation
+#'
+#' What the Labs picture of power draws for a Pearson correlation: the
+#' sampling distribution of the observed correlation, on the scale of
+#' Fisher's z, when there is no correlation and when it is `r`, with the
+#' critical values and the numbers behind them, as pwr's `pwr.r.test()`
+#' computes power (two-sided).
+#'
+#' @param n The number of participants (at least 4).
+#' @param r The correlation in the population (0 or more, below 1).
+#' @param alpha The significance level of the two-sided test.
+#' @param points How many points of each curve to return.
+#' @return A list: `n`, `r`, `alpha`, `power` (pwr's `pwr.r.test()`),
+#'   `beta` (1 - power), `df` (n - 2), `se` (1 / sqrt(n - 3)), `z_r` (the
+#'   centre of the alternative, atanh(r) + r / (2 (n - 1))), `t_crit` (the
+#'   two-sided critical t), `r_crit` (the smallest observed r that would be
+#'   significant), `z_crit` (atanh(r_crit)), `curves` (a data frame of `z`,
+#'   `null` and `alternative` densities), `function_used` and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_r(84, 0.3)
+#' picture$power
+power_picture_r <- function(n, r, alpha = 0.05, points = 401) {
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 4 || n %% 1 != 0) {
+    abort_run("'n' should be a whole number of participants, at least 4.")
+  }
+  if (!is.numeric(r) || length(r) != 1 || is.na(r) || r < 0 || r >= 1) {
+    abort_run("'r' should be a correlation of 0 or more, below 1.")
+  }
+  if (!is.numeric(alpha) || length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 0.5) {
+    abort_run("'alpha' should be between 0 and 0.5.")
+  }
+  df <- n - 2
+  se <- 1 / sqrt(n - 3)
+  power <- pwr::pwr.r.test(n = n, r = r, sig.level = alpha, alternative = "two.sided")$power
+  t_crit <- stats::qt(1 - alpha / 2, df)
+  r_crit <- t_crit / sqrt(t_crit^2 + df)
+  z_crit <- atanh(r_crit)
+  z_r <- atanh(r) + r / (2 * (n - 1))
+  from <- min(-4 * se, -z_crit - se)
+  to <- max(4 * se, z_crit + se, z_r + 4 * se)
+  z <- seq(from, to, length.out = points)
+  list(
+    n = n, r = r, alpha = alpha, power = power, beta = 1 - power, df = df, se = se, z_r = z_r,
+    t_crit = t_crit, r_crit = r_crit, z_crit = z_crit,
+    curves = data.frame(z = z, null = stats::dnorm(z, 0, se), alternative = stats::dnorm(z, z_r, se)),
+    function_used = sprintf("pwr::pwr.r.test(n = %s, r = %s, sig.level = %s)", format(n), format(r), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}

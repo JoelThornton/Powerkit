@@ -32,6 +32,8 @@ Imports:
     InteractionPoweR,
     jsonlite,
     jsonvalidate (>= 1.3.0),
+    JustifyAlpha,
+    PMCMRplus,
     lme4,
     lmerTest,
     manymome,

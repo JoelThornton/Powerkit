@@ -1064,18 +1064,52 @@ server <- function(input, output, session) {
   })
   # Labs: the picture of power, from the engine's power_picture().
   picture <- reactive({
-    tryCatch(engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5),
-      alpha = as.numeric(input$picture_alpha %||% "0.05")), error = function(e) NULL)
+    alpha <- as.numeric(input$picture_alpha %||% "0.05")
+    tryCatch(if (identical(input$picture_design, "r")) {
+      engine_function("power_picture_r")(as.numeric(input$picture_n_r %||% 84), as.numeric(input$picture_r %||% 0.3), alpha = alpha)
+    } else {
+      engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5), alpha = alpha)
+    }, error = function(e) NULL)
   })
   output$picture_plot <- renderPlot({
     req(picture())
     picture_plot(picture())
-  }, alt = reactive(if (is.null(picture())) "The picture of power" else
+  }, alt = reactive(if (is.null(picture())) "The picture of power" else if (!is.null(picture()$r))
+    sprintf("Two distributions of the observed correlation: power is %.1f%% for r = %s with %s participants at alpha = %s.",
+      100 * picture()$power, format(picture()$r), format(picture()$n), format(picture()$alpha)) else
     sprintf("Two t distributions: power is %.1f%% for d = %s with %s participants at alpha = %s.",
       100 * picture()$power, format(picture()$d), format(picture()$n), format(picture()$alpha))))
   output$picture_numbers <- renderUI(if (is.null(picture())) {
     p("The picture needs powerkit's engine.")
   } else picture_numbers(picture()))
+  # Labs: Bayesian planning, from the engine's bayes_planning().
+  bayes_plan <- eventReactive(input$bayes_run, {
+    num <- function(x, default) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1 || is.na(v)) default else v }
+    tryCatch(engine_function("bayes_planning")(
+      n = num(input$bayes_n, NA), type = input$bayes_type %||% "two.sample",
+      effect = num(input$bayes_effect, NA), effect_sd = num(input$bayes_effect_sd, NA),
+      prior_scale = num(input$bayes_scale, NA), threshold = num(input$bayes_threshold, 10),
+      alternative = input$bayes_alternative %||% "two.sided", target = num(input$bayes_target, NA)
+    ), error = function(e) list(problem = bayes_problem(e)))
+  })
+  output$bayes_result <- renderUI({
+    plan <- bayes_plan()
+    if (!is.null(plan$problem)) return(div(class = "form-problems mt-2", role = "alert", p(plan$problem)))
+    div(class = "result-panel mt-2", role = "status",
+      bayes_numbers(plan),
+      h4(class = "h5", "The two priors"),
+      plotOutput("bayes_priors_plot", height = "260px"),
+      h4(class = "h5", "As the sample size grows"),
+      plotOutput("bayes_curves_plot", height = "280px"))
+  })
+  output$bayes_priors_plot <- renderPlot({
+    req(is.null(bayes_plan()$problem))
+    bayes_priors_plot(bayes_plan())
+  }, alt = "The analysis prior and the design prior, drawn over the true standardised effect.")
+  output$bayes_curves_plot <- renderPlot({
+    req(is.null(bayes_plan()$problem))
+    bayes_curves_plot(bayes_plan())
+  }, alt = "The chance of strong evidence for an effect, and for no effect, against the sample size.")
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))

@@ -94,6 +94,7 @@ on:
           - two_correlations
           - generic
           - equivalence
+          - trend
           - whole_study
           - cluster
           - multisite
