@@ -130,6 +130,11 @@ A batch of new features, built as one round.
   (D1): something measured on each member (E44), conditions given to
   whole pairs (the cluster-randomised card, groups of two) or another
   design (E65, not yet covered); the result screen counts pairs.
+* Dyadic data (E44): several effects tested together (`target_test >
+  effect` "actor_and_partner" for indistinguishable members, or
+  "both_partners", "both_actors" and "all_four" for distinguishable
+  ones): joint power, the share of simulated studies in which every one
+  is significant, each effect tested on the same fitted models.
 * Meta-analysis subgroups (E61, template `subgroups`): does the average
   effect differ between kinds of study (a categorical moderator, such as
   lab against online)? The studies are split equally between the kinds,

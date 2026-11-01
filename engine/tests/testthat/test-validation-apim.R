@@ -69,6 +69,30 @@ for (case in apim_cases) {
   })
 }
 
+test_that("APIM, indistinguishable: joint power of the actor and partner effects agrees with the independent simulation (analytic)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("MASS")
+  population <- indistinguishable
+  b <- c(a = population$actor, p = population$partner)
+  r <- population$r_x
+  r2 <- b[["a"]]^2 + b[["p"]]^2 + 2 * b[["a"]] * b[["p"]] * r
+  cov_e <- population$r_y * (1 - r2)
+  fit_model <- "Y1 ~ a1*X1 + p21*X2\nY2 ~ a2*X2 + p12*X1\na1 == a2\np21 == p12\nX1 ~~ X2\nY1 ~~ Y2"
+  n <- 100
+  reference <- with_seed(4406, mean(vapply(seq_len(apim_reps), function(i) {
+    x <- MASS::mvrnorm(n, c(0, 0), matrix(c(1, r, r, 1), 2))
+    e <- MASS::mvrnorm(n, c(0, 0), matrix(c(1 - r2, cov_e, cov_e, 1 - r2), 2))
+    data <- data.frame(X1 = x[, 1], X2 = x[, 2], Y1 = b[["a"]] * x[, 1] + b[["p"]] * x[, 2] + e[, 1],
+      Y2 = b[["a"]] * x[, 2] + b[["p"]] * x[, 1] + e[, 2])
+    fit <- tryCatch(suppressWarnings(lavaan::sem(fit_model, data = data)), error = function(e) NULL)
+    if (is.null(fit)) return(FALSE)
+    pe <- lavaan::parameterEstimates(fit)
+    all(pe$pvalue[match(c("a1", "p21"), pe$label)] < 0.05)
+  }, logical(1))))
+  estimate <- engine_power(apim_validation_spec(population, "actor_and_partner", seed = 4407, n = n))
+  expect_power_near(estimate, reference, reference_nrep = apim_reps)
+})
+
 test_that("APIM: Type I error near alpha with no partner effect, for both kinds of dyad", {
   skip_unless_full_validation()
   null_ind <- utils::modifyList(indistinguishable, list(partner = 0))

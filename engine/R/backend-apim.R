@@ -39,8 +39,11 @@ apim_inputs <- function(spec) {
   # power4mome_inputs() does for parallel mediators.
   residual_cov <- pop$r_y * sqrt((1 - r2[["Y1"]]) * (1 - r2[["Y2"]]))
   distinguishable <- isTRUE(pop$distinguishable)
+  # One effect, or several tested together (joint power: every one
+  # significant in the same simulated study).
   label <- switch(spec$target_test$effect, actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2",
-    partner_12 = "p12", partner_21 = "p21")
+    partner_12 = "p12", partner_21 = "p21", actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"),
+    both_partners = c("p12", "p21"), all_four = c("a1", "a2", "p12", "p21"))
   list(
     model = paste("Y1 ~ X1 + X2", "Y2 ~ X2 + X1", "X1 ~~ X2", "Y1 ~~ Y2", sep = "\n"),
     pop_es = paste(
@@ -65,7 +68,8 @@ apim_backend <- function(spec, seed = NULL) {
     packages = c("power4mome", "lavaan"),
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = sprintf("power4mome::power4test with power4mome::test_parameters (pars = \"%s\")", inputs$label)),
+    functions = c(simulation = sprintf("power4mome::power4test with power4mome::test_parameters (pars = %s)",
+      paste(sprintf("\"%s\"", inputs$label), collapse = ", "))),
     n_step = 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
@@ -79,15 +83,35 @@ apim_backend <- function(spec, seed = NULL) {
 # Rejections in `nrep` replications at n dyads, and how many replications
 # could be analysed (power4mome drops data sets whose model fails to fit).
 apim_rejections <- function(inputs, n, nrep, seed) {
-  result <- power4mome_call(
-    inputs, n, nrep, seed,
-    fit_model_args = list(model = inputs$fit_model),
-    test_fun = power4mome::test_parameters,
-    test_args = list(pars = inputs$label, level = 1 - inputs$alpha)
-  )
-  rates <- power4mome::rejection_rates(result)
-  valid <- round(rates$pvalid[1] * nrep)
-  c(round(rates$reject[1] * valid), valid)
+  if (length(inputs$label) == 1) {
+    result <- power4mome_call(
+      inputs, n, nrep, seed,
+      fit_model_args = list(model = inputs$fit_model),
+      test_fun = power4mome::test_parameters,
+      test_args = list(pars = inputs$label, level = 1 - inputs$alpha)
+    )
+    rates <- power4mome::rejection_rates(result)
+    valid <- round(rates$pvalid[1] * nrep)
+    return(c(round(rates$reject[1] * valid), valid))
+  }
+  # Several effects: each tested on the same fitted models, one
+  # power4test() call per effect; a replication counts when every test
+  # could be done, and as significant when every effect is (power4mome's
+  # own "all_sig" rule, applied to its stored results: its
+  # merge_all_tests doesn't read test_parameters()' lavaan tables in
+  # power4mome 0.2.1).
+  obj <- power4mome_call(inputs, n, nrep, seed, fit_model_args = list(model = inputs$fit_model), do_the_test = FALSE)
+  for (label in inputs$label) {
+    obj <- call_backend("power4mome", quietly(power4mome::power4test(
+      object = obj, test_fun = power4mome::test_parameters,
+      test_args = list(pars = label, level = 1 - inputs$alpha), test_name = label, progress = FALSE)))
+  }
+  sig <- vapply(inputs$label, function(label) {
+    vapply(obj$test_all[[label]], function(r) as.numeric(r$test_results$sig[1] %||% NA), numeric(1))
+  }, numeric(nrep))
+  sig <- matrix(sig, nrow = nrep)
+  analysed <- stats::complete.cases(sig)
+  c(sum(rowSums(sig[analysed, , drop = FALSE]) == length(inputs$label)), sum(analysed))
 }
 
 # Check run: one large data set from power4mome's generator. Each member's
@@ -141,18 +165,26 @@ apim_script <- function(spec, result) {
     sprintf("population_values <- %s # residual covariance = r_y x both residual SDs", r_code(inputs$pop_es)),
     sprintf("fitted_model <- %s%s", r_code(inputs$fit_model),
       if (inputs$distinguishable) "" else " # indistinguishable members: equal actor and partner effects"),
-    sprintf("tested <- %s # the effect tested", r_code(inputs$label)),
+    sprintf("tested <- %s # the effect%s tested%s", r_code(inputs$label), if (length(inputs$label) > 1) "s" else "",
+      if (length(inputs$label) > 1) " (joint power: all significant in the same study)" else ""),
     goal_inputs(spec, result),
     "",
     "# One batch of simulated data sets: significant results and data sets analysed.",
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
     "  set.seed(batch_seed)",
     "  result <- power4test(nrep = batch_replications, model = population_model, pop_es = population_values,",
-    "    n = batch_n, fit_model_args = list(model = fitted_model), test_fun = test_parameters,",
-    "    test_args = list(pars = tested, level = 1 - alpha), iseed = batch_seed, parallel = FALSE, progress = FALSE)",
-    "  rates <- rejection_rates(result)",
-    "  valid <- round(rates$pvalid[1] * batch_replications)",
-    "  c(round(rates$reject[1] * valid), valid)",
+    "    n = batch_n, fit_model_args = list(model = fitted_model), do_the_test = FALSE, iseed = batch_seed,",
+    "    parallel = FALSE, progress = FALSE)",
+    "  # Each effect tested on the same fitted models; with several, a study",
+    "  # counts as significant when every one is.",
+    "  for (label in tested) {",
+    "    result <- power4test(object = result, test_fun = test_parameters, test_args = list(pars = label, level = 1 - alpha),",
+    "      test_name = label, progress = FALSE)",
+    "  }",
+    "  sig <- sapply(tested, function(label) sapply(result$test_all[[label]], function(r) r$test_results$sig[1]))",
+    "  sig <- matrix(sig, nrow = batch_replications)",
+    "  analysed <- complete.cases(sig)",
+    "  c(sum(rowSums(sig[analysed, , drop = FALSE]) == length(tested)), sum(analysed))",
     "}",
     "",
     batch_section(result, "power4test()"),
