@@ -1315,23 +1315,16 @@ server <- function(input, output, session) {
       div(class = "result-panel mt-2", role = "status", lapply(out$lines, p))
     })
   })
-  # Labs: the picture of power, from the engine's power_picture().
+  # Labs: the picture of power, from the engine's power_picture() and its
+  # siblings for the other tests.
   picture <- reactive({
     alpha <- as.numeric(input$picture_alpha %||% "0.05")
-    tryCatch(if (identical(input$picture_design, "r")) {
-      engine_function("power_picture_r")(as.numeric(input$picture_n_r %||% 84), as.numeric(input$picture_r %||% 0.3), alpha = alpha)
-    } else {
-      engine_function("power_picture")(as.numeric(input$picture_n %||% 64), as.numeric(input$picture_d %||% 0.5), alpha = alpha)
-    }, error = function(e) NULL)
+    tryCatch(picture_for(function(id) input[[id]], alpha), error = function(e) NULL)
   })
   output$picture_plot <- renderPlot({
     req(picture())
     picture_plot(picture())
-  }, alt = reactive(if (is.null(picture())) "The picture of power" else if (!is.null(picture()$r))
-    sprintf("Two distributions of the observed correlation: power is %.1f%% for r = %s with %s participants at alpha = %s.",
-      100 * picture()$power, format(picture()$r), format(picture()$n), format(picture()$alpha)) else
-    sprintf("Two t distributions: power is %.1f%% for d = %s with %s participants at alpha = %s.",
-      100 * picture()$power, format(picture()$d), format(picture()$n), format(picture()$alpha))))
+  }, alt = reactive(picture_alt(picture())))
   output$picture_numbers <- renderUI(if (is.null(picture())) {
     p("The picture needs powerkit's engine.")
   } else picture_numbers(picture()))
