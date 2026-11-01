@@ -4116,6 +4116,18 @@ needed first.
   request in the next round. It needs a new dependency, and so a rebuilt
   CI image.
 
+## 2026-11-01 · A yes/no outcome in the two- and three-level models (E62, E68)
+
+- **Inputs on the log-odds scale.** As for the participants-and-items
+  cards (E33, E63, E67): the chance of 'yes' for a typical group (E62) or
+  each condition's chance for a typical site and group (E68), and every
+  effect and SD on the log-odds scale. E68's score version takes shares of
+  variance (intraclass correlations); for a yes/no outcome it takes SDs
+  instead, since turning a latent-scale ICC into an SD needs a formula
+  with a published source, and none is in `refs.bib` yet.
+- **The test:** glmer's Wald z test by default, simr's default for a
+  numeric or two-condition predictor and the p-value glmer's summary
+  reports, with the likelihood ratio offered, as on E33 and E67.
 ## 2026-11-01 · Moderated mediation decisions, and the shape of the queue
 
 - **W on both links or the direct path (E38, PROCESS models 8, 58 and

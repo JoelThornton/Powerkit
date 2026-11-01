@@ -19,6 +19,13 @@ entries:
       odds ratio, an intraclass correlation (agreement between raters) and
       one predictor's coefficient in a multiple regression.
   - date: "2026-11-01"
+    title: "Yes or no outcomes for people in groups"
+    text: >-
+      The two-level card (people in groups, with a predictor on each person
+      and one on each group) and the three-level card (pupils in classes in
+      schools) now also plan studies where the outcome is yes or no, such as
+      passed or not, as a logistic mixed model.
+  - date: "2026-11-01"
     title: "A Bayes factor test for a correlation"
     text: >-
       The correlation card now offers a Bayes factor test of Pearson's r,

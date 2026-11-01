@@ -26,6 +26,22 @@ A batch of new features, built as one round.
   logit interval, the one-way ICC's F interval and the least-squares
   interval) in simulated studies of the planned size is the width
   planned; published examples are left for the maintainer.
+* A yes/no outcome in the two-level (E62, template `two_level`) and
+  three-level (E68, template `three_level`) designs (`variables > Y >
+  type` "binary", `population > metric` "probability"): a logistic mixed
+  model built by simr's `makeGlmer()` and refitted with lme4's `glmer()`.
+  E62 takes the chance of 'yes' for a typical group at the average X and
+  W (`population > probability`), with every effect and SD on the
+  log-odds scale; E68 each condition's chance for a typical site and
+  group (`population > probabilities`) and, in place of the shares of
+  variance, the SDs of the sites' and groups' intercepts and of the
+  effect on the log-odds scale (`sd_site`, `sd_group`, `sd_effect_site`,
+  `sd_effect_group`). Tested by glmer's Wald z test (`target_test >
+  method` "wald", the default, simr's for a numeric or two-condition
+  predictor) or the likelihood ratio ("likelihood_ratio"). The check run,
+  exported script and simulated data set follow the model. Checked against
+  a simulation written separately with glmer, with the Type I error near
+  alpha.
 * A Bayes factor version of the test of a correlation (`target_test >
   method` "bayes_factor" on `correlation`), by exact calculation with
   BayesFactor's `correlationBF()`: a stretched beta analysis prior on rho
