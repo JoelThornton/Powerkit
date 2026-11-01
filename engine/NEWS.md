@@ -63,8 +63,9 @@ A batch of new features, built as one round.
   the action bar shows how many needed answers are still empty ("4 answers
   still needed"), by the same rule as the check, going to the first one
   when clicked (opening Settings if it is there). On phones the bar keeps
-  its two buttons side by side. The status box drops its repeated "Runs,
-  validation in progress". What is asked and checked is unchanged.
+  its two buttons side by side. Names of groups and outcomes that are all
+  optional fold into one closed line (open once one is filled in). The
+  status box drops its repeated "Runs, validation in progress". What is asked and checked is unchanged.
 * Participants and items in three or more conditions (E63, design
   `mixed_model`, template `crossed_conditions`): every participant in
   every condition, a mean per condition, the SDs of participants'

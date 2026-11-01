@@ -117,6 +117,16 @@ group_ui <- function(tree, g, values, index) {
     else if (!is.null(g$note)) p(class = "group-note", g$note),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
+  # Names that are all optional fold away (1 November 2026): they only
+  # label the result and the write-up. Open when one is filled in.
+  if (names_only && all(vapply(g$fields, function(f) field_is_optional(f) || !is.null(f$name_default), logical(1)))) {
+    filled <- any(vapply(g$fields, function(f) { v <- values[[f$id]]; !is.null(v) && length(v) > 0 && nzchar(as.character(v)) }, logical(1)))
+    box$children[[1]] <- htmltools::tagAppendAttributes(box$children[[1]], class = "visually-hidden")
+    box <- tags$details(class = "form-names", open = if (filled) NA,
+      tags$summary(tags$span(class = "form-names-title", paste0(legend, " (optional)")),
+        tags$span(class = "form-names-note", "Used to label the result and the write-up.")),
+      box)
+  }
   if (is.null(g$shown_if)) box else conditionalPanel(shown_if_js(g), box)
 }
 

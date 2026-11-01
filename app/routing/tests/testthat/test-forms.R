@@ -792,3 +792,15 @@ test_that("the 'still needed' line counts the fields the check would ask for", {
   # The same exception as effect_optional(): no effect size to justify.
   expect_match(needed_js, "value('f_just_type') === 'none'", fixed = TRUE)
 })
+
+test_that("names that are all optional fold away, and open once one is filled in", {
+  groups <- form_groups(forms, "E2")
+  html <- as.character(form_ui(tree, forms, "E2", groups))
+  expect_match(html, "<details class=\"form-names\">", fixed = TRUE)
+  expect_match(html, "and the outcome (optional)", fixed = TRUE)
+  name_id <- Filter(function(f) grepl("_label$", f$id), form_fields(groups))[[1]]$id
+  filled <- as.character(form_ui(tree, forms, "E2", groups, values = stats::setNames(list("Condition"), name_id)))
+  expect_match(filled, "<details class=\"form-names\" open>", fixed = TRUE)
+  # Where a name is needed (the groups of a one-way ANOVA), the box stays open.
+  expect_no_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))), "form-names", fixed = TRUE)
+})

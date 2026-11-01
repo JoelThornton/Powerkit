@@ -314,6 +314,16 @@ app_css <- "
   .effect-help > summary { min-height: 32px; }
   .effect-unsure .btn { border-radius: 8px; }
   .form-settings, .form-guess { padding: 0.6rem 1.25rem; }
+  .form-names { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); margin-bottom: 0.9rem; }
+  .form-names > summary { cursor: pointer; min-height: 52px; padding: 0.7rem 1.25rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.6rem; }
+  .form-names-title { font-weight: 650; color: var(--pk-navy); }
+  .form-names-note { font-size: 0.85rem; color: #5a6573; }
+  .form-names > summary { list-style: none; }
+  .form-names > summary::-webkit-details-marker { display: none; }
+  .form-names > summary::after { content: ''; margin-left: auto; align-self: center; width: 0.55rem; height: 0.55rem; border-right: 2px solid #5a6573;
+                                 border-bottom: 2px solid #5a6573; transform: rotate(45deg); transition: transform .12s ease; }
+  .form-names[open] > summary::after { transform: rotate(225deg); }
+  .form-names > .form-group-box { border: 0; box-shadow: none; margin: 0; padding-top: 0.25rem; }
   .action-bar .form-needed { margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
   .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
   .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
