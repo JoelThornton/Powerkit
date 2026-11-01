@@ -35,3 +35,39 @@ test_that("impossible inputs are refused in plain words", {
   expect_error(power_picture(64, -0.2), "of 0 or more", class = "powerkit_error")
   expect_error(power_picture(64, 0.5, alpha = 0.7), "between 0 and 0.5", class = "powerkit_error")
 })
+
+test_that("the correlation's picture is pwr.r.test()'s calculation, drawn on Fisher's z scale", {
+  picture <- power_picture_r(84, 0.3, alpha = 0.05)
+  expect_equal(picture$power, pwr::pwr.r.test(n = 84, r = 0.3, sig.level = 0.05)$power)
+  expect_equal(picture$beta, 1 - picture$power)
+  expect_equal(picture$df, 82)
+  expect_equal(picture$se, 1 / sqrt(81))
+  expect_equal(picture$t_crit, stats::qt(0.975, 82))
+  # The smallest significant r gives an observed t exactly at the critical
+  # value (t = r sqrt(n - 2) / sqrt(1 - r^2)).
+  expect_equal(picture$r_crit * sqrt(82) / sqrt(1 - picture$r_crit^2), picture$t_crit)
+  # The two shaded tails of the blue curve beyond the dashed lines are the power.
+  tails <- stats::pnorm(picture$z_crit, picture$z_r, picture$se, lower.tail = FALSE) +
+    stats::pnorm(-picture$z_crit, picture$z_r, picture$se)
+  expect_equal(tails, picture$power, tolerance = 1e-10)
+  expect_identical(picture$package$name, "pwr")
+})
+
+test_that("the correlation's curves are normal densities over both critical values", {
+  picture <- power_picture_r(30, 0.6, alpha = 0.01)
+  curves <- picture$curves
+  expect_equal(curves$null, stats::dnorm(curves$z, 0, picture$se))
+  expect_equal(curves$alternative, stats::dnorm(curves$z, picture$z_r, picture$se))
+  expect_lt(min(curves$z), -picture$z_crit)
+  expect_gt(max(curves$z), picture$z_r + 3 * picture$se)
+  step <- diff(curves$z)[1]
+  expect_gt(sum(curves$null) * step, 0.99)
+  expect_gt(sum(curves$alternative) * step, 0.99)
+  # No correlation: power is close to alpha, not equal to it, because
+  # pwr's formula mixes Fisher's z with a critical value from t (0.0092 at
+  # alpha .01 and n = 30).
+  expect_equal(power_picture_r(30, 0, alpha = 0.01)$power, pwr::pwr.r.test(n = 30, r = 0, sig.level = 0.01)$power)
+  expect_lt(abs(power_picture_r(30, 0, alpha = 0.01)$power - 0.01), 0.001)
+  expect_error(power_picture_r(3, 0.3), "at least 4", class = "powerkit_error")
+  expect_error(power_picture_r(50, 1), "below 1", class = "powerkit_error")
+})
