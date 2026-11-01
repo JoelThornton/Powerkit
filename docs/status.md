@@ -139,7 +139,9 @@ fully validated. Validation runs are recorded in
   preview in the app, the full run from an R script. A yes/no X or W in
   models 7 and 14 (E17, 1 November 2026) the same way, drawn by
   power4mome's `rbinary_rs()` and checked against a separately written
-  simulation.
+  simulation; with a yes/no X and no moderation its Type I error is about
+  6.7%, against 5.3% for the separate simulation, a question for
+  power4mome (`upstream-questions.md`) and the maintainer.
 - **Waiting on others:** Spower's faults are ready to raise upstream
   (`docs/upstream/spower-var-test.R`).
 
