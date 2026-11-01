@@ -499,7 +499,7 @@
           ]
         },
         "evidence_threshold": {
-          "description": "Bayes factor t-tests only (method 'bayes_factor'): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion and the correlation): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
           "exclusiveMinimum": 1
         },
@@ -515,6 +515,11 @@
         },
         "prior_b": {
           "description": "Bayes factor test of one proportion only: the second shape parameter of the Beta(a, b) analysis prior. Default 1.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_width": {
+          "description": "Bayes factor test of a correlation only: the width of the stretched beta analysis prior on rho under the alternative (rho is 2 * Beta(1/w, 1/w) - 1; BayesFactor's correlationBF(rscale = w)). Default 1, a uniform prior on rho: JASP's default ('Stretched beta prior width' 1). BayesFactor's own default is 1/3 ('medium').",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -574,6 +579,7 @@
               "prior_scale": false,
               "prior_a": false,
               "prior_b": false,
+              "prior_width": false,
               "one_sided_null": false
             }
           }
@@ -1741,6 +1747,11 @@
             "r": {
               "$ref": "#/definitions/correlation"
             },
+            "r_sd": {
+              "description": "Bayes factor test only: uncertainty about the correlation, as the SD of a stretched beta design prior with mean r (0, the default: exactly r). Power is then averaged over it: the study's assurance. Must be below sqrt(1 - r^2).",
+              "type": "number",
+              "minimum": 0
+            },
             "score_shape": {
               "description": "Spearman's rho and Kendall's tau only: the shape of both scores, in SD units. 'normal' (the default, bivariate normal scores); 'skewed': a chi-square distribution with 10 df, standardised; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1. The second score is r times the first plus sqrt(1 - r^2) times another draw of the same shape, so Pearson's correlation is r.",
               "enum": [
@@ -1760,9 +1771,10 @@
               "enum": [
                 "pearson",
                 "spearman",
-                "kendall"
+                "kendall",
+                "bayes_factor"
               ],
-              "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r."
+              "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r. 'bayes_factor': the Bayes factor test of Pearson's correlation (BayesFactor's correlationBF(), the same Bayes factor as JASP's Bayesian correlation), by exact calculation from the distribution of r."
             }
           }
         }

@@ -73,6 +73,7 @@ export_script <- function(spec, result, file = NULL) {
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
+    BayesFactor = bfcor_script(spec, result),
     metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),

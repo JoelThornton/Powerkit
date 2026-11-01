@@ -1501,15 +1501,25 @@ bayes_settings_text <- function(spec) {
       if (identical(tt$alternative %||% "two_sided", "two_sided")) "" else if (identical(tt$one_sided_null, "directional"))
         "; at or below the fixed value against above it" else "; the fixed value against one side, as in JASP"))
   }
+  if (is_bayes_correlation(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; stretched beta prior of width %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
+      if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
+is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
+
+# The design prior SD of a Bayes factor test, whichever name it has.
+bayes_design_sd <- function(spec) spec$population$effect_sd %||% spec$population$p_sd %||% spec$population$r_sd %||% 0
 
 bayes_test_name <- function(spec) {
   switch(spec$template,
     one_proportion = "a Bayes factor test of one proportion",
+    correlation = "a Bayes factor test of Pearson's correlation",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test")
@@ -1534,6 +1544,7 @@ bayes_sentence <- function(spec, result) {
   c(
     if (b$effect_sd > 0) sprintf(paste(
       if (is_bayes_binomial(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
+      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
@@ -1557,7 +1568,7 @@ departures_for <- function(forms, ep_id, spec) {
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
-  if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% spec$population$p_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
+  if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
@@ -2034,6 +2045,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(tt$prior_a %||% 1), format(tt$prior_b %||% 1), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_correlation(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
