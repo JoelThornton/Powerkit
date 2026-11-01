@@ -491,6 +491,7 @@ simulation_note <- function(result) {
 # The headline and supporting sentences for a result (draft wording; setting
 # result_wording).
 result_sentences <- function(spec, result) {
+  if (is_precision(spec)) return(precision_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
@@ -1603,6 +1604,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
   }
+  if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
   result <- calc$result
@@ -2106,4 +2108,139 @@ writeup_ui <- function(text) {
       tags$label(`for` = "writeup_ethics", class = "visually-hidden", "Plain-words version (for an ethics application)"),
       p(class = "small", "Why this many participants, for a panel that may not know statistics. It describes the plan; it doesn't say whether the study is ethical."),
       tags$textarea(id = "writeup_ethics", class = "form-control writeup", rows = 7, text[["ethics"]])))
+}
+
+# --- Precision planning (E46) ----------------------------------------------------
+# The engine's design "precision": the confidence interval's width, not
+# power. The result screen, the write-up and the ethics version only word
+# the engine's result$precision.
+
+is_precision <- function(spec) identical(spec$design, "precision")
+
+precision_estimate_text <- function(spec) {
+  v <- spec$variables
+  switch(spec$template,
+    two_groups = sprintf("Cohen's d for the difference in %s between %s and %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    paired = sprintf("d_z for the change in %s from %s to %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    one_group = sprintf("the standardised mean of %s", v$Y$label),
+    correlation = sprintf("%s between %s and %s", switch(spec$target_test$method, spearman = "Spearman's rho", kendall = "Kendall's tau", "the correlation"),
+      v$X$label, v$Y$label),
+    proportion = sprintf("the proportion %s", v$Y$label))
+}
+
+precision_interval_name <- function(spec) {
+  level <- sprintf("%s%%", format(100 * (1 - spec$target_test$alpha)))
+  kind <- switch(spec$template,
+    proportion = switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald"),
+    correlation = if (identical(spec$target_test$method, "pearson")) "Fisher's z" else NULL,
+    "noncentral t")
+  if (is.null(kind)) sprintf("%s confidence interval", level) else sprintf("%s %s confidence interval", level, kind)
+}
+
+precision_number <- function(x) format(round(x, 3), nsmall = 2)
+
+precision_people <- function(spec, n) {
+  if (identical(spec$template, "two_groups")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+    if (identical(spec$template, "paired")) sprintf("%s pairs of scores", whole(n)) else sprintf("%s participants", whole(n))
+}
+
+precision_sentences <- function(spec, result) {
+  pr <- result$precision
+  estimate <- precision_estimate_text(spec)
+  interval <- precision_interval_name(spec)
+  expected <- sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
+    pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  how <- sprintf("Calculated by formula with %s (%s()), which powerkit called with your answers.", result$provenance$backend, pr$function_used)
+  if (!is.na(pr$target_width)) {
+    headline <- if (is.na(pr$assurance)) {
+      sprintf("With %s, the %s for %s is expected to be no wider than %s.", precision_people(spec, pr$n), interval, estimate, format(pr$target_width))
+    } else {
+      sprintf("With %s, the %s for %s would be no wider than %s in %s of studies like this.", precision_people(spec, pr$n), interval, estimate,
+        format(pr$target_width), percent(pr$assurance))
+    }
+    more <- if (spec$template %in% c("two_groups", "one_group", "paired")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
+    reading <- if (is.na(pr$assurance)) sprintf("“Expected” means the typical study: about half of studies this size would get a somewhat wider interval. For more certainty, %s.", more) else
+      "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
+  } else {
+    headline <- sprintf("With %s, the %s for %s would be about %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
+    reading <- "A narrower interval says more precisely how large the effect is; its width doesn't depend on whether the effect is significant."
+  }
+  c(headline = headline, reading = reading, detail = paste(expected, how))
+}
+
+precision_writeup <- function(form, spec, result, fields, values) {
+  if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
+  pr <- result$precision
+  p <- result$provenance
+  estimate <- precision_estimate_text(spec)
+  interval <- precision_interval_name(spec)
+  basis <- sprintf("The expected value, %s = %s, was based on %s: %s.", pr$effect_name, format(pr$effect),
+    writeup_source[[values$just_type %||% "smallest_effect_of_interest"]] %||% "our reasoning", writeup_quote(values$just_source))
+  aim <- if (!is.na(pr$target_width)) {
+    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s. This requires %s.",
+      interval, estimate, format(pr$target_width),
+      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance", percent(pr$assurance)), precision_people(spec, pr$n))
+  } else {
+    sprintf("With %s, the %s for %s is expected to be %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
+  }
+  recruit <- result$recruitment
+  recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, we will recruit %s.", percent_attrition(recruit$attrition), whole(recruit$n_recruit))
+  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
+    p$backend, p$packages[[p$backend]], pr$function_used, p$packages[["powerkit"]], p$r_version)
+  short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
+  full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
+  ethics <- paste(c(
+    sprintf("We plan to include %s.", precision_people(spec, pr$n)), recruit_line,
+    "This number comes from planning how precisely the study can estimate the result, not from a power analysis.",
+    sprintf("With this many, the range of plausible values the study reports (its %s) is expected to be about %s wide, which we judged narrow enough to be informative. Fewer people would give a wider, less informative range.",
+      interval, precision_number(pr$width)),
+    basis,
+    sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.", p$backend, p$packages[[p$backend]])
+  ), collapse = " ")
+  c(short = short, full = full, ethics = ethics)
+}
+
+precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
+  ep <- tree$endpoints[[ep_id]]
+  spec <- calc$spec
+  result <- calc$result
+  words <- precision_sentences(spec, result)
+  p_ <- result$provenance
+  can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  div(
+    class = "result-panel", role = "status", tabindex = "-1",
+    div(class = "result-card result-main",
+      h3(class = "h4", "Your result"),
+      p(class = "result-headline lead", words[["headline"]]),
+      p(class = "result-reading", words[["reading"]]),
+      if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
+      source_stale_ui(fields, values),
+      if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+        p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
+        p(class = "small", recruit[["caveat"]])),
+      p(class = "result-detail", words[["detail"]]),
+      if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
+    div(class = "result-card result-save",
+      h4(class = "h5", "Save and share"),
+      if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
+        tags$strong("To save this plan, download its R script or get its write-up, "),
+        "write your reasoning under “Where your effect size comes from” and press “Check my answers” again."),
+      div(class = "nav-buttons",
+        if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
+        downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
+        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+      p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed)."),
+      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values))),
+    div(class = "result-card result-how",
+      h4(class = "h5", "How it was calculated"),
+      p(class = "result-credit",
+        "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
+        "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
+      validation_ui(ep),
+      tags$details(class = "result-more",
+        tags$summary("More about this result: the values it used"),
+        tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
+      tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
+      tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+  )
 }

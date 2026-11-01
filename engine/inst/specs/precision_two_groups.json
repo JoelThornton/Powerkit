@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "two_groups",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Control",
+        "Training"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Recall score"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: d about 0.5 is expected; the interval should be no wider than 0.4."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "noncentral_t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 0.4
+  },
+  "options": {
+    "seed": 20261101
+  }
+}

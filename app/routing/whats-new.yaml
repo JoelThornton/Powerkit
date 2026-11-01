@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Plan for a precise estimate"
+    text: >-
+      A new analysis plans the sample size for how narrow a confidence
+      interval you want, rather than for power: for Cohen's d between two
+      groups, paired scores, a standardised mean, a correlation or a
+      proportion. You can also see how wide the interval would be at a
+      sample size you have, and for d ask for a chance that it is narrow
+      enough.
+  - date: "2026-11-01"
     title: "Bayesian planning in Labs"
     text: >-
       A new Labs tool for a Bayes factor t-test: choose the prior the Bayes

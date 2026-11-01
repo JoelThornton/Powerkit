@@ -38,7 +38,8 @@
         "sem",
         "ordinal_regression",
         "mixed_model",
-        "meta_analysis"
+        "meta_analysis",
+        "precision"
       ]
     },
     "template": {
@@ -153,6 +154,9 @@
     },
     {
       "$ref": "#/definitions/design_meta_analysis"
+    },
+    {
+      "$ref": "#/definitions/design_precision"
     }
   ],
   "definitions": {
@@ -553,7 +557,7 @@
       ]
     },
     "goal": {
-      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'. justified_alpha: the significance level that minimises or balances the weighted error rates at 'n' (JustifyAlpha's optimal_alpha(); the one-sample, paired and two-group t-tests and the correlation, by formula), with target_test > alpha kept as the conventional level to compare with.",
+      "description": "sample_size: smallest n reaching 'power'. power: power at a fixed 'n'. sensitivity: smallest detectable effect at 'n' with 'power'. 'n' is the total number of participants analysed (after attrition). Generic tests (design 'generic_test') have no n: power is for the noncentrality given, and sensitivity is the noncentrality needed for 'power'. justified_alpha: the significance level that minimises or balances the weighted error rates at 'n' (JustifyAlpha's optimal_alpha(); the one-sample, paired and two-group t-tests and the correlation, by formula), with target_test > alpha kept as the conventional level to compare with. precision (design 'precision' only): with 'width', the smallest n whose confidence interval is expected to be no wider than 'width' (for Cohen's d, optionally with an 'assurance' that it is); with 'n', the width expected at that n. The interval is the 100(1 - target_test > alpha)% two-sided confidence interval.",
       "type": "object",
       "required": [
         "type"
@@ -565,7 +569,8 @@
             "sample_size",
             "power",
             "sensitivity",
-            "justified_alpha"
+            "justified_alpha",
+            "precision"
           ]
         },
         "power": {
@@ -595,6 +600,17 @@
             "minimize",
             "balance"
           ]
+        },
+        "width": {
+          "description": "Precision only: the full width of the confidence interval wanted (upper limit minus lower), on the effect's own scale (d, r or the proportion).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "assurance": {
+          "description": "Precision for Cohen's d only: the chance that the interval's width is no more than 'width' (MBESS's assurance, above 0.5 and below 1). Without it the sample size gives the expected width.",
+          "type": "number",
+          "exclusiveMinimum": 0.5,
+          "exclusiveMaximum": 1
         }
       },
       "allOf": [
@@ -670,6 +686,29 @@
             ],
             "properties": {
               "power": false
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "precision"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "power": false
+            }
+          },
+          "else": {
+            "properties": {
+              "width": false,
+              "assurance": false
             }
           }
         }
@@ -8444,6 +8483,394 @@
                 "z"
               ]
             }
+          }
+        }
+      }
+    },
+    "design_precision": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "precision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "two_groups",
+              "one_group",
+              "paired",
+              "correlation",
+              "proportion"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "const": "precision"
+              }
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "allocation_ratio": false,
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "effect": {
+                "const": "confidence_interval"
+              },
+              "alternative": {
+                "const": "two_sided"
+              },
+              "path": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "two_groups"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_two_groups"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "one_group"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_one_group"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "paired"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_paired"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "proportion"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_proportion"
+            }
+          }
+        ]
+      }
+    },
+    "template_precision_two_groups": {
+      "description": "The confidence interval for Cohen's d between two equal groups (MBESS's ss.aipe.smd(), with the interval from the noncentral t, MBESS's ci.smd()). n is the total; each group has half.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "Cohen's d expected in the population (the interval's width depends on it a little).",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "template_precision_one_group": {
+      "description": "The confidence interval for a standardised mean (the mean's distance from a fixed value, in SDs), one group (MBESS's ss.aipe.sm(), with the interval from the noncentral t, MBESS's ci.sm()).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "The standardised mean expected: (mean - fixed value) / SD.",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_paired": {
+      "description": "The confidence interval for d_z, the mean difference between two paired measurements divided by the SD of the differences (MBESS's ss.aipe.sm() on the differences). n is the number of pairs.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_within_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "dz"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "dz": {
+              "description": "d_z expected in the population.",
+              "type": "number",
+              "minimum": -5,
+              "maximum": 5
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "noncentral_t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_correlation": {
+      "description": "The confidence interval for a correlation (presize's prec_cor(): Fisher's z for Pearson's r, with the variance corrections presize uses for Spearman's and Kendall's).",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r": {
+              "description": "The correlation expected in the population.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "pearson",
+                "spearman",
+                "kendall"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_proportion": {
+      "description": "The confidence interval for one proportion (presize's prec_prop()): Wilson's interval by default, or Agresti-Coull, the exact (Clopper-Pearson) or the Wald interval.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "p": {
+              "description": "The proportion expected in the population.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "wilson",
+                "agresti_coull",
+                "exact",
+                "wald"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
           }
         }
       }
