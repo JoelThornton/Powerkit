@@ -142,17 +142,21 @@ superpower_inputs <- function(spec) {
     # One between factor with k levels by one within factor with m levels:
     # Superpower's design "kb*mw" (for example "2b*3w"). Cells are read row
     # by row (a1_b1, a1_b2, ..., a2_b1, ...), Superpower's order. One SD and
-    # one correlation between every pair of B's levels, so sphericity holds.
+    # one correlation between every pair of B's levels keep sphericity; an
+    # SD per cell and a correlation per pair of B's levels (the same in
+    # every group) need not, and the within-participants F tests can then
+    # be corrected (target_test > correction).
     k <- length(spec$variables$A$levels)
     m <- length(spec$variables$B$levels)
     return(list(
       design = sprintf("%db*%dw", k, m),
       groups = k,
       mu = by_row(pop$means),
-      sd = pop$sd,
-      r = pop$r,
+      sd = by_row(pop$sd),
+      r = superpower_r(spec),
       alpha = spec$target_test$alpha,
-      effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
+      effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]],
+      correction = spec$target_test$correction %||% "none"
     ))
   }
   if (spec$template %in% c("factorial_between", "factorial_within")) {
@@ -160,7 +164,10 @@ superpower_inputs <- function(spec) {
     # group of different people per cell) or both within (design "kw*mw",
     # everyone in every cell). Cells are read row by row (a1_b1, a1_b2,
     # ..., a2_b1, ...), Superpower's order. One SD; for the within design
-    # one correlation between every pair of cells, so sphericity holds.
+    # one correlation between every pair of cells keeps sphericity, and an
+    # SD per cell and a correlation per pair of cells (the upper triangle,
+    # row by row, as ANOVA_design() takes it) need not, with the F tests
+    # then corrected if asked (target_test > correction).
     k <- length(spec$variables$A$levels)
     m <- length(spec$variables$B$levels)
     between <- spec$template == "factorial_between"
@@ -168,10 +175,11 @@ superpower_inputs <- function(spec) {
       design = sprintf(if (between) "%db*%db" else "%dw*%dw", k, m),
       groups = if (between) k * m else 1,
       mu = by_row(pop$means),
-      sd = pop$sd,
-      r = if (between) 0 else pop$r,
+      sd = by_row(pop$sd),
+      r = if (between) 0 else as.numeric(unlist(pop$r)),
       alpha = spec$target_test$alpha,
-      effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
+      effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]],
+      correction = if (between) "none" else spec$target_test$correction %||% "none"
     ))
   }
   if (spec$template == "factorial_three") {
@@ -188,10 +196,47 @@ superpower_inputs <- function(spec) {
     groups = if (between) 4 else 2,
     mu = by_row(pop$means),
     sd = by_row(pop$sd),
-    r = if (between) 0 else pop$r,
+    r = if (between) 0 else superpower_r(spec),
     alpha = spec$target_test$alpha,
     effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
   )
+}
+
+# The correlations of a design with a between and a within factor, as
+# ANOVA_design() takes them: one number when every pair of a participant's
+# measurements has the same correlation; otherwise the upper triangle of the
+# whole correlation matrix over the cells (a1_b1, a1_b2, ..., a2_b1, ...),
+# row by row, with 0 between cells of different groups and, within each
+# group, the correlation of each pair of B's levels (mixed: one per pair,
+# the same in every group; 2 x 2 mixed: one per group).
+superpower_r <- function(spec) {
+  r <- as.numeric(unlist(spec$population$r))
+  if (length(r) == 1) {
+    return(r)
+  }
+  k <- length(spec$variables$A$levels)
+  m <- length(spec$variables$B$levels)
+  block <- function(values) {
+    b <- diag(m)
+    b[upper.tri(b)] <- values
+    b[lower.tri(b)] <- t(b)[lower.tri(b)]
+    b
+  }
+  blocks <- if (spec$template == "2x2_mixed") lapply(r, block) else rep(list(block(r)), k)
+  full <- matrix(0, k * m, k * m)
+  for (i in seq_len(k)) {
+    cells <- (i - 1) * m + seq_len(m)
+    full[cells, cells] <- blocks[[i]]
+  }
+  t(full)[lower.tri(full)]
+}
+
+# The correlation specified between two of a participant's measurements,
+# for the check runs: `pair` is the index of the pair of B's levels (mixed)
+# or of cells (within designs), `group` the level of A (2 x 2 mixed).
+specified_r <- function(spec, pair = 1, group = 1) {
+  r <- as.numeric(unlist(spec$population$r))
+  if (length(r) == 1) r else if (spec$template == "2x2_mixed") r[group] else r[pair]
 }
 
 # Pairwise comparisons (pairwise_comparison()): the row of ANOVA_power()'s
@@ -430,7 +475,7 @@ superpower_check_run <- function(spec, design, seed = NULL) {
       group <- group[order(group$subject), ]
       data.frame(
         parameter = sprintf("r between B1 and B2, A%d", i),
-        specified = spec$population$r,
+        specified = specified_r(spec, group = i),
         recovered = stats::cor(group$y[group$j == 1], group$y[group$j == 2])
       )
     }))
@@ -493,13 +538,14 @@ superpower_check_mixed <- function(spec, data) {
   data$i <- level(data$a)
   data$j <- level(data$b)
   cells <- expand.grid(j = seq_len(m), i = seq_len(k))
+  sds <- rep_len(as.numeric(unlist(spec$population$sd)), nrow(cells))
   rows <- lapply(seq_len(nrow(cells)), function(c) {
     i <- cells$i[c]
     j <- cells$j[c]
     y <- data$y[data$i == i & data$j == j]
     data.frame(
       parameter = c(sprintf("mean, A%d B%d", i, j), sprintf("SD, A%d B%d", i, j)),
-      specified = c(means[[i]][j], spec$population$sd),
+      specified = c(means[[i]][j], sds[c]),
       recovered = c(mean(y), stats::sd(y))
     )
   })
@@ -514,7 +560,7 @@ superpower_check_mixed <- function(spec, data) {
       b <- cell_pairs[2, p]
       data.frame(
         parameter = sprintf("r between A%d B%d and A%d B%d", cells$i[a], cells$j[a], cells$i[b], cells$j[b]),
-        specified = spec$population$r,
+        specified = specified_r(spec, pair = p),
         recovered = stats::cor(by_cell[[a]], by_cell[[b]])
       )
     }))
@@ -529,7 +575,7 @@ superpower_check_mixed <- function(spec, data) {
     rows <- c(rows, lapply(seq_len(ncol(pairs)), function(p) {
       data.frame(
         parameter = sprintf("r between B%d and B%d, A%d", pairs[1, p], pairs[2, p], i),
-        specified = spec$population$r,
+        specified = specified_r(spec, pair = p),
         recovered = stats::cor(by_level[[pairs[1, p]]], by_level[[pairs[2, p]]])
       )
     }))

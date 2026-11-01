@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Different SDs and correlations in mixed and two-factor repeated-measures designs"
+    text: >-
+      The 2 x 2 mixed ANOVA, the larger mixed ANOVA (for example group by
+      three timepoints) and the two-factor within-participants ANOVA can
+      now take a different SD in each cell and a different correlation
+      for each pair of measurements, with a Greenhouse-Geisser or
+      Huynh-Feldt correction where it applies.
+  - date: "2026-11-01"
     title: "Meta-analysis: do kinds of study differ?"
     text: >-
       The meta-analysis card can now plan a subgroup analysis: whether the

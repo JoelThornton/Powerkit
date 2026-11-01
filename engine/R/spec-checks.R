@@ -289,9 +289,14 @@ check_within_covariance <- function(spec) {
   pop <- spec$population
   correction <- spec$target_test$correction
   problems <- character()
+  if (spec$template %in% c("mixed", "factorial_within", "2x2_mixed")) {
+    return(check_factorial_covariance(spec))
+  }
   if (!identical(spec$template, "oneway_within")) {
     if (!is.null(correction)) {
-      problems <- c(problems, "'target_test > correction' only applies to the one-way repeated-measures ANOVA (template 'oneway_within'); remove it.")
+      problems <- c(problems, paste0(
+        "'target_test > correction' only applies to repeated-measures ANOVAs with a within-participants factor of ",
+        "three or more levels (templates 'oneway_within', 'mixed' and 'factorial_within'); remove it."))
     }
     return(problems)
   }
@@ -325,6 +330,68 @@ check_within_covariance <- function(spec) {
     }
   } else if (length(rs) == 1 && k > 1 && rs <= -1 / (k - 1)) {
     problems <- c(problems, sprintf("With %d conditions, one correlation for every pair must be above %s.", k, format_number(round(-1 / (k - 1), 3))))
+  }
+  problems
+}
+
+# Two-factor designs with repeated measures: an SD per cell (one row per
+# level of A, one SD per level of B, like the means), and a correlation per
+# pair of B's levels (mixed, the same in every group), per group (2 x 2
+# mixed, one pair) or per pair of cells (within). Each correlation matrix
+# must be possible, the means must be given (partial eta-squared has no
+# SDs), and a sphericity correction needs a within factor that can break
+# sphericity (three or more levels).
+check_factorial_covariance <- function(spec) {
+  pop <- spec$population
+  k <- length(spec$variables$A$levels)
+  m <- length(spec$variables$B$levels)
+  sds <- as.numeric(unlist(pop$sd))
+  rs <- as.numeric(unlist(pop$r))
+  correction <- spec$target_test$correction
+  several <- length(sds) > 1 || length(rs) > 1
+  if (several && identical(pop$metric, "eta_squared")) {
+    return("An SD per cell or more than one correlation needs the cell means ('population > means'), not partial eta-squared.")
+  }
+  problems <- character()
+  if (!is.null(correction) && !identical(correction, "none")) {
+    if (identical(spec$template, "2x2_mixed")) {
+      problems <- c(problems, "With two repeated measurements sphericity can't fail, so the 2 x 2 mixed ANOVA has no sphericity correction: remove 'target_test > correction'.")
+    } else if (identical(pop$metric, "eta_squared")) {
+      problems <- c(problems, paste0("A sphericity correction ('target_test > correction') needs the cell means, SDs and correlations: ",
+        "from partial eta-squared powerkit assumes sphericity (pwrss's epsilon = 1)."))
+    }
+  }
+  if (length(sds) > 1 && (!is.list(pop$sd) || length(pop$sd) != k || any(lengths(pop$sd) != m))) {
+    problems <- c(problems, sprintf(
+      "'population > sd' should have one SD per cell, as %d rows (levels of A) of %d SDs (levels of B), like the means.", k, m))
+  }
+  matrix_possible <- function(size, values) {
+    r <- diag(size)
+    r[upper.tri(r)] <- values
+    r[lower.tri(r)] <- t(r)[lower.tri(r)]
+    min(eigen(r, symmetric = TRUE, only.values = TRUE)$values) > 0
+  }
+  impossible <- "These correlations can't all hold at once (the correlation matrix they make isn't possible): check them, for example pairs that are much higher or lower than the rest."
+  if (length(rs) > 1) {
+    expected <- switch(spec$template, "2x2_mixed" = k, mixed = m * (m - 1) / 2, factorial_within = k * m * (k * m - 1) / 2)
+    what <- switch(spec$template,
+      "2x2_mixed" = "one correlation per group (levels of A, in order)",
+      mixed = "one correlation per pair of B's levels, in the order (1, 2), (1, 3), ..., (2, 3), ..., the same in every group",
+      factorial_within = "one correlation per pair of cells, the cells in the order A1 B1, A1 B2, ..., A2 B1, ... and the pairs in the order (1, 2), (1, 3), ..., (2, 3), ...")
+    if (length(rs) != expected) {
+      problems <- c(problems, sprintf("'population > r' should have %s: %d in all; it has %d.", what, expected, length(rs)))
+    } else if (identical(spec$template, "mixed") && !matrix_possible(m, rs)) {
+      problems <- c(problems, impossible)
+    } else if (identical(spec$template, "factorial_within") && !matrix_possible(k * m, rs)) {
+      problems <- c(problems, impossible)
+    }
+  } else if (length(rs) == 1 && identical(spec$template, "mixed")) {
+    # (The within design's single correlation is checked with its shape.)
+    size <- m
+    if (size > 2 && rs <= -1 / (size - 1)) {
+      problems <- c(problems, sprintf("With %d measurements per participant, one correlation for every pair must be above %s.",
+        size, format_number(round(-1 / (size - 1), 3))))
+    }
   }
   problems
 }
@@ -1299,7 +1366,7 @@ check_mixed_shape <- function(spec) {
       k, var_label(spec, "A"), m, var_label(spec, "B")
     ))
   }
-  if (spec$template == "factorial_within" && spec$population$r <= -1 / (k * m - 1)) {
+  if (spec$template == "factorial_within" && length(unlist(spec$population$r)) == 1 && spec$population$r <= -1 / (k * m - 1)) {
     # The same correlation between every pair of the k x m cells is only
     # possible above -1 / (cells - 1).
     return(sprintf(

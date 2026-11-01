@@ -91,6 +91,22 @@ A batch of new features, built as one round.
   SD 6, 20 per group) the Jonckheere-Terpstra test has power .31 against
   the Kruskal-Wallis test's .23. Exported scripts reproduce every variant;
   validation chunk `trend` (`test-validation-trend.R`).
+* The mixed designs and the two-factor within design take an SD per cell
+  and correlations per pair, as the one-way repeated-measures design does:
+  the 2 x 2 mixed design (`template` "2x2_mixed") an SD per cell and a
+  correlation per group; the larger mixed design ("mixed") an SD per cell
+  and a correlation per pair of the within factor's levels, the same in
+  every group; the two-factor within design ("factorial_within") an SD
+  per cell and a correlation per pair of cells. Superpower's
+  `ANOVA_design()` takes them as the whole correlation matrix (0 between
+  groups). The mixed and within designs take a sphericity correction
+  (`target_test > correction` "GG" or "HF", Superpower's `correction`),
+  and the MANOVA approach is shown beside the F test. For the interaction
+  in a 2 x 3 mixed design (SDs 6, 7, 8 and 6, 8, 10; correlations 0.6,
+  0.4, 0.6; n = 40) power is 26.7% uncorrected and 25.0% with
+  Greenhouse-Geisser. The result screen and write-up no longer say that
+  sphericity is assumed when the SDs or correlations differ (this also
+  corrects the one-way repeated-measures card's wording).
 
 # powerkit 0.26.0
 

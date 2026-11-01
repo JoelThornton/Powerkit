@@ -1168,7 +1168,7 @@ endpoints:
     card_points:
       - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "powerkit assumes the same SD in every combination and the same correlation between people's scores in any two of them. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect"]
     tier: v2
     alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
@@ -1773,7 +1773,7 @@ endpoints:
     card_points:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
-      - "powerkit assumes equal group sizes, the same SD in every cell and the same correlation between every pair of timepoints or conditions. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "Equal group sizes. One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures"]
