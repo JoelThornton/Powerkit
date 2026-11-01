@@ -65,7 +65,7 @@ form_examples <- list(
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1"), closing_ok),
   E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
-  E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided"), closing_ok),
+  E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
                p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
   E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",

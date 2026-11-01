@@ -2,6 +2,26 @@
 
 A batch of new features, built as one round.
 
+* A Bayes factor version of the test of one proportion (`target_test >
+  method` "bayes_factor" on `one_proportion`), by exact calculation with
+  bfpwr: the binomial Bayes factor with a Beta(a, b) analysis prior
+  (`target_test > prior_a`, `prior_b`; Beta(1, 1) by default, as in JASP
+  and bfpwr), the threshold as BF10 (`evidence_threshold`), and the
+  expected proportion exactly or with an SD (`population > p_sd`, a beta
+  design prior). Two-sided, it is bfpwr's `pbinbf01()` (the same Bayes
+  factor as JASP's two-sided test). One-sided, the default is JASP's test
+  of p = p0 against one side (`one_sided_null` "point"): bfpwr's two-sided
+  Bayes factor times the ratio of the posterior to the prior probability
+  of that side, summed over the outcomes 0 to n; bfpwr's directional test
+  (p <= p0 against p > p0) is `one_sided_null` "directional". Power goes
+  up and down with n, as for the exact binomial test, so the sample size
+  is the smallest that reaches the target. With no effect, the chances of
+  strong evidence for none and of misleading evidence are given, as for
+  the Bayes factor t-tests. The exported script reproduces every version.
+  Departure 15 now covers this test too (bfpwr's default design prior is
+  the analysis prior). Validation: `test-validation-bayes-binomial.R` in
+  the `bayes` chunk, against Bayes factors computed from their definition
+  for simulated studies.
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from

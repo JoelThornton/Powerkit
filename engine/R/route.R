@@ -50,7 +50,11 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/oneway_ancova" = ,
     "factorial_anova/factorial_ancova" = ,
     "factorial_anova/oneway_contrast" = ,
-    "basic_test/one_proportion" = ,
+    "basic_test/one_proportion" = if (bayes_factor_test(spec)) {
+      bfbin_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "basic_test/mcnemar" = ,
     "basic_test/chi_square_gof" = ,
     "basic_test/two_correlations" = ,
