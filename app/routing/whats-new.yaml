@@ -6,12 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
-    title: "A full-screen methods map"
+    title: "A new methods map"
     text: >-
-      The methods map in Labs now opens full screen: families of analyses
-      are glowing regions you can zoom into, each analysis shows the kind
-      of test it uses (t, F, chi-square and so on), and lines show how
-      analyses relate. Search or click to fly to one.
+      The methods map in Labs now opens full screen. Find a study like
+      yours and it moves to the middle, with the simpler designs that lead
+      to it on one side and the ways to change it on the other, each saying
+      what changes. It shows which test each analysis uses, and "Plan this
+      study" takes you straight to it.
   - date: "2026-11-01"
     title: "A tidier input screen that says what's left"
     text: >-

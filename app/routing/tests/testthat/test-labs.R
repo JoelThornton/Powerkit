@@ -188,7 +188,17 @@ test_that("the methods map names a test for every analysis, and its connections 
   # Each family is a region on the map, and opens full screen from Labs.
   expect_setequal(ids[kinds == "family"], paste0("fam_", vapply(tree$analysis_families, `[[`, "", "id")))
   expect_true(all(unlist(lapply(tree$analysis_families, `[[`, "endpoints")) %in% ids))
-  expect_match(as.character(map_ui(tree)), "methods-map.js", fixed = TRUE)
+  html <- as.character(map_ui(tree))
+  expect_match(html, "methods-map.js", fixed = TRUE)
+  # With nothing chosen, the panel offers the common starting points, each
+  # opening its analysis in focus.
+  for (id in unlist(tree$known_shortcuts)) {
+    expect_match(html, paste0('data-id="', id, '" onclick="pkMapGo(this.dataset.id, false)"'), fixed = TRUE)
+  }
+  # "Plan this study" asks before it replaces a plan in progress.
+  expect_match(as.character(map_replace_modal()), "map_plan_confirm", fixed = TRUE)
+  js <- paste(readLines(file.path(getOption("powerkit.routing_dir", "."), "www", "methods-map.js")), collapse = "\n")
+  expect_match(js, "Shiny.setInputValue('map_plan'", fixed = TRUE)
 })
 
 test_that("plan from a published result: the engine converts and gives the safeguard value", {

@@ -299,43 +299,31 @@ map_ui <- function(tree, meta = map_meta()) {
   tests <- stats::setNames(vapply(meta$tests, `[[`, "", "label"), names(meta$tests))
   used <- unique(unlist(meta$endpoints))
   tests <- tests[names(tests) %in% used]
+  starts <- intersect(unlist(tree$known_shortcuts), names(tree$endpoints))
   tagList(
     tags$script(src = "vendor/cytoscape.min.js"),
-    tags$script(src = "vendor/dagre.min.js"),
-    tags$script(src = "vendor/cytoscape-dagre.js"),
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree, meta))),
     tags$script(src = "methods-map.js"),
     h3("Methods map"),
-    p("Every analysis powerkit knows about, as a map: the families of analyses are regions, and each analysis is a light within its family, coloured by the test it uses. Lines join tests that are related. Scroll or pinch to zoom, drag to move, search or filter, and click an analysis to read about it."),
+    p("Every analysis powerkit knows about, on one map. Find a study like yours to see what it is, which test it uses, the simpler designs that lead to it and the ways to change it, then plan it."),
     tags$button(type = "button", class = "btn btn-primary mb-3", onclick = "pkMapFull(true)", "Open the map full screen"),
     div(class = "map-stage", id = "map-stage", role = "region", `aria-label` = "Methods map",
       div(id = "map-canvas", class = "map-canvas", role = "img",
-        `aria-label` = "A map of powerkit's analyses, grouped into families and joined to related tests. The same map is available as a list below it."),
+        `aria-label` = "A map of powerkit's analyses, grouped into families and joined to related analyses. The same map is available as a list below it."),
       div(class = "map-nebula", `aria-hidden` = "true"),
       div(class = "map-hud",
-        tags$button(type = "button", class = "map-hud-btn map-panel-toggle", onclick = "pkMapPanel()", `aria-controls` = "map-sidebar",
-          `aria-expanded` = "true", "Filters"),
         div(class = "map-title", tags$span(class = "map-title-name", "Methods map"), tags$span(class = "map-count", id = "map-count", `aria-live` = "polite")),
-        div(class = "map-search",
-          tags$label(`for` = "map_search", class = "visually-hidden", "Search the map"),
-          tags$input(id = "map_search", type = "search", class = "form-control",
-            placeholder = "Search: mediation, paired, chi-square ...", oninput = "pkMapFilter()",
-            onkeydown = "if (event.key === 'Enter') { event.preventDefault(); pkMapFirstHit(); }")),
+        div(class = "map-search", role = "combobox", `aria-expanded` = "false", `aria-owns` = "map-suggest", `aria-haspopup` = "listbox",
+          tags$label(`for` = "map_search", class = "visually-hidden", "Find an analysis"),
+          tags$input(id = "map_search", type = "search", class = "form-control", `aria-controls` = "map-suggest",
+            placeholder = "Find a study like yours: two groups, mediation, chi-square ...",
+            oninput = "pkMapSearch()", onkeydown = "pkMapSearchKey(event)"),
+          tags$ul(id = "map-suggest", class = "map-suggest", role = "listbox", hidden = NA)),
+        tags$button(type = "button", class = "map-hud-btn map-panel-toggle", onclick = "pkMapPanel()", `aria-controls` = "map-sidebar",
+          `aria-expanded` = "false", "Filters"),
         tags$button(type = "button", class = "map-hud-btn map-full-btn", id = "map-full-btn", onclick = "pkMapFull()", "Full screen")),
-      div(class = "map-sidebar", id = "map-sidebar",
-        tags$label(`for` = "map_layout", class = "h6", "View"),
-        tags$select(id = "map_layout", class = "form-select form-select-sm", onchange = "pkMapFilter()",
-          tags$option(value = "earth", "Families: analyses by what they are"),
-          tags$option(value = "cosmos", "Aims: analyses around what they show"),
-          tags$option(value = "tree", "Questions: every route, left to right")),
-        tags$label(`for` = "map_colour", class = "h6", "Colour by"),
-        tags$select(id = "map_colour", class = "form-select form-select-sm", onchange = "pkMapColour()",
-          tags$option(value = "test", "The test (t, F, chi-square, z ...)"),
-          tags$option(value = "family", "The family"),
-          tags$option(value = "status", "Whether powerkit calculates it")),
-        div(class = "form-check form-switch map-switch",
-          tags$input(class = "form-check-input", type = "checkbox", role = "switch", id = "map_relations", onchange = "pkMapFilter()"),
-          tags$label(class = "form-check-label", `for` = "map_relations", "Show every connection")),
+      tags$nav(id = "map-trail", class = "map-trail", `aria-label` = "Where you are on the map", hidden = NA),
+      div(class = "map-sidebar closed", id = "map-sidebar",
         tags$label(`for` = "map_names", class = "h6", "Names"),
         tags$select(id = "map_names", class = "form-select form-select-sm", onchange = "pkMapNames()",
           tags$option(value = "plain", "In plain words"),
@@ -345,16 +333,27 @@ map_ui <- function(tree, meta = map_meta()) {
         map_checks("outcome", map_filters$outcome, "The outcome"),
         map_checks("times", map_filters$times, "How often each person is measured"),
         map_checks("status", map_filters$status, "In powerkit"),
-        div(class = "nav-buttons mt-2",
-          tags$button(type = "button", class = "btn btn-light btn-sm", onclick = "pkMapFit()", "See everything"),
-          tags$button(type = "button", class = "btn btn-link btn-sm map-clear", onclick = "pkMapReset()", "Clear filters"))),
-      div(id = "map-legend", class = "map-legend", `aria-label` = "Colour key"),
+        tags$button(type = "button", class = "btn btn-link btn-sm map-clear", onclick = "pkMapReset()", "Clear filters")),
+      div(class = "map-legend",
+        div(class = "map-colour", role = "group", `aria-label` = "Colour the analyses by",
+          tags$span(class = "map-colour-label", "Colour by"),
+          tags$button(type = "button", `data-colour` = "test", `aria-pressed` = "true", onclick = "pkMapColour('test')", "Test"),
+          tags$button(type = "button", `data-colour` = "family", `aria-pressed` = "false", onclick = "pkMapColour('family')", "Family"),
+          tags$button(type = "button", `data-colour` = "status", `aria-pressed` = "false", onclick = "pkMapColour('status')", "In powerkit")),
+        div(id = "map-key", class = "map-key-items", `aria-label` = "Colour key")),
       div(class = "map-zoom",
         tags$button(type = "button", class = "map-hud-btn", onclick = "pkMapZoom(1.5)", `aria-label` = "Zoom in", "+"),
-        tags$button(type = "button", class = "map-hud-btn", onclick = "pkMapZoom(1 / 1.5)", `aria-label` = "Zoom out", "−"),
-        tags$button(type = "button", class = "map-hud-btn", onclick = "pkMapFit()", `aria-label` = "See everything", "⌂")),
-      div(class = "map-hint", id = "map-hint", "Scroll to zoom in. Click a family to fly into it, or an analysis to read about it."),
-      div(id = "map-details", class = "map-details", hidden = NA)),
+        tags$button(type = "button", class = "map-hud-btn", onclick = "pkMapZoom(1 / 1.5)", `aria-label` = "Zoom out", "\u2212"),
+        tags$button(type = "button", class = "map-hud-btn", onclick = "pkMapWhole()", `aria-label` = "See the whole map", "\u2302")),
+      div(id = "map-details", class = "map-details is-start", role = "region", `aria-label` = "About this analysis", `aria-live` = "polite",
+        tags$button(type = "button", class = "map-close", `aria-label` = "Close", onclick = "pkMapClose()", "\u00d7"),
+        tags$h4("Find a study like yours"),
+        tags$p(class = "small", "Search above, click a region, or start from a common analysis. Each one shows its test, the simpler designs that lead to it and the ways to change it."),
+        tags$h5("Common starting points"),
+        tags$ul(class = "map-rel", lapply(starts, function(id) {
+          tags$li(tags$button(type = "button", `data-id` = id, onclick = "pkMapGo(this.dataset.id, false)",
+            tags$span(class = "rel-name", tree$endpoints[[id]]$plain_name %||% id)))
+        })))),
     uiOutput("map_page"),
     tags$details(class = "map-as-list",
       tags$summary("The map as a list"),
@@ -369,6 +368,17 @@ map_page_ui <- function(tree, ep_id) {
   div(class = "map-page", id = "map-page", tabindex = "-1",
     card_ui(tree, ep_id, compact = TRUE),
     p(class = "small", "To plan this analysis, go to “Plan a power analysis” and choose “I know my analysis”, or answer the questions under “Help me choose”."))
+}
+
+# Planning from the map replaces a plan in progress, so it asks first.
+map_replace_modal <- function() {
+  modalDialog(
+    title = "Replace the plan in progress?",
+    p("You have a plan in progress on \u201cPlan a power analysis\u201d. Planning this analysis starts a new one there, and the plan in progress will be lost unless you save it first (\u201cSave this project\u201d on its result) or copy your answers."),
+    footer = tagList(
+      modalButton("Keep my plan"),
+      actionButton("map_plan_confirm", "Plan this analysis", class = "btn btn-primary")),
+    easyClose = TRUE)
 }
 
 map_css <- "
@@ -391,7 +401,7 @@ map_css <- "
     animation: pk-nebula 40s ease-in-out infinite alternate; }
   @keyframes pk-nebula { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-3%, 2%, 0) scale(1.06); } }
   @media (prefers-reduced-motion: reduce) { .map-nebula { animation: none; } }
-  .map-hud { position: absolute; top: 0; left: 0; right: 0; z-index: 4; display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem;
+  .map-hud { position: absolute; top: 0; left: 0; right: 0; z-index: 6; display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem;
              background: linear-gradient(180deg, rgba(3, 6, 20, 0.75), rgba(3, 6, 20, 0)); pointer-events: none; }
   .map-hud > * { pointer-events: auto; }
   .map-search { flex: 0 1 26rem; position: relative; }
@@ -424,18 +434,35 @@ map_css <- "
   .map-filter .form-check-input:checked { background-color: #5cc8ff; border-color: #5cc8ff; }
   .map-filter .form-check-label { font-size: 0.82rem; line-height: 1.3; color: #dfe7ff; }
   .map-clear { color: #9fd4ff; }
-  .map-legend { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0.9rem; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center;
-                gap: 0.35rem 0.5rem; max-width: min(56rem, calc(100% - 9rem)); padding: 0.4rem 0.7rem; border-radius: 14px;
-                background: rgba(8, 13, 34, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(160, 190, 255, 0.16); }
-  .map-legend button { border: 0; background: transparent; color: #dfe7ff; font-size: 0.78rem; padding: 0.15rem 0.35rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.35rem; }
-  .map-legend button:hover, .map-legend button:focus { background: rgba(255, 255, 255, 0.1); }
-  .map-legend button[aria-pressed='false'] { opacity: 0.4; text-decoration: line-through; }
-  .map-legend .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; flex: none; }
+  .map-legend { position: absolute; left: 0.9rem; bottom: 0.9rem; z-index: 3; display: flex; flex-direction: column; gap: 0.4rem;
+                max-width: min(34rem, calc(100% - 5.5rem)); padding: 0.5rem 0.7rem; border-radius: 14px;
+                background: rgba(8, 13, 34, 0.72); backdrop-filter: blur(8px); border: 1px solid rgba(160, 190, 255, 0.16); }
+  .map-stage.focusing .map-legend { display: none; }
+  .map-colour { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+  .map-colour-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #a9b6d8; margin-right: 0.3rem; }
+  .map-colour button { border: 1px solid rgba(160, 190, 255, 0.25); background: transparent; color: #dfe7ff; font-size: 0.78rem;
+                       padding: 0.1rem 0.65rem; border-radius: 999px; min-height: 28px; }
+  .map-colour button[aria-pressed='true'] { background: #dfe7ff; color: #0b1433; border-color: #dfe7ff; font-weight: 600; }
+  .map-key-items { display: flex; flex-wrap: wrap; gap: 0.15rem 0.3rem; }
+  .map-key-items button { border: 0; background: transparent; color: #dfe7ff; font-size: 0.76rem; padding: 0.1rem 0.35rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.35rem; }
+  .map-key-items button:hover, .map-key-items button:focus { background: rgba(255, 255, 255, 0.1); }
+  .map-key-items button[aria-pressed='false'] { opacity: 0.4; text-decoration: line-through; }
+  .map-stage .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; flex: none; display: inline-block; }
   .map-zoom { position: absolute; right: 0.9rem; bottom: 0.9rem; z-index: 3; display: flex; flex-direction: column; gap: 0.35rem; }
   .map-zoom .map-hud-btn { padding: 0; width: 40px; height: 40px; font-size: 1.1rem; line-height: 1; }
-  .map-hint { position: absolute; left: 50%; top: 3.8rem; transform: translateX(-50%); z-index: 2; font-size: 0.82rem; color: #cdd7f3;
-              background: rgba(8, 13, 34, 0.6); border-radius: 999px; padding: 0.3rem 0.9rem; pointer-events: none; transition: opacity 0.6s ease; white-space: nowrap; }
-  .map-hint.gone { opacity: 0; }
+  .map-trail { position: absolute; top: 3.7rem; left: 0.9rem; right: 24rem; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;
+               font-size: 0.85rem; color: #fff; }
+  .map-trail button { border: 0; background: rgba(14, 22, 54, 0.8); color: #9fd4ff; border-radius: 999px; padding: 0.2rem 0.7rem; min-height: 30px; }
+  .map-trail button:hover, .map-trail button:focus { background: rgba(40, 60, 130, 0.95); color: #fff; }
+  .map-trail [aria-current] { padding: 0.2rem 0.4rem; font-weight: 600; }
+  .map-trail .sep { color: #6f7fa8; }
+  .map-suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; list-style: none; margin: 0; padding: 0.3rem; z-index: 6;
+                 background: rgba(8, 13, 34, 0.96); border: 1px solid rgba(160, 190, 255, 0.3); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+  .map-suggest li { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.6rem; border-radius: 10px; cursor: pointer; font-size: 0.88rem; color: #fff; }
+  .map-suggest li.on, .map-suggest li[data-id]:hover { background: rgba(92, 200, 255, 0.16); }
+  .map-suggest .sug-name { flex: 1 1 auto; }
+  .map-suggest .sug-meta { flex: none; font-size: 0.75rem; color: #a9b6d8; }
+  .map-suggest .sug-none { color: #a9b6d8; cursor: default; }
   .map-details { position: absolute; top: 3.6rem; right: 0.75rem; width: 22rem; max-width: calc(100% - 1.5rem); max-height: calc(100% - 4.4rem); overflow-y: auto; z-index: 5;
                  background: rgba(8, 13, 34, 0.86); backdrop-filter: blur(10px); color: #e8eefc; border: 1px solid rgba(160, 190, 255, 0.25);
                  border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45); padding: 1rem 1.1rem; }
@@ -445,10 +472,22 @@ map_css <- "
   .map-details ol, .map-details ul { padding-left: 1.1rem; font-size: 0.85rem; }
   .map-details p { color: #cdd7f3; }
   .map-details .map-test { border-left: 3px solid var(--test, #5cc8ff); padding: 0.35rem 0.6rem; background: rgba(255, 255, 255, 0.05); border-radius: 0 8px 8px 0; font-size: 0.85rem; }
-  .map-rel { list-style: none; padding-left: 0 !important; }
+  .map-details .map-usual, .map-details .map-family { font-size: 0.85rem; margin: 0 0 0.2rem 0; }
+  .map-details .map-family { color: #a9b6d8; }
+  .map-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.8rem 0 0.2rem 0; }
+  .map-rel { list-style: none; padding-left: 0 !important; margin: 0; }
   .map-rel li { margin-bottom: 0.3rem; }
-  .map-rel button { border: 0; background: none; color: #9fd4ff; padding: 0; text-align: left; text-decoration: underline; font-size: 0.85rem; }
-  .map-rel .map-rel-text { color: #a9b6d8; }
+  .map-rel button { width: 100%; border: 1px solid rgba(160, 190, 255, 0.16); background: rgba(255, 255, 255, 0.04); color: #fff; padding: 0.4rem 0.6rem;
+                    text-align: left; border-radius: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.1rem; }
+  .map-rel button:hover, .map-rel button:focus { background: rgba(92, 200, 255, 0.14); border-color: #9fd4ff; }
+  .map-rel .rel-change { color: #cdd7f3; font-size: 0.8rem; }
+  .map-rel .rel-name { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+  .map-route { margin-top: 0.9rem; font-size: 0.85rem; }
+  .map-route summary { cursor: pointer; color: #a9b6d8; }
+  .map-route ol { margin: 0.4rem 0 0 0; }
+  .map-tags { margin-right: 1.6rem; }
+  .map-tag.test { background: rgba(255, 255, 255, 0.08); color: #fff; display: inline-flex; align-items: center; gap: 0.35rem; }
+  .map-tag.test .dot { background: var(--test); }
   .map-tag { display: inline-block; border-radius: 1rem; padding: 0.05rem 0.6rem; font-size: 0.75rem; font-weight: 600; margin: 0 0.3rem 0.5rem 0; }
   .map-tag.runs { background: rgba(92, 200, 255, 0.18); color: #8fdcff; }
   .map-tag.soon { background: rgba(255, 179, 71, 0.2); color: #ffc978; }
@@ -462,11 +501,16 @@ map_css <- "
   .map-as-list { margin-top: 1rem; }
   @media (max-width: 800px) {
     .map-sidebar { width: calc(100% - 1.5rem); bottom: auto; max-height: 60%; }
-    .map-legend { max-width: calc(100% - 5rem); left: 0.75rem; transform: none; justify-content: flex-start; }
-    .map-hint { display: none; }
+    .map-details { top: auto; bottom: 0; right: 0; left: 0; width: 100%; max-width: none; max-height: 48%; border-radius: 16px 16px 0 0; }
+    .map-legend { bottom: 0.75rem; }
+    .map-sidebar { top: 6.4rem; }
+    .map-hud { flex-wrap: wrap; gap: 0.5rem; }
+    .map-hud-btn { white-space: nowrap; }
+    .map-title { flex: 0 0 auto; }
+    .map-search { order: 3; flex: 1 1 100%; }
+    .map-trail { right: 0.9rem; top: 6.4rem; font-size: 0.8rem; }
     .map-count { display: none; }
-    .map-title-name { display: none; }
-    .map-search { flex: 1 1 auto; }
+    .map-title-name { font-size: 0.75rem; }
   }
 "
 
