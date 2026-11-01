@@ -19,8 +19,10 @@
 # the baseline B, and every analysis adjusts the second for it, as the
 # ANCOVA card (E23) does (decided 31 October 2026). Covered: the
 # comparison when the ANCOVA is chosen (the mixed ANOVA's group x time
-# test is not simulated as a whole study), the moderation and a mediation
-# through one mediator; these have no card of their own yet (E41).
+# test is not simulated as a whole study), the moderation, a mediation
+# through one or two mediators (side by side or in a chain) and a
+# moderated mediation with one moderated link (X to the mediator, or the
+# mediator to the outcome); these have no card of their own yet (E41).
 
 whole_study_tests <- c(E4 = "x_y", E9 = "interaction", E10 = "indirect", E11 = "indirect",
   E12 = "indirect", E13 = "index_of_mome", E14 = "index_of_mome",
@@ -33,8 +35,14 @@ whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the 
 
 # Measured twice: the analysis that each planned analysis becomes once Y
 # is adjusted for its first measurement (whole_study_plan()).
-whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect")
-whole_study_twice_endpoints <- c(compare = "E23", moderation = "E41", mediation = "E41")
+whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome")
+whole_study_twice_endpoints <- c(compare = "E23", moderation = "E41", mediation = "E41", modmed = "E41")
+
+# Measured twice, the routes ask how two mediators connect and which link
+# W moderates (tree.yaml: ME3 and MM4, every answer going to E41); the
+# answer picks the model, as the card's end point does when measured once.
+whole_study_twice_serial <- "In a chain: X affects the first, which affects the next"
+whole_study_twice_links <- c("The link from X to the mediator" = "x_m", "The link from the mediator to the outcome" = "m_y")
 
 whole_study_path_label <- function(key) {
   if (identical(key, "X<->W")) return("Correlation of the predictor with the moderator (X with W)")
@@ -57,7 +65,6 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   if (!identical(answers$covariate %||% "none", "none")) reasons <- c(reasons, "there are no covariates")
   twice <- identical(answers$times, "twice")
   if (!(answers$times %||% "once") %in% c("once", "twice")) reasons <- c(reasons, "each person is measured once or twice")
-  if (twice && !answers$mediators %in% c("none", "one")) reasons <- c(reasons, "measured twice, there is one mediator at most")
   if (!answers$moderator %in% c("none", "score")) reasons <- c(reasons, "the moderator, if any, is a measured score")
   if (!answers$mediators %in% c("none", "one", "several")) reasons <- c(reasons, "the mediators, if any, are scores")
   if (length(intersect(ticked, primary)) == 0) reasons <- c(reasons, "at least one analysis is a main analysis")
@@ -65,7 +72,12 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
     resolve_analysis(tree, analysis_by_id(tree, id), answers, asks[[id]])$endpoint %||% ""
   }, character(1))
   covered <- if (twice) {
-    vapply(seq_along(ticked), function(i) identical(unname(whole_study_twice_endpoints[ticked[i]]), endpoints[[i]]), logical(1))
+    vapply(seq_along(ticked), function(i) {
+      id <- ticked[i]
+      identical(unname(whole_study_twice_endpoints[id]), endpoints[[i]]) &&
+        (!identical(id, "modmed") || (identical(answers$x, "score") && identical(answers$mediators, "one") &&
+          (asks[[id]] %||% "") %in% names(whole_study_twice_links)))
+    }, logical(1))
   } else {
     endpoints %in% names(whole_study_tests)
   }
@@ -79,7 +91,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
 
   mediators <- switch(answers$mediators, one = "M", several = c("M1", "M2"), character())
   link <- c(E13 = "x_m", E14 = "m_y")
-  serial <- "E12" %in% endpoints
+  serial <- if (twice) identical(asks[["mediation"]], whole_study_twice_serial) else "E12" %in% endpoints
   analyses <- lapply(seq_along(ticked), function(i) {
     id <- ticked[i]
     ep <- endpoints[[i]]
@@ -87,7 +99,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
       test = if (twice) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
       role = if (id %in% primary) "main" else "extra")
     if (identical(a$test, "indirect")) a$path <- if (length(mediators) == 1) "X->M->Y" else if (serial) "X->M1->M2->Y" else "X->M1->Y"
-    if (identical(a$test, "index_of_mome")) a$moderated_link <- link[[ep]]
+    if (identical(a$test, "index_of_mome")) a$moderated_link <- if (twice) whole_study_twice_links[[asks[[id]]]] else link[[ep]]
     a
   })
   tests <- vapply(analyses, function(a) a$test, "")
