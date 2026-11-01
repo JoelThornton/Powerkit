@@ -1978,12 +1978,19 @@ forms:
       - input: "The outcome, and whether the studies give Cohen's d or a correlation"
         fields:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
+          - {id: meta_question, label: "What the meta-analysis tests", type: select, path: template, required: true,
+             choices: {mean_effect: "The average effect", subgroups: "Whether the effect differs between kinds of study (a subgroup or moderator analysis, e.g. lab against online)"},
+             sets: {subgroups: [{path: target_test.effect, value: moderator}, {path: target_test.method, value: q_test}]},
+             default: mean_effect, default_source: "the average effect, a meta-analysis's main question"}
           - {id: meta_metric, label: "The effect size the studies give", type: select, path: population.metric, required: true,
              choices: {d: "Cohen's d: two groups compared in each study", r: "A correlation r"}, default: d,
              default_source: "Cohen's d, the first effect size metapower's mpower() takes (metapower 0.2.2)"}
       - input: "The average effect, the size of a typical study and the heterogeneity (I-squared)"
         fields:
+          - {id: meta_effects, writeup_label: "average effects of the kinds of study", label: "The average effect in each kind of study, separated by commas (for example, lab then online: 0.2, 0.5); the studies are split equally between the kinds", type: numbers, path: population.effects, effect: true,
+             shown_if: {field: meta_question, is: subgroups}}
           - {id: meta_effect, writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
+             shown_if: {field: meta_question, is: mean_effect},
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
           - {id: study_size, label: "Participants in a typical study (both groups together for d)", type: number, path: population.study_size, required: true, min: 4, integer: true, in_effect_text: true, writeup_label: "participants per study",
              help: "Every study is taken to be this size; metapower splits it into two equal groups for d."}

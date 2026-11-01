@@ -22,7 +22,8 @@ fully validated. Validation runs are recorded in
   **40 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
   E37, E47-E57 and E59-E61 (`forms.yaml`'s `calculates`); E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
-  default, simulated with metafor), since 31 October 2026. **Ten are simulated with a
+  default, simulated with metafor), since 31 October 2026, with subgroups
+  of studies since 1 November. **Ten are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026) and E62 (a

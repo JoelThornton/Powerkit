@@ -1950,7 +1950,9 @@ minimum_n <- function(spec) {
     mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
-    meta_analysis = 2,
+    # Subgroups: two studies of each kind, so the within-kind variance has
+    # a degree of freedom.
+    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else 2,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -1975,6 +1977,10 @@ minimum_n <- function(spec) {
 
 group_split <- function(spec) {
   whole <- function(x) abs(x - round(x)) < 1e-9
+  if (identical(spec$design, "meta_analysis") && identical(spec$template, "subgroups")) {
+    g <- length(unlist(spec$population$effects))
+    return(list(rule = sprintf("split equally between the %d kinds of study", g), valid = function(n) n %% g == 0))
+  }
   if (spec$template == "2x2_between" && unequal_cells(spec)) {
     w <- cell_ratio_vector(spec)
     return(list(
@@ -2159,7 +2165,12 @@ target_effect_is_zero <- function(spec) {
       process_7 = paths[[paste0("XW->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "->Y")]],
       process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]]
     ),
-    meta_analysis = pop$effect
+    meta_analysis = if (identical(spec$template, "subgroups")) {
+      e <- as.numeric(unlist(pop$effects))
+      max(abs(e - mean(e)))
+    } else {
+      pop$effect
+    }
   )
   isTRUE(abs(value) < 1e-12)
 }
@@ -2195,8 +2206,11 @@ modmed_mediator <- function(spec) {
 check_meta_analysis <- function(spec) {
   pop <- spec$population
   problems <- character()
-  if (identical(pop$metric, "r") && abs(pop$effect) >= 1) {
-    problems <- c(problems, "A correlation ('population > effect' with metric \"r\") must be between -1 and 1.")
+  subgroups <- meta_subgroups(spec)
+  effects <- as.numeric(unlist(if (subgroups) pop$effects else pop$effect))
+  if (identical(pop$metric, "r") && any(abs(effects) >= 1)) {
+    problems <- c(problems, sprintf("A correlation ('population > %s' with metric \"r\") must be between -1 and 1.",
+      if (subgroups) "effects" else "effect"))
   }
   if (identical(pop$metric, "d") && pop$study_size %% 2 != 0) {
     problems <- c(problems, sprintf(paste0(
@@ -2204,7 +2218,10 @@ check_meta_analysis <- function(spec) {
       "%d isn't."), as.integer(pop$study_size)))
   }
   alternative <- spec$target_test$alternative %||% "two_sided"
-  if (!identical(alternative, "two_sided") && pop$effect != 0 &&
+  if (subgroups && !identical(alternative, "two_sided")) {
+    problems <- c(problems, "The test that kinds of study differ has no direction (a Q test): remove 'target_test > alternative' or set it to \"two_sided\".")
+  }
+  if (!subgroups && !identical(alternative, "two_sided") && pop$effect != 0 &&
       !identical(alternative, if (pop$effect > 0) "greater" else "less")) {
     problems <- c(problems, "A one-sided test of a meta-analysis runs in the direction of the expected effect.")
   }
