@@ -20,4 +20,5 @@ tree <- load_tree(file.path(routing_dir, "tree.yaml"))
 forms <- load_forms(file.path(routing_dir, "forms.yaml"))
 # As in app.R: cards for end points that calculate.
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
+tree$calculate_how <- about_endpoint_how(forms)
 options(powerkit.routing_dir = routing_dir)

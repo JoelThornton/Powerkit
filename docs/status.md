@@ -65,6 +65,9 @@ fully validated. Validation runs are recorded in
   Feedback) is a timeline of titles that open, with Full details, a search
   and the changes since your last visit marked. Every tab shares one
   column.
+- **Questions and cards** (1 November 2026): each question shows its
+  number and takes number keys; a card opens with how it calculates, the
+  package and its checks, and lists what you'll need.
 - **Results** open with the answer as one large figure and what it
   assumes, then "How sure can you be?" (the effect slider and cautious and
   hopeful guesses), then the write-up with Copy buttons and the downloads
