@@ -428,6 +428,14 @@ for the maintainer, not yet made.
 | simr | `powerSim()` simulates data sets from a model built with `makeLmer()` (fixed effects, `VarCorr`, `sigma`) and refits each with lme4; `fixed(xname, method)` tests one fixed effect [simr help] | The model's own parameters, in the outcome's units | `fixed()`'s default `method = "z"` treats the t statistic as normal (its help calls it an asymptotic approximation for models not fitted with `glmer`); `"sa"` is lmerTest's Satterthwaite t test, `"kr"` Kenward-Roger. A data set whose fit or test fails counts as not significant |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E33, from 30 October 2026) [powerkit] | The difference between conditions and the SDs of participants' intercepts and condition slopes (with their correlation), items' intercepts (and slopes, with items in both conditions) and the residual, in the outcome's units; the condition coded -0.5 and 0.5 | `y ~ cond + (1 + cond \| participant) + (1 \| item)`, every participant responding to every item; items in one condition each (half per condition) or in both. With the conditions between participants (X a between factor, from 31 October 2026), `y ~ cond + (1 \| participant) + (1 \| item)` (or `(1 + cond \| item)` with items in both conditions), half the participants in each condition, each responding to every item or to their condition's half. `goal.n` is the number of participants, the number of items fixed. The Satterthwaite test is Departure 16 |
 
+## Participants and items in three or more conditions (E63)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for crossed random effects | — | — |
+| simr | `powerSim()` on a model built with `makeLmer()`; for a factor, `fixed(xname)` tests by a likelihood ratio by default [simr help] | The model's own parameters | — |
+| **powerkit** | simr's `powerSim()` with lmerTest's Satterthwaite F test of cond (`anova(ddf = "Satterthwaite")`), or one pair's Satterthwaite t test (`contest()`) adjusted for all the pairs by `p.adjust()`, Holm by default (E63, from 31 October 2026) [powerkit] | Each condition's mean, and the SDs of participants' averages, of their condition effects (one SD for every condition), of items' averages and of the residual, in the outcome's units | `y ~ cond + (1 \| participant) + (1 \| participant:cond) + (1 \| item)`, cond in treatment coding; items split equally between the conditions or in every condition (then optionally `(1 \| item:cond)`). The Satterthwaite tests are Departure 16, Holm's default Departure 17 |
+
 ## People within groups, predictors at both levels (two-level model, E62)
 
 | Tool | Test | Effect size | Settings |
@@ -962,11 +970,16 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   (pupils in classes of 20; `inst/specs/mixed_two_level.json`) and 1,000
   simulated data sets, the group-level effect at 10 classes has 21.6%
   power with Satterthwaite and 31.4% with z, and at 40 classes 78.4% and
-  80.6%; the cross-level interaction at 10 classes 16.2% and 22.6%.
+  80.6%; the cross-level interaction at 10 classes 16.2% and 22.6%. With
+  three or more conditions (E63, from 31 October 2026) the F test of the
+  conditions is lmerTest's Satterthwaite F rather than simr's default for
+  a factor, a likelihood-ratio test: with powerkit's example
+  (`inst/specs/crossed_conditions.json`) and 1,000 simulated data sets,
+  21.5% against 22.9% at 20 participants, 31.1% against 32.3% at 40.
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's and E62's result screens
+- **Shown to users:** on E33's, E62's and E63's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")
@@ -995,7 +1008,13 @@ and Bonferroni first); Holm's method as the default is powerkit's.
   Bonferroni's power against `stats::power.t.test()` at alpha / 3.
 - **Shown to users:** on the E18 and E54 result screens when pairwise
   comparisons are adjusted (`app/routing/forms.yaml`, `departures`, key
-  "17"), and in the methods paragraph's full version.
+  "17"), and in the methods paragraph's full version; on E63's (three or
+  more conditions with participants and items, from 31 October 2026),
+  where the pair Neutral against Happy in powerkit's example has 25.0%
+  power with Holm's adjustment, 24.4% with Bonferroni's and 38.3% with
+  none at 40 participants (1,000 simulated data sets;
+  `test-backend-crossed-conditions.R` checks the order on the same data
+  sets).
 
 ### 18. Meta-analysis: the Hartung-Knapp test by default, not metapower's z test
 

@@ -632,6 +632,7 @@ sim_cluster_code <- function(spec, n) {
 # model's intercept is 0, as the difference is all the power depends on.
 sim_mixed_code <- function(spec, n) {
   if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
+  if (identical(spec$template, "crossed_conditions")) return(sim_crossed_conditions_code(spec, n))
   inputs <- simr_inputs(spec)
   levels <- sim_levels(spec, "X")
   item_var <- if (length(inputs$VarCorr$item) > 1) {
@@ -848,6 +849,40 @@ sim_two_level_code <- function(spec, n) {
     "  group = design$group,",
     sprintf("  %s = design$x,", sim_label(spec, "X")),
     sprintf("  %s = design$w,", sim_label(spec, "W")),
+    sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# Participants and items in three or more conditions (E63): the same design
+# and model as the simulation (crossed_conditions_design(),
+# crossed_conditions_inputs()), one row per participant per item.
+sim_crossed_conditions_code <- function(spec, n) {
+  inputs <- crossed_conditions_inputs(spec)
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr), vapply(inputs$VarCorr, r_code, "")), collapse = ", ")
+  c(
+    sprintf("conditions <- %s", r_code(inputs$levels)),
+    if (inputs$within) {
+      sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d), cond = conditions, stringsAsFactors = FALSE)",
+        n, inputs$items)
+    } else {
+      c(
+        sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
+        sprintf("design$cond <- conditions[ceiling(design$item / %d)] # the items split equally, one block per condition",
+          inputs$items %/% length(inputs$levels))
+      )
+    },
+    "design$participant <- factor(design$participant)",
+    "design$item <- factor(design$item)",
+    "design$cond <- factor(design$cond, levels = conditions)",
+    sprintf(
+      "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
+      deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma)
+    ),
+    "simulated <- data.frame(",
+    "  participant = design$participant,",
+    "  item = design$item,",
+    sprintf("  %s = design$cond,", sim_label(spec, "X")),
     sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
     ")"
   )

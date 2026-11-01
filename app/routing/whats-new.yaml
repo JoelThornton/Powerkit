@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Many items per person in three or more conditions"
+    text: >-
+      A new card plans studies where each participant responds to many
+      items or stimuli in three or more conditions, such as happy, angry and
+      neutral faces: either whether the conditions differ at all, or one
+      pair of conditions, adjusted for the number of pairs.
+  - date: "2026-10-31"
     title: "Minimum-effect tests, and a point-biserial r for two groups"
     text: >-
       The one-sample, paired and two-group t-test cards have a new test

@@ -167,6 +167,12 @@ form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", 
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
+# E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
+form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)",
+                            means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
+                            sd_residual = "120", items = "60", item_design = "between", conditions_test = "satterthwaite_t",
+                            comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",

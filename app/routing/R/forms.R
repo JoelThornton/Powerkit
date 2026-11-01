@@ -835,8 +835,9 @@ build_spec <- function(forms, ep_id, fields, values) {
   }
   # The pair compared (pairwise comparisons) is matched to the levels'
   # spelling, so "none, praise" finds "None" and "Praise".
-  if (!is.null(spec$target_test$comparison) && !is.null(spec$variables$A$levels)) {
-    levels <- unlist(spec$variables$A$levels)
+  factor_levels <- spec$variables$A$levels %||% spec$variables$X$levels
+  if (!is.null(spec$target_test$comparison) && !is.null(factor_levels)) {
+    levels <- unlist(factor_levels)
     pair <- unlist(spec$target_test$comparison)
     at <- match(tolower(trimws(pair)), tolower(trimws(levels)))
     spec$target_test$comparison <- as.list(ifelse(is.na(at), pair, levels[at]))
