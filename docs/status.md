@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 1 November 2026 (powerkit 0.27.1). This page says where the
+*Last updated: 1 November 2026 (powerkit 0.27.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
