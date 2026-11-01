@@ -43,6 +43,13 @@ A batch of new features, built as one round.
   cannot estimate when W predicts M (docs/upstream-questions.md). Checked
   against a simulation written separately (OLS for each equation and its
   own Monte Carlo interval), with the Type I error at most alpha.
+* The Labs picture of power covers three more tests:
+  `power_picture_paired()` (pwr's paired t-test, the central and
+  noncentral t with n - 1 df), `power_picture_anova()` (pwr's one-way
+  ANOVA, the central and noncentral F with k - 1 and n - k df, the
+  smallest significant Cohen's f) and `power_picture_2p()` (pwr's
+  two-proportion test on Cohen's h, the z statistic's two normal curves).
+
 * A Bayes factor version of the test of two proportions (`target_test >
   method` "bayes_factor" on `two_proportions`): BayesFactor's
   `contingencyTableBF()` with independent multinomial sampling and the
