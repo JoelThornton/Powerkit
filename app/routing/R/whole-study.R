@@ -375,6 +375,14 @@ whole_study_duration_range <- function(seconds) {
   sprintf("about %s to %s", words[1], words[2])
 }
 
+# A power as a bar, with its 95% interval as a lighter band behind it.
+whole_study_power_bar <- function(power, lower, upper) {
+  pc <- function(x) sprintf("%.1f%%", 100 * max(0, min(1, x)))
+  div(class = "ws-bar", `aria-hidden` = "true",
+    span(class = "ws-bar-ci", style = sprintf("left: %s; width: %s;", pc(lower), pc(upper - lower))),
+    span(class = "ws-bar-fill", style = sprintf("width: %s;", pc(power))))
+}
+
 whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
@@ -385,54 +393,83 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
   joint <- r$joint
   rule_text <- c(all = "all of your main analyses are significant", any = "at least one of your main analyses is significant")
   pv <- r$provenance
+  show_joint <- !is.null(joint) && !identical(r$claim, "each")
+  methods <- whole_study_methods(r)
+  methods_full <- paste(methods, sprintf("Spec hash: %s. Check run (n = 100,000): %s.", pv$spec_hash,
+    if (all(r$check_run$ok)) "passed" else "failed"))
+  # As on every result: the answer, each analysis, then saving and how it
+  # was calculated.
   div(
     class = "result-panel whole-study-result", role = "status", tabindex = "-1",
-    h3(class = "h4", "Result"),
-    if (!is.null(script)) p(class = "alert alert-info", role = "note", sprintf(
-      "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (below).",
-      whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
-    if (!is.null(joint) && !identical(r$claim, "each")) p(class = "lead", HTML(sprintf(
-      "With <strong>N = %s</strong>, the chance that %s in the same study is <strong>%s</strong> (95%% interval %s to %s).",
-      whole(r$n), rule_text[[joint$rule]], percent(joint$power), percent(joint$lower), percent(joint$upper)))),
-    tags$table(class = "table table-sm ws-table",
-      tags$thead(tags$tr(tags$th("Analysis"), tags$th("Role"), tags$th("Tested at alpha"), tags$th("Power"), tags$th("95% interval"))),
-      tags$tbody(lapply(seq_len(nrow(a)), function(i) tags$tr(
-        tags$td(a$label[i]), tags$td(if (a$role[i] == "main") "Main" else "Extra"),
-        tags$td(format(signif(a$alpha[i], 3))), tags$td(tags$strong(percent(a$power[i]))),
-        tags$td(sprintf("%s to %s", percent(a$lower[i]), percent(a$upper[i]))))))),
-    if (identical(r$claim, "each")) p(class = "text-muted", "Each main result is a separate claim, so each analysis's own power is what matters."),
-    if (identical(r$claim, "any")) p(class = "text-muted", sprintf(
-      "Your claim counts any one significant main result, so each main analysis is tested at alpha divided by the number of main analyses (Bonferroni), as on the plan's input screens.")),
-    p(sprintf("From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
-      whole(pv$nrep), whole(r$n))),
-    h4(class = "h5", "What your study model means for each analysis's own input screen"),
-    p(class = "text-muted", "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
-    lapply(r$implied, function(imp) {
-      own <- plan_values[[imp$id]] %||% list()
-      label <- a$label[a$id == imp$id]
-      tagList(tags$p(tags$strong(label)),
-        tags$table(class = "table table-sm ws-implied",
-          tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your study model"), tags$th("You entered on its screen"))),
-          tags$tbody(lapply(names(imp$values), function(k) tags$tr(
-            tags$td(whole_study_value_label(k)), tags$td(sprintf("%.3f", imp$values[[k]])),
-            tags$td(own[[k]] %||% "—"))))))
-    }),
-    h4(class = "h5", "How this differs from calculating each analysis separately"),
-    p(departure %||% "Separate calculations each describe their own study; this simulation uses one model of your study for all of them."),
-    p(class = "text-muted", "This is recorded as a departure from the established tools in powerkit's conventions."),
-    h4(class = "h5", "Methods paragraph (draft)"),
-    p(class = "methods", whole_study_methods(r)),
-    tags$details(tags$summary("Details for a statistician"),
-      tags$pre(class = "small", paste0("Population model (lavaan syntax):\n", r$models$population,
-        "\n\nPopulation values:\n", r$models$population_values,
-        "\n\nAnalysis models:\n", paste(sprintf("%s: %s", a$id, gsub("\n", "; ", r$models$analyses)), collapse = "\n"),
-        sprintf("\n\nCheck run (n = 100,000): %s", if (all(r$check_run$ok)) "passed" else "FAILED"))),
-      p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; power4mome %s, lavaan %s, manymome %s; powerkit %s. Run time %s seconds.",
-        pv$seed, whole(pv$nrep), if (!is.na(pv$ci_draws)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else "",
-        pv$spec_hash, pv$r_version, pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]], pv$packages[["powerkit"]],
-        round(pv$run_time_seconds)))),
-    script,
-    downloadButton("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary")
+    result_sections_ui(list(`ws-answer` = "The answer", `ws-inputs` = "Check your inputs",
+      `ws-take` = "Write it up and save it", `ws-how` = "How it was calculated")),
+    div(class = paste("result-card result-main", if (show_joint) "has-hero"), id = "ws-answer",
+      h3(class = "h4", "Your result"),
+      if (show_joint) div(class = "result-hero",
+        div(class = "result-figure",
+          tags$span(class = "result-figure-value", percent(joint$power)),
+          tags$span(class = "result-figure-label", if (joint$rule == "all") "chance that every main analysis is significant" else "chance that at least one main analysis is significant"),
+          tags$span(class = "result-figure-sub", sprintf("95%% interval %s to %s", percent(joint$lower), percent(joint$upper)))),
+        div(class = "result-assumes",
+          tags$span(class = "result-assumes-title", "Assuming"),
+          tags$ul(tags$li(sprintf("N = %s", whole(r$n))), tags$li(sprintf("Alpha = %s", format(r$alpha))),
+            tags$li(sprintf("%s simulated studies", whole(pv$nrep)))))),
+      if (show_joint) p(class = "lead result-headline", HTML(sprintf(
+        "With <strong>N = %s</strong>, the chance that %s in the same study is <strong>%s</strong> (95%% interval %s to %s).",
+        whole(r$n), rule_text[[joint$rule]], percent(joint$power), percent(joint$lower), percent(joint$upper)))),
+      if (!is.null(script)) p(class = "ws-quick-note", role = "note", sprintf(
+        "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (under \u201cWrite it up and save it\u201d).",
+        whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
+      h4(class = "h6 mt-3", "Each analysis"),
+      div(class = "table-responsive", tags$table(class = "table table-sm ws-table",
+        tags$thead(tags$tr(tags$th("Analysis"), tags$th("Role"), tags$th("Tested at alpha"), tags$th("Power"), tags$th(class = "ws-bar-col", "95% interval"))),
+        tags$tbody(lapply(seq_len(nrow(a)), function(i) tags$tr(
+          tags$td(a$label[i]), tags$td(if (a$role[i] == "main") "Main" else "Extra"),
+          tags$td(format(signif(a$alpha[i], 3))), tags$td(tags$strong(percent(a$power[i]))),
+          tags$td(class = "ws-bar-col", whole_study_power_bar(a$power[i], a$lower[i], a$upper[i]),
+            tags$span(class = "ws-bar-text", sprintf("%s to %s", percent(a$lower[i]), percent(a$upper[i]))))))))),
+      if (identical(r$claim, "each")) p(class = "text-muted", "Each main result is a separate claim, so each analysis's own power is what matters."),
+      if (identical(r$claim, "any")) p(class = "text-muted",
+        "Your claim counts any one significant main result, so each main analysis is tested at alpha divided by the number of main analyses (Bonferroni), as on the plan's input screens."),
+      p(class = "small", sprintf("From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
+        whole(pv$nrep), whole(r$n)))),
+    div(class = "result-card", id = "ws-inputs",
+      h4(class = "h5", "What your study model means for each analysis's own input screen"),
+      p(class = "small", "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
+      lapply(r$implied, function(imp) {
+        own <- plan_values[[imp$id]] %||% list()
+        label <- a$label[a$id == imp$id]
+        div(class = "ws-implied-block",
+          tags$p(class = "ws-implied-title", tags$strong(label)),
+          div(class = "table-responsive", tags$table(class = "table table-sm ws-implied",
+            tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your study model"), tags$th("You entered on its screen"))),
+            tags$tbody(lapply(names(imp$values), function(k) tags$tr(
+              tags$td(whole_study_value_label(k)), tags$td(sprintf("%.3f", imp$values[[k]])),
+              tags$td(own[[k]] %||% "\u2014")))))))
+      })),
+    div(class = "result-card result-save", id = "ws-take",
+      h4(class = "h5", "Write it up and save it"),
+      h5(class = "h6", "Methods paragraph (draft)"),
+      writeup_ui(c(short = methods, full = methods_full)),
+      script,
+      div(class = "nav-buttons mt-2",
+        downloadButton("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"))),
+    div(class = "result-card result-how", id = "ws-how",
+      h4(class = "h5", "How it was calculated"),
+      p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. Experimental: a statistician's check is still to come.",
+        pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])),
+      h5(class = "h6", "How this differs from calculating each analysis separately"),
+      p(departure %||% "Separate calculations each describe their own study; this simulation uses one model of your study for all of them."),
+      p(class = "small text-muted", "This is recorded as a departure from the established tools in powerkit's conventions."),
+      tags$details(class = "result-more", tags$summary("Details for a statistician"),
+        tags$pre(class = "small", paste0("Population model (lavaan syntax):\n", r$models$population,
+          "\n\nPopulation values:\n", r$models$population_values,
+          "\n\nAnalysis models:\n", paste(sprintf("%s: %s", a$id, gsub("\n", "; ", r$models$analyses)), collapse = "\n"),
+          sprintf("\n\nCheck run (n = 100,000): %s", if (all(r$check_run$ok)) "passed" else "FAILED"))),
+        p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; power4mome %s, lavaan %s, manymome %s; powerkit %s. Run time %s seconds.",
+          pv$seed, whole(pv$nrep), if (!is.na(pv$ci_draws)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else "",
+          pv$spec_hash, pv$r_version, pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]], pv$packages[["powerkit"]],
+          round(pv$run_time_seconds)))))
   )
 }
 

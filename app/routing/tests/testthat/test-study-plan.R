@@ -90,3 +90,37 @@ test_that("the joint power from the engine is stated with each outcome's power a
   expect_match(words[["detail"]], "for Recall;", fixed = TRUE)
   expect_match(words[["detail"]], "Calculated by PUMP", fixed = TRUE)
 })
+
+test_that("the plan names each analysis in plain words, puts the largest N first, and each can be removed", {
+  expect_identical(plan_label(tree, "E2"), tree$endpoints$E2$plain_name)
+  expect_false(identical(plan_label(tree, "E2"), "E2"))
+  html <- as.character(study_plan_ui(list(fake_entry("A t-test", 128), fake_entry("A correlation", 194))))
+  expect_match(html, "result-hero plan-hero", fixed = TRUE)
+  expect_match(html, "the largest of your 2 analyses", fixed = TRUE)
+  expect_match(html, "Sets the sample size", fixed = TRUE)
+  expect_match(html, "plan_remove&#39;, 2,", fixed = TRUE)
+  expect_match(html, "Remove A correlation from the plan", fixed = TRUE)
+  expect_match(as.character(study_plan_ui(list())), "Add this to my study plan", fixed = TRUE)
+})
+
+test_that("a precision result shows its sample size first and can join the plan", {
+  skip_without_engine_plan()
+  fields <- form_fields(form_groups(forms, "E46"))
+  values <- modifyList(form_examples$E46, list(goal = "precision_n", width = "0.2", conf_level = "0.95",
+    just_type = "smallest_effect_of_interest", just_source = "A survey of similar staff."))
+  spec <- build_spec(forms, "E46", fields, values)
+  spec$options$seed <- 5L
+  calc <- run_calculation(spec, run, seed = 5L)
+  expect_identical(calc$status, "ok")
+  html <- as.character(result_panel_ui(tree, forms, "E46", fields, values, calc))
+  expect_match(html, "result-sections", fixed = TRUE)
+  expect_match(html, "result-figure-value", fixed = TRUE)
+  expect_match(html, "Width no more than 0.2", fixed = TRUE)
+  expect_match(html, "study_plan_bar", fixed = TRUE)
+  # The write-up comes before the downloads, as on a power result.
+  expect_lt(regexpr("writeup_short", html), regexpr("download_script", html))
+  entry <- plan_entry(tree, "E46", calc, list(app = "routing-prototype", endpoint = "E46"))
+  expect_equal(entry$n, calc$result$n_required$n)
+  expect_match(entry$headline, "confidence interval", fixed = TRUE)
+  expect_identical(entry$label, tree$endpoints$E46$plain_name)
+})

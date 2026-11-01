@@ -7,16 +7,31 @@
 # being significant together is not calculated. The engine writes and
 # reads the plan file (write_study_plan(), read_study_plan()).
 
+# An analysis's name in the plan: the card's plain name, never its code.
+plan_label <- function(tree, endpoint, fallback = "An analysis") {
+  ep <- tree$endpoints[[endpoint]]
+  ep$plain_name %||% ep$doc_name %||% ep$label %||% fallback
+}
+
+# The sample size an analysis asks for: a power result's N, or the N a
+# precision result needs for its width.
+plan_n <- function(result) {
+  wants_n <- identical(result$goal_type, "sample_size") ||
+    (identical(result$goal_type, "precision") && !is.na(result$precision$target_width %||% NA))
+  if (wants_n && is.list(result$n_required)) result$n_required$n
+}
+
 # One analysis in the plan, from a calculation shown on a result screen.
 plan_entry <- function(tree, endpoint, calc, route) {
   result <- calc$result
   goal <- result$goal_type
+  words <- if (is_precision(calc$spec)) precision_sentences(calc$spec, result) else result_sentences(calc$spec, result)
   list(
     endpoint = endpoint,
-    label = tree$endpoints[[endpoint]]$label %||% endpoint,
-    headline = result_sentences(calc$spec, result)[["headline"]],
+    label = plan_label(tree, endpoint),
+    headline = words[["headline"]],
     goal = goal,
-    n = if (identical(goal, "sample_size")) result$n_required$n,
+    n = plan_n(result),
     # Cluster trials count groups, not people, so their N isn't compared
     # with the others'.
     comparable = !identical(calc$spec$design, "cluster_trial"),
@@ -33,10 +48,10 @@ plan_entry_from_project <- function(tree, project) {
   goal <- result$goal_type
   list(
     endpoint = endpoint,
-    label = tree$endpoints[[endpoint]]$label %||% project$spec$template,
+    label = plan_label(tree, endpoint),
     headline = NULL,
     goal = goal,
-    n = if (identical(goal, "sample_size")) result$n_required$n,
+    n = plan_n(result),
     comparable = !identical(project$spec$design, "cluster_trial"),
     project = project
   )
@@ -103,32 +118,56 @@ study_plan_bar_ui <- function(entries, in_plan) {
     if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses")))
 }
 
-# The study plan screen.
+# The study plan screen: the largest sample size first, then each
+# analysis with its own N, which can be removed.
 study_plan_ui <- function(entries) {
   comparable <- Filter(function(e) e$comparable && !is.null(e$n), entries)
   largest <- if (length(comparable)) comparable[[which.max(vapply(comparable, function(e) e$n, numeric(1)))]]
   esc <- function(x) htmltools::htmlEscape(x)
+  k <- length(entries)
+  item <- function(e, i) {
+    sets <- !is.null(largest) && identical(e, largest)
+    tags$li(class = paste("plan-item", if (sets) "plan-item-sets"),
+      div(class = "plan-item-body",
+        tags$strong(class = "plan-item-name", e$label),
+        if (sets) tags$span(class = "plan-item-tag", "Sets the sample size"),
+        if (!is.null(e$headline)) p(class = "small", e$headline)
+        else if (!is.null(e$n)) p(class = "small", sprintf("Sample size from the saved result: %s.", whole(e$n)))
+        else p(class = "small", "Opened from a saved plan: open it as a project to see its result.")),
+      if (!is.null(e$n)) div(class = "plan-item-n",
+        tags$span(class = "plan-item-n-value", whole(e$n)),
+        tags$span(class = "plan-item-n-unit", if (e$comparable) "needed" else "groups needed")),
+      tags$button(type = "button", class = "btn btn-link btn-sm plan-remove",
+        `aria-label` = sprintf("Remove %s from the plan", e$label),
+        onclick = sprintf("Shiny.setInputValue('plan_remove', %d, {priority: 'event'})", i), "Remove"))
+  }
   tagList(
     h2("Your study plan"),
     p("Each analysis is powered on its own card. Add every analysis your study's conclusions rest on."),
-    if (length(entries) == 0) p("Your plan is empty. After a result, press “Add this to my study plan”.")
-    else tags$ol(class = "study-plan-list", lapply(entries, function(e) tags$li(
-      tags$strong(e$label),
-      if (!is.null(e$headline)) p(class = "small", e$headline)
-      else if (!is.null(e$n)) p(class = "small", sprintf("Sample size from the saved result: %s.", whole(e$n)))
-      else p(class = "small", "Opened from a saved plan: open it as a project to see its result.")))),
-    if (!is.null(largest)) p(class = "lead", HTML(sprintf(
-      "The largest sample size in your plan is <strong>N = %s</strong>, for %s. With that many, each analysis whose sample size is counted in people reaches the power its card asked for.",
-      whole(largest$n), esc(largest$label)))),
+    if (k == 0) div(class = "plan-empty result-card",
+      p(tags$strong("Your plan is empty.")),
+      tags$ol(
+        tags$li("Find an analysis with \u201cHelp me choose\u201d or \u201cI know my analysis\u201d, and calculate its sample size."),
+        tags$li("Under the result, press \u201cAdd this to my study plan\u201d."),
+        tags$li("Do the same for every analysis your conclusions rest on, then save the plan."))),
+    if (!is.null(largest)) div(class = "result-hero plan-hero",
+      div(class = "result-figure",
+        tags$span(class = "result-figure-value", whole(largest$n)),
+        tags$span(class = "result-figure-label", "the sample size your study needs"),
+        tags$span(class = "result-figure-sub", if (k == 1) "from your one analysis so far" else sprintf("the largest of your %d analyses", k))),
+      p(class = "plan-hero-text", HTML(sprintf(
+        "The largest sample size in your plan is <strong>N = %s</strong>, for %s. With that many, each analysis whose sample size is counted in people reaches the power (or precision) its card asked for.",
+        whole(largest$n), esc(largest$label))))),
+    if (k > 0) tags$ol(class = "study-plan-list", Map(item, entries, seq_along(entries))),
     if (any(!vapply(entries, function(e) e$comparable, logical(1)))) p(class = "small",
       "A cluster-randomised trial counts groups, not people, so its number is not compared with the others."),
     if (joint_power_offered(entries)) joint_power_ui(entries)
-    else if (length(entries) >= 2) p(class = "study-plan-joint text-muted",
+    else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
       actionButton("plan_more", "Add another analysis", class = "btn btn-primary"),
-      if (length(entries)) downloadButton("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
-      if (length(entries)) actionLink("plan_clear", "Start a new plan")),
-    p(class = "small", "“Add another analysis” starts “Help me choose”, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen.")
+      if (k) downloadButton("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
+      if (k) actionLink("plan_clear", "Start a new plan")),
+    p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen.")
   )
 }
