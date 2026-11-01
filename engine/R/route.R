@@ -87,7 +87,15 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
-    "basic_test/correlation" = ,
+    "basic_test/correlation" = if (bayes_factor_test(spec)) {
+      bfcor_backend(spec, seed)
+    } else if (pwrss_covers(spec)) {
+      pwrss_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
+      pwr_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/two_proportions" = if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {

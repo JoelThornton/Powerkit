@@ -1,0 +1,37 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "mean_difference",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Group",
+      "levels": [
+        "Control",
+        "Treatment"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Blood pressure (mmHg)"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "difference": 5,
+    "sd": 12
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a difference of about 5 mmHg is expected (SD 12); the interval should be no wider than 6 mmHg."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 6
+  }
+}

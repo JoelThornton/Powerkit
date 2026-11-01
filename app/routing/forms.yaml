@@ -284,6 +284,7 @@ known_differences:
   "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
   "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
+  "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
 
 # The same known differences as one sentence for the methods paragraph
 # (docs/conventions.md, "Known differences").
@@ -300,6 +301,7 @@ known_differences_methods:
   "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
   "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
+  "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
 
 forms:
   E1:
@@ -516,9 +518,10 @@ forms:
 
   E4:
     methods_name: "a Pearson correlation"
-    departures: ["9", "10"]
-    known_differences: ["11"]
+    departures: ["9", "10", "15"]
+    known_differences: ["11", "12"]
     known_differences_if_goal: {"11": justified_alpha}
+    known_differences_if_method: {"12": bayes_factor}
     tool: pwr
     sensitivity: true
     justified_alpha: true
@@ -536,10 +539,10 @@ forms:
       - input: "The expected correlation r"
         fields:
           - {id: r, label: "Correlation r", type: number, path: population.r, effect: true, min: -1, max: 1}
-      - input: "Pearson's r, Spearman's rho or Kendall's tau"
+      - input: "Pearson's r, Spearman's rho, Kendall's tau or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated"},
+             choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r (as in JASP's Bayesian correlation), instead of a p-value"},
              default: pearson, default_source: "Pearson's r, the correlation pwr computes (pwr.r.test(), pwr 1.3-0)",
              help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
           - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
@@ -547,6 +550,18 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_r(), Spower 0.7)",
              help: "A rank correlation's advantage over Pearson's r is in skewed or heavy-tailed data. The second score is drawn as r times the first plus another draw of the same shape, so its shape is close to, not exactly, the one chosen."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: method, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the two scores are correlated than if they aren't. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_width, label: "Width of the analysis prior on the correlation (a stretched beta distribution)", type: number, path: target_test.prior_width, required: true, min_exclusive: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 1, default_source: "JASP's Bayesian correlation ('Stretched beta prior width' 1); BayesFactor's own default is 1/3",
+             help: "The prior you will use when you analyse the data: 1 gives every correlation from -1 to 1 the same weight (JASP's default); smaller values put more weight near 0 (1/3 is BayesFactor's default). Use the same value as in your analysis plan."}
+          - {id: r_sd, label: "How unsure you are about the correlation, as an SD (0 = exactly this correlation)", type: number, path: population.r_sd, required: true, min: 0,
+             shown_if: {field: method, is: bayes_factor},
+             default: 0, default_source: "powerkit's default: plan for exactly the correlation you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
+             help: "Above 0, powerkit averages over correlations spread around yours (a stretched beta design prior with this SD): the study's assurance."}
 
   E5:
     methods_name: "a test of two proportions (z test)"
@@ -993,7 +1008,15 @@ forms:
              help: "For example, 148.8 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
       - input: "The items: how many, and whether each appears in one condition or both"
         fields:
-          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true}
+          - {id: plan_unit, label: "What do you want to plan?", type: select, required: true,
+             choices: {participants: "The number of participants, for a set of items", items: "The number of items (stimuli), for the participants you will have"},
+             sets: {items: [{path: goal.unit, value: items}]},
+             default: participants, default_source: "the number of participants, the usual question",
+             help: "With items, the sample size below counts items, and you give the number of participants here."}
+          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 4, integer: true,
+             shown_if: {field: plan_unit, is: participants}}
+          - {id: participants, label: "Number of participants (analysed)", type: number, path: population.participants, required: true, min: 4, integer: true,
+             shown_if: {field: plan_unit, is: items}}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
              choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
              default: between, default_source: "the design as decided on 30 October 2026 (docs/decisions.md)"}
@@ -1070,7 +1093,7 @@ forms:
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
-    methods_name: "a linear mixed model with participants and items as random factors and an item-level predictor"
+    methods_name: "a mixed model with participants and items as random factors and a measured predictor"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1080,7 +1103,10 @@ forms:
     groups:
       - input: "The item score and the outcome"
         fields:
-          - {id: X_label, label: "Measured on each item (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "The predictor (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: x_level, label: "The predictor is measured", type: select, path: population.x_level, required: true,
+             choices: {item: "On each item: the same for every participant (for example, a word's frequency)", trial: "On each trial: it varies from trial to trial, within items too (for example, how long the stimulus is shown)"},
+             default: item, default_source: "an item property, the commoner design"}
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
@@ -1100,6 +1126,8 @@ forms:
           - {id: sd_participant_slope, writeup_label: "SD of participants' slopes", label: "SD of the effect across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
           - {id: r_participant, label: "Correlation of participants' averages and slopes (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_item, writeup_label: "SD of items beyond the score", label: "SD of items' averages beyond what the item score explains", type: number, path: population.sd_item, effect: true, min: 0}
+          - {id: sd_item_slope, label: "SD of the effect across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
+             shown_if: {field: x_level, is: trial}}
           - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
              shown_if: {field: outcome_type, is: continuous}}
       - input: "The items"
@@ -1110,7 +1138,7 @@ forms:
   # Three levels (simr): people in groups in sites, the condition
   # assigned to sites, groups or people (1 November 2026).
   E68:
-    methods_name: "a three-level linear mixed model (Satterthwaite t test)"
+    methods_name: "a three-level mixed model"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1123,19 +1151,42 @@ forms:
           - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
           - {id: Y_label, label: "Outcome (for example, reading score)", type: text, path: variables.Y.label, required: true}
+          - {id: three_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a reading score)", binary: "Yes or no (for example, passed or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer): you give each condition's chance of 'yes', and how much schools and classes differ as SDs on the log-odds scale."}
+          - {id: three_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: three_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the condition)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a two-condition predictor"}
           - {id: three_assignment, label: "What is assigned to the conditions", type: select, path: population.assignment, required: true,
              choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"},
              default: site, default_source: "whole sites, the commonest three-level trial"}
       - input: "The effect, and how alike people in the same group and site are"
         fields:
           - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true,
+             shown_if: {field: three_outcome, is: continuous},
              help: "The total SD is how much people vary on the outcome across everyone, not only within one group."}
-          - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "The share of the outcome's variation between larger groups, e.g. schools (an intraclass correlation, 0 to 1)", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1}
-          - {id: icc_group, writeup_label: "intraclass correlation of the groups", label: "The share of the outcome's variation between groups within the larger groups, e.g. classes within schools (0 to 1)", type: number, path: population.icc_group, effect: true, min: 0, max_exclusive: 1}
+          - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "The share of the outcome's variation between larger groups, e.g. schools (an intraclass correlation, 0 to 1)", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: continuous}}
+          - {id: icc_group, writeup_label: "intraclass correlation of the groups", label: "The share of the outcome's variation between groups within the larger groups, e.g. classes within schools (0 to 1)", type: number, path: population.icc_group, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: continuous}}
           - {id: icc_effect_site, label: "How much the effect varies between larger groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_site, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
-             shown_if: {field: three_assignment, is_not: site}}
+             shown_if: [{field: three_assignment, is_not: site}, {field: three_outcome, is: continuous}]}
           - {id: icc_effect_group, label: "How much the effect varies between groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_group, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
-             shown_if: {field: three_assignment, is: person}}
+             shown_if: [{field: three_assignment, is: person}, {field: three_outcome, is: continuous}]}
+          - {id: three_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition, separated by a comma (for a typical school and class)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: three_outcome, is: binary}}
+          - {id: sd_site, writeup_label: "SD of the larger groups (log odds)", label: "SD of the larger groups' averages, e.g. schools (on the log-odds scale)", type: number, path: population.sd_site, effect: true, min: 0,
+             shown_if: {field: three_outcome, is: binary},
+             help: "On the log-odds scale; 0.5 is a moderate difference between schools."}
+          - {id: sd_group, writeup_label: "SD of the groups (log odds)", label: "SD of the groups' averages within larger groups, e.g. classes (log-odds scale)", type: number, path: population.sd_group, effect: true, min: 0,
+             shown_if: {field: three_outcome, is: binary}}
+          - {id: sd_effect_site, label: "SD of the effect across larger groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_site, optional: true, empty_text: "0", min: 0,
+             shown_if: [{field: three_assignment, is_not: site}, {field: three_outcome, is: binary}]}
+          - {id: sd_effect_group, label: "SD of the effect across groups, log-odds scale (optional; empty = 0)", type: number, path: population.sd_effect_group, optional: true, empty_text: "0", min: 0,
+             shown_if: [{field: three_assignment, is: person}, {field: three_outcome, is: binary}]}
       - input: "The sizes of the groups and sites"
         fields:
           - {id: group_size, label: "People in each group (for example, pupils per class)", type: number, path: population.group_size, required: true, min: 2, integer: true}
@@ -1197,7 +1248,7 @@ forms:
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
   E62:
-    methods_name: "a two-level linear mixed model with a person-level and a group-level predictor (Satterthwaite t test)"
+    methods_name: "a two-level mixed model with a person-level and a group-level predictor"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1205,26 +1256,61 @@ forms:
            variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
            target_test: {method: satterthwaite_t}}
     groups:
-      - input: "The outcome, the person-level predictor and the group-level predictor"
+      - input: "The outcome, and the predictors at each level"
         fields:
           - {id: Y_label, label: "Outcome (for example, maths score)", type: text, path: variables.Y.label, required: true}
           - {id: X_label, label: "Measured on each person (X; for example, homework time)", type: text, path: variables.X.label, required: true}
           - {id: W_label, label: "Measured on each group (W; for example, teacher experience)", type: text, path: variables.W.label, required: true}
+          - {id: in_sites, label: "Are the groups themselves part of larger groups that matter for the design?", type: select, required: true,
+             choices: {"no": "No: one level of groups (for example, classes)", "yes": "Yes: groups within larger groups (for example, classes within schools)"},
+             sets: {"yes": [{path: variables.Z.type, value: continuous}]},
+             default: "no", default_source: "one level of groups, the commoner design"}
+          - {id: Z_label, label: "Measured on each larger group (Z; for example, school funding)", type: text, path: variables.Z.label, required: true,
+             shown_if: {field: in_sites, is: "yes"}}
+          - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a maths score)", binary: "Yes or no (for example, passed or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
+          - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: two_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
       - input: "Each effect, how much the groups differ, and the residual SD"
         fields:
-          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
+          - {id: two_probability, writeup_label: "chance of yes for a typical group", label: "The chance of 'yes' for a typical group, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: two_outcome, is: binary}}
+          - {id: b_X, writeup_label: "X's effect within groups", label: "X's effect within groups: the change in the outcome (or its log odds, for yes/no) for one SD more of X than the group's average", type: number, path: population.b_X, effect: true}
           - {id: b_W, writeup_label: "W's effect between groups", label: "W's effect between groups: the change in a group's average for one SD more of W", type: number, path: population.b_W, effect: true}
           - {id: b_XW, writeup_label: "cross-level interaction", label: "The cross-level interaction: how much X's effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: b_Z, writeup_label: "Z's effect between larger groups", label: "Z's effect between larger groups: the change in a larger group's average for one SD more of Z", type: number, path: population.b_Z, effect: true,
+             shown_if: {field: in_sites, is: "yes"}}
+          - {id: b_XZ, writeup_label: "X's interaction with Z", label: "X's interaction with Z: how much X's effect changes for one SD more of Z", type: number, path: population.b_XZ, effect: true,
+             shown_if: {field: in_sites, is: "yes"}}
           - {id: sd_group, writeup_label: "SD of the groups' averages", label: "SD of the groups' averages beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
              help: "In the outcome's units. With a residual SD of 1, an SD of 0.33 means about 10% of the variance lies between groups (an intraclass correlation of 0.1)."}
           - {id: sd_group_slope, writeup_label: "SD of X's effect across groups", label: "SD of X's effect across groups beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
           - {id: r_group, label: "Correlation of the groups' averages and X's effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
-          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
-      - input: "The number of people in each group, and the effect to test"
+          - {id: sd_site, writeup_label: "SD of the larger groups' averages", label: "SD of the larger groups' averages beyond Z (random intercepts)", type: number, path: population.sd_site, effect: true, min: 0,
+             shown_if: {field: in_sites, is: "yes"}}
+          - {id: sd_site_slope, label: "SD of X's effect across larger groups beyond Z (optional; empty = 0)", type: number, path: population.sd_site_slope, optional: true, empty_text: "0", min: 0,
+             shown_if: {field: in_sites, is: "yes"}}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD: how much people differ within a group", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: two_outcome, is: continuous}}
+      - input: "The sizes of the groups, and the effect to test"
         fields:
           - {id: cluster_size, label: "People in each group (the same in every group)", type: number, path: population.cluster_size, required: true, min: 2, integer: true}
+          - {id: groups_per_site, label: "Groups in each larger group (the same in every one)", type: number, path: population.groups_per_site, required: true, min: 2, integer: true,
+             shown_if: {field: in_sites, is: "yes"},
+             help: "The total number of people is then a whole number of larger groups."}
           - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             shown_if: {field: in_sites, is: "no"},
              choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups"},
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+          - {id: three_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             shown_if: {field: in_sites, is: "yes"},
+             choices: {cross_level_interaction: "X's interaction with W: does X's effect depend on the group?", site_interaction: "X's interaction with Z: does X's effect depend on the larger group?",
+                       within_effect: "X's effect within groups", between_effect: "W's effect between groups", site_effect: "Z's effect between larger groups"},
              default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
 
   E11:
@@ -2751,22 +2837,29 @@ forms:
         fields:
           - {id: estimate, label: "What will the confidence interval be for?", type: select, path: template, required: true,
              choices: {two_groups: "A difference between two groups, as Cohen's d", paired: "A change or difference within the same people, as d_z (pairs of scores)",
-                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)"},
+                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)",
+                       mean_difference: "A difference between two groups' means, in the outcome's own units", odds_ratio: "An odds ratio between two groups (a yes/no outcome)",
+                       icc: "An intraclass correlation (agreement between raters, or test-retest)", regression_coefficient: "One predictor's standardised coefficient in a multiple regression"},
              default: two_groups, default_source: "powerkit's first choice; pick the estimate your study reports",
              sets: {two_groups: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     paired: [{path: variables.X.type, value: within_factor}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     one_group: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     correlation: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: correlation}],
-                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}]}}
+                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}],
+                    mean_difference: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: raw}, {path: target_test.method, value: t}],
+                    odds_ratio: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: probability}],
+                    icc: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: approximate}],
+                    regression_coefficient: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: t}]}}
       - input: "Names"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: two_groups}}
-          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: two_groups}}
-          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
           - {id: T_label, label: "What the two measurements are (for example, time)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: paired}}
           - {id: C_label, label: "First variable", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: correlation}}
+          - {id: P_label, label: "The predictor (X)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: regression_coefficient}}
           - {id: Y_label, label: "Outcome (for a correlation, the second variable; for a proportion, what is counted)", type: text, path: variables.Y.label, required: true}
       - input: "The value you expect"
         fields:
@@ -2780,6 +2873,26 @@ forms:
              shown_if: {field: estimate, is: correlation}, help: "Intervals are narrower for larger correlations, so a smaller guess is the cautious one."}
           - {id: p, writeup_label: "expected proportion", label: "The proportion you expect (for example 0.3 for 30%)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none."}
+          - {id: mean_difference, writeup_label: "expected mean difference", label: "The difference between the means you expect (group 2 minus group 1, in the outcome's units)", type: number, path: population.difference, effect: true,
+             shown_if: {field: estimate, is: mean_difference}}
+          - {id: mean_sd, writeup_label: "SD within each group", label: "The outcome's SD within each group (the same in both)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: estimate, is: mean_difference}}
+          - {id: or_p1, writeup_label: "expected proportion in group 1", label: "The proportion of 'yes' you expect in group 1", type: number, path: population.p1, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: odds_ratio}}
+          - {id: or_p2, writeup_label: "expected proportion in group 2", label: "The proportion of 'yes' you expect in group 2 (the odds ratio is group 2's odds over group 1's)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: odds_ratio}}
+          - {id: icc, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: icc}}
+          - {id: icc_raters, label: "Ratings of each person (raters, or occasions)", type: number, path: population.raters, required: true, min: 2, integer: true,
+             shown_if: {field: estimate, is: icc}}
+          - {id: reg_b, writeup_label: "expected standardised coefficient", label: "The standardised coefficient you expect for X", type: number, path: population.b, effect: true,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_r2, writeup_label: "R-squared of the full model", label: "R-squared of the full model, all predictors (0 to 1)", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_r2_predictor, writeup_label: "R-squared of X on the other predictors", label: "R-squared of X on the other predictors (0 if none, or uncorrelated)", type: number, path: population.r2_predictor, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_predictors, label: "Predictors in the model, X included", type: number, path: population.predictors, required: true, min: 1, integer: true,
+             shown_if: {field: estimate, is: regression_coefficient}}
       - input: "The kind of interval"
         fields:
           - {id: r_method, label: "Which correlation", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: correlation},
@@ -2788,6 +2901,9 @@ forms:
              choices: {wilson: "Wilson's interval", agresti_coull: "Agresti-Coull", exact: "Exact (Clopper-Pearson)", wald: "Wald (the textbook formula)"},
              default: wilson, default_source: "presize's default (prec_prop(method = \"wilson\"), presize 0.3.11)",
              help: "presize's help suggests Wilson's interval for fewer than 40 people and Agresti-Coull for more, and offers the Wald interval only because it is widely used."}
+          - {id: or_method, label: "Which interval for the odds ratio", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: odds_ratio},
+             choices: {indip_smooth: "Independence-smoothed logit (presize's default)", gart: "Gart's adjusted logit", woolf: "Woolf's logit"},
+             default: indip_smooth, default_source: "presize's default (prec_or(), presize 0.3.11)"}
 
   # Trend tests (1 November 2026), simulated with Spower by powerkit's own
   # experiments: the Jonckheere-Terpstra test of a trend in scores across

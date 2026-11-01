@@ -444,6 +444,11 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()` or `makeGlmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("x", "sa")` for a score, or `fixed("x", "z")` (default) or `"lr"` for a yes/no outcome (E67, from 1 November 2026) [powerkit] | The effect per SD of the item score, the SDs of participants' intercepts and slopes and of items beyond the score, and the residual SD, in the outcome's units (log odds for yes/no) | `y ~ x + (1 + x \| participant) + (1 \| item)`, x evenly spread across the items (normal quantiles, centred, SD 1), every participant responding to every item. The Satterthwaite test is Departure 16 |
 
+With the predictor measured on each trial (from 1 November 2026) each
+participant meets every value once, rotated across the items, and the
+model gains the items' slopes on X: `y ~ x + (1 + x | participant) + (1 +
+x | item)`, tested as for an item predictor.
+
 ## Three levels: people in groups in larger groups (E68)
 
 | Tool | Test | Effect size | Settings |
@@ -451,6 +456,14 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | G\*Power | No test for three-level designs | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E68, from 1 November 2026) [powerkit] | Cohen's d over the outcome's total SD, with the sites' and groups' shares of the variance (intraclass correlations) and the effect's variation across sites or groups as shares of it | `y ~ cond + (1 \| site) + (1 \| site:group)`, with `(1 + cond \| site)` when the condition is assigned below the sites and its effect varies, and `(1 + cond \| site:group)` when it is assigned to people; cond coded -0.5 and 0.5; equal group and site sizes; the first half of what is assigned in the first condition. The Satterthwaite test is Departure 16; with few sites and a small varying effect it can be conservative (3.1% at alpha .05 with classes assigned in 8 schools, 3.65% in an independent simulation) |
+
+With a yes/no outcome (E68, from 1 November 2026) the model is a logistic
+mixed model (simr's `makeGlmer()`, lme4's `glmer()`): each condition's
+chance of 'yes' for a typical site and group, and the SDs of the sites'
+and groups' intercepts (and of the effect, where it can vary) on the
+log-odds scale in place of the shares of variance. The test is glmer's
+Wald z test, simr's default for a two-condition predictor, or the
+likelihood ratio; not a departure.
 
 ## Moderated mediation with W on both links or the direct path (E38)
 
@@ -485,6 +498,15 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | bfpwr | `binbf01()`, `pbinbf01()`: the two-sided test (`type = "point"`, the same Bayes factor as JASP's) and a directional test (`type = "direction"`: p <= p0 against p > p0) | A fixed proportion, or a truncated beta design prior (by default the analysis prior) | Beta(1, 1) by default; power summed over the outcomes 0 to n |
 | **powerkit** | Two-sided and the directional test from bfpwr's `pbinbf01()`; the one-sided test against a point null, JASP's, from bfpwr's two-sided Bayes factor times the ratio of the posterior to the prior probability of that side, summed over the outcomes 0 to n (E25, from 1 November 2026) [powerkit] | The expected proportion, exactly, or a beta design prior with its mean and an SD (`population > p_sd`) | Beta(1, 1) by default; one-sided: JASP's test by default (`target_test > one_sided_null` "point"), bfpwr's as "directional". Not a departure from JASP, which has no planning; Departure 15 is the design prior's default |
 
+## Bayes factor test of a correlation (E4)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian correlation; analysis only, no planning) | Pearson's rho = 0 against rho != 0 (or one side, the prior truncated to it), a stretched beta prior on rho; exact Bayes factor (jaspRegression's bstats, Ly, Marsman and Wagenmakers, 2018) | — | Prior width 1 (uniform) by default |
+| BayesFactor | `correlationBF()`: the same Bayes factor; one-sided by `nullInterval` | — | `rscale` "medium" (1/3) by default |
+| **powerkit** | BayesFactor's `correlationBF()`, which rises with r (or |r|), so strong evidence is exactly a sample correlation past a critical value, found by root-finding; its chance from the exact distribution of r for bivariate normal scores (SuppDists' `pPearson()`), with no simulation (E4, from 1 November 2026) [powerkit] | The expected correlation, exactly, or a stretched beta design prior with its mean and an SD (`population > r_sd`) | Prior width 1 by default, JASP's (Known difference 12); Departure 15 is the design prior's default. The one-sided Bayes factor comes from `correlationBF()`'s interval method, within 0.1% of the exact value JASP computes (tested) |
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -510,6 +532,7 @@ ratio against the model in which the pair shares a mean. With three
 conditions (70%, 80% and 75%), 60 items and 30 participants, over 1,000
 simulated data sets: 58.3% with the likelihood ratio and 61.7% with Wald;
 with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
+
 ## People within groups, predictors at both levels (two-level model, E62)
 
 | Tool | Test | Effect size | Settings |
@@ -517,6 +540,19 @@ with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
 | G\*Power | No test for multilevel models | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`, as for E33; `fixed(xname, method)` tests one fixed effect, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed(term, "sa")`, the term `x`, `w` or `x:w` (E62, from 31 October 2026) [powerkit] | Each effect per SD of its predictor (X standardised within groups, W across groups), the SDs of the groups' intercepts and X slopes with their correlation, and the residual SD, in the outcome's units | `y ~ x + w + x:w + (1 + x \| group)`, groups of equal size; `goal.n` is the number of people, a whole number of groups. The Satterthwaite test is Departure 16 |
+
+With a yes/no outcome (E62, from 1 November 2026) the model is a logistic
+mixed model (simr's `makeGlmer()`, lme4's `glmer()`): the chance of 'yes'
+for a typical group at the average X and W, and every effect and SD on the
+log-odds scale. The test is glmer's Wald z test, simr's default for a
+numeric predictor, or the likelihood ratio; not a departure.
+
+With the groups in sites (E62, from 1 November 2026) the model gains a
+predictor Z on each site, its interaction with X, and the sites' random
+intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
+(1 + x | site:group)`, tested as at two levels (Satterthwaite's t test,
+Departure 16, or for a yes/no outcome glmer's Wald z test or the
+likelihood ratio).
 
 ## Effect-size conversion (a published t, F, r, d or odds ratio)
 
@@ -1035,6 +1071,17 @@ as an experimental option, for a statistician's check
   "Departure 15's size for a proportion"). Shown on the one-proportion
   result screen (E25) when the Bayes factor test is chosen and the SD is
   left at 0.
+- **The Bayes factor test of a correlation (1 November 2026):** the same
+  choice. No package plans this test; the analogue of bfpwr's default, a
+  design prior equal to JASP's uniform analysis prior on rho, is a very
+  different question (a correlation anywhere from -1 to 1). powerkit plans
+  for exactly the correlation entered unless the user gives an SD
+  (`population > r_sd`, a stretched beta design prior with that mean and
+  SD). Size: for r = .3, two-sided, BF10 of at least 10, 80% needs 162
+  people; at 162, the uniform design prior gives 76.4%
+  (`test-backend-bayes-correlation.R`, "Departure 15's size for a
+  correlation"). Shown on the correlation result screen (E4) when the
+  Bayes factor test is chosen and the SD is left at 0.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
 
@@ -1610,3 +1657,22 @@ Wired into the app on 18 October 2026 (E25, E26).*
   result screens when the goal is a justified alpha
   (`app/routing/forms.yaml`, `known_differences`, key "11").
 - **Methods paragraph:** `known_differences_methods`, key "11".
+
+### 12. Bayes factor test of a correlation: JASP's prior width, where BayesFactor's default is narrower
+
+- **What differs:** the Bayes factor is BayesFactor's `correlationBF()`,
+  whose stretched beta prior on rho has width `rscale`, "medium" (1/3) by
+  default. JASP's Bayesian correlation, which most psychologists analyse
+  with, uses width 1 (a uniform prior on rho) by default. powerkit follows
+  JASP and offers any width ("Prior width"); at the same width the two
+  give the same two-sided Bayes factor (tested to eight digits against
+  JASP's exact formula).
+- **Size:** for r = .3, BF10 of at least 10 and 80% (two-sided), 162
+  people at JASP's width and 146 at BayesFactor's default.
+- **Test:** `engine/tests/testthat/test-backend-bayes-correlation.R`,
+  "JASP's prior width (1) against BayesFactor's default (1/3): the size of
+  the difference".
+- **Shown to users:** on the correlation result screen when the Bayes
+  factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
+  key "12").
+- **Methods paragraph:** `known_differences_methods`, key "12".

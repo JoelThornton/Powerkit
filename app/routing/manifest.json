@@ -3467,6 +3467,30 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:47:01 UTC; unix"
       }
     },
+    "gsl": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "gsl",
+        "Version": "2.1-9",
+        "Depends": "R (>= 4.5.0)",
+        "Title": "Wrapper for the Gnu Scientific Library",
+        "Authors@R": "c(person(given=c(\"Robin\", \"K. S.\"), family=\"Hankin\", role = c(\"aut\",\"cre\"), email=\"hankin.robin@gmail.com\", comment = c(ORCID = \"0000-0001-5982-0415\")),\n             person(given=\"Andrew\",family=\"Clausen\",role=\"ctb\",comment=\"multimin functionality\"),\n             person(given=\"Duncan\",family=\"Murdoch\",role=\"ctb\",comment=\"qrng functions\"))",
+        "SystemRequirements": "Gnu Scientific Library version >= 2.5",
+        "Description": "\n An R wrapper for some of the functionality of the\n Gnu Scientific Library.",
+        "Maintainer": "Robin K. S. Hankin <hankin.robin@gmail.com>",
+        "License": "GPL-3",
+        "URL": "https://github.com/RobinHankin/gsl",
+        "BugReports": "https://github.com/RobinHankin/gsl/issues",
+        "NeedsCompilation": "yes",
+        "Author": "Robin K. S. Hankin [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5982-0415>),\n  Andrew Clausen [ctb] (multimin functionality),\n  Duncan Murdoch [ctb] (qrng functions)",
+        "Repository": "RSPM",
+        "Packaged": "2025-11-10 08:15:06 UTC; rhankin",
+        "Date/Publication": "2025-11-10 10:10:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 21:28:17 UTC; unix"
+      }
+    },
     "gtable": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5704,7 +5728,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "bfpwr, car, digest, effectsize, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, PMCMRplus, presize,\nlme4, lmerTest, manymome, MBESS, metafor, metapower, parallel,\npsych, power4mome, pwr, powertools, pwrss, PUMP, semPower,\nsimr, SimDesign, Spower (>= 0.7), stats, Superpower, TOSTER,\nutils",
+        "Imports": "BayesFactor, bfpwr, car, digest, effectsize, InteractionPoweR,\njsonlite, jsonvalidate (>= 1.3.0), JustifyAlpha, PMCMRplus,\npresize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, power4mome, pwr, powertools, pwrss,\nPUMP, semPower, simr, SimDesign, Spower (>= 0.7), stats,\nSuppDists, Superpower, TOSTER, utils",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5714,19 +5738,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "d80448ff7c2cdc06848f93e465049a3d123fbe0a",
-        "RemoteSha": "d80448ff7c2cdc06848f93e465049a3d123fbe0a",
+        "RemoteRef": "8f15e815a003c7ef4912670f962a3c2c6c4e7d38",
+        "RemoteSha": "8f15e815a003c7ef4912670f962a3c2c6c4e7d38",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "d80448ff7c2cdc06848f93e465049a3d123fbe0a",
-        "GithubSHA1": "d80448ff7c2cdc06848f93e465049a3d123fbe0a",
+        "GithubRef": "8f15e815a003c7ef4912670f962a3c2c6c4e7d38",
+        "GithubSHA1": "8f15e815a003c7ef4912670f962a3c2c6c4e7d38",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-01 16:08:57 UTC; runner",
+        "Packaged": "2026-11-01 19:27:38 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-01 16:09:10 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-01 19:27:48 UTC; unix"
       }
     },
     "powertools": {
@@ -7617,13 +7641,13 @@
       "checksum": "057a16c59efe43a4c6a4acc2b5618f27"
     },
     "forms.yaml": {
-      "checksum": "9aa60358ee3324834543f9a27360bd67"
+      "checksum": "d2572a90e3848f5b3207a4f73ea3bdc0"
     },
     "methods-map.yaml": {
       "checksum": "772d45d6ccbc57e89e312004b5ae079d"
     },
     "R/about.R": {
-      "checksum": "cdb0db5ae6b418059f0df37fa81c9a92"
+      "checksum": "e0d76e2a7cef594047363e02d1f2ab09"
     },
     "R/feedback.R": {
       "checksum": "42102805122e9bfd028022d0751264d5"
@@ -7632,7 +7656,7 @@
       "checksum": "13fe451e1984868ae4bfcc648f2411bd"
     },
     "R/forms.R": {
-      "checksum": "669b0f51bf64c73248463c28f4c85293"
+      "checksum": "7de74d3e5a60d222b01ca9b135a03751"
     },
     "R/labs.R": {
       "checksum": "11326ce249531c1a32b4f63c177355be"
@@ -7644,7 +7668,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "a99ee8b028aef7b9e30546889168dd79"
+      "checksum": "aaeacf0ca3779e1be818902ec96acc48"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7671,13 +7695,13 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "70aa7601457fb151c3ba034ed52a17a6"
+      "checksum": "92bc64bdfcb88cdf6752b63e777aaabb"
     },
     "tests/testthat/setup.R": {
       "checksum": "9e0197dca2881b76838e3eeb10588c81"
     },
     "tests/testthat/test-about.R": {
-      "checksum": "2935e59777794102151196f993e398f7"
+      "checksum": "da608203a5af5ffac25cd7c137dd10bd"
     },
     "tests/testthat/test-docs-match.R": {
       "checksum": "32d3ee5ce38e090cb7a546e2ad38632f"
@@ -7686,7 +7710,7 @@
       "checksum": "5e8c062f72f8d741637ca5298409078b"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "0c7401c68efa25cad70210600c5058e7"
+      "checksum": "6633a6ebe682ba8e8ef1c97f630d93f3"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "6147e06e03a28ada24a574d5c9a72d2f"
@@ -7704,7 +7728,7 @@
       "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "0c0cff29ba8f813a242213b725a302fc"
+      "checksum": "dfe6e3049d7eddbf710a2a48cd72cbe9"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "0bacffff6c1844d8ba7d639bdc8e0fdf"
@@ -7728,7 +7752,7 @@
       "checksum": "d15be88c94831522cccbc987e581728d"
     },
     "tree.yaml": {
-      "checksum": "a562aba300a9bce6d66364bd7c60e57b"
+      "checksum": "238e8950ee4c9affa4b1ed25f94d5831"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7743,7 +7767,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "d8afecde897a6cc4aeb000282cbab6a5"
+      "checksum": "c0bd333bab6d55ab03b14e54163028ef"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"

@@ -25,6 +25,7 @@ Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.1.0)
 Imports:
+    BayesFactor,
     bfpwr,
     car,
     digest,
@@ -39,6 +40,7 @@ Imports:
     lmerTest,
     manymome,
     MBESS,
+    gsl,
     metafor,
     metapower,
     parallel,
@@ -53,6 +55,7 @@ Imports:
     SimDesign,
     Spower (>= 0.7),
     stats,
+    SuppDists,
     Superpower,
     TOSTER,
     utils

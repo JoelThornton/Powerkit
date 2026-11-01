@@ -55,6 +55,9 @@ bfpwr_backend <- function(spec, seed = NULL) {
   if (bfbin_test(spec)) {
     return(bfbin_backend(spec, seed))
   }
+  if (bfcor_test(spec)) {
+    return(bfcor_backend(spec, seed))
+  }
   inputs <- bfpwr_inputs(spec)
   step <- valid_n_step(spec)
   n_min <- step * ceiling(minimum_n(spec) / step)
@@ -134,6 +137,14 @@ bayes_summary <- function(spec, n) {
       bfbin_null_side(inputs, n)
     ))
   }
+  if (bfcor_test(spec)) {
+    inputs <- bfcor_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_width = inputs$prior_width,
+        effect_sd = inputs$r_sd, n = n, hypotheses = bfcor_hypotheses_words(inputs)),
+      bfcor_null_side(inputs, n)
+    ))
+  }
   inputs <- bfpwr_inputs(spec)
   c(
     list(
@@ -174,6 +185,9 @@ bfpwr_check_run <- function(spec, inputs) {
 bfpwr_script <- function(spec, result) {
   if (bfbin_test(spec)) {
     return(bfbin_script(spec, result))
+  }
+  if (bfcor_test(spec)) {
+    return(bfcor_script(spec, result))
   }
   inputs <- bfpwr_inputs(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
@@ -226,6 +240,9 @@ bayes_goal_inputs <- function(spec) {
 bayes_design_description <- function(spec, label, levels) {
   if (bfbin_test(spec)) {
     return(bfbin_design_description(spec, label))
+  }
+  if (bfcor_test(spec)) {
+    return(bfcor_design_description(spec, label))
   }
   inputs <- bfpwr_inputs(spec)
   test <- switch(

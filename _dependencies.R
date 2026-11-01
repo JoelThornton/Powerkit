@@ -12,6 +12,7 @@ library(jsonvalidate)
 library(psych)     # safeguard power's confidence interval
 
 # Backends
+library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
 library(car)
 library(InteractionPoweR)
@@ -21,6 +22,7 @@ library(lme4)      # E33's mixed model (with simr)
 library(lmerTest)  # E33's Satterthwaite test (simr's method "sa")
 library(manymome)  # the whole-study simulation's implied indirect effects
 library(MBESS)     # precision planning for Cohen's d (ss.aipe.smd(), ss.aipe.sm())
+library(gsl) # MBESS's ss.aipe.reg.coef() (precision for a regression coefficient)
 library(metafor)   # E61's Hartung-Knapp test (rma(test = "knha")), simulated
 library(metapower) # E61's planned meta-analysis
 library(power4mome)
@@ -34,6 +36,7 @@ library(semPower)
 library(simr)
 library(SimDesign) # MANOVA's multivariate normal scores (rmvnorm())
 library(Spower)
+library(SuppDists) # the distribution of a sample correlation (pPearson())
 library(Superpower)
 library(TOSTER)
 

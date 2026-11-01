@@ -31,7 +31,8 @@ fully validated. Validation runs are recorded in
   default, simulated with metafor), since 31 October 2026, with subgroups
   of studies since 1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
-  JASP's prior and one-sided test by default). **Fourteen are simulated with a
+  JASP's prior and one-sided test by default) and the correlation (E4;
+  BayesFactor, JASP's Bayes factor and prior width by default). **Fourteen are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14,
   E17 (a yes/no X or W), E38 (W on both links or the direct path, both
   1 November 2026) and E40
@@ -40,7 +41,9 @@ fully validated. Validation runs are recorded in
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
   groups, 31 October 2026; agrees with a separately written simulation,
-  published value and statistician review to come). No template
+  published value and statistician review to come; since 1 November 2026
+  also with the groups in larger groups, predictors at all three levels);
+  E62 and E68 with a score or, since 1 November 2026, a yes/no outcome. No template
   is engine-only.
 - **Finding an analysis:** "I know my analysis" lists every analysis in
   closed groups by family with a search box (31 October 2026), common
@@ -105,8 +108,12 @@ fully validated. Validation runs are recorded in
   than power. Cohen's d between two groups, d_z and a standardised mean
   by MBESS (`ss.aipe.smd()`, `ss.aipe.sm()`, with optional assurance);
   a correlation (Pearson's, Spearman's or Kendall's) and a proportion
-  (Wilson's interval by default) by presize. MBESS brings OpenMx with it,
-  the heaviest new dependency.
+  (Wilson's interval by default) by presize; since 1 November 2026 also a
+  raw mean difference, an odds ratio and an ICC (presize) and a
+  standardised regression coefficient (MBESS's `ss.aipe.reg.coef()`, which
+  needs gsl). MBESS brings OpenMx with it, the heaviest new dependency.
+  E33 can also plan the number of items for a fixed number of
+  participants (1 November 2026).
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026) and Spearman's and Kendall's correlations (E4).
@@ -136,7 +143,7 @@ fully validated. Validation runs are recorded in
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 8). Every repeated-measures card takes an SD per cell and
+  "Repeated measures"). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
 - Simulated data sets are missing for the three-way regression
@@ -147,9 +154,10 @@ fully validated. Validation runs are recorded in
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 7).
+  groups or occasions (`next.md`, "SEM").
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 16).
+  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Critical
+  effect size").
 
 ## Working environment
 

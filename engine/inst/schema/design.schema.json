@@ -499,7 +499,7 @@
           ]
         },
         "evidence_threshold": {
-          "description": "Bayes factor t-tests only (method 'bayes_factor'): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion and the correlation): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
           "exclusiveMinimum": 1
         },
@@ -515,6 +515,11 @@
         },
         "prior_b": {
           "description": "Bayes factor test of one proportion only: the second shape parameter of the Beta(a, b) analysis prior. Default 1.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "prior_width": {
+          "description": "Bayes factor test of a correlation only: the width of the stretched beta analysis prior on rho under the alternative (rho is 2 * Beta(1/w, 1/w) - 1; BayesFactor's correlationBF(rscale = w)). Default 1, a uniform prior on rho: JASP's default ('Stretched beta prior width' 1). BayesFactor's own default is 1/3 ('medium').",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -583,6 +588,7 @@
               "prior_scale": false,
               "prior_a": false,
               "prior_b": false,
+              "prior_width": false,
               "one_sided_null": false
             }
           }
@@ -644,6 +650,13 @@
           "type": "number",
           "exclusiveMinimum": 0.5,
           "exclusiveMaximum": 1
+        },
+        "unit": {
+          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "enum": [
+            "participants",
+            "items"
+          ]
         }
       },
       "allOf": [
@@ -1743,6 +1756,11 @@
             "r": {
               "$ref": "#/definitions/correlation"
             },
+            "r_sd": {
+              "description": "Bayes factor test only: uncertainty about the correlation, as the SD of a stretched beta design prior with mean r (0, the default: exactly r). Power is then averaged over it: the study's assurance. Must be below sqrt(1 - r^2).",
+              "type": "number",
+              "minimum": 0
+            },
             "score_shape": {
               "description": "Spearman's rho and Kendall's tau only: the shape of both scores, in SD units. 'normal' (the default, bivariate normal scores); 'skewed': a chi-square distribution with 10 df, standardised; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1. The second score is r times the first plus sqrt(1 - r^2) times another draw of the same shape, so Pearson's correlation is r.",
               "enum": [
@@ -1762,9 +1780,10 @@
               "enum": [
                 "pearson",
                 "spearman",
-                "kendall"
+                "kendall",
+                "bayes_factor"
               ],
-              "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r."
+              "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r. 'bayes_factor': the Bayes factor test of Pearson's correlation (BayesFactor's correlationBF(), the same Bayes factor as JASP's Bayesian correlation), by exact calculation from the distribution of r."
             }
           }
         }
@@ -7890,8 +7909,7 @@
           "required": [
             "metric",
             "sd_participant",
-            "sd_item",
-            "items"
+            "sd_item"
           ],
           "additionalProperties": false,
           "properties": {
@@ -7956,6 +7974,11 @@
                 "between",
                 "within"
               ]
+            },
+            "participants": {
+              "description": "With goal > unit 'items' only: the number of participants, fixed while the number of items is found.",
+              "type": "integer",
+              "minimum": 4
             }
           }
         },
@@ -8324,7 +8347,7 @@
       }
     },
     "template_two_level": {
-      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size.",
+      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio'). Three levels (population > groups_per_site given): the groups are in sites (e.g. classes in schools), with Z measured on each site, in y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x | site:group) (the site X slope only when sd_site_slope is above 0); W is spread across each site's groups and Z across the sites, so the three are uncorrelated; goal > n is then a whole number of sites of cluster_size x groups_per_site people. Tests also Z's effect between sites ('site_effect') or X's interaction with Z ('site_interaction').",
       "properties": {
         "variables": {
           "required": [
@@ -8341,6 +8364,16 @@
               "$ref": "#/definitions/variable_continuous"
             },
             "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
+            },
+            "Z": {
               "$ref": "#/definitions/variable_continuous"
             }
           }
@@ -8353,13 +8386,22 @@
             "b_XW",
             "sd_group",
             "sd_group_slope",
-            "sd_residual",
             "cluster_size"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "description": "'raw' for a score outcome (in its own units); 'probability' for a yes/no outcome (the effects and SDs on the log-odds scale).",
+              "enum": [
+                "raw",
+                "probability"
+              ]
+            },
+            "probability": {
+              "description": "Yes/no outcome only: the chance of 'yes' for a typical group at the average X and W.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             },
             "b_X": {
               "type": "number",
@@ -8372,6 +8414,14 @@
             "b_XW": {
               "type": "number",
               "description": "The cross-level interaction: how much X's effect changes for one SD more of W."
+            },
+            "b_Z": {
+              "type": "number",
+              "description": "Three levels only: Z's effect between sites, the change in a site's average outcome for one SD more of Z."
+            },
+            "b_XZ": {
+              "type": "number",
+              "description": "Three levels only: X's interaction with Z, how much X's effect changes for one SD more of Z."
             },
             "sd_group": {
               "type": "number",
@@ -8387,15 +8437,30 @@
               "$ref": "#/definitions/correlation",
               "description": "Correlation between the groups' intercepts and X slopes. 0 if omitted."
             },
+            "sd_site": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Three levels only: SD of the sites' random intercepts beyond Z."
+            },
+            "sd_site_slope": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Three levels only: SD of the sites' random X slopes beyond Z. 0 if omitted."
+            },
             "sd_residual": {
               "type": "number",
               "exclusiveMinimum": 0,
-              "description": "SD of the residual: how much people differ within a group."
+              "description": "Score outcome only: SD of the residual, how much people differ within a group."
             },
             "cluster_size": {
               "type": "integer",
               "minimum": 2,
               "description": "People in each group (the same in every group)."
+            },
+            "groups_per_site": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "Three levels only: groups in each site (the same in every site). Giving it makes the design three levels."
             }
           }
         },
@@ -8412,11 +8477,17 @@
                   "enum": [
                     "within_effect",
                     "between_effect",
-                    "cross_level_interaction"
+                    "cross_level_interaction",
+                    "site_effect",
+                    "site_interaction"
                   ]
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }
@@ -8653,7 +8724,11 @@
               "one_group",
               "paired",
               "correlation",
-              "proportion"
+              "proportion",
+              "mean_difference",
+              "odds_ratio",
+              "icc",
+              "regression_coefficient"
             ]
           },
           "goal": {
@@ -8760,6 +8835,66 @@
             },
             "then": {
               "$ref": "#/definitions/template_precision_proportion"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "mean_difference"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_mean_difference"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "odds_ratio"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_odds_ratio"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "icc"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_icc"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "regression_coefficient"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_regression_coefficient"
             }
           }
         ]
@@ -9208,7 +9343,7 @@
       }
     },
     "template_three_level": {
-      "description": "Three levels: people (level 1) in groups (level 2, e.g. classes) in sites (level 3, e.g. schools), with two conditions assigned to whole sites, to groups within each site, or to people within each group (population > assignment). On the scale of the outcome's total SD: the effect d, the sites' and groups' shares of the variance (icc_site, icc_group), and when the condition is assigned below the sites, the share of variance in its effect across sites (icc_effect_site) and, when assigned to people, across groups (icc_effect_group): y ~ cond + (1 + cond | site) + (1 + cond | site:group), with cond coded -0.5 and 0.5 and the condition's terms only where they apply. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test. goal > n is the number of people, a whole number of sites (an even number when whole sites are assigned).",
+      "description": "Three levels: people (level 1) in groups (level 2, e.g. classes) in sites (level 3, e.g. schools), with two conditions assigned to whole sites, to groups within each site, or to people within each group (population > assignment). On the scale of the outcome's total SD: the effect d, the sites' and groups' shares of the variance (icc_site, icc_group), and when the condition is assigned below the sites, the share of variance in its effect across sites (icc_effect_site) and, when assigned to people, across groups (icc_effect_group): y ~ cond + (1 + cond | site) + (1 + cond | site:group), with cond coded -0.5 and 0.5 and the condition's terms only where they apply. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test. goal > n is the number of people, a whole number of sites (an even number when whole sites are assigned). A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): each condition's chance of 'yes' for a typical site and group (population > probabilities), and in place of the shares of variance the SDs of the sites' and groups' intercepts and of the effect across sites or groups, on the log-odds scale (sd_site, sd_group, sd_effect_site, sd_effect_group); tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio').",
       "properties": {
         "variables": {
           "required": [
@@ -9221,16 +9356,20 @@
               "$ref": "#/definitions/two_level_between_factor"
             },
             "Y": {
-              "$ref": "#/definitions/variable_continuous"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_continuous"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                }
+              ]
             }
           }
         },
         "population": {
           "required": [
             "metric",
-            "d",
-            "icc_site",
-            "icc_group",
             "group_size",
             "groups_per_site",
             "assignment"
@@ -9238,35 +9377,70 @@
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "standardised"
+              "description": "'standardised' for a score outcome (on the scale of its total SD); 'probability' for a yes/no outcome (the SDs on the log-odds scale).",
+              "enum": [
+                "standardised",
+                "probability"
+              ]
             },
             "d": {
-              "description": "The difference between conditions (second minus first) over the outcome's total SD.",
+              "description": "Score outcome only: the difference between conditions (second minus first) over the outcome's total SD.",
               "type": "number"
             },
             "icc_site": {
-              "description": "The share of the outcome's total variance between sites (e.g. schools).",
+              "description": "Score outcome only: the share of the outcome's total variance between sites (e.g. schools).",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_group": {
-              "description": "The share of the outcome's total variance between groups within sites (e.g. classes within schools).",
+              "description": "Score outcome only: the share of the outcome's total variance between groups within sites (e.g. classes within schools).",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_effect_site": {
-              "description": "Conditions assigned below the sites only: the share of the total variance in the effect across sites. 0 if omitted.",
+              "description": "Score outcome only: conditions assigned below the sites only: the share of the total variance in the effect across sites. 0 if omitted.",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
             },
             "icc_effect_group": {
-              "description": "Conditions assigned to people only: the share of the total variance in the effect across groups. 0 if omitted.",
+              "description": "Score outcome only: conditions assigned to people only: the share of the total variance in the effect across groups. 0 if omitted.",
               "type": "number",
               "minimum": 0,
               "exclusiveMaximum": 1
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: the chance of 'yes' in each condition (first, then second) for a typical site and group.",
+              "type": "array",
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "sd_site": {
+              "description": "Yes/no outcome only: SD of the sites' intercepts, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_group": {
+              "description": "Yes/no outcome only: SD of the groups' intercepts within sites, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_effect_site": {
+              "description": "Yes/no outcome only: Conditions assigned below the sites only: SD of the effect across sites. 0 if omitted, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_effect_group": {
+              "description": "Yes/no outcome only: Conditions assigned to people only: SD of the effect across groups. 0 if omitted, on the log-odds scale.",
+              "type": "number",
+              "minimum": 0
             },
             "group_size": {
               "description": "People in each group.",
@@ -9301,7 +9475,11 @@
                   "const": "condition"
                 },
                 "method": {
-                  "const": "satterthwaite_t"
+                  "enum": [
+                    "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
                 }
               }
             }
@@ -9310,7 +9488,7 @@
       }
     },
     "template_item_predictor": {
-      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item.",
+      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item. With population > x_level 'trial' (1 November 2026) X is measured on each trial instead (e.g. a stimulus duration that varies from trial to trial): each participant meets every value once, rotated across the items, so X varies within items too, and its effect may vary across items (sd_item_slope): y ~ x + (1 + x | participant) + (1 + x | item).",
       "properties": {
         "variables": {
           "required": [
@@ -9352,6 +9530,13 @@
                 "probability"
               ]
             },
+            "x_level": {
+              "description": "Where X is measured: 'item' (the default; one value per item) or 'trial' (each participant's values rotated across the items, so X varies within items).",
+              "enum": [
+                "item",
+                "trial"
+              ]
+            },
             "slope": {
               "description": "The effect of one SD more of X: in the outcome's units, or on the log odds for a yes/no outcome.",
               "type": "number"
@@ -9378,6 +9563,11 @@
             },
             "sd_item": {
               "description": "SD of the items' intercepts beyond what X explains.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_slope": {
+              "description": "X measured on each trial only: SD of the items' slopes on X. 0 if omitted.",
               "type": "number",
               "minimum": 0
             },
@@ -9415,6 +9605,246 @@
               }
             }
           ]
+        }
+      }
+    },
+    "template_precision_mean_difference": {
+      "description": "The confidence interval for the difference between two groups' means in the outcome's own units (presize's prec_meandiff(), two equal groups, equal variances). goal > n is the total of both groups.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "difference",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "difference": {
+              "type": "number",
+              "description": "The expected difference between the means (second group minus first), in the outcome's units."
+            },
+            "sd": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "The outcome's SD within each group (the same in both)."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_odds_ratio": {
+      "description": "The confidence interval for the odds ratio between two groups (presize's prec_or()): the independence-smoothed logit interval by default (presize's own default), or Gart's or Woolf's. goal > n is the total of both groups; goal > width is the width on the odds-ratio scale.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p1",
+            "p2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "probability"
+            },
+            "p1": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected proportion of 'yes' in the first group."
+            },
+            "p2": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected proportion of 'yes' in the second group."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "indip_smooth",
+                "gart",
+                "woolf"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_icc": {
+      "description": "The confidence interval for an intraclass correlation (presize's prec_icc()): k ratings of each subject. goal > n is the number of subjects.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "icc",
+            "raters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "icc": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected ICC."
+            },
+            "raters": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "The number of ratings (raters or occasions) of each subject."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "approximate"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_regression_coefficient": {
+      "description": "The confidence interval for one standardised regression coefficient in a multiple regression (MBESS's ss.aipe.reg.coef(), with assurance if asked); at a given n, the width is the narrowest for which ss.aipe.reg.coef() needs no more than n, and the interval is symmetric about b. goal > n is the number of participants.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "b",
+            "r2",
+            "r2_predictor",
+            "predictors"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "b": {
+              "type": "number",
+              "description": "The expected standardised coefficient of X."
+            },
+            "r2": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "R-squared of the full model (all predictors)."
+            },
+            "r2_predictor": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "R-squared of X on the other predictors (0 if X is the only predictor or uncorrelated with them)."
+            },
+            "predictors": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The number of predictors in the model, X included."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "t"
+              ]
+            }
+          }
         }
       }
     }

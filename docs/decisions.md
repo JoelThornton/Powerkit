@@ -4116,6 +4116,48 @@ needed first.
   request in the next round. It needs a new dependency, and so a rebuilt
   CI image.
 
+## 2026-11-01 · A yes/no outcome in the two- and three-level models (E62, E68)
+
+- **Inputs on the log-odds scale.** As for the participants-and-items
+  cards (E33, E63, E67): the chance of 'yes' for a typical group (E62) or
+  each condition's chance for a typical site and group (E68), and every
+  effect and SD on the log-odds scale. E68's score version takes shares of
+  variance (intraclass correlations); for a yes/no outcome it takes SDs
+  instead, since turning a latent-scale ICC into an SD needs a formula
+  with a published source, and none is in `refs.bib` yet.
+- **The test:** glmer's Wald z test by default, simr's default for a
+  numeric or two-condition predictor and the p-value glmer's summary
+  reports, with the likelihood ratio offered, as on E33 and E67.
+
+## 2026-11-01 · Predictors at all three levels (E62)
+
+- **One card, not a new one.** "Predictors at every level of a
+  three-level design" (`next.md` item 2) extends E62, the card for
+  predictors at each level, with an optional third level, rather than
+  E68, which is about conditions assigned at a level. The form asks
+  whether the groups are in larger groups.
+- **The model.** A site predictor Z, its effect and its interaction with
+  X (the cross-level interactions researchers usually test), the sites'
+  random intercepts and, optionally, X slopes: `y ~ x + w + z + x:w + x:z
+  + (1 + x | site) + (1 + x | site:group)`. W's interaction with Z, and
+  the W slopes across sites, are left out: they are rarely the planned
+  effect and would need many more sites to estimate.
+- **The design.** W is spread across each site's groups and Z across the
+  sites, so the predictors are uncorrelated, as X and W are at two
+  levels.
+
+## 2026-11-01 · A predictor measured on each trial (E67)
+
+- **On E67, as a choice of where X is measured.** A trial-level predictor
+  (a stimulus duration, a trial's position) is the item-predictor model
+  with X varying within items, so it is the same card with one question
+  more, not a new one.
+- **The design.** Each participant meets every value of X once, in an
+  order rotated across participants (a Latin-square rotation), so X is
+  centred within every participant, varies within every item, and is
+  balanced across items when the number of participants is a multiple of
+  the number of items. The items' slopes on X can then be estimated, and
+  are in the model when their SD is above 0.
 ## 2026-11-01 · Moderated mediation decisions, and the shape of the queue
 
 - **W on both links or the direct path (E38, PROCESS models 8, 58 and
@@ -4170,6 +4212,31 @@ needed first.
   is the index times a constant, so the decision is the same.
 - **A yes/no X or W must be uncorrelated with the other predictor**, as
   the card already said: `rbinary_rs()` draws it on its own.
+## 2026-11-01 · Precision for more estimates (E46)
+
+- **Packages, as for the first estimates:** presize for a raw mean
+  difference (two equal groups, equal variances), an odds ratio and an
+  ICC; MBESS for a standardised regression coefficient (with assurance).
+- **The odds ratio's direction:** the second group's odds over the
+  first's, as powerkit's other two-group results run; presize's own is
+  the other way, so the groups are passed to `prec_or()` reversed. Its
+  interval defaults to presize's own default, the independence-smoothed
+  logit interval, with Gart's and Woolf's offered.
+- **The regression coefficient at a given n:** MBESS gives the sample
+  size for a width, not the width at a size, so powerkit reports the
+  narrowest width for which `ss.aipe.reg.coef()` needs no more than n,
+  rather than computing a standard error itself.
+- **gsl** is a new dependency (MBESS needs it for this function), with
+  the system library in the CI image and the online app's build.
+
+## 2026-11-01 · The number of items as the sample size (E33)
+
+- **The same simulation, counted the other way:** the participants are
+  fixed and the search varies the number of items; the power at a given
+  number of items is the same as the power with those items and
+  participants planned the usual way (tested). With each item in one
+  condition the number of items is even. Attrition isn't offered here:
+  the participants given are those analysed.
 ## 2026-11-01 · Bayes factor test of one proportion (E25)
 
 Item 3 of `next.md`: the other Bayes factor cards, giving researchers who
@@ -4205,3 +4272,37 @@ analyse in JASP answers that match JASP's.
   GitHub only and bfpwr computes a z-test Bayes factor on Fisher's z
   instead. Whether CRAN's BayesFactor matches JASP is to be checked once
   CRAN is reachable from the cloud environment.
+
+## 2026-11-01 · Bayes factor test of a correlation (E4)
+
+Item 3 of `next.md`, giving researchers who analyse in JASP answers that
+match JASP's.
+
+- **What JASP does.** Read from its source (jaspRegression,
+  `R/correlationbayesian.R`, which calls the GitHub package bstats): a
+  stretched beta prior on rho, width 1 (uniform) by default, and the exact
+  Bayes factor of Ly, Marsman and Wagenmakers (2018), bstats'
+  `bf10CorExact()`; one-sided, rho = 0 against one side with the prior
+  truncated to it.
+- **Package.** CRAN's BayesFactor `correlationBF(rscale = w)` gives the
+  same two-sided Bayes factor at the same width (equal to eight digits
+  against JASP's formula, and to the Bayes factor integrated from the
+  exact density of r); its one-sided interval Bayes factor is within 0.1%
+  of the exact one. So BayesFactor is the backend; bstats isn't on CRAN.
+- **Default width.** JASP's 1, not BayesFactor's 1/3 ("medium"): JASP is
+  where psychologists run this test. Recorded as Known difference 12 (162
+  people against 146 for r = .3, BF10 of at least 10, 80%).
+- **Power.** No package computes it. The Bayes factor depends on the data
+  only through n and r, and rises with r (or |r|), so strong evidence is a
+  sample correlation past a critical value, found by root-finding on
+  `correlationBF()`; its chance is from SuppDists' exact distribution of r
+  for bivariate normal scores (`pPearson()`, lower tail, which is the more
+  accurate). No new maths beyond the root-finding; no simulation.
+- **Design prior.** The expected correlation exactly, or a stretched beta
+  design prior with its mean and an SD (Departure 15 extended: a design
+  prior equal to the uniform analysis prior gives 76.4% at 162 people,
+  where exactly r = .3 gives 80%).
+- **Not built.** bfpwr's z-test Bayes factor on Fisher's z as a second
+  version: it needs a normal analysis prior on z that no common tool uses
+  for correlations, and researchers who analyse in R with BayesFactor get
+  their answer by setting the width to 1/3.

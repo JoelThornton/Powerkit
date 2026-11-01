@@ -14,7 +14,7 @@ population_problems <- function(spec) {
     },
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
-      switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
+      switch(spec$template, two_level = check_two_level(spec), crossed_conditions = check_crossed_conditions(spec),
         three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
@@ -423,10 +423,22 @@ check_bayes_factor <- function(spec) {
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
+    if (!is.null(spec$population$r_sd)) {
+      return(paste0(
+        "'population > r_sd' is only used by the Bayes factor test of a correlation; ",
+        "remove it, or set 'target_test > method' to 'bayes_factor'."
+      ))
+    }
     return(character())
   }
   if (bfbin_test(spec)) {
     return(check_bayes_binomial(spec))
+  }
+  if (bfcor_test(spec)) {
+    return(check_bayes_correlation(spec))
+  }
+  if (!is.null(spec$target_test$prior_width)) {
+    return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
   }
   if (!is.null(spec$target_test$prior_a) || !is.null(spec$target_test$prior_b) || !is.null(spec$target_test$one_sided_null)) {
     return(paste0(
@@ -450,6 +462,9 @@ check_bayes_binomial <- function(spec) {
   pop <- spec$population
   tt <- spec$target_test
   problems <- character()
+  if (!is.null(tt$prior_width)) {
+    problems <- c(problems, "'target_test > prior_width' belongs to the Bayes factor test of a correlation; remove it.")
+  }
   if (!is.null(tt$prior_scale) || !is.null(pop$effect_sd)) {
     problems <- c(problems, paste0(
       "The Bayes factor test of one proportion has a beta analysis prior ('target_test > prior_a' and 'prior_b') ",
@@ -463,6 +478,34 @@ check_bayes_binomial <- function(spec) {
   }
   if (!is.null(tt$one_sided_null) && identical(tt$alternative %||% "two_sided", "two_sided")) {
     problems <- c(problems, "'target_test > one_sided_null' applies to a one-sided test only; remove it, or set 'target_test > alternative'.")
+  }
+  problems
+}
+
+# The correlation's Bayes factor: a stretched beta analysis prior (its
+# width), a design prior SD the stretched beta distribution can have, and
+# Pearson's r on normal scores.
+check_bayes_correlation <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  problems <- character()
+  if (!is.null(tt$prior_scale) || !is.null(tt$prior_a) || !is.null(tt$prior_b) || !is.null(tt$one_sided_null) ||
+    !is.null(pop$effect_sd) || !is.null(pop$p_sd)) {
+    problems <- c(problems, paste0(
+      "The Bayes factor test of a correlation has a stretched beta analysis prior, set by 'target_test > prior_width', ",
+      "and its uncertainty as 'population > r_sd'; remove the other Bayes factor settings."))
+  }
+  if (!is.null(pop$score_shape)) {
+    problems <- c(problems, "'population > score_shape' belongs to the rank correlations; the Bayes factor test is of Pearson's r on normal scores. Remove it.")
+  }
+  r_sd <- pop$r_sd %||% 0
+  if (is.numeric(pop$r) && is.numeric(r_sd) && r_sd > 0 && r_sd^2 >= 1 - pop$r^2) {
+    problems <- c(problems, sprintf(paste0(
+      "'population > r_sd' (%s) is too large for a correlation of %s: a stretched beta distribution with that mean ",
+      "has an SD below %s. Give a smaller uncertainty."), format(r_sd), format(pop$r), format(signif(sqrt(1 - pop$r^2), 3))))
+  }
+  if (is.numeric(pop$r) && abs(pop$r) >= 0.95) {
+    problems <- c(problems, "For the Bayes factor test, the expected correlation must be between -0.95 and 0.95.")
   }
   problems
 }
@@ -692,7 +735,27 @@ check_crossed_two_condition <- function(spec) {
   pop <- spec$population
   within <- identical(pop$item_design %||% "between", "within")
   problems <- character()
-  if (!within && pop$items %% 2 == 1) {
+  # The number of items as the sample size: the participants are given,
+  # and the items are what the goal finds or fixes.
+  if (identical(spec$goal$unit, "items")) {
+    if (is.null(pop$participants)) {
+      problems <- c(problems, "With the number of items as the sample size ('goal > unit' \"items\"), give 'population > participants', the participants you will have.")
+    } else if (identical(spec$variables$X$type, "between_factor") && pop$participants %% 2 == 1) {
+      problems <- c(problems, sprintf("'population > participants' is %s, but with the conditions between participants half go in each, so it must be even.", format_number(pop$participants)))
+    }
+    if (!is.null(pop$items)) {
+      problems <- c(problems, "With the number of items as the sample size, 'goal > n' is the number of items: remove 'population > items'.")
+    }
+    if (!is.null(spec$options$attrition)) {
+      problems <- c(problems, "'options > attrition' is for participants who drop out; with the number of items as the sample size, give the participants you expect to analyse.")
+    }
+    return(problems)
+  }
+  if (is.null(pop$items)) problems <- c(problems, "Give 'population > items', the number of items each participant responds to.")
+  if (!is.null(pop$participants)) {
+    problems <- c(problems, "'population > participants' is for 'goal > unit' \"items\" (the number of items as the sample size); here 'goal > n' is the participants, so remove it.")
+  }
+  if (!within && !is.null(pop$items) && pop$items %% 2 == 1) {
     problems <- c(problems, sprintf(
       "'population > items' is %s, but with each item in one condition half the items go in each, so the number must be even.",
       format_number(pop$items)
@@ -729,6 +792,9 @@ check_item_predictor <- function(spec) {
   pop <- spec$population
   binary <- identical(spec$variables$Y$type, "binary")
   problems <- character()
+  if (!is.null(pop$sd_item_slope) && !identical(pop$x_level, "trial")) {
+    problems <- c(problems, "'population > sd_item_slope' is how much X's effect varies between items, which needs X to vary within items: set 'population > x_level' to \"trial\", or remove it.")
+  }
   if (binary) {
     if (!identical(pop$metric, "probability") || is.null(pop$probability)) {
       problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probability', the chance of 'yes' at the items' average X.")
@@ -746,13 +812,87 @@ check_item_predictor <- function(spec) {
   problems
 }
 
+# People in groups (E62): a score outcome takes a residual SD and
+# Satterthwaite's test; a yes/no outcome a probability and glmer's tests.
+check_two_level <- function(spec) {
+  pop <- spec$population
+  binary <- identical(spec$variables$Y$type, "binary")
+  problems <- character()
+  if (binary) {
+    if (!identical(pop$metric, "probability") || is.null(pop$probability)) {
+      problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probability', the chance of 'yes' for a typical group at the average X and W.")
+    }
+    if (!is.null(pop$sd_residual)) problems <- c(problems, "A yes/no outcome has no residual SD: remove 'population > sd_residual'.")
+    allowed <- c("wald", "likelihood_ratio")
+  } else {
+    if (!identical(pop$metric, "raw")) problems <- c(problems, "With a score outcome, set 'population > metric' to \"raw\".")
+    if (is.null(pop$sd_residual)) problems <- c(problems, "Give 'population > sd_residual', how much people differ within a group.")
+    if (!is.null(pop$probability)) problems <- c(problems, "'population > probability' is for a yes/no outcome; remove it.")
+    allowed <- "satterthwaite_t"
+  }
+  if (!spec$target_test$method %in% allowed) {
+    problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome.", paste(sprintf("\"%s\"", allowed), collapse = " or ")))
+  }
+  # Three levels: groups_per_site makes the design three-level, and then
+  # the site's predictor and SDs are needed; without it they don't apply.
+  three <- !is.null(pop$groups_per_site)
+  site_keys <- c("b_Z", "b_XZ", "sd_site")
+  if (three) {
+    missing <- site_keys[vapply(site_keys, function(k) is.null(pop[[k]]), logical(1))]
+    if (length(missing)) {
+      problems <- c(problems, sprintf("With the groups in sites ('population > groups_per_site'), give %s.",
+        paste(sprintf("'population > %s'", missing), collapse = ", ")))
+    }
+    if (is.null(spec$variables$Z)) problems <- c(problems, "With the groups in sites, give 'variables > Z', the predictor measured on each site.")
+  } else {
+    extra <- intersect(c(site_keys, "sd_site_slope"), names(pop))
+    if (length(extra)) {
+      problems <- c(problems, sprintf("%s only apply when the groups are in sites: give 'population > groups_per_site', or remove them.",
+        paste(sprintf("'population > %s'", extra), collapse = ", ")))
+    }
+    if (spec$target_test$effect %in% c("site_effect", "site_interaction")) {
+      problems <- c(problems, sprintf("'target_test > effect' \"%s\" needs the groups in sites: give 'population > groups_per_site' and the site's predictor.",
+        spec$target_test$effect))
+    }
+  }
+  problems
+}
+
 # Three levels (E68): the shares of variance leave some within groups;
 # half of what is assigned goes in each condition, so that number is even;
 # an effect can vary only across the levels above the one assigned.
 check_three_level <- function(spec) {
   pop <- spec$population
   problems <- character()
-  if (pop$icc_site + pop$icc_group >= 1) {
+  binary <- identical(spec$variables$Y$type, "binary")
+  score_keys <- c("d", "icc_site", "icc_group", "icc_effect_site", "icc_effect_group")
+  binary_keys <- c("probabilities", "sd_site", "sd_group", "sd_effect_site", "sd_effect_group")
+  if (binary) {
+    if (!identical(pop$metric, "probability") || length(unlist(pop$probabilities)) != 2) {
+      problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probabilities', the chance of 'yes' in each condition for a typical site and group.")
+    }
+    for (key in c("sd_site", "sd_group")) {
+      if (is.null(pop[[key]])) problems <- c(problems, sprintf("Give 'population > %s', on the log-odds scale (0 if they don't differ).", key))
+    }
+    wrong <- intersect(score_keys, names(pop))
+    allowed <- c("wald", "likelihood_ratio")
+  } else {
+    if (!identical(pop$metric, "standardised")) problems <- c(problems, "With a score outcome, set 'population > metric' to \"standardised\".")
+    for (key in c("d", "icc_site", "icc_group")) {
+      if (is.null(pop[[key]])) problems <- c(problems, sprintf("Give 'population > %s'.", key))
+    }
+    wrong <- intersect(binary_keys, names(pop))
+    allowed <- "satterthwaite_t"
+  }
+  for (key in wrong) {
+    problems <- c(problems, sprintf("'population > %s' is for a %s outcome; remove it.", key, if (binary) "score" else "yes/no"))
+  }
+  if (!spec$target_test$method %in% allowed) {
+    problems <- c(problems, sprintf("'target_test > method' should be %s for this outcome.", paste(sprintf("\"%s\"", allowed), collapse = " or ")))
+  }
+  effect_site <- if (binary) "sd_effect_site" else "icc_effect_site"
+  effect_group <- if (binary) "sd_effect_group" else "icc_effect_group"
+  if (!binary && !is.null(pop$icc_site) && !is.null(pop$icc_group) && pop$icc_site + pop$icc_group >= 1) {
     problems <- c(problems, sprintf("'population > icc_site' and 'icc_group' add up to %s, but together they must be below 1: some of the variance lies between people in the same group.",
       format_number(pop$icc_site + pop$icc_group)))
   }
@@ -762,11 +902,11 @@ check_three_level <- function(spec) {
   if (identical(pop$assignment, "person") && pop$group_size %% 2 == 1) {
     problems <- c(problems, sprintf("With people assigned within each group, half of each group goes in each condition, so 'population > group_size' (%s) must be even.", format_number(pop$group_size)))
   }
-  if (identical(pop$assignment, "site") && !is.null(pop$icc_effect_site)) {
-    problems <- c(problems, "'population > icc_effect_site' is how much the effect varies between sites, which needs both conditions in every site: remove it when whole sites are assigned.")
+  if (identical(pop$assignment, "site") && !is.null(pop[[effect_site]])) {
+    problems <- c(problems, sprintf("'population > %s' is how much the effect varies between sites, which needs both conditions in every site: remove it when whole sites are assigned.", effect_site))
   }
-  if (!identical(pop$assignment, "person") && !is.null(pop$icc_effect_group)) {
-    problems <- c(problems, "'population > icc_effect_group' is how much the effect varies between groups, which needs both conditions in every group: remove it unless people are assigned within groups.")
+  if (!identical(pop$assignment, "person") && !is.null(pop[[effect_group]])) {
+    problems <- c(problems, sprintf("'population > %s' is how much the effect varies between groups, which needs both conditions in every group: remove it unless people are assigned within groups.", effect_group))
   }
   problems
 }
@@ -2324,7 +2464,10 @@ minimum_n <- function(spec) {
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
     # Two-level: at least ten groups, for the groups' variances.
-    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else
+    mixed_model = if (identical(spec$template, "two_level")) {
+      pop2 <- spec$population
+      if (is.null(pop2$groups_per_site)) 10 * pop2$cluster_size else 6 * pop2$cluster_size * pop2$groups_per_site
+    } else
       if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
@@ -2381,6 +2524,10 @@ group_split <- function(spec) {
     cells <- manova_groups(spec)
     return(list(rule = sprintf("split into %d equal groups, one per combination of A and B", cells), valid = function(n) n %% cells == 0))
   }
+  if (identical(spec$template, "crossed_two_condition") && identical(spec$goal$unit, "items")) {
+    if (identical(spec$population$item_design %||% "between", "within")) return(NULL)
+    return(list(rule = "an even number of items, half in each condition", valid = function(n) n %% 2 == 0))
+  }
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
@@ -2396,6 +2543,10 @@ group_split <- function(spec) {
   }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
+    k <- spec$population$groups_per_site
+    if (!is.null(k)) {
+      return(list(rule = sprintf("a whole number of sites of %d groups of %d", k, m), valid = function(n) n %% (m * k) == 0))
+    }
     return(list(rule = sprintf("a whole number of groups of %d", m), valid = function(n) n %% m == 0))
   }
   if (unequal_groups(spec)) {
@@ -2533,9 +2684,10 @@ target_effect_is_zero <- function(spec) {
     },
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
-      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW,
+        site_effect = pop$b_Z, site_interaction = pop$b_XZ)
     } else if (identical(spec$template, "three_level")) {
-      pop$d
+      if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {
       pop$slope
     } else if (identical(spec$template, "crossed_conditions")) {

@@ -313,7 +313,18 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
-n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else NULL
+n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# The number of items as the sample size (E33): the write-up counts items,
+# with the participants fixed.
+items_units <- function(text, spec) {
+  p <- whole(spec$population$participants)
+  text <- gsub(" participants are needed in total", sprintf(" items are needed (with %s participants)", p), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many items (and %s participants) is", p), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 items and %s participants", p), text)
+  text
+}
 
 # Dyadic data: the write-up counts pairs.
 dyad_units <- function(text) {
@@ -1490,15 +1501,25 @@ bayes_settings_text <- function(spec) {
       if (identical(tt$alternative %||% "two_sided", "two_sided")) "" else if (identical(tt$one_sided_null, "directional"))
         "; at or below the fixed value against above it" else "; the fixed value against one side, as in JASP"))
   }
+  if (is_bayes_correlation(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; stretched beta prior of width %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
+      if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
+is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
+
+# The design prior SD of a Bayes factor test, whichever name it has.
+bayes_design_sd <- function(spec) spec$population$effect_sd %||% spec$population$p_sd %||% spec$population$r_sd %||% 0
 
 bayes_test_name <- function(spec) {
   switch(spec$template,
     one_proportion = "a Bayes factor test of one proportion",
+    correlation = "a Bayes factor test of Pearson's correlation",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test")
@@ -1523,6 +1544,7 @@ bayes_sentence <- function(spec, result) {
   c(
     if (b$effect_sd > 0) sprintf(paste(
       if (is_bayes_binomial(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
+      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
@@ -1546,7 +1568,7 @@ departures_for <- function(forms, ep_id, spec) {
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
-  if (!is_bayes_test(spec) || !isTRUE((spec$population$effect_sd %||% spec$population$p_sd %||% 0) == 0)) keys <- setdiff(keys, "15")
+  if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
@@ -2023,6 +2045,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(tt$prior_a %||% 1), format(tt$prior_b %||% 1), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_correlation(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
@@ -2129,6 +2155,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   }
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -2230,6 +2257,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
     p$backend, p$packages[[p$backend]])), collapse = " ")
@@ -2304,7 +2332,11 @@ precision_estimate_text <- function(spec) {
     one_group = sprintf("the standardised mean of %s", v$Y$label),
     correlation = sprintf("%s between %s and %s", switch(spec$target_test$method, spearman = "Spearman's rho", kendall = "Kendall's tau", "the correlation"),
       v$X$label, v$Y$label),
-    proportion = sprintf("the proportion %s", v$Y$label))
+    proportion = sprintf("the proportion %s", v$Y$label),
+    mean_difference = sprintf("the difference in mean %s between %s and %s", v$Y$label, v$X$levels[[1]], v$X$levels[[2]]),
+    odds_ratio = sprintf("the odds ratio of %s, %s against %s", v$Y$label, v$X$levels[[2]], v$X$levels[[1]]),
+    icc = sprintf("the ICC of %s", v$Y$label),
+    regression_coefficient = sprintf("the standardised coefficient of %s for %s", v$X$label, v$Y$label))
 }
 
 precision_interval_name <- function(spec) {
@@ -2312,6 +2344,8 @@ precision_interval_name <- function(spec) {
   kind <- switch(spec$template,
     proportion = switch(spec$target_test$method, wilson = "Wilson", agresti_coull = "Agresti-Coull", exact = "exact (Clopper-Pearson)", wald = "Wald"),
     correlation = if (identical(spec$target_test$method, "pearson")) "Fisher's z" else NULL,
+    odds_ratio = switch(spec$target_test$method, indip_smooth = "independence-smoothed logit", gart = "Gart's logit", woolf = "Woolf's logit"),
+    mean_difference = "t", regression_coefficient = "t", icc = NULL,
     "noncentral t")
   if (is.null(kind)) sprintf("%s confidence interval", level) else sprintf("%s %s confidence interval", level, kind)
 }
@@ -2319,7 +2353,8 @@ precision_interval_name <- function(spec) {
 precision_number <- function(x) format(round(x, 3), nsmall = 2)
 
 precision_people <- function(spec, n) {
-  if (identical(spec$template, "two_groups")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+  if (spec$template %in% c("two_groups", "mean_difference", "odds_ratio")) sprintf("%s participants in total (%s per group)", whole(n), whole(n / 2)) else
+    if (identical(spec$template, "icc")) sprintf("%s people, each rated %s times", whole(n), whole(spec$population$raters)) else
     if (identical(spec$template, "paired")) sprintf("%s pairs of scores", whole(n)) else sprintf("%s participants", whole(n))
 }
 
@@ -2327,8 +2362,13 @@ precision_sentences <- function(spec, result) {
   pr <- result$precision
   estimate <- precision_estimate_text(spec)
   interval <- precision_interval_name(spec)
-  expected <- sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
-    pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  expected <- if (is.na(pr$lower)) {
+    sprintf("If the estimate comes out at %s = %s, its %s is about %s wide (presize gives the width, not the limits).",
+      pr$effect_name, format(pr$effect), interval, precision_number(pr$width))
+  } else {
+    sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
+      pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
+  }
   how <- sprintf("Calculated by formula with %s (%s()), which powerkit called with your answers.", result$provenance$backend, pr$function_used)
   if (!is.na(pr$target_width)) {
     headline <- if (is.na(pr$assurance)) {
@@ -2337,7 +2377,7 @@ precision_sentences <- function(spec, result) {
       sprintf("With %s, the %s for %s would be no wider than %s in %s of studies like this.", precision_people(spec, pr$n), interval, estimate,
         format(pr$target_width), percent(pr$assurance))
     }
-    more <- if (spec$template %in% c("two_groups", "one_group", "paired")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
+    more <- if (spec$template %in% c("two_groups", "one_group", "paired", "regression_coefficient")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
     reading <- if (is.na(pr$assurance)) sprintf("“Expected” means the typical study: about half of studies this size would get a somewhat wider interval. For more certainty, %s.", more) else
       "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
   } else {

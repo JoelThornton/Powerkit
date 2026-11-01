@@ -39,7 +39,7 @@ test_that("there is an example for every template", {
     # Planned comparisons (engine only).
     "oneway_contrast",
     # Precision planning (a confidence-interval width).
-    "two_groups", "proportion",
+    "two_groups", "proportion", "mean_difference", "odds_ratio", "icc", "regression_coefficient",
     # Variance tests, simulated (engine only).
     "one_variance", "two_variances",
     # Generic tests (engine only).

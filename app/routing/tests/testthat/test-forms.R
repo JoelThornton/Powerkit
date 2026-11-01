@@ -58,9 +58,10 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_no_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    # E24's, E34's, E36's, E37's and E51's effect sizes appear once their first question is chosen.
+    # E24's, E34's, E36's, E37's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
-                    E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"), list())
+                    E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
+                    E62 = list(two_outcome = "continuous", in_sites = "no"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
@@ -757,6 +758,45 @@ test_that("the participants-and-items cards take a yes/no outcome: probabilities
   expect_identical(spec$target_test$method, "wald")
 })
 
+test_that("the two-level card takes a third level: a predictor on each larger group, its interaction with X, and the larger groups' SDs", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E62"))
+  values <- modifyList(c(form_examples$E62, list(goal = "power", n = "1600")),
+    list(in_sites = "yes", Z_label = "School funding", b_Z = "0.3", b_XZ = "0.1", sd_site = "0.3", sd_site_slope = "0.1",
+      groups_per_site = "4", three_level_effect = "site_interaction", two_level_effect = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("two_level_effect" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E62", fields, values)
+  expect_identical(spec$target_test$effect, "site_interaction")
+  expect_equal(spec$population$groups_per_site, 4)
+  expect_identical(spec$variables$Z$label, "School funding")
+  if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+})
+
+test_that("the two- and three-level cards take a yes/no outcome: probabilities, SDs on the log-odds scale, and the Wald or likelihood-ratio test", {
+  validate <- engine_function("validate_spec")
+  cases <- list(
+    E62 = list(values = list(two_outcome = "binary", two_probability = "0.6", two_test = "wald", b_X = "0.3", b_W = "0.3", b_XW = "0.2",
+      sd_group = "0.5", sd_group_slope = "0.2", sd_residual = NULL), hidden = "sd_residual", method = "wald"),
+    E68 = list(values = list(three_outcome = "binary", three_probabilities = "0.5, 0.65", three_test = "likelihood_ratio",
+      sd_site = "0.4", sd_group = "0.3", d = NULL, icc_site = NULL, icc_group = NULL),
+      hidden = c("d", "icc_site", "icc_group", "icc_effect_site"), method = "likelihood_ratio")
+  )
+  for (id in names(cases)) {
+    fields <- form_fields(form_groups(forms, id))
+    values <- modifyList(c(form_examples[[id]], list(goal = "power", n = if (id == "E62") "400" else "1600")), cases[[id]]$values)
+    applies <- Filter(function(f) field_applies(f, values), fields)
+    expect_false(any(vapply(applies, function(f) f$id, "") %in% cases[[id]]$hidden), label = id)
+    expect_length(form_problems(applies, values), 0)
+    spec <- build_spec(forms, id, fields, values)
+    expect_identical(spec$variables$Y$type, "binary", label = id)
+    expect_identical(spec$population$metric, "probability", label = id)
+    expect_identical(spec$target_test$method, cases[[id]]$method, label = id)
+    if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+  }
+})
+
 test_that("the meta-analysis card tests subgroups: the kinds' effects go to the engine's subgroups template", {
   fields <- form_fields(form_groups(forms, "E61"))
   values <- modifyList(form_examples$E61, list(meta_question = "subgroups", meta_effects = "0.2, 0.5", meta_effect = NULL,
@@ -803,4 +843,41 @@ test_that("names that are all optional fold away, and open once one is filled in
   expect_match(filled, "<details class=\"form-names\" open>", fixed = TRUE)
   # Where a name is needed (the groups of a one-way ANOVA), the box stays open.
   expect_no_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))), "form-names", fixed = TRUE)
+})
+
+test_that("the precision card takes a raw mean difference, an odds ratio, an ICC and a regression coefficient", {
+  validate <- engine_function("validate_spec")
+  cases <- list(
+    mean_difference = list(estimate = "mean_difference", X_label = "Group", X_level1 = "Control", X_level2 = "Treatment", Y_label = "Blood pressure",
+      mean_difference = "5", mean_sd = "12"),
+    odds_ratio = list(estimate = "odds_ratio", X_label = "Group", X_level1 = "Control", X_level2 = "Treatment", Y_label = "Recovered",
+      or_p1 = "0.3", or_p2 = "0.45", or_method = "indip_smooth"),
+    icc = list(estimate = "icc", Y_label = "Symptom rating", icc = "0.7", icc_raters = "3"),
+    regression_coefficient = list(estimate = "regression_coefficient", P_label = "Sleep quality", Y_label = "Wellbeing", reg_b = "0.25",
+      reg_r2 = "0.3", reg_r2_predictor = "0.2", reg_predictors = "4")
+  )
+  for (name in names(cases)) {
+    fields <- form_fields(form_groups(forms, "E46"))
+    values <- c(cases[[name]], list(goal = "precision_n", width = "0.5", conf_level = "0.95"), closing_ok)
+    applies <- Filter(function(f) field_applies(f, values), fields)
+    expect_length(form_problems(applies, values), 0)
+    spec <- build_spec(forms, "E46", fields, values)
+    expect_identical(spec$template, name)
+    if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+  }
+})
+
+test_that("the participants-and-items card can plan the number of items for a fixed number of participants", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E33"))
+  values <- modifyList(c(form_examples$E33, list(goal = "sample_size", power = "0.8")),
+    list(plan_unit = "items", participants = "30", items = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("items" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E33", fields, values)
+  expect_identical(spec$goal$unit, "items")
+  expect_equal(spec$population$participants, 30)
+  expect_null(spec$population$items)
+  if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
 })

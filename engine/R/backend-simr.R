@@ -33,11 +33,17 @@ simr_backend <- function(spec, seed = NULL) {
     default_method = "simulation",
     functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
-    n_step = if (two_level) inputs$cluster_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
+    n_step = if (isTRUE(inputs$vary_items)) (if (inputs$within) 1 else 2) else if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
-        simr_rejections(inputs, n, k, chunk_seed)
+        if (isTRUE(inputs$vary_items)) {
+          at <- inputs
+          at$items <- n
+          simr_rejections(at, inputs$participants, k, chunk_seed)
+        } else {
+          simr_rejections(inputs, n, k, chunk_seed)
+        }
       })
     },
     sensitivity = NULL,
@@ -99,11 +105,17 @@ simr_inputs <- function(spec) {
     fixef = if (binary) c(mean(logits), diff(logits)) else c(0, pop$difference),
     VarCorr = list(participant = participant, item = item),
     sigma = if (!binary) pop$sd_residual,
-    items = pop$items,
+    items = pop$items %||% spec$goal$n,
     within = within,
+    # The number of items as the sample size (1 November 2026): the
+    # participants are fixed and the search varies the items.
+    vary_items = simr_vary_items(spec),
+    participants = pop$participants,
     alpha = spec$target_test$alpha
   )
 }
+
+simr_vary_items <- function(spec) identical(spec$goal$unit, "items")
 
 # One data set's design. Conditions within participants: every
 # participant responds to every item, in one condition (items between
@@ -191,6 +203,7 @@ simr_check_run <- function(spec, inputs, seed) {
   big <- inputs
   big$items <- max(inputs$items, 200L)
   if (!big$within && big$items %% 2 == 1) big$items <- big$items + 1L
+  big$vary_items <- FALSE
   model <- simr_model(big, n)
   data <- simr_design(big, n)
   data$y <- with_seed(seed, stats::simulate(model)[[1]])
@@ -247,67 +260,127 @@ simr_check_run <- function(spec, inputs, seed) {
 # spread standard normal values (normal quantiles) in every group, so it
 # is centred within groups with SD 1 and uncorrelated with W; W takes
 # evenly spread standard normal values across the groups. The design is
-# fixed, as simr's are; only the outcome is simulated.
+# fixed, as simr's are; only the outcome is simulated. A yes/no outcome
+# (1 November 2026) is a logistic mixed model built by makeGlmer(): the
+# chance of 'yes' for a typical group at the average X and W, every effect
+# and SD on the log-odds scale, tested by glmer's Wald z test (simr's
+# default for a numeric predictor) or the likelihood ratio, as for E33 and
+# E67.
 two_level_inputs <- function(spec) {
   pop <- spec$population
   r <- pop$r_group %||% 0
   group <- matrix(c(pop$sd_group^2, r * pop$sd_group * pop$sd_group_slope,
                     r * pop$sd_group * pop$sd_group_slope, pop$sd_group_slope^2), nrow = 2)
+  binary <- crossed_binary(spec)
+  three <- !is.null(pop$groups_per_site)
+  # Three levels (1 November 2026): the groups are in sites, with a
+  # predictor Z measured on each site, its interaction with X, and the
+  # sites' own intercepts and (when sd_site_slope is above 0) X slopes.
+  site_slope <- three && (pop$sd_site_slope %||% 0) > 0
+  formula <- if (three) {
+    paste("y ~ x + w + z + x:w + x:z +", if (site_slope) "(1 + x | site)" else "(1 | site)", "+ (1 + x | site:group)")
+  } else {
+    "y ~ x + w + x:w + (1 + x | group)"
+  }
+  var_corr <- if (three) {
+    list(site = if (site_slope) diag(c(pop$sd_site^2, pop$sd_site_slope^2)) else pop$sd_site^2, "site:group" = group)
+  } else {
+    list(group = group)
+  }
   list(
-    formula = y ~ x + w + x:w + (1 + x | group),
-    fixef = c(0, pop$b_X, pop$b_W, pop$b_XW),
-    VarCorr = list(group = group),
-    sigma = pop$sd_residual,
+    formula = stats::as.formula(formula, env = globalenv()),
+    binary = binary,
+    three = three,
+    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$b_X, pop$b_W, if (three) pop$b_Z, pop$b_XW, if (three) pop$b_XZ),
+    VarCorr = var_corr,
+    sigma = if (!binary) pop$sd_residual,
     cluster_size = pop$cluster_size,
-    term = switch(spec$target_test$effect, within_effect = "x", between_effect = "w", cross_level_interaction = "x:w"),
+    groups_per_site = pop$groups_per_site,
+    unit_size = pop$cluster_size * (pop$groups_per_site %||% 1),
+    term = switch(spec$target_test$effect, within_effect = "x", between_effect = "w", site_effect = "z",
+      cross_level_interaction = "x:w", site_interaction = "x:z"),
     design = two_level_design,
     alpha = spec$target_test$alpha
   )
 }
 
-# One data set's design: n people in n / cluster_size groups.
+# One data set's design: n people in n / cluster_size groups (and, with
+# three levels, the groups in sites of groups_per_site). X takes the same
+# standardised normal quantiles in every group; W takes them across the
+# groups (within each site, with three levels, so that W is uncorrelated
+# with Z); Z takes them across the sites.
 two_level_design <- function(inputs, n) {
+  spread <- function(k, inner) {
+    v <- stats::qnorm(if (inner) seq_len(k) / (k + 1) else (seq_len(k) - 0.5) / k)
+    (v - mean(v)) / sqrt(mean((v - mean(v))^2))
+  }
   m <- inputs$cluster_size
-  groups <- n %/% m
-  x <- stats::qnorm(seq_len(m) / (m + 1))
-  w <- stats::qnorm((seq_len(groups) - 0.5) / groups)
+  if (!isTRUE(inputs$three)) {
+    groups <- n %/% m
+    return(data.frame(
+      group = factor(rep(seq_len(groups), each = m)),
+      x = rep(spread(m, TRUE), groups),
+      w = rep(spread(groups, FALSE), each = m)
+    ))
+  }
+  k <- inputs$groups_per_site
+  sites <- n %/% (m * k)
   data.frame(
-    group = factor(rep(seq_len(groups), each = m)),
-    x = rep((x - mean(x)) / sqrt(mean((x - mean(x))^2)), groups),
-    w = rep((w - mean(w)) / sqrt(mean((w - mean(w))^2)), each = m)
+    site = factor(rep(seq_len(sites), each = m * k)),
+    group = factor(rep(rep(seq_len(k), each = m), sites)),
+    x = rep(spread(m, TRUE), sites * k),
+    w = rep(rep(spread(k, FALSE), each = m), sites),
+    z = rep(spread(sites, FALSE), each = m * k)
   )
 }
 
-# Check run: one large data set (2,000 groups) simulated from simr's
-# model and refitted with lme4: each fixed effect within 5 of its standard
-# errors, each SD within 5 of its approximate standard errors, as for E33.
+# Check run: one large data set (2,000 groups; with three levels, 400
+# sites) simulated from simr's model and refitted with lme4: each fixed
+# effect within 5 of its standard errors, each SD within 5 of its
+# approximate standard errors, as for E33.
 two_level_check_run <- function(spec, inputs, seed) {
-  n <- 2000L * inputs$cluster_size
+  three <- isTRUE(inputs$three)
+  n <- if (three) 400L * inputs$unit_size else 2000L * inputs$cluster_size
   model <- simr_model(inputs, n)
   data <- two_level_design(inputs, n)
   data$y <- with_seed(seed, stats::simulate(model)[[1]])
-  fit <- call_backend("lme4", quietly(lme4::lmer(inputs$formula, data = data)))
+  fit <- simr_refit(inputs, data)
   coefs <- summary(fit)$coefficients
   vc <- as.data.frame(lme4::VarCorr(fit))
-  sd_of <- function(var1) vc$sdcor[vc$grp == "group" & vc$var1 %in% var1 & is.na(vc$var2)]
+  group_name <- if (three) "site:group" else "group"
+  sd_of <- function(grp, var1) vc$sdcor[vc$grp == grp & vc$var1 %in% var1 & is.na(vc$var2)]
   pop <- spec$population
   groups <- n / inputs$cluster_size
+  binary <- isTRUE(inputs$binary)
+  # The noise in one person's outcome: the residual variance, or on the
+  # log-odds scale the binomial variance at the typical probability.
+  unit <- if (binary) 1 / (pop$probability * (1 - pop$probability)) else pop$sd_residual^2
   # A group SD is estimated from the groups' own estimates, which also
   # carry each group's sampling error (the residual variance over the
   # group's size, for the intercept, or over its sum of squared X, for the
   # slope): the variance's standard error is that total times
   # sqrt(2 / (groups - 1)), and the SD's is half of it over the SD.
   m <- inputs$cluster_size
-  sd_row <- function(label, specified, recovered, noise) {
-    se_var <- (specified^2 + noise) * sqrt(2 / (groups - 1))
+  sd_row <- function(label, specified, recovered, noise, count = groups) {
+    se_var <- (specified^2 + noise) * sqrt(2 / (count - 1))
     check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
   }
+  scale <- if (binary) " (log odds)" else ""
+  terms <- c("x", "w", if (three) "z", "x:w", if (three) "x:z")
+  labels <- c(x = "X's effect within groups", w = "W's effect between groups", z = "Z's effect between sites",
+    "x:w" = "cross-level interaction", "x:z" = "X's interaction with Z")
+  specified <- c(x = pop$b_X, w = pop$b_W, z = pop$b_Z %||% NA, "x:w" = pop$b_XW, "x:z" = pop$b_XZ %||% NA)
+  sites <- if (three) n / inputs$unit_size
   check <- rbind(
-    check_run_rows(c("X's effect within groups", "W's effect between groups", "cross-level interaction"),
-      c(pop$b_X, pop$b_W, pop$b_XW), coefs[c("x", "w", "x:w"), "Estimate"], coefs[c("x", "w", "x:w"), "Std. Error"]),
-    sd_row("SD of group intercepts", pop$sd_group, sd_of("(Intercept)"), pop$sd_residual^2 / m),
-    sd_row("SD of group X slopes", pop$sd_group_slope, sd_of("x"), pop$sd_residual^2 / m),
-    check_run_rows("residual SD", pop$sd_residual, vc$sdcor[vc$grp == "Residual"], pop$sd_residual / sqrt(2 * n))
+    check_run_rows(paste0(labels[terms], scale), specified[terms], coefs[terms, "Estimate"], coefs[terms, "Std. Error"]),
+    sd_row("SD of group intercepts", pop$sd_group, sd_of(group_name, "(Intercept)"), unit / m),
+    sd_row("SD of group X slopes", pop$sd_group_slope, sd_of(group_name, "x"), unit / m),
+    if (three) sd_row("SD of site intercepts", pop$sd_site, sd_of("site", "(Intercept)"), pop$sd_group^2 / inputs$groups_per_site + unit / inputs$unit_size, sites),
+    if (three && length(sd_of("site", "x"))) {
+      sd_row("SD of site X slopes", pop$sd_site_slope, sd_of("site", "x"), pop$sd_group_slope^2 / inputs$groups_per_site + unit / inputs$unit_size, sites)
+    },
+    if (!binary) check_run_rows("residual SD", pop$sd_residual, vc$sdcor[vc$grp == "Residual"], pop$sd_residual / sqrt(2 * n))
   )
   rownames(check) <- NULL
   check
@@ -319,58 +392,92 @@ two_level_script <- function(spec, result) {
   inputs <- two_level_inputs(spec)
   pop <- spec$population
   v <- spec$variables
+  binary <- isTRUE(inputs$binary)
+  three <- isTRUE(inputs$three)
+  scale <- if (binary) " (log odds)" else ""
+  site_slope <- three && length(inputs$VarCorr$site) > 1
   c(
-    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"%s\", \"sa\")", inputs$term)),
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"%s\", \"%s\")", inputs$term, inputs$method)),
     "library(simr)",
-    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    if (binary) sprintf("# A yes/no outcome: a logistic mixed model (glmer), tested by %s.",
+      if (identical(inputs$method, "lr")) "the likelihood ratio (simr's method \"lr\")" else "glmer's Wald z test (simr's method \"z\")") else
+      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
     "",
     "# Inputs ----",
-    sprintf("# The outcome, %s, in its own units; x is %s (per SD, centred within each group),",
-      comment_text(v$Y$label), comment_text(v$X$label)),
-    sprintf("# w is %s (per SD, measured on each group).", comment_text(v$W$label)),
-    sprintf("b_x <- %s # X's effect within groups", r_code(pop$b_X)),
-    sprintf("b_w <- %s # W's effect between groups", r_code(pop$b_W)),
-    sprintf("b_xw <- %s # the cross-level interaction", r_code(pop$b_XW)),
+    sprintf("# The outcome, %s, %s; x is %s (per SD, centred within each group),",
+      comment_text(v$Y$label), if (binary) "yes/no (effects and SDs on the log-odds scale)" else "in its own units", comment_text(v$X$label)),
+    sprintf("# w is %s (per SD, measured on each group)%s.", comment_text(v$W$label),
+      if (three) sprintf(", z is %s (per SD, measured on each site)", comment_text(v$Z$label)) else ""),
+    if (binary) sprintf("probability <- %s # the chance of 'yes' for a typical group at the average predictors", r_code(pop$probability)),
+    sprintf("b_x <- %s # X's effect within groups%s", r_code(pop$b_X), scale),
+    sprintf("b_w <- %s # W's effect between groups%s", r_code(pop$b_W), scale),
+    if (three) sprintf("b_z <- %s # Z's effect between sites%s", r_code(pop$b_Z), scale),
+    sprintf("b_xw <- %s # the cross-level interaction%s", r_code(pop$b_XW), scale),
+    if (three) sprintf("b_xz <- %s # X's interaction with Z%s", r_code(pop$b_XZ), scale),
     sprintf("sd_group <- %s # SD of the groups' intercepts", r_code(pop$sd_group)),
     sprintf("sd_group_slope <- %s # SD of the groups' X slopes", r_code(pop$sd_group_slope)),
     sprintf("r_group <- %s # correlation of the groups' intercepts and slopes", r_code(pop$r_group %||% 0)),
-    sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    if (three) sprintf("sd_site <- %s # SD of the sites' intercepts", r_code(pop$sd_site)),
+    if (site_slope) sprintf("sd_site_slope <- %s # SD of the sites' X slopes", r_code(pop$sd_site_slope)),
+    if (!binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("cluster_size <- %s # people in each group", r_code(pop$cluster_size)),
+    if (three) sprintf("groups_per_site <- %s # groups in each site", r_code(pop$groups_per_site)),
     sprintf("term <- %s # the effect tested", r_code(inputs$term)),
     goal_inputs(spec, result),
     "",
-    "# One data set's design: n people in n / cluster_size groups; x takes the",
-    "# same evenly spread standard normal values in every group, w evenly spread",
-    "# values across the groups (both standardised).",
+    "# One data set's design: x takes the same evenly spread standard normal",
+    if (three) "# values in every group, w across each site's groups, z across the sites" else
+      "# values in every group, w evenly spread values across the groups",
+    "# (all standardised).",
+    "spread <- function(k, inner) {",
+    "  v <- qnorm(if (inner) seq_len(k) / (k + 1) else (seq_len(k) - 0.5) / k)",
+    "  (v - mean(v)) / sqrt(mean((v - mean(v))^2))",
+    "}",
     "design_for <- function(n_people) {",
-    "  groups <- n_people %/% cluster_size",
-    "  x <- qnorm(seq_len(cluster_size) / (cluster_size + 1))",
-    "  w <- qnorm((seq_len(groups) - 0.5) / groups)",
-    "  data.frame(",
-    "    group = factor(rep(seq_len(groups), each = cluster_size)),",
-    "    x = rep((x - mean(x)) / sqrt(mean((x - mean(x))^2)), groups),",
-    "    w = rep((w - mean(w)) / sqrt(mean((w - mean(w))^2)), each = cluster_size)",
-    "  )",
+    if (three) {
+      c("  sites <- n_people %/% (cluster_size * groups_per_site)",
+        "  data.frame(",
+        "    site = factor(rep(seq_len(sites), each = cluster_size * groups_per_site)),",
+        "    group = factor(rep(rep(seq_len(groups_per_site), each = cluster_size), sites)),",
+        "    x = rep(spread(cluster_size, TRUE), sites * groups_per_site),",
+        "    w = rep(rep(spread(groups_per_site, FALSE), each = cluster_size), sites),",
+        "    z = rep(spread(sites, FALSE), each = cluster_size * groups_per_site)",
+        "  )")
+    } else {
+      c("  groups <- n_people %/% cluster_size",
+        "  data.frame(",
+        "    group = factor(rep(seq_len(groups), each = cluster_size)),",
+        "    x = rep(spread(cluster_size, TRUE), groups),",
+        "    w = rep(spread(groups, FALSE), each = cluster_size)",
+        "  )")
+    },
     "}",
     "",
-    "# The population model: fixed effects, the groups' variances and the residual SD.",
+    "# The population model: fixed effects, the variances and the residual SD.",
     "model_for <- function(n_people) {",
     "  group <- matrix(c(sd_group^2, r_group * sd_group * sd_group_slope,",
     "    r_group * sd_group * sd_group_slope, sd_group_slope^2), nrow = 2)",
-    "  makeLmer(y ~ x + w + x:w + (1 + x | group), fixef = c(0, b_x, b_w, b_xw),",
-    "    VarCorr = list(group = group), sigma = sd_residual, data = design_for(n_people))",
+    sprintf("  variances <- %s", if (three) {
+      sprintf("list(site = %s, `site:group` = group)", if (site_slope) "diag(c(sd_site^2, sd_site_slope^2))" else "sd_site^2")
+    } else "list(group = group)"),
+    sprintf("  fixed <- c(%s, b_x, b_w, %sb_xw%s)", if (binary) "qlogis(probability)" else "0", if (three) "b_z, " else "", if (three) ", b_xz" else ""),
+    if (binary) {
+      sprintf("  makeGlmer(%s, family = \"binomial\", fixef = fixed, VarCorr = variances, data = design_for(n_people))", deparse1(inputs$formula))
+    } else {
+      sprintf("  makeLmer(%s, fixef = fixed, VarCorr = variances, sigma = sd_residual, data = design_for(n_people))", deparse1(inputs$formula))
+    },
     "}",
     "",
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
-    "  result <- powerSim(model_for(batch_n), test = fixed(term, \"sa\"),",
+    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(term, \"%s\"),", inputs$method),
     "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
     "  c(result$x, result$n)",
     "}",
     "",
     batch_section(result, "powerSim()"),
-    simulation_goal_section(spec, result, inputs$cluster_size),
+    simulation_goal_section(spec, result, inputs$unit_size),
     comparison_section()
   )
 }
@@ -688,28 +795,42 @@ crossed_conditions_script <- function(spec, result) {
 #   y ~ cond + (1 + cond | site) + (1 + cond | site:group)
 # with the condition's terms only where they apply. Simulated with simr
 # and tested by Satterthwaite's t test, as for E33 and E62 (Departure 16).
+# A yes/no outcome (1 November 2026) is a logistic mixed model built by
+# makeGlmer(): each condition's chance of 'yes' for a typical site and
+# group, and in place of the shares of variance the SDs of the sites'
+# and groups' intercepts and of the effect, on the log-odds scale; tested
+# by glmer's Wald z test or the likelihood ratio, as for E33.
 three_level_inputs <- function(spec) {
   pop <- spec$population
   level <- pop$assignment
-  effect_site <- !identical(level, "site") && (pop$icc_effect_site %||% 0) > 0
-  effect_group <- identical(level, "person") && (pop$icc_effect_group %||% 0) > 0
+  binary <- crossed_binary(spec)
+  # The variances: shares of the total for a score outcome, squared SDs on
+  # the log-odds scale for a yes/no one.
+  v_site <- if (binary) pop$sd_site^2 else pop$icc_site
+  v_group <- if (binary) pop$sd_group^2 else pop$icc_group
+  v_effect_site <- if (binary) (pop$sd_effect_site %||% 0)^2 else pop$icc_effect_site %||% 0
+  v_effect_group <- if (binary) (pop$sd_effect_group %||% 0)^2 else pop$icc_effect_group %||% 0
+  effect_site <- !identical(level, "site") && v_effect_site > 0
+  effect_group <- identical(level, "person") && v_effect_group > 0
   terms <- c(if (effect_site) "(1 + cond | site)" else "(1 | site)",
     if (effect_group) "(1 + cond | site:group)" else "(1 | site:group)")
   var_corr <- list(
-    site = if (effect_site) diag(c(pop$icc_site, pop$icc_effect_site)) else pop$icc_site,
-    "site:group" = if (effect_group) diag(c(pop$icc_group, pop$icc_effect_group)) else pop$icc_group
+    site = if (effect_site) diag(c(v_site, v_effect_site)) else v_site,
+    "site:group" = if (effect_group) diag(c(v_group, v_effect_group)) else v_group
   )
+  logits <- if (binary) stats::qlogis(as.numeric(unlist(pop$probabilities)))
   list(
     formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
-    fixef = c(0, pop$d),
+    binary = binary,
+    fixef = if (binary) c(mean(logits), diff(logits)) else c(0, pop$d),
     VarCorr = var_corr,
-    sigma = sqrt(1 - pop$icc_site - pop$icc_group),
+    sigma = if (!binary) sqrt(1 - pop$icc_site - pop$icc_group),
     level = level,
     group_size = pop$group_size,
     groups_per_site = pop$groups_per_site,
     site_size = pop$group_size * pop$groups_per_site,
     term = "cond",
-    method = "sa",
+    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
     alpha = spec$target_test$alpha,
     design = three_level_design
   )
@@ -747,23 +868,34 @@ three_level_check_run <- function(spec, inputs, seed) {
   sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
   pop <- spec$population
   sites <- n / inputs$site_size
+  binary <- isTRUE(inputs$binary)
+  # The noise in one person's outcome: the residual variance, or on the
+  # log-odds scale the binomial variance averaged over the conditions.
+  unit <- if (binary) simr_noise(inputs, pop, 1) else inputs$sigma^2
   sd_row <- function(label, specified, recovered, groups, per_group) {
-    se_var <- (specified^2 + inputs$sigma^2 / per_group) * sqrt(2 / (groups - 1))
+    se_var <- (specified^2 + unit / per_group) * sqrt(2 / (groups - 1))
     check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
   }
+  sds <- sqrt(c(inputs$VarCorr$site[1], inputs$VarCorr$`site:group`[1],
+    if (length(inputs$VarCorr$site) > 1) inputs$VarCorr$site[2, 2] else 0,
+    if (length(inputs$VarCorr$`site:group`) > 1) inputs$VarCorr$`site:group`[2, 2] else 0))
   rows <- list(
-    check_run_rows("effect (d)", pop$d, coefs["cond", "Estimate"], coefs["cond", "Std. Error"]),
-    sd_row("SD of sites (square root of icc_site)", sqrt(pop$icc_site), sd_of("site", "(Intercept)"), sites, inputs$site_size),
-    sd_row("SD of groups (square root of icc_group)", sqrt(pop$icc_group), sd_of("site:group", "(Intercept)"), sites * inputs$groups_per_site,
-      inputs$group_size),
+    if (binary) {
+      check_run_rows("difference between conditions (log odds)", inputs$fixef[2], coefs["cond", "Estimate"], coefs["cond", "Std. Error"])
+    } else {
+      check_run_rows("effect (d)", pop$d, coefs["cond", "Estimate"], coefs["cond", "Std. Error"])
+    },
+    sd_row(if (binary) "SD of sites (log odds)" else "SD of sites (square root of icc_site)", sds[1], sd_of("site", "(Intercept)"), sites, inputs$site_size),
+    sd_row(if (binary) "SD of groups (log odds)" else "SD of groups (square root of icc_group)", sds[2], sd_of("site:group", "(Intercept)"),
+      sites * inputs$groups_per_site, inputs$group_size),
     if (length(sd_of("site", "cond"))) {
-      sd_row("SD of the effect across sites", sqrt(pop$icc_effect_site), sd_of("site", "cond"), sites, inputs$site_size / 4)
+      sd_row("SD of the effect across sites", sds[3], sd_of("site", "cond"), sites, inputs$site_size / 4)
     },
     if (length(sd_of("site:group", "cond"))) {
-      sd_row("SD of the effect across groups", sqrt(pop$icc_effect_group), sd_of("site:group", "cond"), sites * inputs$groups_per_site,
+      sd_row("SD of the effect across groups", sds[4], sd_of("site:group", "cond"), sites * inputs$groups_per_site,
         inputs$group_size / 4)
     },
-    check_run_rows("residual SD", inputs$sigma, sd_of("Residual", NA), inputs$sigma / sqrt(2 * nrow(data)))
+    if (!binary) check_run_rows("residual SD", inputs$sigma, sd_of("Residual", NA), inputs$sigma / sqrt(2 * nrow(data)))
   )
   check <- do.call(rbind, rows)
   rownames(check) <- NULL
@@ -778,17 +910,27 @@ three_level_script <- function(spec, result) {
   levels <- comment_text(unlist(v$X$levels))
   var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr),
     vapply(inputs$VarCorr, function(x) if (length(x) > 1) sprintf("diag(%s)", r_code(diag(x))) else r_code(x), "")), collapse = ", ")
+  binary <- isTRUE(inputs$binary)
   c(
-    script_header(spec, result, "simr", "simr::powerSim() with fixed(\"cond\", \"sa\")"),
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"cond\", \"%s\")", inputs$method)),
     "library(simr)",
-    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    if (binary) sprintf("# A yes/no outcome: a logistic mixed model (glmer), tested by %s.",
+      if (identical(inputs$method, "lr")) "the likelihood ratio (simr's method \"lr\")" else "glmer's Wald z test (simr's method \"z\")") else
+      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
     "",
     "# Inputs ----",
-    sprintf("# The outcome, %s, on the scale of its total SD; cond is %s coded -0.5 (%s) and 0.5 (%s).",
-      comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),
-    sprintf("d <- %s # the effect over the outcome's total SD", r_code(pop$d)),
-    sprintf("variances <- list(%s) # sites' and groups' shares of the variance (and of the effect's)", var_corr),
-    sprintf("sd_residual <- %s # sqrt(1 - icc_site - icc_group)", r_code(inputs$sigma)),
+    sprintf("# The outcome, %s, %s; cond is %s coded -0.5 (%s) and 0.5 (%s).",
+      comment_text(v$Y$label), if (binary) "yes/no (on the log-odds scale)" else "on the scale of its total SD",
+      comment_text(v$X$label), levels[1], levels[2]),
+    if (binary) {
+      c(sprintf("probabilities <- %s # the chance of 'yes' in each condition, typical site and group", r_code(as.numeric(unlist(pop$probabilities)))),
+        "fixed <- c(mean(qlogis(probabilities)), diff(qlogis(probabilities))) # intercept and difference (log odds)",
+        sprintf("variances <- list(%s) # the sites' and groups' variances (and the effect's), log-odds scale", var_corr))
+    } else {
+      c(sprintf("d <- %s # the effect over the outcome's total SD", r_code(pop$d)),
+        sprintf("variances <- list(%s) # sites' and groups' shares of the variance (and of the effect's)", var_corr),
+        sprintf("sd_residual <- %s # sqrt(1 - icc_site - icc_group)", r_code(inputs$sigma)))
+    },
     sprintf("group_size <- %s # people in each group", r_code(inputs$group_size)),
     sprintf("groups_per_site <- %s # groups in each site", r_code(inputs$groups_per_site)),
     sprintf("assignment <- %s # what is assigned to the conditions", r_code(inputs$level)),
@@ -807,12 +949,13 @@ three_level_script <- function(spec, result) {
     "}",
     "",
     "model_for <- function(n_people) {",
-    sprintf("  makeLmer(%s, fixef = c(0, d), VarCorr = variances,", deparse1(inputs$formula)),
-    "    sigma = sd_residual, data = design_for(n_people))",
+    if (binary) sprintf("  makeGlmer(%s, family = \"binomial\", fixef = fixed, VarCorr = variances,", deparse1(inputs$formula)) else
+      sprintf("  makeLmer(%s, fixef = c(0, d), VarCorr = variances,", deparse1(inputs$formula)),
+    if (binary) "    data = design_for(n_people))" else "    sigma = sd_residual, data = design_for(n_people))",
     "}",
     "",
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
-    "  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"sa\"),",
+    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"%s\"),", inputs$method),
     "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
     "  c(result$x, result$n)",
     "}",
@@ -841,13 +984,18 @@ item_predictor_inputs <- function(spec) {
   r <- pop$r_participant %||% 0
   participant <- matrix(c(pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
     r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2), nrow = 2)
+  # A predictor measured on each trial (1 November 2026) varies within
+  # items too, so its effect may vary across items (sd_item_slope).
+  trial <- identical(pop$x_level, "trial")
+  item_slope <- trial && (pop$sd_item_slope %||% 0) > 0
   list(
-    formula = stats::as.formula("y ~ x + (1 + x | participant) + (1 | item)", env = globalenv()),
+    formula = stats::as.formula(paste("y ~ x + (1 + x | participant) +", if (item_slope) "(1 + x | item)" else "(1 | item)"), env = globalenv()),
     binary = binary,
+    trial = trial,
     method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
     term = "x",
     fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$slope),
-    VarCorr = list(participant = participant, item = pop$sd_item^2),
+    VarCorr = list(participant = participant, item = if (item_slope) diag(c(pop$sd_item^2, pop$sd_item_slope^2)) else pop$sd_item^2),
     sigma = if (!binary) pop$sd_residual,
     items = pop$items,
     alpha = spec$target_test$alpha,
@@ -855,14 +1003,17 @@ item_predictor_inputs <- function(spec) {
   )
 }
 
-# One data set's design: every participant responds to every item; the
-# items' X are evenly spread standard normal values (normal quantiles),
-# centred with SD 1.
+# One data set's design: every participant responds to every item; X's
+# values are evenly spread standard normal values (normal quantiles),
+# centred with SD 1, one per item, or with X measured on each trial each
+# participant's values rotated across the items.
 item_predictor_design <- function(inputs, n) {
   x <- stats::qnorm(seq_len(inputs$items) / (inputs$items + 1))
   x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
   data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
-  data$x <- x[data$item]
+  # Measured on each trial: each participant meets every value once, in an
+  # order rotated across participants, so X varies within items as well.
+  data$x <- if (isTRUE(inputs$trial)) x[(data$participant + data$item - 2) %% inputs$items + 1] else x[data$item]
   data$participant <- factor(data$participant)
   data$item <- factor(data$item)
   data
@@ -894,6 +1045,7 @@ item_predictor_check_run <- function(spec, inputs, seed) {
     sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n, big$items),
     sd_row("SD of participant slopes on X", pop$sd_participant_slope, sd_of("participant", "x"), n, big$items),
     sd_row("SD of item intercepts beyond X", pop$sd_item, sd_of("item", "(Intercept)"), big$items, n),
+    if (length(sd_of("item", "x"))) sd_row("SD of item slopes on X", pop$sd_item_slope, sd_of("item", "x"), big$items, n),
     if (!inputs$binary) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
   )
   check <- do.call(rbind, rows)
@@ -913,14 +1065,15 @@ item_predictor_script <- function(spec, result) {
       "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
     "",
     "# Inputs ----",
-    sprintf("# x is %s, measured on each item and standardised across the items; the outcome is %s.",
-      comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("# x is %s, measured on each %s and standardised; the outcome is %s.",
+      comment_text(v$X$label), if (isTRUE(inputs$trial)) "trial" else "item", comment_text(v$Y$label)),
     sprintf("slope <- %s # the effect of one SD more of x%s", r_code(pop$slope), if (inputs$binary) ", on the log odds" else ""),
     if (inputs$binary) sprintf("probability <- %s # the chance of 'yes' at the items' mean x, for a typical participant", r_code(pop$probability)),
     sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
     sprintf("sd_participant_slope <- %s # SD of participants' slopes on x", r_code(pop$sd_participant_slope)),
     sprintf("r_participant <- %s # correlation of participants' intercepts and slopes", r_code(pop$r_participant %||% 0)),
     sprintf("sd_item <- %s # SD of items beyond what x explains", r_code(pop$sd_item)),
+    if (length(inputs$VarCorr$item) > 1) sprintf("sd_item_slope <- %s # SD of items' slopes on x", r_code(pop$sd_item_slope)),
     if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("items <- %s # number of items", r_code(pop$items)),
     goal_inputs(spec, result),
@@ -929,7 +1082,8 @@ item_predictor_script <- function(spec, result) {
     "  x <- qnorm(seq_len(items) / (items + 1))",
     "  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))",
     "  data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
-    "  data$x <- x[data$item]",
+    if (isTRUE(inputs$trial)) "  data$x <- x[(data$participant + data$item - 2) %% items + 1] # each participant's values rotated across the items" else
+      "  data$x <- x[data$item]",
     "  data$participant <- factor(data$participant)",
     "  data$item <- factor(data$item)",
     "  data",
@@ -938,12 +1092,13 @@ item_predictor_script <- function(spec, result) {
     "model_for <- function(n_participants) {",
     "  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
     "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)",
+    sprintf("  item <- %s", if (length(inputs$VarCorr$item) > 1) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
     if (inputs$binary) {
-      c("  makeGlmer(y ~ x + (1 + x | participant) + (1 | item), family = \"binomial\", fixef = c(qlogis(probability), slope),",
-        "    VarCorr = list(participant = participant, item = sd_item^2), data = design_for(n_participants))")
+      c(sprintf("  makeGlmer(%s, family = \"binomial\", fixef = c(qlogis(probability), slope),", deparse1(inputs$formula)),
+        "    VarCorr = list(participant = participant, item = item), data = design_for(n_participants))")
     } else {
-      c("  makeLmer(y ~ x + (1 + x | participant) + (1 | item), fixef = c(0, slope),",
-        "    VarCorr = list(participant = participant, item = sd_item^2), sigma = sd_residual, data = design_for(n_participants))")
+      c(sprintf("  makeLmer(%s, fixef = c(0, slope),", deparse1(inputs$formula)),
+        "    VarCorr = list(participant = participant, item = item), sigma = sd_residual, data = design_for(n_participants))")
     },
     "}",
     "",

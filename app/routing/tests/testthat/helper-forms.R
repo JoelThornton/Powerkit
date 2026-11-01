@@ -30,7 +30,7 @@ form_examples <- list(
               r_X_Y = "-0.3", r_W_Y = "0.2", r_XW_Y = "0.1", r_X_W = "-0.1", rel_X = "0.8", rel_W = "0.85"), closing_ok),
   E10 = c(list(X_label = "Workload", M_label = "Exhaustion", Y_label = "Turnover intention",
                p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0.1"), closing_ok),
-  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous", difference = "20",
+  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", plan_unit = "participants", crossed_participants = "within_factor", outcome_type = "continuous", difference = "20",
                sd_participant = "60", sd_participant_slope = "25", r_participant = "0.2", sd_item = "30", sd_residual = "120",
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
@@ -174,7 +174,7 @@ form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "me
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E62: pupils in classes; a cross-level interaction.
-form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience",
+form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous", in_sites = "no",
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
@@ -185,12 +185,12 @@ form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Ha
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
 # E68: pupils in classes in schools, whole schools assigned.
-form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score",
+form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
                             group_size = "20", groups_per_site = "4"), closing_ok)
 
 # E67: word frequency and response times.
-form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous",
+form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous", x_level = "item",
                             slope = "-15", sd_participant = "60", sd_participant_slope = "10", sd_item = "30",
                             sd_residual = "120", items = "60"), closing_ok)
 
