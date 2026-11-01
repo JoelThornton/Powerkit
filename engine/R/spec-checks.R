@@ -1354,7 +1354,12 @@ check_proportion_trend <- function(spec) {
 # Jonckheere-Terpstra and Cochran-Armitage tests only, one whole number per
 # group in the groups' order.
 unequal_groups <- function(spec) {
-  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec))
+  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec) || mixed_unequal_groups(spec))
+}
+
+# A mixed design (A between, B within) with unequal groups.
+mixed_unequal_groups <- function(spec) {
+  !is.null(spec$options$group_ratio) && identical(spec$design, "factorial_anova") && spec$template %in% c("mixed", "2x2_mixed")
 }
 
 group_ratio_vector <- function(spec) as.numeric(unlist(spec$options$group_ratio))
@@ -1364,11 +1369,22 @@ check_group_ratio_allowed <- function(spec) {
   if (is.null(ratio)) {
     return(character())
   }
-  if (!jonckheere_test(spec) && !proportion_trend(spec)) {
+  mixed <- mixed_unequal_groups(spec)
+  if (!jonckheere_test(spec) && !proportion_trend(spec) && !mixed) {
     return(paste0(
       "'options > group_ratio' only applies to the trend tests (the Jonckheere-Terpstra ",
-      "and Cochran-Armitage tests). Remove it."
+      "and Cochran-Armitage tests) and to mixed designs (a between factor A by a within factor B). Remove it."
     ))
+  }
+  if (mixed) {
+    # Unequal groups in a mixed design are simulated (Spower and afex):
+    # Superpower's exact method takes equal groups only.
+    if (identical(spec$goal$type, "sensitivity")) {
+      return("The smallest detectable effect isn't available with unequal groups: it uses Superpower's exact method, which takes equal groups only. Use goal type 'power' or 'sample_size'.")
+    }
+    if (identical(spec$options$method, "exact")) {
+      return("'options > method' 'exact' isn't available with unequal groups: Superpower's exact method takes equal groups only, so power is simulated. Remove 'options > method'.")
+    }
   }
   k <- length(if (proportion_trend(spec)) spec$variables$X$levels else spec$variables$A$levels)
   if (length(ratio) != k) {
@@ -2465,9 +2481,16 @@ minimum_n <- function(spec) {
       } else {
         8
       },
-      "2x2_mixed" = 4,
-      # Two participants per between-participants group.
-      mixed = 2 * length(spec$variables$A$levels),
+      # Two participants per between-participants group (in the smallest
+      # group when they are unequal, options > group_ratio).
+      "2x2_mixed" = if (is.null(spec$options$group_ratio)) 4 else {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      },
+      mixed = if (is.null(spec$options$group_ratio)) 2 * length(spec$variables$A$levels) else {
+        w <- group_ratio_vector(spec)
+        ceiling(2 * sum(w) / min(w))
+      },
       # Two participants per cell when every cell is different people;
       # Superpower's exact data set needs at least five people in a
       # within design (backend-superpower.R, exact_min_n).
@@ -2563,7 +2586,7 @@ group_split <- function(spec) {
   if (spec$template == "2x2_between") {
     return(list(rule = "split into 4 equal cells for a 2x2 between-participants design", valid = function(n) n %% 4 == 0))
   }
-  if (spec$template == "2x2_mixed") {
+  if (spec$template == "2x2_mixed" && !unequal_groups(spec)) {
     return(list(rule = "split into 2 equal groups for the between-participants factor", valid = function(n) n %% 2 == 0))
   }
   if (spec$template == "tost_two_proportions") {

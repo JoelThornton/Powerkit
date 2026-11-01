@@ -816,9 +816,9 @@
           }
         },
         "group_ratio": {
-          "description": "Trend tests only (the Jonckheere-Terpstra test, template oneway_between with target_test > method 'jonckheere_terpstra', and the Cochran-Armitage test, template proportion_trend): the relative size of each group, one positive whole number per group in the order of the groups' levels; for example [1, 1, 2] puts twice as many people in the third group. goal > n is the total, split in this ratio, so it must give whole groups. Default: equal groups.",
+          "description": "Trend tests (the Jonckheere-Terpstra test, template oneway_between with target_test > method 'jonckheere_terpstra', and the Cochran-Armitage test, template proportion_trend) and mixed designs (templates 2x2_mixed and mixed: the groups are A's levels): the relative size of each group, one positive whole number per group in the order of the groups' levels; for example [1, 1, 2] puts twice as many people in the third group. goal > n is the total, split in this ratio, so it must give whole groups. Default: equal groups. A mixed design with unequal groups is simulated with Spower and afex (Superpower's methods take equal groups only).",
           "type": "array",
-          "minItems": 3,
+          "minItems": 2,
           "items": {
             "type": "integer",
             "minimum": 1

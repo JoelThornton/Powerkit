@@ -98,6 +98,7 @@ on:
           - generic
           - equivalence
           - trend
+          - anova_mixed_unequal
           - precision
           - whole_study
           - cluster

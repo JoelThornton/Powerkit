@@ -219,10 +219,22 @@ with Superpower 0.2.4.1 under R 4.5.3 on 29 October 2026.
   reads the means and SDs back from an equal-cell data set (the sizes
   don't change them), and the simulated data download keeps each cell's
   own size rather than `ANOVA_design()`'s largest one [powerkit,
-  `engine/R/backend-superpower.R`, `engine/R/simulated-data.R`]. A mixed
-  design with unequal groups is still refused (`cell_ratio` applies to
-  `2x2_between` only) and reaches the safety net in the app. Equal cells
+  `engine/R/backend-superpower.R`, `engine/R/simulated-data.R`]. Equal cells
   are unchanged: one per-cell `n`, `ANOVA_exact()` by default.
+- **powerkit, mixed designs (from 1 November 2026):** the 2 x 2 mixed and
+  larger mixed designs take `options > group_ratio`, the relative size of
+  each group (A's levels). Since no Superpower function takes unequal
+  groups in a mixed design, power is simulated with Spower: each data set
+  draws every group's scores at its own size from `ANOVA_design()`'s means
+  and covariances (`SimDesign::rmvnorm()`), and is analysed with
+  `afex::aov_car()`, Type III sums of squares, with the sphericity
+  correction asked for (`p_mixed_anova()`). That is the analysis Superpower
+  itself runs on simulated data, so at equal groups it agrees with
+  `ANOVA_exact()`. The exact method and the smallest detectable effect are
+  refused, as for unequal cells. Not a departure: G\*Power's
+  repeated-measures analysis takes equal groups only [powerkit,
+  `engine/R/backend-superpower.R`;
+  `test-validation-anova-mixed-unequal.R`].
 - **Validation (decision N3):** the independent reference is pwrss's
   `power.f.ancova.shieh()` with one covariate that explains nothing
   (`r.squared = 0`; pwrss requires at least one covariate), which differs
