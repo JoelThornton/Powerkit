@@ -157,8 +157,10 @@ fully validated. Validation runs are recorded in
 
 ## Working environment
 
-- **CI:** the engine's R CMD check (test files four at a time) on every
-  push; the app's suite on every pull request and on main, as two jobs
+- **CI:** the engine's R CMD check on every push that changes the engine,
+  `renv.lock` or the CI setup (skipped otherwise), with the engine's
+  tests beside it in three parts on separate runners (test files four at
+  a time in each); the app's suite on every pull request and on main, as two jobs
   side by side (`test-results.R`, and the rest); the Windows and macOS
   install test when the launcher or lockfile changes, and weekly. All run
   in a prebuilt image with R and the locked packages.
