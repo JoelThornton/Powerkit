@@ -29,7 +29,7 @@ simr_backend <- function(spec, seed = NULL) {
     methods = "simulation",
     default_method = "simulation",
     functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
-      sprintf("simr::powerSim with simr::fixed(\"%s\", \"sa\")", inputs$term %||% "cond")),
+      sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
     n_step = if (two_level) inputs$cluster_size else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
@@ -43,6 +43,24 @@ simr_backend <- function(spec, seed = NULL) {
         simr_check_run(spec, inputs, seed)
     }
   )
+}
+
+# A yes/no outcome on each trial (31 October 2026): a logistic mixed
+# model, glmer's binomial family, built by simr's makeGlmer(). The
+# condition's probabilities are those of a typical participant and item
+# (random effects 0), and every SD is on the log-odds scale. The test is
+# the Wald test ("wald": glmer's z test, simr's default for a numeric
+# predictor; for three or more conditions the Wald chi-square test, simr's
+# "chisq" through car; for a pair car's Wald test of its contrast) or the
+# likelihood-ratio test ("likelihood_ratio": simr's "lr"; for a pair, the
+# model against one in which the pair's two conditions share a mean).
+crossed_binary <- function(spec) identical(spec$variables$Y$type, "binary")
+
+# simr's method for the test chosen.
+simr_method <- function(spec) {
+  three <- identical(spec$template, "crossed_conditions")
+  switch(spec$target_test$method, satterthwaite_t = "sa", satterthwaite_f = "sa", wald = if (three) "chisq" else "z",
+    likelihood_ratio = "lr")
 }
 
 # The spec in simr's terms: the model formula, fixed effects, random-effect
@@ -67,12 +85,16 @@ simr_inputs <- function(spec) {
   item <- if (item_slope) diag(c(pop$sd_item^2, pop$sd_item_slope^2)) else pop$sd_item^2
   participant_term <- if (participants_between) "(1 | participant)" else "(1 + cond | participant)"
   item_term <- if (item_slope) "(1 + cond | item)" else "(1 | item)"
+  binary <- crossed_binary(spec)
+  logits <- if (binary) stats::qlogis(as.numeric(unlist(pop$probabilities)))
   list(
     formula = stats::as.formula(paste("y ~ cond +", participant_term, "+", item_term), env = globalenv()),
     participants_between = participants_between,
-    fixef = c(0, pop$difference),
+    binary = binary,
+    method = simr_method(spec),
+    fixef = if (binary) c(mean(logits), diff(logits)) else c(0, pop$difference),
     VarCorr = list(participant = participant, item = item),
-    sigma = pop$sd_residual,
+    sigma = if (!binary) pop$sd_residual,
     items = pop$items,
     within = within,
     alpha = spec$target_test$alpha
@@ -103,10 +125,39 @@ simr_design <- function(inputs, n) {
 }
 
 simr_model <- function(inputs, n) {
+  data <- (inputs$design %||% simr_design)(inputs, n)
+  if (isTRUE(inputs$binary)) {
+    return(call_backend("simr", quietly(simr::makeGlmer(
+      inputs$formula, family = "binomial", fixef = inputs$fixef, VarCorr = inputs$VarCorr, data = data
+    ))))
+  }
   call_backend("simr", quietly(simr::makeLmer(
     inputs$formula, fixef = inputs$fixef, VarCorr = inputs$VarCorr,
-    sigma = inputs$sigma, data = (inputs$design %||% simr_design)(inputs, n)
+    sigma = inputs$sigma, data = data
   )))
+}
+
+# Refit the population model to one data set: lme4's lmer() or, for a
+# yes/no outcome, glmer().
+simr_refit <- function(inputs, data) {
+  if (isTRUE(inputs$binary)) {
+    return(call_backend("lme4", quietly(lme4::glmer(inputs$formula, data = data, family = stats::binomial()))))
+  }
+  call_backend("lme4", quietly(lme4::lmer(inputs$formula, data = data)))
+}
+
+# The residual noise in one group's estimate, for a check run's SD rows:
+# the residual variance, or on the log-odds scale for a yes/no outcome
+# the binomial variance 1 / (p (1 - p)) averaged over the conditions,
+# over the observations in each group.
+simr_noise <- function(inputs, pop, per_group) {
+  unit <- if (isTRUE(inputs$binary)) {
+    p <- stats::plogis(inputs$fixef[1] + c(0, inputs$fixef[-1]))
+    mean(1 / (p * (1 - p)))
+  } else {
+    pop$sd_residual^2
+  }
+  unit / per_group
 }
 
 # Significant results in `nrep` data sets at n, as simr counts them: a
@@ -115,7 +166,7 @@ simr_model <- function(inputs, n) {
 simr_rejections <- function(inputs, n, nrep, seed) {
   result <- call_backend("simr", quietly(simr::powerSim(
     simr_model(inputs, n),
-    test = inputs$test %||% simr::fixed(inputs$term %||% "cond", "sa"),
+    test = inputs$test %||% simr::fixed(inputs$term %||% "cond", inputs$method %||% "sa"),
     nsim = as.integer(nrep),
     alpha = inputs$alpha,
     seed = seed,
@@ -139,27 +190,43 @@ simr_check_run <- function(spec, inputs, seed) {
   model <- simr_model(big, n)
   data <- simr_design(big, n)
   data$y <- with_seed(seed, stats::simulate(model)[[1]])
-  fit <- call_backend("lme4", quietly(lme4::lmer(inputs$formula, data = data)))
+  fit <- simr_refit(inputs, data)
   coefs <- summary(fit)$coefficients
   vc <- as.data.frame(lme4::VarCorr(fit))
   sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
   pop <- spec$population
+  # An SD is estimated from its groups' own estimates, which also carry
+  # the residual noise over each group's observations (as for E62).
   sd_row <- function(label, specified, recovered, groups) {
-    check_run_rows(label, specified, recovered, max(specified, 0.05) / sqrt(2 * (groups - 1)))
+    se_var <- (specified^2 + simr_noise(inputs, pop, nrow(data) / groups)) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
   }
   rows <- list(
-    check_run_rows("difference between conditions", pop$difference, coefs["cond", "Estimate"], coefs["cond", "Std. Error"]),
+    if (isTRUE(inputs$binary)) {
+      check_run_rows("difference between conditions (log odds)", inputs$fixef[2], coefs["cond", "Estimate"], coefs["cond", "Std. Error"])
+    } else {
+      check_run_rows("difference between conditions", pop$difference, coefs["cond", "Estimate"], coefs["cond", "Std. Error"])
+    },
     sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n),
     if (!isTRUE(inputs$participants_between)) {
       sd_row("SD of participant condition slopes", pop$sd_participant_slope, sd_of("participant", "cond"), n)
     },
     sd_row("SD of item intercepts", pop$sd_item, sd_of("item", "(Intercept)"), big$items),
-    check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
+    if (!isTRUE(inputs$binary)) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
   )
   r <- pop$r_participant %||% 0
   recovered_r <- vc$sdcor[vc$grp == "participant" & vc$var1 == "(Intercept)" & vc$var2 %in% "cond"]
   if (length(recovered_r) && pop$sd_participant > 0 && pop$sd_participant_slope > 0) {
-    rows <- c(rows, list(check_run_rows("correlation of participant intercepts and slopes", r, recovered_r, max(1 - r^2, 0.1) / sqrt(n - 3))))
+    # The correlation is estimated from participants' own intercepts and
+    # slopes, each with noise over the participant's observations (a
+    # slope's over their spread in cond, 0.25 per observation): its
+    # standard error grows as their reliabilities fall.
+    per <- nrow(data) / n
+    reliability <- function(sd, noise) sd^2 / (sd^2 + noise)
+    rel <- reliability(pop$sd_participant, simr_noise(inputs, pop, per)) *
+      reliability(pop$sd_participant_slope, simr_noise(inputs, pop, per * 0.25))
+    rows <- c(rows, list(check_run_rows("correlation of participant intercepts and slopes", r, recovered_r,
+      max(1 - r^2, 0.1) / sqrt(n - 3) / sqrt(rel))))
   }
   if (length(sd_of("item", "cond"))) {
     rows <- c(rows, list(sd_row("SD of item condition slopes", pop$sd_item_slope, sd_of("item", "cond"), big$items)))
@@ -323,26 +390,39 @@ crossed_conditions_inputs <- function(spec) {
   k <- length(levels)
   means <- as.numeric(unlist(pop$means))
   within <- identical(pop$item_design %||% "between", "within")
+  # Conditions between participants (X a between factor): each participant
+  # is in one condition, so there is no participant-by-condition term.
+  participants_between <- identical(spec$variables$X$type, "between_factor")
   item_condition <- within && (pop$sd_item_condition %||% 0) > 0
-  terms <- c("(1 | participant)", "(1 | participant:cond)", "(1 | item)", if (item_condition) "(1 | item:cond)")
-  var_corr <- list(participant = pop$sd_participant^2, "participant:cond" = pop$sd_participant_condition^2,
-    item = pop$sd_item^2)
+  terms <- c("(1 | participant)", if (!participants_between) "(1 | participant:cond)", "(1 | item)",
+    if (item_condition) "(1 | item:cond)")
+  var_corr <- c(list(participant = pop$sd_participant^2),
+    if (!participants_between) list("participant:cond" = pop$sd_participant_condition^2),
+    list(item = pop$sd_item^2))
   if (item_condition) var_corr[["item:cond"]] <- pop$sd_item_condition^2
   pairwise <- identical(spec$target_test$effect, "pairwise")
+  binary <- crossed_binary(spec)
+  centre <- if (binary) stats::qlogis(as.numeric(unlist(pop$probabilities))) else means
   list(
     formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
-    fixef = c(means[1], means[-1] - means[1]),
+    binary = binary,
+    method = simr_method(spec),
+    fixef = c(centre[1], centre[-1] - centre[1]),
     VarCorr = var_corr,
-    sigma = pop$sd_residual,
+    sigma = if (!binary) pop$sd_residual,
     items = pop$items,
     levels = levels,
     within = within,
+    participants_between = participants_between,
     pairwise = pairwise,
     pair = if (pairwise) match(unlist(spec$target_test$comparison), levels),
     p_adjust = spec$target_test$p_adjust %||% "holm",
     alpha = spec$target_test$alpha,
     design = crossed_conditions_design,
-    test_label = if (pairwise) "lmerTest::contest() (Satterthwaite), adjusted by stats::p.adjust()" else
+    test_label = if (binary) {
+      if (pairwise) "car::linearHypothesis() (Wald), adjusted by stats::p.adjust()" else
+        sprintf("simr::fixed(\"cond\", \"%s\")", simr_method(spec))
+    } else if (pairwise) "lmerTest::contest() (Satterthwaite), adjusted by stats::p.adjust()" else
       "lmerTest's anova() (Satterthwaite F)"
   )
 }
@@ -352,7 +432,13 @@ crossed_conditions_inputs <- function(spec) {
 # conditions), or every item in every condition (within).
 crossed_conditions_design <- function(inputs, n) {
   k <- length(inputs$levels)
-  if (inputs$within) {
+  if (isTRUE(inputs$participants_between)) {
+    # The participants split into k equal groups, one per condition; each
+    # responds to every item (items within) or to its condition's block.
+    data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
+    data$cond <- inputs$levels[ceiling(data$participant / (n / k))]
+    if (!inputs$within) data <- data[ceiling(data$item / (inputs$items / k)) == match(data$cond, inputs$levels), ]
+  } else if (inputs$within) {
     data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items), cond = inputs$levels,
       stringsAsFactors = FALSE)
   } else {
@@ -372,6 +458,22 @@ crossed_conditions_test <- function(inputs) {
   k <- length(inputs$levels)
   pairs <- utils::combn(k, 2)
   chosen <- if (inputs$pairwise) which(pairs[1, ] == min(inputs$pair) & pairs[2, ] == max(inputs$pair))
+  if (isTRUE(inputs$binary)) {
+    # The test that the conditions differ is simr's own; a pair is car's
+    # Wald test of its contrast, adjusted for all the pairs.
+    if (!inputs$pairwise) return(simr::fixed("cond", inputs$method))
+    lr <- identical(inputs$method, "lr")
+    return(function(fit) {
+      p <- apply(pairs, 2, function(ij) {
+        if (lr) return(crossed_pair_lr(fit, inputs, ij))
+        contrast <- numeric(k)
+        contrast[ij[2]] <- 1
+        if (ij[1] > 1) contrast[ij[1]] <- -1
+        car::linearHypothesis(fit, matrix(contrast, nrow = 1))[["Pr(>Chisq)"]][2]
+      })
+      stats::p.adjust(p, inputs$p_adjust)[[chosen]]
+    })
+  }
   function(fit) {
     model <- if (inherits(fit, "lmerModLmerTest")) fit else lmerTest::as_lmerModLmerTest(fit)
     if (!inputs$pairwise) {
@@ -387,10 +489,27 @@ crossed_conditions_test <- function(inputs) {
   }
 }
 
+# The likelihood-ratio test of one pair of conditions with a yes/no
+# outcome: the model against the same model in which the pair's two
+# conditions share their fixed effect (the random-effect terms keep every
+# condition), compared by lme4's anova().
+crossed_pair_lr <- function(fit, inputs, pair) {
+  # The model frame holds the response the model was fitted to (in simr's
+  # refits, the simulated one).
+  data <- stats::model.frame(fit)
+  data$cond_merged <- data$cond
+  levels(data$cond_merged)[pair[2]] <- levels(data$cond_merged)[pair[1]]
+  random <- sub("^y ~ cond", "", deparse1(inputs$formula))
+  reduced <- stats::as.formula(paste("y ~ cond_merged", random), env = globalenv())
+  full <- call_backend("lme4", quietly(lme4::glmer(inputs$formula, data = data, family = stats::binomial())))
+  restricted <- call_backend("lme4", quietly(lme4::glmer(reduced, data = data, family = stats::binomial())))
+  stats::anova(restricted, full)[["Pr(>Chisq)"]][2]
+}
+
 # Check run: one large data set (300 participants, at least 60 items per
 # condition) simulated from simr's model and refitted with lme4: each
 # condition's difference from the first within 5 of its standard errors,
-# each SD within 5 of its approximate standard errors, as for E33.
+# each SD within 5 of its approximate standard errors.
 crossed_conditions_check_run <- function(spec, inputs, seed) {
   n <- 300L
   k <- length(inputs$levels)
@@ -400,25 +519,33 @@ crossed_conditions_check_run <- function(spec, inputs, seed) {
   model <- simr_model(big, n)
   data <- crossed_conditions_design(big, n)
   data$y <- with_seed(seed, stats::simulate(model)[[1]])
-  fit <- call_backend("lme4", quietly(lme4::lmer(inputs$formula, data = data)))
+  fit <- simr_refit(inputs, data)
   coefs <- summary(fit)$coefficients
   vc <- as.data.frame(lme4::VarCorr(fit))
   sd_of <- function(group) vc$sdcor[vc$grp == group]
   pop <- spec$population
+  # A variance is estimated from its groups' own estimates, which also
+  # carry the residual variance over the observations in each group: the
+  # variance's standard error is that total times sqrt(2 / (groups - 1)),
+  # the SD's half of it over the SD (as for E62).
   sd_row <- function(label, specified, recovered, groups) {
-    check_run_rows(label, specified, recovered, max(specified, 0.05) / sqrt(2 * (groups - 1)))
+    noise <- simr_noise(inputs, pop, nrow(data) / groups)
+    se_var <- (specified^2 + noise) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
   }
   names <- paste0("cond", inputs$levels[-1])
   rows <- list(
-    check_run_rows(sprintf("%s minus %s", inputs$levels[-1], inputs$levels[1]), inputs$fixef[-1],
+    check_run_rows(sprintf("%s minus %s%s", inputs$levels[-1], inputs$levels[1], if (inputs$binary) " (log odds)" else ""), inputs$fixef[-1],
       coefs[names, "Estimate"], coefs[names, "Std. Error"]),
     sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant"), n),
-    sd_row("SD of participant-by-condition effects", pop$sd_participant_condition, sd_of("participant:cond"), n * k),
+    if (!inputs$participants_between) {
+      sd_row("SD of participant-by-condition effects", pop$sd_participant_condition, sd_of("participant:cond"), n * k)
+    },
     sd_row("SD of item intercepts", pop$sd_item, sd_of("item"), big$items),
     if ("item:cond" %in% names(inputs$VarCorr)) {
       sd_row("SD of item-by-condition effects", pop$sd_item_condition, sd_of("item:cond"), big$items * k)
     },
-    check_run_rows("residual SD", pop$sd_residual, sd_of("Residual"), pop$sd_residual / sqrt(2 * nrow(data)))
+    if (!inputs$binary) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual"), pop$sd_residual / sqrt(2 * nrow(data)))
   )
   check <- do.call(rbind, rows)
   rownames(check) <- NULL
@@ -435,15 +562,21 @@ crossed_conditions_script <- function(spec, result) {
   c(
     script_header(spec, result, "simr", sprintf("simr::powerSim() with %s", inputs$test_label)),
     "library(simr)",
-    "library(lmerTest) # Satterthwaite's tests",
+    if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
+      "library(lmerTest) # Satterthwaite's tests",
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, in its own units; cond is %s, a factor whose", comment_text(v$Y$label), comment_text(v$X$label)),
     "# coefficients are each condition's mean minus the first condition's.",
     sprintf("conditions <- %s", r_code(inputs$levels)),
-    sprintf("means <- %s # each condition's mean", r_code(as.numeric(unlist(pop$means)))),
+    if (inputs$binary) {
+      sprintf("probabilities <- %s # each condition's chance of 'yes', for a typical participant and item",
+        r_code(as.numeric(unlist(pop$probabilities))))
+    } else {
+      sprintf("means <- %s # each condition's mean", r_code(as.numeric(unlist(pop$means))))
+    },
     sprintf("variances <- list(%s) # participant, participant-by-condition and item variances", var_corr),
-    sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("items <- %s # number of items", r_code(pop$items)),
     sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
       if (inputs$within) "every item in every condition" else "the items split equally, one block per condition"),
@@ -453,9 +586,16 @@ crossed_conditions_script <- function(spec, result) {
     ),
     goal_inputs(spec, result),
     "",
+    sprintf("participant_design <- %s # %s", r_code(if (inputs$participants_between) "between" else "within"),
+      if (inputs$participants_between) "each participant in one condition, the participants split equally" else "every participant in every condition"),
+    "",
     "design_for <- function(n_participants) {",
     "  k <- length(conditions)",
-    "  if (item_design == \"within\") {",
+    "  if (participant_design == \"between\") {",
+    "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
+    "    data$cond <- conditions[ceiling(data$participant / (n_participants / k))]",
+    "    if (item_design == \"between\") data <- data[ceiling(data$item / (items / k)) == match(data$cond, conditions), ]",
+    "  } else if (item_design == \"within\") {",
     "    data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items), cond = conditions,",
     "      stringsAsFactors = FALSE)",
     "  } else {",
@@ -469,12 +609,35 @@ crossed_conditions_script <- function(spec, result) {
     "}",
     "",
     "model_for <- function(n_participants) {",
-    sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
-    "    fixef = c(means[1], means[-1] - means[1]), VarCorr = variances,",
-    "    sigma = sd_residual, data = design_for(n_participants))",
+    if (inputs$binary) {
+      c(sprintf("  makeGlmer(%s, family = \"binomial\",", deparse1(inputs$formula)),
+        "    fixef = c(qlogis(probabilities[1]), qlogis(probabilities[-1]) - qlogis(probabilities[1])),",
+        "    VarCorr = variances, data = design_for(n_participants))")
+    } else {
+      c(sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
+        "    fixef = c(means[1], means[-1] - means[1]), VarCorr = variances,",
+        "    sigma = sd_residual, data = design_for(n_participants))")
+    },
     "}",
     "",
-    if (inputs$pairwise) c(
+    if (inputs$binary && inputs$pairwise) c(
+      "# The chosen pair's Wald test (car), adjusted for all the pairs.",
+      "test_p <- function(fit) {",
+      "  k <- length(conditions)",
+      "  pairs <- combn(k, 2)",
+      "  p <- apply(pairs, 2, function(ij) {",
+      "    contrast <- numeric(k)",
+      "    contrast[ij[2]] <- 1",
+      "    if (ij[1] > 1) contrast[ij[1]] <- -1",
+      "    car::linearHypothesis(fit, matrix(contrast, nrow = 1))[[\"Pr(>Chisq)\"]][2]",
+      "  })",
+      "  at <- sort(match(pair, conditions))",
+      "  p.adjust(p, p_adjust)[[which(pairs[1, ] == at[1] & pairs[2, ] == at[2])]]",
+      "}"
+    ) else if (inputs$binary) c(
+      sprintf("# The test that the conditions differ: simr's fixed(\"cond\", \"%s\").", inputs$method),
+      sprintf("test_p <- fixed(\"cond\", \"%s\")", inputs$method)
+    ) else if (inputs$pairwise) c(
       "# The chosen pair's Satterthwaite t test, adjusted for all the pairs.",
       "test_p <- function(fit) {",
       "  model <- as_lmerModLmerTest(fit)",

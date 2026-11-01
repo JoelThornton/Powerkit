@@ -30,7 +30,7 @@ form_examples <- list(
               r_X_Y = "-0.3", r_W_Y = "0.2", r_XW_Y = "0.1", r_X_W = "-0.1", rel_X = "0.8", rel_W = "0.85"), closing_ok),
   E10 = c(list(X_label = "Workload", M_label = "Exhaustion", Y_label = "Turnover intention",
                p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0.1"), closing_ok),
-  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", crossed_participants = "within_factor", difference = "20",
+  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous", difference = "20",
                sd_participant = "60", sd_participant_slope = "25", r_participant = "0.2", sd_item = "30", sd_residual = "120",
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
@@ -168,9 +168,9 @@ form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", 
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
 # E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
-form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)",
+form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",
                             means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
-                            sd_residual = "120", items = "60", item_design = "between", conditions_test = "satterthwaite_t",
+                            sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
 # E31: a three-way regression interaction.

@@ -13,6 +13,7 @@ library(psych)     # safeguard power's confidence interval
 
 # Backends
 library(bfpwr)
+library(car)
 library(InteractionPoweR)
 library(lavaan)
 library(lme4)      # E33's mixed model (with simr)

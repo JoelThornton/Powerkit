@@ -340,15 +340,17 @@ nodes:
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
-    help: "powerkit calculates two conditions with a score on each trial, every participant responding in both or each in one of them, and three or more conditions that every participant responds in."
+    help: "powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
     options:
-      - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: score}, help: "e.g. emotional and neutral words, each person reading both kinds."}
-      - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [yesno, count, ordinal]}}
-      - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: score}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
-      - {label: "Two conditions, and each person is in one of them", next: E41, when: {outcome: [yesno, count, ordinal]}}
-      - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: score}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
-      - {label: "Three or more conditions, and each person responds in all of them", next: E41, when: {outcome: [yesno, count, ordinal]}}
-      - {label: "Something else: conditions given to different people with three or more conditions, or a predictor measured on each trial", next: E41}
+      - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, help: "e.g. emotional and neutral words, each person reading both kinds."}
+      - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: [score, yesno]}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
+      - {label: "Two conditions, and each person is in one of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Three or more conditions, and each person is in one of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. three groups, each rating a different kind of face."}
+      - {label: "Three or more conditions, and each person is in one of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Something else: a predictor measured on each trial", next: E41}
   s3:
     doc_id: S3
     text: "How many times is each person measured on the outcome?"
@@ -1316,8 +1318,9 @@ endpoints:
       - "Each participant responds to many items (words, faces, trials) in two conditions, and both participants and items vary: for example, response times to emotional and neutral words. The conditions can be within participants (everyone responds in both) or between them (half the participants in each)."
       - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
       - "The model has random intercepts for participants and items, a random condition effect for participants when everyone responds in both conditions, and one for items when every item appears in both; items can be in one condition each or in both."
+      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
       - "Simulated with simr, testing the condition with Satterthwaite's t test rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
-    inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect), in the outcome's units", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
+    inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
     refs: "decisions, 30 October 2026 (docs/decisions.md); Departure 16"
     tier: v2
     alternatives: ["averaging over items and using a paired t-test, which ignores the variation between items and overstates power", "a model with random slopes for items too"]
@@ -1454,11 +1457,12 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-crossed-conditions.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for the F test and for a pair, recovers every mean difference and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
-      - "Each participant responds to many items (words, faces, trials) in three or more conditions, every participant in every condition: for example, response times to happy, angry and neutral faces."
+      - "Each participant responds to many items (words, faces, trials) in three or more conditions: for example, response times to happy, angry and neutral faces. Every participant can be in every condition, or each in one of them."
       - "You give each condition's mean and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
       - "Tests whether the conditions differ at all (Satterthwaite's F test), or one pair of conditions, adjusted for all the pairs (Holm's method unless you choose otherwise)."
+      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
       - "Simulated with simr, as for two conditions, so the answer carries a little random error. Power at a given number of participants runs here; the number you need comes as an R script."
-    inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
+    inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units, or its chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
     tier: v2
     alternatives: ["averaging over items and using a repeated-measures ANOVA, which ignores the variation between items and overstates power", "two conditions only: the two-condition card"]
   E42:

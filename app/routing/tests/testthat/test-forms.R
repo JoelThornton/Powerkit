@@ -724,3 +724,29 @@ test_that("E33 with the conditions between participants drops the participant sl
   skip_if(is.null(validate), "engine not available")
   expect_s3_class(validate(spec), "powerkit_spec")
 })
+
+test_that("the participants-and-items cards take a yes/no outcome: probabilities, no residual SD, and the Wald or likelihood-ratio test", {
+  validate <- engine_function("validate_spec")
+  cases <- list(
+    E33 = list(outcome_type = "binary", probabilities = "0.7, 0.8", binary_test = "likelihood_ratio", difference = NULL, sd_residual = NULL),
+    E63 = list(outcome_type = "binary", probabilities = "0.7, 0.8, 0.75", binary_test = "wald", means = NULL, sd_residual = NULL)
+  )
+  for (id in names(cases)) {
+    fields <- form_fields(form_groups(forms, id))
+    values <- modifyList(c(form_examples[[id]], list(goal = "power", n = "30")), cases[[id]])
+    applies <- Filter(function(f) field_applies(f, values), fields)
+    expect_false(any(vapply(applies, function(f) f$id, "") %in% c("difference", "means", "sd_residual")), label = id)
+    expect_length(form_problems(applies, values), 0)
+    spec <- build_spec(forms, id, fields, values)
+    expect_identical(spec$variables$Y$type, "binary", label = id)
+    expect_identical(spec$population$metric, "probability", label = id)
+    expect_identical(spec$target_test$method, cases[[id]]$binary_test, label = id)
+    if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+  }
+  # A pair keeps its effect; the test is the yes/no one.
+  fields <- form_fields(form_groups(forms, "E63"))
+  values <- modifyList(c(form_examples$E63, list(goal = "power", n = "30")), cases$E63)
+  spec <- build_spec(forms, "E63", fields, values)
+  expect_identical(spec$target_test$effect, "pairwise")
+  expect_identical(spec$target_test$method, "wald")
+})

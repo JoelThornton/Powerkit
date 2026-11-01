@@ -17,12 +17,12 @@ conditions_reps <- 2000L
 conditions_population <- list(means = list(0, 0.15, 0.3), sd_participant = 0.5, sd_participant_condition = 0.2,
   sd_item = 0.3, sd_residual = 1, items = 30, item_design = "between")
 
-conditions_validation_spec <- function(population, effect, seed, n) {
+conditions_validation_spec <- function(population, effect, seed, n, x_type = "within_factor") {
   validation_spec(
     design = "mixed_model",
     template = "crossed_conditions",
     variables = list(
-      X = validation_variable("within_factor", "Condition", levels = list("First", "Second", "Third")),
+      X = validation_variable(x_type, "Condition", levels = list("First", "Second", "Third")),
       Y = validation_variable("continuous", "Outcome")
     ),
     population = c(list(metric = "raw"), population),
@@ -100,3 +100,51 @@ test_that("three conditions: matches a published example (published)", {
   spec <- conditions_validation_spec(population, "condition", seed = 6304, n = n)
   expect_power_near(engine_power(spec), published_power, reference_nrep = reference_nrep)
 })
+
+# Conditions between participants (31 October 2026): the participants
+# split equally, each with a random intercept; items in every condition
+# (with an item-by-condition SD) or each condition with its own block.
+between_conditions_by_hand <- function(p, n, items_within, nrep, seed) {
+  k <- 3
+  design <- expand.grid(participant = seq_len(n), item = seq_len(p$items))
+  design$cond <- ceiling(design$participant / (n / k))
+  if (!items_within) design <- design[ceiling(design$item / (p$items / k)) == design$cond, ]
+  means <- unlist(p$means)
+  formula <- if (items_within) y ~ cond + (1 | participant) + (1 | item) + (1 | item:cond) else y ~ cond + (1 | participant) + (1 | item)
+  with_seed(seed, mean(vapply(seq_len(nrep), function(i) {
+    u <- stats::rnorm(n, sd = p$sd_participant)
+    w <- stats::rnorm(p$items, sd = p$sd_item)
+    wc <- matrix(if (items_within) stats::rnorm(p$items * k, sd = p$sd_item_condition) else 0, p$items, k)
+    d <- design
+    d$y <- means[d$cond] + u[d$participant] + w[d$item] + wc[cbind(d$item, d$cond)] + stats::rnorm(nrow(d), sd = p$sd_residual)
+    d$participant <- factor(d$participant)
+    d$item <- factor(d$item)
+    d$cond <- factor(d$cond)
+    fit <- tryCatch(suppressMessages(suppressWarnings(lmerTest::lmer(formula, data = d))), error = function(e) NULL)
+    !is.null(fit) && isTRUE(stats::anova(fit, ddf = "Satterthwaite")["cond", "Pr(>F)"] < 0.05)
+  }, logical(1))))
+}
+
+for (items in c("within", "between")) {
+  between_population <- function(means) {
+    p <- conditions_population
+    p$sd_participant_condition <- NULL
+    p$means <- means
+    p$item_design <- items
+    if (items == "within") p$sd_item_condition <- 0.15
+    p
+  }
+  test_that(sprintf("three conditions between participants, items %s: agrees with an independent simulation (analytic)", items), {
+    skip_unless_full_validation()
+    skip_if_not_installed("lmerTest")
+    p <- between_population(list(0, 0.3, 0.6))
+    spec <- conditions_validation_spec(p, "condition", seed = 6311, n = 60, x_type = "between_factor")
+    reference <- between_conditions_by_hand(p, 60, items == "within", conditions_reps, seed = 6312)
+    expect_power_near(engine_power(spec), reference, reference_nrep = conditions_reps)
+  })
+  test_that(sprintf("three conditions between participants, items %s: Type I error near alpha", items), {
+    skip_unless_full_validation()
+    p <- between_population(list(0, 0, 0))
+    expect_type1_near(engine_power(conditions_validation_spec(p, "condition", seed = 6313, n = 60, x_type = "between_factor")), alpha = 0.05)
+  })
+}

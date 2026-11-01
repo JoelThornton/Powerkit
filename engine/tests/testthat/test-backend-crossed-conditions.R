@@ -100,3 +100,43 @@ test_that("adjusting a pair for all the pairs costs power: none, then Holm, then
   expect_gte(power[["none"]], power[["holm"]])
   expect_gte(power[["holm"]], power[["bonferroni"]])
 })
+
+# Three or more conditions between participants (X a between factor) -------
+
+between_conditions_spec <- function(item_design = "within", goal = list(type = "power", n = 30L), nrep = 100L) {
+  spec <- conditions_spec(item_design = item_design, goal = goal, nrep = nrep)
+  spec$variables$X$type <- "between_factor"
+  spec$population$sd_participant_condition <- NULL
+  spec
+}
+
+test_that("conditions between participants: a participant intercept only, the participants split equally", {
+  inputs <- crossed_conditions_inputs(validate_spec(between_conditions_spec("within")))
+  expect_identical(deparse1(inputs$formula), "y ~ cond + (1 | participant) + (1 | item) + (1 | item:cond)")
+  data <- crossed_conditions_design(inputs, 9)
+  expect_equal(nrow(data), 9 * 20)
+  expect_equal(as.vector(tapply(as.integer(data$cond), data$participant, function(x) length(unique(x)))), rep(1, 9))
+  expect_equal(as.vector(table(tapply(as.integer(data$cond), data$participant, unique))), rep(3, 3))
+  inputs <- crossed_conditions_inputs(validate_spec(between_conditions_spec("between")))
+  data <- crossed_conditions_design(inputs, 9)
+  # Each condition's own block of 20 items, each seen by its 3 participants.
+  expect_equal(nrow(data), 9 * 20)
+  expect_equal(as.vector(tapply(as.integer(data$cond), data$item, function(x) length(unique(x)))), rep(1, 60))
+})
+
+test_that("conditions between participants run, recover the population, and refuse what doesn't apply", {
+  for (items in c("within", "between")) {
+    result <- suppressWarnings(run_spec(between_conditions_spec(items)))
+    expect_true(all(result$check_run$ok), label = items)
+    expect_false("SD of participant-by-condition effects" %in% result$check_run$parameter)
+  }
+  expect_spec_problem(between_conditions_spec(goal = list(type = "power", n = 31L)), "3 equal groups")
+  extra <- between_conditions_spec()
+  extra$population$sd_participant_condition <- 10
+  expect_spec_problem(extra, "every condition")
+  missing <- conditions_spec()
+  missing$population$sd_participant_condition <- NULL
+  expect_spec_problem(missing, "sd_participant_condition")
+  spec <- between_conditions_spec("between")
+  expect_script_reproduces_power(spec, suppressWarnings(run_spec(spec)))
+})

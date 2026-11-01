@@ -434,8 +434,9 @@ design_description <- function(spec) {
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
     ),
     "mixed_model/crossed_conditions" = sprintf(
-      "participants responding to %s items in %d conditions of %s (%s, within participants); effect tested: %s",
+      "participants responding to %s items in %d conditions of %s (%s, %s participants); effect tested: %s",
       format_number(spec$population$items), length(spec$variables$X$levels), label("X"), levels("X"),
+      if (identical(spec$variables$X$type, "between_factor")) "between" else "within",
       if (identical(spec$target_test$effect, "pairwise")) {
         sprintf("%s against %s (%s adjustment for all the pairs)", spec$target_test$comparison[[1]],
           spec$target_test$comparison[[2]], spec$target_test$p_adjust %||% "holm")
@@ -2402,14 +2403,20 @@ simr_script <- function(spec, result) {
   levels <- comment_text(unlist(v$X$levels))
   item_slope <- length(inputs$VarCorr$item) > 1
   c(
-    script_header(spec, result, "simr", "simr::powerSim() with fixed(\"cond\", \"sa\")"),
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"cond\", \"%s\")", inputs$method)),
     "library(simr)",
-    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
+      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, in its own units; cond is %s coded -0.5 (%s) and 0.5 (%s),", comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),
     "# so its coefficient is the difference between the conditions.",
-    sprintf("difference <- %s # mean in %s minus mean in %s", r_code(pop$difference), levels[2], levels[1]),
+    if (inputs$binary) {
+      sprintf("probabilities <- %s # the chance of 'yes' in %s and in %s, for a typical participant and item",
+        r_code(as.numeric(unlist(pop$probabilities))), levels[1], levels[2])
+    } else {
+      sprintf("difference <- %s # mean in %s minus mean in %s", r_code(pop$difference), levels[2], levels[1])
+    },
     sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
     if (!inputs$participants_between) c(
       sprintf("sd_participant_slope <- %s # SD of participants' condition slopes", r_code(pop$sd_participant_slope)),
@@ -2417,7 +2424,7 @@ simr_script <- function(spec, result) {
     ),
     sprintf("sd_item <- %s # SD of items' intercepts", r_code(pop$sd_item)),
     if (item_slope) sprintf("sd_item_slope <- %s # SD of items' condition slopes", r_code(pop$sd_item_slope)),
-    sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("items <- %s # number of items", r_code(pop$items)),
     sprintf("item_design <- %s # %s", r_code(if (inputs$within) "within" else "between"),
       if (inputs$within) "every item in both conditions" else "each item in one condition: the first half in the first"),
@@ -2452,18 +2459,27 @@ simr_script <- function(spec, result) {
       c("  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
         "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)")
     },
-    sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
-    "    fixef = c(0, difference),",
-    sprintf("    VarCorr = list(participant = participant, item = %s),", if (item_slope) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
-    "    sigma = sd_residual, data = design_for(n_participants))",
+    if (inputs$binary) {
+      c(sprintf("  makeGlmer(%s, family = \"binomial\",", deparse1(inputs$formula)),
+        "    fixef = c(mean(qlogis(probabilities)), diff(qlogis(probabilities))),",
+        sprintf("    VarCorr = list(participant = participant, item = %s),", if (item_slope) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
+        "    data = design_for(n_participants))")
+    } else {
+      c(sprintf("  makeLmer(%s,", deparse1(inputs$formula)),
+        "    fixef = c(0, difference),",
+        sprintf("    VarCorr = list(participant = participant, item = %s),", if (item_slope) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
+        "    sigma = sd_residual, data = design_for(n_participants))")
+    },
     "}",
     "",
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
-    "# powerkit tests with Satterthwaite's t test (\"sa\"), not simr's default",
-    "# \"z\", an asymptotic approximation (powerkit's Departure 16).",
+    if (!inputs$binary) c(
+      "# powerkit tests with Satterthwaite's t test (\"sa\"), not simr's default",
+      "# \"z\", an asymptotic approximation (powerkit's Departure 16)."
+    ),
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
-    "  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"sa\"),",
+    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"%s\"),", inputs$method),
     "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
     "  c(result$x, result$n)",
     "}",

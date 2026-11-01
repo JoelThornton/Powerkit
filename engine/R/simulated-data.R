@@ -662,10 +662,17 @@ sim_mixed_code <- function(spec, n) {
     } else {
       sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant)))
     },
-    sprintf(
-      "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
-      deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma)
-    ),
+    if (inputs$binary) {
+      sprintf(
+        "model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(participant = participant_var, item = %s), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var
+      )
+    } else {
+      sprintf(
+        "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma)
+      )
+    },
     "simulated <- data.frame(",
     "  participant = design$participant,",
     "  item = design$item,",
@@ -862,7 +869,15 @@ sim_crossed_conditions_code <- function(spec, n) {
   var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr), vapply(inputs$VarCorr, r_code, "")), collapse = ", ")
   c(
     sprintf("conditions <- %s", r_code(inputs$levels)),
-    if (inputs$within) {
+    if (inputs$participants_between) {
+      c(
+        sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
+        sprintf("design$cond <- conditions[ceiling(design$participant / %s)] # the participants split equally, one group per condition",
+          r_code(n / length(inputs$levels))),
+        if (!inputs$within) sprintf("design <- design[ceiling(design$item / %d) == match(design$cond, conditions), ] # each condition's own block of items",
+          inputs$items %/% length(inputs$levels))
+      )
+    } else if (inputs$within) {
       sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d), cond = conditions, stringsAsFactors = FALSE)",
         n, inputs$items)
     } else {
@@ -875,10 +890,13 @@ sim_crossed_conditions_code <- function(spec, n) {
     "design$participant <- factor(design$participant)",
     "design$item <- factor(design$item)",
     "design$cond <- factor(design$cond, levels = conditions)",
-    sprintf(
-      "model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
-      deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma)
-    ),
+    if (inputs$binary) {
+      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(%s), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr)
+    } else {
+      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma))
+    },
     "simulated <- data.frame(",
     "  participant = design$participant,",
     "  item = design$item,",
