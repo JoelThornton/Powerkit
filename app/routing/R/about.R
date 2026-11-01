@@ -144,7 +144,7 @@ about_ui <- function(tree, forms) {
     div(class = "about-hero",
       tags$h2("About powerkit"),
       p(class = "about-lead",
-        "powerkit plans the sample size for a psychology study. You describe your study, it finds the power analysis ",
+        "powerkit plans the sample size for a study. You describe your study, it finds the power analysis ",
         "that fits and asks for the numbers it needs, and an established R package does the calculation."),
       div(class = "about-status",
         tags$span(class = "about-status-pill", paste(c("Prototype", if (!is.null(version)) paste0("v", version)), collapse = " \u00b7 ")),
@@ -192,7 +192,7 @@ about_ui <- function(tree, forms) {
             sprintf("This is powerkit %s. ", version),
             "Every result and every R script you download says this version, so a number you quote can be traced back to it. ",
             "Version 1.0 will be the first release. ",
-            tags$a(href = "#", onclick = "pkAboutTab(\"What's new\"); return false;", "See what's new."))),
+            tags$a(href = "#", onclick = "pkAboutTab('Updates'); return false;", "See the updates."))),
         div(class = "about-card about-card-wide",
           tags$h4("What it doesn't do"),
           tags$ul(
@@ -242,9 +242,10 @@ about_js <- "
   });
 "
 
-# "What's new": dated changes in plain words, newest first, from
+# "Updates" (called "What's new" until November 2026): dated changes in plain words, newest first, from
 # whats-new.yaml (one entry per change users would notice). The latest days
-# are open; older ones fold by month. A search box filters them, and the
+# are open; older ones fold by month. It opens as a timeline of titles,
+# each opening its description, with "Full details" showing them all. A search box filters them, and the
 # browser remembers the newest change you have seen, so changes since your
 # last visit are marked (and the tab shows a dot until you look).
 load_whats_new <- function(path) {
@@ -267,7 +268,9 @@ whats_new_ui <- function(entries, open_days = 1) {
       tags$h3(class = "wn-day-head", whats_new_day_label(day), tags$span(class = "wn-day-count", changes(length(items)))),
       div(class = "wn-entries", lapply(items, function(e) {
         tags$article(class = "wn-entry", `data-date` = e$date,
-          tags$h4(class = "wn-title", tags$span(class = "wn-new", "New"), e$title),
+          tags$h4(class = "wn-title",
+            tags$button(type = "button", class = "wn-toggle", `aria-expanded` = "false", onclick = "pkUpdatesOpen(this)",
+              tags$span(class = "wn-new", "New"), e$title)),
           p(class = "wn-text", e$text))
       })))
   }
@@ -275,16 +278,22 @@ whats_new_ui <- function(entries, open_days = 1) {
   older <- setdiff(days, recent)
   months <- unique(format(as.Date(older), "%Y-%m"))
   div(
-    class = "about whats-new-page",
+    class = "about whats-new-page wn-simple",
     `data-latest` = if (length(days)) days[[1]] else "",
-    tags$h2("What's new"),
+    tags$h2("Updates"),
     p(class = "about-lead", "Changes to powerkit you would notice, newest first. ",
+      "Click a change to read more, or show every description with Full details. ",
       "The online app updates itself each time a change is approved."),
     div(class = "wn-since", id = "wn-since", hidden = NA),
     div(class = "wn-tools",
       tags$input(type = "search", id = "wn-search", class = "form-control", placeholder = "Search the changes, e.g. ANOVA or Labs",
         `aria-label` = "Search the changes", oninput = "pkWhatsNewSearch(this.value)"),
-      tags$span(class = "wn-count", id = "wn-count", `aria-live` = "polite", sprintf("%d changes", length(entries)))),
+      tags$span(class = "wn-count", id = "wn-count", `aria-live` = "polite", sprintf("%d changes", length(entries))),
+      div(class = "wn-view btn-group", role = "group", `aria-label` = "How much to show",
+        tags$button(type = "button", class = "btn btn-sm btn-outline-primary active", `data-view` = "simple",
+          `aria-pressed` = "true", onclick = "pkUpdatesView('simple')", "Timeline"),
+        tags$button(type = "button", class = "btn btn-sm btn-outline-primary", `data-view` = "full",
+          `aria-pressed` = "false", onclick = "pkUpdatesView('full')", "Full details"))),
     div(class = "wn-timeline", lapply(recent, day_ui),
       lapply(months, function(m) {
         in_month <- older[format(as.Date(older), "%Y-%m") == m]
@@ -302,7 +311,7 @@ whats_new_js <- "
 (function() {
   var KEY = 'powerkit-whats-new-seen';
   function page() { return document.querySelector('.whats-new-page'); }
-  function tabLink() { return document.querySelector('#tabs a[data-value=\"What\\'s new\"]'); }
+  function tabLink() { return document.querySelector('#tabs a[data-value=\"Updates\"]'); }
   function stored() { try { return window.localStorage.getItem(KEY); } catch (e) { return null; } }
   function store(v) { try { window.localStorage.setItem(KEY, v); } catch (e) {} }
   function markSeen() {
@@ -330,10 +339,24 @@ whats_new_js <- "
       s.setAttribute('aria-label', n + ' new changes'); a.appendChild(s);
     }
     document.addEventListener('click', function(e) {
-      if (e.target.closest && e.target.closest('#tabs a[data-value=\"What\\'s new\"]')) markSeen();
+      if (e.target.closest && e.target.closest('#tabs a[data-value=\"Updates\"]')) markSeen();
     });
     if (p.offsetParent !== null) markSeen();
   }
+  var VIEW = 'powerkit-updates-view';
+  window.pkUpdatesView = function(view, quiet) {
+    var p = page(); if (!p) return;
+    p.classList.toggle('wn-simple', view !== 'full');
+    p.querySelectorAll('.wn-view button').forEach(function(b) {
+      var on = b.dataset.view === view; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (!quiet) { try { window.localStorage.setItem(VIEW, view); } catch (e) {} }
+  };
+  window.pkUpdatesOpen = function(btn) {
+    var e = btn.closest('.wn-entry'); var open = !e.classList.contains('is-open');
+    e.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  try { if (window.localStorage.getItem(VIEW) === 'full') document.addEventListener('DOMContentLoaded', function() { pkUpdatesView('full', true); }); } catch (e) {}
   window.pkWhatsNewSearch = function(q) {
     var p = page(); if (!p) return;
     var words = q.toLowerCase().split(/\\s+/).filter(Boolean);

@@ -36,6 +36,7 @@ tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
+  html { overflow-y: scroll; }
   body { background: #f7f8fa; }
   .app-main { max-width: 980px; margin: 0 auto 3rem auto; }
   .choices { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0 1.5rem 0; }
@@ -123,8 +124,10 @@ app_css <- "
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
   .about { max-width: 46rem; }
-  .about-page { max-width: 60rem; } .whats-new-page { max-width: 48rem; }
-  .about-hero { padding: 0.5rem 0 1rem; }
+  /* Every tab uses the same column as the tab bar; long text keeps a readable line length. */
+  .about-page, .whats-new-page { max-width: none; }
+  .about-section > p, .whats-new-page > p, .about-card p { max-width: 46rem; }
+  .about-hero { padding: 0 0 1rem; }
   .about-lead { font-size: 1.12rem; color: #2b3644; max-width: 44rem; }
   .about-status { display: flex; gap: 0.75rem; align-items: flex-start; background: #fff6e5; border: 1px solid #f0d9a8; border-radius: var(--pk-radius);
     padding: 0.7rem 1rem; color: #5b4300; font-size: 0.95rem; max-width: 44rem; }
@@ -175,7 +178,7 @@ app_css <- "
   .about-cite > summary { cursor: pointer; color: var(--pk-blue); font-size: 0.85rem; }
   .about-citation { color: #3d4852; margin: 0.3rem 0 0; padding-left: 1rem; }
   .wn-since { background: #e8f3fa; border: 1px solid #b9d9ec; color: var(--pk-navy); border-radius: var(--pk-radius); padding: 0.6rem 1rem; margin-bottom: 0.75rem; font-weight: 500; }
-  .wn-tools { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0 1.25rem; position: sticky; top: 0; background: #f7f8fa; padding: 0.5rem 0; z-index: 2; }
+  .wn-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin: 0.5rem 0 1.25rem; position: sticky; top: 0; background: #f7f8fa; padding: 0.5rem 0; z-index: 2; }
   .wn-tools input { max-width: 26rem; min-height: 44px; }
   .wn-count { color: #5d6875; font-size: 0.9rem; white-space: nowrap; }
   .wn-timeline { position: relative; padding-left: 1.5rem; }
@@ -196,6 +199,19 @@ app_css <- "
   .wn-month > summary::before { content: ''; position: absolute; left: -1.33rem; top: 0.95rem; width: 0.65rem; height: 0.65rem; border-radius: 50%; background: #fff; border: 2px solid var(--pk-blue); }
   .wn-month[open] > summary { margin-bottom: 0.5rem; }
   .wn-none { color: #5d6875; }
+  .wn-view { margin-left: auto; }
+  .wn-toggle { all: unset; cursor: text; }
+  .wn-simple .wn-entries { gap: 0; }
+  .wn-simple .wn-entry { background: transparent; border: 0; border-radius: 0; padding: 0.15rem 0; box-shadow: none; }
+  .wn-simple .wn-entry.is-new { box-shadow: none; }
+  .wn-simple .wn-title { font-weight: 500; font-size: 0.95rem; margin: 0; }
+  .wn-simple .wn-toggle { cursor: pointer; display: inline-flex; align-items: baseline; gap: 0.1rem; min-height: 30px; padding: 0.1rem 0; }
+  .wn-simple .wn-toggle::after { content: '\\203A'; color: #8a94a1; margin-left: 0.45rem; transition: transform .15s; display: inline-block; }
+  .wn-simple .wn-entry.is-open .wn-toggle::after { transform: rotate(90deg); }
+  .wn-simple .wn-toggle:hover, .wn-simple .wn-toggle:focus-visible { color: var(--pk-blue); text-decoration: underline; }
+  .wn-simple .wn-text { display: none; }
+  .wn-simple .wn-entry.is-open .wn-text { display: block; padding: 0.2rem 0 0.6rem; max-width: 46rem; }
+  .wn-simple .wn-day { margin-bottom: 1rem; }
   .wn-dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #d0342c; margin-left: 0.35rem; vertical-align: 2px; }
   @media (max-width: 767px) { .about-steps, .about-cards { grid-template-columns: 1fr; } .about-status { flex-direction: column; gap: 0.4rem; }
     .wn-tools { flex-direction: column; align-items: stretch; gap: 0.25rem; } }
@@ -221,7 +237,9 @@ app_css <- "
   body { background: var(--pk-bg); color: #1d2733; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
   .lead { font-size: 1.05rem; color: #44505e; }
-  .topbar { background: var(--pk-navy); color: #fff; margin: 0 -12px 0 -12px; padding: 0.6rem 12px 0.5rem 12px; }
+  /* Edge to edge: the page's side padding is half Bootstrap's gutter, which grows with the root font size. */
+  .topbar { background: var(--pk-navy); color: #fff; margin: 0 calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+    padding: 0.6rem calc(var(--bs-gutter-x, 1.5rem) * 0.5) 0.5rem; }
   .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
   .share-page { display: flex; align-items: center; gap: 0.5rem; }
   /* Explanations off (terms_js): technical names first, and the
@@ -255,6 +273,9 @@ app_css <- "
   .app-main > .tabbable > .nav-tabs { border-bottom: 1px solid var(--pk-line); margin-top: 0.5rem; gap: 0.25rem; }
   .app-main > .tabbable > .nav-tabs .nav-link { border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #44505e; font-weight: 500; padding: 0.7rem 0.9rem; }
   .app-main > .tabbable > .nav-tabs .nav-link.active { background: transparent; color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
+  /* On a phone the tabs stay on one row and scroll sideways, so every page starts at the same height. */
+  @media (max-width: 767px) { .app-main > .tabbable > .nav-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .app-main > .tabbable > .nav-tabs .nav-link { white-space: nowrap; padding: 0.7rem 0.7rem; } }
   .progress-steps ol { margin: 0.25rem 0 1rem 0; }
   .screen-nav { display: flex; justify-content: space-between; align-items: center; margin: -0.25rem 0 0.5rem 0; }
   .screen-nav .btn-link { padding: 0.35rem 0; text-decoration: none; font-weight: 500; min-height: 44px; }
@@ -547,8 +568,8 @@ ui <- function(req) fluidPage(
       selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About", div(class = "pt-3", about_tab)),
-      tabPanel("What's new", div(class = "pt-3", whats_new_tab)),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
+      tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     )

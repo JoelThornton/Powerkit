@@ -36,7 +36,7 @@ feedback:
   issues_url: https://github.com/JoelThornton/Powerkit/issues/new
   email: null
 
-banner: "Prototype, still being checked. Most analyses psychologists use calculate here: t-tests, correlations, ANOVA (between, repeated measures and mixed), ANCOVA, regression, proportions and chi-square tests, rank tests, equivalence tests, MANOVA, multilevel and cluster designs, SEM and planned meta-analyses. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. The cards for the rest point to tools that do them."
+banner: "Prototype, still being checked. Most common analyses calculate here: t-tests, correlations, ANOVA (between, repeated measures and mixed), ANCOVA, regression, proportions and chi-square tests, rank tests, equivalence tests, MANOVA, multilevel and cluster designs, SEM and planned meta-analyses. Mediation and moderated mediation give a quick look here and an R script for the full run on your computer. The cards for the rest point to tools that do them."
 
 # ---------------------------------------------------------------------------
 # Settings: undecided judgement calls and open questions

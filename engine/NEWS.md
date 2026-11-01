@@ -61,18 +61,28 @@ A batch of new features, built as one round.
   methods paragraph first, with a Copy button on each version, and the
   downloads after it. What is calculated is unchanged.
 
-* App: the About and What's new tabs are redesigned. About leads with
-  what powerkit does and its prototype status, links to its sections, and
-  says in three steps how it works. "What it can plan" shows every
-  analysis that calculates, grouped by family (`tree.yaml`'s
-  `analysis_families`) and marked by how it calculates (in a second, in
-  the background, simulated here, or a preview with an R script); clicking
-  one opens its card, as the methods map's "Plan this study" does. Trust,
-  limits and feedback are cards, and each package's own `citation()` folds
-  under "How to cite". What's new keeps the latest day open and folds
-  older days by month, has a search box, and remembers in the browser
-  (localStorage only) the newest change seen, so later changes are marked
-  New and the tab shows a dot until they are read.
+* App: the About and What's new tabs are redesigned, and What's new is
+  renamed Updates and moved between Labs and Feedback (`?page=updates`;
+  old `?page=whats-new` links still open it). About leads with what
+  powerkit does and its prototype status, links to its sections, and says
+  in three steps how it works. "What it can plan" shows every analysis
+  that calculates, grouped by family (`tree.yaml`'s `analysis_families`)
+  and marked by how it calculates (in a second, in the background,
+  simulated here, or a preview with an R script); clicking one opens its
+  card, as the methods map's "Plan this study" does. Trust, limits and
+  feedback are cards, and each package's own `citation()` folds under
+  "How to cite". Updates opens as a timeline of titles, each opening its
+  description, with "Full details" showing every description (the choice
+  is remembered); the latest day is open and older days fold by month; a
+  search box filters them; and the browser remembers (localStorage only)
+  the newest change seen, so later changes are marked New and the tab
+  shows a dot until they are read. Every tab now uses the same column as
+  the tab bar, the page keeps its scrollbar space so switching tabs no
+  longer shifts it sideways, the top bar spans the window at every width
+  (its side margins follow Bootstrap's gutter, which grows with the root
+  font size), and on a phone the tabs stay on one row that scrolls
+  sideways. The About page and the start banner no longer say powerkit is
+  only for psychology.
 
 # powerkit 0.27.0
 

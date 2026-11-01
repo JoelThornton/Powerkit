@@ -51,10 +51,12 @@ fully validated. Validation runs are recorded in
   choose" asks the screening questions first; the search also knows other
   names (`tree.yaml`, `search_words`); an "Explanations" switch, on by
   default, shows technical names first and hides the hints when off.
-- **About and What's new** (1 November 2026): About says how powerkit
+- **About and Updates** (1 November 2026): About says how powerkit
   works in three steps and lists every analysis that calculates by family,
-  each opening its card; What's new is searchable, folds older months and
-  marks the changes since your last visit.
+  each opening its card; Updates (once "What's new", between Labs and
+  Feedback) is a timeline of titles that open, with Full details, a search
+  and the changes since your last visit marked. Every tab shares one
+  column.
 - **Results** open with the answer as one large figure and what it
   assumes, then "How sure can you be?" (the effect slider and cautious and
   hopeful guesses), then the write-up with Copy buttons and the downloads
