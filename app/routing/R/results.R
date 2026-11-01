@@ -1511,7 +1511,10 @@ bayes_sentence <- function(spec, result) {
   if (is.null(b)) return(NULL)
   k <- format(b$evidence_threshold)
   c(
-    if (b$effect_sd > 0) sprintf("This averages over true effects spread around yours with an SD of %s (the design prior).", format(b$effect_sd)),
+    if (b$effect_sd > 0) sprintf(paste(
+      "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
+      "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
+      "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
     if (b$evidence_for_null > 0) sprintf(
       "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)

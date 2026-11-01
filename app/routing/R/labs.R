@@ -578,6 +578,8 @@ bayes_types <- c("Two groups (people in each group)" = "two.sample",
   "One group against a fixed value (people)" = "one.sample",
   "Paired or repeated measures (pairs)" = "paired")
 bayes_thresholds <- c("3" = "3", "6" = "6", "10" = "10", "30" = "30")
+bayes_designs <- c("Once, at the sample size above (a fixed design)" = "fixed",
+  "As the data come in, stopping when the evidence is strong (a sequential design)" = "sequential")
 bayes_directions <- c("Either direction (two-sided)" = "two.sided",
   "A positive effect (one-sided)" = "greater", "A negative effect (one-sided)" = "less")
 
@@ -603,6 +605,14 @@ bayes_ui <- function() {
       radioButtons("bayes_threshold", "A Bayes factor of at least (either way)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
       numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
+      radioButtons("bayes_design", NULL, choices = bayes_designs, selected = "fixed", width = "100%"),
+      conditionalPanel("input.bayes_design == 'sequential'",
+        p(class = "group-note", "A sequential design computes the Bayes factor as the data come in, and stops as soon as it is strong either way, or at the largest sample size you can afford: the sample size in section 1. Decide every setting before the data, and report them."),
+        numericInput("bayes_n_min", "First look, after this many (in each group, for two groups)", value = 20, min = 3, max = 10000, step = 1, width = "100%"),
+        numericInput("bayes_step", "Then look again after every", value = 1, min = 1, max = 1000, step = 1, width = "100%"),
+        radioButtons("bayes_threshold_null", "Stop for no effect at a Bayes factor of at least", choices = bayes_thresholds, selected = "10", inline = TRUE),
+        p(class = "group-note", "It can differ from the threshold for an effect: a lower one for no effect stops sooner when there is none, at the cost of more misleading evidence for no effect."))),
     actionButton("bayes_run", "Work it out", class = "btn btn-primary"),
     uiOutput("bayes_result"))
 }
@@ -616,7 +626,10 @@ bayes_problem <- function(e) {
   }
   labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "Your uncertainty about the effect",
     "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the Cauchy prior",
-    "'threshold'" = "The threshold", "'target'" = "The chance to aim for")
+    "'threshold'" = "The threshold", "'target'" = "The chance to aim for",
+    "'n_min' (the first look)" = "The first look", "'n_max' (the largest sample size)" = "The sample size",
+    "'step' (participants between looks)" = "The number between looks",
+    "'threshold_null' (the threshold for no effect)" = "The threshold for no effect")
   message <- conditionMessage(e)
   for (arg in names(labels)) message <- sub(arg, labels[[arg]], message, fixed = TRUE)
   message
@@ -669,13 +682,90 @@ bayes_numbers <- function(plan) {
           tags$td(pct(null$for_null)), tags$td(pct(null$neither))))),
     tags$ul(class = "bayes-notes",
       tags$li(needed),
+      if (plan$effect_sd > 0) tags$li(sprintf(
+        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the study's assurance: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who define it for clinical trials).",
+        pct(belief$for_effect))),
       if (!is.na(plan$largest_bf01)) tags$li(sprintf(
         "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",
         plan$largest_bf01, if (plan$largest_bf01 < plan$threshold) sprintf(", so it can never reach %s in favour of no effect, however true that is", k) else "")),
       tags$li("These chances are not power in the usual sense: they don't depend on a significance level, and a study can end with neither, which is a result, not a failure."),
       if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of strong evidence for an effect a few points lower than simulated Bayes factors do.")),
     p(class = "small text-muted", sprintf("From %s, bfpwr version %s.", plan$function_used, plan$package$version)),
-    p(class = "small text-muted", "Reference: ", bayes_citation()))
+    p(class = "small text-muted", "Reference: ", bayes_citation()),
+    if (plan$effect_sd > 0) p(class = "small text-muted", "Assurance: ", labs_citation(key = "OHagan2005_assurance",
+      fallback = "O'Hagan, A., Stevens, J. W., & Campbell, M. J. (2005). Assurance in clinical trial design. Pharmaceutical Statistics.")))
+}
+
+# A sequential design (the engine's bayes_sequential()): how often the study
+# stops each way, and how large it is when it stops, under the belief and
+# with no effect, beside a single test at the largest sample size.
+bayes_sequential_numbers <- function(plan) {
+  pct <- function(x) sprintf("%.1f%%", 100 * x)
+  o <- plan$outcomes
+  belief <- o[o$truth == "belief", ]
+  null <- o[o$truth == "null", ]
+  unit <- if (identical(plan$type, "two.sample")) " in each group" else if (identical(plan$type, "paired")) " pairs" else ""
+  size <- function(row) sprintf("%s (80%% stop by %s)", format(row$n_median), format(row$n_80))
+  belief_words <- if (plan$effect_sd > 0) sprintf("If the effect is about %s (give or take %s)", format(plan$effect), format(plan$effect_sd)) else
+    sprintf("If the effect is exactly %s", format(plan$effect))
+  looks <- if (plan$step == 1) "after every participant" else sprintf("after every %s participants", format(plan$step))
+  if (identical(plan$type, "two.sample")) looks <- paste(looks, "in each group")
+  at_max_words <- function(row, truth) {
+    if (is.na(row$at_max_toward_effect) || row$at_max == 0) return(NULL)
+    sprintf("%s: of the %s that reach %s, %s end with a BF10 above 3, %s below 1/3, and %s in between.",
+      truth, pct(row$at_max), format(plan$n_max), pct(row$at_max_toward_effect), pct(row$at_max_toward_null), pct(row$at_max_neither))
+  }
+  f <- plan$fixed
+  mc <- max(o$mcse_for_effect, sqrt(0.25 / plan$nsim))
+  tagList(
+    h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
+    tags$table(class = "table table-sm bayes-outcomes",
+      tags$caption(sprintf("How often the study stops each way (strong evidence: a BF10 of at least %s for an effect, a BF01 of at least %s for no effect), and its size when it stops.",
+        format(plan$threshold), format(plan$threshold_null))),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Stops with strong evidence for an effect"),
+        tags$th(scope = "col", "Stops with strong evidence for no effect"), tags$th(scope = "col", "Reaches the largest size without either"),
+        tags$th(scope = "col", sprintf("Size when it stops: median%s", unit)))),
+      tags$tbody(
+        tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
+          tags$td(pct(belief$for_null), if (plan$effect != 0) " (misleading)"), tags$td(pct(belief$at_max)), tags$td(size(belief))),
+        tags$tr(tags$th(scope = "row", "If there is no effect"), tags$td(pct(null$for_effect), " (misleading)"),
+          tags$td(pct(null$for_null)), tags$td(pct(null$at_max)), tags$td(size(null))))),
+    tags$ul(class = "bayes-notes",
+      tags$li(sprintf("Testing once at %s%s instead: strong evidence for an effect %s of the time under your belief, and misleading strong evidence for an effect %s of the time if there is none.",
+        format(plan$n_max), unit, pct(f$for_effect[f$truth == "belief"]), pct(f$for_effect[f$truth == "null"]))),
+      if (!is.null(at_max_words(belief, "Under your belief"))) tags$li(at_max_words(belief, "Under your belief"), " ",
+        at_max_words(null, "With no effect")),
+      tags$li("Looking more often raises the chance of misleading evidence a little, and most of it happens at the early looks, so a later first look, or a higher threshold, lowers it (Schönbrodt and Wagenmakers, 2018)."),
+      tags$li(sprintf("Simulated: %s studies under your belief and %s with no effect (seed %s), each with its own true effect drawn from your design prior; each chance is within about %s points either way.",
+        format(plan$nsim, big.mark = ","), format(plan$nsim, big.mark = ","), format(plan$seed), sprintf("%.1f", 200 * mc)))),
+    p(class = "small text-muted", sprintf("From %s, with the Bayes factor from bfpwr version %s (tbf01()).", plan$function_used, plan$package$version)),
+    p(class = "small text-muted", "References: ", bayes_sequential_citations()))
+}
+
+bayes_sequential_citations <- function(path = labs_refs_path()) {
+  paste(
+    labs_citation(path, key = "Schonbrodt2017_sequential",
+      fallback = "Schönbrodt, F. D., Wagenmakers, E.-J., Zehetleitner, M., & Perugini, M. (2017). Psychological Methods."),
+    labs_citation(path, key = "SchonbrodtWagenmakers2018_bfda",
+      fallback = "Schönbrodt, F. D., & Wagenmakers, E.-J. (2018). Psychonomic Bulletin & Review."),
+    bayes_citation(path)
+  )
+}
+
+# The share of simulated studies that have stopped by each sample size,
+# under the belief and with no effect.
+bayes_stops_plot <- function(plan) {
+  st <- plan$stops
+  graphics::par(mar = c(4, 4, 1, 1))
+  belief <- st[st$truth == "belief", ]
+  null <- st[st$truth == "null", ]
+  graphics::plot(belief$n, 100 * cumsum(belief$count) / plan$nsim, type = "s", lwd = 2, col = "#2166ac", ylim = c(0, 100),
+    xlim = range(st$n), las = 1, bty = "l",
+    xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
+    ylab = "Studies stopped by this size (%)")
+  graphics::lines(null$n, 100 * cumsum(null$count) / plan$nsim, type = "s", lwd = 2, col = "#b2182b", lty = 2)
+  graphics::legend("bottomright", bty = "n", cex = 0.85, lwd = 2, col = c("#2166ac", "#b2182b"), lty = c(1, 2),
+    legend = c("If your belief is right", "If there is no effect"))
 }
 
 # The two priors: the analysis prior (Cauchy) and the design prior (normal,
