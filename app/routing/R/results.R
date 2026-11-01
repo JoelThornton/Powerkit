@@ -319,7 +319,14 @@ meta_sentences <- function(spec, result) {
   pop <- spec$population
   random <- !identical(spec$target_test$model, "fixed")
   model <- if (random) "the random-effects model" else "the fixed-effect model"
-  effect <- sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  subgroups <- identical(spec$template, "subgroups")
+  effect <- if (subgroups) {
+    sprintf("average effects of %s = %s in the kinds of study", if (identical(pop$metric, "r")) "r" else "d",
+      paste(format(as.numeric(unlist(pop$effects))), collapse = ", "))
+  } else {
+    sprintf("%s = %s", if (identical(pop$metric, "r")) "r" else "d", format(pop$effect))
+  }
+  aim <- if (subgroups) "detect that the kinds of study differ, with" else "detect an average effect of"
   test <- sprintf("%s%s, alpha = %s%s, studies of %s participants and I-squared = %s", model,
     if (is_hartung_knapp(spec)) " and the Hartung-Knapp test" else " and the z test",
     alpha_text(spec$target_test$alpha),
@@ -341,15 +348,20 @@ meta_sentences <- function(spec, result) {
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
     c(
-      headline = sprintf("You need %s studies for %s power to detect an average effect of %s, with %s.",
-        whole(k), percent(spec$goal$power), effect, test),
+      headline = sprintf("You need %s studies%s for %s power to %s %s, with %s.",
+        whole(k), if (subgroups) " (split equally between the kinds)" else "", percent(spec$goal$power), aim, effect, test),
       detail = paste(source, caution)
     )
   } else {
     row <- result$curve[1, ]
     c(
-      headline = sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
-        whole(row$n), percent(row$power), effect, round(100 * row$power), test),
+      headline = if (subgroups) {
+        sprintf("With %s studies, the meta-analysis has %s power: with %s, about %d in 100 meta-analyses like this would find that the kinds of study differ, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      } else {
+        sprintf("With %s studies, the meta-analysis has %s power: if the average effect is %s, about %d in 100 meta-analyses like this would find it significant, with %s.",
+          whole(row$n), percent(row$power), effect, round(100 * row$power), test)
+      },
       detail = paste(source, caution)
     )
   }
@@ -1507,7 +1519,9 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   keys <- unlist(form$known_differences)
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
-  if (!is.null(spec) && is_hartung_knapp(spec)) keys <- setdiff(keys, "9")
+  # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
+  # doesn't round, and the Hartung-Knapp test is powerkit's simulation.
+  if (!is.null(spec) && (is_hartung_knapp(spec) || identical(spec$template, "subgroups"))) keys <- setdiff(keys, "9")
   only <- form$known_differences_if_method
   keys <- Filter(function(k) is.null(only[[k]]) || identical(spec$target_test$method, only[[k]]), keys)
   # Some apply to one goal (Known difference 11, a justified alpha).
@@ -1754,6 +1768,11 @@ writeup_claim <- function(values, spec) {
 # it is measured in, the study size and the heterogeneity.
 meta_effect_text <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "subgroups")) {
+    return(sprintf("average effects of %s = %s in %d kinds of study (the studies split equally between them), in studies of %s participants each with I-squared = %s",
+      if (identical(pop$metric, "r")) "r" else "Cohen's d", paste(format(as.numeric(unlist(pop$effects))), collapse = ", "),
+      length(unlist(pop$effects)), whole(pop$study_size), format(pop$i2)))
+  }
   sprintf("an average effect of %s = %s, in studies of %s participants each with I-squared = %s",
     if (identical(pop$metric, "r")) "r" else "Cohen's d", format(pop$effect), whole(pop$study_size), format(pop$i2))
 }

@@ -159,7 +159,7 @@ form_examples$E60 <- c(list(Y_labels = "Anxiety, Depression, Stress", means = "2
 
 # E61: a planned meta-analysis of two-group studies (Valentine, Pigott and
 # Rothstein's 2010 example: d = 0.15, 40 per study, moderate heterogeneity).
-form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_metric = "d", meta_effect = "0.15", study_size = "40",
+form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "mean_effect", meta_metric = "d", meta_effect = "0.15", study_size = "40",
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E62: pupils in classes; a cross-level interaction.

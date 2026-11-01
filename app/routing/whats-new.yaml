@@ -5,6 +5,12 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-01"
+    title: "Meta-analysis: do kinds of study differ?"
+    text: >-
+      The meta-analysis card can now plan a subgroup analysis: whether the
+      effect differs between kinds of study, such as lab and online
+      studies, as well as the test of the average effect.
   - date: "2026-10-31"
     title: "Choose a significance level by weighing the two mistakes"
     text: >-
