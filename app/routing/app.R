@@ -33,6 +33,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # Cards for end points that calculate (or preview, E10-E14) don't say "No
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
+tree$calculate_how <- about_endpoint_how(forms)
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -45,6 +46,40 @@ app_css <- "
   .choice .choice-help { display: block; font-size: 0.85rem; margin-top: 0.15rem; color: #3d4852; }
   .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #fff; }
   .trail { margin-bottom: 1rem; }
+  .trail-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .trail .chip { margin: 0; min-height: 44px; min-width: 44px; display: inline-flex; flex-direction: column; align-items: flex-start; text-align: left; border-radius: 10px; padding: 0.3rem 0.7rem; max-width: 16rem; line-height: 1.25; }
+  .chip-q { font-size: 0.72rem; color: #6b7684; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .chip-a { font-weight: 600; font-size: 0.85rem; }
+  .trail .chip:hover, .trail .chip:focus { border-color: var(--pk-blue); }
+  .question-step { color: var(--pk-blue); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; margin: 0.25rem 0 0.15rem; }
+  .choices-numbered { counter-reset: choice; }
+  .choices-numbered > .choice { counter-increment: choice; position: relative; padding-left: 3rem; }
+  .choices-numbered > .choice::before { content: counter(choice); position: absolute; left: 0.9rem; top: 0.8rem; width: 1.5rem; height: 1.5rem; border-radius: 6px;
+    border: 1px solid var(--pk-line); color: #5d6875; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; background: #fff; }
+  .choices-numbered > .choice:hover::before, .choices-numbered > .choice:focus::before { border-color: #fff; color: var(--pk-blue); }
+  .choices-way-out { margin-top: 0.6rem; grid-template-columns: 1fr !important; }
+  .choices-way-out .choice-safety { background: transparent; border-style: dashed; }
+  .choices-keys { color: #6b7684; font-size: 0.82rem; margin-top: 0.75rem; }
+  @media (hover: none) { .choices-keys { display: none; } }
+  .card-eyebrow { color: var(--pk-blue); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 0.2rem; }
+  .card-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1rem 0; }
+  .card-fact { background: #f7f8fa; border: 1px solid var(--pk-line); border-left: 4px solid #1f8a5b; border-radius: 10px; padding: 0.55rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem; }
+  .card-fact.how-background { border-left-color: var(--pk-blue); } .card-fact.how-full { border-left-color: #7b4fb3; } .card-fact.how-script { border-left-color: var(--pk-amber); }
+  .card-fact.is-progress { border-left-color: var(--pk-amber); } .card-fact:not([class*='how-']):not(.is-validated):not(.is-progress) { border-left-color: #9aa5b1; }
+  .card-fact-label { font-size: 0.75rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
+  .card-fact-value { font-size: 0.92rem; color: var(--pk-navy); font-weight: 500; }
+  .card-section-title { font-size: 1rem; font-weight: 600; color: var(--pk-navy); margin: 1.1rem 0 0.4rem; }
+  .card-needs ul { padding-left: 0; list-style: none; margin-bottom: 0.5rem; }
+  .card-needs li { position: relative; padding: 0.3rem 0 0.3rem 1.6rem; border-bottom: 1px solid #eef1f5; }
+  .card-needs li:last-child { border-bottom: 0; }
+  .card-needs li::before { content: ''; position: absolute; left: 0.35rem; top: 0.85rem; width: 0.45rem; height: 0.45rem; background: var(--pk-blue); border-radius: 50%; }
+  .card-needs-note { color: #5d6875; font-size: 0.88rem; margin: 0; }
+  .card-versions { background: #f4f8fc; border: 1px solid #d6e5f2; border-radius: 10px; padding: 0.2rem 1rem 0.4rem; margin: 1rem 0; }
+  .card-versions .card-section-title { margin-top: 0.7rem; }
+  .card-versions ul { padding-left: 1.1rem; margin-bottom: 0.3rem; } .card-versions li p { margin-bottom: 0.4rem; }
+  @media (max-width: 767px) { .card-facts { grid-template-columns: 1fr; gap: 0; border: 1px solid var(--pk-line); border-radius: 10px; overflow: hidden; }
+    .card-fact { flex-direction: row; justify-content: space-between; gap: 0.75rem; border: 0; border-left: 4px solid; border-radius: 0; border-bottom: 1px solid var(--pk-line); padding: 0.4rem 0.7rem; }
+    .card-fact:last-child { border-bottom: 0; } .card-fact-value { text-align: right; font-size: 0.88rem; } }
   .trail-title { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.35rem; }
   .chip { border: 1px solid #b8c2d3; background: #e8f0fb; color: #14284b; border-radius: 1.4rem;
           padding: 0.45rem 0.9rem; margin: 0 0.35rem 0.5rem 0; font-size: 0.85rem;
@@ -1502,7 +1537,7 @@ server <- function(input, output, session) {
       card = tagList(
         screen_nav_ui(),
         if (isTRUE(state$from_labs)) labs_return_ui(),
-        trail_ui(state$history),
+        trail_ui(state$history, tree),
         card_ui(tree, state$endpoint, history = state$history),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))

@@ -122,6 +122,18 @@ A batch of new features, built as one round.
   sideways. The About page and the start banner no longer say powerkit is
   only for psychology.
 
+* App: the "Help me choose" questions and the analysis cards are easier
+  to read. Each question shows its number ("Question 3"), the answers are
+  numbered and the number keys choose them, and "None of these fit / I'm
+  not sure" sits on its own row under the answers. The answers so far show
+  the question each answered, as well as the answer. A card that runs now
+  opens with three facts (how it calculates, from forms.yaml; which
+  package; whether its published checks are in), lists what you'll need
+  openly (it was folded), and gathers the rank-test and Bayes factor
+  versions in one box; the package, the terms and the questions asked
+  next stay folded. A card reached by answering questions says it is the
+  analysis that fits your answers.
+
 # powerkit 0.27.0
 
 A batch of new features, built as one round.
