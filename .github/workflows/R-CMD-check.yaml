@@ -1,12 +1,19 @@
-# R CMD check on the engine package, on every push.
-# High-replication validation tests are skipped here (they run nightly; see
-# nightly-validation.yaml).
+# R CMD check on the engine package, on every push that changes the
+# engine. High-replication validation tests are skipped here (they run
+# nightly; see nightly-validation.yaml).
 #
 # Packages come from renv.lock (the versions the validation runs used), not
 # the latest CRAN releases, so a new backend release can't change results
 # in CI until renv.lock is updated in its own PR (docs/decisions.md,
 # 17 October 2026). They are installed in the CI image (ci-image.yaml),
 # with the R version renv.lock records.
+#
+# The check and the engine's tests run side by side: R CMD check without
+# its tests, and the test files in three parts, each on its own runner.
+# Together they are what R CMD check alone used to run, in about a third
+# of the time. A push that changes nothing the engine is built or tested
+# from (for example an app or docs change) skips both, and they show as
+# skipped, which counts as passing.
 name: R-CMD-check
 
 on:
@@ -23,16 +30,62 @@ permissions:
   contents: read
 
 jobs:
+  # Whether this push changes the engine, renv.lock, the CI image or this
+  # workflow: on main, against the commit before the push; on another
+  # branch, against where it left main. When that can't be worked out
+  # (a new branch's first push from an unknown base, a manual run), the
+  # check runs.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      engine: ${{ steps.diff.outputs.engine }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Does this push change the engine?
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          base=""
+          if [ "$EVENT" = "push" ]; then
+            if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+              base="$BEFORE"
+            else
+              base="$(git merge-base origin/main HEAD 2>/dev/null || true)"
+            fi
+          fi
+          if [ -z "$base" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "No base to compare with: running the check."
+            echo "engine=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed="$(git diff --name-only "$base" HEAD)"
+          if printf '%s\n' "$changed" | grep -qE '^(engine/|renv\.lock$|\.github/ci/|\.github/workflows/(R-CMD-check|ci-image)\.yaml$)'; then
+            echo "The engine, renv.lock or the CI setup changed: running the check."
+            echo "engine=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nothing the engine is built or tested from changed: skipping the check."
+            echo "engine=false" >> "$GITHUB_OUTPUT"
+          fi
+
   image:
+    needs: changes
+    if: needs.changes.outputs.engine == 'true'
     uses: ./.github/workflows/ci-image.yaml
     permissions:
       contents: read
       packages: write
 
   R-CMD-check:
-    needs: image
+    needs: [changes, image]
+    if: needs.changes.outputs.engine == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: read
@@ -45,20 +98,66 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       RENV_ACTIVATE_PROJECT: "FALSE"
-      # Runs the engine tests that call skip_on_cran().
       NOT_CRAN: "true"
-      # The engine's test files run in parallel (engine/DESCRIPTION,
-      # Config/testthat/parallel), one per runner core.
-      TESTTHAT_CPUS: "4"
     steps:
       - uses: actions/checkout@v4
 
       - name: Package versions
         run: Rscript -e 'cat("R", format(getRversion()), "| Spower", format(packageVersion("Spower")), "\n")'
 
+      # The tests run in the engine-tests job below.
       - uses: r-lib/actions/check-r-package@v2
         with:
           working-directory: engine
-          args: 'c("--no-manual")'
+          args: 'c("--no-manual", "--no-tests")'
           error-on: '"warning"'
-          upload-snapshots: true
+
+  # The engine's test files, in three parts. A file goes to part
+  # (its place in alphabetical order) modulo 3, which spreads the slow
+  # simulation files (backend-crossed-*, backend-multilevel-*, ...) across
+  # the parts; within a part the files run four at a time
+  # (engine/DESCRIPTION, Config/testthat/parallel), as in R CMD check.
+  engine-tests:
+    needs: [changes, image]
+    if: needs.changes.outputs.engine == 'true'
+    name: engine-tests (part ${{ matrix.part }} of 3)
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      RENV_ACTIVATE_PROJECT: "FALSE"
+      # Runs the engine tests that call skip_on_cran().
+      NOT_CRAN: "true"
+      TESTTHAT_CPUS: "4"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the engine
+        run: R CMD INSTALL engine
+
+      - name: Run part ${{ matrix.part }} of the engine's tests
+        shell: Rscript {0}
+        run: |
+          files <- sort(list.files("engine/tests/testthat", pattern = "^test-.*\\.R$"))
+          names <- sub("^test-(.*)\\.R$", "\\1", files)
+          part <- ${{ matrix.part }}
+          mine <- names[(seq_along(names) - 1) %% 3 + 1 == part]
+          cat(length(mine), "of", length(names), "test files in this part\n")
+          library(powerkit)
+          testthat::test_dir("engine/tests/testthat", package = "powerkit", load_package = "installed",
+            filter = paste0("^(", paste(mine, collapse = "|"), ")$"),
+            stop_on_failure = TRUE)

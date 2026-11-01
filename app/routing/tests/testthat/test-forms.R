@@ -61,7 +61,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     # E24's, E34's, E36's, E37's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
                     E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
-                    E62 = list(two_outcome = "continuous"), E68 = list(three_outcome = "continuous"), list())
+                    E62 = list(two_outcome = "continuous", in_sites = "no"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
@@ -756,6 +756,22 @@ test_that("the participants-and-items cards take a yes/no outcome: probabilities
   spec <- build_spec(forms, "E63", fields, values)
   expect_identical(spec$target_test$effect, "pairwise")
   expect_identical(spec$target_test$method, "wald")
+})
+
+test_that("the two-level card takes a third level: a predictor on each larger group, its interaction with X, and the larger groups' SDs", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E62"))
+  values <- modifyList(c(form_examples$E62, list(goal = "power", n = "1600")),
+    list(in_sites = "yes", Z_label = "School funding", b_Z = "0.3", b_XZ = "0.1", sd_site = "0.3", sd_site_slope = "0.1",
+      groups_per_site = "4", three_level_effect = "site_interaction", two_level_effect = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("two_level_effect" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E62", fields, values)
+  expect_identical(spec$target_test$effect, "site_interaction")
+  expect_equal(spec$population$groups_per_site, 4)
+  expect_identical(spec$variables$Z$label, "School funding")
+  if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
 })
 
 test_that("the two- and three-level cards take a yes/no outcome: probabilities, SDs on the log-odds scale, and the Wald or likelihood-ratio test", {

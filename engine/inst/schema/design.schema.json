@@ -8310,7 +8310,7 @@
       }
     },
     "template_two_level": {
-      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio').",
+      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio'). Three levels (population > groups_per_site given): the groups are in sites (e.g. classes in schools), with Z measured on each site, in y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x | site:group) (the site X slope only when sd_site_slope is above 0); W is spread across each site's groups and Z across the sites, so the three are uncorrelated; goal > n is then a whole number of sites of cluster_size x groups_per_site people. Tests also Z's effect between sites ('site_effect') or X's interaction with Z ('site_interaction').",
       "properties": {
         "variables": {
           "required": [
@@ -8335,6 +8335,9 @@
                   "$ref": "#/definitions/variable_binary"
                 }
               ]
+            },
+            "Z": {
+              "$ref": "#/definitions/variable_continuous"
             }
           }
         },
@@ -8375,6 +8378,14 @@
               "type": "number",
               "description": "The cross-level interaction: how much X's effect changes for one SD more of W."
             },
+            "b_Z": {
+              "type": "number",
+              "description": "Three levels only: Z's effect between sites, the change in a site's average outcome for one SD more of Z."
+            },
+            "b_XZ": {
+              "type": "number",
+              "description": "Three levels only: X's interaction with Z, how much X's effect changes for one SD more of Z."
+            },
             "sd_group": {
               "type": "number",
               "minimum": 0,
@@ -8389,6 +8400,16 @@
               "$ref": "#/definitions/correlation",
               "description": "Correlation between the groups' intercepts and X slopes. 0 if omitted."
             },
+            "sd_site": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Three levels only: SD of the sites' random intercepts beyond Z."
+            },
+            "sd_site_slope": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Three levels only: SD of the sites' random X slopes beyond Z. 0 if omitted."
+            },
             "sd_residual": {
               "type": "number",
               "exclusiveMinimum": 0,
@@ -8398,6 +8419,11 @@
               "type": "integer",
               "minimum": 2,
               "description": "People in each group (the same in every group)."
+            },
+            "groups_per_site": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "Three levels only: groups in each site (the same in every site). Giving it makes the design three levels."
             }
           }
         },
@@ -8414,7 +8440,9 @@
                   "enum": [
                     "within_effect",
                     "between_effect",
-                    "cross_level_interaction"
+                    "cross_level_interaction",
+                    "site_effect",
+                    "site_interaction"
                   ]
                 },
                 "method": {
@@ -9423,7 +9451,7 @@
       }
     },
     "template_item_predictor": {
-      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item.",
+      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item. With population > x_level 'trial' (1 November 2026) X is measured on each trial instead (e.g. a stimulus duration that varies from trial to trial): each participant meets every value once, rotated across the items, so X varies within items too, and its effect may vary across items (sd_item_slope): y ~ x + (1 + x | participant) + (1 + x | item).",
       "properties": {
         "variables": {
           "required": [
@@ -9465,6 +9493,13 @@
                 "probability"
               ]
             },
+            "x_level": {
+              "description": "Where X is measured: 'item' (the default; one value per item) or 'trial' (each participant's values rotated across the items, so X varies within items).",
+              "enum": [
+                "item",
+                "trial"
+              ]
+            },
             "slope": {
               "description": "The effect of one SD more of X: in the outcome's units, or on the log odds for a yes/no outcome.",
               "type": "number"
@@ -9491,6 +9526,11 @@
             },
             "sd_item": {
               "description": "SD of the items' intercepts beyond what X explains.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_slope": {
+              "description": "X measured on each trial only: SD of the items' slopes on X. 0 if omitted.",
               "type": "number",
               "minimum": 0
             },

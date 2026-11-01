@@ -84,3 +84,48 @@ test_that("item predictor: matches a published example (published)", {
   skip_if_todo(population, n, published_power, reference_nrep)
   expect_power_near(engine_power(item_validation_spec(population, FALSE, seed = 6704, n = n)), published_power, reference_nrep = reference_nrep)
 })
+
+# A predictor measured on each trial (1 November 2026): each participant's
+# values rotated across the items, so X varies within items, and the
+# items' slopes on X drawn directly too; fitted with lmerTest::lmer() on
+# y ~ x + (1 + x | participant) + (1 + x | item) without simr.
+trial_by_hand <- function(p, n, nrep, seed) {
+  x <- stats::qnorm(seq_len(p$items) / (p$items + 1))
+  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
+  design <- expand.grid(participant = seq_len(n), item = seq_len(p$items))
+  design$x <- x[(design$participant + design$item - 2) %% p$items + 1]
+  r <- p$r_participant %||% 0
+  sigma_p <- matrix(c(p$sd_participant^2, r * p$sd_participant * p$sd_participant_slope,
+    r * p$sd_participant * p$sd_participant_slope, p$sd_participant_slope^2), 2)
+  with_seed(seed, mean(vapply(seq_len(nrep), function(i) {
+    u <- MASS::mvrnorm(n, c(0, 0), sigma_p)
+    w <- stats::rnorm(p$items, sd = p$sd_item)
+    ws <- stats::rnorm(p$items, sd = p$sd_item_slope)
+    d <- design
+    d$y <- p$slope * d$x + u[d$participant, 1] + u[d$participant, 2] * d$x + w[d$item] + ws[d$item] * d$x +
+      stats::rnorm(nrow(d), sd = p$sd_residual)
+    d$participant <- factor(d$participant)
+    d$item <- factor(d$item)
+    p_value <- tryCatch(suppressMessages(suppressWarnings(
+      summary(lmerTest::lmer(y ~ x + (1 + x | participant) + (1 + x | item), data = d))$coefficients["x", "Pr(>|t|)"]
+    )), error = function(e) NA)
+    isTRUE(p_value < 0.05)
+  }, logical(1))))
+}
+
+trial_population <- c(score_population, list(x_level = "trial", sd_item_slope = 8))
+
+test_that("trial predictor, score outcome: agrees with an independent simulation (analytic)", {
+  skip_unless_full_validation()
+  skip_if_not_installed("lmerTest")
+  reference <- trial_by_hand(trial_population, 20, item_reps, seed = 6711)
+  expect_power_near(engine_power(item_validation_spec(trial_population, FALSE, seed = 6712, n = 20)), reference, reference_nrep = item_reps)
+})
+
+test_that("trial predictor, score: Type I error near alpha with no effect", {
+  skip_unless_full_validation()
+  p <- trial_population
+  p$slope <- 0
+  estimate <- engine_power(item_validation_spec(p, FALSE, seed = 6713, n = 20))
+  expect_lt(abs(estimate$power - 0.05), 3 * sqrt(0.05 * 0.95 / item_reps))
+})

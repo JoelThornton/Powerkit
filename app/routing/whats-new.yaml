@@ -15,6 +15,20 @@ entries:
       which package does it and how far its checks are, lists what you'll
       need before you start, and gathers its other versions in one box.
   - date: "2026-11-01"
+    title: "A predictor that changes from trial to trial"
+    text: >-
+      The card for participants responding to many items now also plans
+      studies where the predictor is measured on each trial, such as how
+      long a picture is shown, so it varies within items as well as
+      between them.
+  - date: "2026-11-01"
+    title: "Predictors at all three levels"
+    text: >-
+      The card for people in groups with predictors at each level can now
+      take groups within larger groups, such as classes within schools,
+      with a predictor measured on each school and its interaction with
+      the predictor measured on each person.
+  - date: "2026-11-01"
     title: "How many items or stimuli?"
     text: >-
       The card for participants responding to many items in two conditions
