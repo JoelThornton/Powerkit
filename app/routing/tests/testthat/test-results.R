@@ -971,6 +971,35 @@ test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr,
   expect_false("15" %in% names(departures_for(forms, "E2", spec)))
 })
 
+test_that("the correlation's Bayes factor version runs on BayesFactor, with JASP's prior width and its notes", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- modifyList(form_examples$E4, list(method = "bayes_factor", evidence_threshold = "10", prior_width = "1",
+                                              r_sd = "0", just_source = "A meta-analysis.", alpha = NULL))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E4", fields, values)
+  expect_null(spec$target_test$alpha)
+  expect_identical(spec$target_test$prior_width, 1)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "default prior width is JASP", fixed = TRUE)                    # Known difference 12
+  expect_match(html, "plans for exactly the effect you entered", fixed = TRUE)        # Departure 15
+  expect_no_match(html, "Fisher&#39;s z|Fisher's z")                                 # Departure 10 is pwr's
+  known <- vapply(known_difference_keys(forms, "E4", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
+  w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values, known_methods = known)
+  expect_match(w[["short"]], "Bayes factor test of Pearson's correlation", fixed = TRUE)
+  expect_match(w[["short"]], "stretched beta prior of width 1", fixed = TRUE)
+  expect_match(w[["short"]], "rho = 0 against rho != 0", fixed = TRUE)
+  expect_no_match(w[["short"]], "α", fixed = TRUE)
+  expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
+  # Pearson's r by formula has no Known difference 12.
+  expect_false("12" %in% known_difference_keys(forms, "E4", build_spec(forms, "E4", fields, form_examples$E4)))
+})
+
 test_that("Fisher's exact test (E5's option) runs on pwrss, with its own notes", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E5"))

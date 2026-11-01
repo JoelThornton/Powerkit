@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "A Bayes factor test for a correlation"
+    text: >-
+      The correlation card now offers a Bayes factor test of Pearson's r,
+      with the same Bayes factor and default prior as JASP's Bayesian
+      correlation. It shows the chance of strong evidence, and what the
+      study would show if there were no correlation.
+  - date: "2026-11-01"
     title: "A clearer About page, and Updates"
     text: >-
       The About page now says in three steps how powerkit works, shows

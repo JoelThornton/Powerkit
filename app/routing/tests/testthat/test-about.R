@@ -57,7 +57,7 @@ test_that("the About panel explains how to report problems: the Feedback tab and
 test_that("the About panel credits every foundation tool, from its own citation()", {
   html <- about_html()
   foundation <- c("pwr", "pwrss", "Spower", "Superpower", "InteractionPoweR", "power4mome", "powertools", "semPower",
-    "TOSTER", "bfpwr", "metapower", "simr", "PUMP")
+    "TOSTER", "bfpwr", "BayesFactor", "metapower", "simr", "PUMP")
   expect_setequal(vapply(about_foundation_tools, `[[`, "", "package"), foundation)
   for (p in c(foundation, "SimDesign", "afex", "MASS", "lavaan", "manymome", "shiny")) {
     expect_match(html, sprintf("<strong>%s</strong>", p), fixed = TRUE, label = p)
