@@ -130,3 +130,51 @@ test_that("precision goals and designs are refused in plain words where they don
   power$goal <- list(type = "power", n = 100L)
   expect_error(validate_spec(power), class = "powerkit_error")
 })
+
+# More estimates (1 November 2026): a raw mean difference, an odds ratio,
+# an ICC (presize) and a standardised regression coefficient (MBESS).
+test_that("a raw mean difference and an odds ratio are presize's, for two equal groups", {
+  md <- run_quietly(precision_spec("precision_mean_difference"))
+  direct <- suppressWarnings(presize::prec_meandiff(delta = 5, sd1 = 12, conf.width = 6, variance = "equal"))
+  expect_identical(md$precision$n, 2L * as.integer(ceiling(direct$n1)))
+  expect_lte(md$precision$width, 6)
+  or <- run_quietly(precision_spec("precision_odds_ratio"))
+  # The second group's odds over the first's.
+  expect_equal(or$precision$effect, (0.45 / 0.55) / (0.3 / 0.7))
+  expect_true(or$precision$lower < or$precision$effect && or$precision$effect < or$precision$upper)
+  direct <- suppressWarnings(presize::prec_or(p1 = 0.45, p2 = 0.3, conf.width = 1, method = "indip_smooth"))
+  expect_identical(or$precision$n, 2L * as.integer(ceiling(direct$n1)))
+})
+
+test_that("an ICC is presize's prec_icc(), which gives the width but not the limits", {
+  icc <- run_quietly(precision_spec("precision_icc"))
+  direct <- suppressWarnings(presize::prec_icc(rho = 0.7, k = 3, conf.width = 0.2))
+  expect_identical(icc$precision$n, as.integer(ceiling(direct$n)))
+  expect_true(is.na(icc$precision$lower))
+  expect_lte(icc$precision$width, 0.2)
+})
+
+test_that("a regression coefficient is MBESS's ss.aipe.reg.coef(), and the width at n inverts it", {
+  skip_if_not_installed("gsl")
+  reg <- run_quietly(precision_spec("precision_regression_coefficient"))
+  direct <- suppressWarnings(MBESS::ss.aipe.reg.coef(Rho2.Y_X = 0.3, Rho2.j_X.without.j = 0.2, p = 4, b.j = 0.25, width = 0.2,
+    sigma.Y = 1, sigma.X = 1, Suppress.Statement = TRUE))
+  expect_identical(reg$precision$n, as.integer(unlist(direct)[1]))
+  at_n <- run_quietly(precision_spec("precision_regression_coefficient", goal = list(type = "precision", n = reg$precision$n)))
+  expect_lte(at_n$precision$width, 0.2 + 1e-6)
+  expect_gt(at_n$precision$width, 0.18)
+  sure <- run_quietly(precision_spec("precision_regression_coefficient", goal = list(type = "precision", width = 0.2, assurance = 0.9)))
+  expect_gt(sure$precision$n, reg$precision$n)
+})
+
+test_that("the exported scripts reproduce the new estimates with the package alone", {
+  for (name in c("precision_mean_difference", "precision_odds_ratio", "precision_icc", "precision_regression_coefficient")) {
+    if (name == "precision_regression_coefficient" && !requireNamespace("gsl", quietly = TRUE)) next
+    for (goal in list(NULL, list(type = "precision", n = 120L))) {
+      spec <- if (is.null(goal)) precision_spec(name) else precision_spec(name, goal = goal)
+      result <- run_quietly(spec)
+      run <- run_exported_script(spec, result)
+      expect_equal(run$reproduced, run$powerkit, tolerance = 1e-6, label = name)
+    }
+  }
+})

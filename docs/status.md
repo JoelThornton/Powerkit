@@ -108,8 +108,12 @@ fully validated. Validation runs are recorded in
   than power. Cohen's d between two groups, d_z and a standardised mean
   by MBESS (`ss.aipe.smd()`, `ss.aipe.sm()`, with optional assurance);
   a correlation (Pearson's, Spearman's or Kendall's) and a proportion
-  (Wilson's interval by default) by presize. MBESS brings OpenMx with it,
-  the heaviest new dependency.
+  (Wilson's interval by default) by presize; since 1 November 2026 also a
+  raw mean difference, an odds ratio and an ICC (presize) and a
+  standardised regression coefficient (MBESS's `ss.aipe.reg.coef()`, which
+  needs gsl). MBESS brings OpenMx with it, the heaviest new dependency.
+  E33 can also plan the number of items for a fixed number of
+  participants (1 November 2026).
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026) and Spearman's and Kendall's correlations (E4).
@@ -127,14 +131,14 @@ fully validated. Validation runs are recorded in
   stopping when the evidence is strong).
 - **Next for moderated mediation:** W on both links or the direct path
   (E38, models 8, 58 and 59) and a yes/no X or W (E17) are Ready
-  (`next.md`, items 7 and 8, decided 1 November 2026).
+  (`next.md`, items 6 and 7, decided 1 November 2026).
 - **Waiting on others:** Spower's faults are ready to raise upstream
   (`docs/upstream/spower-var-test.R`).
 
 ## Known gaps on cards that run
 
 - Mixed designs with unequal groups reach the safety net (`next.md`,
-  item 10). Every repeated-measures card takes an SD per cell and
+  "Repeated measures"). Every repeated-measures card takes an SD per cell and
   correlations per pair, with a sphericity correction where one applies
   (the mixed and two-factor within designs since 1 November 2026).
 - Simulated data sets are missing for the three-way regression
@@ -145,9 +149,10 @@ fully validated. Validation runs are recorded in
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
 - SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (item 9).
+  groups or occasions (`next.md`, "SEM").
 - Technical details (df, critical value, noncentrality) are missing for
-  semPower, powertools, TOSTER and bfpwr designs (item 18).
+  semPower, powertools, TOSTER and bfpwr designs (`next.md`, "Critical
+  effect size").
 
 ## Working environment
 
