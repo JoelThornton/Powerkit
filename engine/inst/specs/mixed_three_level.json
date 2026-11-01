@@ -1,0 +1,25 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "three_level",
+  "variables": {
+    "X": {"type": "between_factor", "label": "Programme", "levels": ["Usual lessons", "Reading programme"]},
+    "Y": {"type": "continuous", "label": "Reading score"}
+  },
+  "population": {
+    "metric": "standardised",
+    "d": 0.25,
+    "icc_site": 0.1,
+    "icc_group": 0.05,
+    "group_size": 20,
+    "groups_per_site": 4,
+    "assignment": "site"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: pupils in classes in schools, whole schools assigned; d = 0.25 is the smallest effect of interest."
+  },
+  "target_test": {"effect": "condition", "method": "satterthwaite_t", "alpha": 0.05},
+  "goal": {"type": "power", "n": 2400},
+  "options": {"nrep": 200, "seed": 64}
+}

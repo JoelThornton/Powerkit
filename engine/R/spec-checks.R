@@ -15,6 +15,7 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
+        three_level = check_three_level(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
     poisson_regression = check_single_predictor_x,
@@ -680,6 +681,31 @@ check_crossed_two_condition <- function(spec) {
     problems <- c(problems, paste0(
       "Give 'population > sd_participant_slope', how much the difference between conditions varies across participants ",
       "(0 if it doesn't), or make X a between factor if each participant is in one condition."))
+  }
+  problems
+}
+
+# Three levels (E68): the shares of variance leave some within groups;
+# half of what is assigned goes in each condition, so that number is even;
+# an effect can vary only across the levels above the one assigned.
+check_three_level <- function(spec) {
+  pop <- spec$population
+  problems <- character()
+  if (pop$icc_site + pop$icc_group >= 1) {
+    problems <- c(problems, sprintf("'population > icc_site' and 'icc_group' add up to %s, but together they must be below 1: some of the variance lies between people in the same group.",
+      format_number(pop$icc_site + pop$icc_group)))
+  }
+  if (identical(pop$assignment, "group") && pop$groups_per_site %% 2 == 1) {
+    problems <- c(problems, sprintf("With groups assigned within each site, half of each site's groups go in each condition, so 'population > groups_per_site' (%s) must be even.", format_number(pop$groups_per_site)))
+  }
+  if (identical(pop$assignment, "person") && pop$group_size %% 2 == 1) {
+    problems <- c(problems, sprintf("With people assigned within each group, half of each group goes in each condition, so 'population > group_size' (%s) must be even.", format_number(pop$group_size)))
+  }
+  if (identical(pop$assignment, "site") && !is.null(pop$icc_effect_site)) {
+    problems <- c(problems, "'population > icc_effect_site' is how much the effect varies between sites, which needs both conditions in every site: remove it when whole sites are assigned.")
+  }
+  if (!identical(pop$assignment, "person") && !is.null(pop$icc_effect_group)) {
+    problems <- c(problems, "'population > icc_effect_group' is how much the effect varies between groups, which needs both conditions in every group: remove it unless people are assigned within groups.")
   }
   problems
 }
@@ -2169,7 +2195,8 @@ minimum_n <- function(spec) {
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
     # Two-level: at least ten groups, for the groups' variances.
-    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else 6,
+    mixed_model = if (identical(spec$template, "two_level")) 10 * spec$population$cluster_size else
+      if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
@@ -2231,6 +2258,12 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_conditions") && identical(spec$variables$X$type, "between_factor")) {
     k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups, one per condition", k), valid = function(n) n %% k == 0))
+  }
+  if (identical(spec$template, "three_level")) {
+    site <- spec$population$group_size * spec$population$groups_per_site
+    step <- if (identical(spec$population$assignment, "site")) 2 * site else site
+    return(list(rule = sprintf("a whole number of sites of %d people%s", site,
+      if (identical(spec$population$assignment, "site")) ", an even number of them" else ""), valid = function(n) n %% step == 0))
   }
   if (identical(spec$template, "two_level")) {
     m <- spec$population$cluster_size
@@ -2372,6 +2405,8 @@ target_effect_is_zero <- function(spec) {
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+    } else if (identical(spec$template, "three_level")) {
+      pop$d
     } else if (identical(spec$template, "crossed_conditions")) {
       means <- as.numeric(unlist(pop$means %||% pop$probabilities))
       pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))

@@ -35,7 +35,7 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped cards (through C1).
       # Many trials per person leave after S2's follow-up for E33.
-      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E44", "E65")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
+      screened <- "s3" %in% p || ("s2" %in% p && end %in% c("E34", "E62", "E68", "E44", "E65")) || ("s2_trials" %in% p && end %in% c("E33", "E63"))
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }
@@ -54,8 +54,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # separates conditions given to groups (E34) from measured predictors
   # at either level (E62).
   expect_identical(leads_to(c("A score or scale", "People within groups")), c(choose = "c1", known = "c1", guided = "c1"))
-  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions), "E34")
+  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions, "No: one level of groups (for example, classes, or clinics)"), "E34")
   expect_all_routes(c("A score or scale", "People within groups", cluster_measured), "E62")
+  # Groups within larger groups (1 November 2026): three levels.
+  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions,
+    "Yes: groups within larger groups (for example, classes within schools, or therapists within clinics)"), "E68")
   # Equivalence for grouped data: not the equivalence card, which assumes
   # separate people; the grouped card says it isn't covered yet.
   expect_all_routes(c("A score or scale", "People within groups"), "E34", ctx = list(goal = "equivalence"))
@@ -179,7 +182,7 @@ test_that("nested data with a yes/no outcome no longer reaches the two-proportio
 
 test_that("cluster-randomised designs reach the multilevel card", {
   # On main: diff > score > Different people > One > Two, with different people > E2.
-  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions), "E34")
+  expect_all_routes(c("A score or scale", "People within groups", cluster_conditions, "No: one level of groups (for example, classes, or clinics)"), "E34")
   expect_match(tree$nodes$s2$options[[2]]$help, "whole groups were assigned", fixed = TRUE)
 })
 

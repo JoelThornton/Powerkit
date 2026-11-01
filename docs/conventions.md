@@ -436,6 +436,14 @@ default for a numeric predictor; the likelihood-ratio test is offered.
 With powerkit's yes/no example (70% and 80% correct, 40 items, 30
 participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 
+## Three levels: people in groups in larger groups (E68)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for three-level designs | — | — |
+| simr | `powerSim()` on a model built with `makeLmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
+| **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E68, from 1 November 2026) [powerkit] | Cohen's d over the outcome's total SD, with the sites' and groups' shares of the variance (intraclass correlations) and the effect's variation across sites or groups as shares of it | `y ~ cond + (1 \| site) + (1 \| site:group)`, with `(1 + cond \| site)` when the condition is assigned below the sites and its effect varies, and `(1 + cond \| site:group)` when it is assigned to people; cond coded -0.5 and 0.5; equal group and site sizes; the first half of what is assigned in the first condition. The Satterthwaite test is Departure 16; with few sites and a small varying effect it can be conservative (3.1% at alpha .05 with classes assigned in 8 schools, 3.65% in an independent simulation) |
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |
@@ -1001,10 +1009,14 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   a factor, a likelihood-ratio test: with powerkit's example
   (`inst/specs/crossed_conditions.json`) and 1,000 simulated data sets,
   21.5% against 22.9% at 20 participants, 31.1% against 32.3% at 40.
+  With three levels (E68, from 1 November 2026) and whole schools
+  assigned (powerkit's example, `inst/specs/mixed_three_level.json`:
+  classes of 20, four classes per school), 17.2% against 23.6% at 12
+  schools and 46.4% against 49.4% at 30 (1,000 simulated data sets).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's, E62's and E63's result screens
+- **Shown to users:** on E33's, E62's, E63's and E68's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")

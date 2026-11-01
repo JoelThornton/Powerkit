@@ -7704,7 +7704,8 @@
             "enum": [
               "crossed_two_condition",
               "two_level",
-              "crossed_conditions"
+              "crossed_conditions",
+              "three_level"
             ]
           }
         },
@@ -7752,6 +7753,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_crossed_conditions"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "three_level"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_three_level"
             }
           }
         ]
@@ -9103,6 +9119,108 @@
                 },
                 "method": {
                   "const": "wald_z"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_three_level": {
+      "description": "Three levels: people (level 1) in groups (level 2, e.g. classes) in sites (level 3, e.g. schools), with two conditions assigned to whole sites, to groups within each site, or to people within each group (population > assignment). On the scale of the outcome's total SD: the effect d, the sites' and groups' shares of the variance (icc_site, icc_group), and when the condition is assigned below the sites, the share of variance in its effect across sites (icc_effect_site) and, when assigned to people, across groups (icc_effect_group): y ~ cond + (1 + cond | site) + (1 + cond | site:group), with cond coded -0.5 and 0.5 and the condition's terms only where they apply. Simulated with simr's powerSim() on a model built by makeLmer(), testing the condition with lmerTest's Satterthwaite t test. goal > n is the number of people, a whole number of sites (an even number when whole sites are assigned).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/two_level_between_factor"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "d",
+            "icc_site",
+            "icc_group",
+            "group_size",
+            "groups_per_site",
+            "assignment"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "d": {
+              "description": "The difference between conditions (second minus first) over the outcome's total SD.",
+              "type": "number"
+            },
+            "icc_site": {
+              "description": "The share of the outcome's total variance between sites (e.g. schools).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "icc_group": {
+              "description": "The share of the outcome's total variance between groups within sites (e.g. classes within schools).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "icc_effect_site": {
+              "description": "Conditions assigned below the sites only: the share of the total variance in the effect across sites. 0 if omitted.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "icc_effect_group": {
+              "description": "Conditions assigned to people only: the share of the total variance in the effect across groups. 0 if omitted.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "group_size": {
+              "description": "People in each group.",
+              "type": "integer",
+              "minimum": 2
+            },
+            "groups_per_site": {
+              "description": "Groups in each site.",
+              "type": "integer",
+              "minimum": 2
+            },
+            "assignment": {
+              "description": "What is assigned to the conditions: 'site' (whole sites), 'group' (groups within each site, half of each site's groups in each condition) or 'person' (people within each group, half of each group in each).",
+              "enum": [
+                "site",
+                "group",
+                "person"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "const": "condition"
+                },
+                "method": {
+                  "const": "satterthwaite_t"
                 }
               }
             }

@@ -8,20 +8,23 @@
   "choose": [
    "A score or scale",
    "People within groups",
-   "Conditions or treatments given to whole groups, or to people within the groups"
+   "Conditions or treatments given to whole groups, or to people within the groups",
+   "No: one level of groups (for example, classes, or clinics)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups"
+    "Conditions or treatments given to whole groups, or to people within the groups",
+    "No: one level of groups (for example, classes, or clinics)"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups"
+    "Conditions or treatments given to whole groups, or to people within the groups",
+    "No: one level of groups (for example, classes, or clinics)"
    ]
   },
   "reaches": {
@@ -70,20 +73,23 @@
   "choose": [
    "A score or scale",
    "People within groups",
-   "Conditions or treatments given to whole groups, or to people within the groups"
+   "Conditions or treatments given to whole groups, or to people within the groups",
+   "No: one level of groups (for example, classes, or clinics)"
   ],
   "known": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups"
+    "Conditions or treatments given to whole groups, or to people within the groups",
+    "No: one level of groups (for example, classes, or clinics)"
    ]
   },
   "guided": {
    "answers": [
     "A score or scale",
     "People within groups",
-    "Conditions or treatments given to whole groups, or to people within the groups"
+    "Conditions or treatments given to whole groups, or to people within the groups",
+    "No: one level of groups (for example, classes, or clinics)"
    ]
   },
   "reaches": {
