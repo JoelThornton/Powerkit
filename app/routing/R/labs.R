@@ -709,7 +709,7 @@ bayes_sequential_numbers <- function(plan) {
   belief_words <- if (plan$effect_sd > 0) sprintf("If the effect is about %s (give or take %s)", format(plan$effect), format(plan$effect_sd)) else
     sprintf("If the effect is exactly %s", format(plan$effect))
   looks <- if (plan$step == 1) "after every participant" else sprintf("after every %s participants", format(plan$step))
-  if (identical(plan$type, "two.sample")) looks <- sub("participants?$", "\\0 in each group", looks)
+  if (identical(plan$type, "two.sample")) looks <- paste(looks, "in each group")
   at_max_words <- function(row, truth) {
     if (is.na(row$at_max_toward_effect) || row$at_max == 0) return(NULL)
     sprintf("%s: of the %s that reach %s, %s end with a BF10 above 3, %s below 1/3, and %s in between.",
