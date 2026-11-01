@@ -32,7 +32,7 @@ chunk_sources <- function() {
     anova = "engine/R/backend-superpower.R",
     process_4 = power4mome, process_4_binary = power4mome, process_6 = power4mome,
     process_7 = power4mome, process_14 = power4mome,
-    modmed_parallel = power4mome,
+    modmed_parallel = power4mome, modmed_difference = power4mome,
     mediation_crosscheck = c(power4mome, "engine/tests/testthat/helper-crosscheck.R"),
     mediation_crosscheck_parallel = c(power4mome, "engine/tests/testthat/helper-crosscheck.R"),
     mediation_crosscheck_serial = c(power4mome, "engine/tests/testthat/helper-crosscheck.R"),

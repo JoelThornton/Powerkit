@@ -452,6 +452,14 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E68, from 1 November 2026) [powerkit] | Cohen's d over the outcome's total SD, with the sites' and groups' shares of the variance (intraclass correlations) and the effect's variation across sites or groups as shares of it | `y ~ cond + (1 \| site) + (1 \| site:group)`, with `(1 + cond \| site)` when the condition is assigned below the sites and its effect varies, and `(1 + cond \| site:group)` when it is assigned to people; cond coded -0.5 and 0.5; equal group and site sizes; the first half of what is assigned in the first condition. The Satterthwaite test is Departure 16; with few sites and a small varying effect it can be conservative (3.1% at alpha .05 with classes assigned in 8 schools, 3.65% in an independent simulation) |
 
+## Moderated mediation with W on both links or the direct path (E38)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| power4mome | `power4test()` on any lavaan model; no ready-made test of the difference between conditional indirect effects [power4mome help] | Standardised paths | Fits with lavaan; adds covariances among the exogenous variables and products |
+| **powerkit** | power4mome's `power4test()` with powerkit's `test_cond_indirect_diff()`, manymome's `cond_indirect_diff()`: the indirect effect at W = w_values[2] minus that at w_values[1], tested by its Monte Carlo confidence interval (E38, from 1 November 2026) [powerkit] | Standardised paths, the interactions XW -> M, MW -> Y and XW -> Y as the model has them | One mediator; W standardised, so its values are SDs from its mean (-1 and 1 by default). For models 58 and 59 the fitted model leaves out power4mome's residual covariance of M with W (not estimable when W predicts M). Departures 6 (lavaan, not OLS) and 8 (the CI rule) apply as for models 7 and 14 |
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |

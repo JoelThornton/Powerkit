@@ -1728,7 +1728,28 @@ path_model <- function(spec) {
           list(Y = c("X", mediators, "W", names(products)))
         )
       )
-    }
+    },
+    # W on both links or the direct path too (1 November 2026), one
+    # mediator M. Model 8: W moderates X -> M and X -> Y. Model 58: X -> M
+    # and M -> Y. Model 59: all three.
+    process_8 = list(
+      exogenous = c("X", "W"),
+      mediators = mediators,
+      products = list(XW = c("X", "W")),
+      equations = list(M = c("X", "W", "XW"), Y = c("X", "M", "W", "XW"))
+    ),
+    process_58 = list(
+      exogenous = c("X", "W"),
+      mediators = mediators,
+      products = list(XW = c("X", "W"), MW = c("M", "W")),
+      equations = list(M = c("X", "W", "XW"), Y = c("X", "M", "W", "MW"))
+    ),
+    process_59 = list(
+      exogenous = c("X", "W"),
+      mediators = mediators,
+      products = list(XW = c("X", "W"), MW = c("M", "W")),
+      equations = list(M = c("X", "W", "XW"), Y = c("X", "M", "W", "XW", "MW"))
+    )
   )
 }
 
@@ -1747,7 +1768,8 @@ check_path_model <- function(spec) {
   problems <- c(
     check_path_names(spec, model),
     check_correlation_names(spec, model),
-    check_target_path(spec, model)
+    check_target_path(spec, model),
+    check_modmed_effect(spec)
   )
   if (length(problems) > 0) {
     return(problems)
@@ -1755,11 +1777,32 @@ check_path_model <- function(spec) {
   check_implied_variances(spec, model)
 }
 
+# Models 8, 58 and 59 test the difference between conditional indirect
+# effects; models 7 and 14 the index of moderated mediation.
+check_modmed_effect <- function(spec) {
+  if (!identical(spec$design, "moderated_mediation")) return(character())
+  difference <- spec$template %in% c("process_8", "process_58", "process_59")
+  effect <- spec$target_test$effect
+  problems <- character()
+  if (difference && !identical(effect, "conditional_indirect_difference")) {
+    problems <- c(problems, "Models 8, 58 and 59 have no single index of moderated mediation: set 'target_test > effect' to \"conditional_indirect_difference\", the difference between the indirect effects at two values of W ('target_test > w_values').")
+  }
+  if (!difference && identical(effect, "conditional_indirect_difference")) {
+    problems <- c(problems, "'target_test > effect' \"conditional_indirect_difference\" is for models 8, 58 and 59; models 7 and 14 test the index of moderated mediation.")
+  }
+  w <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
+  if (difference && w[1] == w[2]) problems <- c(problems, "'target_test > w_values' must be two different values of W.")
+  problems
+}
+
 check_mediator_names <- function(spec, model) {
   mediators <- model$mediators
   numbered <- paste0("M", seq_along(mediators))
   ok <- switch(
     spec$template,
+    process_8 = ,
+    process_58 = ,
+    process_59 = identical(mediators, "M"),
     process_4 = ,
     process_7 = ,
     process_14 = identical(mediators, "M") ||
@@ -1770,7 +1813,9 @@ check_mediator_names <- function(spec, model) {
   if (ok) {
     return(character())
   }
-  advice <- if (spec$template != "process_6") {
+  advice <- if (spec$template %in% c("process_8", "process_58", "process_59")) {
+    "Models 8, 58 and 59 take one mediator, named 'M'"
+  } else if (spec$template != "process_6") {
     "Name a single mediator 'M', or several mediators M1, M2, M3, ... with no gaps"
   } else {
     "Name the mediators M1, M2, ... in causal order, with no gaps"
@@ -2468,7 +2513,10 @@ target_effect_is_zero <- function(spec) {
     moderated_mediation = switch(
       spec$template,
       process_7 = paths[[paste0("XW->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "->Y")]],
-      process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]]
+      process_14 = paths[[paste0("X->", modmed_mediator(spec))]] * paths[[paste0(modmed_mediator(spec), "W->Y")]],
+      process_8 = ,
+      process_58 = ,
+      process_59 = cond_indirect_difference_value(spec)
     ),
     meta_analysis = if (identical(spec$template, "subgroups")) {
       e <- as.numeric(unlist(pop$effects))
@@ -2669,4 +2717,16 @@ check_eta_squared_anova <- function(spec) {
     return("With partial eta-squared power is worked out by formula (pwrss); simulation needs the group means.")
   }
   character()
+}
+
+# The population difference between the conditional indirect effects at
+# W = w_to and W = w_from (models 8, 58 and 59): (a1 + a3 w)(b1 + b3 w)
+# at each, with b3 0 for model 8 (its moderation of the direct path
+# doesn't enter the indirect effect).
+cond_indirect_difference_value <- function(spec) {
+  paths <- spec$population$paths
+  get <- function(name) as.numeric(paths[[name]] %||% 0)
+  w <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
+  at <- function(v) (get("X->M") + get("XW->M") * v) * (get("M->Y") + get("MW->Y") * v)
+  at(w[2]) - at(w[1])
 }

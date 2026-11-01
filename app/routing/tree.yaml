@@ -1447,11 +1447,18 @@ endpoints:
   E38:
     doc_name: "Moderated mediation with W on both links or the direct link (PROCESS models 8, 58, 59)"
     plain_name: "Moderated mediation where W changes both links, or the direct link too"
-    status: not_in_powerkit
-    inputs: ["Standardised paths"]
-    packages:
-      - {name: power4mome, url: "https://cran.r-project.org/package=power4mome", what: "Power for any mediation or moderated mediation model written in lavaan syntax (no ready-made template for these models)."}
+    template: "moderated_mediation / process_8, process_58, process_59"
+    backend: "power4mome: power4test() with powerkit's test of the difference between conditional indirect effects (manymome's cond_indirect_diff())"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-modmed-difference.R, note: "Agrees with a simulation written separately (OLS for each equation, PROCESS's way, and its own Monte Carlo interval for the difference), and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Moderated mediation where W changes both links of the indirect effect (PROCESS model 58), the first link and the direct path (model 8), or all three (model 59)."
+      - "These models have no single index of moderated mediation, so powerkit plans for the difference between the indirect effects at two values of W (by default one SD below and above its mean), tested by its Monte Carlo confidence interval."
+      - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
+    inputs: ["Which links W changes", "Standardised paths, including the interactions", "The two values of W to compare"]
     tier: v2
+    alternatives: ["the conditional indirect effect at each value of W, each tested on its own", "a model with W on one link only (PROCESS model 7 or 14), if theory allows"]
   E39:
     doc_name: "Mediation with a yes/no or categorical mediator"
     plain_name: "Mediation when a mediator isn't a score"

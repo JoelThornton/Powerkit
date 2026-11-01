@@ -108,6 +108,13 @@ Questions about metapower 0.2.2, from its source (opened 31 October
    "Published values: InteractionPoweR notes"): whether a binary X can be
    correlated with W, and whether the Monte Carlo CI test has been checked
    with a binary X.
+4. **A residual covariance that can't be estimated, with W on the M -> Y
+   link.** For a model with M ~ X + W + X:W and Y ~ ... + M:W (PROCESS
+   model 58 or 59), power4test()'s fitted model adds `M ~~ W`, a residual
+   covariance of M with one of its own predictors, which lavaan cannot
+   estimate ("Could not compute standard errors"), so every test fails.
+   powerkit gives the fitted model through `fit_model_args`, without that
+   line (1 November 2026). Is `M ~~ W` added on purpose for some models?
 
 ## Spower
 

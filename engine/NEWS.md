@@ -2,6 +2,20 @@
 
 A batch of new features, built as one round.
 
+* Moderated mediation with W on both links or the direct path (E38,
+  templates `process_8`, `process_58` and `process_59`, one mediator):
+  these models have no single index of moderated mediation, so the test
+  is of the difference between the conditional indirect effects at two
+  values of W (`target_test > effect` "conditional_indirect_difference",
+  `w_values`, by default -1 and 1 SD), by its Monte Carlo or bootstrap
+  confidence interval. Simulated with power4mome, with powerkit's test
+  function `test_cond_indirect_diff()` (manymome's
+  `cond_indirect_effects()` and `cond_indirect_diff()`). For models 58
+  and 59 the fitted model is given to power4mome explicitly, leaving out
+  the residual covariance of M with W that power4mome adds but lavaan
+  cannot estimate when W predicts M (docs/upstream-questions.md). Checked
+  against a simulation written separately (OLS for each equation and its
+  own Monte Carlo interval), with the Type I error at most alpha.
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from

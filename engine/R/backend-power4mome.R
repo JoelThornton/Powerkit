@@ -16,7 +16,9 @@ power4mome_backend <- function(spec, seed = NULL) {
     packages = c("power4mome", "manymome", "lavaan"),
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = sprintf("power4mome::power4test with power4mome::%s", inputs$test_name)),
+    functions = c(simulation = sprintf("power4mome::power4test with %s", if (identical(inputs$test_name, "test_cond_indirect_diff")) {
+      "powerkit's test_cond_indirect_diff() (manymome::cond_indirect_diff())"
+    } else sprintf("power4mome::%s", inputs$test_name))),
     n_step = 1,
     exact_min_n = minimum_n(spec),
     batch_size = power4mome_batch_size(inputs$ci_draws),
@@ -111,6 +113,10 @@ power4mome_inputs <- function(spec) {
     nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
     test_name <- "test_indirect_effect"
     test_args <- list(x = "X", m = nodes[-c(1, length(nodes))], y = "Y")
+  } else if (cond_indirect_difference(spec)) {
+    w_values <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
+    test_name <- "test_cond_indirect_diff"
+    test_args <- list(x = "X", m = "M", y = "Y", w = "W", w_from = w_values[1], w_to = w_values[2])
   } else {
     test_name <- "test_index_of_mome"
     test_args <- list(x = "X", m = modmed_mediator(spec), y = "Y", w = "W")
@@ -125,6 +131,17 @@ power4mome_inputs <- function(spec) {
 
   list(
     model = paste(c(regressions, covariances), collapse = "\n"),
+    # Models 58 and 59 (W on the M -> Y link): the fitted model is given
+    # explicitly. power4mome's own adds a residual covariance of M with W,
+    # which can't be estimated when W also predicts M (lavaan cannot
+    # compute standard errors), so it is left out; the exogenous
+    # variables and product terms covary freely, and M's residual with
+    # the product of M and W, as power4mome writes them.
+    fit_model = if (spec$design == "moderated_mediation" && spec$template %in% c("process_58", "process_59")) {
+      exogenous <- c("X", "W", "X:W", "M:W")
+      pairs <- utils::combn(exogenous, 2, simplify = FALSE)
+      paste(c(regressions, "M ~~ M:W", vapply(pairs, function(p) paste(p, collapse = " ~~ "), character(1))), collapse = "\n")
+    },
     pop_es = paste(c(pop_paths, pop_covariances), collapse = "\n"),
     # A yes/no X: the proportion in its second level, for rbinary_rs().
     x_prob = if (identical(spec$variables$X$type, "binary")) spec$population$x_prob %||% 0.5,
@@ -176,6 +193,7 @@ power4mome_call <- function(inputs, n, nrep, seed, ...) {
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
     if (!is.null(inputs$x_prob)) list(x_fun = list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob))),
+    if (!is.null(inputs$fit_model)) list(fit_model_args = list(model = inputs$fit_model)),
     list(...),
     list(iseed = seed, parallel = FALSE, progress = FALSE)
   )
@@ -200,7 +218,7 @@ power4mome_rejections <- function(inputs, n, nrep, seed) {
     inputs, n, nrep, seed,
     R = inputs$ci_draws,
     ci_type = inputs$ci_type,
-    test_fun = getExportedValue("power4mome", inputs$test_name),
+    test_fun = power4mome_test_fun(inputs$test_name),
     test_args = inputs$test_args
   )
   rates <- power4mome::rejection_rates(result)
@@ -280,4 +298,48 @@ power4mome_check_run <- function(spec, inputs, seed) {
   check <- do.call(rbind, c(coefficient_rows, variance_rows, correlation_rows, if (!is.null(inputs$x_prob)) list(split_row)))
   rownames(check) <- NULL
   check
+}
+
+# The difference between two conditional indirect effects (PROCESS models
+# 8, 58 and 59, E38; decided 1 November 2026): the indirect effect of X on
+# Y through M at W = w_to minus that at W = w_from, from manymome's
+# cond_indirect_effects() and cond_indirect_diff(), its Monte Carlo (or
+# bootstrap) confidence interval at the same level as the other tests.
+# power4mome has no test for it, so this is a test function in the shape
+# power4mome's own take (test_cond_indirect()'s arguments and return
+# value), given to power4test() as test_fun.
+test_cond_indirect_diff <- function(fit = fit, x = NULL, m = NULL, y = NULL, w = NULL, w_from = -1, w_to = 1,
+                                    mc_ci = TRUE, mc_out = NULL, boot_ci = FALSE, boot_out = NULL,
+                                    check_post_check = TRUE, test_method = "ci", ..., fit_name = "fit",
+                                    get_map_names = FALSE, get_test_name = FALSE) {
+  map_names <- c(fit = fit_name, mc_out = if (fit_name != "fit") paste0(fit_name, "_mc_out") else "mc_out",
+    boot_out = if (fit_name != "fit") paste0(fit_name, "_boot_out") else "boot_out")
+  if (get_map_names) return(map_names)
+  if (get_test_name) {
+    return(sprintf("test_cond_indirect_diff: %s (%s = %s minus %s = %s)", paste(c(x, m, y), collapse = "->"), w, w_to, w, w_from))
+  }
+  if (boot_ci) mc_ci <- FALSE
+  empty <- c(est = NA_real_, cilo = NA_real_, cihi = NA_real_, sig = NA_real_, pvalue = NA_real_)
+  fit_ok <- !inherits(fit, "lavaan") || (lavaan::lavInspect(fit, "converged") &&
+    (suppressWarnings(lavaan::lavInspect(fit, "post.check")) || !check_post_check))
+  if (!fit_ok) return(empty)
+  out <- tryCatch({
+    levels <- manymome::mod_levels(w = w, fit = fit, values = c(w_to, w_from))
+    effects <- manymome::cond_indirect_effects(wlevels = levels, x = x, y = y, m = m, fit = fit, mc_ci = mc_ci, mc_out = mc_out,
+      boot_ci = boot_ci, boot_out = boot_out, progress = FALSE, ...)
+    manymome::cond_indirect_diff(effects, from = 2, to = 1)
+  }, error = function(e) e)
+  if (inherits(out, "error")) return(empty)
+  ci <- stats::confint(out)
+  c(est = unname(stats::coef(out)), cilo = ci[1, 1], cihi = ci[1, 2], sig = as.numeric(ci[1, 1] > 0 || ci[1, 2] < 0), pvalue = NA_real_)
+}
+
+# The test function: power4mome's own, or powerkit's for the difference
+# between conditional indirect effects.
+power4mome_test_fun <- function(name) {
+  if (identical(name, "test_cond_indirect_diff")) test_cond_indirect_diff else getExportedValue("power4mome", name)
+}
+
+cond_indirect_difference <- function(spec) {
+  identical(spec$design, "moderated_mediation") && identical(spec$target_test$effect, "conditional_indirect_difference")
 }
