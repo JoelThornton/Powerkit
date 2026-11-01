@@ -326,7 +326,7 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
   node <- tree$nodes[[node_id]]
   label <- node$sub_id %||% node$doc_id
   opts <- visible_options(tree, node, ctx)
-  screening <- node$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1", "C1")
+  screening <- node$doc_id %in% c("S1", "S2", "S3", "S4", "O5a", "T1", "C1", "C2")
   # "I know my analysis" is a menu: someone who knows their test can go
   # straight to the list. The other routes need the screening answers to
   # route at all, so the skip isn't offered there.

@@ -394,8 +394,15 @@ nodes:
     doc_id: C1
     text: "What does your main hypothesis involve?"
     options:
-      - {label: "Conditions or treatments given to whole groups, or to people within the groups", next: E34, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
+      - {label: "Conditions or treatments given to whole groups, or to people within the groups", next: c2, help: "e.g. classes randomised to a new programme, or a trial run at several clinics."}
       - {label: "Something measured on each person, or on each group, and how it relates to the outcome", next: E62, help: "e.g. pupils' homework time and their teacher's experience predicting maths scores."}
+  # Groups within larger groups (1 November 2026): three levels (E64).
+  c2:
+    doc_id: C2
+    text: "Are the groups themselves part of larger groups that matter for the design?"
+    options:
+      - {label: "No: one level of groups (for example, classes, or clinics)", next: E34}
+      - {label: "Yes: groups within larger groups (for example, classes within schools, or therapists within clinics)", next: E64, help: "e.g. schools randomised to a programme, with pupils in several classes in each school."}
   # Equivalence for grouped data goes to the grouped card, which says it
   # isn't covered yet: the equivalence card assumes separate people.
   s4_equivalence:
@@ -1465,6 +1472,22 @@ endpoints:
     inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units, or its chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
     tier: v2
     alternatives: ["averaging over items and using a repeated-measures ANOVA, which ignores the variation between items and overstates power", "two conditions only: the two-condition card"]
+  E64:
+    doc_name: "Three-level design: people in groups in larger groups, with conditions assigned at any level"
+    plain_name: "People in groups within larger groups (pupils in classes in schools)"
+    search_words: "three level multilevel nested cluster randomised schools classes hierarchical"
+    template: "mixed_model / three_level"
+    backend: "simr: powerSim() on y ~ cond + (1 | site) + (1 | site:group), with random effects of the condition where it varies, tested with lmerTest's Satterthwaite t test (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-three-level.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each assignment, recovers the effect and every SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "People in groups within larger groups, such as pupils in classes in schools, with two conditions assigned to whole schools, to classes within each school, or to pupils within each class."
+      - "You give Cohen's d over the outcome's total SD, the share of the variance between schools and between classes (intraclass correlations), how much the effect varies between schools or classes where it can, the class size and the classes per school."
+      - "Simulated with simr and tested with Satterthwaite's t test, as for the other multilevel cards, so the answer carries a little random error."
+    inputs: ["The conditions, what is assigned to them, and the outcome", "The effect, and how alike people in the same group and site are", "The sizes of the groups and sites"]
+    tier: v2
+    alternatives: ["a two-level cluster-randomised or multisite trial, if the larger groups don't matter for the design", "ignoring the larger groups, which overstates power when people in the same school are alike"]
   E42:
     doc_name: "Mediation with a condition of three or more groups (multi-category X)"
     plain_name: "Mediation where X has three or more conditions or groups"
@@ -1975,7 +1998,7 @@ analysis_families:
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E34, E41, E35, E45, E44]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E34, E64, E41, E35, E45, E44]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}

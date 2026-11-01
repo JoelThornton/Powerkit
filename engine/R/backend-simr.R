@@ -21,7 +21,9 @@
 simr_backend <- function(spec, seed = NULL) {
   two_level <- identical(spec$template, "two_level")
   conditions <- identical(spec$template, "crossed_conditions")
-  inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else simr_inputs(spec)
+  three <- identical(spec$template, "three_level")
+  inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else
+    if (three) three_level_inputs(spec) else simr_inputs(spec)
   if (conditions) inputs$test <- crossed_conditions_test(inputs)
   list(
     name = "simr",
@@ -30,7 +32,7 @@ simr_backend <- function(spec, seed = NULL) {
     default_method = "simulation",
     functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
-    n_step = if (two_level) inputs$cluster_size else 1,
+    n_step = if (two_level) inputs$cluster_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
@@ -40,7 +42,7 @@ simr_backend <- function(spec, seed = NULL) {
     sensitivity = NULL,
     check_run = function() {
       if (two_level) two_level_check_run(spec, inputs, seed) else if (conditions) crossed_conditions_check_run(spec, inputs, seed) else
-        simr_check_run(spec, inputs, seed)
+        if (three) three_level_check_run(spec, inputs, seed) else simr_check_run(spec, inputs, seed)
     }
   )
 }
@@ -667,6 +669,154 @@ crossed_conditions_script <- function(spec, result) {
     "",
     batch_section(result, "powerSim()"),
     simulation_goal_section(spec, result, 1),
+    comparison_section()
+  )
+}
+
+# Three levels (mixed_model / three_level, E64): people (level 1) in
+# groups (level 2, classes) in sites (level 3, schools), with two
+# conditions assigned to whole sites, to groups within each site, or to
+# people within each group. On the scale of the outcome's total SD (1),
+# the sites' share of the variance is icc_site, the groups' icc_group and
+# the rest is residual; the condition, coded -0.5 and 0.5, has the
+# standardised effect d. When it is assigned below the sites, its effect
+# may vary across sites (icc_effect_site, a share of the total variance),
+# and when it is assigned to people, across groups too
+# (icc_effect_group):
+#   y ~ cond + (1 + cond | site) + (1 + cond | site:group)
+# with the condition's terms only where they apply. Simulated with simr
+# and tested by Satterthwaite's t test, as for E33 and E62 (Departure 16).
+three_level_inputs <- function(spec) {
+  pop <- spec$population
+  level <- pop$assignment
+  effect_site <- !identical(level, "site") && (pop$icc_effect_site %||% 0) > 0
+  effect_group <- identical(level, "person") && (pop$icc_effect_group %||% 0) > 0
+  terms <- c(if (effect_site) "(1 + cond | site)" else "(1 | site)",
+    if (effect_group) "(1 + cond | site:group)" else "(1 | site:group)")
+  var_corr <- list(
+    site = if (effect_site) diag(c(pop$icc_site, pop$icc_effect_site)) else pop$icc_site,
+    "site:group" = if (effect_group) diag(c(pop$icc_group, pop$icc_effect_group)) else pop$icc_group
+  )
+  list(
+    formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
+    fixef = c(0, pop$d),
+    VarCorr = var_corr,
+    sigma = sqrt(1 - pop$icc_site - pop$icc_group),
+    level = level,
+    group_size = pop$group_size,
+    groups_per_site = pop$groups_per_site,
+    site_size = pop$group_size * pop$groups_per_site,
+    term = "cond",
+    method = "sa",
+    alpha = spec$target_test$alpha,
+    design = three_level_design
+  )
+}
+
+# One data set's design: n people in sites of groups_per_site groups of
+# group_size; the first half of the sites, of each site's groups, or of
+# each group's people in the first condition.
+three_level_design <- function(inputs, n) {
+  sites <- n %/% inputs$site_size
+  data <- expand.grid(person = seq_len(inputs$group_size), group = seq_len(inputs$groups_per_site), site = seq_len(sites))
+  half <- switch(inputs$level,
+    site = data$site <= sites / 2,
+    group = data$group <= inputs$groups_per_site / 2,
+    person = data$person <= inputs$group_size / 2)
+  data$cond <- ifelse(half, -0.5, 0.5)
+  data$site <- factor(data$site)
+  data$group <- factor(data$group)
+  data$person <- NULL
+  data
+}
+
+# Check run: one large data set (400 sites) simulated from simr's model
+# and refitted with lme4: the effect within 5 of its standard errors, each
+# SD within 5 of its approximate standard errors, allowing for the noise
+# in each group's own estimate (as for E62).
+three_level_check_run <- function(spec, inputs, seed) {
+  n <- 400L * inputs$site_size
+  model <- simr_model(inputs, n)
+  data <- three_level_design(inputs, n)
+  data$y <- with_seed(seed, stats::simulate(model)[[1]])
+  fit <- simr_refit(inputs, data)
+  coefs <- summary(fit)$coefficients
+  vc <- as.data.frame(lme4::VarCorr(fit))
+  sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
+  pop <- spec$population
+  sites <- n / inputs$site_size
+  sd_row <- function(label, specified, recovered, groups, per_group) {
+    se_var <- (specified^2 + inputs$sigma^2 / per_group) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
+  }
+  rows <- list(
+    check_run_rows("effect (d)", pop$d, coefs["cond", "Estimate"], coefs["cond", "Std. Error"]),
+    sd_row("SD of sites (square root of icc_site)", sqrt(pop$icc_site), sd_of("site", "(Intercept)"), sites, inputs$site_size),
+    sd_row("SD of groups (square root of icc_group)", sqrt(pop$icc_group), sd_of("site:group", "(Intercept)"), sites * inputs$groups_per_site,
+      inputs$group_size),
+    if (length(sd_of("site", "cond"))) {
+      sd_row("SD of the effect across sites", sqrt(pop$icc_effect_site), sd_of("site", "cond"), sites, inputs$site_size / 4)
+    },
+    if (length(sd_of("site:group", "cond"))) {
+      sd_row("SD of the effect across groups", sqrt(pop$icc_effect_group), sd_of("site:group", "cond"), sites * inputs$groups_per_site,
+        inputs$group_size / 4)
+    },
+    check_run_rows("residual SD", inputs$sigma, sd_of("Residual", NA), inputs$sigma / sqrt(2 * nrow(data)))
+  )
+  check <- do.call(rbind, rows)
+  rownames(check) <- NULL
+  check
+}
+
+# The standalone script: simr alone, with the same design and test.
+three_level_script <- function(spec, result) {
+  inputs <- three_level_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  levels <- comment_text(unlist(v$X$levels))
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr),
+    vapply(inputs$VarCorr, function(x) if (length(x) > 1) sprintf("diag(%s)", r_code(diag(x))) else r_code(x), "")), collapse = ", ")
+  c(
+    script_header(spec, result, "simr", "simr::powerSim() with fixed(\"cond\", \"sa\")"),
+    "library(simr)",
+    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    "",
+    "# Inputs ----",
+    sprintf("# The outcome, %s, on the scale of its total SD; cond is %s coded -0.5 (%s) and 0.5 (%s).",
+      comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),
+    sprintf("d <- %s # the effect over the outcome's total SD", r_code(pop$d)),
+    sprintf("variances <- list(%s) # sites' and groups' shares of the variance (and of the effect's)", var_corr),
+    sprintf("sd_residual <- %s # sqrt(1 - icc_site - icc_group)", r_code(inputs$sigma)),
+    sprintf("group_size <- %s # people in each group", r_code(inputs$group_size)),
+    sprintf("groups_per_site <- %s # groups in each site", r_code(inputs$groups_per_site)),
+    sprintf("assignment <- %s # what is assigned to the conditions", r_code(inputs$level)),
+    goal_inputs(spec, result),
+    "",
+    "design_for <- function(n_people) {",
+    "  sites <- n_people %/% (group_size * groups_per_site)",
+    "  data <- expand.grid(person = seq_len(group_size), group = seq_len(groups_per_site), site = seq_len(sites))",
+    "  half <- switch(assignment, site = data$site <= sites / 2, group = data$group <= groups_per_site / 2,",
+    "    person = data$person <= group_size / 2)",
+    "  data$cond <- ifelse(half, -0.5, 0.5)",
+    "  data$site <- factor(data$site)",
+    "  data$group <- factor(data$group)",
+    "  data$person <- NULL",
+    "  data",
+    "}",
+    "",
+    "model_for <- function(n_people) {",
+    sprintf("  makeLmer(%s, fixef = c(0, d), VarCorr = variances,", deparse1(inputs$formula)),
+    "    sigma = sd_residual, data = design_for(n_people))",
+    "}",
+    "",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"sa\"),",
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, inputs$site_size),
     comparison_section()
   )
 }

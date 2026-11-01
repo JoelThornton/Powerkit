@@ -34,7 +34,7 @@ map_filters <- list(
   status = c(runs = "Calculates in powerkit", soon = "Coming", not = "Not in powerkit yet")
 )
 
-map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1")
+map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", "c2")
 map_elsewhere <- "Designs set by how the data are collected"
 
 # The end points an automatic node leads to, through further automatic

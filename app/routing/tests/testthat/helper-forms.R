@@ -173,6 +173,11 @@ form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Ha
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
+# E64: pupils in classes in schools, whole schools assigned.
+form_examples$E64 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score",
+                            three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
+                            group_size = "20", groups_per_site = "4"), closing_ok)
+
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",
                             r_X_Y = "-0.3", r_W_Y = "0.2", r_Z_Y = "-0.1", r_XW_Y = "0.1", r_XZ_Y = "0.05", r_WZ_Y = "0",
