@@ -18,6 +18,7 @@ entries:
       The meta-analysis card can now plan for studies that each report
       several effect sizes, such as several outcomes or time points,
       allowing for how alike the results from one study are.
+  - date: "2026-11-01"
     title: "A clearer About page, and Updates"
     text: >-
       The About page now says in three steps how powerkit works, shows
