@@ -94,7 +94,7 @@ joint_power_sentence <- function(calc, entries) {
       each, calc$provenance$packages$PUMP, calc$design, format(calc$provenance$tnum, big.mark = ","), calc$provenance$seed))
 }
 
-# Under a result, in "Save and share".
+# Under a result, in "Write it up and save it".
 study_plan_bar_ui <- function(entries, in_plan) {
   k <- length(entries)
   div(class = "study-plan-bar nav-buttons mt-2",
