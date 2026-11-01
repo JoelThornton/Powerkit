@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 1 November 2026 (powerkit 0.28.0). This page says where the
+*Last updated: 1 November 2026 (powerkit 0.28.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -19,6 +19,9 @@ fully validated. Validation runs are recorded in
   itself from main (Posit Connect Cloud, through
   `app/routing/manifest.json`, which a workflow keeps current);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
+  Parts of screens that repeat (the list of analyses, an input screen's
+  groups of fields) are kept as HTML once built (`cached_html()` in
+  `R/ui.R`), so a click shows the next screen in about 40 ms on a laptop.
   **44 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
   E37, E44, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
   E44, the actor-partner model for pairs (with joint power for actor and partner
@@ -161,8 +164,10 @@ fully validated. Validation runs are recorded in
 
 ## Working environment
 
-- **CI:** the engine's R CMD check (test files four at a time) on every
-  push; the app's suite on every pull request and on main, as two jobs
+- **CI:** the engine's R CMD check on every push that changes the engine,
+  `renv.lock` or the CI setup (skipped otherwise), with the engine's
+  tests beside it in three parts on separate runners (test files four at
+  a time in each); the app's suite on every pull request and on main, as two jobs
   side by side (`test-results.R`, and the rest); the Windows and macOS
   install test when the launcher or lockfile changes, and weekly. All run
   in a prebuilt image with R and the locked packages.

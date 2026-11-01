@@ -38,8 +38,7 @@ field_ui <- function(f, value, described_by = character()) {
   if (identical(f$type, "number")) attrs$inputmode <- "decimal"
   attrs <- attrs[!vapply(attrs, is.null, logical(1))]
   tag_name <- switch(f$type, select = "select", table = "textarea", "input")
-  query <- htmltools::tagQuery(input)$find(tag_name)
-  input <- do.call(query$addAttrs, attrs)$allTags()
+  input <- add_attrs_to_first(input, tag_name, attrs)
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
@@ -72,6 +71,23 @@ field_ui <- function(f, value, described_by = character()) {
   conditionalPanel(shown_if_js(f), field)
 }
 
+# Adds `attrs` to the first element named `tag_name` inside `tag`, e.g.
+# the <input> in a textInput(). Walks the tags directly: htmltools'
+# tagQuery() did the same but took a fifth of the time to build a screen.
+add_attrs_to_first <- function(tag, tag_name, attrs) {
+  found <- FALSE
+  walk <- function(x) {
+    if (found || !inherits(x, "shiny.tag")) return(x)
+    if (identical(x$name, tag_name)) {
+      found <<- TRUE
+      return(do.call(htmltools::tagAppendAttributes, c(list(x), attrs)))
+    }
+    for (i in seq_along(x$children)) x$children[[i]] <- walk(x$children[[i]])
+    x
+  }
+  walk(tag)
+}
+
 # A field's or a group's `shown_if` as a condition for the browser.
 shown_if_js <- function(item) {
   condition <- vapply(shown_if_conditions(item), function(cond) {
@@ -98,6 +114,12 @@ short_source <- function(text) {
 # A group of fields: a fieldset whose legend is the card's "What you would
 # enter" line (or the group's title), with that line's plain-English hints.
 group_ui <- function(tree, g, values, index) {
+  # Kept as HTML (cached_html(), R/ui.R): the same group with the same
+  # values gives the same HTML.
+  own_values <- lapply(g$fields, function(f) values[[f$id]])
+  cached_html(list("form_group", g, own_values, index, tree$glossary), function() group_ui_build(tree, g, values, index))
+}
+group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
