@@ -122,6 +122,22 @@ A batch of new features, built as one round.
   script reruns the package call. MBESS restores the warning level it
   changes. New dependencies: MBESS (with OpenMx and its dependencies) and
   presize. New validation chunk: `precision`.
+* Simulated data sets (`simulated_data()` and the R script's data section)
+  for the designs that had none: multiple regression's R-squared tests
+  (independent standard normal predictors, equal weights within each
+  set), logistic and Poisson regression with other predictors (one
+  column, `Other_predictor`, sharing their R-squared with X and with no
+  effect of its own), the two-way ANCOVA, the Cochran-Armitage trend test,
+  multisite trials (site means and site effects with the ICCs
+  `multisite.cont()` defines), yes/no outcomes in cluster-randomised,
+  multisite and group treatment trials (the logistic models
+  `crt.parallel.bin()` and `multisite.bin()` assume, and beta-distributed
+  group proportions with the ICC for `irgtt.bin()`), a baseline score in
+  cluster trials (explaining `baseline_r2_between` between groups and
+  `baseline_r2_within` within them) and precision planning. Each choice
+  the plan leaves open is stated by `simulated_data_note()`. Still
+  without: the three-way interaction, meta-analysis, SEM, McNemar's test
+  and the generic tests.
 * `bayes_planning()`: the Labs Bayesian planning tool for a Bayes factor
   t-test (one sample, paired or two groups) at a fixed sample size. The
   analysis prior (a Cauchy prior with the scale chosen) and the design

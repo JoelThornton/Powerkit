@@ -45,7 +45,12 @@ the rank tests, equivalence and non-inferiority tests, the ANOVA designs
 on Superpower and Welch's one-way ANOVA, regression interactions,
 mediation and moderated mediation, factorial logistic regression,
 ordinal outcomes in two groups, planned contrasts, logistic and Poisson
-regression with one predictor (no other predictors) and cluster trials
-with a score outcome (cluster-randomised and group treatment); \code{simulated_data_available()} says
-whether a spec is covered.
+regression with one predictor (other predictors carried by one
+column), multiple regression's R-squared tests, one- and two-way ANCOVA,
+the trend tests, cluster trials (cluster-randomised, multisite and group
+treatment, with a score or a yes/no outcome and a baseline score) and
+precision planning; \code{simulated_data_available()} says whether a spec is
+covered. Not available for McNemar's test, the three-way regression
+interaction, structural equation models, meta-analyses and the generic
+tests.
 }
