@@ -452,6 +452,14 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E68, from 1 November 2026) [powerkit] | Cohen's d over the outcome's total SD, with the sites' and groups' shares of the variance (intraclass correlations) and the effect's variation across sites or groups as shares of it | `y ~ cond + (1 \| site) + (1 \| site:group)`, with `(1 + cond \| site)` when the condition is assigned below the sites and its effect varies, and `(1 + cond \| site:group)` when it is assigned to people; cond coded -0.5 and 0.5; equal group and site sizes; the first half of what is assigned in the first condition. The Satterthwaite test is Departure 16; with few sites and a small varying effect it can be conservative (3.1% at alpha .05 with classes assigned in 8 schools, 3.65% in an independent simulation) |
 
+With a yes/no outcome (E68, from 1 November 2026) the model is a logistic
+mixed model (simr's `makeGlmer()`, lme4's `glmer()`): each condition's
+chance of 'yes' for a typical site and group, and the SDs of the sites'
+and groups' intercepts (and of the effect, where it can vary) on the
+log-odds scale in place of the shares of variance. The test is glmer's
+Wald z test, simr's default for a two-condition predictor, or the
+likelihood ratio; not a departure.
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |
@@ -503,6 +511,7 @@ ratio against the model in which the pair shares a mean. With three
 conditions (70%, 80% and 75%), 60 items and 30 participants, over 1,000
 simulated data sets: 58.3% with the likelihood ratio and 61.7% with Wald;
 with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
+
 ## People within groups, predictors at both levels (two-level model, E62)
 
 | Tool | Test | Effect size | Settings |
@@ -510,6 +519,12 @@ with no difference (2,000 data sets), 5.65% and 6.2% at alpha .05.
 | G\*Power | No test for multilevel models | — | — |
 | simr | `powerSim()` on a model built with `makeLmer()`, as for E33; `fixed(xname, method)` tests one fixed effect, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed(term, "sa")`, the term `x`, `w` or `x:w` (E62, from 31 October 2026) [powerkit] | Each effect per SD of its predictor (X standardised within groups, W across groups), the SDs of the groups' intercepts and X slopes with their correlation, and the residual SD, in the outcome's units | `y ~ x + w + x:w + (1 + x \| group)`, groups of equal size; `goal.n` is the number of people, a whole number of groups. The Satterthwaite test is Departure 16 |
+
+With a yes/no outcome (E62, from 1 November 2026) the model is a logistic
+mixed model (simr's `makeGlmer()`, lme4's `glmer()`): the chance of 'yes'
+for a typical group at the average X and W, and every effect and SD on the
+log-odds scale. The test is glmer's Wald z test, simr's default for a
+numeric predictor, or the likelihood ratio; not a departure.
 
 ## Effect-size conversion (a published t, F, r, d or odds ratio)
 
