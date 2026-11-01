@@ -1,3 +1,35 @@
+# powerkit 0.28.0
+
+A batch of new features, built as one round.
+
+* Sequential Bayes factor designs, in the Labs Bayesian planning tool
+  (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
+  pairs; one- or two-sided) checked after every `step` participants from
+  `n_min` on, stopping at a BF10 of `threshold` for an effect, a BF01 of
+  `threshold_null` for no effect, or at `n_max`. The chances of each
+  ending, the outcome of the studies that reach the maximum (BF10 above 3,
+  below 1/3 or between) and the sample size at the stop (mean, median and
+  80th percentile) are simulated under the design prior, drawn afresh for
+  each simulated study, and with no effect, as in Schonbrodt and
+  Wagenmakers (2018); bfpwr's `ptbf01()` gives a single test at `n_max`
+  beside them. Every Bayes factor is bfpwr's `tbf01()`: it depends on the
+  data only through t, and grows with t, so each look's thresholds are
+  found once as values of t and the simulation compares each study's t
+  with them, which gives the same decisions as computing the Bayes factor
+  at every look (tested). With the published settings, the simulation
+  reproduces the paper's examples to within about a percentage point
+  (the published values are left as `TODO_PUBLISHED_VALUE` for the
+  maintainer), and it agrees with a simulation written separately, which
+  integrates the Bayes factor itself and uses `t.test()` at every look
+  (new validation file in the `bayes` chunk).
+* Assurance: where a Bayes factor card or the Labs tool averages over the
+  planner's uncertainty about the effect (a design prior with an SD), the
+  chance of strong evidence is named as the study's assurance, after
+  O'Hagan, Stevens and Campbell (2005). Three new `refs.bib` entries:
+  O'Hagan et al. (2005), Schonbrodt and Wagenmakers (2018) and Schonbrodt,
+  Wagenmakers, Zehetleitner and Perugini (2017), each checked against the
+  full text.
+
 # powerkit 0.27.0
 
 A batch of new features, built as one round.

@@ -3,7 +3,9 @@
 *31 October 2026. A draft for the maintainer to decide on, for `next.md`
 (Bayes factors beyond the t-tests). Built since: the Labs Bayes mode at
 fixed N, for the t-tests (1 November 2026, `bayes_planning()`; the section
-"A Labs Bayes mode" below, steps 1 to 3). The
+"A Labs Bayes mode" below, steps 1 to 3), and sequential designs in the
+same tool (1 November 2026, `bayes_sequential()`, step 4), with the sources
+below now in `refs.bib`. The
 numbers are computed with bfpwr 0.1.6, the package powerkit already uses for
 its Bayes factor t-tests; where a claim rests on a source that is not yet in
 `engine/inst/citations/refs.bib`, it says so.*
@@ -49,8 +51,11 @@ the z-test Bayes factor) explains why:
   itself, "to compute the probability of misleading evidence".
 
 Averaging the chance of compelling evidence over a design prior with some
-spread is often called *assurance* (a term from the Bayesian design
-literature; its source still has to be added to `refs.bib`). It answers a
+spread is what O'Hagan, Stevens and Campbell (2005, `refs.bib`
+OHagan2005_assurance) call *assurance*: "the prior expectation of the
+power, averaged over the prior distribution for the unknown true treatment
+effect". They define it for clinical trials and usually for a significant
+result; here the positive outcome is strong evidence. It answers a
 better question than power at one guessed d: given what I honestly believe,
 and its uncertainty, how likely is this study to be informative?
 
@@ -93,8 +98,28 @@ A Bayes factor can be checked as the data come in, stopping when it is
 compelling either way or at a maximum N. The planning question then
 becomes how many people the study is likely to need, and how often it will
 stop at the maximum still inconclusive. This is the main argument for
-Bayes factor design analysis in psychology (Schönbrodt and Wagenmakers's
-BFDA; not yet in `refs.bib`), and the BFDA package is on GitHub only.
+Bayes factor design analysis in psychology (Schönbrodt, Wagenmakers,
+Zehetleitner and Perugini, 2017; Schönbrodt and Wagenmakers, 2018; both in
+`refs.bib`), and the BFDA package is on GitHub only.
+
+**Built (1 November 2026):** powerkit's own simulation, the second route
+below, as `bayes_sequential()` in the Labs tool. It follows Schönbrodt and
+Wagenmakers's (2018) procedure: a first look at `n_min`, then a look after
+every `step` participants, stopping at either threshold (which may differ)
+or at `n_max`; the true effect drawn from the design prior for every
+simulated study; the same again with no effect. bfpwr's `tbf01()` depends
+on the data only through t and grows with t, so each look's two thresholds
+are found once as values of t, and every simulated study is compared with
+them (the same decisions as computing the Bayes factor at every look,
+tested, and far faster). With the paper's settings (directional, thresholds
+30 and 1/6, `n_min` 40, `n_max` 100, d ~ N(0.5, 0.1)) the simulation gives
+70.4% / 1.8% / 27.8% under H1 against the paper's 70.6% / 1.6% / 27.8%,
+and a median N of 65 against 65; for the open-ended design (threshold 6,
+`n_min` 20), 96.9% against 97.2% and a median of 36 against 36. The
+paper's values are for the maintainer to transcribe into the validation
+file. What the tool says about optional stopping is limited to what the
+2018 paper states: looking more often raises the rate of misleading
+evidence a little, and most of it happens at early looks.
 
 bfpwr has no sequential functions. Two routes:
 
@@ -153,15 +178,17 @@ uncertainty about the effect are choices with consequences.
 4. **Sequential designs by powerkit's own simulation** using bfpwr's
    `tbf01()`, rather than depending on a GitHub-only package, unless BFDA
    turns out to do something a simulation can't.
-5. **Add the sources first**: the assurance literature, Schönbrodt and
-   Wagenmakers on BFDA, and the paper the maintainer linked
-   (arXiv 2502.02914, which this session could not open: the environment's
-   network doesn't allow arxiv.org), each checked against the original
-   before anything quotes them.
+5. **Add the sources first** (done 1 November 2026 for O'Hagan et al.,
+   2005, and Schönbrodt and colleagues, 2017 and 2018, each checked
+   against the full text). The paper the maintainer linked (Kelter and
+   Pawel, arXiv 2502.02914, on bfpwr's binomial Bayes factors) is a
+   preprint whose first page asks not to be cited without the authors'
+   permission, so it stays out of `refs.bib` until it is published.
 
 ## Decisions for the maintainer
 
 - Departure 15: the default design prior, and whether the card shows both.
 - Whether the Labs Bayes mode comes before any change to the cards.
-- Sequential designs: our own simulation, or BFDA.
+- Sequential designs: our own simulation, or BFDA (built as our own
+  simulation, 1 November 2026, following the decision of 31 October).
 - Whether a precision goal for Bayesian estimation belongs in the queue.
