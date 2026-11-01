@@ -1,3 +1,54 @@
+# powerkit 0.28.0
+
+A batch of new features, built as one round.
+
+* Sequential Bayes factor designs, in the Labs Bayesian planning tool
+  (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
+  pairs; one- or two-sided) checked after every `step` participants from
+  `n_min` on, stopping at a BF10 of `threshold` for an effect, a BF01 of
+  `threshold_null` for no effect, or at `n_max`. The chances of each
+  ending, the outcome of the studies that reach the maximum (BF10 above 3,
+  below 1/3 or between) and the sample size at the stop (mean, median and
+  80th percentile) are simulated under the design prior, drawn afresh for
+  each simulated study, and with no effect, as in Schonbrodt and
+  Wagenmakers (2018); bfpwr's `ptbf01()` gives a single test at `n_max`
+  beside them. Every Bayes factor is bfpwr's `tbf01()`: it depends on the
+  data only through t, and grows with t, so each look's thresholds are
+  found once as values of t and the simulation compares each study's t
+  with them, which gives the same decisions as computing the Bayes factor
+  at every look (tested). With the published settings, the simulation
+  reproduces the paper's examples to within about a percentage point
+  (the published values are left as `TODO_PUBLISHED_VALUE` for the
+  maintainer), and it agrees with a simulation written separately, which
+  integrates the Bayes factor itself and uses `t.test()` at every look
+  (new validation file in the `bayes` chunk).
+* Assurance: where a Bayes factor card or the Labs tool averages over the
+  planner's uncertainty about the effect (a design prior with an SD), the
+  chance of strong evidence is named as the study's assurance, after
+  O'Hagan, Stevens and Campbell (2005). Three new `refs.bib` entries:
+  O'Hagan et al. (2005), Schonbrodt and Wagenmakers (2018) and Schonbrodt,
+  Wagenmakers, Zehetleitner and Perugini (2017), each checked against the
+  full text.
+* App: the methods map in Labs is rebuilt around the questions
+  researchers bring to it: where is a study like mine, what is it, what is
+  it next to, and can powerkit plan it. It opens full screen with the
+  families of analyses as regions; search suggests analyses as you type,
+  and a panel offers common starting points. Choosing an analysis puts it
+  in focus: the simpler designs that lead to it gather on its left and
+  the ways to change it on its right, each line saying what changes ("with
+  three or more groups", "adjusting for a covariate"), and a trail leads
+  back. Its panel gives the kind of test it usually reports (t, F,
+  chi-square, z, rank, a test in a fitted model, a confidence interval, a
+  Bayes factor) in plain words, and "Plan this study" opens it on "Plan a
+  power analysis" (asking first if a plan is in progress). The analyses
+  chosen only by name (precision, Bayes factor t-tests, generic tests,
+  meta-analysis) now appear too. The tags and connections are in
+  `app/routing/methods-map.yaml`, a test checks that every analysis has a
+  tag and every connection joins two analyses, and they await the
+  statistician's review with the rest of the methods. Nothing on the map
+  is calculated. The question-tree and aims views are replaced by the
+  focus view (the list under the map keeps every route).
+
 # powerkit 0.27.0
 
 A batch of new features, built as one round.
@@ -66,25 +117,6 @@ A batch of new features, built as one round.
   its two buttons side by side. Names of groups and outcomes that are all
   optional fold into one closed line (open once one is filled in). The
   status box drops its repeated "Runs, validation in progress". What is asked and checked is unchanged.
-* App: the methods map in Labs is rebuilt around the questions
-  researchers bring to it: where is a study like mine, what is it, what is
-  it next to, and can powerkit plan it. It opens full screen with the
-  families of analyses as regions; search suggests analyses as you type,
-  and a panel offers common starting points. Choosing an analysis puts it
-  in focus: the simpler designs that lead to it gather on its left and
-  the ways to change it on its right, each line saying what changes ("with
-  three or more groups", "adjusting for a covariate"), and a trail leads
-  back. Its panel gives the kind of test it usually reports (t, F,
-  chi-square, z, rank, a test in a fitted model, a confidence interval, a
-  Bayes factor) in plain words, and "Plan this study" opens it on "Plan a
-  power analysis" (asking first if a plan is in progress). The analyses
-  chosen only by name (precision, Bayes factor t-tests, generic tests,
-  meta-analysis) now appear too. The tags and connections are in
-  `app/routing/methods-map.yaml`, a test checks that every analysis has a
-  tag and every connection joins two analyses, and they await the
-  statistician's review with the rest of the methods. Nothing on the map
-  is calculated. The question-tree and aims views are replaced by the
-  focus view (the list under the map keeps every route).
 * Participants and items in three or more conditions (E63, design
   `mixed_model`, template `crossed_conditions`): every participant in
   every condition, a mean per condition, the SDs of participants'

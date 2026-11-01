@@ -14,9 +14,9 @@ test_that("nothing is required, scored or marked complete", {
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
   # picture of power's alpha starts at .05, and the Bayesian planning tool's
-  # hypothesis and threshold at their defaults.)
+  # hypothesis, design and thresholds at their defaults.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"(picture_alpha|bayes_alternative|bayes_threshold)\"", checked)))
+  expect_true(all(grepl("name=\"(picture_alpha|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -311,4 +311,34 @@ test_that("Bayesian planning shows the engine's outcomes under the belief and wi
   refusal <- tryCatch(plan_of(2), error = bayes_problem)
   expect_match(refusal, "^The sample size should be")
   expect_match(bayes_problem(simpleError("subscript out of bounds")), "something went wrong", fixed = TRUE)
+  # With uncertainty about the effect, the chance is named assurance, with its source.
+  expect_match(text, "the study's assurance", fixed = TRUE)
+  expect_match(text, "O'Hagan", fixed = TRUE)
+  expect_no_match(as.character(bayes_numbers(plan_of(120, effect = 0.5))), "assurance", fixed = TRUE)
+})
+
+test_that("a sequential design shows how often the study stops each way, and its size when it stops", {
+  html <- as.character(labs_ui(tree))
+  for (id in c("bayes_design", "bayes_n_min", "bayes_step", "bayes_threshold_null")) {
+    expect_match(html, sprintf("id=\"%s\"", id), fixed = TRUE)
+  }
+  seq_of <- engine_function("bayes_sequential")
+  skip_if(is.null(seq_of), "powerkit's engine isn't available here")
+  plan <- seq_of(20, 100, 5, effect = 0.5, effect_sd = 0.1, threshold = 10, threshold_null = 6, nsim = 300)
+  text <- as.character(bayes_sequential_numbers(plan))
+  pct <- function(x) sprintf("%.1f%%", 100 * x)
+  for (x in unlist(plan$outcomes[c("for_effect", "for_null", "at_max")])) expect_match(text, pct(x), fixed = TRUE)
+  expect_match(text, "Looking from 20 in each group, after every 5 participants in each group, up to 100 in each group", fixed = TRUE)
+  expect_match(text, sprintf("80%% stop by %s", plan$outcomes$n_80[1]), fixed = TRUE)
+  expect_match(text, "Testing once at 100 in each group instead", fixed = TRUE)
+  expect_match(text, "misleading", fixed = TRUE)
+  expect_match(text, "seed 1", fixed = TRUE)
+  expect_match(text, "Schönbrodt", fixed = TRUE)
+  expect_no_match(text, "\\bpower(ed)? (is|of)\\b|justified|adequate|sufficient power|well-powered", perl = TRUE)
+  expect_no_error(bayes_stops_plot(plan))
+  expect_no_error(bayes_priors_plot(plan))
+  refusal <- tryCatch(seq_of(30, 20), error = bayes_problem)
+  expect_match(refusal, "^The sample size should be")
+  refusal <- tryCatch(seq_of(30, 60, threshold_null = 1), error = bayes_problem)
+  expect_match(refusal, "^The threshold for no effect should be")
 })

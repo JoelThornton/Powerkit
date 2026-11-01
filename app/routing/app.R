@@ -1180,6 +1180,16 @@ server <- function(input, output, session) {
   # Labs: Bayesian planning, from the engine's bayes_planning().
   bayes_plan <- eventReactive(input$bayes_run, {
     num <- function(x, default) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1 || is.na(v)) default else v }
+    if (identical(input$bayes_design, "sequential")) {
+      return(tryCatch(engine_function("bayes_sequential")(
+        n_min = num(input$bayes_n_min, NA), n_max = num(input$bayes_n, NA), step = num(input$bayes_step, NA),
+        type = input$bayes_type %||% "two.sample",
+        effect = num(input$bayes_effect, NA), effect_sd = num(input$bayes_effect_sd, NA),
+        prior_scale = num(input$bayes_scale, NA), threshold = num(input$bayes_threshold, 10),
+        threshold_null = num(input$bayes_threshold_null, 10),
+        alternative = input$bayes_alternative %||% "two.sided", nsim = 2000, seed = 1
+      ), error = function(e) list(problem = bayes_problem(e))))
+    }
     tryCatch(engine_function("bayes_planning")(
       n = num(input$bayes_n, NA), type = input$bayes_type %||% "two.sample",
       effect = num(input$bayes_effect, NA), effect_sd = num(input$bayes_effect_sd, NA),
@@ -1190,6 +1200,14 @@ server <- function(input, output, session) {
   output$bayes_result <- renderUI({
     plan <- bayes_plan()
     if (!is.null(plan$problem)) return(div(class = "form-problems mt-2", role = "alert", p(plan$problem)))
+    if (!is.null(plan$stops)) {
+      return(div(class = "result-panel mt-2", role = "status",
+        bayes_sequential_numbers(plan),
+        h4(class = "h5", "When the studies stop"),
+        plotOutput("bayes_stops_plot", height = "280px"),
+        h4(class = "h5", "The two priors"),
+        plotOutput("bayes_priors_plot", height = "260px")))
+    }
     div(class = "result-panel mt-2", role = "status",
       bayes_numbers(plan),
       h4(class = "h5", "The two priors"),
@@ -1197,6 +1215,10 @@ server <- function(input, output, session) {
       h4(class = "h5", "As the sample size grows"),
       plotOutput("bayes_curves_plot", height = "280px"))
   })
+  output$bayes_stops_plot <- renderPlot({
+    req(is.null(bayes_plan()$problem), !is.null(bayes_plan()$stops))
+    bayes_stops_plot(bayes_plan())
+  }, alt = "The share of simulated studies that have stopped by each sample size, if the belief is right and if there is no effect.")
   output$bayes_priors_plot <- renderPlot({
     req(is.null(bayes_plan()$problem))
     bayes_priors_plot(bayes_plan())

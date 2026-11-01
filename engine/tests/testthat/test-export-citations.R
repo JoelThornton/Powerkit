@@ -101,7 +101,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # October 2026), and the meta-analysis card's method paper, worked
   # examples and the Hartung-Knapp paper (31 October 2026), and presize's
   # method paper (1 November 2026; MBESS's citation() gives no DOI, so it
-  # is exported from the package alone).
+  # is exported from the package alone), and the sources for assurance
+  # and sequential Bayes factor designs (1 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -116,7 +117,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Tein2013_lpa = "verified", Nylund2007_classes = "verified",
       NylundGibson2018_lca = "verified", Spurk2020_lpa = "verified",
       metapower_method = "verified", Valentine2010_metapower = "verified",
-      IntHout2014_hksj = "verified"
+      IntHout2014_hksj = "verified", OHagan2005_assurance = "verified",
+      SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified"
     )
   )
 })
