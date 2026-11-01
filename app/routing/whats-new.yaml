@@ -21,6 +21,13 @@ entries:
       at two values of the moderator, such as one SD below and above its
       mean.
   - date: "2026-11-01"
+    title: "A simpler start, and tidier Labs and Feedback"
+    text: >-
+      The start screen keeps to three short choices. When you come back,
+      it shows the analyses you opened last, so you can go straight back
+      to them. Labs shows its tools side by side, the Feedback tab is
+      shorter, and on a phone the About page folds its list of analyses.
+  - date: "2026-11-01"
     title: "Clearer precision, study plan and whole-study screens"
     text: >-
       A precision result now opens with its sample size in large type and

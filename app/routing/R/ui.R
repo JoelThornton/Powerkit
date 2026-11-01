@@ -226,6 +226,32 @@ share_page_ui <- function() {
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
+  // Recently opened analyses, kept in this browser only.
+  (function() {
+    var KEY = 'powerkit-recent';
+    function read() { try { var v = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+    function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 3))); } catch (e) {} }
+    function show() {
+      var box = document.getElementById('pk-recent'); if (!box) return;
+      var list = read().filter(function(r) { return r && /^E[0-9A-Za-z_]+$/.test(r.id) && r.name; });
+      box.textContent = '';
+      if (!list.length) { box.hidden = true; return; }
+      var t = document.createElement('span'); t.className = 'start-recent-title'; t.textContent = 'Recently opened:'; box.appendChild(t);
+      list.forEach(function(r) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip start-recent-chip'; b.textContent = r.name;
+        b.addEventListener('click', function() { Shiny.setInputValue('pick', 'recent:' + r.id, {priority: 'event'}); });
+        box.appendChild(b);
+      });
+      box.hidden = false;
+    }
+    function remember() {
+      var c = document.querySelector('#screen [data-recent-id]'); if (!c) return;
+      var item = { id: c.getAttribute('data-recent-id'), name: c.getAttribute('data-recent-name') };
+      if (!item.name) return;
+      save([item].concat(read().filter(function(r) { return r && r.id !== item.id; })));
+    }
+    $(document).on('shiny:value', function(e) { if (e.name === 'screen') setTimeout(function() { remember(); show(); }, 0); });
+  })();
   // On a question screen, the number keys choose an answer.
   document.addEventListener('keydown', function(e) {
     if (e.altKey || e.ctrlKey || e.metaKey || !/^[1-9]$/.test(e.key)) return;
@@ -305,12 +331,33 @@ start_exit <- function(tree, start) {
 # aim follows on its own screen; whether the sample size is fixed and how
 # several tests are handled are asked on the input screen, where they are
 # used.
+# Small line icons for the three ways to start (decorative).
+route_icon <- function(id) {
+  path <- switch(id,
+    known = "M10.5 4a6.5 6.5 0 1 0 4.02 11.6l4.44 4.44 1.42-1.42-4.44-4.44A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z",
+    choose = "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 2a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 2.5a3 3 0 0 0-3 3h2a1 1 0 1 1 1.6.8c-.9.66-1.6 1.33-1.6 2.7h2c0-.6.25-.9.8-1.3A3 3 0 0 0 12 7.5Zm-1 8.5v2h2v-2h-2Z",
+    guided = "M5 4h14v2H5V4Zm0 5h9v2H5V9Zm0 5h14v2H5v-2Zm0 5h9v2H5v-2Z",
+    NULL)
+  if (is.null(path)) return(NULL)
+  tags$svg(class = "route-icon", viewBox = "0 0 24 24", width = "26", height = "26", `aria-hidden` = "true", focusable = "false",
+    tags$path(d = path, fill = "currentColor"))
+}
+
 start_ui <- function(tree, start = list()) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
   tagList(
     h2(tree$routes$question),
-    div(class = "choices route-choices", lapply(routes, function(r) pick_button(r$label, paste0("route:", r$id), r$help))),
+    div(class = "choices route-choices", lapply(routes, function(r) tags$button(
+      type = "button", class = "btn btn-outline-primary choice",
+      onclick = sprintf("Shiny.setInputValue('pick', 'route:%s', {priority: 'event'})", r$id),
+      route_icon(r$id),
+      tags$span(class = "choice-label", r$label),
+      if (!is.null(r$help)) tags$span(class = "choice-help", r$help),
+      if (!is.null(r$tag)) tags$span(class = "route-tag", r$tag)))),
+    # Filled in this browser from the cards opened before (nav_js); empty
+    # on a first visit, so a newcomer sees only the three ways to start.
+    div(id = "pk-recent", class = "start-recent", hidden = NA),
     placeholders_at(tree, "start")
   )
 }
@@ -745,6 +792,10 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
   runs <- ep$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
   div(
     class = paste("card endpoint-card", if (compact) "compact"),
+    # A full card is remembered in this browser for the start screen's
+    # "Recently opened" (nav_js).
+    `data-recent-id` = if (!compact) ep_id,
+    `data-recent-name` = if (!compact) ep$plain_name %||% ep$doc_name,
     div(
       class = "card-body",
       # The end point's ID and engine template are for reviewers: kept in
