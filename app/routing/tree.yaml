@@ -283,15 +283,17 @@ routes:
   options:
     - id: known
       label: "I know my analysis"
-      help: "Search for it, or open its group in a list of every analysis."
+      help: "Search a list of every analysis."
+      tag: "Quickest"
       after_screening: list
     - id: choose
       label: "Help me choose"
-      help: "Answer a few questions about your study, one per screen."
+      help: "A few questions about your study find it for you."
+      tag: "Good first choice"
       after_screening: q1
     - id: guided
       label: "Plan my whole study"
-      help: "For studies with several analyses on the same data: describe the variables once, tick the analyses, and get a plan."
+      help: "Several analyses on the same data, planned together."
       after_screening: guided
 
 # ---------------------------------------------------------------------------

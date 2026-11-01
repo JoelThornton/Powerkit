@@ -175,33 +175,38 @@ feedback_text <- function(kind, message, context = character()) {
 
 feedback_tab_ui <- function(tree) {
   cfg <- feedback_config(tree)
+  # One card: what it's about (as buttons), the message, then sending. The
+  # exact text that will be sent is a click away.
   tagList(
     h2("Feedback, questions and problems"),
-    p("Found a mistake, got stuck, or have a question or an idea? Please say so: \"I didn't understand this screen\" ",
-      "is as useful as a bug report. powerkit is still being built, and what you tell us decides what gets fixed first."),
-    radioButtons("fb_kind", "What is it about?", choices = stats::setNames(names(feedback_kinds), unname(feedback_kinds)), selected = "bug", width = "100%"),
-    textAreaInput("fb_message", "Your message", rows = 6, width = "100%",
-      placeholder = "What happened, what you expected, and the numbers you entered if it's about a result."),
-    textInput("fb_contact", "Your email, if you'd like a reply (optional)", width = "100%"),
-    checkboxInput("fb_include_path", "Include where I am in powerkit (the questions I answered and the analysis I reached)", value = TRUE, width = "100%"),
-    div(class = "form-field",
-      tags$label(`for` = "fb-preview", class = "control-label", "What you'll send"),
-      uiOutput("fb_preview")),
-    h3(class = "h5", "Send it"),
-    if (can_send_feedback(cfg)) p(class = "hint", "Send stores the message above, and your email if you give one, ",
-      "in powerkit's feedback database, which only the developer can read. Nothing else you enter in powerkit is sent. ",
-      "Please don't include anything that could identify a participant.")
-    else p(class = "hint", "Nothing is sent from this page. Each button opens your message, filled in, for you to check and send yourself. ",
-      "Please don't include anything that could identify a participant."),
-    div(class = "nav-buttons",
-      if (can_send_feedback(cfg)) actionButton("fb_send", "Send", class = "btn btn-primary"),
-      if (!is.null(cfg$email)) tags$button(type = "button", class = if (can_send_feedback(cfg)) "btn btn-outline-primary" else "btn btn-primary",
-        onclick = "pkSendFeedback('email')", `data-address` = cfg$email, id = "fb-email", "Email it"),
-      if (!is.null(cfg$issues_url)) tags$button(type = "button", class = if (is.null(cfg$email) && !can_send_feedback(cfg)) "btn btn-primary" else "btn btn-outline-primary",
-        onclick = "pkSendFeedback('github')", `data-target` = cfg$issues_url, id = "fb-github", "Post it on GitHub"),
-      tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkSendFeedback('copy')", "Copy it")),
-    if (!is.null(cfg$issues_url)) p(class = "hint", "GitHub needs a free account, and posts there are public."),
-    div(id = "fb-status", class = "copy-status", `aria-live` = "polite")
+    p(class = "lead feedback-lead", "Found a mistake, got stuck, or have an idea? \"I didn't understand this screen\" is as useful as a bug report."),
+    div(class = "result-card feedback-card",
+      div(class = "feedback-kinds",
+        radioButtons("fb_kind", "What is it about?", choices = stats::setNames(names(feedback_kinds), unname(feedback_kinds)), selected = "bug", width = "100%")),
+      textAreaInput("fb_message", "Your message", rows = 6, width = "100%",
+        placeholder = "What happened, what you expected, and the numbers you entered if it's about a result."),
+      textInput("fb_contact", "Your email, if you'd like a reply (optional)", width = "100%"),
+      checkboxInput("fb_include_path", "Include where I am in powerkit (the questions I answered and the analysis I reached)", value = TRUE, width = "100%"),
+      tags$details(class = "result-more feedback-preview",
+        tags$summary("See exactly what you'll send"),
+        div(class = "form-field",
+          tags$label(`for` = "fb-preview", class = "control-label visually-hidden", "What you'll send"),
+          uiOutput("fb_preview"))),
+      div(class = "nav-buttons feedback-send",
+        if (can_send_feedback(cfg)) actionButton("fb_send", "Send", class = "btn btn-primary"),
+        if (!is.null(cfg$email)) tags$button(type = "button", class = if (can_send_feedback(cfg)) "btn btn-outline-primary" else "btn btn-primary",
+          onclick = "pkSendFeedback('email')", `data-address` = cfg$email, id = "fb-email", "Email it"),
+        if (!is.null(cfg$issues_url)) tags$button(type = "button", class = if (is.null(cfg$email) && !can_send_feedback(cfg)) "btn btn-primary" else "btn btn-outline-primary",
+          onclick = "pkSendFeedback('github')", `data-target` = cfg$issues_url, id = "fb-github", "Post it on GitHub"),
+        tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkSendFeedback('copy')", "Copy it")),
+      div(id = "fb-status", class = "copy-status", `aria-live` = "polite"),
+      if (can_send_feedback(cfg)) p(class = "hint", "Send stores the message, and your email if you give one, ",
+        "in powerkit's feedback database, which only the developer can read. Nothing else you enter in powerkit is sent. ",
+        "Please don't include anything that could identify a participant.",
+        if (!is.null(cfg$issues_url)) " Posts on GitHub are public and need a free account.")
+      else p(class = "hint", "Nothing is sent from this page. Each button opens your message, filled in, for you to check and send yourself. ",
+        "Please don't include anything that could identify a participant.",
+        if (!is.null(cfg$issues_url)) " Posts on GitHub are public and need a free account."))
   )
 }
 

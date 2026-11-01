@@ -190,3 +190,10 @@ test_that("'Something doesn't fit?' leads to the Feedback tab", {
   expect_match(code, 'feedback_tab <- feedback_tab_ui(tree)', fixed = TRUE)
   expect_match(code, "observeEvent(input$go_feedback,", fixed = TRUE)
 })
+
+test_that("the Feedback tab keeps the exact message a click away and the reasons as buttons", {
+  html <- as.character(feedback_tab_ui(tree))
+  expect_match(html, "See exactly what you'll send", fixed = TRUE)
+  expect_match(html, "feedback-kinds", fixed = TRUE)
+  expect_match(html, "Posts on GitHub are public", fixed = TRUE)
+})
