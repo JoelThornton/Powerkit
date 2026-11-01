@@ -13,6 +13,15 @@ library(shiny)
 
 options(shiny.sanitize.errors = TRUE)
 
+# The app's own functions run without being compiled to byte code the first
+# time each one is called. Compiling added a tenth to a fifth of a second
+# to the first visit to each screen, and a new visitor often gets a fresh R
+# process, so most clicks were first visits. The screens are no slower
+# without it; installed packages, the engine among them, are compiled when
+# installed and are not affected, and neither are calculations run in a
+# separate R process.
+compiler::enableJIT(0)
+
 source(file.path("R", "tree.R"), local = TRUE)
 source(file.path("R", "ui.R"), local = TRUE)
 source(file.path("R", "forms.R"), local = TRUE)

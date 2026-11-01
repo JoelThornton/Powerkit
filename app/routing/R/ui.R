@@ -453,7 +453,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
       h3(class = "known-section-title", id = "known_groups_title", "All analyses, by group"),
       tags$button(type = "button", class = "btn btn-link known-open-all", id = "known_open_all",
         onclick = "powerkitOpenAllFamilies(this)", "Open all groups")),
-    lapply(families, function(f) {
+    cached_html(list("known_groups", eps, families, maintainer_view()), function() lapply(families, function(f) {
       ids <- intersect(unlist(f$endpoints), names(eps))
       tags$details(class = "known-family", `data-family` = f$id,
         tags$summary(
@@ -461,13 +461,30 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
           tags$span(class = "known-family-count", `data-total` = length(ids),
             `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
         div(class = "known-family-items", lapply(ids, item, family = f)))
-    }),
+    })),
     div(class = "choices list mt-4",
       pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"),
       pick_button("Not sure which? Answer a few questions instead", "route:choose", class = "btn btn-outline-secondary choice choice-safety")),
     tags$script(HTML(known_search_js)),
     tags$script(HTML("powerkitRestoreAnalyses();"))
   )
+}
+
+# Parts of a screen that are the same whenever they are built from the
+# same things (the analysis list, an input screen's groups of fields) are
+# built once and kept as HTML, keyed on what they are built from. Building
+# and writing them out took most of the time between a click and the next
+# screen. The cache is the app's, shared by every visitor, and drops the
+# least recently used entries past 32 MB.
+ui_html_cache <- cachem::cache_mem(max_size = 32 * 1024^2)
+cached_html <- function(key_parts, build) {
+  key <- rlang::hash(key_parts)
+  html <- ui_html_cache$get(key)
+  if (cachem::is.key_missing(html)) {
+    html <- HTML(as.character(tagList(build())))
+    ui_html_cache$set(key, html)
+  }
+  html
 }
 
 # The text the search box looks in: lower case, with hyphens, slashes,
