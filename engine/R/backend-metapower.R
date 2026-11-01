@@ -136,6 +136,13 @@ metapower_script <- function(spec, result) {
 
 # The design line of the script header for a meta-analysis.
 meta_design_description <- function(spec, label) {
+  if (identical(spec$template, "dependent_effects")) {
+    pop <- spec$population
+    return(sprintf(
+      "meta-analysis of %s with %s effects per study, the robust (RVE) test of the average effect (%s) under the correlated and hierarchical effects model, in studies of %s participants (tau %s between studies, omega %s within, sampling correlation %s)",
+      label("Y"), format_number(pop$effects_per_study), if (identical(pop$metric, "r")) "r" else "Cohen's d",
+      format_number(pop$study_size), format_number(pop$tau), format_number(pop$omega), format_number(pop$rho)))
+  }
   inputs <- metapower_inputs(spec)
   sprintf(
     "%s meta-analysis of %s, the %s of the average effect (%s) in studies of %s participants with I-squared %s%s",
@@ -159,8 +166,8 @@ meta_design_description <- function(spec, label) {
 # the true effects vary with tau^2 = I^2 v / (1 - I^2).
 
 hartung_knapp_test <- function(spec) {
-  identical(spec$design, "meta_analysis") && !identical(spec$target_test$model, "fixed") &&
-    !identical(spec$target_test$test, "z")
+  identical(spec$design, "meta_analysis") && !identical(spec$template, "dependent_effects") &&
+    !identical(spec$target_test$model, "fixed") && !identical(spec$target_test$test, "z")
 }
 
 # The average effect on the analysis scale (Fisher's z for r) and a

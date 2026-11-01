@@ -74,6 +74,7 @@ export_script <- function(spec, result, file = NULL) {
     TOSTER = toster_script(spec, result),
     bfpwr = bfpwr_script(spec, result),
     metapower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else metapower_script(spec, result),
+    POMADE = pomade_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),

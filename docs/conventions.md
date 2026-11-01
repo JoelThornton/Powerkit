@@ -452,6 +452,14 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("cond", "sa")` (E68, from 1 November 2026) [powerkit] | Cohen's d over the outcome's total SD, with the sites' and groups' shares of the variance (intraclass correlations) and the effect's variation across sites or groups as shares of it | `y ~ cond + (1 \| site) + (1 \| site:group)`, with `(1 + cond \| site)` when the condition is assigned below the sites and its effect varies, and `(1 + cond \| site:group)` when it is assigned to people; cond coded -0.5 and 0.5; equal group and site sizes; the first half of what is assigned in the first condition. The Satterthwaite test is Departure 16; with few sites and a small varying effect it can be conservative (3.1% at alpha .05 with classes assigned in 8 schools, 3.65% in an independent simulation) |
 
+## Meta-analysis with several effects per study (E61, POMADE)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No meta-analysis | — | — |
+| POMADE | `power_MADE()`: the test of the average effect under a working model, with `model = "CHE"` and `var_df = "RVE"` by default [POMADE help] | The average effect, with tau, omega and rho | Study sizes and numbers of effects may be drawn from distributions; balanced by default when given single values |
+| **powerkit** | POMADE's `power_MADE()` with its defaults, the CHE model and the RVE test (E61, from 1 November 2026) [powerkit] | Cohen's d or r (on Fisher's z), tau, omega and rho on the same scale | Every study the same size with the same number of effects; each effect's sampling variance a typical study's, as metapower computes it (`4/n + d^2/(2n)`, or `1/(n - 3)` for r). Not a departure |
+
 ## Dyadic data: actor and partner effects (E44)
 
 | Tool | Test | Effect size | Settings |

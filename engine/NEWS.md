@@ -2,6 +2,18 @@
 
 A batch of new features, built as one round.
 
+* Meta-analyses whose studies give several correlated effect sizes each
+  (E61, template `dependent_effects`): POMADE's `power_MADE()` for the
+  test of the average effect under the correlated and hierarchical
+  effects (CHE) model with robust variance estimation (J - 1 degrees of
+  freedom), POMADE's default. The inputs are the average effect (d or r),
+  a typical study's size (each effect's sampling variance computed as
+  metapower computes it), the effects per study, the SD of the studies'
+  average effects (`tau`), the SD of the effects within a study (`omega`)
+  and the correlation of a study's sampling errors (`rho`); n is the
+  number of studies. Checked against a simulation written separately
+  with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
+  furrr).
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from

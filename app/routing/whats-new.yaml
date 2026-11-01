@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Meta-analyses where studies give several results"
+    text: >-
+      The meta-analysis card can now plan for studies that each report
+      several effect sizes, such as several outcomes or time points,
+      allowing for how alike the results from one study are.
+  - date: "2026-11-01"
     title: "A new methods map"
     text: >-
       The methods map in Labs now opens full screen. Find a study like

@@ -4137,3 +4137,18 @@ needed first.
   of the whole-study simulation and the published values for the eight
   cards still marked "validation in progress" move from the queue to
   "Waiting on the maintainer, not a PR" in `next.md`.
+
+## 2026-11-01 · Several effects per study in a meta-analysis (E61, POMADE)
+
+- **POMADE's defaults:** the correlated and hierarchical effects (CHE)
+  working model, with the average effect tested by robust variance
+  estimation on J - 1 degrees of freedom, as POMADE recommends.
+- **Balanced studies,** as for E61's other questions: every study the
+  same size with the same number of effects, each effect's sampling
+  variance that of a typical study computed as metapower computes it, so
+  a researcher moving between E61's questions gives the same inputs.
+  POMADE's notice that balanced assumptions can mislead is noted on the
+  form's help for rho (try several values); drawing study sizes from a
+  distribution is left for later.
+- **Heterogeneity as SDs (tau, omega),** POMADE's own inputs, not
+  I-squared, which has no single meaning with two levels of variation.

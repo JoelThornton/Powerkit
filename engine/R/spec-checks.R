@@ -2225,7 +2225,8 @@ minimum_n <- function(spec) {
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
     # a degree of freedom.
-    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else 2,
+    meta_analysis = if (identical(spec$template, "subgroups")) 2 * length(unlist(spec$population$effects)) else
+      if (identical(spec$template, "dependent_effects")) 3 else 2,
     # Dyads: enough pairs for lavaan to fit the APIM's 10 parameters.
     dyadic = 20,
     # Two groups in each condition (cluster-randomised), or two groups
@@ -2570,6 +2571,9 @@ check_meta_analysis <- function(spec) {
       "%d isn't."), as.integer(pop$study_size)))
   }
   alternative <- spec$target_test$alternative %||% "two_sided"
+  if (identical(spec$template, "dependent_effects") && !identical(alternative, "two_sided")) {
+    problems <- c(problems, "POMADE's test of the average effect is two-sided: remove 'target_test > alternative' or set it to \"two_sided\".")
+  }
   if (subgroups && !identical(alternative, "two_sided")) {
     problems <- c(problems, "The test that kinds of study differ has no direction (a Q test): remove 'target_test > alternative' or set it to \"two_sided\".")
   }

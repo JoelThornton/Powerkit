@@ -757,6 +757,22 @@ test_that("the participants-and-items cards take a yes/no outcome: probabilities
   expect_identical(spec$target_test$method, "wald")
 })
 
+test_that("the meta-analysis card takes several effects per study: POMADE's inputs, and no I-squared, model or test question", {
+  fields <- form_fields(form_groups(forms, "E61"))
+  values <- modifyList(form_examples$E61, list(meta_question = "dependent_effects", effects_per_study = "4", meta_tau = "0.1",
+    meta_omega = "0.05", meta_rho = "0.6", goal = "power", n = "20", i2 = NULL, meta_model = NULL, meta_test = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false(any(c("i2", "meta_model", "meta_test") %in% vapply(applies, function(f) f$id, "")))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E61", fields, values)
+  expect_identical(spec$template, "dependent_effects")
+  expect_identical(spec$target_test$method, "rve_t")
+  expect_equal(spec$population$rho, 0.6)
+  validate <- engine_function("validate_spec")
+  skip_if(is.null(validate), "engine not available")
+  expect_s3_class(validate(spec), "powerkit_spec")
+})
+
 test_that("the meta-analysis card tests subgroups: the kinds' effects go to the engine's subgroups template", {
   fields <- form_fields(form_groups(forms, "E61"))
   values <- modifyList(form_examples$E61, list(meta_question = "subgroups", meta_effects = "0.2, 0.5", meta_effect = NULL,
