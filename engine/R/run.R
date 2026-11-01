@@ -166,6 +166,11 @@
 #'     applied to the specified pattern, the scaled cell `means` and the
 #'     `cohen_f`; for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
 #'     `r`, `w` or `p2`);
+#'   * `justified_alpha`: `NULL` unless the goal is `justified_alpha`;
+#'     otherwise JustifyAlpha's `optimal_alpha()` result: the `alpha`, the
+#'     `beta` and `power` at it, the weighted `error_rate`, the weights
+#'     (`cost_ratio`, `prior_odds`), the `error_rule`, and the
+#'     `conventional_alpha` with its `conventional_power`;
 #'   * `effect_from_units`: `NULL` unless the effect was given in the
 #'     outcome's own units (`population > metric` "raw", the t-tests);
 #'     otherwise a list with the standardised effect's `name` ("Cohen's d"
@@ -275,6 +280,13 @@ run_spec <- function(spec) {
       },
       list(sensitivity = NA)
     ),
+    justified_alpha = {
+      found <- justify_alpha(spec)
+      list(
+        curve = data.frame(n = goal$n, power = found$power, mcse = 0), simulations = NA,
+        n_required = NA, sensitivity = NA, justified_alpha = found
+      )
+    },
     sensitivity = {
       if (is.null(backend$sensitivity)) {
         abort_not_available(
@@ -316,6 +328,7 @@ run_spec <- function(spec) {
       curve = outcome$curve,
       n_required = outcome$n_required,
       sensitivity = outcome$sensitivity,
+      justified_alpha = outcome$justified_alpha,
       effect_from_units = units,
       safeguard = safeguard_record(spec),
       effect_conversion = conversion_record(spec),
@@ -337,7 +350,7 @@ run_spec <- function(spec) {
         backend = backend$name,
         backend_function = backend$functions[[method]],
         r_version = R.version.string,
-        packages = package_versions(c("powerkit", backend$packages,
+        packages = package_versions(c("powerkit", backend$packages, if (justified_alpha_goal(spec)) "JustifyAlpha",
           if (!is.null(spec$effect_justification$safeguard)) "psych",
           spec_conversion_package(spec))),
         started = format(started, "%Y-%m-%d %H:%M:%S %Z"),
@@ -367,7 +380,7 @@ power_at_n <- function(backend, n, simulating, nrep, seed, cores) {
 # answer, not an input) or a backend that doesn't report them. They never
 # stop a run.
 test_details <- function(backend, goal_type, simulating, n) {
-  if (simulating || identical(goal_type, "sensitivity") || is.null(backend$details)) {
+  if (simulating || goal_type %in% c("sensitivity", "justified_alpha") || is.null(backend$details)) {
     return(NULL)
   }
   tryCatch(backend$details(n), error = function(e) NULL)

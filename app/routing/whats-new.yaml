@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-10-31"
+    title: "Choose a significance level by weighing the two mistakes"
+    text: >-
+      The one-sample, paired and two-group t-tests and the correlation
+      have a new goal: instead of always using 5%, find the significance
+      level that best balances a false positive against a missed effect,
+      for the sample size you have. You say how much worse a false
+      positive would be; the result shows the level, the power at it and
+      the power at 5% for comparison.
+  - date: "2026-10-31"
     title: "Many items per person in three or more conditions"
     text: >-
       A new card plans studies where each participant responds to many
