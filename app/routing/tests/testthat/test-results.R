@@ -1819,7 +1819,7 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   spec$options$nrep <- NULL
   calc <- run_calculation(spec, seed = forms$default_seed)
   html <- as.character(scenarios_ui(calc$spec, calc$result))
-  expect_match(html, "How much does the answer depend on the effect?", fixed = TRUE)
+  expect_match(html, "A cautious and a hopeful guess", fixed = TRUE)
   expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
   # Only the values given are drawn; the plan's effect always is.
   n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
@@ -2272,4 +2272,49 @@ test_that("precision planning (E46) gives the sample size for an interval width,
   expect_equal(simulated_data_n_for(calc$spec, calc$result), n)
   expect_match(as.character(result_panel_ui(tree, forms, "E46", out$fields, out$values, calc)), "download_simulated_data", fixed = TRUE)
   expect_true(script_reproduces(script(calc$spec, calc$result)))
+})
+
+test_that("the result leads with one figure, the same number as its sentence", {
+  skip_without_run()
+  for (ep in c("E1", "E2", "E3", "E4", "E5", "E6", "E18", "E24")) {
+    for (goal in list(list(type = "sample_size", power = 0.8), list(type = "power", n = 60L))) {
+      calc <- run_calculation(light_spec(ep, goal), seed = forms$default_seed)
+      expect_identical(calc$status, "ok", info = ep)
+      fig <- result_figure(calc$spec, calc$result)
+      expect_false(is.null(fig), info = paste(ep, goal$type))
+      # The figure is the number the sentence gives, never a new one.
+      expect_match(result_sentences(calc$spec, calc$result)[["headline"]], fig$value, fixed = TRUE, info = paste(ep, goal$type))
+    }
+  }
+  calc <- run_calculation(light_spec("E2", list(type = "sample_size", power = 0.8)), seed = forms$default_seed)
+  fig <- result_figure(calc$spec, calc$result)
+  expect_equal(fig$label, "participants in total")
+  expect_match(fig$sub, "per group$")
+  fields <- form_fields(form_groups(forms, "E2"))
+  html <- as.character(result_hero_ui(calc$spec, calc$result, fields, form_examples$E2))
+  expect_match(html, "result-figure-value", fixed = TRUE)
+  expect_match(html, "Target power 80%", fixed = TRUE)
+  expect_match(html, "Assuming", fixed = TRUE)
+  # A design with no single figure keeps the sentence alone.
+  expect_null(result_figure(list(design = "x"), list(goal_type = "something_else")))
+})
+
+test_that("the result's sections are linked along its top, and the write-up can be copied", {
+  skip_without_run()
+  calc <- run_calculation(light_spec("E2", list(type = "sample_size", power = 0.8)), seed = forms$default_seed)
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples$E2
+  values$just_source <- "A previous study found about this effect."
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  for (id in c("result-answer", "result-take", "result-how-card")) {
+    expect_match(html, sprintf('href="#%s"', id), fixed = TRUE)
+    expect_match(html, sprintf('id="%s"', id), fixed = TRUE)
+  }
+  # "How sure can you be?" is linked only when there is something to show.
+  sure <- !is.null(explore_ui(calc$spec, calc$result)) || !is.null(scenarios_ui(calc$spec, calc$result))
+  expect_identical(grepl('href="#result-sure"', html, fixed = TRUE), sure)
+  expect_identical(grepl('id="result-sure"', html, fixed = TRUE), sure)
+  expect_match(html, "pkCopyText(document.getElementById(&#39;writeup_short&#39;).value", fixed = TRUE)
+  # The write-up comes before the downloads.
+  expect_lt(regexpr("writeup_short", html), regexpr("download_script", html))
 })
