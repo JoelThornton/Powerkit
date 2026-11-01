@@ -253,6 +253,10 @@ zero_effect_cases <- list(
   crossed_two_condition = function(s) within(s, population$difference <- 0),
   mixed_two_level = function(s) within(s, population$b_XW <- 0),
   crossed_conditions = function(s) within(s, population$means <- list(600, 600, 590)),
+  item_predictor = function(s) within(s, population$slope <- 0),
+  # Small schools (two classes of four), so that the fixed-n check's 240
+  # people are a whole number of them (30), above the minimum of six.
+  mixed_three_level = function(s) within(s, {population$d <- 0; population$group_size <- 4L; population$groups_per_site <- 2L}),
   meta_mean_effect = function(s) within(s, population$effect <- 0),
   dyadic_apim = function(s) within(s, population$partner <- 0),
   meta_subgroups = function(s) within(s, population$effects <- list(0.3, 0.3)),

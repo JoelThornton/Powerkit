@@ -175,6 +175,16 @@ simulations:
       preview: {power: 40}
       full: {power: 400}
       script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E67:
+      full_run: [power]
+      preview: {power: 35}
+      full: {power: 350}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E68:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E62:
       full_run: [power]
       preview: {power: 30}
@@ -1049,6 +1059,80 @@ forms:
              shown_if: {field: conditions_test, is: pairwise},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
+
+  # A predictor measured on each item (simr), 1 November 2026.
+  E67:
+    methods_name: "a linear mixed model with participants and items as random factors and an item-level predictor"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: item_predictor,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {effect: slope, method: satterthwaite_t}}
+    groups:
+      - input: "The item score and the outcome"
+        fields:
+          - {id: X_label, label: "Measured on each item (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+          - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and the effect and every SD below are on the log-odds scale."}
+          - {id: binary_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: outcome_type, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the item score)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+      - input: "The effect, and how participants and items vary"
+        fields:
+          - {id: slope, writeup_label: "effect per SD of the item score", label: "The effect of one SD more of the item score (in the outcome's units, or on the log odds for yes/no)", type: number, path: population.slope, effect: true}
+          - {id: probability, writeup_label: "chance of yes at the average item", label: "The chance of 'yes' for an item of average score, for a typical participant (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: outcome_type, is: binary}}
+          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
+          - {id: sd_participant_slope, writeup_label: "SD of participants' slopes", label: "SD of the effect across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
+          - {id: r_participant, label: "Correlation of participants' averages and slopes (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_item, writeup_label: "SD of items beyond the score", label: "SD of items' averages beyond what the item score explains", type: number, path: population.sd_item, effect: true, min: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: outcome_type, is: continuous}}
+      - input: "The items"
+        fields:
+          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 6, integer: true,
+             help: "powerkit spreads the item score evenly across the items, as a normal distribution."}
+
+  # Three levels (simr): people in groups in sites, the condition
+  # assigned to sites, groups or people (1 November 2026).
+  E68:
+    methods_name: "a three-level linear mixed model (Satterthwaite t test)"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: three_level,
+           variables: {X: {type: between_factor}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: condition, method: satterthwaite_t}}
+    groups:
+      - input: "The conditions, what is assigned to them, and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, programme)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The two conditions, separated by a comma (first the comparison condition)", type: levels, path: variables.X.levels, required: true}
+          - {id: Y_label, label: "Outcome (for example, reading score)", type: text, path: variables.Y.label, required: true}
+          - {id: three_assignment, label: "What is assigned to the conditions", type: select, path: population.assignment, required: true,
+             choices: {site: "Whole larger groups (for example, schools)", group: "Groups within each larger group (for example, classes within each school)", person: "People within each group (for example, pupils within each class)"},
+             default: site, default_source: "whole sites, the commonest three-level trial"}
+      - input: "The effect, and how alike people in the same group and site are"
+        fields:
+          - {id: d, label: "Cohen's d: (condition 2 minus condition 1) / the outcome's total SD", type: number, path: population.d, effect: true,
+             help: "The total SD is how much people vary on the outcome across everyone, not only within one group."}
+          - {id: icc_site, writeup_label: "intraclass correlation of the larger groups", label: "The share of the outcome's variation between larger groups, e.g. schools (an intraclass correlation, 0 to 1)", type: number, path: population.icc_site, effect: true, min: 0, max_exclusive: 1}
+          - {id: icc_group, writeup_label: "intraclass correlation of the groups", label: "The share of the outcome's variation between groups within the larger groups, e.g. classes within schools (0 to 1)", type: number, path: population.icc_group, effect: true, min: 0, max_exclusive: 1}
+          - {id: icc_effect_site, label: "How much the effect varies between larger groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_site, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
+             shown_if: {field: three_assignment, is_not: site}}
+          - {id: icc_effect_group, label: "How much the effect varies between groups, as a share of the outcome's variation (optional; empty = 0)", type: number, path: population.icc_effect_group, optional: true, empty_text: "0", min: 0, max_exclusive: 1,
+             shown_if: {field: three_assignment, is: person}}
+      - input: "The sizes of the groups and sites"
+        fields:
+          - {id: group_size, label: "People in each group (for example, pupils per class)", type: number, path: population.group_size, required: true, min: 2, integer: true}
+          - {id: groups_per_site, label: "Groups in each larger group (for example, classes per school)", type: number, path: population.groups_per_site, required: true, min: 2, integer: true,
+             help: "The total number of people is then a whole number of larger groups; with whole larger groups assigned, an even number of them."}
 
   # Dyadic data (power4mome): the actor-partner interdependence model
   # (1 November 2026).

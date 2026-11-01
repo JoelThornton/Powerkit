@@ -40,7 +40,7 @@ map_meta <- function(path = file.path(getOption("powerkit.routing_dir", "."), "m
   yaml::read_yaml(path)
 }
 
-map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", "d1")
+map_screening <- c("s1", "o5a", "s2", "s2_trials", "s3", "t1", "s4", "c1", "c2", "d1")
 map_elsewhere <- "Designs set by how the data are collected"
 map_known_only <- "Chosen by name (in \u201cI know my analysis\u201d)"
 

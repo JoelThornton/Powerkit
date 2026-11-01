@@ -120,6 +120,8 @@ endpoints:
   E64: rank
   E65: model
   E66: z
+  E67: model
+  E68: model
   E-bayes: bayes
 
 relations:
@@ -186,8 +188,10 @@ relations:
   - {from: E2, to: E34, label: "with whole groups randomised becomes"}
   - {from: E3, to: E33, label: "with many items per person becomes"}
   - {from: E33, to: E63, label: "with three or more conditions becomes"}
+  - {from: E33, to: E67, label: "with a score measured on each item becomes"}
   - {from: E54, to: E35, label: "over many occasions, as a growth model, becomes"}
   - {from: E62, to: E41, label: "for relationships within people is"}
+  - {from: E34, to: E68, label: "with groups inside larger groups becomes"}
   - {from: E62, to: E44, label: "for pairs of people becomes"}
   - {from: E44, to: E65, label: "in other designs for pairs is"}
   - {from: E24, to: E37, label: "with latent variables becomes"}

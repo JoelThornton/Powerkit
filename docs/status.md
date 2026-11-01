@@ -29,10 +29,10 @@ fully validated. Validation runs are recorded in
   since 1 November 2026; E61, a planned
   meta-analysis (metapower's z test, or the Hartung-Knapp test by
   default, simulated with metafor), since 31 October 2026, with subgroups
-  of studies since 1 November. **Ten are simulated with a
+  of studies since 1 November. **Twelve are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14 and
   E40 (mediation and moderated mediation, power4mome), E16 (mediation
-  with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial) and E62 (a
+  with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
   groups, 31 October 2026; agrees with a separately written simulation,

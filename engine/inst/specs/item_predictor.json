@@ -1,0 +1,23 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "item_predictor",
+  "variables": {
+    "X": {"type": "continuous", "label": "Word frequency"},
+    "Y": {"type": "continuous", "label": "Response time (ms)"}
+  },
+  "population": {
+    "metric": "raw",
+    "slope": -15,
+    "sd_participant": 60,
+    "sd_participant_slope": 10,
+    "r_participant": 0.2,
+    "sd_item": 30,
+    "sd_residual": 120,
+    "items": 60
+  },
+  "effect_justification": {"type": "smallest_effect_of_interest", "source": "Example only: 15 ms faster for each SD more of word frequency is the smallest effect of interest."},
+  "target_test": {"effect": "slope", "method": "satterthwaite_t", "alpha": 0.05},
+  "goal": {"type": "power", "n": 30},
+  "options": {"nrep": 200, "seed": 67}
+}

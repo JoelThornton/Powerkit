@@ -129,6 +129,30 @@ A batch of new features, built as one round.
   Checked against a simulation written separately with glmer, with the
   Type I error near alpha. The design finder's question on many trials
   or stimuli takes yes/no outcomes to these cards.
+* Three levels (E68, design `mixed_model`, template `three_level`):
+  people in groups in larger groups (pupils in classes in schools), with
+  two conditions assigned to whole sites, to groups within each site or
+  to people within each group (`population > assignment`). The inputs
+  are Cohen's d over the outcome's total SD, the sites' and groups'
+  shares of the variance (`icc_site`, `icc_group`), how much the effect
+  varies across sites or groups where it can (`icc_effect_site`,
+  `icc_effect_group`), the group size and the groups per site; n is a
+  whole number of sites. Simulated with simr on y ~ cond + (1 | site) +
+  (1 | site:group) (with the condition's random effects where they
+  apply), tested by Satterthwaite's t test (Departure 16). Agrees with a
+  simulation written separately, with the Type I error near alpha;
+  published value to come. The design finder asks whether the groups
+  are part of larger groups (C2).
+* A predictor measured on each item (E67, design `mixed_model`, template
+  `item_predictor`): participants responding to many items that differ
+  on a score (word frequency), standardised across the items, in y ~ x +
+  (1 + x | participant) + (1 | item): the effect per SD of the score,
+  participants' own slopes and the items' variation beyond the score. A
+  score outcome is tested by Satterthwaite's t test (Departure 16), a
+  yes/no outcome by glmer's Wald z test or the likelihood ratio. Checked
+  against a simulation written separately (lmerTest or glmer without
+  simr), with the Type I error near alpha. The design finder's question
+  on many trials or stimuli offers it.
 * Dyadic data (E44, design `dyadic`, template `apim`): the actor-partner
   interdependence model for pairs of people, each member's X predicting
   their own Y (actor) and their partner's (partner), with the members'

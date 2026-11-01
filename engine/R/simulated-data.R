@@ -931,6 +931,8 @@ sim_precision_code <- function(spec, n) {
 sim_mixed_code <- function(spec, n) {
   if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
   if (identical(spec$template, "crossed_conditions")) return(sim_crossed_conditions_code(spec, n))
+  if (identical(spec$template, "three_level")) return(sim_three_level_code(spec, n))
+  if (identical(spec$template, "item_predictor")) return(sim_item_predictor_code(spec, n))
   inputs <- simr_inputs(spec)
   levels <- sim_levels(spec, "X")
   item_var <- if (length(inputs$VarCorr$item) > 1) {
@@ -1205,6 +1207,62 @@ sim_crossed_conditions_code <- function(spec, n) {
     "  participant = design$participant,",
     "  item = design$item,",
     sprintf("  %s = design$cond,", sim_label(spec, "X")),
+    sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# Three levels (E68): the same design and model as the simulation
+# (three_level_design(), three_level_inputs()), one row per person.
+sim_three_level_code <- function(spec, n) {
+  inputs <- three_level_inputs(spec)
+  sites <- n %/% inputs$site_size
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr),
+    vapply(inputs$VarCorr, function(x) if (length(x) > 1) sprintf("diag(%s)", r_code(diag(x))) else r_code(x), "")), collapse = ", ")
+  levels <- sim_levels(spec, "X")
+  c(
+    sprintf("design <- expand.grid(person = seq_len(%d), group = seq_len(%d), site = seq_len(%d))",
+      inputs$group_size, inputs$groups_per_site, sites),
+    sprintf("design$cond <- ifelse(%s, -0.5, 0.5) # the first half in the first condition", switch(inputs$level,
+      site = sprintf("design$site <= %s", r_code(sites / 2)), group = sprintf("design$group <= %s", r_code(inputs$groups_per_site / 2)),
+      person = sprintf("design$person <= %s", r_code(inputs$group_size / 2)))),
+    "design$site <- factor(design$site)",
+    "design$group <- factor(design$group)",
+    sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(%s), sigma = %s, data = design)",
+      deparse1(inputs$formula), r_code(inputs$fixef), var_corr, r_code(inputs$sigma)),
+    "simulated <- data.frame(",
+    "  site = design$site,",
+    "  group = interaction(design$site, design$group, drop = TRUE),",
+    sprintf("  %s = %s[(design$cond > 0) + 1],", sim_label(spec, "X"), r_code(levels)),
+    sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# A predictor measured on each item (E67): the same design and model as
+# the simulation (item_predictor_design(), item_predictor_inputs()), one
+# row per participant per item.
+sim_item_predictor_code <- function(spec, n) {
+  inputs <- item_predictor_inputs(spec)
+  c(
+    sprintf("x <- stats::qnorm(seq_len(%d) / %d)", inputs$items, inputs$items + 1),
+    "x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # standardised across the items",
+    sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
+    "design$x <- x[design$item]",
+    "design$participant <- factor(design$participant)",
+    "design$item <- factor(design$item)",
+    sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant))),
+    if (inputs$binary) {
+      sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(participant = participant_var, item = %s), data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item))
+    } else {
+      sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
+        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item), r_code(inputs$sigma))
+    },
+    "simulated <- data.frame(",
+    "  participant = design$participant,",
+    "  item = design$item,",
+    sprintf("  %s = design$x,", sim_label(spec, "X")),
     sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
     ")"
   )

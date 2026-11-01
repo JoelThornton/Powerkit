@@ -21,7 +21,10 @@
 simr_backend <- function(spec, seed = NULL) {
   two_level <- identical(spec$template, "two_level")
   conditions <- identical(spec$template, "crossed_conditions")
-  inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else simr_inputs(spec)
+  three <- identical(spec$template, "three_level")
+  item <- identical(spec$template, "item_predictor")
+  inputs <- if (two_level) two_level_inputs(spec) else if (conditions) crossed_conditions_inputs(spec) else
+    if (three) three_level_inputs(spec) else if (item) item_predictor_inputs(spec) else simr_inputs(spec)
   if (conditions) inputs$test <- crossed_conditions_test(inputs)
   list(
     name = "simr",
@@ -30,7 +33,7 @@ simr_backend <- function(spec, seed = NULL) {
     default_method = "simulation",
     functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
-    n_step = if (two_level) inputs$cluster_size else 1,
+    n_step = if (two_level) inputs$cluster_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
@@ -40,7 +43,8 @@ simr_backend <- function(spec, seed = NULL) {
     sensitivity = NULL,
     check_run = function() {
       if (two_level) two_level_check_run(spec, inputs, seed) else if (conditions) crossed_conditions_check_run(spec, inputs, seed) else
-        simr_check_run(spec, inputs, seed)
+        if (three) three_level_check_run(spec, inputs, seed) else if (item) item_predictor_check_run(spec, inputs, seed) else
+          simr_check_run(spec, inputs, seed)
     }
   )
 }
@@ -661,6 +665,290 @@ crossed_conditions_script <- function(spec, result) {
     "# simr counts a data set whose fit or test fails as not significant.",
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
     "  result <- powerSim(model_for(batch_n), test = test_p,",
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, 1),
+    comparison_section()
+  )
+}
+
+# Three levels (mixed_model / three_level, E68): people (level 1) in
+# groups (level 2, classes) in sites (level 3, schools), with two
+# conditions assigned to whole sites, to groups within each site, or to
+# people within each group. On the scale of the outcome's total SD (1),
+# the sites' share of the variance is icc_site, the groups' icc_group and
+# the rest is residual; the condition, coded -0.5 and 0.5, has the
+# standardised effect d. When it is assigned below the sites, its effect
+# may vary across sites (icc_effect_site, a share of the total variance),
+# and when it is assigned to people, across groups too
+# (icc_effect_group):
+#   y ~ cond + (1 + cond | site) + (1 + cond | site:group)
+# with the condition's terms only where they apply. Simulated with simr
+# and tested by Satterthwaite's t test, as for E33 and E62 (Departure 16).
+three_level_inputs <- function(spec) {
+  pop <- spec$population
+  level <- pop$assignment
+  effect_site <- !identical(level, "site") && (pop$icc_effect_site %||% 0) > 0
+  effect_group <- identical(level, "person") && (pop$icc_effect_group %||% 0) > 0
+  terms <- c(if (effect_site) "(1 + cond | site)" else "(1 | site)",
+    if (effect_group) "(1 + cond | site:group)" else "(1 | site:group)")
+  var_corr <- list(
+    site = if (effect_site) diag(c(pop$icc_site, pop$icc_effect_site)) else pop$icc_site,
+    "site:group" = if (effect_group) diag(c(pop$icc_group, pop$icc_effect_group)) else pop$icc_group
+  )
+  list(
+    formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
+    fixef = c(0, pop$d),
+    VarCorr = var_corr,
+    sigma = sqrt(1 - pop$icc_site - pop$icc_group),
+    level = level,
+    group_size = pop$group_size,
+    groups_per_site = pop$groups_per_site,
+    site_size = pop$group_size * pop$groups_per_site,
+    term = "cond",
+    method = "sa",
+    alpha = spec$target_test$alpha,
+    design = three_level_design
+  )
+}
+
+# One data set's design: n people in sites of groups_per_site groups of
+# group_size; the first half of the sites, of each site's groups, or of
+# each group's people in the first condition.
+three_level_design <- function(inputs, n) {
+  sites <- n %/% inputs$site_size
+  data <- expand.grid(person = seq_len(inputs$group_size), group = seq_len(inputs$groups_per_site), site = seq_len(sites))
+  half <- switch(inputs$level,
+    site = data$site <= sites / 2,
+    group = data$group <= inputs$groups_per_site / 2,
+    person = data$person <= inputs$group_size / 2)
+  data$cond <- ifelse(half, -0.5, 0.5)
+  data$site <- factor(data$site)
+  data$group <- factor(data$group)
+  data$person <- NULL
+  data
+}
+
+# Check run: one large data set (400 sites) simulated from simr's model
+# and refitted with lme4: the effect within 5 of its standard errors, each
+# SD within 5 of its approximate standard errors, allowing for the noise
+# in each group's own estimate (as for E62).
+three_level_check_run <- function(spec, inputs, seed) {
+  n <- 400L * inputs$site_size
+  model <- simr_model(inputs, n)
+  data <- three_level_design(inputs, n)
+  data$y <- with_seed(seed, stats::simulate(model)[[1]])
+  fit <- simr_refit(inputs, data)
+  coefs <- summary(fit)$coefficients
+  vc <- as.data.frame(lme4::VarCorr(fit))
+  sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
+  pop <- spec$population
+  sites <- n / inputs$site_size
+  sd_row <- function(label, specified, recovered, groups, per_group) {
+    se_var <- (specified^2 + inputs$sigma^2 / per_group) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
+  }
+  rows <- list(
+    check_run_rows("effect (d)", pop$d, coefs["cond", "Estimate"], coefs["cond", "Std. Error"]),
+    sd_row("SD of sites (square root of icc_site)", sqrt(pop$icc_site), sd_of("site", "(Intercept)"), sites, inputs$site_size),
+    sd_row("SD of groups (square root of icc_group)", sqrt(pop$icc_group), sd_of("site:group", "(Intercept)"), sites * inputs$groups_per_site,
+      inputs$group_size),
+    if (length(sd_of("site", "cond"))) {
+      sd_row("SD of the effect across sites", sqrt(pop$icc_effect_site), sd_of("site", "cond"), sites, inputs$site_size / 4)
+    },
+    if (length(sd_of("site:group", "cond"))) {
+      sd_row("SD of the effect across groups", sqrt(pop$icc_effect_group), sd_of("site:group", "cond"), sites * inputs$groups_per_site,
+        inputs$group_size / 4)
+    },
+    check_run_rows("residual SD", inputs$sigma, sd_of("Residual", NA), inputs$sigma / sqrt(2 * nrow(data)))
+  )
+  check <- do.call(rbind, rows)
+  rownames(check) <- NULL
+  check
+}
+
+# The standalone script: simr alone, with the same design and test.
+three_level_script <- function(spec, result) {
+  inputs <- three_level_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  levels <- comment_text(unlist(v$X$levels))
+  var_corr <- paste(sprintf("`%s` = %s", names(inputs$VarCorr),
+    vapply(inputs$VarCorr, function(x) if (length(x) > 1) sprintf("diag(%s)", r_code(diag(x))) else r_code(x), "")), collapse = ", ")
+  c(
+    script_header(spec, result, "simr", "simr::powerSim() with fixed(\"cond\", \"sa\")"),
+    "library(simr)",
+    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    "",
+    "# Inputs ----",
+    sprintf("# The outcome, %s, on the scale of its total SD; cond is %s coded -0.5 (%s) and 0.5 (%s).",
+      comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),
+    sprintf("d <- %s # the effect over the outcome's total SD", r_code(pop$d)),
+    sprintf("variances <- list(%s) # sites' and groups' shares of the variance (and of the effect's)", var_corr),
+    sprintf("sd_residual <- %s # sqrt(1 - icc_site - icc_group)", r_code(inputs$sigma)),
+    sprintf("group_size <- %s # people in each group", r_code(inputs$group_size)),
+    sprintf("groups_per_site <- %s # groups in each site", r_code(inputs$groups_per_site)),
+    sprintf("assignment <- %s # what is assigned to the conditions", r_code(inputs$level)),
+    goal_inputs(spec, result),
+    "",
+    "design_for <- function(n_people) {",
+    "  sites <- n_people %/% (group_size * groups_per_site)",
+    "  data <- expand.grid(person = seq_len(group_size), group = seq_len(groups_per_site), site = seq_len(sites))",
+    "  half <- switch(assignment, site = data$site <= sites / 2, group = data$group <= groups_per_site / 2,",
+    "    person = data$person <= group_size / 2)",
+    "  data$cond <- ifelse(half, -0.5, 0.5)",
+    "  data$site <- factor(data$site)",
+    "  data$group <- factor(data$group)",
+    "  data$person <- NULL",
+    "  data",
+    "}",
+    "",
+    "model_for <- function(n_people) {",
+    sprintf("  makeLmer(%s, fixef = c(0, d), VarCorr = variances,", deparse1(inputs$formula)),
+    "    sigma = sd_residual, data = design_for(n_people))",
+    "}",
+    "",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  result <- powerSim(model_for(batch_n), test = fixed(\"cond\", \"sa\"),",
+    "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
+    "  c(result$x, result$n)",
+    "}",
+    "",
+    batch_section(result, "powerSim()"),
+    simulation_goal_section(spec, result, inputs$site_size),
+    comparison_section()
+  )
+}
+
+# A predictor measured on each item (mixed_model / item_predictor, E67):
+# participants respond to many items that differ on a score X (word
+# frequency, a face's rated attractiveness), standardised across the items
+# (normal quantiles, centred, SD 1):
+#   y ~ x + (1 + x | participant) + (1 | item)
+# with the effect of X per SD of X, each participant's own slope on X
+# (sd_participant_slope, correlated r_participant with their intercept),
+# and the items varying beyond what X explains (sd_item). A score outcome
+# is tested by Satterthwaite's t test (Departure 16); a yes/no outcome
+# (Y binary: the chance of 'yes' at the items' mean X for a typical
+# participant, every SD on the log-odds scale) by glmer's Wald z test or
+# the likelihood ratio, as for E33.
+item_predictor_inputs <- function(spec) {
+  pop <- spec$population
+  binary <- crossed_binary(spec)
+  r <- pop$r_participant %||% 0
+  participant <- matrix(c(pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
+    r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2), nrow = 2)
+  list(
+    formula = stats::as.formula("y ~ x + (1 + x | participant) + (1 | item)", env = globalenv()),
+    binary = binary,
+    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    term = "x",
+    fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$slope),
+    VarCorr = list(participant = participant, item = pop$sd_item^2),
+    sigma = if (!binary) pop$sd_residual,
+    items = pop$items,
+    alpha = spec$target_test$alpha,
+    design = item_predictor_design
+  )
+}
+
+# One data set's design: every participant responds to every item; the
+# items' X are evenly spread standard normal values (normal quantiles),
+# centred with SD 1.
+item_predictor_design <- function(inputs, n) {
+  x <- stats::qnorm(seq_len(inputs$items) / (inputs$items + 1))
+  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
+  data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
+  data$x <- x[data$item]
+  data$participant <- factor(data$participant)
+  data$item <- factor(data$item)
+  data
+}
+
+# Check run: one large data set (300 participants, at least 200 items),
+# refitted with lme4: the slope within 5 of its standard errors, each SD
+# within 5 of its approximate standard errors allowing for the noise in
+# each group's own estimate.
+item_predictor_check_run <- function(spec, inputs, seed) {
+  n <- 300L
+  big <- inputs
+  big$items <- max(inputs$items, 200L)
+  model <- simr_model(big, n)
+  data <- item_predictor_design(big, n)
+  data$y <- with_seed(seed, stats::simulate(model)[[1]])
+  fit <- simr_refit(inputs, data)
+  coefs <- summary(fit)$coefficients
+  vc <- as.data.frame(lme4::VarCorr(fit))
+  sd_of <- function(group, var1) vc$sdcor[vc$grp == group & vc$var1 %in% var1 & is.na(vc$var2)]
+  pop <- spec$population
+  sd_row <- function(label, specified, recovered, groups, per_group) {
+    se_var <- (specified^2 + simr_noise(inputs, pop, per_group)) * sqrt(2 / (groups - 1))
+    check_run_rows(label, specified, recovered, se_var / (2 * max(specified, 0.05)))
+  }
+  rows <- list(
+    check_run_rows(if (inputs$binary) "slope of X (log odds per SD)" else "slope of X (per SD)", pop$slope,
+      coefs["x", "Estimate"], coefs["x", "Std. Error"]),
+    sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n, big$items),
+    sd_row("SD of participant slopes on X", pop$sd_participant_slope, sd_of("participant", "x"), n, big$items),
+    sd_row("SD of item intercepts beyond X", pop$sd_item, sd_of("item", "(Intercept)"), big$items, n),
+    if (!inputs$binary) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
+  )
+  check <- do.call(rbind, rows)
+  rownames(check) <- NULL
+  check
+}
+
+# The standalone script: simr alone, with the same design and test.
+item_predictor_script <- function(spec, result) {
+  inputs <- item_predictor_inputs(spec)
+  pop <- spec$population
+  v <- spec$variables
+  c(
+    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"x\", \"%s\")", inputs$method)),
+    "library(simr)",
+    if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
+      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+    "",
+    "# Inputs ----",
+    sprintf("# x is %s, measured on each item and standardised across the items; the outcome is %s.",
+      comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("slope <- %s # the effect of one SD more of x%s", r_code(pop$slope), if (inputs$binary) ", on the log odds" else ""),
+    if (inputs$binary) sprintf("probability <- %s # the chance of 'yes' at the items' mean x, for a typical participant", r_code(pop$probability)),
+    sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
+    sprintf("sd_participant_slope <- %s # SD of participants' slopes on x", r_code(pop$sd_participant_slope)),
+    sprintf("r_participant <- %s # correlation of participants' intercepts and slopes", r_code(pop$r_participant %||% 0)),
+    sprintf("sd_item <- %s # SD of items beyond what x explains", r_code(pop$sd_item)),
+    if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
+    sprintf("items <- %s # number of items", r_code(pop$items)),
+    goal_inputs(spec, result),
+    "",
+    "design_for <- function(n_participants) {",
+    "  x <- qnorm(seq_len(items) / (items + 1))",
+    "  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))",
+    "  data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
+    "  data$x <- x[data$item]",
+    "  data$participant <- factor(data$participant)",
+    "  data$item <- factor(data$item)",
+    "  data",
+    "}",
+    "",
+    "model_for <- function(n_participants) {",
+    "  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
+    "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)",
+    if (inputs$binary) {
+      c("  makeGlmer(y ~ x + (1 + x | participant) + (1 | item), family = \"binomial\", fixef = c(qlogis(probability), slope),",
+        "    VarCorr = list(participant = participant, item = sd_item^2), data = design_for(n_participants))")
+    } else {
+      c("  makeLmer(y ~ x + (1 + x | participant) + (1 | item), fixef = c(0, slope),",
+        "    VarCorr = list(participant = participant, item = sd_item^2), sigma = sd_residual, data = design_for(n_participants))")
+    },
+    "}",
+    "",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(\"x\", \"%s\"),", inputs$method),
     "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
     "  c(result$x, result$n)",
     "}",
