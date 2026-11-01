@@ -78,7 +78,7 @@ app_css <- "
   .card-versions .card-section-title { margin-top: 0.7rem; }
   .card-versions ul { padding-left: 1.1rem; margin-bottom: 0.3rem; } .card-versions li p { margin-bottom: 0.4rem; }
   @media (max-width: 767px) { .card-facts { grid-template-columns: 1fr; gap: 0; border: 1px solid var(--pk-line); border-radius: 10px; overflow: hidden; }
-    .card-fact { flex-direction: row; justify-content: space-between; gap: 0.75rem; border: 0; border-left: 4px solid; border-radius: 0; border-bottom: 1px solid var(--pk-line); padding: 0.4rem 0.7rem; }
+    .card-fact { flex-direction: row; justify-content: space-between; gap: 0.75rem; border-top: 0; border-right: 0; border-radius: 0; border-bottom: 1px solid var(--pk-line); padding: 0.4rem 0.7rem; }
     .card-fact:last-child { border-bottom: 0; } .card-fact-value { text-align: right; font-size: 0.88rem; } }
   .trail-title { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.35rem; }
   .chip { border: 1px solid #b8c2d3; background: #e8f0fb; color: #14284b; border-radius: 1.4rem;
