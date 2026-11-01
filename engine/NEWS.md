@@ -68,7 +68,7 @@ A batch of new features, built as one round.
   Checked against a simulation written separately with glmer, with the
   Type I error near alpha. The design finder's question on many trials
   or stimuli takes yes/no outcomes to these cards.
-* Three levels (E64, design `mixed_model`, template `three_level`):
+* Three levels (E68, design `mixed_model`, template `three_level`):
   people in groups in larger groups (pupils in classes in schools), with
   two conditions assigned to whole sites, to groups within each site or
   to people within each group (`population > assignment`). The inputs

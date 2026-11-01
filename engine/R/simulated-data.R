@@ -907,7 +907,7 @@ sim_crossed_conditions_code <- function(spec, n) {
   )
 }
 
-# Three levels (E64): the same design and model as the simulation
+# Three levels (E68): the same design and model as the simulation
 # (three_level_design(), three_level_inputs()), one row per person.
 sim_three_level_code <- function(spec, n) {
   inputs <- three_level_inputs(spec)

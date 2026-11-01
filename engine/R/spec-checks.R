@@ -599,7 +599,7 @@ check_crossed_two_condition <- function(spec) {
   problems
 }
 
-# Three levels (E64): the shares of variance leave some within groups;
+# Three levels (E68): the shares of variance leave some within groups;
 # half of what is assigned goes in each condition, so that number is even;
 # an effect can vary only across the levels above the one assigned.
 check_three_level <- function(spec) {

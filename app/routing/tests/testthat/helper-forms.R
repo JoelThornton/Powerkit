@@ -173,8 +173,8 @@ form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Ha
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
-# E64: pupils in classes in schools, whole schools assigned.
-form_examples$E64 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score",
+# E68: pupils in classes in schools, whole schools assigned.
+form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score",
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
                             group_size = "20", groups_per_site = "4"), closing_ok)
 

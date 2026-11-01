@@ -1,4 +1,4 @@
-# Three levels (mixed_model / three_level, E64): people in groups in sites,
+# Three levels (mixed_model / three_level, E68): people in groups in sites,
 # the condition assigned to sites, groups or people; simr's powerSim() with
 # Satterthwaite's t test.
 

@@ -673,7 +673,7 @@ crossed_conditions_script <- function(spec, result) {
   )
 }
 
-# Three levels (mixed_model / three_level, E64): people (level 1) in
+# Three levels (mixed_model / three_level, E68): people (level 1) in
 # groups (level 2, classes) in sites (level 3, schools), with two
 # conditions assigned to whole sites, to groups within each site, or to
 # people within each group. On the scale of the outcome's total SD (1),

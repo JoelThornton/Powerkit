@@ -1,4 +1,4 @@
-# Validation: three levels (E64), people in groups in sites, the condition
+# Validation: three levels (E68), people in groups in sites, the condition
 # assigned to sites, groups or people. Backend: simr's powerSim() with
 # lmerTest's Satterthwaite t test.
 #   1. analytic agreement: an independent simulation. The site and group
