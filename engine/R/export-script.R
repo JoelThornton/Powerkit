@@ -57,6 +57,8 @@ export_script <- function(spec, result, file = NULL) {
       generic_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
       noninf_script(spec, result)
+    } else if (minimum_effect_test(spec)) {
+      met_script(spec, result)
     } else if (pwrss_covers(spec)) {
       pwrss_script(spec, result)
     } else {
@@ -188,6 +190,12 @@ design_description <- function(spec) {
   }
   if (bayes_factor_test(spec)) {
     return(bayes_design_description(spec, label, levels))
+  }
+  if (minimum_effect_test(spec)) {
+    base <- spec
+    base$target_test$method <- if (identical(spec$template, "independent_t")) "student_t" else "t_test"
+    return(sprintf("minimum-effect test (smallest effect of interest %s = %s): %s",
+      if (identical(spec$template, "paired_t")) "d_z" else "d", format_number(spec$population$margin), design_description(base)))
   }
   if (identical(spec$design, "meta_analysis")) {
     return(meta_design_description(spec, label))

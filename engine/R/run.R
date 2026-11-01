@@ -171,7 +171,11 @@
 #'     otherwise a list with the standardised effect's `name` ("Cohen's d"
 #'     or "d_z") and `value`, the `difference` in the outcome's units, and
 #'     the `sd` it was divided by (with its `sd_name`), and for a
-#'     sensitivity goal the `smallest_difference` in the outcome's units;
+#'     sensitivity goal the `smallest_difference` in the outcome's units.
+#'     For the two-group t-test given by a point-biserial correlation
+#'     (`population > metric` "point_biserial") it has the `name` and
+#'     `value` of d, the `r` and the `share` in group 2 instead, and for a
+#'     sensitivity goal the `smallest_r`;
 #'   * `effect_conversion`: `NULL` unless the effect justification converts
 #'     the effect from another form; otherwise the form (`from`,
 #'     `from_name`), the published `value` and its `df_error`, and the
@@ -296,7 +300,12 @@ run_spec <- function(spec) {
   # given as a difference: the standardised effect times the SD.
   units <- effect_from_units(spec)
   if (!is.null(units) && is.list(outcome$sensitivity)) {
-    units$smallest_difference <- outcome$sensitivity$effect * units$sd
+    if (is.null(units$r)) {
+      units$smallest_difference <- outcome$sensitivity$effect * units$sd
+    } else {
+      # Given as a point-biserial r: the smallest detectable r too.
+      units$smallest_r <- point_biserial_from_d(outcome$sensitivity$effect, units$share)
+    }
   }
 
   n_analysed <- if (identical(goal$type, "sample_size")) outcome$n_required$n else goal$n

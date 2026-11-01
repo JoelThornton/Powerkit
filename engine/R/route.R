@@ -62,6 +62,8 @@ route_spec <- function(spec, seed = NULL) {
     "poisson_regression/single_predictor_count" = pwrss_backend(spec, seed),
     "basic_test/independent_t" = if (bayes_factor_test(spec)) {
       bfpwr_backend(spec, seed)
+    } else if (minimum_effect_test(spec)) {
+      met_backend(spec, seed)
     } else if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
@@ -72,6 +74,8 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/one_sample_t" = ,
     "basic_test/paired_t" = if (bayes_factor_test(spec)) {
       bfpwr_backend(spec, seed)
+    } else if (minimum_effect_test(spec)) {
+      met_backend(spec, seed)
     } else if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
