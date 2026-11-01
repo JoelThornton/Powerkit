@@ -108,8 +108,10 @@ about_plans_ui <- function(tree, forms) {
   groups <- lapply(families, function(f) {
     ids <- intersect(unlist(f$endpoints), names(how))
     if (!length(ids)) return(NULL)
-    div(class = "about-family",
-      div(class = "about-family-head", tags$h4(f$label), tags$span(class = "about-family-count",
+    # Open on a wide screen; on a phone about_js folds them, so the list
+    # of families fits on a screen or two.
+    tags$details(class = "about-family", open = NA,
+      tags$summary(class = "about-family-head", tags$h4(f$label), tags$span(class = "about-family-count",
         sprintf("%d of %d", length(ids), length(intersect(unlist(f$endpoints), names(tree$endpoints)))))),
       div(class = "about-ep-list", lapply(ids, chip)))
   })
@@ -228,6 +230,14 @@ about_ui <- function(tree, forms) {
 }
 
 about_js <- "
+  // On a phone the analysis families start folded.
+  (function() {
+    var fold = function() {
+      if (!window.matchMedia || !window.matchMedia('(max-width: 767px)').matches) return;
+      document.querySelectorAll('details.about-family[open]').forEach(function(d) { d.removeAttribute('open'); });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fold); else fold();
+  })();
   window.pkAboutTab = function(name) {
     var a = document.querySelector('#tabs a[data-value=\"' + name + '\"]');
     if (a) { a.click(); window.scrollTo(0, 0); }

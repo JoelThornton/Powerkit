@@ -633,3 +633,16 @@ test_that("a question says which number it is, sets 'None of these fit' apart, a
   trail <- as.character(trail_ui(list(list(node = start_node(tree), answer = "A score or scale")), tree))
   expect_match(trail, htmltools::htmlEscape(tree$nodes[[start_node(tree)]]$text), fixed = TRUE)
 })
+
+test_that("the start screen stays short: three ways in, a tag on two, and recently opened only when there are some", {
+  html <- as.character(start_ui(tree))
+  expect_equal(lengths(regmatches(html, gregexpr('class="route-icon"', html, fixed = TRUE))), 3L)
+  expect_match(html, "Good first choice", fixed = TRUE)
+  expect_match(html, '<div id="pk-recent" class="start-recent" hidden>', fixed = TRUE)
+  # Each route's help is one short line.
+  for (r in tree$routes$options) expect_lte(nchar(r$help), 60)
+  # A full card is remembered for "Recently opened"; a compact one isn't.
+  expect_match(as.character(card_ui(tree, "E2")), 'data-recent-id="E2"', fixed = TRUE)
+  expect_no_match(as.character(card_ui(tree, "E2", compact = TRUE)), "data-recent-id", fixed = TRUE)
+  expect_match(nav_js, "powerkit-recent", fixed = TRUE)
+})

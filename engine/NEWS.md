@@ -1,5 +1,16 @@
 # powerkit 0.28.1
 
+* The start screen keeps to three short choices, each with a small icon;
+  "Help me choose" is tagged as a good first choice. A returning visitor
+  sees the analyses they opened last ("Recently opened", kept in the
+  browser's local storage, `powerkit-recent`), which open the card
+  directly (`pick` value `recent:<id>`). Labs lists its tools in a
+  two-column grid. The Feedback tab shows the reasons as buttons, keeps
+  the exact message to be sent a click away, and puts the form in one
+  card. On a phone, About's analysis families start folded. The study
+  plan's row styles no longer reach the whole-study plan, which shares
+  the `plan-item` class. App only; engine unchanged.
+
 * The precision, study plan and whole-study screens are laid out like the
   other results. A precision result has the section links, a big figure
   (the sample size, or the width) with what it assumes, and the write-up

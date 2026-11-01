@@ -67,6 +67,9 @@ fully validated. Validation runs are recorded in
   Feedback) is a timeline of titles that open, with Full details, a search
   and the changes since your last visit marked. Every tab shares one
   column.
+- **Start screen, Labs, Feedback** (1 November 2026): three short ways
+  to start with "Recently opened" for returning visitors; Labs as a grid;
+  Feedback in one card; About's families fold on a phone.
 - **Precision, study plan and whole-study screens** (1 November 2026)
   follow the result layout: section links, one large figure, write-up
   before downloads. The study plan names analyses in plain words, puts

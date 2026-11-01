@@ -198,6 +198,12 @@ app_css <- "
   .about-family { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.8rem 0.9rem; break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
   .about-family-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
   .about-family-head h4 { margin: 0; font-size: 0.95rem; }
+  summary.about-family-head { list-style: none; cursor: default; }
+  summary.about-family-head::-webkit-details-marker { display: none; }
+  details.about-family:not([open]) > summary.about-family-head { margin-bottom: 0; }
+  @media (max-width: 767px) { summary.about-family-head { cursor: pointer; min-height: 44px; align-items: center; } .about-family-count { margin-left: auto; }
+    summary.about-family-head::after { content: '+'; color: var(--pk-blue); font-weight: 700; margin-left: 0.4rem; }
+    details.about-family[open] > summary.about-family-head::after { content: '\\2212'; } }
   .about-family-count { color: #6b7684; font-size: 0.8rem; white-space: nowrap; }
   .about-ep-list { display: flex; flex-direction: column; gap: 0.3rem; }
   .about-ep { text-align: left; background: var(--pk-bg); border: 1px solid transparent; border-left: 4px solid #1f8a5b; border-radius: 8px; padding: 0.3rem 0.55rem;
@@ -338,6 +344,31 @@ app_css <- "
   .choice-safety { background: transparent; box-shadow: none; border: 1.5px dashed #a9b3c1; }
   .route-choices .choice { padding: 1.25rem; min-height: 7.5rem; }
   .route-choices .choice-label { font-size: 1.15rem; color: var(--pk-blue); margin-bottom: 0.25rem; }
+  .route-choices .choice { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; }
+  .route-icon { color: var(--pk-blue); margin-bottom: 0.6rem; }
+  .route-choices .choice:hover .route-icon, .route-choices .choice:focus .route-icon { color: var(--pk-navy); }
+  .route-tag { margin-top: auto; padding-top: 0.6rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #5a6b85; }
+  .start-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 1.1rem; }
+  .start-recent[hidden] { display: none; }
+  .start-recent-title { font-size: 0.85rem; color: #5a6b85; margin-right: 0.25rem; }
+  .start-recent-chip { min-height: 44px; text-align: left; }
+  .feedback-lead { max-width: 46rem; }
+  .feedback-kinds .shiny-options-group { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .feedback-kinds .radio { margin: 0; }
+  .feedback-kinds .radio label { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0.35rem 0.95rem; border: 1px solid var(--pk-line);
+    border-radius: 999px; background: #fff; cursor: pointer; font-size: 0.92rem; }
+  .feedback-kinds .radio input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .feedback-kinds .radio label:has(input:checked) { background: var(--pk-blue); border-color: var(--pk-blue); color: #fff; }
+  .feedback-kinds .radio label:has(input:focus-visible) { outline: 3px solid #f2b84b; outline-offset: 2px; }
+  .feedback-send { margin-top: 1rem; }
+  .labs-menu { display: grid; grid-template-columns: 1fr; gap: 0.9rem; margin-bottom: 0.75rem; }
+  @media (min-width: 768px) { .labs-menu { grid-template-columns: repeat(2, 1fr); } }
+  .labs-menu .labs-tool-card { display: flex; flex-direction: column; align-items: flex-start; margin: 0; padding: 1.1rem 1.25rem; }
+  .labs-menu .labs-tool-card h3 { font-weight: 650; color: var(--pk-navy); margin-bottom: 0.35rem; }
+  .labs-menu .labs-tool-card p { color: #3d4852; font-size: 0.93rem; }
+  .labs-menu .labs-tool-card .btn { margin-top: auto; }
+  @media (max-width: 767px) { .route-choices .choice { display: grid; grid-template-columns: auto 1fr; column-gap: 0.85rem; min-height: 0; padding: 1rem; }
+    .route-choices .route-icon { grid-row: 1 / span 3; margin: 0.1rem 0 0 0; } .route-tag { padding-top: 0.35rem; } }
   .start-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
   @media (min-width: 992px) { .start-grid { grid-template-columns: repeat(3, 1fr); } }
   .start-question { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 1rem 1.15rem 0.25rem 1.15rem; }
@@ -395,9 +426,9 @@ app_css <- "
   .writeup-copied { color: #1e6b3a; }
   @media (max-width: 600px) { .result-figure-value { font-size: 2.6rem; } .result-hero { padding: 0.9rem; } }
   .study-plan-list { list-style: none; padding: 0; margin: 0 0 1rem 0; counter-reset: plan; display: flex; flex-direction: column; gap: 0.6rem; }
-  .plan-item { counter-increment: plan; position: relative; display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--pk-line);
+  .study-plan-list .plan-item { counter-increment: plan; position: relative; display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid var(--pk-line);
     border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); padding: 0.85rem 1rem 0.85rem 3.4rem; }
-  .plan-item::before { content: counter(plan); position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  .study-plan-list .plan-item::before { content: counter(plan); position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.7rem; height: 1.7rem; border-radius: 50%;
     background: #eef3f9; color: var(--pk-navy); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
   .plan-item-sets { border-color: var(--pk-blue); }
   .plan-item-sets::before { background: var(--pk-blue); color: #fff; }
@@ -423,7 +454,7 @@ app_css <- "
   .ws-bar-text { font-size: 0.8rem; color: #4a5568; }
   .ws-implied-block + .ws-implied-block { margin-top: 0.75rem; }
   .ws-implied-title { margin-bottom: 0.25rem; }
-  @media (max-width: 600px) { .plan-item { flex-wrap: wrap; padding-left: 3rem; } .plan-item::before { top: 1.1rem; transform: none; left: 0.8rem; }
+  @media (max-width: 600px) { .study-plan-list .plan-item { flex-wrap: wrap; padding-left: 3rem; } .study-plan-list .plan-item::before { top: 1.1rem; transform: none; left: 0.8rem; }
     .plan-item-n { flex-direction: row; align-items: baseline; gap: 0.35rem; } .plan-item-n-value { font-size: 1.3rem; } }
   .result-more { margin: 0.75rem 0 0 0; }
   .result-more > summary { cursor: pointer; color: var(--pk-blue); min-height: 44px; display: flex; align-items: center; }
@@ -839,6 +870,14 @@ server <- function(input, output, session) {
         state$plan_filled <- start$filled
         state$form_k <- 2L; state$calc <- NULL
         state$screen <- "form"
+      }
+    } else if (kind == "recent") {
+      # A card from the start screen's "Recently opened" (nav_js): opened
+      # as from the list of every analysis, so Back goes to that list.
+      if (value %in% names(tree$endpoints)) {
+        state$start <- list(); state$route <- "known"; state$history <- list(); state$ctx <- list()
+        state$skip_screening <- TRUE; state$node <- NULL
+        state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
       }
     } else if (kind == "ep") {
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
