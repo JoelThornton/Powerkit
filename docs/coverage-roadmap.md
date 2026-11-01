@@ -427,7 +427,7 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 20 | 0 | 49 |
+| Wired (validation not finished) | 29 | 21 | 0 | 50 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 10 | 2 | 13 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
