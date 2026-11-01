@@ -890,7 +890,9 @@ build_spec <- function(forms, ep_id, fields, values) {
   if (isTRUE(form$precision)) {
     spec$goal$type <- "precision"
     spec$target_test$alpha <- 1 - parse_number(values$conf_level)
-    if (!identical(spec$template, "proportion") && !identical(spec$template, "correlation")) spec$target_test$method <- "noncentral_t"
+    # MBESS's d, d_z and standardised mean use the noncentral t; the other
+    # estimates set their own interval (forms.yaml, E46's `sets`).
+    if (spec$template %in% c("two_groups", "paired", "one_group")) spec$target_test$method <- "noncentral_t"
     return(spec)
   }
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)

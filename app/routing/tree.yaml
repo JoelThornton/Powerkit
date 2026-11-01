@@ -1639,7 +1639,7 @@ endpoints:
       - {name: presize, url: "https://cran.r-project.org/package=presize", what: "precision-based sample sizes for correlations, proportions and more."}
     doc_name: "Precision planning (a target confidence-interval width)"
     plain_name: "Estimate an effect precisely (plan for a confidence-interval width)"
-    template: "precision / two_groups, paired, one_group, correlation or proportion"
+    template: "precision / two_groups, paired, one_group, correlation, proportion, mean_difference, odds_ratio, icc or regression_coefficient"
     backend: "MBESS: ss.aipe.smd() and ss.aipe.sm() for Cohen's d, d_z and a standardised mean (with assurance on request), ci.smd() and ci.sm() for the width at a given n; presize: prec_cor() and prec_prop() for a correlation and a proportion (by formula)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
