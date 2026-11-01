@@ -971,13 +971,18 @@ item_predictor_inputs <- function(spec) {
   r <- pop$r_participant %||% 0
   participant <- matrix(c(pop$sd_participant^2, r * pop$sd_participant * pop$sd_participant_slope,
     r * pop$sd_participant * pop$sd_participant_slope, pop$sd_participant_slope^2), nrow = 2)
+  # A predictor measured on each trial (1 November 2026) varies within
+  # items too, so its effect may vary across items (sd_item_slope).
+  trial <- identical(pop$x_level, "trial")
+  item_slope <- trial && (pop$sd_item_slope %||% 0) > 0
   list(
-    formula = stats::as.formula("y ~ x + (1 + x | participant) + (1 | item)", env = globalenv()),
+    formula = stats::as.formula(paste("y ~ x + (1 + x | participant) +", if (item_slope) "(1 + x | item)" else "(1 | item)"), env = globalenv()),
     binary = binary,
+    trial = trial,
     method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
     term = "x",
     fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$slope),
-    VarCorr = list(participant = participant, item = pop$sd_item^2),
+    VarCorr = list(participant = participant, item = if (item_slope) diag(c(pop$sd_item^2, pop$sd_item_slope^2)) else pop$sd_item^2),
     sigma = if (!binary) pop$sd_residual,
     items = pop$items,
     alpha = spec$target_test$alpha,
@@ -985,14 +990,17 @@ item_predictor_inputs <- function(spec) {
   )
 }
 
-# One data set's design: every participant responds to every item; the
-# items' X are evenly spread standard normal values (normal quantiles),
-# centred with SD 1.
+# One data set's design: every participant responds to every item; X's
+# values are evenly spread standard normal values (normal quantiles),
+# centred with SD 1, one per item, or with X measured on each trial each
+# participant's values rotated across the items.
 item_predictor_design <- function(inputs, n) {
   x <- stats::qnorm(seq_len(inputs$items) / (inputs$items + 1))
   x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
   data <- expand.grid(participant = seq_len(n), item = seq_len(inputs$items))
-  data$x <- x[data$item]
+  # Measured on each trial: each participant meets every value once, in an
+  # order rotated across participants, so X varies within items as well.
+  data$x <- if (isTRUE(inputs$trial)) x[(data$participant + data$item - 2) %% inputs$items + 1] else x[data$item]
   data$participant <- factor(data$participant)
   data$item <- factor(data$item)
   data
@@ -1024,6 +1032,7 @@ item_predictor_check_run <- function(spec, inputs, seed) {
     sd_row("SD of participant intercepts", pop$sd_participant, sd_of("participant", "(Intercept)"), n, big$items),
     sd_row("SD of participant slopes on X", pop$sd_participant_slope, sd_of("participant", "x"), n, big$items),
     sd_row("SD of item intercepts beyond X", pop$sd_item, sd_of("item", "(Intercept)"), big$items, n),
+    if (length(sd_of("item", "x"))) sd_row("SD of item slopes on X", pop$sd_item_slope, sd_of("item", "x"), big$items, n),
     if (!inputs$binary) check_run_rows("residual SD", pop$sd_residual, sd_of("Residual", NA), pop$sd_residual / sqrt(2 * nrow(data)))
   )
   check <- do.call(rbind, rows)
@@ -1043,14 +1052,15 @@ item_predictor_script <- function(spec, result) {
       "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
     "",
     "# Inputs ----",
-    sprintf("# x is %s, measured on each item and standardised across the items; the outcome is %s.",
-      comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("# x is %s, measured on each %s and standardised; the outcome is %s.",
+      comment_text(v$X$label), if (isTRUE(inputs$trial)) "trial" else "item", comment_text(v$Y$label)),
     sprintf("slope <- %s # the effect of one SD more of x%s", r_code(pop$slope), if (inputs$binary) ", on the log odds" else ""),
     if (inputs$binary) sprintf("probability <- %s # the chance of 'yes' at the items' mean x, for a typical participant", r_code(pop$probability)),
     sprintf("sd_participant <- %s # SD of participants' intercepts", r_code(pop$sd_participant)),
     sprintf("sd_participant_slope <- %s # SD of participants' slopes on x", r_code(pop$sd_participant_slope)),
     sprintf("r_participant <- %s # correlation of participants' intercepts and slopes", r_code(pop$r_participant %||% 0)),
     sprintf("sd_item <- %s # SD of items beyond what x explains", r_code(pop$sd_item)),
+    if (length(inputs$VarCorr$item) > 1) sprintf("sd_item_slope <- %s # SD of items' slopes on x", r_code(pop$sd_item_slope)),
     if (!inputs$binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("items <- %s # number of items", r_code(pop$items)),
     goal_inputs(spec, result),
@@ -1059,7 +1069,8 @@ item_predictor_script <- function(spec, result) {
     "  x <- qnorm(seq_len(items) / (items + 1))",
     "  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))",
     "  data <- expand.grid(participant = seq_len(n_participants), item = seq_len(items))",
-    "  data$x <- x[data$item]",
+    if (isTRUE(inputs$trial)) "  data$x <- x[(data$participant + data$item - 2) %% items + 1] # each participant's values rotated across the items" else
+      "  data$x <- x[data$item]",
     "  data$participant <- factor(data$participant)",
     "  data$item <- factor(data$item)",
     "  data",
@@ -1068,12 +1079,13 @@ item_predictor_script <- function(spec, result) {
     "model_for <- function(n_participants) {",
     "  participant <- matrix(c(sd_participant^2, r_participant * sd_participant * sd_participant_slope,",
     "    r_participant * sd_participant * sd_participant_slope, sd_participant_slope^2), nrow = 2)",
+    sprintf("  item <- %s", if (length(inputs$VarCorr$item) > 1) "diag(c(sd_item^2, sd_item_slope^2))" else "sd_item^2"),
     if (inputs$binary) {
-      c("  makeGlmer(y ~ x + (1 + x | participant) + (1 | item), family = \"binomial\", fixef = c(qlogis(probability), slope),",
-        "    VarCorr = list(participant = participant, item = sd_item^2), data = design_for(n_participants))")
+      c(sprintf("  makeGlmer(%s, family = \"binomial\", fixef = c(qlogis(probability), slope),", deparse1(inputs$formula)),
+        "    VarCorr = list(participant = participant, item = item), data = design_for(n_participants))")
     } else {
-      c("  makeLmer(y ~ x + (1 + x | participant) + (1 | item), fixef = c(0, slope),",
-        "    VarCorr = list(participant = participant, item = sd_item^2), sigma = sd_residual, data = design_for(n_participants))")
+      c(sprintf("  makeLmer(%s, fixef = c(0, slope),", deparse1(inputs$formula)),
+        "    VarCorr = list(participant = participant, item = item), sigma = sd_residual, data = design_for(n_participants))")
     },
     "}",
     "",

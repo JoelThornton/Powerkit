@@ -692,6 +692,9 @@ check_item_predictor <- function(spec) {
   pop <- spec$population
   binary <- identical(spec$variables$Y$type, "binary")
   problems <- character()
+  if (!is.null(pop$sd_item_slope) && !identical(pop$x_level, "trial")) {
+    problems <- c(problems, "'population > sd_item_slope' is how much X's effect varies between items, which needs X to vary within items: set 'population > x_level' to \"trial\", or remove it.")
+  }
   if (binary) {
     if (!identical(pop$metric, "probability") || is.null(pop$probability)) {
       problems <- c(problems, "With a yes/no outcome, set 'population > metric' to \"probability\" and give 'population > probability', the chance of 'yes' at the items' average X.")

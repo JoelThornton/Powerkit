@@ -2,6 +2,14 @@
 
 A batch of new features, built as one round.
 
+* A predictor measured on each trial (E67, template `item_predictor`,
+  `population > x_level` "trial"): a value that varies from trial to
+  trial, such as how long a stimulus is shown, rather than one per item.
+  Each participant meets every value once, rotated across the items, so
+  X varies within items too and its effect may vary across items
+  (`population > sd_item_slope`): y ~ x + (1 + x | participant) + (1 + x
+  | item). Checked against a simulation written separately with
+  lmerTest, with the Type I error near alpha.
 * Predictors at all three levels (E62, template `two_level`): with
   `population > groups_per_site` the groups are in sites (classes in
   schools), with a predictor Z on each site (`variables > Z`), its

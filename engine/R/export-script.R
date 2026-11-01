@@ -479,8 +479,8 @@ design_description <- function(spec) {
       }
     ),
     "mixed_model/item_predictor" = sprintf(
-      "participants responding to %s items that differ on %s (measured on each item, per SD); outcome %s%s",
-      format_number(spec$population$items), label("X"), label("Y"),
+      "participants responding to %s items, with %s (measured on each %s, per SD); outcome %s%s",
+      format_number(spec$population$items), label("X"), if (identical(spec$population$x_level, "trial")) "trial" else "item", label("Y"),
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/three_level" = sprintf(

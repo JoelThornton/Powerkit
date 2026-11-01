@@ -1062,7 +1062,7 @@ forms:
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
-    methods_name: "a linear mixed model with participants and items as random factors and an item-level predictor"
+    methods_name: "a mixed model with participants and items as random factors and a measured predictor"
     tool: simr
     departures: ["16"]
     directional: false
@@ -1072,7 +1072,10 @@ forms:
     groups:
       - input: "The item score and the outcome"
         fields:
-          - {id: X_label, label: "Measured on each item (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: X_label, label: "The predictor (for example, word frequency)", type: text, path: variables.X.label, required: true}
+          - {id: x_level, label: "The predictor is measured", type: select, path: population.x_level, required: true,
+             choices: {item: "On each item: the same for every participant (for example, a word's frequency)", trial: "On each trial: it varies from trial to trial, within items too (for example, how long the stimulus is shown)"},
+             default: item, default_source: "an item property, the commoner design"}
           - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
           - {id: outcome_type, label: "On each trial, the outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score (for example, a response time)", binary: "Yes or no (for example, correct or not)"},
@@ -1092,6 +1095,8 @@ forms:
           - {id: sd_participant_slope, writeup_label: "SD of participants' slopes", label: "SD of the effect across participants (random slopes)", type: number, path: population.sd_participant_slope, effect: true, min: 0}
           - {id: r_participant, label: "Correlation of participants' averages and slopes (optional; empty = 0)", type: number, path: population.r_participant, optional: true, empty_text: "0", min: -1, max: 1}
           - {id: sd_item, writeup_label: "SD of items beyond the score", label: "SD of items' averages beyond what the item score explains", type: number, path: population.sd_item, effect: true, min: 0}
+          - {id: sd_item_slope, label: "SD of the effect across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
+             shown_if: {field: x_level, is: trial}}
           - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
              shown_if: {field: outcome_type, is: continuous}}
       - input: "The items"

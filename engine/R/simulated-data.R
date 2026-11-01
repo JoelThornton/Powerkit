@@ -1270,20 +1270,22 @@ sim_three_level_code <- function(spec, n) {
 # row per participant per item.
 sim_item_predictor_code <- function(spec, n) {
   inputs <- item_predictor_inputs(spec)
+  item_var <- if (length(inputs$VarCorr$item) > 1) sprintf("diag(%s)", r_code(diag(inputs$VarCorr$item))) else r_code(inputs$VarCorr$item)
   c(
     sprintf("x <- stats::qnorm(seq_len(%d) / %d)", inputs$items, inputs$items + 1),
-    "x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # standardised across the items",
+    "x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2)) # standardised",
     sprintf("design <- expand.grid(participant = seq_len(%d), item = seq_len(%d))", n, inputs$items),
-    "design$x <- x[design$item]",
+    if (isTRUE(inputs$trial)) sprintf("design$x <- x[(design$participant + design$item - 2) %%%% %d + 1] # measured on each trial, rotated across the items", inputs$items) else
+      "design$x <- x[design$item]",
     "design$participant <- factor(design$participant)",
     "design$item <- factor(design$item)",
     sprintf("participant_var <- matrix(%s, nrow = 2)", r_code(as.vector(inputs$VarCorr$participant))),
     if (inputs$binary) {
       sprintf("model <- simr::makeGlmer(%s, family = \"binomial\", fixef = %s, VarCorr = list(participant = participant_var, item = %s), data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item))
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var)
     } else {
       sprintf("model <- simr::makeLmer(%s, fixef = %s, VarCorr = list(participant = participant_var, item = %s), sigma = %s, data = design)",
-        deparse1(inputs$formula), r_code(inputs$fixef), r_code(inputs$VarCorr$item), r_code(inputs$sigma))
+        deparse1(inputs$formula), r_code(inputs$fixef), item_var, r_code(inputs$sigma))
     },
     "simulated <- data.frame(",
     "  participant = design$participant,",

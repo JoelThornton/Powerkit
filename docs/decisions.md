@@ -4145,3 +4145,16 @@ needed first.
 - **The design.** W is spread across each site's groups and Z across the
   sites, so the predictors are uncorrelated, as X and W are at two
   levels.
+
+## 2026-11-01 · A predictor measured on each trial (E67)
+
+- **On E67, as a choice of where X is measured.** A trial-level predictor
+  (a stimulus duration, a trial's position) is the item-predictor model
+  with X varying within items, so it is the same card with one question
+  more, not a new one.
+- **The design.** Each participant meets every value of X once, in an
+  order rotated across participants (a Latin-square rotation), so X is
+  centred within every participant, varies within every item, and is
+  balanced across items when the number of participants is a multiple of
+  the number of items. The items' slopes on X can then be estimated, and
+  are in the model when their SD is above 0.

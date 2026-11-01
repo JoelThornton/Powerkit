@@ -444,6 +444,11 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | simr | `powerSim()` on a model built with `makeLmer()` or `makeGlmer()`; `fixed(xname, method)`, `method = "z"` by default [simr help] | The model's own parameters | — |
 | **powerkit** | simr's `powerSim()` with `fixed("x", "sa")` for a score, or `fixed("x", "z")` (default) or `"lr"` for a yes/no outcome (E67, from 1 November 2026) [powerkit] | The effect per SD of the item score, the SDs of participants' intercepts and slopes and of items beyond the score, and the residual SD, in the outcome's units (log odds for yes/no) | `y ~ x + (1 + x \| participant) + (1 \| item)`, x evenly spread across the items (normal quantiles, centred, SD 1), every participant responding to every item. The Satterthwaite test is Departure 16 |
 
+With the predictor measured on each trial (from 1 November 2026) each
+participant meets every value once, rotated across the items, and the
+model gains the items' slopes on X: `y ~ x + (1 + x | participant) + (1 +
+x | item)`, tested as for an item predictor.
+
 ## Three levels: people in groups in larger groups (E68)
 
 | Tool | Test | Effect size | Settings |

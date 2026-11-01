@@ -184,7 +184,7 @@ form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Re
                             group_size = "20", groups_per_site = "4"), closing_ok)
 
 # E67: word frequency and response times.
-form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous",
+form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous", x_level = "item",
                             slope = "-15", sd_participant = "60", sd_participant_slope = "10", sd_item = "30",
                             sd_residual = "120", items = "60"), closing_ok)
 

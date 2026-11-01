@@ -1536,6 +1536,7 @@ endpoints:
       - "Each participant responds to many items that differ on something measured on each item, such as a word's frequency or a face's rated attractiveness: does the response depend on it?"
       - "You give the effect of one SD more of that score, how much participants differ in their average and in the effect, how much items differ beyond the score, and the number of items; powerkit finds the number of participants."
       - "A score on each trial is tested with Satterthwaite's t test; a yes/no answer (correct or not) with the Wald test glmer reports or the likelihood-ratio test. Simulated with simr, so the answer carries a little random error."
+      - "The predictor can instead be measured on each trial (such as how long the stimulus is shown), so it varies within items too and its effect can differ between items."
     inputs: ["The item score and the outcome", "The effect, and how participants and items vary", "The items"]
     tier: v2
     alternatives: ["two or more conditions instead of a score: the participants-and-items cards", "averaging over items and correlating, which ignores the variation between participants and items"]

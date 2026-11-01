@@ -9336,7 +9336,7 @@
       }
     },
     "template_item_predictor": {
-      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item.",
+      "description": "Participants respond to many items that differ on a score X measured on each item (e.g. word frequency), standardised across the items: a linear mixed model y ~ x + (1 + x | participant) + (1 | item), the effect of X per SD of X, each participant with their own slope on X, and the items varying beyond what X explains. Simulated with simr's powerSim() on a model built by makeLmer() (or makeGlmer() for a yes/no outcome), testing X with lmerTest's Satterthwaite t test, or for a yes/no outcome glmer's Wald z test or the likelihood-ratio test. goal > n is the number of participants; every participant responds to every item. With population > x_level 'trial' (1 November 2026) X is measured on each trial instead (e.g. a stimulus duration that varies from trial to trial): each participant meets every value once, rotated across the items, so X varies within items too, and its effect may vary across items (sd_item_slope): y ~ x + (1 + x | participant) + (1 + x | item).",
       "properties": {
         "variables": {
           "required": [
@@ -9378,6 +9378,13 @@
                 "probability"
               ]
             },
+            "x_level": {
+              "description": "Where X is measured: 'item' (the default; one value per item) or 'trial' (each participant's values rotated across the items, so X varies within items).",
+              "enum": [
+                "item",
+                "trial"
+              ]
+            },
             "slope": {
               "description": "The effect of one SD more of X: in the outcome's units, or on the log odds for a yes/no outcome.",
               "type": "number"
@@ -9404,6 +9411,11 @@
             },
             "sd_item": {
               "description": "SD of the items' intercepts beyond what X explains.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_slope": {
+              "description": "X measured on each trial only: SD of the items' slopes on X. 0 if omitted.",
               "type": "number",
               "minimum": 0
             },
