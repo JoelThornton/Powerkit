@@ -2,6 +2,30 @@
 
 A batch of new features, built as one round.
 
+* Participants and items in two conditions (E33) can plan the number of
+  items (stimuli) instead of participants: `goal > unit` "items", with
+  `population > participants` fixed; `goal > n` is then the number of
+  items (an even number when each item is in one condition). The search,
+  the exported script and the write-up count items. Checked against the
+  E33 independent simulation at a fixed number of participants
+  (`test-validation-mixed-model.R`).
+* Precision planning (E46) for four more estimates: a difference between
+  two groups' means in the outcome's units (template `mean_difference`,
+  presize's `prec_meandiff()`), an odds ratio between two groups
+  (`odds_ratio`, `prec_or()`, the second group's odds over the first's,
+  with presize's default independence-smoothed logit interval or Gart's
+  or Woolf's), an intraclass correlation (`icc`, `prec_icc()`, which gives
+  the expected width but not the limits) and a standardised regression
+  coefficient (`regression_coefficient`, MBESS's `ss.aipe.reg.coef()`,
+  with assurance; the width at a given n is the narrowest for which the
+  same function needs no more than n). New dependency: gsl (MBESS needs
+  it for the regression coefficient), with the system library libgsl in
+  the CI image and the online app. Validation
+  (`test-validation-precision.R`): for each, the median width of
+  intervals computed from their textbook formulas (the t interval, Woolf's
+  logit interval, the one-way ICC's F interval and the least-squares
+  interval) in simulated studies of the planned size is the width
+  planned; published examples are left for the maintainer.
 * A yes/no outcome in the two-level (E62, template `two_level`) and
   three-level (E68, template `three_level`) designs (`variables > Y >
   type` "binary", `population > metric` "probability"): a logistic mixed

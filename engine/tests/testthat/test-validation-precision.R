@@ -1,5 +1,6 @@
 # Validation: precision planning (design "precision"). Backends: MBESS
-# (ss.aipe.smd(), ss.aipe.sm(), ci.smd(), ci.sm()) and presize (prec_cor(),
+# (ss.aipe.smd(), ss.aipe.sm(), ci.smd(), ci.sm(), ss.aipe.reg.coef()) and
+# presize (prec_cor(), prec_meandiff(), prec_or(), prec_icc(),
 # prec_prop()). Build guide section 6:
 #   1. published examples (placeholders for the maintainer)
 #   2. simulated studies of the planned size, each interval computed here
@@ -77,6 +78,44 @@ test_that("a proportion: matches a published example (published)", {
   expect_equal(engine_function("run_spec")(spec)$precision$n, published_n)
 })
 
+test_that("a standardised regression coefficient: matches a published example (published)", {
+  skip_unless_full_validation()
+  # Source: to be chosen by the maintainer, for example Kelley and
+  #   Maxwell's worked example of accuracy in parameter estimation for a
+  #   regression coefficient. Transcribe the population R-squared, the
+  #   predictor's R-squared with the others, the number of predictors, the
+  #   coefficient, the confidence level, the full width and the sample size.
+  r2 <- TODO_PUBLISHED_VALUE
+  r2_predictor <- TODO_PUBLISHED_VALUE
+  predictors <- TODO_PUBLISHED_VALUE
+  b <- TODO_PUBLISHED_VALUE
+  level <- TODO_PUBLISHED_VALUE
+  width <- TODO_PUBLISHED_VALUE
+  published_n <- TODO_PUBLISHED_VALUE
+  skip_if_todo(r2, r2_predictor, predictors, b, level, width, published_n)
+  spec <- precision_validation_spec("precision_regression_coefficient", population.r2 = r2,
+    population.r2_predictor = r2_predictor, population.predictors = predictors, population.b = b,
+    target_test.alpha = 1 - level, goal = list(type = "precision", width = width))
+  expect_equal(engine_function("run_spec")(spec)$precision$n, published_n)
+})
+
+test_that("an ICC: matches a published example (published)", {
+  skip_unless_full_validation()
+  # Source: to be chosen by the maintainer (a precision-based sample size
+  #   for an ICC, such as Bonett's). Transcribe the ICC, the number of
+  #   ratings of each subject, the confidence level, the full width and the
+  #   number of subjects.
+  icc <- TODO_PUBLISHED_VALUE
+  raters <- TODO_PUBLISHED_VALUE
+  level <- TODO_PUBLISHED_VALUE
+  width <- TODO_PUBLISHED_VALUE
+  published_n <- TODO_PUBLISHED_VALUE
+  skip_if_todo(icc, raters, level, width, published_n)
+  spec <- precision_validation_spec("precision_icc", population.icc = icc, population.raters = raters,
+    target_test.alpha = 1 - level, goal = list(type = "precision", width = width))
+  expect_equal(engine_function("run_spec")(spec)$precision$n, published_n)
+})
+
 # 2. Simulated intervals ------------------------------------------------------------
 
 test_that("Cohen's d, two groups: the median simulated interval has the planned width", {
@@ -142,4 +181,79 @@ test_that("a proportion, Wilson's interval: the median simulated interval has th
   phat <- stats::rbinom(10000, n, 0.3) / n
   widths <- 2 * z * sqrt(phat * (1 - phat) / n + z^2 / (4 * n^2)) / (1 + z^2 / n)
   expect_equal(stats::median(widths), result$precision$width, tolerance = 0.002)
+})
+
+# The estimates added on 1 November 2026: each interval computed here from
+# its textbook formula, without presize or MBESS, for studies of the size
+# planned. The odds ratio uses Woolf's logit interval, which presize's
+# independence-smoothed interval (the default) adjusts only slightly at
+# these group sizes; the ICC the exact F interval for the one-way ICC,
+# which presize's width (Bonett's approximation) approximates.
+
+test_that("a mean difference in raw units: the median simulated t interval has the planned width", {
+  skip_unless_full_validation()
+  result <- engine_function("run_spec")(precision_validation_spec("precision_mean_difference"))
+  n <- result$precision$n / 2
+  set.seed(607)
+  widths <- vapply(seq_len(4000), function(i) {
+    x <- stats::rnorm(n, 0, 12)
+    y <- stats::rnorm(n, 5, 12)
+    diff(stats::t.test(y, x, var.equal = TRUE)$conf.int)
+  }, numeric(1))
+  expect_equal(stats::median(widths), result$precision$width, tolerance = 0.01)
+  expect_lte(result$precision$width, 6)
+})
+
+test_that("an odds ratio: the median simulated logit interval has the planned width", {
+  skip_unless_full_validation()
+  result <- engine_function("run_spec")(precision_validation_spec("precision_odds_ratio"))
+  n <- result$precision$n / 2
+  z <- stats::qnorm(0.975)
+  set.seed(608)
+  treated <- stats::rbinom(4000, n, 0.45)
+  control <- stats::rbinom(4000, n, 0.3)
+  log_or <- log(treated / (n - treated)) - log(control / (n - control))
+  se <- sqrt(1 / treated + 1 / (n - treated) + 1 / control + 1 / (n - control))
+  widths <- exp(log_or + z * se) - exp(log_or - z * se)
+  expect_equal(stats::median(widths), result$precision$width, tolerance = 0.02)
+  # The odds ratio is the second group's odds over the first's.
+  expect_equal(result$precision$effect, (0.45 / 0.55) / (0.3 / 0.7))
+})
+
+test_that("an ICC: the median simulated F interval has the planned width", {
+  skip_unless_full_validation()
+  result <- engine_function("run_spec")(precision_validation_spec("precision_icc"))
+  n <- result$precision$n
+  k <- 3
+  set.seed(609)
+  widths <- vapply(seq_len(4000), function(i) {
+    y <- stats::rnorm(n, 0, sqrt(0.7)) + matrix(stats::rnorm(n * k, 0, sqrt(0.3)), n, k)
+    between <- k * stats::var(rowMeans(y))
+    within <- sum((y - rowMeans(y))^2) / (n * (k - 1))
+    f <- between / within
+    f_lower <- f / stats::qf(0.975, n - 1, n * (k - 1))
+    f_upper <- f * stats::qf(0.975, n * (k - 1), n - 1)
+    (f_upper - 1) / (f_upper + k - 1) - (f_lower - 1) / (f_lower + k - 1)
+  }, numeric(1))
+  expect_equal(stats::median(widths), result$precision$width, tolerance = 0.02)
+})
+
+test_that("a standardised regression coefficient: the median simulated interval has the planned width", {
+  skip_unless_full_validation()
+  result <- engine_function("run_spec")(precision_validation_spec("precision_regression_coefficient"))
+  n <- result$precision$n
+  # Four standardised predictors: X1 shares 20% of its variance with the
+  # other three (their scaled sum); Y = 0.25 X1 + g X2 + error, with g
+  # chosen so that R-squared is 0.3.
+  shared <- sqrt(0.2) / sqrt(3)
+  g <- (-2 * 0.25 * shared + sqrt((2 * 0.25 * shared)^2 + 4 * (0.3 - 0.25^2))) / 2
+  set.seed(610)
+  widths <- vapply(seq_len(4000), function(i) {
+    others <- matrix(stats::rnorm(n * 3), n)
+    x1 <- sqrt(0.2) * rowSums(others) / sqrt(3) + sqrt(0.8) * stats::rnorm(n)
+    y <- 0.25 * x1 + g * others[, 1] + sqrt(0.7) * stats::rnorm(n)
+    d <- as.data.frame(scale(cbind(y, x1, others)))
+    diff(stats::confint(stats::lm(y ~ ., data = d))["x1", ])
+  }, numeric(1))
+  expect_equal(stats::median(widths), result$precision$width, tolerance = 0.01)
 })

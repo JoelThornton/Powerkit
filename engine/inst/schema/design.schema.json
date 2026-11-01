@@ -641,6 +641,13 @@
           "type": "number",
           "exclusiveMinimum": 0.5,
           "exclusiveMaximum": 1
+        },
+        "unit": {
+          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "enum": [
+            "participants",
+            "items"
+          ]
         }
       },
       "allOf": [
@@ -7865,8 +7872,7 @@
           "required": [
             "metric",
             "sd_participant",
-            "sd_item",
-            "items"
+            "sd_item"
           ],
           "additionalProperties": false,
           "properties": {
@@ -7931,6 +7937,11 @@
                 "between",
                 "within"
               ]
+            },
+            "participants": {
+              "description": "With goal > unit 'items' only: the number of participants, fixed while the number of items is found.",
+              "type": "integer",
+              "minimum": 4
             }
           }
         },
@@ -8648,7 +8659,11 @@
               "one_group",
               "paired",
               "correlation",
-              "proportion"
+              "proportion",
+              "mean_difference",
+              "odds_ratio",
+              "icc",
+              "regression_coefficient"
             ]
           },
           "goal": {
@@ -8755,6 +8770,66 @@
             },
             "then": {
               "$ref": "#/definitions/template_precision_proportion"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "mean_difference"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_mean_difference"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "odds_ratio"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_odds_ratio"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "icc"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_icc"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "regression_coefficient"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_precision_regression_coefficient"
             }
           }
         ]
@@ -9453,6 +9528,246 @@
               }
             }
           ]
+        }
+      }
+    },
+    "template_precision_mean_difference": {
+      "description": "The confidence interval for the difference between two groups' means in the outcome's own units (presize's prec_meandiff(), two equal groups, equal variances). goal > n is the total of both groups.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "difference",
+            "sd"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "difference": {
+              "type": "number",
+              "description": "The expected difference between the means (second group minus first), in the outcome's units."
+            },
+            "sd": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "The outcome's SD within each group (the same in both)."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "t"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_odds_ratio": {
+      "description": "The confidence interval for the odds ratio between two groups (presize's prec_or()): the independence-smoothed logit interval by default (presize's own default), or Gart's or Woolf's. goal > n is the total of both groups; goal > width is the width on the odds-ratio scale.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "p1",
+            "p2"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "probability"
+            },
+            "p1": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected proportion of 'yes' in the first group."
+            },
+            "p2": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected proportion of 'yes' in the second group."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "indip_smooth",
+                "gart",
+                "woolf"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_icc": {
+      "description": "The confidence interval for an intraclass correlation (presize's prec_icc()): k ratings of each subject. goal > n is the number of subjects.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "icc",
+            "raters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "icc": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The expected ICC."
+            },
+            "raters": {
+              "type": "integer",
+              "minimum": 2,
+              "description": "The number of ratings (raters or occasions) of each subject."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "approximate"
+              ]
+            }
+          }
+        },
+        "goal": {
+          "properties": {
+            "assurance": false
+          }
+        }
+      }
+    },
+    "template_precision_regression_coefficient": {
+      "description": "The confidence interval for one standardised regression coefficient in a multiple regression (MBESS's ss.aipe.reg.coef(), with assurance if asked); at a given n, the width is the narrowest for which ss.aipe.reg.coef() needs no more than n, and the interval is symmetric about b. goal > n is the number of participants.",
+      "properties": {
+        "variables": {
+          "type": "object",
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "b",
+            "r2",
+            "r2_predictor",
+            "predictors"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "b": {
+              "type": "number",
+              "description": "The expected standardised coefficient of X."
+            },
+            "r2": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "R-squared of the full model (all predictors)."
+            },
+            "r2_predictor": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "R-squared of X on the other predictors (0 if X is the only predictor or uncorrelated with them)."
+            },
+            "predictors": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The number of predictors in the model, X included."
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "method": {
+              "enum": [
+                "t"
+              ]
+            }
+          }
         }
       }
     }

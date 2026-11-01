@@ -828,3 +828,40 @@ test_that("names that are all optional fold away, and open once one is filled in
   # Where a name is needed (the groups of a one-way ANOVA), the box stays open.
   expect_no_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))), "form-names", fixed = TRUE)
 })
+
+test_that("the precision card takes a raw mean difference, an odds ratio, an ICC and a regression coefficient", {
+  validate <- engine_function("validate_spec")
+  cases <- list(
+    mean_difference = list(estimate = "mean_difference", X_label = "Group", X_level1 = "Control", X_level2 = "Treatment", Y_label = "Blood pressure",
+      mean_difference = "5", mean_sd = "12"),
+    odds_ratio = list(estimate = "odds_ratio", X_label = "Group", X_level1 = "Control", X_level2 = "Treatment", Y_label = "Recovered",
+      or_p1 = "0.3", or_p2 = "0.45", or_method = "indip_smooth"),
+    icc = list(estimate = "icc", Y_label = "Symptom rating", icc = "0.7", icc_raters = "3"),
+    regression_coefficient = list(estimate = "regression_coefficient", P_label = "Sleep quality", Y_label = "Wellbeing", reg_b = "0.25",
+      reg_r2 = "0.3", reg_r2_predictor = "0.2", reg_predictors = "4")
+  )
+  for (name in names(cases)) {
+    fields <- form_fields(form_groups(forms, "E46"))
+    values <- c(cases[[name]], list(goal = "precision_n", width = "0.5", conf_level = "0.95"), closing_ok)
+    applies <- Filter(function(f) field_applies(f, values), fields)
+    expect_length(form_problems(applies, values), 0)
+    spec <- build_spec(forms, "E46", fields, values)
+    expect_identical(spec$template, name)
+    if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+  }
+})
+
+test_that("the participants-and-items card can plan the number of items for a fixed number of participants", {
+  validate <- engine_function("validate_spec")
+  fields <- form_fields(form_groups(forms, "E33"))
+  values <- modifyList(c(form_examples$E33, list(goal = "sample_size", power = "0.8")),
+    list(plan_unit = "items", participants = "30", items = NULL))
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("items" %in% vapply(applies, function(f) f$id, ""))
+  expect_length(form_problems(applies, values), 0)
+  spec <- build_spec(forms, "E33", fields, values)
+  expect_identical(spec$goal$unit, "items")
+  expect_equal(spec$population$participants, 30)
+  expect_null(spec$population$items)
+  if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
+})
