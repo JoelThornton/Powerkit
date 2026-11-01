@@ -70,12 +70,21 @@ for (case in three_cases) {
   })
 }
 
-test_that("three levels: Type I error near alpha for each assignment", {
+# With no effect, the Satterthwaite test is never liberal, and its
+# rejection rate agrees with the independent simulation's. It can be
+# conservative: with groups assigned within 8 sites and the effect varying
+# a little across them (icc_effect_site 0.02), 3.1% in powerkit and 3.65%
+# in the independent simulation (2,000 data sets each, 1 November 2026),
+# so a fixed band around alpha would fail a test that is behaving as it
+# should.
+test_that("three levels: Type I error at most alpha, and as in the independent simulation, for each assignment", {
   skip_unless_full_validation()
   for (case in three_cases) {
     p <- c(three_population, case[setdiff(names(case), "n")])
     p$d <- 0
-    expect_type1_near(engine_power(three_validation_spec(p, seed = 6503, n = case$n)), alpha = 0.05)
+    estimate <- engine_power(three_validation_spec(p, seed = 6503, n = case$n))
+    expect_lt(estimate$power, 0.05 + 3 * sqrt(0.05 * 0.95 / three_reps))
+    expect_power_near(estimate, three_by_hand(p, case$n, three_reps, seed = 6505), reference_nrep = three_reps)
   }
 })
 
