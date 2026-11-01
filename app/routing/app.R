@@ -238,6 +238,53 @@ app_css <- "
                 box-shadow: 0 -4px 16px rgba(20,40,75,.06); border-radius: var(--pk-radius) var(--pk-radius) 0 0; }
   .action-bar .btn { min-height: 44px; padding-left: 1.25rem; padding-right: 1.25rem; border-radius: 10px; font-weight: 600; }
   .btn-primary { background: var(--pk-blue); border-color: var(--pk-blue); }
+  /* The analysis list for 'I know my analysis' (1 November 2026): a large search box with a live
+     count, common starting points, and each group as a card whose
+     analyses sit in an even grid, with their status as a small label. */
+  .known-search { margin: 0.5rem 0 0.75rem 0; }
+  .known-search .form-label { font-weight: 600; color: var(--pk-navy); }
+  .known-search-box { position: relative; }
+  .known-search-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: #5a6573; pointer-events: none; }
+  .known-search-box .form-control { min-height: 52px; padding-left: 2.6rem; font-size: 1.05rem; border-radius: 12px;
+                                    border: 1.5px solid #c6cfdb; box-shadow: var(--pk-shadow); }
+  .known-search-box .form-control:focus { border-color: var(--pk-blue); box-shadow: 0 0 0 0.2rem rgba(10,90,140,.18); }
+  .known-count-line { font-size: 0.88rem; color: #5a6573; margin: 0.4rem 0 0 0; }
+  .known-none { background: #fff; border: 1.5px dashed #a9b3c1; border-radius: var(--pk-radius); padding: 0.75rem 1rem; }
+  .known-inline-link { padding: 0; vertical-align: baseline; border: 0; }
+  .known-section-title { font-size: 1rem; font-weight: 650; color: var(--pk-navy); text-transform: none; margin: 0; }
+  .known-shortcuts { margin: 1.25rem 0 1.5rem 0; }
+  .known-shortcut-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+  .known-shortcut { background: #fff; border: 1px solid var(--pk-line); border-radius: 999px; color: var(--pk-navy); font-size: 0.92rem;
+                    font-weight: 500; padding: 0.5rem 0.95rem; min-height: 44px; box-shadow: 0 1px 2px rgba(20,40,75,.06); text-align: left; }
+  .known-shortcut:hover, .known-shortcut:focus { border-color: var(--pk-blue); color: var(--pk-blue); }
+  .known-groups-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0 0.6rem 0; }
+  .known-open-all { font-size: 0.9rem; min-height: 44px; padding: 0 0.25rem; }
+  .known-family { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); margin-bottom: 0.6rem; }
+  .known-family > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; min-height: 56px;
+                            padding: 0.7rem 1.1rem; font-size: 1.05rem; font-weight: 600; color: var(--pk-navy); border-radius: var(--pk-radius); }
+  .known-family > summary::-webkit-details-marker { display: none; }
+  .known-family > summary::after { content: ''; width: 0.55rem; height: 0.55rem; border-right: 2px solid #5a6573; border-bottom: 2px solid #5a6573;
+                                   transform: rotate(45deg); margin: -0.2rem 0.2rem 0 0; transition: transform .12s ease; flex: none; }
+  .known-family[open] > summary::after { transform: rotate(225deg); margin-top: 0.2rem; }
+  .known-family > summary:hover { background: #f8fafc; }
+  .known-family > summary:hover .known-family-label { color: var(--pk-blue); }
+  .known-family-label { flex: 1 1 auto; }
+  .known-family-count { flex: none; background: #eef3fa; color: var(--pk-blue); border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+                        padding: 0.1rem 0.6rem; white-space: nowrap; }
+  .known-family[open] > summary { border-bottom: 1px solid var(--pk-line); border-radius: var(--pk-radius) var(--pk-radius) 0 0; }
+  .known-family-items { display: grid; grid-template-columns: 1fr; gap: 0.6rem; padding: 0.9rem 1rem 1rem 1rem; }
+  @media (min-width: 768px) { .known-family-items { grid-template-columns: 1fr 1fr; } }
+  .known-item { display: flex; }
+  .known-item[hidden] { display: none; }
+  .known-choice { width: 100%; box-shadow: none; border: 1px solid var(--pk-line); padding: 0.8rem 1rem;
+                  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
+  .known-choice .choice-label { font-size: 0.98rem; }
+  .known-choice-not { background: #f7f8fa; }
+  .known-choice-not .choice-label { color: #3d4852; }
+  .known-badge { display: inline-block; margin-top: 0.45rem; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.74rem; font-weight: 600; }
+  .known-badge-progress { background: #e8f0fb; color: #2c5a99; }
+  .known-badge-soon { background: #fff0d1; color: #7a4f00; }
+  .known-badge-not { background: #e9ecef; color: #3d4852; }
   @media print { .topbar, .screen-nav, .action-bar, .saved-projects { display: none !important; } }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
 "
