@@ -1895,7 +1895,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     },
     justified_alpha = {
       j <- result$justified_alpha
-      c(sprintf("A justified significance level was chosen for %s by weighing the two errors (the R package JustifyAlpha, version %s, optimal_alpha()).",
+      c(sprintf("The significance level for %s was chosen by weighing the two errors (the R package JustifyAlpha, version %s, optimal_alpha()).",
           if (is.null(sides)) name else sprintf("%s (%s)", name, sides), result$provenance$packages[["JustifyAlpha"]] %||% "unknown"),
         sprintf("The sample size was %s %s participants in total%s.", if (fixed) "fixed by resource constraints at" else "set at",
           whole(spec$goal$n), group_text(spec, spec$goal$n)),
