@@ -1,3 +1,16 @@
+# powerkit 0.28.1
+
+* The app moves between screens faster: about 40 ms on a laptop for the
+  list of analyses and an input screen, from 160-200 ms. The list's
+  groups, and each group of fields on an input screen, are built once and
+  kept as HTML (`cached_html()`, a 32 MB `cachem` cache keyed on what
+  they are built from); a field's attributes are added by walking its
+  tags rather than with `htmltools::tagQuery()`; and the app's own
+  functions are no longer byte-compiled on first use (`compiler::
+  enableJIT(0)` in `app.R`), which added 100-200 ms to each screen's first
+  visit in a new R process. The HTML is unchanged apart from indentation.
+  Engine unchanged.
+
 # powerkit 0.28.0
 
 A batch of new features, built as one round.
