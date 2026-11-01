@@ -6,6 +6,17 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Bayes factors checked as the data come in"
+    text: >-
+      The Bayesian planning tool in Labs now plans sequential studies,
+      which compute the Bayes factor as the data come in and stop as soon
+      as the evidence is strong either way, or at the largest sample size
+      you can afford. It shows how often the study stops each way, how
+      large it usually is when it stops, and how that compares with
+      testing once at the end. When you give your uncertainty about the
+      effect, the tool and the Bayes factor cards now call the result the
+      study's assurance: its chance of success given what you believe.
+  - date: "2026-11-01"
     title: "Items that differ on a score, such as word frequency"
     text: >-
       A new card plans studies where each participant responds to many

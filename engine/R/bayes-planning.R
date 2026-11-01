@@ -117,8 +117,23 @@ bayes_planning <- function(n, type = "two.sample", effect = 0.5, effect_sd = 0, 
     for_null = vapply(sizes, chance, 0, k = threshold, dpm = 0, dpsd = 0, lower = FALSE)
   )
 
-  # The analysis prior is a Cauchy (a t with 1 df) with scale prior_scale,
-  # truncated to one side for a one-sided test; the design prior is normal.
+  list(
+    n = n, type = type, effect = effect, effect_sd = effect_sd, prior_scale = prior_scale,
+    threshold = threshold, alternative = alternative, target = target,
+    outcomes = outcomes, largest_bf01 = largest, n_needed = n_needed, curves = curves,
+    priors = bayes_prior_densities(effect, effect_sd, prior_scale, alternative),
+    function_used = sprintf(
+      "bfpwr::ptbf01(k = %s and %s, n = %s, pscale = %s, dpm = %s, dpsd = %s, type = \"%s\", alternative = \"%s\")",
+      format(signif(1 / threshold, 4)), format(threshold), format(n), format(signif(prior_scale, 4)),
+      format(effect), format(effect_sd), type, alternative
+    ),
+    package = list(name = "bfpwr", version = as.character(utils::packageVersion("bfpwr")))
+  )
+}
+
+# The analysis prior is a Cauchy (a t with 1 df) with scale prior_scale,
+# truncated to one side for a one-sided test; the design prior is normal.
+bayes_prior_densities <- function(effect, effect_sd, prior_scale, alternative) {
   reach <- max(3 * prior_scale, abs(effect) + 3 * effect_sd, 1)
   x <- seq(-reach, reach, length.out = 401)
   analysis <- stats::dt(x / prior_scale, df = 1) / prior_scale
@@ -127,17 +142,5 @@ bayes_planning <- function(n, type = "two.sample", effect = 0.5, effect_sd = 0, 
     analysis <- ifelse(keep, 2 * analysis, 0)
   }
   design <- if (effect_sd > 0) stats::dnorm(x, effect, effect_sd) else rep(NA_real_, length(x))
-
-  list(
-    n = n, type = type, effect = effect, effect_sd = effect_sd, prior_scale = prior_scale,
-    threshold = threshold, alternative = alternative, target = target,
-    outcomes = outcomes, largest_bf01 = largest, n_needed = n_needed, curves = curves,
-    priors = data.frame(x = x, analysis = analysis, design = design),
-    function_used = sprintf(
-      "bfpwr::ptbf01(k = %s and %s, n = %s, pscale = %s, dpm = %s, dpsd = %s, type = \"%s\", alternative = \"%s\")",
-      format(signif(1 / threshold, 4)), format(threshold), format(n), format(signif(prior_scale, 4)),
-      format(effect), format(effect_sd), type, alternative
-    ),
-    package = list(name = "bfpwr", version = as.character(utils::packageVersion("bfpwr")))
-  )
+  data.frame(x = x, analysis = analysis, design = design)
 }

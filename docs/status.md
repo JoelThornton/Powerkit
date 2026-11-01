@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 1 November 2026 (powerkit 0.27.0). This page says where the
+*Last updated: 1 November 2026 (powerkit 0.28.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -101,8 +101,9 @@ fully validated. Validation runs are recorded in
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
   visualiser for the two-group t-test and, since 0.27.0, the correlation,
-  and Bayesian planning for the Bayes factor t-tests at a fixed N, from
-  bfpwr, 0.27.0).
+  and Bayesian planning for the Bayes factor t-tests from bfpwr, at a
+  fixed N or, since 0.28.0, sequential: checked as the data come in,
+  stopping when the evidence is strong).
 - **Waiting on others:** moderated mediation with W on the direct path
   (E38, model 8) on an upstream question to manymome (`next.md`,
   item 7); E17 on questions for power4mome (item 9); Spower's faults

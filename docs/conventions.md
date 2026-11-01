@@ -460,6 +460,14 @@ participants; 1,000 simulated data sets) they give 67.8% and 65.9%.
 | apimpower | A web app for APIM power; not callable from R, not compared | — | — |
 | **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
 
+## Sequential Bayes factor designs (Labs)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| BFDA (Schönbrodt and Wagenmakers, 2018; on GitHub only, not compared) | Monte Carlo simulation of the Sequential Bayes Factor design, the JZS t-test Bayes factor at every look | d, fixed or drawn from a design prior | A first look at `n_min`, then after every participant (or every few), thresholds for H1 and H0, an optional maximum N |
+| **powerkit** | `bayes_sequential()`: the same procedure, simulated by powerkit with bfpwr's `tbf01()` (the JZS Bayes factor, a Cauchy analysis prior) at every look (Labs, from 1 November 2026) [powerkit] | d (d_z for pairs), the true effect drawn from a normal design prior for every simulated study, and again with no effect | `n_min`, `step`, `n_max`, a BF10 threshold for an effect and a BF01 threshold for no effect (may differ), one- or two-sided; 2,000 simulated studies under each (seed 1) in the app. Each look's thresholds are found as values of t, which gives the same decisions as computing the Bayes factor every time (tested). Not a departure: it follows the published procedure, whose examples it reproduces to within about a percentage point |
+
 ## Participants and items in three or more conditions (E63)
 
 | Tool | Test | Effect size | Settings |

@@ -4050,3 +4050,51 @@ the data set's note (`simulated_data_note()`).
   need the regression weights worked out from the correlations it takes,
   which no package does), the meta-analysis, SEM, McNemar's test and the
   generic tests.
+
+## 2026-11-01 · Sequential Bayes factor designs and assurance (Labs)
+
+Step 4 of `bayes-planning.md` (sequential designs by powerkit's own
+simulation with bfpwr, decided 31 October 2026), with the sources the plan
+needed first.
+
+- **Sources.** O'Hagan, Stevens and Campbell (2005) for assurance;
+  Schönbrodt, Wagenmakers, Zehetleitner and Perugini (2017) and Schönbrodt
+  and Wagenmakers (2018) for the Sequential Bayes Factor design and its
+  planning by simulation. Each was checked against the full text and
+  Crossref and added to `refs.bib`. The binomial Bayes factor preprint
+  (Kelter and Pawel, arXiv 2502.02914) asks on its first page not to be
+  cited without the authors' permission, so it is not added; the binomial
+  card can cite bfpwr's own citation.
+- **Method.** The 2018 paper's procedure: a first look at `n_min`, then a
+  look after every `step` participants (in each group), stopping at a BF10
+  threshold for an effect, a BF01 threshold for no effect (they may
+  differ, as in the paper's SBF+maxN example) or at `n_max`; the true
+  effect drawn from the normal design prior for each simulated study, and
+  the same with no effect. The paper's outputs are reported: the chance of
+  each ending, the studies at the maximum split by BF10 above 3, below 1/3
+  or between, and the mean, median and 80th percentile of N at the stop.
+  A maximum N is required: an open-ended design is a large maximum, with
+  the share reaching it shown.
+- **Computation.** The Bayes factor is bfpwr's `tbf01()` (the JZS Bayes
+  factor, exact numerical integration). It depends on the data only
+  through t and grows with t (|t| two-sided), so at each look the two
+  thresholds are found once as values of t (`uniroot()`), and each
+  simulated study's t is compared with them. The decisions are the same as
+  computing `tbf01()` at every look (tested at every look, both ways, for
+  each test type and direction), and a run takes about a second for 61
+  looks and 2,000 studies under each truth, instead of minutes. At most
+  2,000 looks.
+- **Checks.** With the paper's settings the simulation reproduces its two
+  sequential examples to within about a percentage point (for example
+  70.4% / 1.8% / 27.8% under H1 against 70.6% / 1.6% / 27.8%); those
+  values are placeholders for the maintainer in
+  `test-validation-bayes-sequential.R`. A simulation written separately
+  (data drawn study by study, `t.test()` at every look, the Bayes factor
+  integrated over the noncentral t likelihood, not bfpwr) agrees for two
+  groups one-sided with asymmetric thresholds, two groups two-sided with a
+  look every 10, and paired data one-sided towards a negative effect.
+- **Words.** No "power": the tool reports chances of each ending. On
+  optional stopping it says only what the 2018 paper says (more looks
+  raise the rate of misleading evidence a little; most of it happens at
+  early looks). Where the design prior has an SD, the chance of strong
+  evidence is called assurance, on the Bayes factor cards and in Labs.
