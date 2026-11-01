@@ -145,3 +145,34 @@ for (n in c(20, 40)) {
     expect_lt(simulated - approximate, 0.06)
   })
 }
+
+# 5. The Labs planning tool (bayes_planning()) -------------------------------------
+# The same simulation checks each of its outcomes: strong evidence for an
+# effect under a design prior with spread, and both kinds of strong
+# evidence when there is no effect.
+
+test_that("Labs planning, two groups with an uncertain effect: every outcome matches simulated Bayes factors", {
+  skip_unless_full_validation()
+  plan <- bayes_planning(60, "two.sample", effect = 0.5, effect_sd = 0.2, threshold = 6)
+  nrep <- validation_nrep()
+  outcome <- function(truth, column) exact_estimate(plan$outcomes[plan$outcomes$truth == truth, column])
+  expect_power_near(outcome("belief", "for_effect"),
+    simulated_bayes_power("two.sample", 60, 0.5, 0.2, 6, 1 / sqrt(2), "two.sided", nrep, seed = 501), reference_nrep = nrep)
+  expect_power_near(outcome("null", "for_null"),
+    simulated_bayes_power("two.sample", 60, 0, 0, 6, 1 / sqrt(2), "two.sided", nrep, seed = 502, evidence_for_null = TRUE),
+    reference_nrep = nrep)
+  expect_power_near(outcome("null", "for_effect"),
+    simulated_bayes_power("two.sample", 60, 0, 0, 6, 1 / sqrt(2), "two.sided", nrep, seed = 503), reference_nrep = nrep)
+})
+
+test_that("Labs planning, paired and one-sided with a wider prior: matches simulated Bayes factors", {
+  skip_unless_full_validation()
+  plan <- bayes_planning(80, "paired", effect = 0.3, effect_sd = 0.1, prior_scale = 1, threshold = 3, alternative = "greater")
+  nrep <- validation_nrep()
+  outcome <- function(truth, column) exact_estimate(plan$outcomes[plan$outcomes$truth == truth, column])
+  expect_power_near(outcome("belief", "for_effect"),
+    simulated_bayes_power("paired", 80, 0.3, 0.1, 3, 1, "greater", nrep, seed = 504), reference_nrep = nrep)
+  expect_power_near(outcome("null", "for_null"),
+    simulated_bayes_power("paired", 80, 0, 0, 3, 1, "greater", nrep, seed = 505, evidence_for_null = TRUE),
+    reference_nrep = nrep)
+})

@@ -3949,3 +3949,30 @@ computer.
 - **Not built:** mixed designs with unequal groups, which Superpower's
   simulation refuses (`next.md`).
 
+
+## 2026-11-01 · Bayesian planning in Labs (fixed N)
+
+The first step of `bayes-planning.md`: a Labs tool for the Bayes factor
+t-tests at a fixed sample size, `bayes_planning()`, every number from
+bfpwr (`ptbf01()`, `powertbf01()`, `tbf01()`; Pawel and Held, 2025).
+
+- **Two priors, chosen apart.** The analysis prior is the Cauchy prior
+  the Bayes factor uses (scale 0.707 by default, bfpwr's); the design
+  prior is the planner's belief, normal with an SD for uncertainty. The
+  tool's default design prior is d = 0.5 give or take 0.15, so that a
+  first look shows what uncertainty costs; an SD of 0 gives the card's
+  "exactly the effect entered" (Departure 15, unchanged here).
+- **No single power figure.** The three outcomes (strong evidence for an
+  effect, for no effect, neither) are shown under the belief and with no
+  effect, the misleading ones labelled, with the sample size for a chosen
+  chance of strong evidence for an effect, the largest BF01 the study can
+  give (two-sided only: a one-sided BF01 has no largest value), and the
+  chances against the sample size.
+- **Small samples.** Below 50 degrees of freedom the tool says that
+  bfpwr's normal approximation gives a chance of strong evidence a few
+  points lower than simulation (the same difference the Bayes factor
+  cards carry, `test-validation-bayes-factor.R` section 4).
+- **Sources.** Only bfpwr's own citation is used. The tool avoids the
+  term "assurance" and does not cover sequential designs, so no new
+  reference was needed; adding Schönbrodt and Wagenmakers (2018) and an
+  assurance source to `refs.bib` comes with those steps.
