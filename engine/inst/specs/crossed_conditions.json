@@ -1,0 +1,32 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "crossed_conditions",
+  "variables": {
+    "X": {"type": "within_factor", "label": "Face expression", "levels": ["Neutral", "Happy", "Angry"]},
+    "Y": {"type": "continuous", "label": "Response time (ms)"}
+  },
+  "population": {
+    "metric": "raw",
+    "means": [600, 580, 590],
+    "sd_participant": 60,
+    "sd_participant_condition": 15,
+    "sd_item": 30,
+    "sd_residual": 120,
+    "items": 60,
+    "item_design": "between"
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: happy faces recognised 20 ms faster than neutral ones is the smallest difference of interest."
+  },
+  "target_test": {
+    "effect": "pairwise",
+    "method": "satterthwaite_t",
+    "comparison": ["Neutral", "Happy"],
+    "p_adjust": "holm",
+    "alpha": 0.05
+  },
+  "goal": {"type": "power", "n": 40},
+  "options": {"nrep": 200, "seed": 63}
+}

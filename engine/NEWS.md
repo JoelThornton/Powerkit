@@ -1,3 +1,46 @@
+# powerkit 0.27.0
+
+A batch of new features, built as one round.
+
+* Minimum-effect tests on the one-sample, paired and two-group t-tests
+  (`target_test > method` "minimum_effect", with the smallest effect of
+  interest in `population > margin`, or `population > raw > margin` in the
+  outcome's own units): the effect shown to be larger than the margin, by
+  pwrss's `power.t.student()` with the margin on the effect's side
+  (one-sided, or outside both margins for a two-sided hypothesis). Power,
+  sample size and the smallest detectable effect (pwrss's own solution);
+  the exported script reproduces each. pwrss's test treats the margin as a
+  value in SD units; a margin fixed in the outcome's units, tested with a
+  shifted central t, gives very slightly more power (Known difference 10).
+  The smallest detectable d for 57 per group and a margin of 0.2 is
+  0.6735; the 0.681 a calculation by hand gives comes from using one
+  group's degrees of freedom (56) instead of the test's (112).
+* The two-group t-test takes a point-biserial correlation
+  (`population > metric` "point_biserial", `population > r`), as G\*Power's
+  point-biserial model does: d is worked out from r and the planned share
+  in group 2, which gives the model's power at any allocation (G\*Power's
+  example, r = .25 one-sided with power .95, needs 164). The smallest
+  detectable effect is also given as r.
+* An independent t-test with unequal groups started its sample-size search
+  below two people in the smaller group (for example four in all at 1 : 3),
+  which pwr refuses; the smallest n now keeps two in each group.
+* Participants and items in three or more conditions (E63, design
+  `mixed_model`, template `crossed_conditions`): every participant in
+  every condition, a mean per condition, the SDs of participants'
+  averages, of their condition effects (one shared by every condition,
+  `(1 | participant:cond)`), of items' averages and of the residual, and
+  the items split equally between the conditions or (with an optional
+  item-by-condition SD) in every condition. Simulated with simr's
+  `powerSim()`, testing that the conditions differ with lmerTest's
+  Satterthwaite F test (`target_test > effect` "condition"), or one pair
+  (`effect` "pairwise", `comparison`) with its Satterthwaite t test
+  adjusted for all the pairs by `stats::p.adjust()` (`p_adjust`, Holm by
+  default, as on the one-way ANOVA cards). The check run, exported
+  script and simulated data set follow the design. Agrees with a
+  simulation written separately without simr, with the Type I error near
+  alpha; published value to come. Reached from the design finder's
+  question on many trials or stimuli.
+
 # powerkit 0.26.0
 
 Fixes from a review of 0.25.0, and its follow-ups.

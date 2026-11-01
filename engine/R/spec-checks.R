@@ -13,7 +13,10 @@ population_problems <- function(spec) {
       if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
     },
     ordinal_regression = check_ordinal_two_groups,
-    mixed_model = function(spec) if (identical(spec$template, "two_level")) character() else check_crossed_two_condition(spec),
+    mixed_model = function(spec) {
+      switch(spec$template, two_level = character(), crossed_conditions = check_crossed_conditions(spec),
+        check_crossed_two_condition(spec))
+    },
     poisson_regression = check_single_predictor_x,
     cluster_trial = check_cluster_trial,
     sem = check_sem,
@@ -34,6 +37,7 @@ population_problems <- function(spec) {
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
+    check_minimum_effect(spec),
     check_proportions_formula_allowed(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -108,7 +112,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+  bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
@@ -164,7 +168,8 @@ check_cell_ratio_allowed <- function(spec) {
 # Tests with no simulation in powerkit yet: they are computed by formula
 # only (pwrss).
 simulation_available <- function(spec) {
-  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec))
+  !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec) ||
+    minimum_effect_test(spec))
 }
 
 # Basic tests powerkit computes by simulation only: no formula covers
@@ -213,6 +218,10 @@ check_pairwise <- function(spec) {
       problems <- c(problems, "'target_test > method' \"t_test\" is for pairwise comparisons: set 'target_test > effect' to \"pairwise\".")
     }
     return(problems)
+  }
+  if (identical(spec$template, "crossed_conditions")) {
+    # Checked with the design (check_crossed_conditions()).
+    return(character())
   }
   if (!spec$template %in% c("oneway_between", "oneway_within")) {
     return("Pairwise comparisons are available after a one-way ANOVA (between or within participants) only, so far.")
@@ -585,6 +594,51 @@ check_crossed_two_condition <- function(spec) {
     problems <- c(problems, paste0(
       "Give 'population > sd_participant_slope', how much the difference between conditions varies across participants ",
       "(0 if it doesn't), or make X a between factor if each participant is in one condition."))
+  }
+  problems
+}
+
+# Participants and items in three or more conditions (E63): a mean per
+# condition, items split equally between the conditions (or every item in
+# every condition, the only design with an item-by-condition SD), and for
+# a pairwise comparison two of X's levels and the t test.
+check_crossed_conditions <- function(spec) {
+  pop <- spec$population
+  tt <- spec$target_test
+  levels <- unlist(spec$variables$X$levels)
+  k <- length(levels)
+  within <- identical(pop$item_design %||% "between", "within")
+  problems <- character()
+  if (length(unlist(pop$means)) != k) {
+    problems <- c(problems, sprintf("'population > means' has %d values, but X has %d conditions: give one mean per condition, in the order of its levels.",
+      length(unlist(pop$means)), k))
+  }
+  if (!within && pop$items %% k != 0) {
+    problems <- c(problems, sprintf(
+      "'population > items' is %s, but with each item in one condition the items are split equally between the %d conditions, so the number must be a multiple of %d.",
+      format_number(pop$items), k, k))
+  }
+  if (!within && !is.null(pop$sd_item_condition)) {
+    problems <- c(problems, paste0(
+      "'population > sd_item_condition' only applies when every item appears in every condition ",
+      "('population > item_design' \"within\"); remove it, or set item_design to \"within\"."))
+  }
+  pairwise <- identical(tt$effect, "pairwise")
+  wanted <- if (pairwise) "satterthwaite_t" else "satterthwaite_f"
+  if (!identical(tt$method, wanted)) {
+    problems <- c(problems, sprintf("'target_test > method' should be \"%s\" for %s.", wanted,
+      if (pairwise) "a pairwise comparison (a t test)" else "the test that the conditions differ (an F test)"))
+  }
+  if (!pairwise && (!is.null(tt$comparison) || !is.null(tt$p_adjust))) {
+    problems <- c(problems, paste0("'target_test > comparison' and 'target_test > p_adjust' only apply to a pairwise comparison ",
+      "('target_test > effect' \"pairwise\"); remove them."))
+  }
+  if (pairwise) {
+    pair <- unlist(tt$comparison)
+    if (length(pair) != 2 || length(unique(pair)) != 2 || !all(pair %in% levels)) {
+      problems <- c(problems, sprintf("'target_test > comparison' should name two different conditions of X (%s), the pair whose difference is tested.",
+        paste(levels, collapse = ", ")))
+    }
   }
   problems
 }
@@ -1795,6 +1849,12 @@ minimum_n <- function(spec) {
       spec$template,
       one_sample_t = 3,
       paired_t = 3,
+      # Two people in the smaller group (pwr.t2n.test() needs them): with
+      # an allocation of 1 : 3, eight in all, not four.
+      independent_t = {
+        ratio <- spec$options$allocation_ratio %||% 1
+        max(4, ceiling(2 * (1 + ratio) / min(1, ratio)))
+      },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
       chi_square_gof = length(spec$variables$Y$levels),
       # Fisher's z needs more than 3 people in each group (its SE is
@@ -2064,6 +2124,14 @@ target_effect_is_zero <- function(spec) {
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW)
+    } else if (identical(spec$template, "crossed_conditions")) {
+      means <- as.numeric(unlist(pop$means))
+      pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
+      if (identical(spec$target_test$effect, "pairwise")) {
+        if (length(pair) == 2 && !anyNA(pair)) diff(means[pair]) else 1
+      } else {
+        max(abs(means - mean(means)))
+      }
     } else {
       pop$difference
     },

@@ -1182,6 +1182,11 @@
                   "description": "The SD of the outcome, above 0.",
                   "type": "number",
                   "exclusiveMinimum": 0
+                },
+                "margin": {
+                  "description": "Minimum-effect tests only: the smallest effect of interest as a difference in the outcome's own units, above 0; powerkit divides it by the SD for population > margin.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 }
               }
             },
@@ -1196,6 +1201,11 @@
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (d) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
               "type": "number",
               "minimum": 0
+            },
+            "margin": {
+              "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as d, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
           },
           "allOf": [
@@ -1234,7 +1244,8 @@
               "enum": [
                 "t_test",
                 "wilcoxon_signed_rank",
-                "bayes_factor"
+                "bayes_factor",
+                "minimum_effect"
               ]
             }
           }
@@ -1266,10 +1277,11 @@
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them.",
+              "description": "'standardised': the effect is given as d. 'raw': it is given in the outcome's own units (population > raw), and powerkit works out d from them. 'point_biserial': it is given as the point-biserial correlation r between the group (group 1 coded 0, group 2 coded 1) and the outcome, as G*Power's point-biserial model takes it, and powerkit works out d from r and the planned allocation ratio (d = r / sqrt(p (1 - p) (1 - r^2)), p the share in group 2), which gives the same test.",
               "enum": [
                 "standardised",
-                "raw"
+                "raw",
+                "point_biserial"
               ]
             },
             "d": {
@@ -1298,6 +1310,11 @@
                   "description": "The SD of the outcome within a group, taken as the same in both groups, above 0.",
                   "type": "number",
                   "exclusiveMinimum": 0
+                },
+                "margin": {
+                  "description": "Minimum-effect tests only: the smallest effect of interest as a difference in the outcome's own units, above 0; powerkit divides it by the SD for population > margin.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 }
               }
             },
@@ -1313,6 +1330,15 @@
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (d) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
               "type": "number",
               "minimum": 0
+            },
+            "margin": {
+              "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as d, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "r": {
+              "description": "With metric 'point_biserial': the point-biserial correlation between the group (group 1 coded 0, group 2 coded 1) and the outcome; positive when group 2 scores higher. powerkit works out d from it (population > d).",
+              "$ref": "#/definitions/correlation"
             }
           },
           "allOf": [
@@ -1339,6 +1365,30 @@
                   ]
                 }
               }
+            },
+            {
+              "if": {
+                "required": [
+                  "metric"
+                ],
+                "properties": {
+                  "metric": {
+                    "const": "point_biserial"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "r"
+                ]
+              },
+              "else": {
+                "not": {
+                  "required": [
+                    "r"
+                  ]
+                }
+              }
             }
           ]
         },
@@ -1352,7 +1402,8 @@
                 "student_t",
                 "welch_t",
                 "mann_whitney",
-                "bayes_factor"
+                "bayes_factor",
+                "minimum_effect"
               ]
             }
           }
@@ -1424,6 +1475,11 @@
                 "r": {
                   "description": "The correlation between the two measurements.",
                   "$ref": "#/definitions/correlation"
+                },
+                "margin": {
+                  "description": "Minimum-effect tests only: the smallest effect of interest as a difference in the outcome's own units, above 0; powerkit divides it by the SD of the differences for population > margin.",
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 }
               },
               "oneOf": [
@@ -1470,6 +1526,11 @@
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (dz) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
               "type": "number",
               "minimum": 0
+            },
+            "margin": {
+              "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as dz, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
+              "type": "number",
+              "exclusiveMinimum": 0
             }
           },
           "allOf": [
@@ -1508,7 +1569,8 @@
               "enum": [
                 "t_test",
                 "wilcoxon_signed_rank",
-                "bayes_factor"
+                "bayes_factor",
+                "minimum_effect"
               ]
             }
           }
@@ -7348,7 +7410,8 @@
           "template": {
             "enum": [
               "crossed_two_condition",
-              "two_level"
+              "two_level",
+              "crossed_conditions"
             ]
           }
         },
@@ -7381,6 +7444,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_two_level"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "crossed_conditions"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_crossed_conditions"
             }
           }
         ]
@@ -7910,6 +7988,120 @@
                 },
                 "method": {
                   "const": "satterthwaite_t"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_crossed_conditions": {
+      "description": "Participants respond to many items (stimuli) in three or more conditions, every participant in every condition: a linear mixed model y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with cond a factor in treatment coding (each coefficient a condition's mean minus the first condition's), one participant-by-condition variance shared by every condition, and, with every item in every condition (item_design 'within'), an optional item-by-condition variance, (1 | item:cond). Simulated with simr's powerSim() on a model built by makeLmer(), testing that the conditions differ with lmerTest's Satterthwaite F test (effect 'condition'), or one pair of conditions with the Satterthwaite t test adjusted for all the pairs by stats::p.adjust() (effect 'pairwise'). goal > n is the number of participants; every participant responds to every item.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "properties": {
+                "type": {
+                  "const": "within_factor"
+                },
+                "levels": {
+                  "minItems": 3
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "means",
+            "sd_participant",
+            "sd_participant_condition",
+            "sd_item",
+            "sd_residual",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "means": {
+              "description": "Each condition's mean, in the order of X's levels, in the outcome's units.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            },
+            "sd_participant": {
+              "description": "SD of the participants' random intercepts: how much participants' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_participant_condition": {
+              "description": "SD of the participant-by-condition effects: how much each participant's responses in a condition differ from what their average and the condition's mean predict, the same for every condition (random intercepts for participant:cond).",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item": {
+              "description": "SD of the items' random intercepts: how much items' average responses differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_item_condition": {
+              "description": "Every item in every condition only (item_design 'within'): SD of the item-by-condition effects (random intercepts for item:cond). 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_residual": {
+              "description": "SD of the residual: trial-to-trial variation within a participant and item.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "items": {
+              "description": "Total number of items. With items between conditions, they are split equally, one block per condition, so the number must be a multiple of the number of conditions.",
+              "type": "integer",
+              "minimum": 6
+            },
+            "item_design": {
+              "description": "'between' (the default): each item appears in one condition only. 'within': every item appears in every condition.",
+              "enum": [
+                "between",
+                "within"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "effect": {
+                  "enum": [
+                    "condition",
+                    "pairwise"
+                  ]
+                },
+                "method": {
+                  "enum": [
+                    "satterthwaite_f",
+                    "satterthwaite_t"
+                  ]
                 }
               }
             }

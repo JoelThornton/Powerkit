@@ -167,6 +167,11 @@ simulations:
       preview: {power: 35}
       full: {power: 350}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E63:
+      full_run: [power]
+      preview: {power: 40}
+      full: {power: 400}
+      script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E62:
       full_run: [power]
       preview: {power: 30}
@@ -255,6 +260,7 @@ known_differences:
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change: power comes from the fixed-model formula G*Power uses for an R-squared increase (pwrss). InteractionPoweR's own formula gives slightly less (it divides by 1 minus the R-squared without the interaction, and uses N - 3): 58.3% against 59.9% at N = 200 for an R-squared change of .0225. Giving the correlations instead runs powerkit's simulation, slightly lower again."
   "8": "MANOVA with three or more groups: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
+  "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
 
 # The same known differences as one sentence for the methods paragraph
@@ -269,14 +275,15 @@ known_differences_methods:
   "6": "The probability of strong evidence was calculated in closed form, which treats the effect estimate as normally distributed; in small samples this gives slightly lower values than simulating the Bayes factor itself."
   "7": "Power was calculated by the fixed-model formula for an R-squared increase, as in G*Power; InteractionPoweR's formula, and simulation with the predictors drawn afresh in each sample, give slightly lower power for the same interaction."
   "8": "Power was estimated by simulation, so it carries Monte Carlo error; G*Power computes Pillai's trace with an F approximation."
+  "10": "The minimum-effect test was computed with pwrss's t-test against the smallest effect of interest in SD units; a margin fixed in the outcome's own units, tested with a shifted central t, gives very slightly higher power."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
 
 forms:
   E1:
     methods_name: "a one-sample t-test"
     departures: ["9", "15"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
-    known_differences: ["5", "6"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
+    known_differences: ["5", "6", "10"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -302,10 +309,10 @@ forms:
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
              shown_if: {field: effect_units, is: raw}}
-      - input: "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"
+      - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value"},
+             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
@@ -324,12 +331,18 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
+          - {id: margin, label: "Smallest effect of interest, as Cohen's d", type: number, path: population.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is_not: raw}],
+             help: "The test shows that the effect is larger than this, not only that it isn't 0. With a one-sided hypothesis it is tested on that side; with a two-sided one, the effect has to be further from 0 than this in either direction. Your expected effect has to be larger than it."}
+          - {id: raw_margin, label: "Smallest effect of interest, as a difference in your measure's own units", type: number, path: population.raw.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is: raw}],
+             help: "powerkit divides it by the SD, as for the effect. The test shows that the effect is larger than this, not only that it isn't 0."}
 
   E2:
     methods_name: "an independent-samples t-test"
     departures: ["9", "15"]
-    known_differences_if_method: {"5": mann_whitney, "6": bayes_factor}
-    known_differences: ["5", "6"]
+    known_differences_if_method: {"5": mann_whitney, "6": bayes_factor, "10": minimum_effect}
+    known_differences: ["5", "6", "10"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -345,13 +358,17 @@ forms:
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), or the means and SD in your measure's own units"
+      - input: "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), the means and SD in your measure's own units, or a point-biserial correlation"
         fields:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD"},
-             default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD if you give those"}
+             choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
+             default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD, or from a point-biserial r, if you give those"}
           - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
-             shown_if: {field: effect_units, is_not: raw}}
+             shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}]}
+          - {id: r_pb, label: "Point-biserial r between group and outcome", type: number, path: population.r, effect: true, no_conversion: true,
+             min_exclusive: -1, max_exclusive: 1, writeup_label: "point-biserial r",
+             shown_if: {field: effect_units, is: point_biserial},
+             help: "The correlation between group membership (group 1 counted as 0, group 2 as 1) and the outcome: positive if group 2 scores higher. powerkit turns it into Cohen's d for the group sizes you plan (d = r / sqrt(p(1 - p)(1 - r squared)), p the share in group 2), which gives the same test as G*Power's point-biserial model. powerkit treats it as the true effect; a published value tends to be too large."}
           - {id: raw_mean_1, label: "Expected mean, group 1", type: number, path: population.raw.mean_1, effect: true, writeup_label: "group 1 mean",
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_mean_2, label: "Expected mean, group 2", type: number, path: population.raw.mean_2, effect: true, writeup_label: "group 2 mean",
@@ -362,10 +379,10 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwr.t.test() (pwr 1.3-0) and Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
-      - input: "Student's or Welch's t-test, the Mann-Whitney test, or a Bayes factor t-test"
+      - input: "Student's or Welch's t-test, the Mann-Whitney test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value"},
+             choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
              default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: mann_whitney},
@@ -384,6 +401,12 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
+          - {id: margin, label: "Smallest effect of interest, as Cohen's d", type: number, path: population.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is_not: raw}],
+             help: "The test shows that the effect is larger than this, not only that it isn't 0. With a one-sided hypothesis it is tested on that side; with a two-sided one, the effect has to be further from 0 than this in either direction. Your expected effect has to be larger than it."}
+          - {id: raw_margin, label: "Smallest effect of interest, as a difference in your measure's own units", type: number, path: population.raw.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is: raw}],
+             help: "powerkit divides it by the SD, as for the effect. The test shows that the effect is larger than this, not only that it isn't 0."}
     method_extra:
       # Welch's t-test: Spower's simulation by default, pwrss's formula on
       # request (engine, wave 2).
@@ -395,8 +418,8 @@ forms:
   E3:
     methods_name: "a paired-samples t-test"
     departures: ["9", "15"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
-    known_differences: ["5", "6"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
+    known_differences: ["5", "6", "10"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -433,10 +456,10 @@ forms:
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
           - {id: raw_r, label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
-      - input: "The t-test, the Wilcoxon signed-rank test or a Bayes factor t-test"
+      - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value"},
+             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
@@ -455,6 +478,12 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
+          - {id: margin, label: "Smallest effect of interest, as d_z", type: number, path: population.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is_not: raw}],
+             help: "The test shows that the effect is larger than this, not only that it isn't 0. With a one-sided hypothesis it is tested on that side; with a two-sided one, the effect has to be further from 0 than this in either direction. Your expected effect has to be larger than it."}
+          - {id: raw_margin, label: "Smallest effect of interest, as a difference in your measure's own units", type: number, path: population.raw.margin, required: true, min_exclusive: 0, writeup_label: "smallest effect of interest",
+             shown_if: [{field: method, is: minimum_effect}, {field: effect_units, is: raw}],
+             help: "powerkit divides it by the SD of the differences, as for the effect. The test shows that the effect is larger than this, not only that it isn't 0."}
 
   E4:
     methods_name: "a Pearson correlation"
@@ -913,6 +942,55 @@ forms:
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
+
+  # Participants and items in three or more conditions (simr), 31 October
+  # 2026: the Satterthwaite F test, or one pair adjusted for all the pairs.
+  E63:
+    methods_name: "a linear mixed model with participants and items as random factors and three or more conditions (Satterthwaite tests)"
+    tool: simr
+    departures: ["16", "17"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: crossed_conditions,
+           variables: {X: {type: within_factor}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {effect: condition, method: satterthwaite_f}}
+    groups:
+      - input: "The conditions and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, face expression)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true}
+          - {id: Y_label, label: "Outcome (for example, response time in ms)", type: text, path: variables.Y.label, required: true}
+      - input: "Each condition's mean, in the outcome's units"
+        fields:
+          - {id: means, writeup_label: "means", label: "The mean in each condition, in the same order, separated by commas", type: numbers, per_levels: X_levels, path: population.means, effect: true}
+      - input: "How much participants and items vary (the variance components)"
+        fields:
+          - {id: sd_participant, writeup_label: "SD of participants' averages", label: "SD of participants' averages (random intercepts)", type: number, path: population.sd_participant, effect: true, min: 0}
+          - {id: sd_participant_condition, writeup_label: "SD of participants' condition effects", label: "SD of how much each participant's mean in a condition departs from their average plus the condition's effect (the same for every condition)", type: number, path: population.sd_participant_condition, effect: true, min: 0,
+             help: "The several-condition counterpart of the SD of participants' condition differences: with two conditions, a participant's difference varies with an SD of about 1.4 times this value."}
+          - {id: sd_item, writeup_label: "SD of items' averages", label: "SD of items' averages (random intercepts)", type: number, path: population.sd_item, effect: true, min: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "Residual SD (trial-to-trial variation)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+      - input: "The items: how many, and whether each appears in one condition or all"
+        fields:
+          - {id: items, label: "Number of items", type: number, path: population.items, required: true, min: 6, integer: true}
+          - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
+             choices: {between: "In one condition each (split equally between the conditions)", within: "In every condition"},
+             default: between, default_source: "as for two conditions (decided 30 October 2026, docs/decisions.md)"}
+          - {id: sd_item_condition, label: "SD of how much an item's mean in a condition departs from its average plus the condition's effect (optional; empty = 0)", type: number, path: population.sd_item_condition, optional: true, empty_text: "0", min: 0,
+             shown_if: {field: item_design, is: within}}
+      - input: "The test: any difference between the conditions, or one pair"
+        fields:
+          - {id: conditions_test, label: "Test", type: select, path: target_test.method, required: true,
+             choices: {satterthwaite_f: "Whether the conditions differ at all (Satterthwaite F test)",
+                       satterthwaite_t: "One pair of conditions (Satterthwaite t test, adjusted for all the pairs)"},
+             sets: {satterthwaite_t: [{path: target_test.effect, value: pairwise}]},
+             default: satterthwaite_f, default_source: "the test of the design's main question, as on the one-way ANOVA cards"}
+          - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
+             shown_if: {field: conditions_test, is: satterthwaite_t},
+             help: "The test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+          - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
+             shown_if: {field: conditions_test, is: satterthwaite_t},
+             choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
+             default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).

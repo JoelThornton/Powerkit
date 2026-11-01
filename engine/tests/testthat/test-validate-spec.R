@@ -20,7 +20,7 @@ test_that("there is an example for every template", {
   expect_setequal(unique(templates), c(
     "one_sample_t", "independent_t", "paired_t", "correlation",
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed",
-    "two_way", "three_way", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "mean_effect", "process_4", "process_6", "process_7", "process_14",
+    "two_way", "three_way", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "mean_effect", "process_4", "process_6", "process_7", "process_14",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase",
     # One-way repeated measures.
@@ -107,7 +107,7 @@ test_that("misspelt fields are named, with a suggestion", {
 test_that("unexpected fields list what is allowed", {
   spec <- example_spec("independent_t")
   spec$population$sd <- 1
-  expect_spec_problem(spec, "'sd' is not a recognised field in 'population'. Allowed here: metric, d, raw, score_shape, effect_sd.")
+  expect_spec_problem(spec, "'sd' is not a recognised field in 'population'. Allowed here: metric, d, raw, score_shape, effect_sd, margin, r.")
 })
 
 test_that("wrong value types are described in plain words", {
