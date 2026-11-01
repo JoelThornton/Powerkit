@@ -1,0 +1,29 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "icc",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Symptom rating"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "icc": 0.7,
+    "raters": 3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: an ICC of about 0.7 with three raters; the interval should be no wider than 0.2."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "approximate",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 0.2
+  }
+}

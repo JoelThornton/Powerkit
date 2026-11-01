@@ -1,0 +1,35 @@
+{
+  "spec_version": "0.1",
+  "design": "precision",
+  "template": "regression_coefficient",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Sleep quality"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "b": 0.25,
+    "r2": 0.3,
+    "r2_predictor": 0.2,
+    "predictors": 4
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a standardised coefficient of about 0.25 among four predictors; the interval should be no wider than 0.2."
+  },
+  "target_test": {
+    "effect": "confidence_interval",
+    "method": "t",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "precision",
+    "width": 0.2
+  }
+}

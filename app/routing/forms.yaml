@@ -2634,22 +2634,29 @@ forms:
         fields:
           - {id: estimate, label: "What will the confidence interval be for?", type: select, path: template, required: true,
              choices: {two_groups: "A difference between two groups, as Cohen's d", paired: "A change or difference within the same people, as d_z (pairs of scores)",
-                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)"},
+                       one_group: "One group's mean against a fixed value, in SDs", correlation: "A correlation", proportion: "A proportion (for example, how many people report burnout)",
+                       mean_difference: "A difference between two groups' means, in the outcome's own units", odds_ratio: "An odds ratio between two groups (a yes/no outcome)",
+                       icc: "An intraclass correlation (agreement between raters, or test-retest)", regression_coefficient: "One predictor's standardised coefficient in a multiple regression"},
              default: two_groups, default_source: "powerkit's first choice; pick the estimate your study reports",
              sets: {two_groups: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     paired: [{path: variables.X.type, value: within_factor}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     one_group: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: noncentral_t}],
                     correlation: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: correlation}],
-                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}]}}
+                    proportion: [{path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: proportion}],
+                    mean_difference: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: raw}, {path: target_test.method, value: t}],
+                    odds_ratio: [{path: variables.X.type, value: binary}, {path: variables.Y.type, value: binary}, {path: variables.Y.levels, value: ["No", "Yes"]}, {path: population.metric, value: probability}],
+                    icc: [{path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: approximate}],
+                    regression_coefficient: [{path: variables.X.type, value: continuous}, {path: variables.Y.type, value: continuous}, {path: population.metric, value: standardised}, {path: target_test.method, value: t}]}}
       - input: "Names"
         fields:
-          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: two_groups}}
-          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: two_groups}}
-          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: two_groups}}
+          - {id: X_label, label: "What the groups are (for example, condition)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
+          - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is_one_of: [two_groups, mean_difference, odds_ratio]}}
           - {id: T_label, label: "What the two measurements are (for example, time)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level1, label: "First measurement", type: text, path: variables.X.levels.1, required: true, shown_if: {field: estimate, is: paired}}
           - {id: T_level2, label: "Second measurement", type: text, path: variables.X.levels.2, required: true, shown_if: {field: estimate, is: paired}}
           - {id: C_label, label: "First variable", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: correlation}}
+          - {id: P_label, label: "The predictor (X)", type: text, path: variables.X.label, required: true, shown_if: {field: estimate, is: regression_coefficient}}
           - {id: Y_label, label: "Outcome (for a correlation, the second variable; for a proportion, what is counted)", type: text, path: variables.Y.label, required: true}
       - input: "The value you expect"
         fields:
@@ -2663,6 +2670,26 @@ forms:
              shown_if: {field: estimate, is: correlation}, help: "Intervals are narrower for larger correlations, so a smaller guess is the cautious one."}
           - {id: p, writeup_label: "expected proportion", label: "The proportion you expect (for example 0.3 for 30%)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: estimate, is: proportion}, help: "Intervals are widest at 0.5, so 0.5 is the cautious guess if you have none."}
+          - {id: mean_difference, writeup_label: "expected mean difference", label: "The difference between the means you expect (group 2 minus group 1, in the outcome's units)", type: number, path: population.difference, effect: true,
+             shown_if: {field: estimate, is: mean_difference}}
+          - {id: mean_sd, writeup_label: "SD within each group", label: "The outcome's SD within each group (the same in both)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: {field: estimate, is: mean_difference}}
+          - {id: or_p1, writeup_label: "expected proportion in group 1", label: "The proportion of 'yes' you expect in group 1", type: number, path: population.p1, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: odds_ratio}}
+          - {id: or_p2, writeup_label: "expected proportion in group 2", label: "The proportion of 'yes' you expect in group 2 (the odds ratio is group 2's odds over group 1's)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: odds_ratio}}
+          - {id: icc, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: icc}}
+          - {id: icc_raters, label: "Ratings of each person (raters, or occasions)", type: number, path: population.raters, required: true, min: 2, integer: true,
+             shown_if: {field: estimate, is: icc}}
+          - {id: reg_b, writeup_label: "expected standardised coefficient", label: "The standardised coefficient you expect for X", type: number, path: population.b, effect: true,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_r2, writeup_label: "R-squared of the full model", label: "R-squared of the full model, all predictors (0 to 1)", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_r2_predictor, writeup_label: "R-squared of X on the other predictors", label: "R-squared of X on the other predictors (0 if none, or uncorrelated)", type: number, path: population.r2_predictor, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: estimate, is: regression_coefficient}}
+          - {id: reg_predictors, label: "Predictors in the model, X included", type: number, path: population.predictors, required: true, min: 1, integer: true,
+             shown_if: {field: estimate, is: regression_coefficient}}
       - input: "The kind of interval"
         fields:
           - {id: r_method, label: "Which correlation", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: correlation},
@@ -2671,6 +2698,9 @@ forms:
              choices: {wilson: "Wilson's interval", agresti_coull: "Agresti-Coull", exact: "Exact (Clopper-Pearson)", wald: "Wald (the textbook formula)"},
              default: wilson, default_source: "presize's default (prec_prop(method = \"wilson\"), presize 0.3.11)",
              help: "presize's help suggests Wilson's interval for fewer than 40 people and Agresti-Coull for more, and offers the Wald interval only because it is widely used."}
+          - {id: or_method, label: "Which interval for the odds ratio", type: select, path: target_test.method, required: true, shown_if: {field: estimate, is: odds_ratio},
+             choices: {indip_smooth: "Independence-smoothed logit (presize's default)", gart: "Gart's adjusted logit", woolf: "Woolf's logit"},
+             default: indip_smooth, default_source: "presize's default (prec_or(), presize 0.3.11)"}
 
   # Trend tests (1 November 2026), simulated with Spower by powerkit's own
   # experiments: the Jonckheere-Terpstra test of a trend in scores across

@@ -1574,6 +1574,16 @@
       ],
       "Hash": "4e172eb9a8e2e01e0494ea230b73f068"
     },
+    "gsl": {
+      "Package": "gsl",
+      "Version": "2.1-9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "6c2e67b032a0a3dba59dfc7acb71bb64"
+    },
     "gtable": {
       "Package": "gtable",
       "Version": "0.3.6",
