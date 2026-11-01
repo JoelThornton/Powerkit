@@ -2451,10 +2451,15 @@ target_effect_is_zero <- function(spec) {
       pop$effect
     },
     dyadic = {
+      # Several effects tested together: joint power needs every one, so
+      # the smallest of them counts.
       b <- apim_paths(spec)
-      labels <- c(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12", partner_21 = "p21")
+      labels <- list(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12", partner_21 = "p21",
+        actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"), both_partners = c("p12", "p21"),
+        all_four = c("a1", "a2", "p12", "p21"))
       at <- labels[[spec$target_test$effect]]
-      if (is.null(b[at]) || is.na(b[at])) 1 else b[[at]]
+      values <- b[at]
+      if (is.null(at) || anyNA(values)) 1 else min(abs(values))
     }
   )
   isTRUE(abs(value) < 1e-12)
@@ -2495,6 +2500,7 @@ check_apim <- function(spec) {
   distinguishable <- isTRUE(pop$distinguishable)
   own <- if (distinguishable) c("actor_1", "actor_2", "partner_12", "partner_21") else c("actor", "partner")
   other <- if (distinguishable) c("actor", "partner") else c("actor_1", "actor_2", "partner_12", "partner_21")
+  effects <- c(own, if (distinguishable) c("both_actors", "both_partners", "all_four") else "actor_and_partner")
   problems <- character()
   missing <- own[vapply(own, function(k) is.null(pop[[k]]), logical(1))]
   if (length(missing)) {
@@ -2509,9 +2515,9 @@ check_apim <- function(spec) {
   if (!distinguishable && !is.null(pop$members)) {
     problems <- c(problems, "'population > members' names the members of distinguishable dyads; remove it, or set 'distinguishable' to true.")
   }
-  if (!spec$target_test$effect %in% own) {
+  if (!spec$target_test$effect %in% effects) {
     problems <- c(problems, sprintf("'target_test > effect' should be one of %s for %s members.",
-      paste(sprintf("\"%s\"", own), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable"))
+      paste(sprintf("\"%s\"", effects), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable"))
   }
   if (length(problems)) return(problems)
   r2 <- apim_r_squared(spec)

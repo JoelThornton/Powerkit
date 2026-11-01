@@ -66,3 +66,18 @@ test_that("the exported script reproduces the result with power4mome alone, and 
   expect_equal(nrow(data), 25)
   expect_true(all(c("Daily_stress_Woman", "Relationship_satisfaction_Man") %in% names(data)))
 })
+
+test_that("several effects tested together: joint power counts the studies in which every one is significant", {
+  spec <- apim_spec("actor_and_partner", goal = list(type = "power", n = 80L))
+  joint <- suppressWarnings(run_spec(spec))
+  expect_match(joint$provenance$backend_function, "pars = \"a1\", \"p21\"", fixed = TRUE)
+  # On the same simulated studies (same seed), the joint rate is at most
+  # each effect's own power.
+  partner <- suppressWarnings(run_spec(apim_spec("partner", goal = list(type = "power", n = 80L))))
+  actor <- suppressWarnings(run_spec(apim_spec("actor", goal = list(type = "power", n = 80L))))
+  expect_lte(joint$curve$power, min(partner$curve$power, actor$curve$power))
+  expect_spec_problem(apim_spec("all_four"), "should be one of")
+  zero <- apim_spec("actor_and_partner", partner = 0, goal = list(type = "sample_size", power = 0.8))
+  expect_error(validate_spec(zero), class = "powerkit_spec_error")
+  expect_script_reproduces_power(spec, joint)
+})
