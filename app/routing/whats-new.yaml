@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-01"
+    title: "Whole-study simulation: more designs measured twice"
+    text: >-
+      When each person is measured twice, the experimental whole-study
+      simulation now handles two mediators (side by side or in a chain)
+      and moderated mediation where the moderator changes one link, with
+      every analysis adjusting for the first measurement.
+  - date: "2026-11-01"
     title: "Clearer questions and analysis cards"
     text: >-
       Each question in "Help me choose" now says which number it is, keeps

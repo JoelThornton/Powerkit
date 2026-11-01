@@ -15,6 +15,14 @@
 
 A batch of new features, built as one round.
 
+* Whole-study simulation measured twice now covers mediation through two
+  mediators (side by side or in a chain) and moderated mediation of one
+  link (X to the mediator, or the mediator to the outcome); the guided
+  routes ask how the mediators connect and which link the moderator
+  changes, as they do measured once. New agreement checks against the
+  serial mediation and second-stage moderated mediation cards
+  (test-validation-whole-study-twice.R, in the `whole_study` chunk).
+
 * A predictor measured on each trial (E67, template `item_predictor`,
   `population > x_level` "trial"): a value that varies from trial to
   trial, such as how long a stimulus is shown, rather than one per item.
