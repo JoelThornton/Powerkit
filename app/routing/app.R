@@ -230,6 +230,32 @@ app_css <- "
   .result-card h3, .result-card h4 { color: var(--pk-navy); font-weight: 650; }
   .result-main { border-top: 5px solid var(--pk-blue); }
   .result-main .result-headline { font-size: 1.4rem; font-weight: 600; color: var(--pk-navy); line-height: 1.35; }
+  /* The result (1 November 2026): the answer as one figure, then how sure
+     it is, then the write-up and downloads, then how it was calculated. */
+  .result-sections { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.75rem 0; }
+  .result-sections a { font-size: 0.85rem; padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid var(--pk-line); background: #fff;
+                       color: var(--pk-navy); text-decoration: none; min-height: 34px; display: inline-flex; align-items: center; }
+  .result-sections a:hover, .result-sections a:focus { border-color: var(--pk-blue); color: var(--pk-blue); }
+  .result-card[id] { scroll-margin-top: 1rem; }
+  .result-hero { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; margin: 0.5rem 0 1rem 0; padding: 1rem 1.25rem;
+                 border-radius: var(--pk-radius); background: linear-gradient(135deg, #eef4fb 0%, #f7f9fc 100%); border: 1px solid #dbe6f3; }
+  .result-figure { display: flex; flex-direction: column; min-width: 12rem; }
+  .result-figure-value { font-size: 3.4rem; line-height: 1; font-weight: 750; color: var(--pk-navy); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .result-figure-label { font-size: 1.05rem; font-weight: 600; color: var(--pk-navy); margin-top: 0.3rem; }
+  .result-figure-sub { font-size: 0.9rem; color: #4a5568; }
+  .result-assumes { flex: 1 1 18rem; }
+  .result-assumes-title { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #5a6b85; margin-bottom: 0.35rem; }
+  .result-assumes ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .result-assumes li { background: #fff; border: 1px solid #d5dfec; border-radius: 999px; padding: 0.2rem 0.75rem; font-size: 0.85rem; color: #1f2d45; }
+  .result-main.has-hero .result-headline { font-size: 1.05rem; font-weight: 500; color: #2d3b52; }
+  .result-main.has-hero > p:not(.result-headline):not(.result-reading):not(.result-guess) { font-size: 0.92rem; color: #4a5568; margin-bottom: 0.45rem; }
+  .result-main.has-hero .result-reading { font-size: 1rem; }
+  .result-save .nav-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .result-sure .explore-panel, .result-sure .scenario-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
+  .writeup-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.3rem 0; }
+  .writeup-head label { margin: 0; font-weight: 600; }
+  .writeup-copied { color: #1e6b3a; }
+  @media (max-width: 600px) { .result-figure-value { font-size: 2.6rem; } .result-hero { padding: 0.9rem; } }
   .result-more { margin: 0.75rem 0 0 0; }
   .result-more > summary { cursor: pointer; color: var(--pk-blue); min-height: 44px; display: flex; align-items: center; }
   /* The screen's next step, pinned to the bottom of the window. */
@@ -772,11 +798,9 @@ server <- function(input, output, session) {
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
     df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    par(mar = c(4.5, 4.5, 1, 1))
-    plot(df$n, df$power, type = "b", pch = 19, ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
-    abline(h = c(0.8, 0.95), lty = 2, col = "grey50")
-    text(min(df$n), c(0.8, 0.95), c("80%", "95%"), pos = 3, cex = 0.8, col = "grey40")
-  })
+    planned <- calc$result$n_required$n %||% calc$spec$goal$n
+    power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
+  }, res = 96)
 
   # Three effects (conservative, the plan's, optimistic): power by N for
   # each, and the N each needs. Reads the last calculation; never changes
@@ -796,18 +820,14 @@ server <- function(input, output, session) {
   })
   output$scenario_plot <- renderPlot({
     df <- scenario_results()$curves
-    keys <- intersect(names(scenario_names), unique(df$scenario))
+    keys <- intersect(c("expected", "conservative", "optimistic"), unique(df$scenario))
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
-    par(mar = c(4.5, 4.5, 1, 1))
-    plot(NA, xlim = range(df$n), ylim = c(0, 1), xlab = "Participants analysed", ylab = "Power", las = 1)
-    for (k in keys) {
-      d <- df[df$scenario == k, ]
-      lines(d$n, d$power, col = style[[k]]$col, lty = style[[k]]$lty, lwd = 2.5)
-    }
-    abline(h = c(0.8, 0.95), lty = 2, col = "grey70")
+    calc <- state$calc
+    power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
+      target = calc$spec$goal$power %||% 0.8, planned_n = calc$result$n_required$n %||% calc$spec$goal$n)
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
-      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 2.5, bty = "n")
-  })
+      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
+  }, res = 96)
   output$scenario_n <- renderUI({
     x <- scenario_results()
     p(class = "small", scenario_sentence(x$spec, x$n))
