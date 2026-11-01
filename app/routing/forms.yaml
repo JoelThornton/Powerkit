@@ -1089,11 +1089,12 @@ forms:
              shown_if: {field: distinguishable, is: "true"}}
           - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
              shown_if: {field: distinguishable, is: "false"},
-             choices: {partner: "The partner effect", actor: "The actor effect"},
+             choices: {partner: "The partner effect", actor: "The actor effect", actor_and_partner: "Both: the actor and the partner effect significant in the same study (joint power)"},
              default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
           - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
              shown_if: {field: distinguishable, is: "true"},
-             choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect"},
+             choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect",
+                       both_partners: "Both partner effects significant in the same study (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four effects (joint power)"},
              default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
       - input: "How alike the members are"
         fields:

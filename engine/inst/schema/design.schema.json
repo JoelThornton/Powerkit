@@ -9093,8 +9093,13 @@
                     "actor_1",
                     "actor_2",
                     "partner_12",
-                    "partner_21"
-                  ]
+                    "partner_21",
+                    "actor_and_partner",
+                    "both_actors",
+                    "both_partners",
+                    "all_four"
+                  ],
+                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'."
                 },
                 "method": {
                   "const": "wald_z"
