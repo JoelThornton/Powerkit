@@ -1013,6 +1013,10 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   assigned (powerkit's example, `inst/specs/mixed_three_level.json`:
   classes of 20, four classes per school), 17.2% against 23.6% at 12
   schools and 46.4% against 49.4% at 30 (1,000 simulated data sets).
+  With a predictor measured on each item (E67, from 1 November 2026;
+  powerkit's example, `inst/specs/item_predictor.json`: 60 items, a
+  slope of -15 ms per SD of word frequency), 48.9% against 54.1% at 10
+  participants and 80.1% against 81.6% at 30 (1,000 simulated data sets).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.

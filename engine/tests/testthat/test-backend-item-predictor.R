@@ -50,3 +50,16 @@ test_that("the exported script reproduces the result with simr alone, and the da
   expect_equal(nrow(data), 4 * 60)
   expect_true("Word_frequency" %in% names(data))
 })
+
+test_that("Satterthwaite's test is never more liberal than simr's z test (Departure 16)", {
+  # The same t statistic referred to a t distribution: on the same data
+  # sets every rejection by Satterthwaite's test is one by z too
+  # (docs/conventions.md, 16, gives the size at 10 and 30 participants).
+  inputs <- item_predictor_inputs(validate_spec(item_spec()))
+  model <- simr_model(inputs, 10)
+  power <- vapply(c("sa", "z"), function(m) {
+    r <- suppressMessages(suppressWarnings(simr::powerSim(model, test = simr::fixed("x", m), nsim = 100, seed = 12, progress = FALSE)))
+    r$x / r$n
+  }, numeric(1))
+  expect_lte(power[["sa"]], power[["z"]])
+})
