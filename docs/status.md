@@ -178,8 +178,11 @@ fully validated. Validation runs are recorded in
 - MANOVA with three or more groups is simulated (no formula in a package
   or the G\*Power manual); two groups and one group against fixed values
   are exact since 31 October 2026 (Hotelling's T-squared).
-- SEM has no test of close fit, nor invariance with several factors,
-  groups or occasions (`next.md`, "SEM").
+- SEM covers model fit (exact, close and not-close fit), measurement
+  invariance of one to five factors across up to ten groups or occasions,
+  factor correlations and latent slopes (2 November 2026). Not covered:
+  invariance with groups of unequal size beyond two, or with only some
+  factors differing in their own items.
 - Technical details (df, critical value, noncentrality) are given for
   every exact design whose package reports them, SEM and the correlation
   included since 1 November 2026; TOSTER and powertools return none

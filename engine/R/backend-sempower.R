@@ -8,13 +8,14 @@
 #               noncentral chi-square's chance of exceeding the central
 #               chi-square's critical value on the model's df.
 #
-#   invariance  sem/invariance: measurement invariance of one factor
-#               across two groups (semPower::semPower.powerMI()) or over
-#               two occasions in the same people (population > over
+#   invariance  sem/invariance: measurement invariance of one or more
+#               factors across two or more groups
+#               (semPower::semPower.powerMI()) or over two or more
+#               occasions in the same people (population > over
 #               "occasions", semPower::semPower.powerLI(), with the
-#               factor's correlation between occasions as Phi), the
-#               chi-square difference test of metric invariance against
-#               the configural model, or of scalar against metric.
+#               factors' correlations within and between occasions as
+#               Phi), the chi-square difference test of metric invariance
+#               against the configural model, or of scalar against metric.
 #   factor_correlation  sem/factor_correlation: the correlation between
 #               two factors of a CFA, against zero (the chi-square
 #               difference test of the model with it fixed at 0).
@@ -40,12 +41,29 @@
 # correlated). How the items are split between the factors does not
 # change the df, so they are split as evenly as possible.
 #
-# Functions and arguments were checked in semPower 2.2.0's help pages and
-# sources (docs/conventions.md, "semPower").
+#   close fit   sem/model_fit with target_test > method
+#               "chi_square_close_fit" or "chi_square_not_close_fit":
+#               MacCallum, Browne and Sugawara's (1996) tests (the
+#               reference in WebPower's help), computed by WebPower's
+#               wp.sem.rmsea(). Close fit: H0 RMSEA at most rmsea_null
+#               (0.05 by default) against the population RMSEA above it;
+#               the test rejects close fit. Not-close fit: H0 RMSEA at
+#               least rmsea_null against the population RMSEA below it;
+#               rejecting it supports close fit. Both use the noncentral
+#               chi-square under H0 as well as under H1, with noncentrality
+#               (N - 1) * df * RMSEA^2, so at rmsea_null 0 the test of close
+#               fit is semPower's test of exact fit (checked in the check
+#               run and in test-backend-sempower.R).
+#
+# Functions and arguments were checked in semPower 2.2.0's and WebPower
+# 0.9.4's help pages and sources (docs/conventions.md, "semPower").
 
 sempower_backend <- function(spec, seed = NULL) {
   if (!identical(spec$template, "model_fit")) {
     return(sempower_restriction_backend(spec))
+  }
+  if (sem_close_fit_test(spec)) {
+    return(webpower_rmsea_backend(spec))
   }
   df <- sem_df(spec)
   power_at <- function(n) sempower_power(spec, n, df)
@@ -63,6 +81,70 @@ sempower_backend <- function(spec, seed = NULL) {
     sensitivity = NULL,
     details = function(n) sempower_details(sempower_post_hoc(spec, n, df), "semPower::semPower.postHoc"),
     check_run = function() sempower_check_run(spec, df)
+  )
+}
+
+# The tests of close and not-close fit (WebPower).
+sem_close_fit_test <- function(spec) {
+  isTRUE(spec$target_test$method %in% c("chi_square_close_fit", "chi_square_not_close_fit"))
+}
+
+sem_rmsea_null <- function(spec) spec$population$rmsea_null %||% 0.05
+
+webpower_rmsea_type <- function(spec) {
+  if (identical(spec$target_test$method, "chi_square_not_close_fit")) "notclose" else "close"
+}
+
+webpower_rmsea_power <- function(spec, n, df, rmsea_null = sem_rmsea_null(spec)) {
+  call_backend("WebPower", WebPower::wp.sem.rmsea(
+    n = n, df = df, rmsea0 = rmsea_null, rmsea1 = spec$population$rmsea,
+    alpha = spec$target_test$alpha, type = webpower_rmsea_type(spec)
+  )$power)
+}
+
+webpower_rmsea_backend <- function(spec) {
+  df <- sem_df(spec)
+  power_at <- function(n) webpower_rmsea_power(spec, n, df)
+  list(
+    name = "WebPower",
+    packages = c("WebPower", if (sem_from_shape(spec)) c("semPower", "lavaan")),
+    methods = "exact",
+    default_method = "exact",
+    functions = c(exact = sprintf("WebPower::wp.sem.rmsea(type = \"%s\")", webpower_rmsea_type(spec))),
+    n_step = 1,
+    exact_min_n = minimum_n(spec),
+    exact_power = power_at,
+    bracket_power = power_at,
+    simulate = NULL,
+    sensitivity = NULL,
+    check_run = function() webpower_rmsea_check_run(spec, df)
+  )
+}
+
+# Check run: WebPower receives the two RMSEAs and the df, and with the
+# null RMSEA set to 0 its test of close fit gives semPower's power for the
+# test of exact fit at an example N of 200 (two packages, one formula).
+webpower_rmsea_check_run <- function(spec, df) {
+  pop <- spec$population
+  out <- call_backend("WebPower", WebPower::wp.sem.rmsea(
+    n = 200, df = df, rmsea0 = sem_rmsea_null(spec), rmsea1 = pop$rmsea,
+    alpha = spec$target_test$alpha, type = webpower_rmsea_type(spec)
+  ))
+  exact_webpower <- call_backend("WebPower", WebPower::wp.sem.rmsea(
+    n = 200, df = df, rmsea0 = 0, rmsea1 = pop$rmsea, alpha = spec$target_test$alpha, type = "close"
+  )$power)
+  exact_sempower <- call_backend("semPower", quietly(semPower::semPower.postHoc(
+    effect = pop$rmsea, effect.measure = "RMSEA", alpha = spec$target_test$alpha, N = 200, df = df
+  )))$power
+  row <- function(parameter, specified, passed, tolerance = 1e-8) {
+    data.frame(parameter = parameter, specified = specified, recovered = passed,
+      ok = isTRUE(all.equal(specified, passed, tolerance = tolerance)))
+  }
+  rbind(
+    row("population RMSEA passed to WebPower (rmsea1)", pop$rmsea, out$rmsea1),
+    row("RMSEA of the null hypothesis passed to WebPower (rmsea0)", sem_rmsea_null(spec), out$rmsea0),
+    row("degrees of freedom passed to WebPower (df)", df, out$df),
+    row("at a null RMSEA of 0, WebPower's power (N = 200) equals semPower's test of exact fit", exact_sempower, exact_webpower, 1e-6)
   )
 }
 
@@ -169,13 +251,82 @@ sem_function <- function(spec) {
 }
 
 # The share of the total N in each group: two groups in the ratio
-# 1 : allocation_ratio for invariance, one group otherwise.
+# 1 : allocation_ratio (equal by default), three or more equal groups;
+# one group otherwise.
 sem_group_weights <- function(spec) {
   if (!identical(spec$template, "invariance") || sem_over_time(spec)) {
     return(1)
   }
+  groups <- sem_invariance_groups(spec$population)
+  if (groups > 2) {
+    return(rep(1 / groups, groups))
+  }
   ratio <- spec$options$allocation_ratio %||% 1
   c(1, ratio) / (1 + ratio)
+}
+
+# Invariance: the number of groups (2 by default), occasions (2) and
+# factors (1).
+sem_invariance_groups <- function(pop) pop$n_groups %||% 2L
+sem_invariance_occasions <- function(pop) pop$n_occasions %||% 2L
+sem_invariance_factors <- function(pop) pop$factors %||% 1L
+
+# semPower's arguments for invariance. Every item loads `loading` on its
+# factor; the first factor's last `noninvariant` items differ in the last
+# group (or on the last occasion): their loading is `loading_group2`
+# (metric) or their intercepts are shifted by `intercept_difference`
+# (scalar). Across groups, the factors correlate `factor_correlation`.
+# Over occasions, a factor correlates `stability` with itself on every
+# other occasion, two factors `factor_correlation` on the same occasion,
+# and two factors on different occasions the product of the two (the
+# factor correlation matrix is the Kronecker product of the occasions'
+# and the factors' matrices, so it is always a valid one). semPower's
+# order is F1_T1, F2_T1, ..., F1_T2, ... (semPower.powerLI()'s help).
+sem_invariance_args <- function(pop, over_time) {
+  k <- pop$indicators
+  n_factors <- sem_invariance_factors(pop)
+  units <- if (over_time) sem_invariance_occasions(pop) else sem_invariance_groups(pop)
+  differ <- seq.int(k - pop$noninvariant + 1, k)
+  metric <- identical(pop$level, "metric")
+  r_factors <- matrix(pop$factor_correlation %||% 0, n_factors, n_factors)
+  diag(r_factors) <- 1
+  # The loadings in one group or on one occasion: a list of factors.
+  loadings_in <- function(unit) {
+    lapply(seq_len(n_factors), function(f) {
+      x <- rep(pop$loading, k)
+      if (metric && f == 1 && unit == units) x[differ] <- pop$loading_group2
+      x
+    })
+  }
+  # The intercepts in one group or on one occasion: all items, factor by
+  # factor.
+  tau_in <- function(unit) {
+    x <- rep(0, k * n_factors)
+    if (unit == units) x[differ] <- pop$intercept_difference
+    x
+  }
+  loadings <- lapply(seq_len(units), loadings_in)
+  if (over_time) {
+    r_time <- matrix(pop$stability, units, units)
+    diag(r_time) <- 1
+    phi <- kronecker(r_time, r_factors)
+    # One factor: semPower takes one vector per occasion.
+    if (n_factors == 1) loadings <- lapply(loadings, `[[`, 1)
+    args <- list(Phi = phi, loadings = loadings)
+  } else {
+    args <- list(loadings = loadings)
+    if (n_factors > 1) args$Phi <- rep(list(r_factors), units)
+  }
+  if (metric) {
+    return(c(list(comparison = "configural", nullEffect = "metric"), args))
+  }
+  # Scalar: the loadings are the same everywhere.
+  # (Across groups, one list of factors stands for every group.)
+  args$loadings <- if (over_time) rep(list(if (n_factors == 1) rep(pop$loading, k) else loadings_in(0)), units) else loadings_in(0)
+  c(
+    list(comparison = "metric", nullEffect = "scalar"), args,
+    list(tau = lapply(seq_len(units), tau_in), Alpha = rep(list(rep(0, n_factors)), units))
+  )
 }
 
 # The arguments semPower's function takes for the spec's model, without
@@ -184,44 +335,7 @@ sem_restriction_args <- function(spec) {
   pop <- spec$population
   switch(
     spec$template,
-    invariance = if (sem_over_time(spec)) {
-      # Over time: one factor per occasion, correlating by the stability;
-      # the constraints are placed across the two occasions.
-      k <- pop$indicators
-      differ <- seq.int(k - pop$noninvariant + 1, k)
-      phi <- matrix(c(1, pop$stability, pop$stability, 1), 2)
-      if (identical(pop$level, "metric")) {
-        second <- rep(pop$loading, k)
-        second[differ] <- pop$loading_group2
-        list(comparison = "configural", nullEffect = "metric", loadings = list(rep(pop$loading, k), second), Phi = phi)
-      } else {
-        tau2 <- rep(0, k)
-        tau2[differ] <- pop$intercept_difference
-        list(
-          comparison = "metric", nullEffect = "scalar", loadings = list(rep(pop$loading, k), rep(pop$loading, k)),
-          tau = list(rep(0, k), tau2), Alpha = c(0, 0), Phi = phi
-        )
-      }
-    } else {
-      k <- pop$indicators
-      differ <- seq.int(k - pop$noninvariant + 1, k)
-      if (identical(pop$level, "metric")) {
-        second <- rep(pop$loading, k)
-        second[differ] <- pop$loading_group2
-        list(
-          comparison = "configural", nullEffect = "metric",
-          loadings = list(list(rep(pop$loading, k)), list(second))
-        )
-      } else {
-        tau2 <- rep(0, k)
-        tau2[differ] <- pop$intercept_difference
-        list(
-          comparison = "metric", nullEffect = "scalar",
-          loadings = list(rep(pop$loading, k)),
-          tau = list(rep(0, k), tau2), Alpha = list(0, 0)
-        )
-      }
-    },
+    invariance = sem_invariance_args(pop, sem_over_time(spec)),
     factor_correlation = list(
       comparison = "restricted", Phi = pop$r, nullEffect = "cor = 0",
       nIndicator = unlist(pop$indicators), loadM = unlist(pop$loadings)
@@ -259,14 +373,46 @@ sem_restriction_fit <- function(spec) {
   list(df = out$df, fmin = out$fmin, fmin_groups = out$fmin.g, reference = reference, power = out$power)
 }
 
+# The design in words, for the script's header and the methods paragraph.
+sem_invariance_description <- function(spec) {
+  pop <- spec$population
+  over_time <- sem_over_time(spec)
+  n_factors <- sem_invariance_factors(pop)
+  where <- if (over_time) {
+    sprintf("over %d occasions (stability %s)", sem_invariance_occasions(pop), format_number(pop$stability))
+  } else {
+    sprintf("across %d groups", sem_invariance_groups(pop))
+  }
+  factors <- if (n_factors == 1) {
+    sprintf("one factor of %s items", pop$indicators)
+  } else {
+    sprintf("%d factors of %s items each (correlation %s)", n_factors, pop$indicators, format_number(pop$factor_correlation))
+  }
+  last <- if (over_time) "on the last occasion" else "in the last group"
+  sprintf(
+    "measurement invariance %s: chi-square difference test of %s invariance, %s (loading %s), %s of the first factor's items %s %s",
+    where, pop$level, factors, pop$loading, pop$noninvariant,
+    if (identical(pop$level, "metric")) sprintf("with loading %s", pop$loading_group2)
+    else sprintf("with intercepts shifted by %s SD", pop$intercept_difference),
+    last
+  )
+}
+
+sem_invariance_df <- function(spec) {
+  pop <- spec$population
+  units <- if (sem_over_time(spec)) sem_invariance_occasions(pop) else sem_invariance_groups(pop)
+  (units - 1) * sem_invariance_factors(pop) * (pop$indicators - 1)
+}
+
 # Check run: no simulated data. The check confirms that semPower's own
 # function and the shortcut through its F0 agree on power at the
 # reference N, and that the restriction has the df expected.
 sem_restriction_check_run <- function(spec, base, power_at) {
   # One restriction for a correlation or a slope. Invariance restricts
-  # every loading (or intercept) but one: the second group's factor
-  # variance (or mean) is freed in its place, as in lavaan.
-  expected_df <- if (identical(spec$template, "invariance")) spec$population$indicators - 1 else 1
+  # every loading (or intercept) but one of each factor in every group or
+  # occasion after the first: that group's factor variance (or mean) is
+  # freed in its place, as in lavaan.
+  expected_df <- if (identical(spec$template, "invariance")) sem_invariance_df(spec) else 1
   row <- function(parameter, specified, recovered) {
     data.frame(
       parameter = parameter, specified = specified, recovered = recovered,
@@ -306,6 +452,9 @@ sem_summary <- function(spec) {
   list(
     template = "model_fit",
     rmsea = pop$rmsea,
+    fit_test = switch(spec$target_test$method %||% "chi_square_exact_fit",
+      chi_square_close_fit = "close", chi_square_not_close_fit = "not_close", "exact"),
+    rmsea_null = if (sem_close_fit_test(spec)) sem_rmsea_null(spec),
     df = sem_df(spec),
     indicators = pop$indicators,
     factors = pop$factors,
@@ -318,6 +467,9 @@ sem_summary <- function(spec) {
 sempower_script <- function(spec, result) {
   if (!identical(spec$template, "model_fit")) {
     return(sempower_restriction_script(spec, result))
+  }
+  if (sem_close_fit_test(spec)) {
+    return(webpower_rmsea_script(spec, result))
   }
   pop <- spec$population
   df_lines <- if (sem_from_shape(spec)) {
@@ -346,6 +498,45 @@ sempower_script <- function(spec, result) {
     "    effect = rmsea, effect.measure = \"RMSEA\",",
     "    alpha = alpha, N = n_total, df = df",
     "  )$power",
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The R script for the tests of close and not-close fit: WebPower's
+# wp.sem.rmsea() at each n, as powerkit calls it.
+webpower_rmsea_script <- function(spec, result) {
+  pop <- spec$population
+  type <- webpower_rmsea_type(spec)
+  df_lines <- if (sem_from_shape(spec)) {
+    c(
+      sprintf("# The model: %s items on %s correlated factors, each item on one factor.", pop$indicators, pop$factors),
+      "# semPower counts its degrees of freedom with lavaan.",
+      sprintf("model <- %s", r_code(sem_cfa_syntax(pop$indicators, pop$factors))),
+      "df <- semPower::semPower.getDf(model)"
+    )
+  } else {
+    sprintf("df <- %s # the model's degrees of freedom", r_code(pop$df))
+  }
+  c(
+    script_header(spec, result, "WebPower", sprintf("WebPower::wp.sem.rmsea(type = \"%s\")", type)),
+    "library(WebPower)",
+    "",
+    "# Inputs ----",
+    sprintf("rmsea <- %s # the model's RMSEA in the population", r_code(pop$rmsea)),
+    sprintf("rmsea_null <- %s # the RMSEA of the null hypothesis (close fit: at most this; not-close fit: at least this)", r_code(sem_rmsea_null(spec))),
+    df_lines,
+    goal_inputs(spec, result),
+    "",
+    if (identical(type, "close")) {
+      "# Power of the test of close fit (MacCallum, Browne and Sugawara, 1996) to reject close fit when the model's RMSEA is rmsea."
+    } else {
+      "# Power of the test of not-close fit (MacCallum, Browne and Sugawara, 1996) to reject not-close fit, supporting close fit, when the model's RMSEA is rmsea."
+    },
+    "power_at <- function(n_total) {",
+    sprintf("  wp.sem.rmsea(n = n_total, df = df, rmsea0 = rmsea_null, rmsea1 = rmsea, alpha = alpha, type = \"%s\")$power", type),
     "}",
     "",
     pwr_goal_section(spec, result),

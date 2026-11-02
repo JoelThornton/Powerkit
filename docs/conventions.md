@@ -407,10 +407,14 @@ and the example specs use 0.025. Not a departure: pwrss's own test.
 | semPower | `semPower.postHoc()` and `semPower.aPriori()` with `effect.measure = "RMSEA"`: F0 = RMSEA² × df (`getF.RMSEA()`), noncentrality (N − 1) × F0 (`getNCP()`), and power is the chance that the noncentral chi-square on the model's df exceeds the central chi-square's critical value at alpha, so the null hypothesis is exact fit (RMSEA = 0). No test of close fit. `semPower.getDf()` counts a model's df by fitting its lavaan syntax (semPower 2.2.0, `R/postHoc.R`, `R/aPriori.R`, `R/effectSizes.R`, help for `semPower.getDf()`, opened 27 October 2026) | RMSEA of the population misfit | `alpha` must be given (no default); `fittingFunction = "ML"` |
 | **powerkit** | semPower's `semPower.postHoc()` by formula; no simulation option (E37, from 27 October 2026) [powerkit] | `rmsea` | The model is given by its df, or, for a CFA, by its number of items and factors, each item on one factor and the factors correlated; the df are then counted by `semPower.getDf()` with the items split as evenly as possible (the split does not change the df). The required N is powerkit's own search over whole N with semPower's power, which agrees with `semPower.aPriori()`'s `requiredN` (unit tests). Not a departure: semPower's own method and defaults, and no established psychology tool computes this for comparison. Alpha 0.05 is offered as the usual level because semPower has none |
 
-The test of close fit (the null hypothesis RMSEA no more than 0.05,
-rather than exact fit) is in the methods literature on RMSEA-based power
-but not in semPower; whether powerkit should offer it is a method choice
-for the maintainer, not yet made.
+## Structural equation model fit: the tests of close and not-close fit
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for structural equation models | — | — |
+| semPower | Exact fit only (above) | — | — |
+| WebPower | `wp.sem.rmsea()`: MacCallum, Browne and Sugawara's (1996) tests (the reference in its help). Close fit (`type = "close"`): the critical value from the noncentral chi-square with noncentrality (N − 1) × df × rmsea0², power from the noncentral chi-square at rmsea1; not-close fit (`type = "notclose"`): the lower critical value at rmsea0, power the chance of falling below it at rmsea1 (WebPower 0.9.4 source, read 2 November 2026) | `rmsea0` (the null value) and `rmsea1` (the population RMSEA) | `alpha` 0.05; no default for `rmsea0` |
+| **powerkit** | WebPower's `wp.sem.rmsea()` by formula (E37, from 2 November 2026), with the df counted as for the test of exact fit [powerkit] | `rmsea` (the population RMSEA) and `rmsea_null` | `rmsea_null` 0.05 by default, the null value commonly used with these tests (for example in semTools' `findRMSEApower()` help). The test of exact fit stays the default. At `rmsea_null` 0 the test of close fit is semPower's test of exact fit (tested to 1e-8, and in the check run). Not a departure |
 
 ## Measurement invariance, factor correlations and latent slopes (the chi-square difference test)
 

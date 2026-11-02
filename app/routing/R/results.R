@@ -229,7 +229,7 @@ group_text <- function(spec, n) {
 
 test_text <- function(spec) {
   if (is_sem_fit(spec)) {
-    return(sprintf("the chi-square test of exact model fit at alpha = %s", alpha_text(spec$target_test$alpha)))
+    return(sprintf("%s at alpha = %s", sem_fit_test_name(spec$target_test$method, spec$population$rmsea_null %||% 0.05), alpha_text(spec$target_test$alpha)))
   }
   if (identical(spec$design, "sem")) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
@@ -574,7 +574,7 @@ result_sentences <- function(spec, result) {
   if (!is.null(sem)) {
     out[["detail"]] <- paste(out[["detail"]], sem)
     # Model fit: what is detected is the model's misfit, not an effect.
-    out <- vapply(out, sem_wording, character(1))
+    out <- vapply(out, sem_wording, character(1), fit_test = result$sem$fit_test)
   }
   out
 }
@@ -614,7 +614,11 @@ sem_test_name <- function(spec) {
   switch(
     spec$template,
     invariance = {
-      where <- if (identical(pop$over, "occasions")) "on the two occasions" else "in the two groups"
+      where <- if (identical(pop$over, "occasions")) {
+        sprintf("on the %s occasions", number_word(pop$n_occasions %||% 2))
+      } else {
+        sprintf("in the %s groups", number_word(pop$n_groups %||% 2))
+      }
       if (identical(pop$level, "metric")) {
         sprintf("the chi-square difference test of metric invariance (equal loadings %s, against the configural model)", where)
       } else {
@@ -627,18 +631,40 @@ sem_test_name <- function(spec) {
   )
 }
 
+# Small counts in words ("two groups"), larger ones as numbers.
+number_word <- function(n) {
+  words <- c("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+  if (n >= 1 && n <= 10 && n == round(n)) words[n] else whole(n)
+}
+
 sem_model_description <- function(spec) {
   pop <- spec$population
   items <- function(k) sprintf("%s item%s", whole(k), if (k == 1) "" else "s")
   switch(
     spec$template,
-    invariance = sprintf("one factor measured by %s (standardised loading %s) %s, with %s of them %s %s",
-      items(pop$indicators), format(pop$loading),
-      if (identical(pop$over, "occasions")) sprintf("on two occasions (the factor correlating %s between them)", format(pop$stability)) else "in two groups",
-      whole(pop$noninvariant),
-      if (identical(pop$level, "metric")) sprintf("loading %s", format(pop$loading_group2))
-      else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference))),
-      if (identical(pop$over, "occasions")) "on the second occasion" else "in the second group"),
+    invariance = {
+      over_time <- identical(pop$over, "occasions")
+      n_factors <- pop$factors %||% 1
+      factors <- if (n_factors == 1) {
+        sprintf("one factor measured by %s", items(pop$indicators))
+      } else {
+        sprintf("%s factors, each measured by %s and correlating %s", number_word(n_factors), items(pop$indicators), format(pop$factor_correlation))
+      }
+      units <- if (over_time) pop$n_occasions %||% 2 else pop$n_groups %||% 2
+      where <- if (over_time && units == 2) {
+        sprintf("on two occasions (the factor correlating %s between them)", format(pop$stability))
+      } else if (over_time) {
+        sprintf("on %s occasions (a factor correlating %s between any two of them)", number_word(units), format(pop$stability))
+      } else {
+        sprintf("in %s groups%s", number_word(units), if (units > 2) " of the same size" else "")
+      }
+      last <- if (units == 2) "second" else "last"
+      sprintf("%s (standardised loading %s) %s, with %s of %s %s %s",
+        factors, format(pop$loading), where, whole(pop$noninvariant), if (n_factors == 1) "them" else "the first factor's items",
+        if (identical(pop$level, "metric")) sprintf("loading %s", format(pop$loading_group2))
+        else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference))),
+        sprintf(if (over_time) "on the %s occasion" else "in the %s group", last))
+    },
     factor_correlation = sprintf("two factors measured by %s and %s (standardised loadings %s and %s), correlating %s",
       items(pop$indicators[[1]]), items(pop$indicators[[2]]), format(pop$loadings[[1]]), format(pop$loadings[[2]]), format(pop$r)),
     latent_regression = {
@@ -656,7 +682,13 @@ sem_restriction_sentence <- function(spec) {
     sem_model_description(spec), sem_test_name(spec))
 }
 
-sem_wording <- function(text) {
+sem_wording <- function(text, fit_test = NULL) {
+  # Not-close fit: what is shown is close fit, at the RMSEA entered.
+  if (isTRUE(fit_test %in% c("not_close", "chi_square_not_close_fit"))) {
+    text <- gsub("to detect the effect you entered", "to show close fit at the RMSEA you entered", text, fixed = TRUE)
+    text <- gsub("the true effect is the one you entered", "the model's RMSEA is the one you entered", text, fixed = TRUE)
+    return(gsub("the effect you entered", "close fit at the RMSEA you entered", text, fixed = TRUE))
+  }
   text <- gsub("the true effect is the one you entered", "the model is wrong by the amount you entered", text, fixed = TRUE)
   text <- gsub("If the true effect is smaller", "If the misfit is smaller", text, fixed = TRUE)
   gsub("the effect you entered", "the misfit you entered", text, fixed = TRUE)
@@ -671,9 +703,30 @@ sem_model_text <- function(s) {
     whole(s$indicators), whole(s$factors), if (s$factors == 1) "" else "s", whole(s$df))
 }
 
+# The test of fit, by name (MacCallum, Browne and Sugawara's tests of
+# close and not-close fit, or the test of exact fit).
+sem_fit_test_name <- function(method, rmsea_null) {
+  switch(method %||% "chi_square_exact_fit",
+    chi_square_close_fit = sprintf("the test of close fit (H0: RMSEA at most %s)", format(rmsea_null)),
+    chi_square_not_close_fit = sprintf("the test of not-close fit (H0: RMSEA at least %s)", format(rmsea_null)),
+    "the chi-square test of exact model fit")
+}
+
 sem_sentence <- function(result) {
   s <- result$sem
   if (is.null(s)) return(NULL)
+  if (identical(s$fit_test, "not_close")) {
+    return(sprintf(paste0(
+      "Here a significant result supports the model: power is the chance that the test of not-close fit rejects the hypothesis that the RMSEA of %s is %s or more, if its RMSEA in the population is %s. ",
+      "This is MacCallum, Browne and Sugawara's (1996) test; it needs a model that fits well and enough people to show it."),
+      sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
+  }
+  if (identical(s$fit_test, "close")) {
+    return(sprintf(paste0(
+      "The effect here is misfit beyond close fit: power is the chance that the test of close fit rejects the hypothesis that the RMSEA of %s is %s or less, if its RMSEA in the population is %s. ",
+      "This is MacCallum, Browne and Sugawara's (1996) test; a model that is not rejected is not shown to fit closely."),
+      sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
+  }
   sprintf(paste0(
     "The effect here is misfit: power is the chance that the test rejects %s if the model is wrong by an RMSEA of %s in the population. ",
     "A model that is not rejected is not shown to be right; with too few people, even a poor model is rarely rejected."),
@@ -683,6 +736,12 @@ sem_sentence <- function(result) {
 sem_writeup <- function(result) {
   s <- result$sem
   if (is.null(s)) return(NULL)
+  if (identical(s$fit_test, "not_close")) {
+    return(sprintf("The model was %s; the test of not-close fit (MacCallum, Browne & Sugawara, 1996; H0: RMSEA ≥ %s) assumed a population RMSEA of %s, computed with WebPower.", sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
+  }
+  if (identical(s$fit_test, "close")) {
+    return(sprintf("The model was %s; the test of close fit (MacCallum, Browne & Sugawara, 1996; H0: RMSEA ≤ %s) was to detect a population RMSEA of %s, computed with WebPower.", sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
+  }
   sprintf("The model was %s, and the misfit to detect was a population RMSEA of %s.", sem_model_text(s), format(s$rmsea))
 }
 
@@ -1809,7 +1868,7 @@ result_figure <- function(spec, result) {
   if (is.null(fig)) return(NULL)
   if (is_dyadic(spec)) fig <- lapply(fig, function(x) gsub("participants", "pairs", x, fixed = TRUE))
   if (is_bayes_test(spec)) fig <- lapply(fig, bayes_wording)
-  if (is_sem_fit(spec)) fig <- lapply(fig, sem_wording)
+  if (is_sem_fit(spec)) fig <- lapply(fig, sem_wording, fit_test = spec$target_test$method)
   if (!nzchar(fig$sub %||% "")) fig$sub <- NULL
   fig
 }

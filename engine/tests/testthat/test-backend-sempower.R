@@ -279,3 +279,121 @@ test_that("invariance over two occasions runs on semPower.powerLI() and matches 
   spec$options$allocation_ratio <- 2
   expect_spec_problem(spec, "no groups to split")
 })
+
+test_that("invariance across three or more groups, several factors and three or more occasions matches semPower", {
+  goal <- list(type = "power", n = 300)
+  loads <- c(0.7, 0.7, 0.7, 0.7, 0.5, 0.5)
+  power_mi <- function(...) semPower::semPower.powerMI(type = "post-hoc", alpha = 0.05, ...)$power
+  power_li <- function(...) semPower::semPower.powerLI(type = "post-hoc", alpha = 0.05, ...)$power
+  # Three equal groups, the last one differing.
+  spec <- latent_spec("sem_invariance", goal, n_groups = 3)
+  result <- run_spec(spec)
+  expect_true(all(result$check_run$ok))
+  expect_equal(result$sem$df, 10)
+  direct <- power_mi(
+    comparison = "configural", nullEffect = "metric", N = list(100, 100, 100),
+    loadings = list(list(rep(0.7, 6)), list(rep(0.7, 6)), list(loads))
+  )
+  expect_equal(result$curve$power, direct, tolerance = 1e-8)
+  # Whole groups only; no allocation ratio with three groups.
+  expect_false(group_split(spec)$valid(301))
+  spec$options$allocation_ratio <- 2
+  expect_spec_problem(spec, "equal in size")
+  # Two correlated factors across two groups: the first factor's items differ.
+  spec <- latent_spec("sem_invariance", goal, factors = 2, factor_correlation = 0.3)
+  phi <- matrix(c(1, 0.3, 0.3, 1), 2)
+  direct <- power_mi(
+    comparison = "configural", nullEffect = "metric", N = list(150, 150), Phi = list(phi, phi),
+    loadings = list(list(rep(0.7, 6), rep(0.7, 6)), list(loads, rep(0.7, 6)))
+  )
+  result <- run_spec(spec)
+  expect_equal(result$curve$power, direct, tolerance = 1e-8)
+  expect_equal(result$sem$df, 10)
+  expect_spec_problem(latent_spec("sem_invariance", goal, factors = 2), "factor_correlation")
+  expect_spec_problem(latent_spec("sem_invariance", goal, factor_correlation = 0.3), "two or more factors")
+  # Scalar invariance, three groups, two factors.
+  spec <- scalar_spec(goal, n_groups = 3, factors = 2, factor_correlation = 0.3)
+  direct <- power_mi(
+    comparison = "metric", nullEffect = "scalar", N = list(100, 100, 100), Phi = list(phi, phi, phi),
+    loadings = list(rep(0.7, 6), rep(0.7, 6)),
+    tau = list(rep(0, 12), rep(0, 12), c(0, 0, 0, 0, 0.3, 0.3, rep(0, 6))), Alpha = list(c(0, 0), c(0, 0), c(0, 0))
+  )
+  expect_equal(run_spec(spec)$curve$power, direct, tolerance = 1e-8)
+  out <- run_exported_script(spec, run_spec(spec))
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
+  # Three occasions, one factor: the same stability between every two.
+  spec <- latent_spec("sem_invariance", goal, over = "occasions", stability = 0.5, n_occasions = 3)
+  p3 <- matrix(0.5, 3, 3)
+  diag(p3) <- 1
+  direct <- power_li(
+    comparison = "configural", nullEffect = "metric", N = 300, Phi = p3,
+    loadings = list(rep(0.7, 6), rep(0.7, 6), loads)
+  )
+  result <- run_spec(spec)
+  expect_equal(result$curve$power, direct, tolerance = 1e-8)
+  expect_equal(result$sem$df, 10)
+  # Two factors on two occasions: the factor correlations times the
+  # stability between occasions (order F1_T1, F2_T1, F1_T2, F2_T2).
+  spec <- latent_spec("sem_invariance", goal, over = "occasions", stability = 0.5, factors = 2, factor_correlation = 0.3)
+  p4 <- matrix(c(1, 0.3, 0.5, 0.15, 0.3, 1, 0.15, 0.5, 0.5, 0.15, 1, 0.3, 0.15, 0.5, 0.3, 1), 4)
+  direct <- power_li(
+    comparison = "configural", nullEffect = "metric", N = 300, Phi = p4,
+    loadings = list(list(rep(0.7, 6), rep(0.7, 6)), list(loads, rep(0.7, 6)))
+  )
+  expect_equal(run_spec(spec)$curve$power, direct, tolerance = 1e-8)
+  out <- run_exported_script(spec, run_spec(spec))
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10)
+  # The counts belong to the right kind of invariance.
+  expect_spec_problem(latent_spec("sem_invariance", goal, n_occasions = 3), "only used for invariance over occasions")
+  expect_spec_problem(latent_spec("sem_invariance", goal, over = "occasions", stability = 0.5, n_groups = 3), "only used for invariance across groups")
+  # The smallest sample: more people than items in every group.
+  expect_equal(minimum_n(latent_spec("sem_invariance", goal, n_groups = 3, factors = 2, factor_correlation = 0.3)), 3 * 13)
+})
+
+test_that("the tests of close and not-close fit come from WebPower, and close fit at a null RMSEA of 0 is semPower's exact fit", {
+  spec <- example_spec("sem_model_fit")
+  spec$population <- list(metric = "rmsea", rmsea = 0.08, df = 51)
+  spec$target_test$method <- "chi_square_close_fit"
+  spec$goal <- list(type = "power", n = 200)
+  result <- run_spec(spec)
+  expect_identical(result$provenance$backend, "WebPower")
+  expect_equal(result$curve$power, WebPower::wp.sem.rmsea(n = 200, df = 51, rmsea0 = 0.05, rmsea1 = 0.08, alpha = 0.05, type = "close")$power)
+  expect_true(all(result$check_run$ok))
+  expect_identical(result$sem$fit_test, "close")
+  expect_equal(result$sem$rmsea_null, 0.05)
+  # The test of close fit with a null RMSEA of 0 is the test of exact fit.
+  expect_equal(webpower_rmsea_power(spec, 200, 51, rmsea_null = 0),
+    semPower::semPower.postHoc(effect = 0.08, effect.measure = "RMSEA", alpha = 0.05, N = 200, df = 51)$power, tolerance = 1e-8)
+  # Not-close fit: the population RMSEA below the null value.
+  spec$target_test$method <- "chi_square_not_close_fit"
+  spec$population$rmsea <- 0.01
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  found <- run_spec(spec)
+  power_at <- function(n) WebPower::wp.sem.rmsea(n = n, df = 51, rmsea0 = 0.05, rmsea1 = 0.01, alpha = 0.05, type = "notclose")$power
+  expect_gte(power_at(found$n_required$n), 0.8)
+  expect_lt(power_at(found$n_required$n - 1), 0.8)
+  expect_identical(found$sem$fit_test, "not_close")
+})
+
+test_that("the tests of close and not-close fit refuse an RMSEA on the wrong side", {
+  spec <- example_spec("sem_model_fit")
+  spec$target_test$method <- "chi_square_close_fit"
+  spec$population$rmsea <- 0.04
+  expect_spec_problem(spec, "test of close fit asks whether the model's RMSEA is above 0.05")
+  spec$target_test$method <- "chi_square_not_close_fit"
+  spec$population$rmsea <- 0.06
+  expect_spec_problem(spec, "test of not-close fit asks whether the model's RMSEA is below 0.05")
+  spec <- example_spec("sem_model_fit")
+  spec$population$rmsea_null <- 0.05
+  expect_spec_problem(spec, "used only by the tests of close and not-close fit")
+})
+
+test_that("the exported script reproduces the tests of close and not-close fit", {
+  skip_unless_scripts_can_run()
+  spec <- example_spec("sem_model_fit")
+  spec$target_test$method <- "chi_square_close_fit"
+  spec$population$rmsea <- 0.08
+  spec$goal <- list(type = "power", n = 250)
+  run <- expect_script_reproduces_power(spec, run_for_export(spec))
+  expect_match(paste(run$script, collapse = "\n"), "wp.sem.rmsea", fixed = TRUE)
+})

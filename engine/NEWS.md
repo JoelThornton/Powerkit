@@ -66,6 +66,18 @@
 
 A batch of new features, built as one round.
 
+* SEM model fit (E37) offers MacCallum, Browne and Sugawara's (1996) tests
+  of close fit (`target_test > method` "chi_square_close_fit") and
+  not-close fit ("chi_square_not_close_fit"), computed by WebPower's
+  `wp.sem.rmsea()`, with the null RMSEA as `population > rmsea_null`
+  (default 0.05). The test of exact fit stays the default. WebPower is a
+  new dependency.
+* Measurement invariance (E37) takes more groups (`population >
+  n_groups`, up to 10, equal in size beyond two), more occasions
+  (`n_occasions`, up to 10) and several factors (`factors`, up to 5, with
+  `factor_correlation`), through semPower's `semPower.powerMI()` and
+  `semPower.powerLI()`. The first factor's last items differ in the last
+  group or on the last occasion.
 * A Bayes factor test of association for tables of any size (E6,
   `target_test > method` "bayes_factor" on `chi_square_independence`):
   BayesFactor's `contingencyTableBF()` with JASP's sampling plan (rows

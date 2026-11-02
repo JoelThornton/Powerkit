@@ -5961,7 +5961,13 @@
               "const": "rmsea"
             },
             "rmsea": {
-              "description": "The misfit the test should detect, as the population RMSEA (root mean square error of approximation) of the model. Above 0: semPower refuses an RMSEA of 0 (a model that fits exactly).",
+              "description": "The model's RMSEA (root mean square error of approximation) in the population. For the test of exact fit (the default) and of close fit, the misfit the test should detect; for the test of not-close fit, the close fit the study should show, below rmsea_null. Above 0: semPower refuses an RMSEA of 0 (a model that fits exactly).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "rmsea_null": {
+              "description": "Tests of close and not-close fit only (MacCallum, Browne and Sugawara, 1996; WebPower's wp.sem.rmsea(rmsea0)): the RMSEA of the null hypothesis. Close fit: H0 RMSEA at most this value; not-close fit: H0 RMSEA at least this value. Default 0.05, MacCallum and colleagues' value.",
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1
@@ -5994,7 +6000,12 @@
                   "const": "model_fit"
                 },
                 "method": {
-                  "const": "chi_square_exact_fit"
+                  "enum": [
+                    "chi_square_exact_fit",
+                    "chi_square_close_fit",
+                    "chi_square_not_close_fit"
+                  ],
+                  "description": "chi_square_exact_fit: the chi-square test of exact fit (semPower). chi_square_close_fit: MacCallum, Browne and Sugawara's (1996) test of close fit, H0 RMSEA at most population > rmsea_null, rejected when the model's RMSEA is population > rmsea. chi_square_not_close_fit: their test of not-close fit, H0 RMSEA at least rmsea_null, rejected (supporting close fit) when the model's RMSEA is rmsea, below it. The last two are computed by WebPower's wp.sem.rmsea()."
                 }
               }
             }
@@ -6003,7 +6014,7 @@
       }
     },
     "template_sem_invariance": {
-      "description": "Measurement invariance of one factor across two groups (semPower::semPower.powerMI()) or, with population > over 'occasions', the same people on two occasions (semPower::semPower.powerLI()): the power of the chi-square difference (likelihood ratio) test to reject metric invariance (equal loadings; compared with the configural model) or scalar invariance (equal intercepts; compared with the metric model). The factor is measured by 'indicators' items, each with the standardised loading 'loading' in both groups, except that the last 'noninvariant' items have the loading 'loading_group2' in the second group (metric) or intercepts shifted by 'intercept_difference' item SDs in the second group (scalar). Factors are identified by fixing the first group's factor variance (and mean) only, as lavaan does. goal > n is the total number of participants analysed: across two groups, split by options > allocation_ratio (default 1); over two occasions, the people measured both times.",
+      "description": "Measurement invariance of one or more factors across two or more groups (semPower::semPower.powerMI()) or, with population > over 'occasions', the same people on two or more occasions (semPower::semPower.powerLI()): the power of the chi-square difference (likelihood ratio) test to reject metric invariance (equal loadings; compared with the configural model) or scalar invariance (equal intercepts; compared with the metric model). Each factor is measured by 'indicators' items, each with the standardised loading 'loading', except that the first factor's last 'noninvariant' items have the loading 'loading_group2' in the last group or on the last occasion (metric) or intercepts shifted there by 'intercept_difference' item SDs (scalar). Factors are identified by fixing the first group's (or occasion's) factor variances (and means) only, as lavaan does. goal > n is the total number of participants analysed: across two groups, split by options > allocation_ratio (default 1); across three or more, equal groups; over occasions, the people measured every time.",
       "properties": {
         "variables": {
           "type": "object",
@@ -6024,14 +6035,38 @@
               "const": "invariance"
             },
             "over": {
-              "description": "'groups' (the default): two groups of different people. 'occasions': the same people measured twice, as in a longitudinal study.",
+              "description": "'groups' (the default): groups of different people. 'occasions': the same people measured more than once, as in a longitudinal study.",
               "enum": [
                 "groups",
                 "occasions"
               ]
             },
             "stability": {
-              "description": "Occasions only: the correlation between the factor on the two occasions (how stable people's standing is). Required with over 'occasions'.",
+              "description": "Occasions only: the correlation between a factor on any two occasions (how stable people's standing is), the same for every pair of occasions. Required with over 'occasions'.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "n_groups": {
+              "description": "Groups only: the number of groups (default 2). With three or more, the groups are equal in size.",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "n_occasions": {
+              "description": "Occasions only: the number of occasions on which everyone is measured (default 2).",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "factors": {
+              "description": "The number of factors (default 1), each measured by its own 'indicators' items; invariance is tested for all of them together.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "factor_correlation": {
+              "description": "Two or more factors only: the correlation between any two factors in the same group or on the same occasion. Over occasions, two different factors on different occasions correlate by this times the stability. Required with two or more factors.",
               "type": "number",
               "exclusiveMinimum": -1,
               "exclusiveMaximum": 1
@@ -6044,7 +6079,7 @@
               ]
             },
             "indicators": {
-              "description": "The number of items measuring the factor.",
+              "description": "The number of items measuring each factor.",
               "type": "integer",
               "minimum": 3
             },
@@ -6052,10 +6087,10 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1,
-              "description": "The standardised loading of every item in the first group (and of the invariant items in the second)."
+              "description": "The standardised loading of every item in every group or on every occasion, apart from the differing items in the last one."
             },
             "noninvariant": {
-              "description": "How many items differ between the groups (at least one item must not).",
+              "description": "How many of the first factor's items differ in the last group or on the last occasion (at least one item must not).",
               "type": "integer",
               "minimum": 1
             },
@@ -6063,10 +6098,10 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1,
-              "description": "Metric invariance: the standardised loading of the differing items in the second group (or on the second occasion)."
+              "description": "Metric invariance: the standardised loading of the differing items in the last group (or on the last occasion)."
             },
             "intercept_difference": {
-              "description": "Scalar invariance: how far the differing items' intercepts are shifted in the second group (or on the second occasion), in item SD units.",
+              "description": "Scalar invariance: how far the differing items' intercepts are shifted in the last group (or on the last occasion), in item SD units.",
               "type": "number"
             }
           }

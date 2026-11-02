@@ -6,6 +6,20 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Measurement invariance with more groups, occasions and factors"
+    text: >-
+      The measurement invariance question on the structural equation model
+      card now takes up to ten groups or occasions, and questionnaires with
+      up to five factors, not only one factor in two groups or on two
+      occasions.
+  - date: "2026-11-02"
+    title: "Close and not-close fit for structural equation models"
+    text: >-
+      The structural equation model card now offers the tests of close and
+      not-close fit as well as exact fit. The test of not-close fit lets you
+      plan a study to show that a model fits well, not only to detect that
+      it is wrong.
+  - date: "2026-11-02"
     title: "A Bayes factor for tables of any size"
     text: >-
       The chi-square card now has a Bayes factor version, the one JASP's

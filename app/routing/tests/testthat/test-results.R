@@ -853,6 +853,32 @@ test_that("non-inferiority (E36) runs on pwrss's one-sided tests, worded for one
   }
 })
 
+test_that("the tests of close and not-close fit (E37) run on WebPower and say what a significant result means", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E37"))
+  close <- modifyList(form_examples$E37, list(fit_test = "chi_square_close_fit", rmsea = "0.08", rmsea_null = "0.05"))
+  expect_length(form_problems(fields, close), 0)
+  spec <- build_spec(forms, "E37", fields, close)
+  expect_identical(spec$target_test$method, "chi_square_close_fit")
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "WebPower")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "the test of close fit (H0: RMSEA at most 0.05)", fixed = TRUE)
+  expect_match(words[["detail"]], "MacCallum, Browne and Sugawara's (1996) test", fixed = TRUE)
+  not_close <- modifyList(close, list(fit_test = "chi_square_not_close_fit", rmsea = "0.01"))
+  spec <- build_spec(forms, "E37", fields, not_close)
+  calc <- run_calculation(spec, run, seed = 1L)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "a significant result supports the model", fixed = TRUE)
+  expect_no_match(paste(words, collapse = " "), "misfit you entered", fixed = TRUE)
+  w <- writeup_text(forms$forms$E37, calc$spec, calc$result, fields, not_close)
+  expect_match(w[["short"]], "test of not-close fit (MacCallum, Browne & Sugawara, 1996; H0: RMSEA ≥ 0.05)", fixed = TRUE)
+  # Exact fit stays the default, and keeps no null RMSEA.
+  spec <- build_spec(forms, "E37", fields, form_examples$E37)
+  expect_identical(spec$target_test$method, "chi_square_exact_fit")
+  expect_null(spec$population$rmsea_null)
+})
+
 test_that("measurement invariance over two occasions (E37) runs on semPower.powerLI()", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E37"))
@@ -865,6 +891,35 @@ test_that("measurement invariance over two occasions (E37) runs on semPower.powe
   words <- result_sentences(calc$spec, calc$result)
   expect_match(words[["headline"]], "equal loadings on the two occasions", fixed = TRUE)
   expect_match(words[["detail"]], "on two occasions (the factor correlating 0.6 between them)", fixed = TRUE)
+})
+
+test_that("measurement invariance across three groups, of two factors, and over three occasions (E37) is described as built", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E37"))
+  values <- modifyList(sem_examples$invariance, list(mi_groups = "3", mi_factors = "2", mi_factor_correlation = "0.3", allocation_ratio = "1"))
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E37", fields, values)
+  expect_equal(spec$population$n_groups, 3)
+  expect_equal(spec$population$factors, 2)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend_function, "semPower::semPower.powerMI")
+  expect_equal(calc$result$n_required$n %% 3, 0)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "equal loadings in the three groups", fixed = TRUE)
+  expect_match(words[["detail"]], "two factors, each measured by 6 items and correlating 0.3", fixed = TRUE)
+  expect_match(words[["detail"]], "in three groups of the same size, with 2 of the first factor's items loading 0.5 in the last group", fixed = TRUE)
+  # Over three occasions.
+  values <- modifyList(sem_examples$occasions, list(mi_occasions = "3"))
+  spec <- build_spec(forms, "E37", fields, values)
+  expect_null(spec$population$n_groups)
+  calc <- run_calculation(spec, run, seed = 1L)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "equal loadings on the three occasions", fixed = TRUE)
+  expect_match(words[["detail"]], "on three occasions (a factor correlating 0.6 between any two of them)", fixed = TRUE)
+  # A factor correlation with one factor is refused in plain words.
+  values <- modifyList(sem_examples$invariance, list(mi_factor_correlation = "0.3"))
+  spec <- build_spec(forms, "E37", fields, values)
+  expect_match(run_calculation(spec, run, seed = 1L)$message, "two or more factors", fixed = TRUE)
 })
 
 test_that("Spearman's and Kendall's correlations (E4) and the Pitman-Morgan test (E57) are simulated with Spower", {
