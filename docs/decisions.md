@@ -4603,6 +4603,32 @@ only.
   groups only, so there is no convention to differ from.
 
 
+## 2026-11-02 · Negative binomial regression (E28's model choice)
+
+- **What:** the count card offers negative binomial regression beside
+  Poisson regression, for counts that vary more between people than a
+  Poisson distribution allows. Spower simulates it with an experiment of
+  powerkit's own, `p_negative_binomial()`: the predictor (a score or a
+  yes/no group), any other predictor, then each count with the
+  overdispersion k given, fitted by MASS's `glm.nb()` and tested by the
+  Wald z test of the predictor. Goals: power and sample size.
+- **Why:** overdispersed counts (visits, symptoms, errors) are common in
+  psychology, and planning them with Poisson regression's formula
+  overstates power. No package powerkit uses has a power function for
+  negative binomial regression with a score predictor: MKpower's
+  `power.nb.test()` covers two groups only and brings many dependencies;
+  MASS is already one of powerkit's. Simulation covers a score and a
+  group alike.
+- **Inputs:** those of Poisson regression and the overdispersion k
+  (variance mu + k mu^2), which the form explains how to estimate from
+  earlier data; `conventions.md`, "Not departures, but worth stating".
+- **Validation** (`test-validation-negative-binomial.R`, chunk
+  `negative_binomial`): agreement with counts drawn as a gamma-Poisson
+  mixture and fitted separately; with almost no overdispersion, Poisson
+  regression's power by pwrss's formula (within 0.02); the rejection rate
+  with no effect. A published worked example is a placeholder for the
+  maintainer.
+
 ## 2026-11-02 · The aligned rank transform ANOVA (E7, E21 and E22's test version)
 
 - **What:** the two-factor between-participants cards (2 x 2 with equal

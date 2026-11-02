@@ -80,6 +80,7 @@ on:
           - survival
           - reliability
           - aligned_rank
+          - negative_binomial
           - process_4
           - process_4_binary
           - process_6

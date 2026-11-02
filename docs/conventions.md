@@ -1676,6 +1676,19 @@ Wired into the app on 18 October 2026 (E25, E26).*
   t approximation, not the permuted test). Tests:
   `test-backend-brunner-munzel.R`; `test-validation-brunner-munzel.R`
   [powerkit, `docs/decisions.md`].
+- **Negative binomial regression (E28's model choice): MASS's Wald test.**
+  G\*Power has no negative binomial regression, so nothing is departed
+  from. The counts are negative binomial with variance mu + k mu^2 (k is
+  the overdispersion asked for; MASS's theta is 1 / k), with the same
+  inputs as the Poisson regression otherwise: the predictor a standard
+  normal score or a yes/no group of fixed size, another predictor (if
+  any) overlapping with it by the R-squared given and without an effect
+  of its own, as the Poisson formula assumes. Each simulated study is
+  fitted by MASS's `glm.nb()`, and the test is the Wald z test of the
+  predictor, one-sided if asked. With k near 0 the power is the Poisson
+  formula's (pwrss), checked in the validation. Tests:
+  `test-backend-negative-binomial.R`; `test-validation-negative-binomial.R`
+  [powerkit, `docs/decisions.md`].
 - **The aligned rank transform (E7, E21 and E22's test version): ARTool's
   Type III tests.** G\*Power has no aligned rank transform, so nothing is
   departed from. Each cell's scores are its mean plus its SD times a draw
