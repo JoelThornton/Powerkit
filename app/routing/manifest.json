@@ -5937,7 +5937,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, power4mome, pwr, powertools,\npowerSurvEpi, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, quantreg, power4mome, pwr,\npowertools, powerSurvEpi, pwrss, PUMP, semPower, simr,\nSimDesign, statpsych, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "2bc28601bba56e53d82d7d98841ce29ca2c5eaa4",
-        "RemoteSha": "2bc28601bba56e53d82d7d98841ce29ca2c5eaa4",
+        "RemoteRef": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
+        "RemoteSha": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "2bc28601bba56e53d82d7d98841ce29ca2c5eaa4",
-        "GithubSHA1": "2bc28601bba56e53d82d7d98841ce29ca2c5eaa4",
+        "GithubRef": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
+        "GithubSHA1": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 07:44:06 UTC; runner",
+        "Packaged": "2026-11-02 08:28:07 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 07:44:18 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 08:28:18 UTC; unix"
       }
     },
     "powertools": {
@@ -7905,7 +7905,7 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "ea705e0719a6498f760cedc124c1dc9e"
+      "checksum": "43807d90d557f346c7f8d5acbe181e4c"
     },
     "methods-map.yaml": {
       "checksum": "67eb2800cbbe955f630e138777a9c99d"
@@ -7932,7 +7932,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "7cc396bacc87006594d6e0f6cc7dd49c"
+      "checksum": "fd397220b0e06ee0260f0377f25f8411"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7992,7 +7992,7 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "8fd13f1a7be60c867e4f34809fdd366d"
+      "checksum": "d0eddea92c18dcc467cf3d347136adb8"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "37e43a15b5f4abe5f1004ef9fab604d9"
@@ -8016,7 +8016,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "4949f0bcc6e5a7e91c3045539e0eb24b"
+      "checksum": "bcd722d695b61c4724caa2747d89277b"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -8031,7 +8031,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "e5dcbe83c0347cbd9de92fce7861e232"
+      "checksum": "69e3788fd285be647f3a785253c74670"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
