@@ -145,7 +145,8 @@ fully validated. Validation runs are recorded in
   randomised groups on different outcomes (PUMP); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
   visualiser for the two-group t-test and, since 0.27.0, the correlation
-  (since 0.28.0 also the paired t-test, the one-way ANOVA and two proportions),
+  (since 0.28.0 also the paired t-test, the one-way ANOVA, two proportions, a
+  chi-square test and a regression's R-squared, and one-sided t-tests),
   and Bayesian planning for the Bayes factor t-tests from bfpwr, at a
   fixed N or, since 0.28.0, sequential: checked as the data come in,
   stopping when the evidence is strong).

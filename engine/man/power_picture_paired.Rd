@@ -4,7 +4,13 @@
 \alias{power_picture_paired}
 \title{The picture of power for a paired-samples t-test}
 \usage{
-power_picture_paired(n, dz, alpha = 0.05, points = 401)
+power_picture_paired(
+  n,
+  dz,
+  alpha = 0.05,
+  alternative = "two_sided",
+  points = 401
+)
 }
 \arguments{
 \item{n}{The number of participants (pairs), at least 3.}
@@ -12,12 +18,15 @@ power_picture_paired(n, dz, alpha = 0.05, points = 401)
 \item{dz}{Cohen's d_z, the mean difference over the SD of the
 differences (0 or more).}
 
-\item{alpha}{The significance level of the two-sided test.}
+\item{alpha}{The significance level.}
+
+\item{alternative}{"two_sided" (the default), or "greater" for a
+one-sided test of an effect in the expected direction.}
 
 \item{points}{How many points of each curve to return.}
 }
 \value{
-A list: \code{n}, \code{dz}, \code{alpha}, \code{power} (pwr's \code{pwr.t.test()},
+A list: \code{n}, \code{dz}, \code{alpha}, \code{sides} (1 or 2), \code{power} (pwr's \code{pwr.t.test()},
 \code{type = "paired"}), \code{beta}, \code{df} (n - 1), \code{ncp} (d_z sqrt(n)),
 \code{t_crit}, \code{dz_crit} (the smallest observed d_z that would be
 significant), \code{curves} (a data frame of \code{t}, \code{null} and \code{alternative}

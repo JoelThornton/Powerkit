@@ -474,11 +474,12 @@ picture_ui <- function() {
   conditionalPanel("input.labs_tool == 'picture'",
     tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-      "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t, F and normal distributions for the curves)."),
+      "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t, F, chi-square and normal distributions for the curves)."),
     h3("Power visualiser"),
     selectInput("picture_design", "Which test?", choices = c("A two-group t-test (equal groups)" = "t",
       "A paired-samples t-test (the same people twice)" = "paired", "A one-way ANOVA (equal groups)" = "anova",
-      "Two groups' proportions (equal groups)" = "two_proportions", "A correlation (Pearson's r)" = "r"),
+      "Two groups' proportions (equal groups)" = "two_proportions", "A correlation (Pearson's r)" = "r",
+      "A chi-square test (goodness of fit or a table)" = "chisq", "A regression's R-squared (the F test)" = "regression"),
       selected = "t", selectize = FALSE, width = "100%"),
     conditionalPanel("input.picture_design == 't'",
       p("A two-group t-test with equal groups. The grey curve is the t statistic you would see if there were no effect; the blue curve is the t statistic for the effect you set. A result beyond the dashed lines is significant."),
@@ -502,6 +503,19 @@ picture_ui <- function() {
       p("A correlation, tested two-sided. The curves are the correlation you would observe, on the scale of Fisher's z, as pwr's formula treats it: grey if there were no correlation, blue for the correlation you set. A result beyond the dashed lines is significant."),
       sliderInput("picture_n_r", "Number of participants", min = 10, max = 400, value = 84, step = 1, width = "100%"),
       sliderInput("picture_r", "Correlation in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%")),
+    conditionalPanel("input.picture_design == 'chisq'",
+      p(class = "small text-muted", "Cohen's w measures how far the observed counts depart from what no effect predicts (0.1 small, 0.3 medium, 0.5 large, in Cohen's terms). The degrees of freedom are the categories minus 1 for goodness of fit, or (rows - 1) × (columns - 1) for a table."),
+      sliderInput("picture_n_chisq", "Number of participants", min = 10, max = 500, value = 88, step = 1, width = "100%"),
+      sliderInput("picture_w", "Cohen's w in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%"),
+      sliderInput("picture_df_chisq", "Degrees of freedom", min = 1, max = 8, value = 1, step = 1, width = "100%")),
+    conditionalPanel("input.picture_design == 'regression'",
+      p(class = "small text-muted", "The F test of whether the predictors together explain any of the outcome's variance. Cohen's f² = R² / (1 - R²)."),
+      sliderInput("picture_n_reg", "Number of participants", min = 10, max = 400, value = 80, step = 1, width = "100%"),
+      sliderInput("picture_r2", "R-squared in the population", min = 0, max = 0.5, value = 0.13, step = 0.01, width = "100%"),
+      sliderInput("picture_u", "Number of predictors", min = 1, max = 10, value = 3, step = 1, width = "100%")),
+    conditionalPanel("input.picture_design == 't' || input.picture_design == 'paired'",
+      radioButtons("picture_sides", "Test", choices = c("Two-sided" = "two_sided", "One-sided (an effect in the expected direction)" = "greater"),
+        selected = "two_sided", inline = TRUE)),
     radioButtons("picture_alpha", "Alpha", choices = picture_alphas, selected = "0.05", inline = TRUE),
     plotOutput("picture_plot", height = "320px"),
     uiOutput("picture_numbers"))
@@ -516,13 +530,23 @@ picture_for <- function(value, alpha) {
   num <- function(id, default) as.numeric(value(id) %||% default)
   switch(value("picture_design") %||% "t",
     r = engine_function("power_picture_r")(num("picture_n_r", 84), num("picture_r", 0.3), alpha = alpha),
-    paired = engine_function("power_picture_paired")(num("picture_n_paired", 34), num("picture_dz", 0.5), alpha = alpha),
+    paired = engine_function("power_picture_paired")(num("picture_n_paired", 34), num("picture_dz", 0.5), alpha = alpha,
+      alternative = value("picture_sides") %||% "two_sided"),
+    chisq = engine_function("power_picture_chisq")(num("picture_n_chisq", 88), num("picture_w", 0.3), df = num("picture_df_chisq", 1), alpha = alpha),
+    regression = engine_function("power_picture_f2")(num("picture_n_reg", 80), num("picture_r2", 0.13), u = num("picture_u", 3), alpha = alpha),
     anova = {
       k <- num("picture_k", 3)
       engine_function("power_picture_anova")(k * num("picture_n_per", 52), num("picture_f", 0.25), k = k, alpha = alpha)
     },
     two_proportions = engine_function("power_picture_2p")(num("picture_n_2p", 194), num("picture_p1", 0.4), num("picture_p2", 0.6), alpha = alpha),
-    engine_function("power_picture")(num("picture_n", 64), num("picture_d", 0.5), alpha = alpha))
+    engine_function("power_picture")(num("picture_n", 64), num("picture_d", 0.5), alpha = alpha,
+      alternative = value("picture_sides") %||% "two_sided"))
+}
+
+# Pictures with one critical value on the right: the F and chi-square
+# tests, and one-sided t-tests.
+picture_one_tail <- function(picture) {
+  picture_design(picture) %in% c("anova", "chisq", "regression") || identical(picture$sides, 1)
 }
 
 # A sentence describing the picture, for screen readers.
@@ -538,6 +562,10 @@ picture_alt <- function(picture) {
       power, format(picture$f), format(picture$k), format(picture$n / picture$k), format(picture$alpha)),
     two_proportions = sprintf("Two distributions of the test statistic: power is %s for proportions of %s and %s with %s participants at alpha = %s.",
       power, format(picture$p1), format(picture$p2), format(picture$n), format(picture$alpha)),
+    chisq = sprintf("Two chi-square distributions: power is %s for w = %s with %s participants and %s degrees of freedom at alpha = %s.",
+      power, format(picture$w), format(picture$n), format(picture$df), format(picture$alpha)),
+    regression = sprintf("Two F distributions: power is %s for R-squared = %s with %s predictors and %s participants at alpha = %s.",
+      power, format(picture$r2), format(picture$u), format(picture$n), format(picture$alpha)),
     sprintf("Two t distributions: power is %s for d = %s with %s participants at alpha = %s.",
       power, format(picture$d), format(picture$n), format(picture$alpha)))
 }
@@ -549,28 +577,34 @@ picture_plot <- function(picture) {
   design <- picture_design(picture)
   # The axis: t for the t-tests, Fisher's z for a correlation, z for two
   # proportions, F (one-sided) for the ANOVA.
-  t <- switch(design, r = curves$z, two_proportions = curves$z, anova = curves$F, curves$t)
-  crit <- switch(design, r = picture$z_crit, two_proportions = picture$z_crit, anova = picture$f_crit, picture$t_crit)
-  beyond <- if (identical(design, "anova")) t >= crit else abs(t) >= crit
+  t <- switch(design, r = curves$z, two_proportions = curves$z, anova = curves$F, regression = curves$F, chisq = curves$x, curves$t)
+  crit <- switch(design, r = picture$z_crit, two_proportions = picture$z_crit, anova = picture$f_crit, regression = picture$f_crit,
+    chisq = picture$chi_crit, picture$t_crit)
+  one_tail <- picture_one_tail(picture)
+  skewed <- design %in% c("anova", "chisq", "regression")
+  beyond <- if (one_tail) t >= crit else abs(t) >= crit
   shade <- function(y, keep, colour) {
     runs <- split(seq_along(t)[keep], cumsum(c(1, diff(seq_along(t)[keep]) != 1)))
     for (i in runs) graphics::polygon(c(t[i], rev(t[i])), c(y[i], rep(0, length(i))), col = colour, border = NA)
   }
   # The F density can be very tall near 0 with one or two numerator df.
-  top <- if (identical(design, "anova")) min(max(curves$null, curves$alternative), 3 * max(curves$alternative)) else max(curves$null, curves$alternative)
+  top <- if (skewed) min(max(curves$null, curves$alternative), 3 * max(curves$alternative)) else max(curves$null, curves$alternative)
   graphics::par(mar = c(4, 4, 1, 1))
   graphics::plot(t, curves$null, type = "n", ylim = c(0, top * 1.05),
-    xlab = switch(design, r = "Observed correlation, as Fisher's z", two_proportions = "Test statistic (z)", anova = "F statistic", "t statistic"),
+    xlab = switch(design, r = "Observed correlation, as Fisher's z", two_proportions = "Test statistic (z)", anova = "F statistic",
+      regression = "F statistic", chisq = "Chi-square statistic", "t statistic"),
     ylab = "Density", las = 1, bty = "l")
   shade(curves$alternative, beyond, grDevices::adjustcolor("#2166ac", alpha.f = 0.35))
   shade(curves$null, beyond, grDevices::adjustcolor("#b2182b", alpha.f = 0.5))
   graphics::lines(t, curves$null, col = "grey40", lwd = 2)
   graphics::lines(t, curves$alternative, col = "#2166ac", lwd = 2)
-  graphics::abline(v = if (identical(design, "anova")) crit else c(-1, 1) * crit, lty = 2)
+  graphics::abline(v = if (one_tail) crit else c(-1, 1) * crit, lty = 2)
   labels <- switch(design,
     r = c("No correlation", sprintf("r = %s", format(picture$r))),
     paired = c("No effect (central t)", sprintf("d_z = %s (noncentral t)", format(picture$dz))),
     anova = c("No effect (central F)", sprintf("f = %s (noncentral F)", format(picture$f))),
+    regression = c("No effect (central F)", sprintf("R² = %s (noncentral F)", format(picture$r2))),
+    chisq = c("No effect (central chi-square)", sprintf("w = %s (noncentral chi-square)", format(picture$w))),
     two_proportions = c("No difference", sprintf("%s against %s", format(picture$p1), format(picture$p2))),
     c("No effect (central t)", sprintf("d = %s (noncentral t)", format(picture$d))))
   graphics::legend("topright", bty = "n", cex = 0.85,
@@ -584,7 +618,10 @@ picture_numbers <- function(picture) {
   pct <- function(x) sprintf("%.1f%%", 100 * x)
   power_line <- function(what) tags$li(tags$strong("Power: "), pct(picture$power),
     sprintf(" (the blue area beyond the dashed %s), so beta, the chance of missing %s, is %s.",
-      if (identical(picture_design(picture), "anova")) "line" else "lines", what, pct(picture$beta)))
+      if (picture_one_tail(picture)) "line" else "lines", what, pct(picture$beta)))
+  # A t-test's critical value and the words for its sides.
+  t_crit_text <- function() if (identical(picture$sides, 1)) sprintf("%.3f", picture$t_crit) else sprintf("±%.3f", picture$t_crit)
+  sides_text <- function() if (identical(picture$sides, 1)) "a one-sided test (an effect in the expected direction)" else "a two-sided test"
   source_line <- function(curves) p(class = "small text-muted", sprintf("Power from %s; curves from R's %s.", picture$function_used, curves))
   switch(picture_design(picture),
     r = tagList(
@@ -601,7 +638,7 @@ picture_numbers <- function(picture) {
         power_line("the effect"),
         tags$li(tags$strong("Degrees of freedom: "), picture$df, " (n - 1)."),
         tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = d_z × √n, where the blue curve is centred."),
-        tags$li(tags$strong("Critical t: "), sprintf("±%.3f", picture$t_crit), sprintf(" for a two-sided test at alpha = %s.", format(picture$alpha))),
+        tags$li(tags$strong("Critical t: "), t_crit_text(), sprintf(" for %s at alpha = %s.", sides_text(), format(picture$alpha))),
         tags$li(tags$strong("Smallest significant d_z: "), sprintf("%.3f", picture$dz_crit),
           " = critical t / √n, since the paired t is d_z × √n. Any observed d_z smaller than this isn't significant, whatever the true effect.")),
       source_line("dt()")),
@@ -615,6 +652,26 @@ picture_numbers <- function(picture) {
         tags$li(tags$strong("Smallest significant f: "), sprintf("%.3f", picture$effect_crit),
           " = √(critical F × df1 / df2). Any observed f smaller than this isn't significant, whatever the true effect.")),
       source_line("df()")),
+    regression = tagList(
+      tags$ul(class = "picture-numbers",
+        power_line("the effect"),
+        tags$li(tags$strong("Cohen's f²: "), sprintf("%.3f", picture$f2), sprintf(" = R² / (1 - R²) for R² = %s.", format(picture$r2))),
+        tags$li(tags$strong("Degrees of freedom: "), sprintf("%s and %s", picture$u, picture$v),
+          sprintf(" (u = %s predictors, and v = n - u - 1).", format(picture$u))),
+        tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = f² × n: the larger it is, the further right the blue curve sits."),
+        tags$li(tags$strong("Critical F: "), sprintf("%.3f", picture$f_crit), sprintf(" at alpha = %s. Only large F values count, so the test has one critical value.", format(picture$alpha))),
+        tags$li(tags$strong("Smallest significant R²: "), sprintf("%.3f", picture$r2_crit),
+          sprintf(" (f² = %.3f = critical F × u / v). Any observed R² smaller than this isn't significant, whatever the true one.", picture$effect_crit))),
+      source_line("df()")),
+    chisq = tagList(
+      tags$ul(class = "picture-numbers",
+        power_line("the effect"),
+        tags$li(tags$strong("Degrees of freedom: "), picture$df, "."),
+        tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = w² × n: the larger it is, the further right the blue curve sits."),
+        tags$li(tags$strong("Critical chi-square: "), sprintf("%.3f", picture$chi_crit), sprintf(" at alpha = %s. Only large values count, so the test has one critical value.", format(picture$alpha))),
+        tags$li(tags$strong("Smallest significant w: "), sprintf("%.3f", picture$effect_crit),
+          " = √(critical chi-square / n). Any observed w smaller than this isn't significant, whatever the true effect.")),
+      source_line("dchisq()")),
     two_proportions = tagList(
       tags$ul(class = "picture-numbers",
         power_line("the difference"),
@@ -629,7 +686,7 @@ picture_numbers <- function(picture) {
         power_line("the effect"),
         tags$li(tags$strong("Degrees of freedom: "), picture$df, sprintf(" (n - 2, with %s in each group).", format(picture$n / 2))),
         tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = d × √(n per group / 2), where the blue curve is centred."),
-        tags$li(tags$strong("Critical t: "), sprintf("±%.3f", picture$t_crit), sprintf(" for a two-sided test at alpha = %s.", format(picture$alpha))),
+        tags$li(tags$strong("Critical t: "), t_crit_text(), sprintf(" for %s at alpha = %s.", sides_text(), format(picture$alpha))),
         tags$li(tags$strong("Smallest significant d: "), sprintf("%.3f", picture$d_crit),
           " = critical t × √(1/n1 + 1/n2) (Lakens, 2013). Any observed d smaller than this isn't significant, whatever the true effect.")),
       source_line("dt()")))

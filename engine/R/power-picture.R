@@ -14,9 +14,11 @@
 #' @param n The total number of participants, split into two equal groups
 #'   (an even number, at least 4).
 #' @param d Cohen's d, the effect in the population (0 or more).
-#' @param alpha The significance level of the two-sided test.
+#' @param alpha The significance level.
+#' @param alternative "two_sided" (the default), or "greater" for a
+#'   one-sided test of an effect in the expected direction.
 #' @param points How many points of each curve to return.
-#' @return A list: `n`, `d`, `alpha`, `power` (pwr's `pwr.t.test()`),
+#' @return A list: `n`, `d`, `alpha`, `sides` (1 or 2), `power` (pwr's `pwr.t.test()`),
 #'   `beta` (1 - power), `df`, `ncp` (the noncentrality, d sqrt(n / 4)),
 #'   `t_crit` (the two-sided critical t), `d_crit` (the smallest observed d
 #'   that would be significant), `curves` (a data frame of `t`, `null` and
@@ -25,7 +27,7 @@
 #' @examples
 #' picture <- power_picture(64, 0.5)
 #' picture$power
-power_picture <- function(n, d, alpha = 0.05, points = 401) {
+power_picture <- function(n, d, alpha = 0.05, alternative = "two_sided", points = 401) {
   if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 4 || n %% 2 != 0) {
     abort_run("'n' should be an even number of participants, at least 4, split into two equal groups.")
   }
@@ -35,20 +37,21 @@ power_picture <- function(n, d, alpha = 0.05, points = 401) {
   if (!is.numeric(alpha) || length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 0.5) {
     abort_run("'alpha' should be between 0 and 0.5.")
   }
+  sides <- picture_sides(alternative)
   n_group <- n / 2
   df <- n - 2
   ncp <- d * sqrt(n_group / 2)
-  power <- pwr::pwr.t.test(n = n_group, d = d, sig.level = alpha, type = "two.sample", alternative = "two.sided")$power
-  t_crit <- stats::qt(1 - alpha / 2, df)
+  power <- pwr::pwr.t.test(n = n_group, d = d, sig.level = alpha, type = "two.sample", alternative = picture_pwr_alternative(sides))$power
+  t_crit <- stats::qt(1 - alpha / sides, df)
   # The curves cover both critical values and most of the alternative.
   from <- min(-4, -t_crit - 1)
   to <- max(4, t_crit + 1, ncp + 4)
   t <- seq(from, to, length.out = points)
   list(
-    n = n, d = d, alpha = alpha, power = power, beta = 1 - power, df = df, ncp = ncp, t_crit = t_crit,
+    n = n, d = d, alpha = alpha, sides = sides, power = power, beta = 1 - power, df = df, ncp = ncp, t_crit = t_crit,
     d_crit = t_crit * sqrt(1 / n_group + 1 / n_group),
     curves = data.frame(t = t, null = stats::dt(t, df), alternative = stats::dt(t, df, ncp = ncp)),
-    function_used = sprintf("pwr::pwr.t.test(n = %s, d = %s, sig.level = %s)", format(n_group), format(d), format(alpha)),
+    function_used = sprintf("pwr::pwr.t.test(n = %s, d = %s, sig.level = %s%s)", format(n_group), format(d), format(alpha), picture_pwr_call_end(sides)),
     package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
   )
 }
@@ -116,6 +119,18 @@ power_picture_r <- function(n, r, alpha = 0.05, points = 401) {
 
 
 # Shared input checks for the pictures below.
+# One-sided or two-sided t-tests: pwr's "greater" for a one-sided test of
+# an effect in the expected direction (pwr.t.test(): the critical t at
+# 1 - alpha, and only the upper tail counts).
+picture_sides <- function(alternative) {
+  if (!is.character(alternative) || length(alternative) != 1 || !alternative %in% c("two_sided", "greater")) {
+    abort_run("'alternative' should be \"two_sided\" or \"greater\".")
+  }
+  if (identical(alternative, "greater")) 1 else 2
+}
+picture_pwr_alternative <- function(sides) if (sides == 1) "greater" else "two.sided"
+picture_pwr_call_end <- function(sides) if (sides == 1) ", alternative = \"greater\"" else ""
+
 picture_check <- function(alpha) {
   if (!is.numeric(alpha) || length(alpha) != 1 || is.na(alpha) || alpha <= 0 || alpha >= 0.5) {
     abort_run("'alpha' should be between 0 and 0.5.")
@@ -137,9 +152,11 @@ picture_check <- function(alpha) {
 #' @param n The number of participants (pairs), at least 3.
 #' @param dz Cohen's d_z, the mean difference over the SD of the
 #'   differences (0 or more).
-#' @param alpha The significance level of the two-sided test.
+#' @param alpha The significance level.
+#' @param alternative "two_sided" (the default), or "greater" for a
+#'   one-sided test of an effect in the expected direction.
 #' @param points How many points of each curve to return.
-#' @return A list: `n`, `dz`, `alpha`, `power` (pwr's `pwr.t.test()`,
+#' @return A list: `n`, `dz`, `alpha`, `sides` (1 or 2), `power` (pwr's `pwr.t.test()`,
 #'   `type = "paired"`), `beta`, `df` (n - 1), `ncp` (d_z sqrt(n)),
 #'   `t_crit`, `dz_crit` (the smallest observed d_z that would be
 #'   significant), `curves` (a data frame of `t`, `null` and `alternative`
@@ -148,7 +165,7 @@ picture_check <- function(alpha) {
 #' @examples
 #' picture <- power_picture_paired(34, 0.5)
 #' picture$power
-power_picture_paired <- function(n, dz, alpha = 0.05, points = 401) {
+power_picture_paired <- function(n, dz, alpha = 0.05, alternative = "two_sided", points = 401) {
   if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 3 || n %% 1 != 0) {
     abort_run("'n' should be a whole number of participants, at least 3.")
   }
@@ -156,18 +173,19 @@ power_picture_paired <- function(n, dz, alpha = 0.05, points = 401) {
     abort_run("'dz' should be a Cohen's d_z of 0 or more.")
   }
   picture_check(alpha)
+  sides <- picture_sides(alternative)
   df <- n - 1
   ncp <- dz * sqrt(n)
-  power <- pwr::pwr.t.test(n = n, d = dz, sig.level = alpha, type = "paired", alternative = "two.sided")$power
-  t_crit <- stats::qt(1 - alpha / 2, df)
+  power <- pwr::pwr.t.test(n = n, d = dz, sig.level = alpha, type = "paired", alternative = picture_pwr_alternative(sides))$power
+  t_crit <- stats::qt(1 - alpha / sides, df)
   from <- min(-4, -t_crit - 1)
   to <- max(4, t_crit + 1, ncp + 4)
   t <- seq(from, to, length.out = points)
   list(
-    design = "paired", n = n, dz = dz, alpha = alpha, power = power, beta = 1 - power, df = df, ncp = ncp, t_crit = t_crit,
+    design = "paired", n = n, dz = dz, alpha = alpha, sides = sides, power = power, beta = 1 - power, df = df, ncp = ncp, t_crit = t_crit,
     dz_crit = t_crit / sqrt(n),
     curves = data.frame(t = t, null = stats::dt(t, df), alternative = stats::dt(t, df, ncp = ncp)),
-    function_used = sprintf("pwr::pwr.t.test(n = %s, d = %s, sig.level = %s, type = \"paired\")", format(n), format(dz), format(alpha)),
+    function_used = sprintf("pwr::pwr.t.test(n = %s, d = %s, sig.level = %s, type = \"paired\"%s)", format(n), format(dz), format(alpha), picture_pwr_call_end(sides)),
     package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
   )
 }
@@ -281,6 +299,120 @@ power_picture_2p <- function(n, p1, p2, alpha = 0.05, points = 401) {
     centre = centre, z_crit = z_crit, h_crit = z_crit * sqrt(2 / n_group),
     curves = data.frame(z = z, null = stats::dnorm(z), alternative = stats::dnorm(z, centre)),
     function_used = sprintf("pwr::pwr.2p.test(h = ES.h(%s, %s), n = %s, sig.level = %s)", format(p2), format(p1), format(n_group), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}
+
+# The chi-square test (Labs): the central and noncentral chi-square with
+# df degrees of freedom and noncentrality w^2 N, as pwr.chisq.test()
+# computes power (pwr 1.3-0's source: qchisq() for the critical value and
+# pchisq(ncp = N w^2) above it). Only large values count. Cohen's w is
+# sqrt(chi-square / N), so the smallest significant w is
+# sqrt(critical chi-square / N).
+
+#' The picture of power for a chi-square test
+#'
+#' What the Labs picture of power draws for a chi-square test (goodness
+#' of fit or a contingency table) with Cohen's `w`: the chi-square
+#' distribution when there is no effect and when the effect is `w`, the
+#' critical value, and the numbers behind them.
+#'
+#' @param n The number of participants (at least 2).
+#' @param w Cohen's w in the population (0 or more).
+#' @param df The test's degrees of freedom (1 to 20): categories - 1 for
+#'   goodness of fit, (rows - 1)(columns - 1) for a table.
+#' @param alpha The significance level.
+#' @param points How many points of each curve to return.
+#' @return A list: `design` ("chisq"), `n`, `w`, `df`, `alpha`, `power`
+#'   (pwr's `pwr.chisq.test()`), `beta`, `ncp` (w^2 n), `chi_crit` (the
+#'   critical chi-square), `effect_crit` (the smallest observed w that
+#'   would be significant), `curves` (a data frame of `x`, `null` and
+#'   `alternative` densities), `function_used` and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_chisq(88, 0.3, df = 1)
+#' picture$power
+power_picture_chisq <- function(n, w, df = 1, alpha = 0.05, points = 401) {
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 2 || n %% 1 != 0) {
+    abort_run("'n' should be a whole number of participants, at least 2.")
+  }
+  if (!is.numeric(w) || length(w) != 1 || is.na(w) || w < 0) {
+    abort_run("'w' should be a Cohen's w of 0 or more.")
+  }
+  if (!is.numeric(df) || length(df) != 1 || is.na(df) || df < 1 || df > 20 || df %% 1 != 0) {
+    abort_run("'df' should be a whole number of degrees of freedom, from 1 to 20.")
+  }
+  picture_check(alpha)
+  ncp <- w^2 * n
+  power <- pwr::pwr.chisq.test(w = w, N = n, df = df, sig.level = alpha)$power
+  chi_crit <- stats::qchisq(1 - alpha, df)
+  to <- max(chi_crit * 2, stats::qchisq(0.995, df, ncp = ncp))
+  values <- seq(0, to, length.out = points)
+  # The density with 1 df is infinite at 0: start just above.
+  values[1] <- to / (points * 20)
+  list(
+    design = "chisq", n = n, w = w, df = df, alpha = alpha, power = power, beta = 1 - power, ncp = ncp,
+    chi_crit = chi_crit, effect_crit = sqrt(chi_crit / n),
+    curves = data.frame(x = values, null = stats::dchisq(values, df), alternative = stats::dchisq(values, df, ncp = ncp)),
+    function_used = sprintf("pwr::pwr.chisq.test(w = %s, N = %s, df = %s, sig.level = %s)", format(w), format(n), format(df), format(alpha)),
+    package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
+  )
+}
+
+# Multiple regression's R-squared (Labs): the F test that R-squared is 0
+# with u predictors, as pwr.f2.test() computes power: the central and
+# noncentral F with u and v = n - u - 1 df and noncentrality
+# f^2 (u + v + 1) = f^2 n (pwr 1.3-0's source), where Cohen's
+# f^2 = R^2 / (1 - R^2). F = (R^2 / u) / ((1 - R^2) / v) = f^2 v / u, so
+# the smallest significant f^2 is the critical F times u / v.
+
+#' The picture of power for a regression's R-squared
+#'
+#' What the Labs picture of power draws for the F test of a multiple
+#' regression's R-squared: the F distribution when the predictors explain
+#' nothing and when they explain `r2`, the critical value, and the numbers
+#' behind them.
+#'
+#' @param n The number of participants (more than `u` + 2).
+#' @param r2 R-squared in the population (0 or more, below 1).
+#' @param u The number of predictors (1 to 20).
+#' @param alpha The significance level.
+#' @param points How many points of each curve to return.
+#' @return A list: `design` ("regression"), `n`, `r2`, `f2` (Cohen's f^2),
+#'   `u`, `v`, `alpha`, `power` (pwr's `pwr.f2.test()`), `beta`, `ncp`
+#'   (f^2 n), `f_crit` (the critical F), `effect_crit` (the smallest
+#'   observed f^2 that would be significant), `r2_crit` (the same as an
+#'   R-squared), `curves` (a data frame of `F`, `null` and `alternative`
+#'   densities), `function_used` and `package`.
+#' @export
+#' @examples
+#' picture <- power_picture_f2(80, 0.13, u = 3)
+#' picture$power
+power_picture_f2 <- function(n, r2, u = 1, alpha = 0.05, points = 401) {
+  if (!is.numeric(u) || length(u) != 1 || is.na(u) || u < 1 || u > 20 || u %% 1 != 0) {
+    abort_run("'u' should be a whole number of predictors, from 1 to 20.")
+  }
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || n %% 1 != 0 || n < u + 3) {
+    abort_run(sprintf("'n' should be a whole number of participants, at least %d (the predictors plus 3).", u + 3))
+  }
+  if (!is.numeric(r2) || length(r2) != 1 || is.na(r2) || r2 < 0 || r2 >= 1) {
+    abort_run("'r2' should be an R-squared of 0 or more, below 1.")
+  }
+  picture_check(alpha)
+  f2 <- r2 / (1 - r2)
+  v <- n - u - 1
+  ncp <- f2 * (u + v + 1)
+  power <- pwr::pwr.f2.test(u = u, v = v, f2 = f2, sig.level = alpha)$power
+  f_crit <- stats::qf(1 - alpha, u, v)
+  to <- max(f_crit * 2, stats::qf(0.995, u, v, ncp = ncp))
+  values <- seq(0, to, length.out = points)
+  values[1] <- to / (points * 20)
+  f2_crit <- f_crit * u / v
+  list(
+    design = "regression", n = n, r2 = r2, f2 = f2, u = u, v = v, alpha = alpha, power = power, beta = 1 - power, ncp = ncp,
+    f_crit = f_crit, effect_crit = f2_crit, r2_crit = f2_crit / (1 + f2_crit),
+    curves = data.frame(F = values, null = stats::df(values, u, v), alternative = stats::df(values, u, v, ncp = ncp)),
+    function_used = sprintf("pwr::pwr.f2.test(u = %s, v = %s, f2 = %s, sig.level = %s)", format(u), format(v), format(signif(f2, 4)), format(alpha)),
     package = list(name = "pwr", version = as.character(utils::packageVersion("pwr")))
   )
 }

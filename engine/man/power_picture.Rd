@@ -4,7 +4,7 @@
 \alias{power_picture}
 \title{The picture of power for a two-group t-test}
 \usage{
-power_picture(n, d, alpha = 0.05, points = 401)
+power_picture(n, d, alpha = 0.05, alternative = "two_sided", points = 401)
 }
 \arguments{
 \item{n}{The total number of participants, split into two equal groups
@@ -12,12 +12,15 @@ power_picture(n, d, alpha = 0.05, points = 401)
 
 \item{d}{Cohen's d, the effect in the population (0 or more).}
 
-\item{alpha}{The significance level of the two-sided test.}
+\item{alpha}{The significance level.}
+
+\item{alternative}{"two_sided" (the default), or "greater" for a
+one-sided test of an effect in the expected direction.}
 
 \item{points}{How many points of each curve to return.}
 }
 \value{
-A list: \code{n}, \code{d}, \code{alpha}, \code{power} (pwr's \code{pwr.t.test()}),
+A list: \code{n}, \code{d}, \code{alpha}, \code{sides} (1 or 2), \code{power} (pwr's \code{pwr.t.test()}),
 \code{beta} (1 - power), \code{df}, \code{ncp} (the noncentrality, d sqrt(n / 4)),
 \code{t_crit} (the two-sided critical t), \code{d_crit} (the smallest observed d
 that would be significant), \code{curves} (a data frame of \code{t}, \code{null} and

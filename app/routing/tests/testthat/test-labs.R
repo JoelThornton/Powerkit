@@ -13,10 +13,10 @@ test_that("nothing is required, scored or marked complete", {
   expect_no_match(html, "aria-required|required=|\\(required\\)", perl = TRUE)
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
-  # picture of power's alpha starts at .05, and the Bayesian planning tool's
+  # picture of power's alpha starts at .05 and its test two-sided, and the Bayesian planning tool's
   # hypothesis, design and thresholds at their defaults.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"(picture_alpha|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design)\"", checked)))
+  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -307,6 +307,35 @@ test_that("the picture of power also shows a paired t-test, a one-way ANOVA and 
   for (p in list(anova, paired, props, power_picture_anova_k2 <- engine_function("power_picture_anova")(40, 0.4, k = 2))) {
     expect_no_error(picture_plot(p))
   }
+  grDevices::dev.off()
+})
+
+test_that("the picture of power shows a chi-square test, a regression's R-squared and one-sided t-tests", {
+  html <- as.character(labs_ui(tree))
+  for (label in c("A chi-square test", "R-squared", "One-sided \\(an effect in the expected direction\\)")) expect_match(html, label)
+  skip_if(is.null(engine_function("power_picture_chisq")), "powerkit's engine isn't available here")
+  chisq <- picture_for(function(id) list(picture_design = "chisq", picture_df_chisq = 2)[[id]], 0.05)
+  expect_equal(c(chisq$n, chisq$w, chisq$df), c(88, 0.3, 2))
+  expect_true(picture_one_tail(chisq))
+  text <- as.character(picture_numbers(chisq))
+  expect_match(text, "Critical chi-square", fixed = TRUE)
+  expect_match(text, "Smallest significant w", fixed = TRUE)
+  expect_match(picture_alt(chisq), "Two chi-square distributions", fixed = TRUE)
+  reg <- picture_for(function(id) list(picture_design = "regression")[[id]], 0.05)
+  expect_equal(c(reg$n, reg$r2, reg$u), c(80, 0.13, 3))
+  expect_match(as.character(picture_numbers(reg)), "Smallest significant R²", fixed = TRUE)
+  one <- picture_for(function(id) list(picture_sides = "greater")[[id]], 0.05)
+  expect_equal(one$sides, 1)
+  expect_true(picture_one_tail(one))
+  expect_match(as.character(picture_numbers(one)), "a one-sided test", fixed = TRUE)
+  expect_false(grepl("±", as.character(picture_numbers(one)), fixed = TRUE))
+  paired <- picture_for(function(id) list(picture_design = "paired", picture_sides = "greater")[[id]], 0.05)
+  expect_equal(paired$sides, 1)
+  expect_false(picture_one_tail(picture_for(function(id) NULL, 0.05)))
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file)
+  on.exit(unlink(file))
+  for (p in list(chisq, reg, one, paired)) expect_no_error(picture_plot(p))
   grDevices::dev.off()
 })
 
