@@ -118,3 +118,41 @@ test_that("the two-proportion picture is pwr.2p.test()'s calculation, on the z s
   expect_equal(power_picture_2p(194, 0.6, 0.4)$power, picture$power)
   expect_error(power_picture_2p(194, 0, 0.6), "between 0 and 1", class = "powerkit_error")
 })
+
+test_that("one-sided t-tests use pwr's 'greater' test, with one critical value", {
+  two <- power_picture(64, 0.5, alpha = 0.05)
+  one <- power_picture(64, 0.5, alpha = 0.05, alternative = "greater")
+  expect_equal(one$sides, 1)
+  expect_equal(one$power, pwr::pwr.t.test(n = 32, d = 0.5, sig.level = 0.05, alternative = "greater")$power)
+  expect_equal(one$t_crit, stats::qt(0.95, 62))
+  expect_gt(one$power, two$power)
+  expect_equal(stats::pt(one$t_crit, 62, ncp = one$ncp, lower.tail = FALSE), one$power, tolerance = 1e-8)
+  paired <- power_picture_paired(34, 0.5, alternative = "greater")
+  expect_equal(paired$power, pwr::pwr.t.test(n = 34, d = 0.5, type = "paired", alternative = "greater")$power)
+  expect_equal(paired$dz_crit * sqrt(34), stats::qt(0.95, 33))
+  expect_error(power_picture(64, 0.5, alternative = "less"), "two_sided", class = "powerkit_error")
+})
+
+test_that("the chi-square picture is pwr.chisq.test()'s calculation, with the chi-square densities", {
+  picture <- power_picture_chisq(88, 0.3, df = 2, alpha = 0.05)
+  expect_equal(picture$power, pwr::pwr.chisq.test(w = 0.3, N = 88, df = 2, sig.level = 0.05)$power)
+  expect_equal(picture$ncp, 0.3^2 * 88)
+  expect_equal(stats::pchisq(picture$chi_crit, 2, ncp = picture$ncp, lower.tail = FALSE), picture$power, tolerance = 1e-8)
+  expect_equal(picture$effect_crit^2 * 88, picture$chi_crit)
+  expect_equal(picture$curves$alternative, stats::dchisq(picture$curves$x, 2, ncp = picture$ncp))
+  expect_equal(power_picture_chisq(50, 0, df = 3)$power, 0.05, tolerance = 1e-8)
+  expect_error(power_picture_chisq(50, 0.3, df = 0), "from 1 to 20", class = "powerkit_error")
+})
+
+test_that("the R-squared picture is pwr.f2.test()'s calculation, with the F densities", {
+  picture <- power_picture_f2(80, 0.13, u = 3, alpha = 0.05)
+  f2 <- 0.13 / 0.87
+  expect_equal(picture$power, pwr::pwr.f2.test(u = 3, v = 76, f2 = f2, sig.level = 0.05)$power)
+  expect_equal(picture$ncp, f2 * 80)
+  expect_equal(stats::pf(picture$f_crit, 3, 76, ncp = picture$ncp, lower.tail = FALSE), picture$power, tolerance = 1e-8)
+  # The smallest significant R-squared gives exactly the critical F.
+  r2 <- picture$r2_crit
+  expect_equal((r2 / 3) / ((1 - r2) / 76), picture$f_crit)
+  expect_equal(power_picture_f2(40, 0, u = 2)$power, 0.05, tolerance = 1e-8)
+  expect_error(power_picture_f2(5, 0.1, u = 3), "at least 6", class = "powerkit_error")
+})

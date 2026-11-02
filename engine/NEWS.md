@@ -66,6 +66,14 @@
 
 A batch of new features, built as one round.
 
+* The Labs picture of power covers a chi-square test
+  (`power_picture_chisq()`: pwr's `pwr.chisq.test()`, the central and
+  noncentral chi-square with noncentrality w^2 N, the smallest significant
+  w) and a regression's R-squared (`power_picture_f2()`: pwr's
+  `pwr.f2.test()`, the central and noncentral F with u and n - u - 1 df,
+  the smallest significant R-squared), and `power_picture()` and
+  `power_picture_paired()` take `alternative = "greater"` for a one-sided
+  test (one critical value, as pwr's `alternative = "greater"`).
 * Moderated mediation with parallel mediators (E40) takes a yes/no X or W,
   as the single-mediator card (E17) does, and the simulated data set for
   moderated mediation now draws a yes/no W with `rbinary_rs()` too (it
