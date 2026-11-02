@@ -7,7 +7,8 @@
 # "Running the full validation on GitHub".
 #
 # The mediation chunks (process_4, process_4_binary, process_6, process_7,
-# process_14) have a
+# process_14) and the moderated mediation chunks (modmed_parallel,
+# modmed_binary, modmed_difference) have a
 # few long tests, so they run one test at a time with all 4 cores
 # (--cores-per-test 4): each simulation's replications are split into
 # batches (simulate_in_chunks()) and the batches spread over the cores. The
@@ -140,10 +141,10 @@ jobs:
       CHUNK: ${{ inputs.chunk }}
       RENV_ACTIVATE_PROJECT: "FALSE"
       # Cores per test, set here for the whole job so every step has it:
-      # 4 for the mediation chunks (process_*); 2 for the parallel and
-      # serial cross-checks (2 tests each, so both run at once); 1 for the
-      # others.
-      PER_TEST: ${{ startsWith(inputs.chunk, 'process_') && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
+      # 4 for the mediation and moderated mediation chunks (process_*,
+      # modmed_*); 2 for the parallel and serial cross-checks (2 tests
+      # each, so both run at once); 1 for the others.
+      PER_TEST: ${{ (startsWith(inputs.chunk, 'process_') || startsWith(inputs.chunk, 'modmed_')) && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
     steps:
       - uses: actions/checkout@v4
 
