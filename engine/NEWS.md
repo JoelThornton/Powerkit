@@ -66,6 +66,14 @@
 
 A batch of new features, built as one round.
 
+* `joint_power()` covers multisite trials (people randomised within each
+  group): PUMP's design `d2.1_m2fr`, with powertools' ICCs converted so
+  that each outcome's noncentrality is the card's (`multisite.cont()`).
+  PUMP's shifted central t gives a little less power than the card's
+  noncentral t with few groups (Known difference 14, stated with the
+  result). A cluster-randomised trial with a baseline score is now
+  refused (PUMP was given it without the baseline), and groups given with
+  a size SD of 0 count as equal.
 * A Bayes factor one-way ANOVA (E18, `target_test > method`
   "bayes_factor" on `oneway_between`): BayesFactor's ANOVA Bayes factor
   (`oneWayAOV.Fstat()`, equal to `anovaBF()` on the data), with JASP's

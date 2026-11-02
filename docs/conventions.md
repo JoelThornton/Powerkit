@@ -1495,6 +1495,27 @@ Wired into the app on 18 October 2026 (E25, E26).*
   slightly lower power for the same interaction."
   (`known_differences_methods`, key "7").
 
+### 14. Joint power: PUMP's shifted t gives a little less power than the card with few groups
+
+- **What differs:** the study plan's joint power comes from PUMP's
+  `pump_power()`, which draws each outcome's test statistic as a central
+  multivariate t shifted by its noncentrality (PUMP 1.0.5's source:
+  `mvtnorm::rmvt()` plus the shift), as PowerUp!'s formulas do. The cards
+  for cluster-randomised and multisite trials use powertools, which takes
+  the noncentral t. For an independent t-test PUMP pools the two groups'
+  variances, where the card uses Welch's test.
+- **Size:** for a multisite trial with d = 0.4, 20 people per group, ICC
+  0.1 and ICC of the effect 0.05: 43.2% against the card's 45.9% with 10
+  groups, 79.5% against 79.7% with 20, 98.0% against 98.2% with 40. The
+  noncentrality is the same in both; only the distribution differs.
+- **Test:** `engine/tests/testthat/test-joint-power.R`, "Known difference
+  14: PUMP's power is a little below the card's with few groups".
+- **Shown to users:** with the joint power on the study plan screen
+  (`app/routing/R/study-plan.R`, `joint_power_difference()`).
+- **Methods paragraph:** joint power has no methods paragraph of its own;
+  the sentence shown with it states the difference, and the cards' methods
+  paragraphs are unchanged.
+
 ## Not departures, but worth stating
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with

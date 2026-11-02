@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Joint power for multisite trials"
+    text: >-
+      When your study plan compares the same two conditions within each
+      group on several outcomes, powerkit now gives the chance that every
+      outcome is significant together, as it already did for individually
+      and cluster-randomised studies.
+  - date: "2026-11-02"
+  - date: "2026-11-01"
     title: "A Bayes factor for the one-way ANOVA"
     text: >-
       The one-way ANOVA now has a Bayes factor version, the one JASP's

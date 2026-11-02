@@ -142,7 +142,8 @@ fully validated. Validation runs are recorded in
 - **Experimental:** whole-study simulation on the guided plan, for a
   measured predictor or two groups, people measured once or twice (each analysis adjusted for the first measurement, including two mediators and moderated mediation of one link; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
-  randomised groups on different outcomes (PUMP); Labs (pre-replication
+  randomised groups on different outcomes (PUMP: independent t-tests,
+  cluster-randomised trials and, since 2 November 2026, multisite trials); Labs (pre-replication
   notes, the methods map, the effect size converter, the power
   visualiser for the two-group t-test and, since 0.27.0, the correlation
   (since 0.28.0 also the paired t-test, the one-way ANOVA, two proportions, a

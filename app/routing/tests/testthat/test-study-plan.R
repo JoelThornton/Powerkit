@@ -91,6 +91,23 @@ test_that("the joint power from the engine is stated with each outcome's power a
   expect_match(words[["detail"]], "Calculated by PUMP", fixed = TRUE)
 })
 
+test_that("joint power for a multisite trial is offered and says how PUMP's power differs with few groups", {
+  skip_without_engine_plan()
+  joint <- engine_function("joint_power", file.path(repo_dir, "engine"))
+  spec_for <- function(d) {
+    values <- modifyList(form_examples[["E34"]], list(assignment = "multisite", icc_effect = "0.02", d = as.character(d)))
+    build_spec(forms, "E34", form_fields(form_groups(forms, "E34")), values)
+  }
+  entries <- list(list(label = "Wellbeing", spec = spec_for(0.3), n = 400), list(label = "Attendance", spec = spec_for(0.25), n = 400))
+  expect_identical(entries[[1]]$spec$template, "multisite")
+  expect_true(joint_power_offered(entries))
+  calc <- joint(plan_specs(entries), rho = 0.3, n = plan_largest_n(entries))
+  expect_identical(calc$design, "d2.1_m2fr")
+  words <- joint_power_sentence(calc, entries)
+  expect_match(words[["detail"]], "with few groups each outcome's power here is a little below its card's", fixed = TRUE)
+  expect_no_match(words[["detail"]], "Welch", fixed = TRUE)
+})
+
 test_that("the plan names each analysis in plain words, puts the largest N first, and each can be removed", {
   expect_identical(plan_label(tree, "E2"), tree$endpoints$E2$plain_name)
   expect_false(identical(plan_label(tree, "E2"), "E2"))
