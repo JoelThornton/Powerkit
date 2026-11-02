@@ -228,6 +228,29 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-07 03:55:57 UTC; unix"
       }
     },
+    "ICC.Sample.Size": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ICC.Sample.Size",
+        "Type": "Package",
+        "Version": "1.1",
+        "Date": "2026-03-31",
+        "Title": "Calculation of Sample Size and Power for ICC",
+        "Authors@R": "c(person(given = \"Alasdair\",\n                    family = \"Rathbone\",\n                    role = c(\"aut\", \"cre\"),\n                    email = \"alasdair.rathbone@gmail.com\"),\n             person(given = \"Saurabh\",\n                    family = \"Shaw\",\n                    role = \"aut\"),\n             person(given = \"Dinesh\",\n                    family = \"Kumbhare\",\n                    role = \"aut\"))",
+        "Imports": "stats",
+        "Description": "Provides functions to calculate the requisite sample size for studies where ICC is\n    the primary outcome. Can also be used for calculation of power. In both cases it\n    allows the user to test the impact of changing input variables by calculating the outcome\n    for several different values of input variables. Based off the work of Zou.\n    Zou, G. Y. (2012). Sample size formulas for estimating intraclass correlation coefficients with\n    precision and assurance. Statistics in medicine, 31(29), 3972-3981.",
+        "License": "GPL-3",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-04-01 02:57:56 UTC; alasdairrathbone",
+        "Author": "Alasdair Rathbone [aut, cre],\n  Saurabh Shaw [aut],\n  Dinesh Kumbhare [aut]",
+        "Maintainer": "Alasdair Rathbone <alasdair.rathbone@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-04-01 05:40:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 20:40:22 UTC; unix"
+      }
+    },
     "InteractionPoweR": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5858,7 +5881,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize, Hmisc,\nInteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, PMCMRplus, POMADE, presize, lme4, lmerTest,\nmanymome, MBESS, gsl, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, powerSurvEpi, pwrss, PUMP,\nsemPower, simr, SimDesign, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
+        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize, Hmisc,\nICC.Sample.Size, InteractionPoweR, jsonlite, jsonvalidate (>=\n1.3.0), JustifyAlpha, kappaSize, PMCMRplus, POMADE, presize,\nlme4, lmerTest, manymome, MBESS, gsl, metafor, metapower,\nparallel, psych, power4mome, pwr, powertools, powerSurvEpi,\npwrss, PUMP, semPower, simr, SimDesign, statpsych, Spower (>=\n0.7), stats, SuppDists, survival, Superpower, TOSTER, utils,\nWebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5868,19 +5891,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
-        "RemoteSha": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
+        "RemoteRef": "8e3acf20463d92fd925a050dd57796ff133e6542",
+        "RemoteSha": "8e3acf20463d92fd925a050dd57796ff133e6542",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
-        "GithubSHA1": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
+        "GithubRef": "8e3acf20463d92fd925a050dd57796ff133e6542",
+        "GithubSHA1": "8e3acf20463d92fd925a050dd57796ff133e6542",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 05:37:46 UTC; runner",
+        "Packaged": "2026-11-02 06:06:27 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 05:37:54 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 06:06:41 UTC; unix"
       }
     },
     "powertools": {
@@ -7074,6 +7097,34 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:44 UTC; unix"
       }
     },
+    "statpsych": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "statpsych",
+        "Type": "Package",
+        "Title": "Statistical Methods for Psychologists",
+        "Version": "2.0.0",
+        "Authors@R": "c(\n    person(given = \"Douglas G.\", family = \"Bonett\", email = \"dgbonett@ucsc.edu\", role = c(\"aut\", \"cre\")),\n    person(given = \"Robert J.\", family = \"Calin-Jageman\", email = \"rcalinjageman@dom.edu\", role = c(\"ctb\")))",
+        "Description": "Implements confidence interval and sample size methods that are especially\n    useful in psychological research but are also useful in educational, social science, \n    business, and biological research. This package includes more than 100 confidence \n    interval functions and more than 80 sample size functions for 1-group, 2-group, \n    paired-samples, and multiple-group designs and for a variety of parameters including \n    means, medians, proportions, slopes, standardized mean differences, standardized \n    linear contrasts of means, and several measures of correlation and association. The \n    sample size functions can be used to approximate the sample size needed to estimate\n    a parameter or function of parameters with desired confidence interval precision or \n    to perform a variety of hypothesis tests (directional two-sided, equivalence, \n    superiority, noninferiority) with desired power. For details about these methods see: \n    Statistical Methods for Psychologists, Volumes 1 – 4, <https://dgbonett.sites.ucsc.edu/>.   ",
+        "URL": "https://github.com/dgbonett/statpsych/,\nhttps://dgbonett.github.io/statpsych/",
+        "BugReports": "https://github.com/dgbonett/statpsych/issues",
+        "License": "GPL-3",
+        "Encoding": "UTF-8",
+        "Imports": "utils, stats, semTools, Rdpack, mathjaxr",
+        "RdMacros": "Rdpack, mathjaxr",
+        "Suggests": "MASS, testthat (>= 3.0.0)",
+        "Config/testthat/edition": "3",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-11 20:44:40 UTC; rcalinjageman",
+        "Author": "Douglas G. Bonett [aut, cre],\n  Robert J. Calin-Jageman [ctb]",
+        "Maintainer": "Douglas G. Bonett <dgbonett@ucsc.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-07-11 22:40:02 UTC",
+        "Built": "R 4.5.0; ; 2026-07-12 04:44:32 UTC; unix"
+      }
+    },
     "stringfish": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -7798,10 +7849,10 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "2a692cb3c940797cd45c1b4b2d3f9480"
+      "checksum": "a803c5a21812dc56b0d80976e0ab8bd9"
     },
     "methods-map.yaml": {
-      "checksum": "772d45d6ccbc57e89e312004b5ae079d"
+      "checksum": "67eb2800cbbe955f630e138777a9c99d"
     },
     "R/about.R": {
       "checksum": "f01bb34cb43934794936adb7108448ac"
@@ -7825,7 +7876,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "f4f84e40213866b14bc892e42169d889"
+      "checksum": "5827f7b87d9d37ce0ea31879185246f7"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7852,7 +7903,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "55694eec7b349b6571dc4e43bc309277"
+      "checksum": "1e3288288530f196c5041e52632ac839"
     },
     "tests/testthat/setup.R": {
       "checksum": "4669f0c43aa31677e2f6ec24355ccdc9"
@@ -7867,7 +7918,7 @@
       "checksum": "38eb6fe808a37e9e2368029da2400bc7"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "4dc3e62c28f015b1d7ad4a261383282f"
+      "checksum": "be76f318807bc6ce81a27956eddd98cf"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "58e746b05432af341462490421362821"
@@ -7885,10 +7936,10 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "cdead84e1195ed711567fe3c0938c085"
+      "checksum": "264f04375f061ea0731e9859671cc038"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "0829aa4e4f00b39a7239c7af31a2bb5d"
+      "checksum": "37e43a15b5f4abe5f1004ef9fab604d9"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "270e97f5b56331990ac7ad7559b2f46a"
@@ -7909,7 +7960,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "802d39aa7ae947cab9775fbc99f54898"
+      "checksum": "a4d76e2eb3f2323288622c9e6fcf482a"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7924,7 +7975,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "617f7ebf40c0ce5e6a4a92ddc459bbc8"
+      "checksum": "0e2953838cf3f1086e942d3653bb0dff"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
