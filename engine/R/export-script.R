@@ -80,6 +80,8 @@ export_script <- function(spec, result, file = NULL) {
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
     WebPower = sempower_script(spec, result),
+    Hmisc = ,
+    powerSurvEpi = survival_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
       item_predictor = item_predictor_script(spec, result),
       crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
@@ -215,6 +217,9 @@ design_description <- function(spec) {
   }
   if (identical(spec$design, "meta_analysis")) {
     return(meta_design_description(spec, label))
+  }
+  if (identical(spec$design, "survival")) {
+    return(survival_design_description(spec, label))
   }
   if (identical(spec$design, "dyadic")) {
     members <- unlist(spec$population$members %||% list("member 1", "member 2"))
@@ -668,7 +673,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools", "semPower") || p$method == "analytic") {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools", "semPower", "Hmisc", "powerSurvEpi") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend

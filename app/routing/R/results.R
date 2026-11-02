@@ -234,6 +234,10 @@ test_text <- function(spec) {
   if (identical(spec$design, "sem")) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
+  if (identical(spec$design, "survival")) {
+    name <- if (identical(spec$template, "log_rank")) "the two-sided log-rank test" else "the two-sided test of the hazard ratio in a Cox regression"
+    return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
+  }
   alt <- spec$target_test$alternative %||% "two_sided"
   if (is_bayes_anova(spec) || is_bayes_table(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {

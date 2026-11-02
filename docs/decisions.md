@@ -4602,3 +4602,35 @@ only.
 - **Not a departure:** G\*Power's repeated-measures analysis takes equal
   groups only, so there is no convention to differ from.
 
+
+## 2026-11-02 · Time to event: the log-rank test and Cox regression (E43)
+
+- **What:** E43 now runs, as design `survival` with two templates. Two
+  groups compared on how soon an event happens (`log_rank`): Hmisc's
+  `cpower()`. A measured score's hazard ratio in a Cox regression
+  (`cox_predictor`): powerSurvEpi's `powerEpiCont.default()`. Goals:
+  power and sample size; the smallest detectable effect is not offered
+  (neither package solves for it).
+- **Why these packages:** both are closed forms from published sources,
+  named in their help: `cpower()` uses Schoenfeld's expected events and
+  George and Desu's variance; `powerEpiCont.default()` is Hsieh and
+  Lavori's (2000) formula for a Cox model with other predictors (through
+  the R-squared of the score on them). powerSurvEpi's `ssizeCT()` for two
+  groups needs the survival curves, more than researchers planning a
+  psychology study usually know; `cpower()` takes each group's proportion
+  with the event by one time, the recruitment period and the shortest
+  follow-up, which they can estimate from earlier studies.
+- **Inputs and conventions:** both two-sided. `cpower()` assumes
+  exponential times, so the two proportions fix one hazard ratio, which
+  the results screen shows. `powerEpiCont.default()` takes the hazard
+  ratio per SD, so the score's variance is 1. Unequal groups for the
+  log-rank test through `options > allocation_ratio`. Recorded in
+  `conventions.md`, "Not departures, but worth stating".
+- **Validation** (`test-validation-survival.R`, chunk `survival`): the
+  formulas against log-rank tests (`survival::survdiff()`) and Cox models
+  (`survival::coxph()`) simulated separately from the model each formula
+  assumes, with recruitment and censoring, within 0.02: both are
+  large-sample approximations, so they are not expected to agree to the
+  Monte Carlo error alone. Equal and 2 : 1 groups, with and without other
+  predictors. The rejection rate with no effect is checked too. Published
+  worked examples are placeholders for the maintainer.

@@ -1604,15 +1604,22 @@ endpoints:
     inputs: ["The number of profiles you expect", "How far apart they are on each indicator", "The number of indicators", "The size of the smallest profile"]
     tier: later
   E43:
-    tools:
-      - {name: Hmisc, url: "https://cran.r-project.org/package=Hmisc", what: "cpower() for the Cox or log-rank test, and spower() for simulated power with censored data."}
-    doc_name: "Time-to-event (survival) outcome"
+    doc_name: "Time-to-event (survival) outcome: the log-rank test and Cox regression"
     plain_name: "An outcome that is the time until something happens"
-    status: not_in_powerkit
-    generic: true
-    established_tools: true
-    card_text: "powerkit doesn't cover outcomes that are the time until something happens (survival or time-to-event analysis), where some people may not reach the event before the study ends."
-    tier: later
+    search_words: "survival time to event time-to-event log-rank logrank cox proportional hazards hazard ratio relapse dropout censored kaplan-meier"
+    template: "survival / log_rank, cox_predictor"
+    backend: "Hmisc: cpower() for the log-rank test (exponential times, recruitment and follow-up); powerSurvEpi: powerEpiCont.default() for a measured score in a Cox regression (Hsieh and Lavori's formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-survival.R, note: "Matches Hmisc's cpower() and powerSurvEpi's powerEpiCont.default() called directly, power and required N, in the engine's tests, and agrees with simulated log-rank tests and Cox models (within 0.02, the allowance for these large-sample formulas). Not yet checked against published worked examples."}
+    card_points:
+      - "Two questions about the time until something happens, such as relapse, dropout or disengagement, where some people may not reach the event before the study ends: whether two groups differ in how soon it happens (the log-rank test), and whether a measured score predicts how soon (a Cox regression)."
+      - "Power depends on how many events you observe, not on how many people take part. A rare event, or a short follow-up, needs many more people."
+      - "For two groups you give the proportion of each who have had the event by a given time, how long recruitment takes and how long people are followed; powerkit assumes the event's rate stays the same over time in each group (exponential times), as Hmisc's cpower() does. For a score you give its hazard ratio per SD and the proportion who will have the event."
+      - "Both are large-sample formulas, two-sided. Not calculated here yet: one-sided tests, dropout before the event that differs between groups, and hazards that change over time."
+    tier: v2
+    alternatives: ["a Cox regression of the group with other predictors", "a comparison of restricted mean survival times", "a parametric survival model, such as a Weibull model"]
+    inputs: ["What you want to test", "Two groups: who has had the event by a given time, and how long people are followed", "A measured score: its hazard ratio, and how many people have the event"]
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"

@@ -80,6 +80,8 @@ form_examples <- list(
                Y_label = "Wellbeing score", d = "0.3", icc = "0.05", cluster_size = "20", cluster_size_sd = "0",
                alternative = "two_sided"), closing_ok),
   E37 = c(list(question = "model_fit", model_kind = "cfa", indicators = "12", factors = "3", rmsea = "0.05", fit_test = "chi_square_exact_fit"), closing_ok),
+  E43 = c(list(question = "log_rank", Y_label = "Time to relapse", X_label = "Condition", X_level1 = "Usual care", X_level2 = "Booster sessions",
+    lr_time = "12", p_event1 = "0.4", p_event2 = "0.25", accrual = "6", follow_up = "12", allocation_ratio = "1"), closing_ok),
   E49 = c(list(G_label = "Sample", G_level1 = "Students", G_level2 = "Community", X_label = "Self-control",
                Y_label = "Wellbeing", r1 = "0.2", r2 = "0.45", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E50 = c(list(generic_test = "t", ncp = "2.5", df = "30", alternative = "two_sided"),

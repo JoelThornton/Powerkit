@@ -1,0 +1,22 @@
+{
+  "spec_version": "0.1",
+  "design": "survival",
+  "template": "cox_predictor",
+  "variables": {
+    "X": {"type": "continuous", "label": "Baseline motivation"},
+    "Y": {"type": "time_to_event", "label": "Time to dropout"}
+  },
+  "population": {
+    "metric": "hazard_ratio",
+    "hazard_ratio": 0.75,
+    "event_proportion": 0.3,
+    "r2_other": 0.1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a hazard ratio of 0.75 per SD of motivation (dropout a quarter less likely at any time) is the smallest of interest."
+  },
+  "target_test": {"effect": "hazard_ratio", "method": "cox_regression", "alpha": 0.05},
+  "goal": {"type": "sample_size", "power": 0.8},
+  "options": {"seed": 43}
+}

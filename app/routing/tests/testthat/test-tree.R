@@ -44,8 +44,10 @@ test_that("generic 'not covered' cards have their own text, and those that claim
   # Undecided or `neutral`, the neutral sentence comes back.
   t2 <- tree
   for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "name_other_tools") t2$settings[[i]]$value <- "neutral"
-  expect_match(as.character(card_ui(t2, "E43")), htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE)
-  expect_false(grepl("Hmisc", as.character(card_ui(t2, "E43")), fixed = TRUE))
+  # A card with named tools keeps them out (E65 is given one here).
+  t2$endpoints$E65$tools <- list(list(name = "SomeTool", url = "https://example.org", what = "An example tool."))
+  expect_match(as.character(card_ui(t2, "E65")), htmltools::htmlEscape(tree$established_tools_text), fixed = TRUE)
+  expect_false(grepl("SomeTool", as.character(card_ui(t2, "E65")), fixed = TRUE))
 })
 
 test_that("the cards with a rank-based counterpart offer it as a simulated test version", {

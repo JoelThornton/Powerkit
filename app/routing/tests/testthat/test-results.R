@@ -2534,3 +2534,25 @@ test_that("moderated mediation with a yes/no X says the test was found slightly 
   expect_null(binary_x_modmed_note(binary_w))
   expect_null(binary_x_modmed_note(list(design = "mediation", variables = list(X = list(type = "binary")))))
 })
+
+test_that("time to event: the log-rank test and a Cox regression build valid specs and name their tests", {
+  fields <- form_fields(form_groups(forms, "E43"))
+  spec <- build_spec(forms, "E43", fields, form_examples$E43)
+  expect_identical(spec$template, "log_rank")
+  expect_identical(unlist(spec$population$p_event), c(0.4, 0.25))
+  cox_values <- modifyList(form_examples$E43, list(question = "cox_predictor", X_level1 = NULL, X_level2 = NULL,
+    lr_time = NULL, p_event1 = NULL, p_event2 = NULL, accrual = NULL, follow_up = NULL, allocation_ratio = NULL,
+    hazard_ratio = "0.75", event_proportion = "0.3", r2_other = "0.1"))
+  cox <- build_spec(forms, "E43", fields, cox_values)
+  expect_identical(cox$template, "cox_predictor")
+  expect_identical(cox$variables$X$type, "continuous")
+  expect_match(test_text(spec), "the two-sided log-rank test", fixed = TRUE)
+  expect_match(test_text(cox), "Cox regression", fixed = TRUE)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  html <- as.character(result_panel_ui(tree, forms, "E43", fields, form_examples$E43, calc))
+  expect_match(html, "log-rank", fixed = TRUE)
+  calc_cox <- run_calculation(cox, run, seed = forms$default_seed)
+  expect_identical(calc_cox$status, "ok")
+})

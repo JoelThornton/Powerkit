@@ -1,0 +1,23 @@
+{
+  "spec_version": "0.1",
+  "design": "survival",
+  "template": "log_rank",
+  "variables": {
+    "X": {"type": "binary", "label": "Condition", "levels": ["Usual care", "Relapse prevention"]},
+    "Y": {"type": "time_to_event", "label": "Time to relapse"}
+  },
+  "population": {
+    "metric": "event_proportions",
+    "time": 12,
+    "p_event": [0.4, 0.25],
+    "accrual": 6,
+    "follow_up": 12
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: months; 40% relapse within a year with usual care, and a fall to 25% is the smallest worth detecting."
+  },
+  "target_test": {"effect": "group_difference", "method": "log_rank", "alpha": 0.05},
+  "goal": {"type": "sample_size", "power": 0.8},
+  "options": {"seed": 43}
+}

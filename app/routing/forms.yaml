@@ -69,6 +69,10 @@ tool_defaults:
     alpha_source: "powertools' default (crt.parallel.cont(alpha = 0.05), powertools 1.0.0)"
     power_source: "powertools has no default target power (crt.parallel.cont(power = NULL)); enter one"
     alternative_source: "powertools' default (two-sided: crt.parallel.cont(sides = 2), powertools 1.0.0)"
+  Hmisc:
+    alpha: 0.05
+    alpha_source: "the default of Hmisc's cpower() (alpha = 0.05, Hmisc 5.3-0) and powerSurvEpi's powerEpiCont.default() (alpha = 0.05, powerSurvEpi 0.1.5)"
+    power_source: "neither package has a default target power (powerSurvEpi's ssizeEpiCont.default(power) must be given; cpower() reports power only); enter one"
   semPower:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
@@ -122,7 +126,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -1243,6 +1247,59 @@ forms:
 
   # Dyadic data (power4mome): the actor-partner interdependence model
   # (1 November 2026).
+  E43:
+    methods_name: "a time-to-event analysis (the log-rank test, or a Cox regression)"
+    tool: Hmisc
+    directional: false
+    base: {spec_version: "0.1", design: survival, variables: {"Y": {type: time_to_event}}, population: {}, target_test: {}}
+    groups:
+      - input: "What you want to test"
+        fields:
+          - {id: question, label: "What you want to test", type: select, path: template, required: true,
+             choices: {log_rank: "Whether two groups differ in how soon the event happens (the log-rank test)",
+                       cox_predictor: "Whether a measured score predicts how soon it happens (a Cox regression)"},
+             sets: {log_rank: [{path: variables.X.type, value: binary}, {path: population.metric, value: event_proportions}, {path: target_test.effect, value: group_difference}, {path: target_test.method, value: log_rank}],
+                    cox_predictor: [{path: variables.X.type, value: continuous}, {path: population.metric, value: hazard_ratio}, {path: target_test.effect, value: hazard_ratio}, {path: target_test.method, value: cox_regression}]}}
+          - {id: Y_label, label: "The event, as the time until it happens (for example, time to relapse)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "What the groups are (for example, condition), or the score (for example, baseline motivation)", type: text, path: variables.X.label, required: true}
+          - {id: X_level1, label: "Group 1 (usually the comparison group)", type: text, path: variables.X.levels.1, required: true,
+             shown_if: {field: question, is: log_rank}}
+          - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true,
+             shown_if: {field: question, is: log_rank}}
+      - input: "Two groups: who has had the event by a given time, and how long people are followed"
+        shown_if: {field: question, is: log_rank}
+        fields:
+          - {id: lr_time, writeup_label: "time", label: "A time by which you know roughly how many have had the event (for example, 12 for 12 months)", type: number, path: population.time, required: true, min_exclusive: 0,
+             shown_if: {field: question, is: log_rank},
+             help: "Use the same unit (days, weeks, months) for every time on this screen."}
+          - {id: p_event1, writeup_label: "proportion with the event in group 1", label: "Proportion of group 1 who have had the event by then (0 to 1)", type: number, path: population.p_event.1, effect: true, baseline: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: log_rank}}
+          - {id: p_event2, writeup_label: "proportion with the event in group 2", label: "Proportion of group 2 who have had the event by then", type: number, path: population.p_event.2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: log_rank},
+             help: "The smallest difference worth detecting, for example 0.25 where group 1's is 0.40."}
+          - {id: accrual, writeup_label: "recruitment period", label: "How long recruitment takes", type: number, path: population.accrual, required: true, min: 0,
+             shown_if: {field: question, is: log_rank},
+             default: 0, default_source: "0: everyone starts together (cpower() takes accrual = 0 for this, Hmisc 5.3-0)",
+             help: "People are taken to join at an even rate over this time."}
+          - {id: follow_up, writeup_label: "shortest follow-up", label: "How long the last person recruited is followed", type: number, path: population.follow_up, required: true, min_exclusive: 0,
+             shown_if: {field: question, is: log_rank},
+             help: "Everyone recruited earlier is followed for longer, up to this plus the recruitment period."}
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             shown_if: {field: question, is: log_rank},
+             default: 1, default_source: "equal groups, as cpower() assumes when only the total is given (Hmisc 5.3-0)"}
+      - input: "A measured score: its hazard ratio, and how many people have the event"
+        shown_if: {field: question, is: cox_predictor}
+        fields:
+          - {id: hazard_ratio, writeup_label: "hazard ratio per SD", label: "Hazard ratio for a person 1 SD higher on the score", type: number, path: population.hazard_ratio, effect: true, min_exclusive: 0,
+             shown_if: {field: question, is: cox_predictor},
+             help: "Above 1: the event comes sooner for people higher on the score; below 1, later. For example 0.75: at any time, a quarter less likely to drop out."}
+          - {id: event_proportion, writeup_label: "proportion with the event", label: "Proportion of all participants expected to have the event during the study (0 to 1)", type: number, path: population.event_proportion, required: true, min_exclusive: 0, max: 1,
+             shown_if: {field: question, is: cox_predictor},
+             help: "Power depends on the number of events, not of people: rare events need many more people."}
+          - {id: r2_other, writeup_label: "R-squared with the other predictors", label: "R-squared of the score on the other predictors in the model", type: number, path: population.r2_other, required: true, min: 0, max_exclusive: 1,
+             shown_if: {field: question, is: cox_predictor},
+             default: 0, default_source: "0: no other predictors related to the score (the value powerEpiCont.default()'s help gives for a randomised comparison, rho2 = 0, powerSurvEpi 0.1.5)",
+             help: "How well the other predictors in the model predict the score. The more they overlap with it, the less the score adds."}
   E44:
     methods_name: "an actor-partner interdependence model"
     tool: power4mome
