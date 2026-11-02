@@ -1,4 +1,6 @@
-# powerkit 0.28.1
+# powerkit 0.29.0
+
+A batch of new features, built as one round (1 and 2 November 2026).
 
 * Technical details for more designs: SEM (model fit, invariance, a
   factor correlation and a latent slope) now gives the likelihood-ratio
@@ -11,6 +13,7 @@
   why a critical value doesn't apply. TOSTER and powertools still return
   no details; powertools computes them internally (a question for its
   authors, `docs/upstream-questions.md`).
+
 * The critical effect size (Perugini et al., 2025; Lakens, 2022): for the
   one-sample, paired and two-group t-tests (Student's) and Pearson's
   correlation, every result now gives the smallest observed effect that
@@ -27,6 +30,7 @@
   and side; the article's worked examples are left for the maintainer.
   Not given for Welch's t, the minimum-effect, rank or Bayes factor
   versions, or a justified alpha.
+
 * The start screen keeps to three short choices, each with a small icon;
   "Help me choose" is tagged as a good first choice. A returning visitor
   sees the analyses they opened last ("Recently opened", kept in the
@@ -51,21 +55,6 @@
   95% interval, and the methods paragraph in the copyable write-up box.
   App only; engine unchanged.
 
-* The app moves between screens faster: about 40 ms on a laptop for the
-  list of analyses and an input screen, from 160-200 ms. The list's
-  groups, and each group of fields on an input screen, are built once and
-  kept as HTML (`cached_html()`, a 32 MB `cachem` cache keyed on what
-  they are built from); a field's attributes are added by walking its
-  tags rather than with `htmltools::tagQuery()`; and the app's own
-  functions are no longer byte-compiled on first use (`compiler::
-  enableJIT(0)` in `app.R`), which added 100-200 ms to each screen's first
-  visit in a new R process. The HTML is unchanged apart from indentation.
-  Engine unchanged.
-
-# powerkit 0.28.0
-
-A batch of new features, built as one round.
-
 * Multiple regression has a third template, `single_coefficient`: the
   test of one predictor's coefficient from its partial R-squared
   (`population.partial_r2`, G*Power's "single regression coefficient";
@@ -78,17 +67,20 @@ A batch of new features, built as one round.
   with the predictor (`population.variance_ratio`) and of a chosen shape
   (`population.error_shape`). quantreg joins Imports. New validation
   chunk `robust_regression`.
+
 * Negative binomial regression is a test version of
   `single_predictor_count` (`target_test.method = "negative_binomial"`,
   with the overdispersion in `population.dispersion`), simulated by
   Spower with powerkit's experiment `p_negative_binomial()` around MASS's
   `glm.nb()`. New validation chunk `negative_binomial`.
+
 * The aligned rank transform ANOVA is a test version of `2x2_between` and
   `factorial_between` (`target_test.method = "aligned_rank_transform"`,
   with `population.score_shape`), simulated by Spower with powerkit's
   experiment `p_art()` around ARTool's `art()` and `artlm()` and car's
   `Anova(type = 3)`. Equal or unequal cells, one SD or one per cell.
   New validation chunk `aligned_rank`. New Imports: ARTool.
+
 * The Brunner-Munzel test is a test version of `independent_t`
   (`target_test.method = "brunner_munzel"`), simulated by Spower with
   powerkit's experiment `p_brunner_munzel()` around brunnermunzel's
@@ -96,6 +88,7 @@ A batch of new features, built as one round.
   2's SD relative to group 1's; d is over the average of the two
   variances. Validation chunk `rank` adds its checks. New Imports:
   brunnermunzel.
+
 * Reliability and agreement (E69, design `reliability`): tests that an
   ICC exceeds a null value (ICC.Sample.Size's `calculateIccPower()`,
   one-way random effects, one- or two-sided), that Cronbach's alpha does
@@ -121,12 +114,14 @@ A batch of new features, built as one round.
   `wp.sem.rmsea()`, with the null RMSEA as `population > rmsea_null`
   (default 0.05). The test of exact fit stays the default. WebPower is a
   new dependency.
+
 * Measurement invariance (E37) takes more groups (`population >
   n_groups`, up to 10, equal in size beyond two), more occasions
   (`n_occasions`, up to 10) and several factors (`factors`, up to 5, with
   `factor_correlation`), through semPower's `semPower.powerMI()` and
   `semPower.powerLI()`. The first factor's last items differ in the last
   group or on the last occasion.
+
 * A Bayes factor test of association for tables of any size (E6,
   `target_test > method` "bayes_factor" on `chi_square_independence`):
   BayesFactor's `contingencyTableBF()` with JASP's sampling plan (rows
@@ -155,6 +150,7 @@ A batch of new features, built as one round.
   F passes the value where BF10 reaches the threshold. The no-effect side
   (strong evidence for no effect, misleading evidence) is reported as for
   the other Bayes factor tests, and the R script reproduces the result.
+
 * The Labs picture of power covers a chi-square test
   (`power_picture_chisq()`: pwr's `pwr.chisq.test()`, the central and
   noncentral chi-square with noncentrality w^2 N, the smallest significant
@@ -163,6 +159,7 @@ A batch of new features, built as one round.
   the smallest significant R-squared), and `power_picture()` and
   `power_picture_paired()` take `alternative = "greater"` for a one-sided
   test (one critical value, as pwr's `alternative = "greater"`).
+
 * Moderated mediation with parallel mediators (E40) takes a yes/no X or W,
   as the single-mediator card (E17) does, and the simulated data set for
   moderated mediation now draws a yes/no W with `rbinary_rs()` too (it
@@ -195,6 +192,7 @@ A batch of new features, built as one round.
   yes/no X the test is slightly liberal (about 6.7% at alpha .05 with no
   moderation, against 5.3% for the separate simulation), and the results
   screen says so. A yes/no mediator is still not available.
+
 * Moderated mediation with W on both links or the direct path (E38,
   templates `process_8`, `process_58` and `process_59`, one mediator):
   these models have no single index of moderated mediation, so the test
@@ -209,6 +207,7 @@ A batch of new features, built as one round.
   cannot estimate when W predicts M (docs/upstream-questions.md). Checked
   against a simulation written separately (OLS for each equation and its
   own Monte Carlo interval), with the Type I error at most alpha.
+
 * The Labs picture of power covers three more tests:
   `power_picture_paired()` (pwr's paired t-test, the central and
   noncentral t with n - 1 df), `power_picture_anova()` (pwr's one-way
@@ -238,6 +237,7 @@ A batch of new features, built as one round.
   and metapower's formula for the second disagrees with simulation.
   Checked against simulations written separately with metafor, with the
   Type I error near alpha.
+
 * Meta-analyses whose studies give several correlated effect sizes each
   (E61, template `dependent_effects`): POMADE's `power_MADE()` for the
   test of the average effect under the correlated and hierarchical
@@ -250,6 +250,7 @@ A batch of new features, built as one round.
   number of studies. Checked against a simulation written separately
   with metafor's `rma.mv()` and `robust()`. New dependency: POMADE (with
   furrr).
+
 * Whole-study simulation measured twice now covers mediation through two
   mediators (side by side or in a chain) and moderated mediation of one
   link (X to the mediator, or the mediator to the outcome); the guided
@@ -257,6 +258,35 @@ A batch of new features, built as one round.
   changes, as they do measured once. New agreement checks against the
   serial mediation and second-stage moderated mediation cards
   (test-validation-whole-study-twice.R, in the `whole_study` chunk).
+
+* App: the "Help me choose" questions and the analysis cards are easier
+  to read. Each question shows its number ("Question 3"), the answers are
+  numbered and the number keys choose them, and "None of these fit / I'm
+  not sure" sits on its own row under the answers. The answers so far show
+  the question each answered, as well as the answer. A card that runs now
+  opens with three facts (how it calculates, from forms.yaml; which
+  package; whether its published checks are in), lists what you'll need
+  openly (it was folded), and gathers the rank-test and Bayes factor
+  versions in one box; the package, the terms and the questions asked
+  next stay folded. A card reached by answering questions says it is the
+  analysis that fits your answers.
+
+# powerkit 0.28.1
+
+* The app moves between screens faster: about 40 ms on a laptop for the
+  list of analyses and an input screen, from 160-200 ms. The list's
+  groups, and each group of fields on an input screen, are built once and
+  kept as HTML (`cached_html()`, a 32 MB `cachem` cache keyed on what
+  they are built from); a field's attributes are added by walking its
+  tags rather than with `htmltools::tagQuery()`; and the app's own
+  functions are no longer byte-compiled on first use (`compiler::
+  enableJIT(0)` in `app.R`), which added 100-200 ms to each screen's first
+  visit in a new R process. The HTML is unchanged apart from indentation.
+  Engine unchanged.
+
+# powerkit 0.28.0
+
+A batch of new features, built as one round.
 
 * A predictor measured on each trial (E67, template `item_predictor`,
   `population > x_level` "trial"): a value that varies from trial to
@@ -266,6 +296,7 @@ A batch of new features, built as one round.
   (`population > sd_item_slope`): y ~ x + (1 + x | participant) + (1 + x
   | item). Checked against a simulation written separately with
   lmerTest, with the Type I error near alpha.
+
 * Predictors at all three levels (E62, template `two_level`): with
   `population > groups_per_site` the groups are in sites (classes in
   schools), with a predictor Z on each site (`variables > Z`), its
@@ -278,6 +309,7 @@ A batch of new features, built as one round.
   sites. Works with a score or a yes/no outcome. Checked against a
   simulation written separately with lmerTest, with the Type I error at
   most alpha.
+
 * Participants and items in two conditions (E33) can plan the number of
   items (stimuli) instead of participants: `goal > unit` "items", with
   `population > participants` fixed; `goal > n` is then the number of
@@ -285,6 +317,7 @@ A batch of new features, built as one round.
   the exported script and the write-up count items. Checked against the
   E33 independent simulation at a fixed number of participants
   (`test-validation-mixed-model.R`).
+
 * Precision planning (E46) for four more estimates: a difference between
   two groups' means in the outcome's units (template `mean_difference`,
   presize's `prec_meandiff()`), an odds ratio between two groups
@@ -302,6 +335,7 @@ A batch of new features, built as one round.
   logit interval, the one-way ICC's F interval and the least-squares
   interval) in simulated studies of the planned size is the width
   planned; published examples are left for the maintainer.
+
 * A yes/no outcome in the two-level (E62, template `two_level`) and
   three-level (E68, template `three_level`) designs (`variables > Y >
   type` "binary", `population > metric` "probability"): a logistic mixed
@@ -318,6 +352,7 @@ A batch of new features, built as one round.
   exported script and simulated data set follow the model. Checked against
   a simulation written separately with glmer, with the Type I error near
   alpha.
+
 * A Bayes factor version of the test of a correlation (`target_test >
   method` "bayes_factor" on `correlation`), by exact calculation with
   BayesFactor's `correlationBF()`: a stretched beta analysis prior on rho
@@ -336,6 +371,7 @@ A batch of new features, built as one round.
   reproduces the result. Validation: `test-validation-bayes-correlation.R`
   in the `bayes` chunk, against simulated studies whose Bayes factors are
   computed without BayesFactor.
+
 * A Bayes factor version of the test of one proportion (`target_test >
   method` "bayes_factor" on `one_proportion`), by exact calculation with
   bfpwr: the binomial Bayes factor with a Beta(a, b) analysis prior
@@ -356,6 +392,7 @@ A batch of new features, built as one round.
   the analysis prior). Validation: `test-validation-bayes-binomial.R` in
   the `bayes` chunk, against Bayes factors computed from their definition
   for simulated studies.
+
 * Sequential Bayes factor designs, in the Labs Bayesian planning tool
   (`bayes_sequential()`): a Bayes factor t-test (two groups, one group or
   pairs; one- or two-sided) checked after every `step` participants from
@@ -376,6 +413,7 @@ A batch of new features, built as one round.
   maintainer), and it agrees with a simulation written separately, which
   integrates the Bayes factor itself and uses `t.test()` at every look
   (new validation file in the `bayes` chunk).
+
 * Assurance: where a Bayes factor card or the Labs tool averages over the
   planner's uncertainty about the effect (a design prior with an SD), the
   chance of strong evidence is named as the study's assurance, after
@@ -383,6 +421,7 @@ A batch of new features, built as one round.
   O'Hagan et al. (2005), Schonbrodt and Wagenmakers (2018) and Schonbrodt,
   Wagenmakers, Zehetleitner and Perugini (2017), each checked against the
   full text.
+
 * App: the methods map in Labs is rebuilt around the questions
   researchers bring to it: where is a study like mine, what is it, what is
   it next to, and can powerkit plan it. It opens full screen with the
@@ -437,18 +476,6 @@ A batch of new features, built as one round.
   font size), and on a phone the tabs stay on one row that scrolls
   sideways. The About page and the start banner no longer say powerkit is
   only for psychology.
-
-* App: the "Help me choose" questions and the analysis cards are easier
-  to read. Each question shows its number ("Question 3"), the answers are
-  numbered and the number keys choose them, and "None of these fit / I'm
-  not sure" sits on its own row under the answers. The answers so far show
-  the question each answered, as well as the answer. A card that runs now
-  opens with three facts (how it calculates, from forms.yaml; which
-  package; whether its published checks are in), lists what you'll need
-  openly (it was folded), and gathers the rank-test and Bayes factor
-  versions in one box; the package, the terms and the questions asked
-  next stay folded. A card reached by answering questions says it is the
-  analysis that fits your answers.
 
 # powerkit 0.27.0
 
