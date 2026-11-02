@@ -77,7 +77,7 @@ critical_effect_details <- function(ce) {
     source = "Perugini et al.'s (2025) formula, with the critical t pwr's pwr.r.test() also uses",
     note = sprintf(paste("The critical r is %s. pwr's power for a correlation compares Fisher's z of the expected r with that",
       "critical r, so there is no noncentrality parameter."),
-      switch(ce$alternative, two_sided = sprintf("±%s", formatC(ce$value, digits = 3, format = "f")),
+      switch(ce$alternative, two_sided = sprintf("\u00b1%s", formatC(ce$value, digits = 3, format = "f")),
         greater = formatC(ce$value, digits = 3, format = "f"), less = formatC(-ce$value, digits = 3, format = "f")))
   )
 }
