@@ -22,8 +22,11 @@ fully validated. Validation runs are recorded in
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
   `R/ui.R`), so a click shows the next screen in about 40 ms on a laptop.
-  **45 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E43, E44, E46, E47-E57, E59-E61, E64 and E66 (`forms.yaml`'s `calculates`);
+  **46 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E43, E44, E46, E47-E57, E59-E61, E64, E66 and E69 (`forms.yaml`'s `calculates`);
+  E69, reliability and agreement (tests of an ICC, Cronbach's alpha and
+  kappa against a value to beat; ICC.Sample.Size, statpsych, kappaSize),
+  reached from the aim screen, since 2 November 2026;
   E43, time to event (the log-rank test by Hmisc's `cpower()`, and a
   score in a Cox regression by powerSurvEpi's Hsieh and Lavori formula),
   since 2 November 2026;

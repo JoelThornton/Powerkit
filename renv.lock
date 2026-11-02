@@ -3930,6 +3930,30 @@
         "stats"
       ],
       "Hash": "942547bd48c3a1bfc0f7d88304df4707"
+    },
+    "ICC.Sample.Size": {
+      "Package": "ICC.Sample.Size",
+      "Version": "1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "stats"
+      ],
+      "Hash": "353c3db1cff80786b8ad863d739bcdaf"
+    },
+    "statpsych": {
+      "Package": "statpsych",
+      "Version": "2.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Rdpack",
+        "mathjaxr",
+        "semTools",
+        "stats",
+        "utils"
+      ],
+      "Hash": "708cf231bf3f9908f14319eb5ecfe4f0"
     }
   }
 }

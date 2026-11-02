@@ -1648,6 +1648,22 @@ Wired into the app on 18 October 2026 (E25, E26).*
   simulated log-rank tests and Cox models within 0.02 at the sizes
   tested. Tests: `test-backend-survival.R`; `test-validation-survival.R`
   [powerkit, `docs/decisions.md`].
+- **Reliability and agreement (E69): each package's conventions,
+  unchanged.** G\*Power has no reliability tests. The ICC is
+  ICC.Sample.Size's `calculateIccPower()`, Walter, Eliasziw and Donner's
+  normal approximation to the F test of a one-way random-effects ICC, as
+  the package computes it (one- or two-sided). Cronbach's alpha is Bonett
+  and Wright's test of ln(1 - alpha), the test whose sample size
+  statpsych's `size.test.cronbach()` gives; statpsych gives no power at a
+  given n, so powerkit solves the same formula for power, and its
+  smallest n for a power is statpsych's in every case tested. Kappa is
+  kappaSize's goodness-of-fit approach (two-sided), which gives a sample
+  size, not rounded, for a power; powerkit's power at n is the power for
+  which kappaSize gives n, and its sample size kappaSize's rounded up.
+  The ICC and alpha formulas count only the tail in the effect's
+  direction, so a two-sided test at the null value gives alpha / 2.
+  Tests: `test-backend-reliability.R`; `test-validation-reliability.R`
+  [powerkit, `docs/decisions.md`].
 
 ### 8. MANOVA: simulated, where G\*Power uses a formula
 

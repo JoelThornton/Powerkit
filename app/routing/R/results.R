@@ -234,6 +234,15 @@ test_text <- function(spec) {
   if (identical(spec$design, "sem")) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
+  if (identical(spec$design, "reliability")) {
+    side <- if (identical(spec$target_test$alternative, "greater")) "one-sided" else "two-sided"
+    name <- switch(spec$template,
+      icc = sprintf("the %s test that the ICC is above %s", side, format(spec$population$icc_null)),
+      cronbach_alpha = sprintf("Bonett and Wright's %s test that Cronbach's alpha is above %s", side, format(spec$population$reliability_null)),
+      kappa = sprintf("the two-sided test of kappa against %s", format(spec$population$kappa_null)))
+    if (identical(spec$template, "kappa") || side == "two-sided") name <- sub(" is above ", " differs from ", name)
+    return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
+  }
   if (identical(spec$design, "survival")) {
     name <- if (identical(spec$template, "log_rank")) "the two-sided log-rank test" else "the two-sided test of the hazard ratio in a Cox regression"
     return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))

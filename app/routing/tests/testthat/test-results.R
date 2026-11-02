@@ -2556,3 +2556,28 @@ test_that("time to event: the log-rank test and a Cox regression build valid spe
   calc_cox <- run_calculation(cox, run, seed = forms$default_seed)
   expect_identical(calc_cox$status, "ok")
 })
+
+test_that("reliability: the ICC, Cronbach's alpha and kappa build valid specs and name their tests", {
+  fields <- form_fields(form_groups(forms, "E69"))
+  spec <- build_spec(forms, "E69", fields, form_examples$E69)
+  expect_identical(spec$template, "icc")
+  expect_match(test_text(spec), "the one-sided test that the ICC is above 0.6", fixed = TRUE)
+  alpha_values <- modifyList(form_examples$E69, list(question = "cronbach_alpha", rel_alternative = "two_sided", icc = NULL, icc_null = NULL, icc_raters = NULL,
+    reliability = "0.8", reliability_null = "0.7", items = "5"))
+  alpha_spec <- build_spec(forms, "E69", fields, alpha_values)
+  expect_identical(alpha_spec$population$items, 5L)
+  expect_match(test_text(alpha_spec), "Bonett and Wright's two-sided test that Cronbach's alpha differs from 0.7", fixed = TRUE)
+  kappa_values <- modifyList(form_examples$E69, list(question = "kappa", rel_alternative = NULL, icc = NULL, icc_null = NULL, icc_raters = NULL,
+    Y_levels = "No, Yes", proportions = "0.7, 0.3", kappa_raters = "2", kappa = "0.6", kappa_null = "0.4"))
+  kappa_spec <- build_spec(forms, "E69", fields, kappa_values)
+  expect_identical(kappa_spec$variables$Y$type, "categorical")
+  expect_null(kappa_spec$target_test$alternative)
+  skip_without_run()
+  for (s in list(spec, alpha_spec, kappa_spec)) {
+    calc <- run_calculation(s, run, seed = forms$default_seed)
+    expect_identical(calc$status, "ok", label = s$template)
+  }
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  html <- as.character(result_panel_ui(tree, forms, "E69", fields, form_examples$E69, calc))
+  expect_match(html, "ICC", fixed = TRUE)
+})

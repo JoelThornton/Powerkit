@@ -122,6 +122,7 @@ endpoints:
   E66: z
   E67: model
   E68: model
+  E69: z
   E-bayes: bayes
 
 relations:
@@ -131,6 +132,7 @@ relations:
   - {from: E3, to: E54, label: "with three or more conditions becomes"}
   - {from: E2, to: E36, label: "turned round, to show a difference is too small to matter, is"}
   - {from: E2, to: E46, label: "planned for precision instead of a test is"}
+  - {from: E69, to: E46, label: "planned for a precise ICC instead of a test is"}
   - {from: E2, to: E-bayes, label: "judged by a Bayes factor instead of a p-value is"}
   - {from: E2, to: E61, label: "pooled across many studies is"}
   # ANOVA family
