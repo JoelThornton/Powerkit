@@ -112,10 +112,12 @@ fully validated. Validation runs are recorded in
   pass; the rest keep `TODO_PUBLISHED_VALUE` for the maintainer. Six cards
   are marked validated; eight still say "validation in progress"
   ([`next.md`](next.md), "Waiting on the maintainer"). Validation runs per design before a PR
-  merges, every night the engine changed and in full every Sunday
-  (`scripts/validation-plan.R`, `nightly-validation.yaml`). The nights of
-  29 and 30 October failed on two unit tests that compared runs on
-  different numbers of cores; fixed in 0.24.0's conversion PR (#181).
+  merges, every night the engine changed and in full every Sunday, from
+  00:05 UTC (`scripts/validation-plan.R`, `nightly-validation.yaml`).
+  The Sunday run of 1 November passed 27 of 28 chunks; the two-mediator
+  moderated mediation chunk ran out of time (6 hours), so the moderated
+  mediation chunks now run one test at a time on all 4 cores, as the
+  mediation chunks do (2 November 2026).
 - **The critical effect size** (the smallest observed effect that would be
   significant at the n analysed; Perugini et al., 2025) is on the results
   and in the methods paragraph for the t-tests and the correlation (1
