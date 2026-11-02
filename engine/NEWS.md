@@ -66,6 +66,16 @@
 
 A batch of new features, built as one round.
 
+* A Bayes factor test of association for tables of any size (E6,
+  `target_test > method` "bayes_factor" on `chi_square_independence`):
+  BayesFactor's `contingencyTableBF()` with JASP's sampling plan (rows
+  fixed) and prior concentration 1 by default, or the Poisson, joint
+  multinomial or columns-fixed plan (`target_test > sampling_plan`).
+  Simulated with Spower: each study's table drawn from the cell
+  probabilities with the total n. Checked against the exact sum over
+  every table at small n. The R scripts of the exact Bayes factor tests
+  no longer name bfpwr where BayesFactor does the calculation.
+
 * `joint_power()` covers multisite trials (people randomised within each
   group): PUMP's design `d2.1_m2fr`, with powertools' ICCs converted so
   that each outcome's noncentrality is the card's (`multisite.cont()`).
@@ -75,6 +85,7 @@ A batch of new features, built as one round.
   refused (PUMP was given it without the baseline), and groups given with
   a size SD of 0 count as equal. The Updates tab's dates for the
   power visualiser and the moderated mediation entries are corrected.
+
 * A Bayes factor one-way ANOVA (E18, `target_test > method`
   "bayes_factor" on `oneway_between`): BayesFactor's ANOVA Bayes factor
   (`oneWayAOV.Fstat()`, equal to `anovaBF()` on the data), with JASP's

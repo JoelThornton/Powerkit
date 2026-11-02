@@ -524,9 +524,18 @@
           "exclusiveMinimum": 0
         },
         "prior_concentration": {
-          "description": "Bayes factor test of two proportions only: the prior concentration a of the contingency table Bayes factor (BayesFactor's contingencyTableBF(priorConcentration = a), independent multinomial sampling with the group sizes fixed; Gunel and Dickey's 'a'). Under the alternative each group's proportion has a Beta(a, a) prior. Default 1, JASP's default ('Prior concentration' 1) and BayesFactor's.",
+          "description": "Bayes factor tests of two proportions and of a contingency table only: the prior concentration a of the contingency table Bayes factor (BayesFactor's contingencyTableBF(priorConcentration = a); Gunel and Dickey's 'a'). For two proportions, under the alternative each group's proportion has a Beta(a, a) prior. Default 1, JASP's default ('Prior concentration' 1) and BayesFactor's.",
           "type": "number",
           "minimum": 1
+        },
+        "sampling_plan": {
+          "description": "Bayes factor test of a contingency table only: the sampling plan of contingencyTableBF(). rows_fixed (the default, JASP's 'Indep. multinomial, rows fixed'): independent multinomial with the row (X) totals fixed; columns_fixed: the column (Y) totals fixed; joint_multinomial: only the total fixed; poisson: no total fixed.",
+          "enum": [
+            "rows_fixed",
+            "columns_fixed",
+            "joint_multinomial",
+            "poisson"
+          ]
         },
         "one_sided_null": {
           "description": "Bayes factor test of one proportion, one-sided only: 'point' (the default, JASP's one-sided Bayesian binomial test) tests p = p0 against the side in 'alternative', the prior truncated to that side; 'directional' (bfpwr's binbf01(type = \"direction\")) tests p <= p0 against p > p0 (or the reverse).",
@@ -595,7 +604,8 @@
               "prior_b": false,
               "prior_width": false,
               "prior_concentration": false,
-              "one_sided_null": false
+              "one_sided_null": false,
+              "sampling_plan": false
             }
           }
         }
@@ -1946,7 +1956,11 @@
                   "const": "association"
                 },
                 "method": {
-                  "const": "pearson_chi_square"
+                  "enum": [
+                    "pearson_chi_square",
+                    "bayes_factor"
+                  ],
+                  "description": "pearson_chi_square: Pearson's chi-square test (pwr's pwr.chisq.test(), as G*Power). bayes_factor: the contingency table Bayes factor (BayesFactor's contingencyTableBF(), with JASP's defaults: rows fixed, prior concentration 1), simulated; needs population > probabilities."
                 }
               }
             }

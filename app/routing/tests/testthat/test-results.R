@@ -1024,6 +1024,32 @@ test_that("the one-way ANOVA's Bayes factor version runs on BayesFactor, with JA
   expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
 })
 
+test_that("the chi-square card's Bayes factor version is simulated with JASP's sampling plan", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E6"))
+  values <- modifyList(form_examples$E6, list(method = "bayes_factor", evidence_threshold = "10", sampling_plan = "rows_fixed",
+                                              prior_concentration = "1", just_source = "A meta-analysis.", alpha = NULL,
+                                              goal = "power", n = "150"))
+  expect_equal(form_problems(fields, values), character())
+  alpha <- Filter(function(f) identical(f$id, "alpha"), fields)[[1]]
+  expect_false(field_applies(alpha, values))
+  spec <- build_spec(forms, "E6", fields, values)
+  expect_null(spec$target_test$alpha)
+  expect_identical(spec$target_test$sampling_plan, "rows_fixed")
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["detail"]], "simulated studies with no association", fixed = TRUE)
+  known <- vapply(known_difference_keys(forms, "E6", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
+  w <- writeup_text(forms$forms$E6, calc$spec, calc$result, fields, values, known_methods = known)
+  expect_match(w[["short"]], "Bayes factor test of association", fixed = TRUE)
+  expect_match(w[["short"]], "BF10 ≥ 10", fixed = TRUE)
+  expect_no_match(w[["short"]], "α", fixed = TRUE)
+  expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
+})
+
 test_that("the correlation's Bayes factor version runs on BayesFactor, with JASP's prior width and its notes", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E4"))

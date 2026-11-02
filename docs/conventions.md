@@ -544,6 +544,15 @@ likelihood ratio; not a departure.
 | BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
 | **powerkit** | `contingencyTableBF()` with JASP's sampling plan (independent multinomial, group sizes fixed), in its closed form for a 2 x 2 table so that every possible table can be scored (equal to `contingencyTableBF()` to ten digits, tested and in the check run); power summed exactly over the tables; one-sided by JASP's rule with the posterior probability calculated exactly (E5, from 1 November 2026) [powerkit] | Each group's expected proportion, exactly, or a beta design prior on each with its mean and an SD (`population > p_sd`) | Prior concentration 1 by default, JASP's and BayesFactor's; Departure 15 is the design prior's default; Known difference 13 for the one-sided test. "greater" means group 2's proportion is the higher, as for the z test |
 
+## Bayes factor test of a contingency table (E6)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian contingency tables; analysis only, no planning) | Independence in an r x c table, by BayesFactor's `contingencyTableBF()` | — | "Indep. multinomial, rows fixed" and prior concentration 1 by default; Poisson, joint multinomial and columns fixed offered for any table, hypergeometric for 2 x 2 only |
+| BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
+| **powerkit** | `contingencyTableBF()` with the sampling plan chosen, JASP's by default; each simulated study's table drawn from the cell probabilities with the total n (multinomial), simulated with Spower (E6, from 2 November 2026) [powerkit] | The proportion in each cell | Rows fixed and prior concentration 1 by default, JASP's; the hypergeometric plan not offered. The no-association side simulated with the same number of studies. Not a departure |
+
 ## Bayes factor one-way ANOVA (E18)
 
 | Tool | Test | Effect size | Settings |
