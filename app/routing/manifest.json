@@ -5930,7 +5930,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.28.1",
+        "Version": "0.29.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
-        "RemoteSha": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
+        "RemoteRef": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
+        "RemoteSha": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
-        "GithubSHA1": "3ee3264d2fcec3a64c92d6893fb947ac81b7e1fb",
+        "GithubRef": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
+        "GithubSHA1": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 08:28:07 UTC; runner",
+        "Packaged": "2026-11-02 09:48:54 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 08:28:18 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 09:49:07 UTC; unix"
       }
     },
     "powertools": {
