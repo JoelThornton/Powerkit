@@ -85,6 +85,12 @@ simulated_data_available <- function(spec) {
 simulated_data_note <- function(spec) {
   spec <- validate_spec(spec)
   pop <- spec$population
+  if (identical(spec$template, "single_coefficient")) {
+    return(paste0(
+      "The other predictors (Other_1, ...) are drawn unrelated to ", spec$variables$X$label %||% "the tested predictor",
+      " and with no effect, since only the part of the tested predictor they don't share affects its coefficient's test."
+    ))
+  }
   if (identical(spec$design, "multiple_regression")) {
     return(paste0(
       "The predictors are drawn as independent standard normal scores with equal weights",
@@ -893,6 +899,9 @@ sim_yes_no_levels <- function(spec) {
 # (simulated_data_note()).
 sim_regression_code <- function(spec, n) {
   pop <- spec$population
+  if (identical(spec$template, "single_coefficient")) {
+    return(sim_coefficient_code(spec, n))
+  }
   if (identical(spec$template, "r2_zero")) {
     k_base <- 0
     k_test <- pop$predictors
@@ -915,6 +924,38 @@ sim_regression_code <- function(spec, n) {
     sprintf("y <- drop(x %%*%% weights) + sqrt(1 - %s) * stats::rnorm(%d)", r_code(r2_full), n),
     sprintf("colnames(x) <- %s", r_code(names)),
     sprintf("simulated <- data.frame(x, %s = y)", sim_label(spec, "Y"))
+  )
+}
+
+# One regression coefficient: drawn as powerkit's simulation draws it
+# (coefficient_data()): the tested predictor and the others independent
+# standard normal scores, then the error, of the spec's shape and spread
+# (normal with the same spread for the usual test), moved to have its
+# quantile at 0 for quantile regression.
+sim_coefficient_code <- function(spec, n) {
+  pop <- spec$population
+  k <- pop$predictors_total
+  shape <- pop$error_shape %||% "normal"
+  ratio <- pop$variance_ratio %||% 1
+  draw <- switch(shape,
+    normal = sprintf("stats::rnorm(%d)", n),
+    skewed = sprintf("(stats::rchisq(%d, df = 10) - 10) / sqrt(20) # standardised chi-square, 10 df", n),
+    heavy_tailed = sprintf("stats::rt(%d, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1", n)
+  )
+  shift <- if (identical(spec$target_test$method, "quantile_regression")) score_shape_quantile(shape, pop$quantile %||% 0.5) else 0
+  c(
+    sprintf("x <- stats::rnorm(%d) # the tested predictor, standardised", n),
+    if (k > 1) sprintf("others <- matrix(stats::rnorm(%d), nrow = %d, dimnames = list(NULL, paste0(\"Other_\", 1:%d))) # the other predictors", n * (k - 1), n, k - 1),
+    sprintf("error <- %s", draw),
+    if (shift != 0) sprintf("error <- error - %s # its %s quantile moved to 0", r_code(shift), format_number(pop$quantile %||% 0.5)),
+    sprintf("g <- log(%s) / 2 # the error variance is %s times as large 1 SD above the predictor's mean as 1 SD below", r_code(ratio), format_number(ratio)),
+    sprintf("y <- sqrt(%s / (1 - %s)) * x + exp((g * x - g^2 / 2) / 2) * error", r_code(pop$partial_r2), r_code(pop$partial_r2)),
+    sprintf(
+      "simulated <- data.frame(%s = x%s, %s = y)",
+      csv_name(spec$variables$X$label %||% "Predictor"),
+      if (k > 1) ", others" else "",
+      sim_label(spec, "Y")
+    )
   )
 }
 

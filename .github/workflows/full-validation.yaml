@@ -81,6 +81,7 @@ on:
           - reliability
           - aligned_rank
           - negative_binomial
+          - robust_regression
           - process_4
           - process_4_binary
           - process_6

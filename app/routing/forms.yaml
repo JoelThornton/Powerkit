@@ -2153,10 +2153,14 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
           - {id: question, label: "What you want to test", type: select, path: template, required: true,
              choices: {r2_zero: "Whether the predictors together explain anything (R-squared against 0)",
-                       r2_increase: "Whether some predictors add to the others (R-squared increase; for one predictor's coefficient, test 1 predictor)"},
+                       r2_increase: "Whether some predictors add to the others (R-squared increase)",
+                       single_coefficient: "Whether one predictor's coefficient differs from 0, controlling for the others"},
              sets: {r2_zero: [{path: target_test.effect, value: r_squared}],
-                    r2_increase: [{path: target_test.effect, value: r_squared_change}]}}
-      - input: "R-squared, or the R-squared change for the predictor(s) of interest"
+                    r2_increase: [{path: target_test.effect, value: r_squared_change}],
+                    single_coefficient: [{path: target_test.effect, value: coefficient}, {path: variables.X.type, value: continuous}]}}
+          - {id: X_label, label: "The predictor you are testing", type: text, path: variables.X.label, required: true,
+             shown_if: {field: question, is: single_coefficient}}
+      - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           - {id: r2, writeup_label: "R²", label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_zero}}
@@ -2164,15 +2168,38 @@ forms:
              shown_if: {field: question, is: r2_increase}}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}
+          - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor (0 to 1)", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
+             shown_if: {field: question, is: single_coefficient},
+             help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²)."}
       - input: "Number of predictors"
         fields:
           - {id: predictors, label: "Number of predictors", type: number, path: population.predictors, required: true, min: 1, integer: true,
              shown_if: {field: question, is: r2_zero}}
           - {id: predictors_total, label: "Number of predictors in the full model", type: number, path: population.predictors_total, required: true, min: 1, integer: true,
-             shown_if: {field: question, is: r2_increase}}
+             shown_if: {field: question, is_one_of: [r2_increase, single_coefficient]}}
           - {id: predictors_tested, label: "How many of them you are testing", type: number, path: population.predictors_tested, required: true, min: 1, integer: true,
              shown_if: {field: question, is: r2_increase}}
-
+      - input: "How the predictor's coefficient is tested, and the spread and shape of the errors"
+        fields:
+          - {id: coef_test, label: "How the coefficient is tested", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: single_coefficient},
+             choices: {f_test: "The usual t test (G*Power's single regression coefficient)",
+                       ols_hc3: "The t test with HC3 robust standard errors, simulated",
+                       ols_hc4: "The t test with HC4 robust standard errors, simulated",
+                       quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated"},
+             default: f_test, default_source: "the usual t test, the test G*Power and pwrss's power.f.regression() compute",
+             help: "The usual test assumes the outcome spreads out as much at every value of the predictor. Robust (HC3 or HC4) standard errors keep the test honest when the spread changes; HC4 is the safer of the two when a few people have extreme predictor values. Quantile regression tests a quantile of the outcome, such as the median, and is less affected by extreme outcome values."}
+          - {id: variance_ratio, label: "How much the spread changes: the error variance 1 SD above the predictor's mean over 1 SD below (1 = no change)", type: number, path: population.variance_ratio, required: true, min_exclusive: 0,
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             default: 1, default_source: "the same spread everywhere, as the usual test assumes (the design spec's default)",
+             help: "From earlier data: the variance of the residuals among people about 1 SD above the predictor's mean, divided by their variance about 1 SD below. 2 means the outcome is twice as variable at the high end. Below 1 means it is less variable."}
+          - {id: error_shape, label: "Shape of the errors", type: select, path: population.error_shape, required: true,
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             choices: {normal: "Normal", skewed: "Skewed (a long tail on one side)", heavy_tailed: "Heavy-tailed (more extreme values than normal)"},
+             default: normal, default_source: "normal errors, as the usual test assumes (the design spec's default)"}
+          - {id: quantile, label: "The quantile of the outcome you test (0.5 = the median)", type: number, path: population.quantile, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is: quantile_regression}],
+             default: 0.5, default_source: "the median, quantreg's default (rq(tau = 0.5), quantreg 6.1)"}
   E25:
     methods_name: "an exact binomial test of one proportion"
     tool: pwrss

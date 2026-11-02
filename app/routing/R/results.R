@@ -2211,6 +2211,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$target_test$method, "negative_binomial")) {
     name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))
   }
+  if (identical(spec$template, "single_coefficient")) {
+    name <- switch(spec$target_test$method %||% "f_test",
+      ols_hc3 = "the t test of one regression coefficient with HC3 robust standard errors, simulated",
+      ols_hc4 = "the t test of one regression coefficient with HC4 robust standard errors, simulated",
+      quantile_regression = sprintf("a quantile regression test of one coefficient (quantile %s), simulated", format(spec$population$quantile %||% 0.5)),
+      "the t test of one regression coefficient (as an F test)"
+    )
+  }
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"

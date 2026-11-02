@@ -66,6 +66,18 @@
 
 A batch of new features, built as one round.
 
+* Multiple regression has a third template, `single_coefficient`: the
+  test of one predictor's coefficient from its partial R-squared
+  (`population.partial_r2`, G*Power's "single regression coefficient";
+  pwrss's `power.f.regression(k.tested = 1)`). It can also be tested
+  with HC3 or HC4 standard errors (`target_test.method = "ols_hc3"`,
+  `"ols_hc4"`; car's `linearHypothesis()` and `hccm()`) or by quantile
+  regression (`"quantile_regression"`, `population.quantile`; quantreg's
+  `rq()` and `summary.rq(se = "nid")`), simulated by Spower with
+  powerkit's experiment `p_coefficient()` for errors whose spread changes
+  with the predictor (`population.variance_ratio`) and of a chosen shape
+  (`population.error_shape`). quantreg joins Imports. New validation
+  chunk `robust_regression`.
 * Negative binomial regression is a test version of
   `single_predictor_count` (`target_test.method = "negative_binomial"`,
   with the overdispersion in `population.dispersion`), simulated by

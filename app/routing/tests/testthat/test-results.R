@@ -1826,6 +1826,36 @@ test_that("negative binomial regression (E28's model choice) asks for the overdi
   expect_match(w[["short"]], "negative binomial regression", fixed = TRUE)
 })
 
+test_that("one regression coefficient (E24's third question) asks how it is tested and reaches pwrss or Spower", {
+  fields <- form_fields(form_groups(forms, "E24"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_false(field_applies(by_id("coef_test"), list(question = "r2_increase")))
+  expect_false(field_applies(by_id("variance_ratio"), list(question = "single_coefficient", coef_test = "f_test")))
+  expect_true(field_applies(by_id("variance_ratio"), list(question = "single_coefficient", coef_test = "ols_hc3")))
+  expect_true(field_applies(by_id("quantile"), list(question = "single_coefficient", coef_test = "quantile_regression")))
+  values <- modifyList(form_examples$E24, list(question = "single_coefficient", X_label = "Sleep", partial_r2 = "0.05", predictors_total = "3",
+    coef_test = "f_test", r2_full = NULL, r2_reduced = NULL, predictors_tested = NULL, goal = "power", n = "150"))
+  expect_equal(form_problems(fields, values), character())
+  usual <- build_spec(forms, "E24", fields, values)
+  expect_identical(usual$template, "single_coefficient")
+  expect_identical(usual$target_test$effect, "coefficient")
+  expect_null(usual$population$variance_ratio)
+  robust <- build_spec(forms, "E24", fields, modifyList(values, list(coef_test = "ols_hc3", variance_ratio = "2", error_shape = "skewed")))
+  expect_identical(robust$target_test$method, "ols_hc3")
+  expect_equal(robust$population$variance_ratio, 2)
+  expect_identical(robust$population$error_shape, "skewed")
+  expect_null(robust$population$quantile)
+  skip_without_run()
+  calc <- run_calculation(usual, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "pwrss")
+  robust$options$nrep <- 100L
+  calc <- run_calculation(robust, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "HC3 robust standard errors", fixed = TRUE)
+})
+
 test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
   fields <- form_fields(form_groups(forms, "E54"))
   values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))

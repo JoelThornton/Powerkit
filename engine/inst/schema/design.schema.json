@@ -4239,7 +4239,8 @@
           "template": {
             "enum": [
               "r2_zero",
-              "r2_increase"
+              "r2_increase",
+              "single_coefficient"
             ]
           },
           "variables": {
@@ -4249,6 +4250,10 @@
             "additionalProperties": false,
             "properties": {
               "Y": {
+                "$ref": "#/definitions/variable_continuous"
+              },
+              "X": {
+                "description": "The one predictor whose coefficient is tested (template single_coefficient only); its label names it in the results.",
                 "$ref": "#/definitions/variable_continuous"
               }
             }
@@ -4262,7 +4267,13 @@
                 "properties": {
                   "path": false,
                   "method": {
-                    "const": "f_test"
+                    "enum": [
+                      "f_test",
+                      "ols_hc3",
+                      "ols_hc4",
+                      "quantile_regression"
+                    ],
+                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\"))."
                   }
                 }
               }
@@ -4298,6 +4309,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_r2_increase"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "single_coefficient"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_single_coefficient"
             }
           }
         ]
@@ -4484,6 +4510,9 @@
           "properties": {
             "effect": {
               "const": "r_squared"
+            },
+            "method": {
+              "const": "f_test"
             }
           }
         }
@@ -4531,6 +4560,64 @@
           "properties": {
             "effect": {
               "const": "r_squared_change"
+            },
+            "method": {
+              "const": "f_test"
+            }
+          }
+        }
+      }
+    },
+    "template_single_coefficient": {
+      "description": "Linear multiple regression (fixed predictors): is one predictor's coefficient different from 0, controlling for the others? The usual test (G*Power's 'single regression coefficient'), or the same coefficient tested with heteroscedasticity-consistent standard errors or by quantile regression.",
+      "properties": {
+        "population": {
+          "required": [
+            "metric",
+            "partial_r2",
+            "predictors_total"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "r_squared"
+            },
+            "partial_r2": {
+              "description": "Partial R-squared of the predictor: the share of the outcome's variance left unexplained by the other predictors that this predictor explains (its squared partial correlation; Cohen's f^2 is partial_r2 / (1 - partial_r2)). 0 is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "predictors_total": {
+              "description": "Number of predictors in the model, counting the tested one.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "variance_ratio": {
+              "description": "Simulated tests only (methods 'ols_hc3', 'ols_hc4' and 'quantile_regression'): how much the spread of the outcome around the regression line changes with the predictor, as the error variance one SD above the predictor's mean over the error variance one SD below it. 1 (the same spread everywhere, as the usual test assumes) if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "error_shape": {
+              "description": "Simulated tests only: the shape of the errors around the regression line. 'normal' (as the usual test assumes) if omitted; 'skewed' is a standardised chi-square distribution with 10 df, 'heavy_tailed' a t distribution with 3 df rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
+            },
+            "quantile": {
+              "description": "Quantile regression only: the quantile of the outcome whose relation to the predictor is tested. 0.5 (the median) if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "coefficient"
             }
           }
         }

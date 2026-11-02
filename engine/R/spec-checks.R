@@ -128,7 +128,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
-    !negative_binomial_test(spec) &&
+    !negative_binomial_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
@@ -196,7 +196,7 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec) || proportion_trend(spec) || negative_binomial_test(spec)
+    rank_correlation(spec) || proportion_trend(spec) || negative_binomial_test(spec) || robust_regression(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -218,6 +218,14 @@ aligned_rank_test <- function(spec) identical(spec$target_test$method, "aligned_
 # Negative binomial regression of a count (MASS's glm.nb()), on the count
 # template: simulated with Spower by powerkit's own experiment.
 negative_binomial_test <- function(spec) identical(spec$target_test$method, "negative_binomial")
+
+# One regression coefficient tested with heteroscedasticity-consistent
+# standard errors (HC3 or HC4) or by quantile regression, on the single
+# coefficient template: simulated with Spower by powerkit's own experiment.
+robust_regression <- function(spec) {
+  identical(spec$template, "single_coefficient") &&
+    isTRUE(spec$target_test$method %in% c("ols_hc3", "ols_hc4", "quantile_regression"))
+}
 
 # The overdispersion is an input to negative binomial regression only, and
 # it needs one.
@@ -1920,8 +1928,33 @@ anova_contrast <- function(spec) {
 
 # Multiple regression ---------------------------------------------------------
 
+# One coefficient: the error's spread and shape are inputs to the simulated
+# tests only (the usual test's formula assumes normal errors of constant
+# spread), and the quantile to quantile regression only.
+check_single_coefficient <- function(spec) {
+  pop <- spec$population
+  method <- spec$target_test$method
+  problems <- character()
+  simulated <- c(variance_ratio = "the spread of the errors", error_shape = "the shape of the errors")
+  for (field in names(simulated)) {
+    if (!is.null(pop[[field]]) && !robust_regression(spec)) {
+      problems <- c(problems, sprintf(
+        "'population > %s' (%s) is only used by the simulated tests ('target_test > method' \"ols_hc3\", \"ols_hc4\" or \"quantile_regression\"): the usual test's formula assumes normal errors with the same spread everywhere. Remove it, or choose one of those tests.",
+        field, simulated[[field]]
+      ))
+    }
+  }
+  if (!is.null(pop$quantile) && !identical(method, "quantile_regression")) {
+    problems <- c(problems, "'population > quantile' is only used by quantile regression ('target_test > method' \"quantile_regression\"); remove it.")
+  }
+  problems
+}
+
 check_multiple_regression <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "single_coefficient")) {
+    return(check_single_coefficient(spec))
+  }
   if (spec$template != "r2_increase") {
     return(character())
   }
@@ -2858,7 +2891,7 @@ target_effect_is_zero <- function(spec) {
     # An equivalence test has something to show whenever the bound is above
     # 0 (the schema requires it), whatever the expected difference.
     equivalence_test = pop$bound %||% pop$margin,
-    multiple_regression = if (spec$template == "r2_zero") pop$r2 else pop$r2_full - pop$r2_reduced,
+    multiple_regression = switch(spec$template, r2_zero = pop$r2, single_coefficient = pop$partial_r2, pop$r2_full - pop$r2_reduced),
     logistic_regression = if (identical(spec$template, "factorial")) {
       design <- logistic_factorial_design(spec)
       max(abs(design$betas[design$tested]))

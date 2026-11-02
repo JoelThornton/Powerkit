@@ -10,7 +10,9 @@
 #                      pwrss::power.t.welch() (Bulus, 2024's formulas). The
 #                      default for Welch's t-test stays Spower simulation.
 #   R-squared          multiple_regression/r2_zero and r2_increase: the F
-#                      test, pwrss::power.f.regression()
+#                      test, pwrss::power.f.regression(); single_coefficient
+#                      (the usual test, method f_test) is the F test of one
+#                      predictor (k.tested = 1), the square of its t test
 #   Fisher's exact     basic_test/two_proportions with method fisher_exact:
 #                      pwrss::power.exact.fisher(method = "exact")
 #   goodness of fit    basic_test/chi_square_gof: Cohen's w from
@@ -61,6 +63,7 @@ pwrss_covers <- function(spec) {
              "factorial_anova/oneway_ancova", "factorial_anova/factorial_ancova",
              "factorial_anova/oneway_contrast",
              "multiple_regression/r2_zero", "multiple_regression/r2_increase",
+             if (!robust_regression(spec)) "multiple_regression/single_coefficient",
              "logistic_regression/single_predictor",
              "poisson_regression/single_predictor_count") ||
     (identical(key, "basic_test/two_proportions") &&
@@ -208,6 +211,9 @@ partial_r_squared <- function(spec) {
   pop <- spec$population
   if (spec$template == "r2_zero") {
     return(pop$r2)
+  }
+  if (spec$template == "single_coefficient") {
+    return(pop$partial_r2)
   }
   (pop$r2_full - pop$r2_reduced) / (1 - pop$r2_reduced)
 }
@@ -429,9 +435,10 @@ pwrss_inputs <- function(spec) {
       )
     },
     r2_zero = ,
-    r2_increase = {
+    r2_increase = ,
+    single_coefficient = {
       k_total <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_total
-      k_tested <- if (spec$template == "r2_zero") pop$predictors else pop$predictors_tested
+      k_tested <- switch(spec$template, r2_zero = pop$predictors, single_coefficient = 1, pop$predictors_tested)
       partial <- partial_r_squared(spec)
       list(
         fun = "power.f.regression",
@@ -610,10 +617,13 @@ pwrss_check_run <- function(spec, inputs) {
       )
     },
     r2_zero = ,
-    r2_increase = {
+    r2_increase = ,
+    single_coefficient = {
       r <- args$r.squared.change
       expected_f2 <- if (spec$template == "r2_zero") {
         pop$r2 / (1 - pop$r2)
+      } else if (spec$template == "single_coefficient") {
+        pop$partial_r2 / (1 - pop$partial_r2)
       } else {
         (pop$r2_full - pop$r2_reduced) / (1 - pop$r2_full)
       }
