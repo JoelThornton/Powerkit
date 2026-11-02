@@ -113,6 +113,14 @@ Button names are from Connect Cloud's documentation (found by search,
 
 From now on, each merge to main updates the app on its own.
 
+#### Google Search Console verification
+
+`app/routing/www/google47b320cdc6781b0a.html` is the HTML file Google
+Search Console uses to confirm ownership of the online app's address.
+Shiny serves files in `www/` from the site root, so Google finds it at
+`/google47b320cdc6781b0a.html`. Keep the file: Google checks it again
+from time to time, and removing it ends the verification.
+
 ### A university server (Shiny Server, open source)
 
 - **What it is.** The free, open-source Shiny Server on a university
