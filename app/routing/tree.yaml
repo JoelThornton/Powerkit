@@ -1128,16 +1128,17 @@ endpoints:
     plain_name: "Any difference among three or more groups"
     search_words: "one way anova between subjects kruskal wallis pairwise post hoc bonferroni holm comparisons"
     template: "factorial_anova / oneway_between"
-    backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_anova.test(var.equal = FALSE) for Welch's F; Spower's p_kruskal.test() for the Kruskal-Wallis test"
+    backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_anova.test(var.equal = FALSE) for Welch's F; Spower's p_kruskal.test() for the Kruskal-Wallis test; BayesFactor's oneWayAOV.Fstat() for the Bayes factor (exact)"
     method: "Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test"
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
       - "powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
       - "Expect the groups to vary by different amounts? Choose Welch's F as the test version on the next screen and give each group's SD: powerkit simulates it with Spower."
+      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: powerkit gives the chance of strong evidence, with JASP's default prior."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
       - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test or pairwise comparisons"]
+    inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
   E64:

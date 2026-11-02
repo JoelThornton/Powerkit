@@ -997,6 +997,33 @@ test_that("the two-proportion Bayes factor version runs on BayesFactor, with JAS
   expect_false("13" %in% known_difference_keys(forms, "E5", build_spec(forms, "E5", fields, form_examples$E5)))
 })
 
+test_that("the one-way ANOVA's Bayes factor version runs on BayesFactor, with JASP's r scale", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+                                               method = NULL, just_source = "A meta-analysis.", alpha = NULL))
+  expect_equal(form_problems(fields, values), character())
+  alpha <- Filter(function(f) identical(f$id, "alpha"), fields)[[1]]
+  expect_false(field_applies(alpha, values))
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_null(spec$target_test$alpha)
+  expect_null(spec$options$method)
+  expect_identical(spec$target_test$prior_scale, 0.5)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_no_match(html, "under the run's seed", fixed = TRUE)
+  known <- vapply(known_difference_keys(forms, "E18", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
+  w <- writeup_text(forms$forms$E18, calc$spec, calc$result, fields, values, known_methods = known)
+  expect_match(w[["short"]], "Bayes factor one-way ANOVA", fixed = TRUE)
+  expect_match(w[["short"]], "BF10 ≥ 10", fixed = TRUE)
+  expect_no_match(w[["short"]], "α", fixed = TRUE)
+  expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
+})
+
 test_that("the correlation's Bayes factor version runs on BayesFactor, with JASP's prior width and its notes", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E4"))

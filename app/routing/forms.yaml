@@ -1591,11 +1591,12 @@ forms:
           - {id: sds, writeup_label: "group SDs", label: "SDs: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.sds, effect: true,
              shown_if: {field: test_version, is: welch_f},
              help: "In the same units as the means. Welch's F doesn't assume the groups vary equally."}
-      - input: "The ANOVA, Welch's F, the Kruskal-Wallis test or pairwise comparisons"
+      - input: "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "One-way ANOVA (F test)", welch_f: "Welch's F test (the groups' SDs may differ), simulated", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated",
-                       t_test: "Pairwise comparisons between groups (t-tests, adjusted for their number), simulated"},
+                       t_test: "Pairwise comparisons between groups (t-tests, adjusted for their number), simulated",
+                       bayes_factor: "Bayes factor ANOVA (as in JASP's Bayesian ANOVA, equal groups), instead of a p-value"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
@@ -1610,6 +1611,14 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_kruskal.test(), Spower 0.7)",
              help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
+          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the group means differ than if they are all equal. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's Bayesian ANOVA ('r scale fixed effects' 0.5), the same as BayesFactor's default (anovaBF(rscaleFixed = 'medium'), 1/2; BayesFactor 0.9.12-4.8)",
+             help: "The prior you will use when you analyse the data. 0.5 is JASP's default; use the same value as in your analysis plan."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},

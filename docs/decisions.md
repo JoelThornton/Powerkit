@@ -4405,6 +4405,30 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
 
+## 2026-11-02 · Bayes factor one-way ANOVA (E18)
+
+Part of item 2 of `next.md`, with answers matching JASP's by default.
+
+- **What JASP does.** Read from its source (jaspAnova,
+  `inst/qml/common/bayesian/AdditionalOptions.qml`): the Bayesian ANOVA
+  calls BayesFactor with "r scale fixed effects" 0.5 by default, which is
+  also BayesFactor's own default (`rscaleFixed = "medium"`, 1/2).
+- **Package.** BayesFactor is the backend, as JASP's is. For a balanced
+  one-way design the Bayes factor depends on the data only through F, the
+  group size and the number of groups, and `oneWayAOV.Fstat()` computes it
+  from them; it equals `anovaBF()` on the data (tested to eight digits, and
+  in every run's check run).
+- **Power.** No package computes it. BF10 rises with F, so power is the
+  chance that F passes the F at which BF10 reaches the threshold (found by
+  root-finding), from the noncentral F with noncentrality f^2 n, the
+  distribution pwr and G\*Power use for the F test. Exact, with no random
+  numbers; checked against `anovaBF()` on simulated data
+  (`test-validation-bayes-anova.R`, chunk `bayes`), for power and for the
+  two outcomes with no effect.
+- **Not built.** Unequal groups (no F-only form of the Bayes factor), a
+  design prior on the means, and Bayes factor versions of the factorial
+  and repeated-measures ANOVAs: left for later.
+
 ## 2026-11-01 · The critical effect size (t-tests and correlation)
 
 - **Shown, as an observed value** (maintainer, 1 November 2026, with

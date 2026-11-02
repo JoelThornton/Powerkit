@@ -235,8 +235,11 @@ basic_method_field <- function(forms, ep_id) {
   field
 }
 
+# The id of the field that offers a Bayes factor test version (the field
+# writing target_test.method), or NULL when the form offers none.
 offers_bayes_factor <- function(form) {
-  any(vapply(form_fields(form$groups), function(f) identical(f$id, "method") && "bayes_factor" %in% names(f$choices), logical(1)))
+  hit <- Filter(function(f) identical(f$path, "target_test.method") && "bayes_factor" %in% names(f$choices), form_fields(form$groups))
+  if (length(hit)) hit[[1]]$id
 }
 
 # Precision planning (E46): the interval's width instead of power. Both
@@ -283,7 +286,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
-  no_bayes <- if (offers_bayes_factor(form)) list(field = "method", is_not = "bayes_factor")
+  bayes_field <- offers_bayes_factor(form)
+  no_bayes <- if (!is.null(bayes_field)) list(field = bayes_field, is_not = "bayes_factor")
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
@@ -298,7 +302,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor t-test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
+    list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",

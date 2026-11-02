@@ -449,6 +449,9 @@ check_bayes_factor <- function(spec) {
   if (bfprop_test(spec)) {
     return(check_bayes_proportions(spec))
   }
+  if (bfanova_test(spec)) {
+    return(check_bayes_anova(spec))
+  }
   if (!is.null(spec$target_test$prior_width)) {
     return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
   }
@@ -3004,7 +3007,7 @@ check_eta_squared_anova <- function(spec) {
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
     test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
-      jonckheere_terpstra = "The Jonckheere-Terpstra test",
+      jonckheere_terpstra = "The Jonckheere-Terpstra test", bayes_factor = "The Bayes factor ANOVA",
       t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
       "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",

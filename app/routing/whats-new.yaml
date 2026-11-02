@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "A Bayes factor for the one-way ANOVA"
+    text: >-
+      The one-way ANOVA now has a Bayes factor version, the one JASP's
+      Bayesian ANOVA computes, with JASP's default prior. It gives the
+      chance of strong evidence that the group means differ, and what the
+      same study would show if they didn't.
+  - date: "2026-11-01"
     title: "The power visualiser shows chi-square, R-squared and one-sided tests"
     text: >-
       In Labs, the power visualiser now also draws a chi-square test (with
