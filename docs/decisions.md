@@ -4405,6 +4405,37 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
 
+## 2026-11-02 · Joint power for multisite trials
+
+Part of item 1 of `next.md` (nested designs).
+
+- **Package.** PUMP's `pump_power()`, design `d2.1_m2fr` (people
+  randomised within each group, the effect varying at random across
+  groups, tested with J - 1 degrees of freedom), the model powertools'
+  `multisite.cont()` assumes for the card.
+- **Mapping.** powertools' ICCs are shares of the total variance with the
+  condition coded -1/2 and 1/2; PUMP's are shares of the variance without
+  the effect's. So `ICC.2 = icc / (1 - icc_effect)`, `omega.2 = 4
+  icc_effect / icc`, and the effect size is `d / sqrt(1 - icc_effect)`,
+  which gives exactly `multisite.cont()`'s noncentrality (tested). A
+  baseline score divides d by `sqrt(1 - R-squared)`, as `multisite.cont()`
+  does. With no variation in the group means, `ICC.2` is set just above 0
+  with `omega.2` scaled to keep the effect's variance.
+- **Known difference 14.** PUMP's test statistics are a shifted central t
+  (as PowerUp!'s), the card's the noncentral t: about 3 points lower with
+  10 groups, under 1 point from 20. Recorded, shown with the joint power
+  and tested; PUMP is the only package that gives joint power for these
+  designs.
+- **Fixed alongside.** A cluster-randomised trial with a baseline score was
+  passed to PUMP without it, so its joint power ignored the baseline; it
+  is now refused in plain words until PUMP's covariate model is matched to
+  powertools' design effect. Group sizes given with an SD of 0 (the form's
+  default) were refused as unequal; they are accepted now.
+- **Still open in item 1.** Dyadic designs have joint power for several
+  actor and partner effects on their own card (E44); a whole-study
+  simulation that mixes designs with nested or dyadic data, three or more
+  groups and three or more occasions are not built.
+
 ## 2026-11-02 · Bayes factor one-way ANOVA (E18)
 
 Part of item 2 of `next.md`, with answers matching JASP's by default.

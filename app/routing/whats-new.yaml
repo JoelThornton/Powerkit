@@ -6,20 +6,27 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Joint power for multisite trials"
+    text: >-
+      When your study plan compares the same two conditions within each
+      group on several outcomes, powerkit now gives the chance that every
+      outcome is significant together, as it already did for individually
+      and cluster-randomised studies.
+  - date: "2026-11-02"
     title: "A Bayes factor for the one-way ANOVA"
     text: >-
       The one-way ANOVA now has a Bayes factor version, the one JASP's
       Bayesian ANOVA computes, with JASP's default prior. It gives the
       chance of strong evidence that the group means differ, and what the
       same study would show if they didn't.
-  - date: "2026-11-01"
+  - date: "2026-11-02"
     title: "The power visualiser shows chi-square, R-squared and one-sided tests"
     text: >-
       In Labs, the power visualiser now also draws a chi-square test (with
       Cohen's w and its degrees of freedom) and a regression's R-squared,
       and the t-tests can be one-sided, so you can see how a test in the
       expected direction moves the critical value and raises power.
-  - date: "2026-11-01"
+  - date: "2026-11-02"
     title: "Two groups as X or W with several mediators"
     text: >-
       The moderated mediation card with two or more mediators now lets X

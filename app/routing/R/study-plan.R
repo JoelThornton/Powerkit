@@ -75,13 +75,13 @@ study_plan_file_name <- function() "powerkit-study-plan.powerkit.json"
 plan_specs <- function(entries) lapply(entries, function(e) e$spec %||% e$project$spec)
 
 # Joint power is offered when every analysis compares the same randomised
-# groups on a different outcome (independent t-tests, or cluster-randomised
-# trials), the designs PUMP covers; the engine's joint_power() checks the
+# groups on a different outcome (independent t-tests, cluster-randomised
+# trials or multisite trials), the designs PUMP covers; the engine's joint_power() checks the
 # rest and says plainly when it can't calculate.
 joint_power_offered <- function(entries) {
   if (length(entries) < 2) return(FALSE)
   templates <- vapply(plan_specs(entries), function(s) s$template %||% "", character(1))
-  length(unique(templates)) == 1 && templates[[1]] %in% c("independent_t", "cluster_randomised")
+  length(unique(templates)) == 1 && templates[[1]] %in% c("independent_t", "cluster_randomised", "multisite")
 }
 
 # The largest sample size in the plan, which joint power is calculated at.
@@ -105,8 +105,19 @@ joint_power_sentence <- function(calc, entries) {
   each <- paste(sprintf("%s for %s", vapply(calc$each, pct, character(1)), labels), collapse = "; ")
   c(headline = sprintf("With N = %s and outcomes correlated %s, the chance that every analysis is significant is %s.",
       whole(calc$n), format(calc$rho), pct(calc$complete)),
-    detail = sprintf("Each on its own: %s. Calculated by PUMP %s (pump_power(), design %s, %s simulated test statistics, seed %s), each test at its own significance level. PUMP pools the two groups' variances, so an independent t-test's power can differ slightly from its card's Welch test. Cite PUMP: Hunter, Miratrix and Porter (2024), Journal of Statistical Software 108(6), its own citation().",
-      each, calc$provenance$packages$PUMP, calc$design, format(calc$provenance$tnum, big.mark = ","), calc$provenance$seed))
+    detail = sprintf("Each on its own: %s. Calculated by PUMP %s (pump_power(), design %s, %s simulated test statistics, seed %s), each test at its own significance level. %s Cite PUMP: Hunter, Miratrix and Porter (2024), Journal of Statistical Software 108(6), its own citation().",
+      each, calc$provenance$packages$PUMP, calc$design, format(calc$provenance$tnum, big.mark = ","), calc$provenance$seed,
+      joint_power_difference(calc$design)))
+}
+
+# How PUMP's power for each outcome can differ from its card's
+# (docs/conventions.md, Known difference 14).
+joint_power_difference <- function(design) {
+  if (identical(design, "d1.1_m1c")) {
+    return("PUMP pools the two groups' variances, so an independent t-test's power can differ slightly from its card's Welch test.")
+  }
+  "PUMP draws each test statistic as a central t shifted by its expected size, as PowerUp! does, where the card uses the noncentral t, so with few groups each outcome's power here is a little below its card's (about 3 points with 10 groups; under 1 point from 20)."
+
 }
 
 # Under a result, in "Write it up and save it".

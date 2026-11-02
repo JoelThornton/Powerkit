@@ -12,8 +12,8 @@ joint_power(specs, rho, n, seed = 1L, tnum = 10000L)
 \item{rho}{The correlation between the outcomes (one number, assumed the
 same for every pair), between -1 and 1.}
 
-\item{n}{The total sample size in people (for a cluster-randomised trial,
-a whole number of groups of \code{cluster_size}).}
+\item{n}{The total sample size in people (for a cluster-randomised or
+multisite trial, a whole number of groups of \code{cluster_size}).}
 
 \item{seed}{Seed for PUMP's simulated test statistics.}
 
@@ -31,8 +31,11 @@ each analysis has its own power, but the chance that all of them are
 significant together is lower and depends on how the outcomes are
 correlated. This calculates it with PUMP's \code{pump_power()} (Hunter,
 Miratrix and Porter, 2024), for specs that all describe the same design:
-an independent t-test (PUMP's design \code{d1.1_m1c}) or a cluster-randomised
-trial (\code{d2.2_m2rc}, with the same group size and ICC). Each analysis
+an independent t-test (PUMP's design \code{d1.1_m1c}), a cluster-randomised
+trial (\code{d2.2_m2rc}, with the same group size and ICC) or a multisite
+trial, people randomised within each group (\code{d2.1_m2fr}, the groups'
+effects varying at random, as powertools' \code{multisite.cont()} assumes;
+the same group size and ICCs). Each analysis
 keeps its own effect size; the sample size is the one the study will
 recruit, and each analysis is tested at its own significance level with
 no further adjustment, as on its card. PUMP's complete power counts
@@ -44,5 +47,19 @@ tests that are each run at their own level.
 PUMP tests the difference with a t-test that pools the two groups'
 variances; an independent t-test card in powerkit uses Welch's test, so
 each outcome's power can differ slightly from its card's (they agree
-with equal groups to within simulation error).
+with equal groups to within simulation error). PUMP draws each test
+statistic as a central t shifted by its noncentrality, as PowerUp!'s
+formulas do, where powertools uses the noncentral t; with few groups
+this gives a little less power than the card (docs/conventions.md, Known
+difference 14).
+
+For a multisite trial, powertools' ICCs are shares of the total variance
+(\code{icc} of the group means, \code{icc_effect} of the effect across groups, on
+a condition coded -1/2 and 1/2), and PUMP's are shares of the variance
+without the effect's: PUMP's \code{ICC.2} is \code{icc / (1 - icc_effect)}, its
+\code{omega.2} (the effect's variance over the group means') is
+\verb{4 icc_effect / icc}, and its effect size is \code{d / sqrt(1 - icc_effect)},
+which gives the noncentrality \code{multisite.cont()} computes. A baseline
+score divides d by \code{sqrt(1 - baseline_r2_within)}, as \code{multisite.cont()}
+does with its \code{Rsq}.
 }
