@@ -368,6 +368,17 @@ design_description <- function(spec) {
       "multiple regression of %s on %s predictors: is R-squared greater than 0? (F test)",
       label("Y"), spec$population$predictors
     ),
+    "multiple_regression/single_coefficient" = sprintf(
+      "multiple regression of %s on %s%s: is its coefficient different from 0? (%s)",
+      label("Y"), comment_text(v$X$label %||% "the predictor"),
+      if (spec$population$predictors_total > 1) sprintf(" and %s other predictors", spec$population$predictors_total - 1) else "",
+      switch(spec$target_test$method,
+        ols_hc3 = "t test with HC3 robust standard errors",
+        ols_hc4 = "t test with HC4 robust standard errors",
+        quantile_regression = sprintf("quantile regression of the %s quantile", format(spec$population$quantile %||% 0.5)),
+        "t test, as an F test"
+      )
+    ),
     "multiple_regression/r2_increase" = sprintf(
       "multiple regression of %s: does adding %s predictors to %s others increase R-squared? (F test)",
       label("Y"), spec$population$predictors_tested,
@@ -1430,6 +1441,21 @@ spower_script_inputs <- function(spec) {
         r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
       )
     ),
+    single_coefficient = c(
+      sprintf("partial_r2 <- %s # partial R-squared of %s: the share of the variance the other predictors leave that it explains",
+        r_code(pop$partial_r2), comment_text(v$X$label %||% "the predictor")),
+      sprintf("predictors <- %s # predictors in the model, counting the tested one", r_code(pop$predictors_total)),
+      sprintf("variance_ratio <- %s # error variance 1 SD above the predictor's mean over 1 SD below (1: the same spread)", r_code(pop$variance_ratio %||% 1)),
+      sprintf("shape <- %s # the errors' shape: %s", r_code(pop$error_shape %||% "normal"), sub(" scores", " errors", score_shape_words(pop$error_shape))),
+      sprintf("method <- %s # %s", r_code(spec$target_test$method), switch(spec$target_test$method,
+        ols_hc3 = "least squares, tested with HC3 standard errors",
+        ols_hc4 = "least squares, tested with HC4 standard errors",
+        quantile_regression = "quantile regression"
+      )),
+      if (identical(spec$target_test$method, "quantile_regression")) {
+        sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
+      }
+    ),
     single_predictor_count = c(
       sprintf("rate_ratio <- %s # rate ratio for %s: %s", r_code(pop$rate_ratio), comment_text(v$X$label),
         if (identical(v$X$type, "binary")) sprintf("the rate in %s over the rate in %s", lv("X", 2), lv("X", 1)) else "the multiple of the rate per SD of the predictor"),
@@ -1617,6 +1643,15 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "scores = scores,",
       "n.ratios = group_ratio # each group's share"
     ),
+    single_coefficient = c(
+      "n = batch_n, # sample size",
+      "partial_r2 = partial_r2,",
+      "predictors = predictors,",
+      "variance_ratio = variance_ratio,",
+      "shape = shape,",
+      "method = method",
+      if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
+    ),
     single_predictor_count = c(
       "n = batch_n, # sample size",
       "rate_ratio = rate_ratio,",
@@ -1734,6 +1769,45 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    single_coefficient = c(
+      "# The experiment, as powerkit runs it: the tested predictor x and the other",
+      "# predictors z1, z2, ... as independent standard normal scores (only the part",
+      "# of x the others don't share matters, which partial_r2 describes), then the",
+      "# error, of the chosen shape with variance exp(g x - g^2 / 2) (averaging 1;",
+      "# g = log(variance_ratio) / 2), moved to have its quantile at 0 for quantile",
+      "# regression. The outcome is sqrt(partial_r2 / (1 - partial_r2)) * x plus the",
+      "# error. The p-value is the two-sided test of x's coefficient: least squares",
+      "# with HC3 or HC4 standard errors (car's linearHypothesis()), or quantile",
+      "# regression (quantreg's rq(), tested by summary.rq(se = \"nid\")).",
+      "p_coefficient <- function(n, partial_r2, predictors, variance_ratio = 1, shape = \"normal\",",
+      "                          method = \"ols_hc3\", quantile = 0.5) {",
+      "  quantile_fit <- method == \"quantile_regression\"",
+      "  x <- rnorm(n)",
+      "  data <- data.frame(x = x)",
+      "  for (j in seq_len(predictors - 1)) data[[paste0(\"z\", j)]] <- rnorm(n)",
+      "  draw <- switch(shape,",
+      "    normal = function(n) rnorm(n),",
+      "    skewed = function(n) (rchisq(n, df = 10) - 10) / sqrt(20), # standardised chi-square, 10 df",
+      "    heavy_tailed = function(n) rt(n, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1",
+      "  )",
+      "  error <- draw(n)",
+      "  if (quantile_fit) {",
+      "    error <- error - switch(shape,",
+      "      normal = qnorm(quantile),",
+      "      skewed = (qchisq(quantile, df = 10) - 10) / sqrt(20),",
+      "      heavy_tailed = qt(quantile, df = 3) / sqrt(3)",
+      "    )",
+      "  }",
+      "  g <- log(variance_ratio) / 2",
+      "  data$y <- sqrt(partial_r2 / (1 - partial_r2)) * x + exp((g * x - g^2 / 2) / 2) * error",
+      "  if (quantile_fit) {",
+      "    fit <- quantreg::rq(y ~ ., tau = quantile, data = data)",
+      "    return(coef(summary(fit, se = \"nid\"))[\"x\", \"Pr(>|t|)\"])",
+      "  }",
+      "  fit <- lm(y ~ ., data = data)",
+      "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
     single_predictor_count = c(
       "# The experiment, as powerkit runs it: the predictor x (a standard normal",
       "# score, or a yes/no group with round(n * x_prob) in the second group, in",

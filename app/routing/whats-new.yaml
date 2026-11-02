@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "One regression coefficient, with robust standard errors or quantile regression"
+    text: >-
+      The multiple regression card can now plan the test of one predictor's
+      coefficient from its partial R-squared. If the outcome spreads out
+      more at some values of the predictor, choose robust (HC3 or HC4)
+      standard errors; to test the median or another quantile, choose
+      quantile regression. powerkit simulates both.
+  - date: "2026-11-02"
     title: "Counts that vary more than Poisson regression allows"
     text: >-
       The count outcome card now offers negative binomial regression, for

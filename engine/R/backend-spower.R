@@ -35,7 +35,12 @@ spower_backend <- function(spec, seed = NULL) {
       # p_art() calls ARTool's art() and artlm(), then car's Anova().
       if (aligned_rank_test(spec)) c("ARTool", "car"),
       # p_negative_binomial() fits MASS's glm.nb().
-      if (negative_binomial_test(spec)) "MASS"
+      if (negative_binomial_test(spec)) "MASS",
+      # p_coefficient() tests with car's linearHypothesis() and hccm(), or
+      # fits quantreg's rq().
+      if (robust_regression(spec)) {
+        if (identical(spec$target_test$method, "quantile_regression")) "quantreg" else "car"
+      }
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -207,6 +212,23 @@ spower_inputs <- function(spec) {
         )
       }
     ),
+    # One regression coefficient with robust standard errors or by quantile
+    # regression: powerkit's own experiment, p_coefficient(), draws the
+    # predictors and the outcome (coefficient_data()) and tests the
+    # coefficient of x.
+    single_coefficient = list(
+      experiment = "p_coefficient", own = TRUE,
+      args = function(n) {
+        c(
+          list(
+            n = n, partial_r2 = pop$partial_r2, predictors = pop$predictors_total,
+            variance_ratio = pop$variance_ratio %||% 1, shape = pop$error_shape %||% "normal",
+            method = spec$target_test$method
+          ),
+          if (identical(spec$target_test$method, "quantile_regression")) list(quantile = pop$quantile %||% 0.5)
+        )
+      }
+    ),
     factorial = {
       design <- logistic_factorial_design(spec)
       list(
@@ -228,6 +250,17 @@ spower_inputs <- function(spec) {
   } else if (identical(template, "single_predictor_count")) {
     sprintf("Spower::Spower(p_negative_binomial(%s)) (MASS::glm.nb(), the Wald z test of the predictor)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
+  } else if (identical(template, "single_coefficient")) {
+    switch(spec$target_test$method,
+      quantile_regression = sprintf(
+        "Spower::Spower(p_coefficient()) (quantreg::rq(tau = %s), the test of the predictor's coefficient by summary.rq(se = \"nid\"))",
+        format(spec$population$quantile %||% 0.5)
+      ),
+      sprintf(
+        "Spower::Spower(p_coefficient()) (stats::lm(), the test of the predictor's coefficient by car::linearHypothesis(white.adjust = \"%s\"))",
+        sub("ols_", "", spec$target_test$method)
+      )
+    )
   } else if (identical(template, "proportion_trend")) {
     sprintf("Spower::Spower(p_cochran_armitage(%s)) (stats::prop.trend.test(), the Cochran-Armitage test)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
@@ -555,6 +588,57 @@ p_negative_binomial <- function(n, rate_ratio, base_rate, dispersion, exposure, 
   )
 }
 
+# Data for the test of one regression coefficient: n people, the tested
+# predictor x and the model's other predictors (z1, z2, ...) independent
+# standard normal scores. Only the part of x the other predictors don't
+# share affects the test of its coefficient, which partial_r2 describes, so
+# they are drawn unrelated to x and with no effect. The outcome is
+# slope * x + error, with slope = sqrt(partial_r2 / (1 - partial_r2)) in
+# units of the error's SD (Cohen's f). The error has the chosen shape
+# (score_shape_sampler()) and variance exp(g x - g^2 / 2), which averages
+# 1, with g = log(variance_ratio) / 2: variance_ratio is the error variance
+# one SD above x's mean over the variance one SD below. For quantile
+# regression the error is moved so that its quantile is 0, so the
+# outcome's quantile rises by the slope per SD of x; otherwise its mean is
+# 0. Drawn in this order: x, the other predictors, the error.
+coefficient_data <- function(n, partial_r2, predictors, variance_ratio = 1, shape = "normal", quantile = NULL) {
+  x <- stats::rnorm(n)
+  data <- data.frame(x = x)
+  for (j in seq_len(predictors - 1)) data[[paste0("z", j)]] <- stats::rnorm(n)
+  error <- score_shape_sampler(shape)(n)
+  if (!is.null(quantile)) error <- error - score_shape_quantile(shape, quantile)
+  g <- log(variance_ratio) / 2
+  data$y <- sqrt(partial_r2 / (1 - partial_r2)) * x + exp((g * x - g^2 / 2) / 2) * error
+  data
+}
+
+# The quantile of score_shape_sampler()'s distributions.
+score_shape_quantile <- function(shape, quantile) {
+  switch(
+    shape %||% "normal",
+    normal = stats::qnorm(quantile),
+    skewed = (stats::qchisq(quantile, df = 10) - 10) / sqrt(20),
+    heavy_tailed = stats::qt(quantile, df = 3) / sqrt(3)
+  )
+}
+
+# Spower experiment for one regression coefficient: the outcome regressed
+# on x and the other predictors, and the p-value of x's coefficient (two-
+# sided). Least squares with heteroscedasticity-consistent standard errors
+# (car's linearHypothesis() with white.adjust "hc3" or "hc4", car's
+# hccm()), or quantile regression (quantreg's rq() at the quantile, tested
+# by summary.rq(se = "nid"), which allows the spread to change with x).
+p_coefficient <- function(n, partial_r2, predictors, variance_ratio = 1, shape = "normal", method = "ols_hc3", quantile = 0.5) {
+  quantile_fit <- identical(method, "quantile_regression")
+  data <- coefficient_data(n, partial_r2, predictors, variance_ratio, shape, if (quantile_fit) quantile)
+  if (quantile_fit) {
+    fit <- quantreg::rq(y ~ ., tau = quantile, data = data)
+    return(stats::coef(summary(fit, se = "nid"))["x", "Pr(>|t|)"])
+  }
+  fit <- stats::lm(y ~ ., data = data)
+  car::linearHypothesis(fit, "x = 0", white.adjust = sub("ols_", "", method))[2, "Pr(>F)"]
+}
+
 p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = "two.sided") {
   groups <- gen_fun(n, k, n.ratios, means)
   g <- factor(rep(seq_len(k), lengths(groups)))
@@ -701,6 +785,11 @@ spower_check_run <- function(spec, inputs, n, seed) {
         ok = abs(r2 - args$r2_other) <= 5 * 2 * sqrt(args$r2_other) * (1 - args$r2_other) / sqrt(nrow(data))))
     }
     return(rows)
+  }
+  # One regression coefficient: one large data set, fitted as each
+  # simulated one is; the slope and the change in spread recovered.
+  if (identical(spec$template, "single_coefficient")) {
+    return(coefficient_check_run(args, seed))
   }
   # A trend in proportions: each group's proportion from one large draw.
   if (identical(spec$template, "proportion_trend")) {
@@ -1063,4 +1152,35 @@ p_manova <- function(n, means, sds, r, b = 1, term = "A") {
 # The term of A * B a two-factor MANOVA tests.
 manova_term <- function(spec) {
   switch(spec$target_test$effect, main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+}
+
+# Check run for one regression coefficient: the slope of x in error-SD
+# units (by least squares, or quantile regression at the quantile, with
+# its "nid" standard error; quantreg's Frisch-Newton method, method = "fn",
+# which its help advises for large data sets), and the change in the error's spread,
+# log(variance_ratio), as twice the slope of the log squared residuals on
+# x (its standard error from that regression).
+coefficient_check_run <- function(args, seed) {
+  quantile_fit <- identical(args$method, "quantile_regression")
+  data <- call_backend("Spower", with_seed(seed, coefficient_data(
+    args$n, args$partial_r2, args$predictors, args$variance_ratio, args$shape, if (quantile_fit) args$quantile
+  )))
+  slope <- sqrt(args$partial_r2 / (1 - args$partial_r2))
+  ls_fit <- stats::lm(y ~ ., data = data)
+  est <- if (quantile_fit) {
+    stats::coef(call_backend("quantreg", summary(quantreg::rq(y ~ ., tau = args$quantile, data = data, method = "fn"), se = "nid")))["x", 1:2]
+  } else {
+    stats::coef(summary(ls_fit))["x", 1:2]
+  }
+  spread <- stats::coef(summary(stats::lm(log(stats::residuals(ls_fit)^2) ~ data$x)))[2, 1:2]
+  rows <- rbind(
+    check_run_rows(
+      if (quantile_fit) sprintf("slope of the outcome's %s quantile per SD of X, in error SDs", format(args$quantile)) else "slope per SD of X, in error SDs (Cohen's f)",
+      slope, est[[1]], est[[2]]
+    ),
+    check_run_rows("error variance ratio, 1 SD above X's mean over 1 SD below (checked on the log scale)", log(args$variance_ratio), 2 * spread[[1]], 2 * spread[[2]])
+  )
+  rows$specified[2] <- args$variance_ratio
+  rows$recovered[2] <- exp(2 * spread[[1]])
+  rows
 }

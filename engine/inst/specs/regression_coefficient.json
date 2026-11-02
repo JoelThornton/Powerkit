@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1",
+  "design": "multiple_regression",
+  "template": "single_coefficient",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Wellbeing score"
+    },
+    "X": {
+      "type": "continuous",
+      "label": "Hours of sleep"
+    }
+  },
+  "population": {
+    "metric": "r_squared",
+    "partial_r2": 0.04,
+    "predictors_total": 4,
+    "variance_ratio": 2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: sleep explaining 4% of the wellbeing variance the three controls leave is the smallest of interest; the spread of wellbeing is expected to double from short to long sleepers."
+  },
+  "target_test": {
+    "effect": "coefficient",
+    "method": "ols_hc3",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 200
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261102
+  }
+}

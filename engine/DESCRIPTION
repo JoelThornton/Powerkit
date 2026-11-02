@@ -52,6 +52,7 @@ Imports:
     metapower,
     parallel,
     psych,
+    quantreg,
     power4mome,
     pwr,
     powertools,

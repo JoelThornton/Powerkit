@@ -125,6 +125,12 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       },
       if ("MASS" %in% used) {
         list(s("MASS", "whose glm.nb() fits the negative binomial regression powerkit's experiment runs"))
+      },
+      if ("car" %in% used && !"ARTool" %in% used) {
+        list(s("car", "whose linearHypothesis() and hccm() give the test of the coefficient with heteroscedasticity-consistent standard errors"))
+      },
+      if ("quantreg" %in% used) {
+        list(s("quantreg", "whose rq() and summary.rq() are the quantile regression powerkit's experiment runs"))
       }
     ),
     Superpower = list(

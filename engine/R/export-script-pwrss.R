@@ -230,6 +230,14 @@ pwrss_script_inputs <- function(spec) {
       sprintf("r2 <- %s # expected R-squared of the model", r_code(pop$r2)),
       sprintf("predictors <- %s # number of predictors", r_code(pop$predictors))
     ),
+    single_coefficient = c(
+      sprintf("partial_r2 <- %s # partial R-squared of %s: the share of the variance the other predictors leave that it explains",
+        r_code(pop$partial_r2), comment_text(spec$variables$X$label %||% "the predictor")),
+      sprintf("predictors_total <- %s # predictors in the model, counting the tested one", r_code(pop$predictors_total)),
+      "# The test of one coefficient is the F test of one predictor (k.tested = 1),",
+      "# the square of its t test. pwrss turns r.squared.change into Cohen's f^2 as",
+      "# r / (1 - r), so passing the partial R-squared gives f^2 = partial_r2 / (1 - partial_r2)."
+    ),
     r2_increase = c(
       sprintf("r2_full <- %s # expected R-squared with every predictor", r_code(pop$r2_full)),
       sprintf("r2_reduced <- %s # expected R-squared without the tested set", r_code(pop$r2_reduced)),
@@ -366,6 +374,10 @@ pwrss_script_call_lines <- function(spec, inputs) {
     )),
     r2_zero = list(head = "power.f.regression( # F test of R-squared", args = c(
       "r.squared.change = r2", "k.total = predictors", "k.tested = predictors",
+      "n = n_total", "alpha = alpha", "verbose = 0"
+    )),
+    single_coefficient = list(head = "power.f.regression( # F test of one coefficient (its t test squared)", args = c(
+      "r.squared.change = partial_r2", "k.total = predictors_total", "k.tested = 1",
       "n = n_total", "alpha = alpha", "verbose = 0"
     )),
     r2_increase = list(head = "power.f.regression( # F test of the R-squared increase", args = c(

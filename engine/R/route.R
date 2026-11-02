@@ -69,6 +69,12 @@ route_spec <- function(spec, seed = NULL) {
     "basic_test/two_correlations" = ,
     "basic_test/overlapping_correlations" = ,
     "basic_test/nonoverlapping_correlations" = ,
+    "multiple_regression/single_coefficient" = if (robust_regression(spec)) {
+      # Robust standard errors or quantile regression, simulated with Spower.
+      spower_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,

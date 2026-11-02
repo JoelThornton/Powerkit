@@ -4743,3 +4743,50 @@ only.
   goodness-of-fit test of two raters' agreement patterns for kappa
   (prevalence estimated, 1 df), within 0.03 beyond the Monte Carlo
   error. Published worked examples are placeholders.
+
+## 2026-11-02 · One regression coefficient: robust standard errors and quantile regression (E24)
+
+- **What:** a third multiple regression template, `single_coefficient`,
+  on the E24 card ("Whether one predictor's coefficient differs from 0,
+  controlling for the others"). The effect is the predictor's partial
+  R-squared with the number of predictors, as G*Power's single
+  regression coefficient test asks. The usual test is pwrss's
+  `power.f.regression(k.tested = 1)`, the square of the t test, so it
+  equals the R-squared increase of one predictor exactly.
+- **Test versions, simulated with Spower** (powerkit's experiment
+  `p_coefficient()`): least squares with HC3 or HC4 standard errors
+  (car's `linearHypothesis(white.adjust = )`, which uses car's
+  `hccm()`), and quantile regression (quantreg's `rq()`, tested by
+  `summary.rq(se = "nid")`, the standard error that allows the spread to
+  change with the predictor and gives a p-value; quantreg's default for
+  small samples, rank inversion, gives intervals only). No package powerkit
+  uses has a power function for these tests.
+- **Data model:** the tested predictor and the others are independent
+  standard normal scores (only the part of the predictor the others don't
+  share affects its test, which the partial R-squared describes); the
+  slope is sqrt(partial R² / (1 − partial R²)) error SDs; the error
+  variance is exp(g x − g²/2), averaging 1, with g = log(variance ratio)
+  / 2, where the variance ratio compares 1 SD above the predictor's mean
+  with 1 SD below; errors are normal, skewed (standardised chi-square, 10
+  df) or heavy-tailed (t, 3 df), the shapes the rank tests use. For
+  quantile regression the error's quantile is moved to 0, so the
+  outcome's quantile rises by the slope.
+- **Default:** the usual t test stays the default, as in G*Power, with
+  robust standard errors one choice away. Whether HC3 should become the
+  default for every regression coefficient is a method question for the
+  maintainer; not changed here.
+- **Two-sided only**, as the card's other tests.
+- **Validation** (`test-validation-robust-regression.R`, chunk
+  `robust_regression`): HC3 and HC4 against the usual test's formula when
+  errors are normal with a constant spread (within 0.02 beyond the
+  Monte Carlo error), quantile regression against a simulation that draws
+  the outcome from its quantile function and calls `rq()` directly, and
+  the Type I error with a changing spread. A published example is a
+  placeholder.
+- **Open question for the maintainer:** quantreg's "nid" test rejects
+  too often when errors are skewed and their spread changes: 9.4% at
+  alpha 0.05 (n = 150, three predictors, variance ratio 4), while
+  `se = "ker"` gave 0.7%. Power for quantile regression is then
+  optimistic. The card says so, and a validation test records the size.
+  Alternatives are the bootstrap (`se = "boot"`, much slower) or rank
+  inversion (intervals only); a statistician's view is wanted.

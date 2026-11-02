@@ -147,6 +147,9 @@ fully validated. Validation runs are recorded in
   between-participants factors).
 - **Negative binomial regression** (E28's model choice, 2 November 2026)
   for overdispersed counts, simulated with Spower and MASS's `glm.nb()`.
+- **One regression coefficient** (E24's third question, 2 November 2026):
+  the usual test by pwrss's formula, or with HC3 or HC4 standard errors
+  (car) or by quantile regression (quantreg), simulated with Spower.
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).

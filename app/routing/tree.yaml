@@ -1266,17 +1266,18 @@ endpoints:
   E24:
     doc_name: "Multiple regression (R² or one coefficient)"
     plain_name: "Several predictors at once, or one predictor controlling for others"
-    search_words: "linear regression ols coefficient r squared"
-    template: "multiple_regression / r2_zero, r2_increase"
-    backend: "pwrss: power.f.regression() (the F test, by formula)"
-    method: "Formula (no simulation)"
+    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression"
+    template: "multiple_regression / r2_zero, r2_increase, single_coefficient"
+    backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated)"
+    method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. Not yet checked against a published example."}
     card_points:
-      - "One predictor's coefficient, controlling for the others, is an R-squared increase with 1 predictor tested: the same F test."
-    inputs: ["Your outcome's name and what you want to test", "R-squared, or the R-squared change for the predictor(s) of interest", "Number of predictors"]
+      - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
+      - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
+    inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
     tier: v2
-    alternatives: ["R-squared for the whole model", "the R-squared increase for a set of predictors", "the test of one coefficient"]
+    alternatives: ["R-squared for the whole model", "the R-squared increase for a set of predictors", "the test of one coefficient, the usual way, with robust standard errors, or by quantile regression"]
   E25:
     doc_name: "One proportion against a fixed value"
     plain_name: "Compare one group's proportion with a fixed value"

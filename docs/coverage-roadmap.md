@@ -101,7 +101,7 @@ The 49 tests exactly as the maintainer listed them. None added from memory.
 | A9 | Linear bivariate regression: two groups, difference between slopes | GP | E15 (a yes/no W × continuous X interaction is a difference in slopes) | Wired (29 October 2026; simulated, groups 50/50; published value to transcribe) | Now: AP, PN (InteractionPoweR) | InteractionPoweR `power_interaction(k.x2 = 2)`: groups split 50/50 only. Spower `p_glm()` as A8 for unequal groups | Phase 3b; G\*Power allows unequal groups, InteractionPoweR doesn't | [E4][] |
 | A10 | Linear multiple regression: fixed model, R² deviation from zero | GP; UCLA | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | Engine: AP, PN (pwrss). Could: AP, PN, S, Co, Cr (Spower); AP, PN, S, Cr (pwr) | **Engine: pwrss `power.f.regression(r.squared.change, k.total, k.tested)`** (noncentrality f² × n, from its source). Spower `p_lm.R2(R2, k)` (Example 13.1); pwr `pwr.f2.test()` | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
 | A11 | Linear multiple regression: fixed model, R² increase | GP | E24 | Wired (matches G\*Power in the engine's tests, `test-backend-wave2.R`; not yet in the full validation run, where its published value is still a placeholder) | As A10 | **Engine: pwrss `power.f.regression()`, passed the partial R² (R²full − R²reduced) / (1 − R²reduced), so f² = ΔR² / (1 − R²full)**. Spower `p_lm.R2(R2, k, R2_0, k.R2_0)` (Example 14.3); pwr `pwr.f2.test(u = )` (its noncentrality f² × (u + v + 1) differs) | G\*Power screenshots (wave 2 list below), then wire | [G1][] |
-| A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Foundation tool can do it, not planned | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
+| A12 | Linear multiple regression: fixed model, single regression coefficient | GP | E24 | Wired (2 November 2026; template single_coefficient, pwrss formula; with HC3/HC4 standard errors or quantile regression, simulated) | As A10 | Spower `p_glm()` (one coefficient, tested with `car::lht()`); pwr `pwr.f2.test(u = 1)` | As A10 | [G1][] |
 | A13 | Linear multiple regression: random model | GP | E24 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_lm.R2(fixed = FALSE)` (Example 7.3) | — | [G1][] |
 | A14 | Logistic regression | GP; UCLA | E27 | Wired (in the app; the G\*Power manual's examples reproduce when "R² other X" is 0, see conventions.md, Known difference 3, above it; values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.logistic(method = "demidenko(vc)")`** (Wald z test of one predictor, a standardised score or a yes/no group, with other predictors through `r.squared.predictor`; design `logistic_regression`). Spower `p_glm(family = binomial())` | Transcribe the manual's examples (validation placeholders); settle Known difference 3 with G\*Power | — |
 | A15 | Poisson regression | GP | E28 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S, Co, Cr | **Engine: pwrss `power.z.poisson(method = "demidenko(vc)")`** (Wald z test of one predictor of a count outcome, a standardised score or a yes/no group, over a mean exposure, with other predictors through `r.squared.predictor`; design `poisson_regression`). Spower `p_glm(family = poisson())` | Transcribe the manual's examples (validation placeholders) | — |
@@ -427,10 +427,10 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 26 | 0 | 55 |
+| Wired (validation not finished) | 30 | 26 | 0 | 56 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 8 | 2 | 11 |
-| Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
+| Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
@@ -543,7 +543,8 @@ until it goes through
   2026, between-participants factors), Quade's
   non-parametric ANCOVA, PERMANOVA; pairwise follow-ups after an ANOVA
   (Tukey's HSD, Games-Howell, Dunnett, simple effects; see C1); robust
-  (HC3 or HC4) and quantile regression; McDonald's omega, Fleiss' kappa
+  (HC3 or HC4) and quantile regression (E24's test versions since 2
+  November 2026); McDonald's omega, Fleiss' kappa
   and Krippendorff's alpha beside B50; and signal detection sensitivity
   (d'). Effect-size formats users bring (d_rm, d_av, omega squared,
   generalised eta squared) belong to C9.
