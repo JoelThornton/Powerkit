@@ -10,6 +10,35 @@
     "has_parameters": false
   },
   "packages": {
+    "ARTool": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "ARTool",
+        "Title": "Aligned Rank Transform",
+        "Version": "0.11.2",
+        "Date": "2025-04-09",
+        "Authors@R": "c(person(\"Matthew\", \"Kay\", role = c(\"aut\", \"cre\"),\n    email = \"mjskay@northwestern.edu\"),\n    person(\"Lisa A.\", \"Elkin\", role = \"aut\",\n    email = \"lelkin@cs.washington.edu\"),\n    person(\"James J.\", \"Higgins\", role = \"aut\",\n    email = \"jhiggins@ksu.edu\"),\n    person(\"Jacob O.\", \"Wobbrock\", role = \"aut\",\n    email = \"wobbrock@uw.edu\"))",
+        "Maintainer": "Matthew Kay <mjskay@northwestern.edu>",
+        "Description": "The aligned rank transform for nonparametric\n    factorial ANOVAs as described by Wobbrock,\n    Findlater, Gergle, and Higgins (2011) <doi:10.1145/1978942.1978963>. \n    Also supports aligned rank transform contrasts as described\n    by Elkin, Kay, Higgins, and Wobbrock (2021)\n    <doi:10.1145/3472749.3474784>.",
+        "Depends": "R (>= 3.2)",
+        "Imports": "lme4, car (>= 2.0-24), plyr, magrittr, dplyr, emmeans",
+        "Suggests": "testthat (>= 0.10.0), knitr, rmarkdown, ggplot2, tidyr,\npander, lmerTest, cluster, phia, survival, psych, stringi,\nDescTools, tibble, covr",
+        "License": "GPL (>= 2)",
+        "Language": "en-US",
+        "BugReports": "https://github.com/mjskay/ARTool/issues",
+        "URL": "https://github.com/mjskay/ARTool/",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.3.2",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-04-10 05:37:43 UTC; matth",
+        "Author": "Matthew Kay [aut, cre],\n  Lisa A. Elkin [aut],\n  James J. Higgins [aut],\n  Jacob O. Wobbrock [aut]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-04-10 08:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 03:06:12 UTC; unix"
+      }
+    },
     "BH": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5908,7 +5937,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, power4mome, pwr, powertools,\npowerSurvEpi, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, power4mome, pwr, powertools,\npowerSurvEpi, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5918,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c54888757053b0bf1ccccadd6171096ef09a84e0",
-        "RemoteSha": "c54888757053b0bf1ccccadd6171096ef09a84e0",
+        "RemoteRef": "42f80c56e175852483ef2cbd4bd6b6d60a659764",
+        "RemoteSha": "42f80c56e175852483ef2cbd4bd6b6d60a659764",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c54888757053b0bf1ccccadd6171096ef09a84e0",
-        "GithubSHA1": "c54888757053b0bf1ccccadd6171096ef09a84e0",
+        "GithubRef": "42f80c56e175852483ef2cbd4bd6b6d60a659764",
+        "GithubSHA1": "42f80c56e175852483ef2cbd4bd6b6d60a659764",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 06:56:47 UTC; runner",
+        "Packaged": "2026-11-02 07:23:01 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 06:57:02 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 07:23:14 UTC; unix"
       }
     },
     "powertools": {
@@ -7876,7 +7905,7 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "6e50895dede13b4341d701c0531a9474"
+      "checksum": "613f061c640bb58cbebf273742323144"
     },
     "methods-map.yaml": {
       "checksum": "67eb2800cbbe955f630e138777a9c99d"
@@ -7903,7 +7932,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "7e2d7c6dd5362dbca5c9883226b6f2c8"
+      "checksum": "ef8c2d509027e6fc4c1df0e4a58989c9"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7930,7 +7959,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "1e3288288530f196c5041e52632ac839"
+      "checksum": "724917b40df88afa6d654b26a0877532"
     },
     "tests/testthat/setup.R": {
       "checksum": "4669f0c43aa31677e2f6ec24355ccdc9"
@@ -7963,7 +7992,7 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "5126ab7f97a15910a2113f1b7153f1a8"
+      "checksum": "09b2b24b93ad839753936d079a1feda1"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "37e43a15b5f4abe5f1004ef9fab604d9"
@@ -7972,7 +8001,7 @@
       "checksum": "270e97f5b56331990ac7ad7559b2f46a"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "18833e153edde1b695ed997ed6ea08b6"
+      "checksum": "80c84c03514101b6aae6a009bfd24efa"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
       "checksum": "21dc18aefa2e3618ebd163a75e3480b7"
@@ -7987,7 +8016,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "7e73130657c18a3ae6b74bf29b62bf1e"
+      "checksum": "0774223d490a9876a94f162042cacd3f"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -8002,7 +8031,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "87d86cf09e9772ac35063b88597f3c14"
+      "checksum": "b86f02b948ca8e5b4495d221c2036da7"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
