@@ -40,3 +40,18 @@ test_that("the exported script draws the yes/no variables with rbinary_rs()", {
   expect_true(any(grepl("X = list(rbinary_rs, p1 = 0.5), W = list(rbinary_rs, p1 = 0.4)", script, fixed = TRUE)))
   expect_script_reproduces_power(spec, result)
 })
+
+test_that("parallel mediators take a yes/no X or W too", {
+  spec <- binary_modmed_spec("process_7_parallel", TRUE, TRUE)
+  result <- suppressWarnings(run_spec(spec))
+  expect_true(all(result$check_run$ok))
+  expect_true(all(c("proportion in X's second level", "proportion in W's second level") %in% result$check_run$parameter))
+})
+
+test_that("the simulated data set draws a yes/no W as power4mome does", {
+  spec <- binary_modmed_spec("process_7", FALSE, TRUE)
+  spec$variables$W$levels <- list("No", "Yes")
+  data <- simulated_data(spec, 2000)
+  share <- mean(data$Group == "Yes")
+  expect_lt(abs(share - 0.4), 0.05)
+})

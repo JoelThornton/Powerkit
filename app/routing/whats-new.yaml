@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-02"
+    title: "Two groups as X or W with several mediators"
+    text: >-
+      The moderated mediation card with two or more mediators now lets X
+      or the moderator be two groups (for example, a randomised condition
+      or gender), as the card with one mediator does. The simulated data
+      you can download keep a two-group moderator as two groups.
   - date: "2026-11-01"
     title: "Technical details for SEM and the correlation"
     text: >-

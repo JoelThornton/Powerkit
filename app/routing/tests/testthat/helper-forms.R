@@ -204,7 +204,7 @@ form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support"
                             r_X_W = "-0.1", r_X_Z = "0.1", r_W_Z = "0", b_XWZ = "0.1", rel_X = "0.8"), closing_ok)
 
 # E40: moderated mediation with two parallel mediators (first stage).
-form_examples$E40 <- c(list(n_mediators = "2", X_label = "Workload", W_label = "Autonomy", M1_label = "Exhaustion",
+form_examples$E40 <- c(list(n_mediators = "2", x_type = "continuous", w_type = "continuous", X_label = "Workload", W_label = "Autonomy", M1_label = "Exhaustion",
                             M2_label = "Cynicism", Y_label = "Turnover intention", stage = "process_7",
                             p_X_M1 = "0.3", p_W_M1 = "-0.1", p_XW_M1 = "-0.15", p_M1_Y = "0.3",
                             p_X_M2 = "0.2", p_W_M2 = "-0.1", p_XW_M2 = "-0.1", p_M2_Y = "0.2", p_X_Y = "0.05",

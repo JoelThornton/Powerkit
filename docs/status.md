@@ -40,7 +40,7 @@ fully validated. Validation runs are recorded in
   BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default). **Fourteen are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14,
   E17 (a yes/no X or W), E38 (W on both links or the direct path, both
-  1 November 2026) and E40
+  1 November 2026) and E40 (with a yes/no X or W since 2 November)
   (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
   two-level model with predictors at each level and their cross-level

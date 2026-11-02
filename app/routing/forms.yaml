@@ -1420,7 +1420,7 @@ forms:
           - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
-          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
+          - {id: c_X_W, label: "Correlation of X with W (optional; empty = 0, for example when X is randomised; must be 0 if X or W is yes/no)", type: number, path: "population.correlations.X<->W", optional: true, min: -1, max: 1}
 
   E14:
     methods_name: "a second-stage moderated mediation model"
@@ -1534,12 +1534,22 @@ forms:
            target_test: {effect: index_of_moderated_mediation, method: monte_carlo_ci}}
     names: [X, W, "Y"]
     groups:
-      - input: "Which link W changes"
+      - input: "Which link W changes, and which variables are yes/no"
         fields:
           - {id: stage, label: "Which link depends on W", type: select, path: template, required: true, default: process_7,
              default_source: "the first-stage model (PROCESS model 7), as on the single-mediator cards' first choice",
              choices: {process_7: "The link from X to each mediator (PROCESS model 7)",
                        process_14: "The link from each mediator to the outcome (PROCESS model 14)"}}
+          - {id: x_type, label: "X is", type: select, path: variables.X.type, required: true,
+             choices: {continuous: "A score", binary: "Two groups or conditions (for example, a randomised condition)"},
+             default: continuous, default_source: "a score, as on this card before yes/no variables were added"}
+          - {id: x_prob, label: "Share of people in X's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.x_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: x_type, is: binary}}
+          - {id: w_type, label: "W is", type: select, path: variables.W.type, required: true,
+             choices: {continuous: "A score", binary: "Two groups (for example, gender, or a second condition)"},
+             default: continuous, default_source: "a score, the commoner moderator"}
+          - {id: w_prob, label: "Share of people in W's second group (0 to 1; optional, empty = 0.5)", type: number, path: population.w_prob, optional: true, empty_text: "0.5", min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: w_type, is: binary}}
       - input: "Standardised paths for each mediator, including the interactions with W"
         generated: modmed_paths
       - input: "Correlations between the mediators' residuals, and of X with W"
