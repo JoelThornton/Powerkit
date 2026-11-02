@@ -2015,7 +2015,7 @@ superpower_script <- function(spec, result) {
   )
 }
 
-group_ratio_line <- function(inputs) {
+mixed_group_ratio_line <- function(inputs) {
   if (!is.null(inputs$group_ratio)) sprintf(
     "group_ratio <- %s # relative group sizes, A's levels in order (Superpower takes equal groups only in a mixed design, so power is simulated with Spower and afex)",
     r_code(inputs$group_ratio)
@@ -2206,7 +2206,7 @@ superpower_script_inputs <- function(spec, inputs) {
       } else {
         "between-participants groups: the total n is split equally across them"
       }),
-      group_ratio_line(inputs),
+      mixed_group_ratio_line(inputs),
       sprintf("effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect))
     ))
   }
@@ -2242,7 +2242,7 @@ superpower_script_inputs <- function(spec, inputs) {
       "cell_ratio <- %s # relative cell sizes, in the same order (ANOVA_exact() takes equal cells only, so power is simulated)",
       r_code(inputs$cell_ratio)
     ),
-    group_ratio_line(inputs),
+    mixed_group_ratio_line(inputs),
     sprintf(
       "effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect)
     )
