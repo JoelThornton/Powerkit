@@ -69,6 +69,11 @@ tool_defaults:
     alpha_source: "powertools' default (crt.parallel.cont(alpha = 0.05), powertools 1.0.0)"
     power_source: "powertools has no default target power (crt.parallel.cont(power = NULL)); enter one"
     alternative_source: "powertools' default (two-sided: crt.parallel.cont(sides = 2), powertools 1.0.0)"
+  kappaSize:
+    alpha: 0.05
+    alpha_source: "the default of ICC.Sample.Size's calculateIccPower() (alpha = 0.05, version 1.1) and kappaSize's PowerBinary() (alpha = 0.05, version 1.2); statpsych's size.test.cronbach() has no default (version 2.0.0)"
+    power_source: "the default of ICC.Sample.Size's calculateIccSampleSize() (power = 0.8, version 1.1) and kappaSize's PowerBinary() (power = 0.80, version 1.2); statpsych's size.test.cronbach() has none"
+    power: 0.8
   Hmisc:
     alpha: 0.05
     alpha_source: "the default of Hmisc's cpower() (alpha = 0.05, Hmisc 5.3-0) and powerSurvEpi's powerEpiCont.default() (alpha = 0.05, powerSurvEpi 0.1.5)"
@@ -126,7 +131,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -1300,6 +1305,60 @@ forms:
              shown_if: {field: question, is: cox_predictor},
              default: 0, default_source: "0: no other predictors related to the score (the value powerEpiCont.default()'s help gives for a randomised comparison, rho2 = 0, powerSurvEpi 0.1.5)",
              help: "How well the other predictors in the model predict the score. The more they overlap with it, the less the score adds."}
+  E69:
+    methods_name: "a test of reliability or agreement (the ICC, Cronbach's alpha or kappa)"
+    tool: kappaSize
+    directional: false
+    base: {spec_version: "0.1", design: reliability, variables: {"Y": {type: continuous}}, population: {}, target_test: {}}
+    groups:
+      - input: "What you want to show"
+        fields:
+          - {id: question, label: "What you want to show", type: select, path: template, required: true,
+             choices: {icc: "That raters (or occasions) agree on a score: the intraclass correlation (ICC)",
+                       cronbach_alpha: "That a scale's items are consistent: Cronbach's alpha",
+                       kappa: "That raters agree on a category: kappa"},
+             sets: {icc: [{path: population.metric, value: icc}, {path: target_test.effect, value: icc}, {path: target_test.method, value: icc_test}],
+                    cronbach_alpha: [{path: population.metric, value: cronbach_alpha}, {path: target_test.effect, value: cronbach_alpha}, {path: target_test.method, value: bonett_wright}],
+                    kappa: [{path: variables.Y.type, value: categorical}, {path: population.metric, value: kappa}, {path: target_test.effect, value: kappa}, {path: target_test.method, value: kappa_chi_square}]}}
+          - {id: Y_label, label: "What is rated or measured (for example, therapist competence, or a study anxiety scale)", type: text, path: variables.Y.label, required: true}
+          - {id: rel_alternative, label: "Which test", type: select, path: target_test.alternative, required: true,
+             choices: {greater: "One-sided: show it is above the value you name (the usual aim)", two_sided: "Two-sided: show it differs from that value, in either direction"},
+             shown_if: {field: question, is_not: kappa},
+             default_source: "Not filled in for you (for reference: ICC.Sample.Size's calculateIccPower() is two-sided by default, tails = 2, version 1.1; statpsych's size.test.cronbach() is two-sided, version 2.0.0)",
+             help: "A reliability study usually aims to show the value is above a minimum, such as 0.7, which is a one-sided test."}
+      - input: "The ICC: the value you expect, the value to beat, and the number of ratings"
+        shown_if: {field: question, is: icc}
+        fields:
+          - {id: icc, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: icc}}
+          - {id: icc_null, writeup_label: "ICC to beat", label: "The ICC you want to show it is above (for example, 0.6)", type: number, path: population.icc_null, required: true, min: 0, max_exclusive: 1,
+             shown_if: {field: question, is: icc},
+             help: "0 tests only that the ratings agree more than by chance, which is rarely the question."}
+          - {id: icc_raters, label: "Ratings of each person (raters, or occasions)", type: number, path: population.raters, required: true, min: 2, integer: true,
+             shown_if: {field: question, is: icc}}
+      - input: "Cronbach's alpha: the value you expect, the value to beat, and the number of items"
+        shown_if: {field: question, is: cronbach_alpha}
+        fields:
+          - {id: reliability, writeup_label: "expected alpha", label: "The alpha you expect", type: number, path: population.reliability, effect: true, min: 0.001, max: 0.999,
+             shown_if: {field: question, is: cronbach_alpha}}
+          - {id: reliability_null, writeup_label: "alpha to beat", label: "The alpha you want to show it is above (for example, 0.7)", type: number, path: population.reliability_null, required: true, min: 0, max_exclusive: 1,
+             shown_if: {field: question, is: cronbach_alpha}}
+          - {id: items, label: "Number of items in the scale", type: number, path: population.items, required: true, min: 2, integer: true,
+             shown_if: {field: question, is: cronbach_alpha}}
+      - input: "Kappa: the categories, the raters, and the kappa you expect"
+        shown_if: {field: question, is: kappa}
+        fields:
+          - {id: Y_levels, label: "The categories raters choose from, separated by commas (2 to 5)", type: levels, path: variables.Y.levels, required: true,
+             shown_if: {field: question, is: kappa}}
+          - {id: proportions, writeup_label: "share of subjects in each category", label: "The share of subjects in each category, in the same order, separated by commas (they add up to 1)", type: numbers, per_levels: Y_levels, path: population.proportions, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: kappa}}
+          - {id: kappa_raters, label: "Number of raters who rate every subject (2 to 6)", type: number, path: population.raters, required: true, min: 2, max: 6, integer: true,
+             shown_if: {field: question, is: kappa}}
+          - {id: kappa, writeup_label: "expected kappa", label: "The kappa you expect", type: number, path: population.kappa, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: kappa}}
+          - {id: kappa_null, writeup_label: "kappa under the null hypothesis", label: "The kappa to test against (for example, 0.4)", type: number, path: population.kappa_null, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: kappa},
+             help: "kappaSize tests whether kappa equals this value, in either direction; it takes values above 0."}
   E44:
     methods_name: "an actor-partner interdependence model"
     tool: power4mome

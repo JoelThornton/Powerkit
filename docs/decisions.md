@@ -4634,3 +4634,32 @@ only.
   Monte Carlo error alone. Equal and 2 : 1 groups, with and without other
   predictors. The rejection rate with no effect is checked too. Published
   worked examples are placeholders for the maintainer.
+
+## 2026-11-02 · Reliability and agreement: the ICC, Cronbach's alpha and kappa (E69)
+
+- **What:** a new card, E69, reached from the aim screen ("Show that a
+  measure is reliable, or that raters agree"), as design `reliability`
+  with three templates: `icc` (ICC.Sample.Size's `calculateIccPower()`),
+  `cronbach_alpha` (Bonett and Wright's test, statpsych's
+  `size.test.cronbach()`) and `kappa` (kappaSize's `PowerBinary()` to
+  `Power5Cats()`). Goals: power and sample size.
+- **Why these:** each is a published closed form in a package, and each
+  tests the value against a null value the researcher names (an ICC above
+  0.6, an alpha above 0.7), the usual planning question; testing against
+  zero is rarely of interest. Where a package gives only a sample size
+  (statpsych, kappaSize), power at a given n is obtained without new
+  statistics: for alpha the published formula solved for power (checked
+  against statpsych's sample size in every combination tested), for
+  kappa by root-finding on kappaSize's own `power` argument.
+- **Not yet:** McDonald's omega (no package or published sample-size
+  formula found for a test of omega), Krippendorff's alpha (later), and
+  two-way ICCs (ICC.Sample.Size and statpsych cover the one-way model).
+  The precision card (E46) already plans an ICC's confidence interval.
+- **Validation** (`test-validation-reliability.R`, chunk
+  `reliability`): each formula against studies simulated without the
+  packages and tested by the test the formula approximates: the exact F
+  test of a one-way random-effects ANOVA for the ICC, the test of
+  ln(1 - alpha) for parallel items, and Donner and Eliasziw's
+  goodness-of-fit test of two raters' agreement patterns for kappa
+  (prevalence estimated, 1 df), within 0.03 beyond the Monte Carlo
+  error. Published worked examples are placeholders.

@@ -1,0 +1,21 @@
+{
+  "spec_version": "0.1",
+  "design": "reliability",
+  "template": "icc",
+  "variables": {
+    "Y": {"type": "continuous", "label": "Therapist competence rating"}
+  },
+  "population": {
+    "metric": "icc",
+    "icc": 0.8,
+    "icc_null": 0.6,
+    "raters": 3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: an ICC of 0.8 expected, to show it is above 0.6."
+  },
+  "target_test": {"effect": "icc", "method": "icc_test", "alpha": 0.05, "alternative": "greater"},
+  "goal": {"type": "sample_size", "power": 0.8},
+  "options": {"seed": 44}
+}

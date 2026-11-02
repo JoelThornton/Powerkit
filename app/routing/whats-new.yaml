@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Reliability and agreement between raters"
+    text: >-
+      A new analysis plans a reliability study: showing that raters, or the
+      same people on two occasions, agree on a score (the intraclass
+      correlation), that a scale's items are consistent (Cronbach's alpha),
+      or that raters choose the same category (kappa). Choose it on the
+      first screen, under "Show that a measure is reliable, or that raters
+      agree".
+  - date: "2026-11-02"
     title: "Time until an event: the log-rank test and Cox regression"
     text: >-
       The time-to-event card now calculates. It plans a comparison of how

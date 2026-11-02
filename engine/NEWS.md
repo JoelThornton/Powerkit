@@ -66,6 +66,16 @@
 
 A batch of new features, built as one round.
 
+* Reliability and agreement (E69, design `reliability`): tests that an
+  ICC exceeds a null value (ICC.Sample.Size's `calculateIccPower()`,
+  one-way random effects, one- or two-sided), that Cronbach's alpha does
+  (Bonett and Wright's test; statpsych's `size.test.cronbach()` for the
+  sample size and the same formula solved for power), and of kappa among
+  2 to 6 raters on 2 to 5 categories (kappaSize's `PowerBinary()` to
+  `Power5Cats()`; power by root-finding on their power). Power and
+  sample size. Validation chunk `reliability`. New Imports:
+  ICC.Sample.Size, kappaSize, statpsych.
+
 * Time-to-event outcomes (E43) now run, as design `survival`: two groups
   compared by the log-rank test (Hmisc's `cpower()`, exponential times,
   recruitment and follow-up, equal or unequal groups) and a measured

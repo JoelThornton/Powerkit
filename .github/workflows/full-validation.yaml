@@ -78,6 +78,7 @@ on:
           - meta
           - dyadic
           - survival
+          - reliability
           - process_4
           - process_4_binary
           - process_6

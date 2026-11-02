@@ -1,0 +1,22 @@
+{
+  "spec_version": "0.1",
+  "design": "reliability",
+  "template": "kappa",
+  "variables": {
+    "Y": {"type": "binary", "label": "Diagnosis given", "levels": ["No", "Yes"]}
+  },
+  "population": {
+    "metric": "kappa",
+    "kappa": 0.6,
+    "kappa_null": 0.4,
+    "proportions": [0.7, 0.3],
+    "raters": 2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a kappa of 0.6 expected, against 0.4."
+  },
+  "target_test": {"effect": "kappa", "method": "kappa_chi_square", "alpha": 0.05},
+  "goal": {"type": "sample_size", "power": 0.8},
+  "options": {"seed": 46}
+}

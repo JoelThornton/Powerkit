@@ -29,7 +29,8 @@ population_problems <- function(spec) {
     meta_analysis = check_meta_analysis,
     precision = function(spec) character(),
     dyadic = check_apim,
-    survival = check_survival
+    survival = check_survival,
+    reliability = check_reliability
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2603,6 +2604,9 @@ minimum_n <- function(spec) {
     # Time to event: the formulas count expected events, so a few people in
     # each group at least.
     survival = 10,
+    # Reliability: the formulas are for large samples; kappaSize warns when
+    # an expected cell count is below 5.
+    reliability = 10,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2876,6 +2880,11 @@ target_effect_is_zero <- function(spec) {
     } else {
       pop$effect
     },
+    reliability = switch(spec$template,
+      icc = pop$icc - pop$icc_null,
+      cronbach_alpha = pop$reliability - pop$reliability_null,
+      kappa = pop$kappa - pop$kappa_null
+    ),
     survival = if (identical(spec$template, "log_rank")) {
       p <- as.numeric(unlist(pop$p_event))
       p[2] - p[1]

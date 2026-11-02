@@ -266,6 +266,7 @@ start_questions:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Planning for a precise estimate rather than a significant result. powerkit doesn't do this yet; the next screen points to tools that do.", next: E46}
+      reliability: {label: "Show that a measure is reliable, or that raters agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), or that raters choose the same category (kappa).", next: E69}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
 routes:
@@ -1620,6 +1621,23 @@ endpoints:
     tier: v2
     alternatives: ["a Cox regression of the group with other predictors", "a comparison of restricted mean survival times", "a parametric survival model, such as a Weibull model"]
     inputs: ["What you want to test", "Two groups: who has had the event by a given time, and how long people are followed", "A measured score: its hazard ratio, and how many people have the event"]
+  E69:
+    doc_name: "Reliability and agreement: the ICC, Cronbach's alpha and kappa"
+    plain_name: "How reliable a measure is, or how well raters agree"
+    search_words: "reliability agreement interrater inter-rater icc intraclass correlation cronbach alpha internal consistency kappa cohen fleiss raters test-retest"
+    template: "reliability / icc, cronbach_alpha, kappa"
+    backend: "ICC.Sample.Size: calculateIccPower() for the ICC; statpsych: size.test.cronbach() for Cronbach's alpha (Bonett and Wright's test); kappaSize: PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats() for kappa"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-reliability.R, note: "Matches ICC.Sample.Size, statpsych and kappaSize called directly, including their help examples, in the engine's tests, and agrees with simulated studies tested by the F test, Bonett and Wright's test and Donner and Eliasziw's goodness-of-fit test (within 0.03, the allowance for these large-sample formulas). Not yet checked against published worked examples."}
+    card_points:
+      - "Three questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); and whether raters choose the same category (kappa)."
+      - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question."
+      - "The ICC is for a one-way random-effects model, with the same number of ratings for every person. Cronbach's alpha uses Bonett and Wright's test. Kappa takes 2 to 6 raters and 2 to 5 categories, and is two-sided."
+      - "To plan for a precise estimate of an ICC rather than a test, use the precision card. Not calculated here yet: McDonald's omega, Krippendorff's alpha, and ICCs for two-way models."
+    tier: v2
+    alternatives: ["a confidence interval for the reliability, planned for its width", "McDonald's omega instead of Cronbach's alpha", "Krippendorff's alpha instead of kappa"]
+    inputs: ["What you want to show", "The ICC: the value you expect, the value to beat, and the number of ratings", "Cronbach's alpha: the value you expect, the value to beat, and the number of items", "Kappa: the categories, the raters, and the kappa you expect"]
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"
@@ -2151,7 +2169,7 @@ analysis_families:
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
   - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}
   - {id: meta, label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, label: "Other: time-to-event, precision, Bayes factors and generic tests", endpoints: [E43, E46, E-bayes, E50]}
+  - {id: other, label: "Other: time-to-event, reliability, precision, Bayes factors and generic tests", endpoints: [E43, E69, E46, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}

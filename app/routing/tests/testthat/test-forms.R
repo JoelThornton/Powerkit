@@ -58,8 +58,8 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
       expect_no_match(html, "(starts empty)", fixed = TRUE)
       expect_match(html, 'aria-required="true"', fixed = TRUE)
     }
-    # E24's, E34's, E36's, E37's, E43's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
-    start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E43 = list(question = "log_rank"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
+    # E24's, E34's, E36's, E37's, E43's, E69's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
+    start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E43 = list(question = "log_rank"), E69 = list(question = "icc"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
                     E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
                     E62 = list(two_outcome = "continuous", in_sites = "no"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)

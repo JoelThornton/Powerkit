@@ -41,7 +41,8 @@
         "meta_analysis",
         "precision",
         "dyadic",
-        "survival"
+        "survival",
+        "reliability"
       ]
     },
     "template": {
@@ -165,6 +166,9 @@
     },
     {
       "$ref": "#/definitions/design_survival"
+    },
+    {
+      "$ref": "#/definitions/design_reliability"
     }
   ],
   "definitions": {
@@ -10383,6 +10387,324 @@
                 },
                 "method": {
                   "const": "cox_regression"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "design_reliability": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "reliability"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "icc",
+              "cronbach_alpha",
+              "kappa"
+            ]
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "exact"
+                ]
+              },
+              "proportions_formula": false,
+              "ci_draws": false,
+              "allocation_ratio": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "comparison": false,
+              "p_adjust": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "icc"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_icc"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "cronbach_alpha"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_cronbach_alpha"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "kappa"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_kappa"
+            }
+          }
+        ]
+      }
+    },
+    "template_icc": {
+      "description": "A test that the intraclass correlation (ICC) of a measure, rated by the same number of raters for every subject (population > raters), exceeds a null value (population > icc_null), in a one-way random-effects model (every subject rated by different raters, or raters treated as interchangeable), via ICC.Sample.Size::calculateIccPower() (Walter, Eliasziw and Donner's approximation to the F test, as the package computes it). goal > n is the number of subjects rated. One-sided (alternative 'greater') or two-sided.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "icc",
+            "icc_null",
+            "raters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "icc"
+            },
+            "icc": {
+              "description": "The ICC expected in the study.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "icc_null": {
+              "description": "The ICC under the null hypothesis: the value the study aims to show the ICC exceeds (for example 0.5 or 0.7; 0 tests only that the ratings agree more than by chance).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "raters": {
+              "description": "The number of ratings of each subject (raters, or occasions).",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 100
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "properties": {
+                "alternative": {
+                  "enum": [
+                    "two_sided",
+                    "greater"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "icc"
+                },
+                "method": {
+                  "const": "icc_test"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_cronbach_alpha": {
+      "description": "A test that a scale's Cronbach's alpha exceeds a null value (population > reliability_null), by Bonett and Wright's (2015) test of ln(1 - alpha), whose sample size statpsych::size.test.cronbach() computes; power at a given n is the same formula solved for power. population > items is the number of items (or raters, or forms). goal > n is the number of people who complete the scale. One-sided (alternative 'greater') or two-sided.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "reliability",
+            "reliability_null",
+            "items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "cronbach_alpha"
+            },
+            "reliability": {
+              "description": "The Cronbach's alpha expected in the study (its planning value).",
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 0.999
+            },
+            "reliability_null": {
+              "description": "Cronbach's alpha under the null hypothesis: the value the study aims to show alpha exceeds (for example 0.7).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "items": {
+              "description": "The number of items (or raters, or forms) the alpha is computed over.",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 500
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "properties": {
+                "alternative": {
+                  "enum": [
+                    "two_sided",
+                    "greater"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "cronbach_alpha"
+                },
+                "method": {
+                  "const": "bonett_wright"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_kappa": {
+      "description": "A test of interrater agreement on a categorical rating (two to five categories, Y's levels) by kappa, two to six raters rating every subject, H0: kappa = population > kappa_null against kappa = population > kappa, via kappaSize (PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats(): Donner and Rotondi's chi-square goodness-of-fit approach, two-sided). population > proportions is the share of subjects in each category. goal > n is the number of subjects rated. kappaSize gives the sample size for a power; the power at a given n is the power for which it gives that n.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_binary"
+                },
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "kappa",
+            "kappa_null",
+            "proportions",
+            "raters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "kappa"
+            },
+            "kappa": {
+              "description": "The kappa expected in the study.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "kappa_null": {
+              "description": "Kappa under the null hypothesis (for example 0.4; kappaSize takes values above 0).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "proportions": {
+              "description": "The proportion of subjects in each category, in the order of Y's levels; they add up to 1.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 5,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "raters": {
+              "description": "The number of raters who rate every subject (2 to 6, as kappaSize allows).",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 6
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "kappa"
+                },
+                "method": {
+                  "const": "kappa_chi_square"
                 }
               }
             }
