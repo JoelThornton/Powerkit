@@ -835,12 +835,14 @@ add_recruitment_section <- function(lines, spec, result) {
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal cells",
       length(spec$variables$A$levels) * length(spec$variables$B$levels)
     ),
-    "2x2_mixed" = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
+    "2x2_mixed" = if (unequal_groups(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
     oneway_between = if (jonckheere_test(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
+    mixed = if (unequal_groups(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
+      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
+    ),
     oneway_contrast = ,
-    mixed = ,
     oneway_ancova = sprintf(
       "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
     ),
@@ -1945,6 +1947,8 @@ superpower_script <- function(spec, result) {
   p <- result$provenance
   call_description <- if (p$method == "exact") {
     "Superpower::ANOVA_exact()"
+  } else if (!is.null(inputs$group_ratio)) {
+    "Spower::Spower() with afex::aov_car(), on Superpower::ANOVA_design()'s means and covariances"
   } else {
     "Superpower::ANOVA_power()"
   }
@@ -1962,7 +1966,9 @@ superpower_script <- function(spec, result) {
     "  set.seed(seed)",
     "  ANOVA_design(",
     "    design = design_string,",
-    if (is.null(inputs$cell_ratio)) {
+    if (!is.null(inputs$group_ratio)) {
+      "    n = n_total / groups, # only the means and covariances are used: the groups are drawn at their own sizes below"
+    } else if (is.null(inputs$cell_ratio)) {
       "    n = n_total / groups, # Superpower's n is per between-participants group"
     } else {
       "    n = n_total * cell_ratio / sum(cell_ratio), # Superpower's n for each cell: unequal cells"
@@ -1976,6 +1982,8 @@ superpower_script <- function(spec, result) {
     "",
     if (p$method == "exact") {
       superpower_exact_sections(spec, result, inputs)
+    } else if (!is.null(inputs$group_ratio)) {
+      mixed_unequal_script_sections(spec, result, inputs)
     } else {
       c(
         "# One batch of simulated data sets: rejections and analysable data sets.",
@@ -2004,6 +2012,72 @@ superpower_script <- function(spec, result) {
       )
     },
     comparison_section()
+  )
+}
+
+mixed_group_ratio_line <- function(inputs) {
+  if (!is.null(inputs$group_ratio)) sprintf(
+    "group_ratio <- %s # relative group sizes, A's levels in order (Superpower takes equal groups only in a mixed design, so power is simulated with Spower and afex)",
+    r_code(inputs$group_ratio)
+  )
+}
+
+# A mixed design with unequal groups: each group's scores drawn from
+# ANOVA_design()'s means and covariances at its own size, and the effect
+# tested by afex::aov_car(), as p_mixed_anova() does.
+mixed_unequal_script_sections <- function(spec, result, inputs) {
+  c(
+    "library(Spower)",
+    "library(afex)",
+    "",
+    "# Each group's scores (A's level g: its n_g people, a score in every level",
+    "# of B), drawn from the multivariate normal with that group's means and",
+    "# covariances; people in different groups are independent.",
+    "mixed_unequal_scores <- function(n_groups, mu, sigma, m) {",
+    "  rows <- lapply(seq_along(n_groups), function(g) {",
+    "    cells <- (g - 1) * m + seq_len(m)",
+    "    y <- SimDesign::rmvnorm(n_groups[g], mu[cells], sigma[cells, cells, drop = FALSE])",
+    "    data.frame(",
+    "      subject = rep(sprintf(\"g%d_s%d\", g, seq_len(n_groups[g])), times = m),",
+    "      a = factor(paste0(\"a\", g), levels = paste0(\"a\", seq_along(n_groups))),",
+    "      b = factor(rep(paste0(\"b\", seq_len(m)), each = n_groups[g]), levels = paste0(\"b\", seq_len(m))),",
+    "      y = as.vector(y)",
+    "    )",
+    "  })",
+    "  do.call(rbind, rows)",
+    "}",
+    "",
+    "# The experiment: the p-value of the effect from afex's ANOVA, Type III",
+    "# sums of squares, with the sphericity correction asked for.",
+    "p_mixed_anova <- function(n, group_ratio, mu, sigma, m, effect, correction = \"none\") {",
+    "  n_groups <- as.integer(round(n * group_ratio / sum(group_ratio)))",
+    "  data <- mixed_unequal_scores(n_groups, mu, sigma, m)",
+    "  fit <- suppressMessages(aov_car(y ~ a * b + Error(subject / b), data = data, type = 3,",
+    "    anova_table = list(correction = correction, es = \"none\")))",
+    "  fit$anova_table[effect, \"Pr(>F)\"]",
+    "}",
+    "",
+    "# One batch of simulated data sets: rejections and analysable data sets.",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  design <- build_design(groups * ceiling(batch_n / groups)) # only its means and covariances are used",
+    "  mu_cells <- as.numeric(design$mu)",
+    "  sigma <- unname(as.matrix(design$sigmatrix))",
+    "  m <- length(mu_cells) / groups # levels of B",
+    "  # Spower reads its experiment's arguments unevaluated, so each is a name.",
+    "  set.seed(batch_seed)",
+    "  result <- Spower(",
+    "    p_mixed_anova(",
+    "      n = batch_n, group_ratio = group_ratio, mu = mu_cells, sigma = sigma,",
+    "      m = m, effect = effect_row,",
+    sprintf("      correction = %s", r_code(inputs$correction %||% "none")),
+    "    ),",
+    "    sig.level = alpha, replications = batch_replications, parallel = FALSE, verbose = FALSE",
+    "  )",
+    "  c(round(result$power * batch_replications), batch_replications)",
+    "}",
+    "",
+    batch_section(result, "Spower()"),
+    simulation_goal_section(spec, result, cell_ratio_step(inputs$group_ratio))
   )
 }
 
@@ -2127,9 +2201,12 @@ superpower_script_inputs <- function(spec, inputs) {
       ),
       sprintf("groups <- %s # %s", inputs$groups, if (inputs$groups == 1) {
         "one group: everyone is in every cell"
+      } else if (!is.null(inputs$group_ratio)) {
+        "between-participants groups: the total n is split in the ratio below"
       } else {
         "between-participants groups: the total n is split equally across them"
       }),
+      mixed_group_ratio_line(inputs),
       sprintf("effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect))
     ))
   }
@@ -2159,12 +2236,13 @@ superpower_script_inputs <- function(spec, inputs) {
     ),
     sprintf(
       "groups <- %s # between-participants groups: %s", inputs$groups,
-      if (is.null(inputs$cell_ratio)) "the total n is split equally across them" else "the total n is split in the ratio below"
+      if (is.null(inputs$cell_ratio) && is.null(inputs$group_ratio)) "the total n is split equally across them" else "the total n is split in the ratio below"
     ),
     if (!is.null(inputs$cell_ratio)) sprintf(
       "cell_ratio <- %s # relative cell sizes, in the same order (ANOVA_exact() takes equal cells only, so power is simulated)",
       r_code(inputs$cell_ratio)
     ),
+    mixed_group_ratio_line(inputs),
     sprintf(
       "effect_row <- %s # Superpower's row for the effect tested (\"a\", \"b\" or \"a:b\")", r_code(inputs$effect)
     )

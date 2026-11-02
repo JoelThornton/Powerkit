@@ -12,6 +12,7 @@ library(jsonvalidate)
 library(psych)     # safeguard power's confidence interval
 
 # Backends
+library(afex)        # mixed designs with unequal groups (aov_car())
 library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
 library(car)

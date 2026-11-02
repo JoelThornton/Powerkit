@@ -996,10 +996,10 @@ endpoints:
     plain_name: "One factor between people, one within (including group x time)"
     search_words: "repeated measures split plot group by time pre post two way anova"
     template: "factorial_anova / 2x2_mixed"
-    backend: "Superpower: ANOVA_exact()"
+    backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car()"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction"]
+    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction", "The size of each group"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
@@ -1233,7 +1233,7 @@ endpoints:
       - "Two factors crossed, with different people in each of the four groups, and groups of different sizes: for example, a clinical sample half the size of a community sample, each split between two sets of instructions."
       - "You give the four expected means, the SD and each group's size (or their ratio, such as 2, 2, 1, 1); the total is split in that ratio."
       - "Effects are tested with Type III sums of squares, as Superpower, SPSS and jamovi do by default; with unequal groups, main effects can differ from a Type II analysis."
-      - "Simulated, so the answer carries a little random error. Only designs where both factors are between participants: Superpower's simulation can't take unequal groups when one factor is within participants."
+      - "Simulated, so the answer carries a little random error. Both factors are between participants here; for unequal groups with a factor measured in everyone, use the mixed ANOVA card."
     inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The size of each group"]
     refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
@@ -1869,15 +1869,15 @@ endpoints:
     plain_name: "Groups of different people, each measured in every condition or at every timepoint"
     search_words: "repeated measures split plot group by time anova"
     template: "factorial_anova / mixed"
-    backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); for unequal groups, a Spower simulation analysed with afex's aov_car()"
     method: "Exact dataset (no repeated simulation)"
     status: runs_validation_in_progress
     validation: {file: test-validation-anova-mixed.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for the group effect, the time effect and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
     card_points:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
-      - "Equal group sizes. One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect"]
+      - "Equal or unequal group sizes (unequal groups are simulated). One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The size of each group"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures"]
   E56:

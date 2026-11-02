@@ -39,6 +39,19 @@
 
 A batch of new features, built as one round.
 
+* Mixed designs with unequal groups (`options > group_ratio` on
+  `2x2_mixed` and `mixed`): no Superpower function takes unequal groups
+  when a factor is within participants, so power is simulated with Spower.
+  The experiment, `p_mixed_anova()`, draws each group's scores at its own
+  size from `ANOVA_design()`'s means and covariances and tests the effect
+  with `afex::aov_car()` (Type III, with the sphericity correction asked
+  for). The exact method and the smallest detectable effect are refused;
+  the sample-size search keeps whole groups in the ratio; the R script,
+  the recruitment target and the simulated data use each group's own
+  size. Validated against pwr's `pwr.t2n.test()` for the 2 x 2 design's
+  between factor and interaction, against `ANOVA_exact()` at equal groups,
+  and for Type I error (`test-validation-anova-mixed-unequal.R`).
+
 * Moderated mediation with a yes/no X, W or both (E17, PROCESS models 7
   and 14): each drawn by power4mome's `rbinary_rs()` (`population >
   x_prob`, `w_prob`) and rescaled to mean 0 and SD 1, so paths stay per

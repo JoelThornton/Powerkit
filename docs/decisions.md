@@ -3963,7 +3963,8 @@ computer.
   1), Greenhouse-Geisser or Huynh-Feldt on request, only where a within
   factor has three or more levels; not a departure.
 - **Not built:** mixed designs with unequal groups, which Superpower's
-  simulation refuses (`next.md`).
+  simulation refuses (`next.md`); built since, see "Mixed designs with
+  unequal groups" below.
 
 
 ## 2026-11-01 · Bayesian planning in Labs (fixed N)
@@ -4403,4 +4404,35 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   outcome the group sizes are fixed by the design, which is JASP's
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
+
+## 2026-11-01 · Mixed designs with unequal groups (E8, E55)
+
+**Decided (maintainer, 1 November 2026):** simulate with Spower and afex,
+for every mixed design, rather than an exact formula for the 2 x 2 case
+only.
+
+- **Why simulation:** Superpower's `ANOVA_exact()`, `ANOVA_exact2()` and
+  `ANOVA_power()` all stop for unequal groups when a factor is within
+  participants (`conventions.md`, "Superpower and unequal group sizes").
+  A closed form exists only for some effects of the 2 x 2 design (below),
+  and none covers the within factor or larger designs.
+- **How:** `options > group_ratio` gives each group's relative size; the
+  total n is split in that ratio and must give whole groups. Spower runs
+  powerkit's experiment `p_mixed_anova()`: every group's scores drawn at
+  its own size from `ANOVA_design()`'s means and covariances, and the
+  effect's p-value from `afex::aov_car()` with Type III sums of squares
+  and the sphericity correction asked for, the analysis Superpower runs on
+  its own simulated data. The exact method and the smallest detectable
+  effect are refused with a plain message; the form hides the method when
+  the groups are unequal.
+- **Validation** (`test-validation-anova-mixed-unequal.R`, chunk
+  `anova_mixed_unequal`): in a 2 x 2 mixed design the between factor's
+  and the interaction's F tests are two-sample t-tests (on each person's
+  mean, and on each person's difference), so pwr's `pwr.t2n.test()` gives
+  their power with unequal groups exactly; at a 1 : 1 ratio the same
+  simulation is checked against `ANOVA_exact()` for a 2 x 3 design; and
+  the Type I error is checked with unequal groups for the interaction
+  (3 x 3) and the between factor (2 x 2).
+- **Not a departure:** G\*Power's repeated-measures analysis takes equal
+  groups only, so there is no convention to differ from.
 
