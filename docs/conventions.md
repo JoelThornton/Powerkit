@@ -1631,6 +1631,23 @@ Wired into the app on 18 October 2026 (E25, E26).*
   backend's. It adds no method of its own, so it gives powerkit's numbers
   with the same package versions. Tests: `test-export-script.R`, one per
   end point E1-E14 [powerkit].
+- **Time to event (E43): each package's own conventions, unchanged.**
+  G\*Power has no survival tests, so the comparison users make is with
+  the packages themselves, and powerkit calls them as they stand. The
+  log-rank test is Hmisc's `cpower()`: exponential times in each group, so
+  one hazard ratio throughout (the hazard ratio shown is the one the two
+  proportions imply), recruitment at an even rate, and George and Desu's
+  variance of the log hazard ratio from each group's expected events; two
+  groups only, two-sided (its help). A measured score is powerSurvEpi's
+  `powerEpiCont.default()`, Hsieh and Lavori's formula, with the hazard
+  ratio per SD so the score's variance is 1. Its help calls the test
+  two-sided, but its power is a single tail, `pnorm(sqrt(...) - z[1 -
+  alpha/2])`, so at a hazard ratio of 1 it gives alpha / 2, not alpha;
+  with any effect worth planning for the other tail adds well under 0.001.
+  powerkit reports the package's number. Both formulas agree with
+  simulated log-rank tests and Cox models within 0.02 at the sizes
+  tested. Tests: `test-backend-survival.R`; `test-validation-survival.R`
+  [powerkit, `docs/decisions.md`].
 
 ### 8. MANOVA: simulated, where G\*Power uses a formula
 

@@ -104,6 +104,7 @@ validation_chunks <- function() {
       "test-validation-bayes-table.R"),
     meta = c("test-validation-meta-analysis.R", "test-validation-meta-subgroups.R", "test-validation-meta-dependent.R", "test-validation-meta-more.R"),
     dyadic = "test-validation-apim.R",
+    survival = "test-validation-survival.R",
     anova = c(
       "test-validation-anova-2x2-between.R", "test-validation-anova-2x2-mixed.R",
       "test-validation-anova-oneway-within.R", "test-validation-anova-mixed.R",
@@ -149,7 +150,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, variances = 2, manova = 3, rank = 2, bayes = 2, meta = 12, dyadic = 10, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
+  c(basic = 0.3, variances = 2, manova = 3, rank = 2, bayes = 2, meta = 12, dyadic = 10, survival = 4, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,

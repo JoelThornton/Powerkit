@@ -259,6 +259,8 @@ zero_effect_cases <- list(
   mixed_three_level = function(s) within(s, {population$d <- 0; population$group_size <- 4L; population$groups_per_site <- 2L}),
   meta_mean_effect = function(s) within(s, population$effect <- 0),
   dyadic_apim = function(s) within(s, population$partner <- 0),
+  survival_log_rank = function(s) within(s, population$p_event <- list(0.4, 0.4)),
+  survival_cox_predictor = function(s) within(s, population$hazard_ratio <- 1),
   meta_subgroups = function(s) within(s, population$effects <- list(0.3, 0.3)),
   meta_dependent_effects = function(s) within(s, population$effect <- 0),
   meta_regression = function(s) within(s, population$slope <- 0),

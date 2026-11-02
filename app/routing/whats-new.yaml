@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Time until an event: the log-rank test and Cox regression"
+    text: >-
+      The time-to-event card now calculates. It plans a comparison of how
+      soon something happens, such as relapse or dropout, in two groups
+      (the log-rank test), or whether a measured score predicts how soon it
+      happens (a Cox regression), when some people may not reach the event
+      before the study ends. You give the proportion expected to have the
+      event, how long recruitment takes and how long people are followed.
+  - date: "2026-11-02"
     title: "Measurement invariance with more groups, occasions and factors"
     text: >-
       The measurement invariance question on the structural equation model

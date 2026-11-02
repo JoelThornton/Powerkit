@@ -66,6 +66,15 @@
 
 A batch of new features, built as one round.
 
+* Time-to-event outcomes (E43) now run, as design `survival`: two groups
+  compared by the log-rank test (Hmisc's `cpower()`, exponential times,
+  recruitment and follow-up, equal or unequal groups) and a measured
+  score's hazard ratio in a Cox regression, beside other predictors
+  (powerSurvEpi's `powerEpiCont.default()`, Hsieh and Lavori's formula).
+  Power and sample size, two-sided. Checked against simulated log-rank
+  tests and Cox models (validation chunk `survival`); published values to
+  transcribe. New Imports: Hmisc, powerSurvEpi, survival.
+
 * SEM model fit (E37) offers MacCallum, Browne and Sugawara's (1996) tests
   of close fit (`target_test > method` "chi_square_close_fit") and
   not-close fit ("chi_square_not_close_fit"), computed by WebPower's

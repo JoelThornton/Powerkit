@@ -28,7 +28,8 @@ population_problems <- function(spec) {
     equivalence_test = check_equivalence_test,
     meta_analysis = check_meta_analysis,
     precision = function(spec) character(),
-    dyadic = check_apim
+    dyadic = check_apim,
+    survival = check_survival
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -663,13 +664,13 @@ check_allocation_allowed <- function(spec) {
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
-                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups")) {
+                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups", "log_rank")) {
     return(character())
   }
   paste0(
     "'options > allocation_ratio' only applies to two-group designs ",
     "(independent t-test, two proportions, two correlations, equivalence of ",
-    "two groups, measurement invariance); remove it."
+    "two groups, measurement invariance, the log-rank test); remove it."
   )
 }
 
@@ -2599,6 +2600,9 @@ minimum_n <- function(spec) {
       if (identical(spec$template, "dependent_effects")) 3 else if (identical(spec$template, "meta_regression")) 4 else 2,
     # Dyads: enough pairs for lavaan to fit the APIM's 10 parameters.
     dyadic = 20,
+    # Time to event: the formulas count expected events, so a few people in
+    # each group at least.
+    survival = 10,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2732,7 +2736,7 @@ group_split <- function(spec) {
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent",
-                           "noninf_independent", "noninf_two_proportions") ||
+                           "noninf_independent", "noninf_two_proportions", "log_rank") ||
       (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) == 2)) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
@@ -2871,6 +2875,12 @@ target_effect_is_zero <- function(spec) {
       pop$i2
     } else {
       pop$effect
+    },
+    survival = if (identical(spec$template, "log_rank")) {
+      p <- as.numeric(unlist(pop$p_event))
+      p[2] - p[1]
+    } else {
+      log(pop$hazard_ratio)
     },
     dyadic = {
       # Several effects tested together: joint power needs every one, so

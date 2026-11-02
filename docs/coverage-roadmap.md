@@ -300,7 +300,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B64 | Prediction model development | ML | none: not reachable | Unknown (decide scope; a tool exists) | — | pmsampsize `pmsampsize()` | Decide | — |
 | B65 | Single-case (N-of-1) designs | ML | none: reaches E45 or E35 (S2's "Independent people" covers one person) | Unknown (decide scope; a tool exists) | — | scan `power_test()` ("Empirical power analysis for single-case data") | Decide | — |
 | B66 | Prevalence estimation | ML | E46 (precision) | Unknown (decide scope; a tool exists) | — | presize `prec_prop()` | Decide | — |
-| B67 | Time-to-event | ML; Audit | E43 | Unknown (E43 says tools exist, unchecked) | — | Hmisc `cpower()`, `spower()`; powerSurvEpi `ssizeCT()`; npsurvSS `size_two_arm()`; gsDesign `gsSurvPower()` | Decide scope | [A1][] |
+| B67 | Time-to-event | ML; Audit | E43 | Wired (validation not finished): 2 November 2026, two groups by the log-rank test (Hmisc `cpower()`, exponential times, recruitment and follow-up) and a measured score in a Cox regression (powerSurvEpi `powerEpiCont.default()`, Hsieh and Lavori's formula); checked against simulated log-rank tests and Cox models | Now: AP, PN | Hmisc `cpower()`, `spower()`; powerSurvEpi `ssizeCT()`; npsurvSS `size_two_arm()`; gsDesign `gsSurvPower()` | Transcribe published examples (validation placeholders) | [A1][] |
 
 ### Other
 
@@ -427,14 +427,14 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 23 | 0 | 52 |
+| Wired (validation not finished) | 29 | 24 | 0 | 53 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 8 | 2 | 11 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 15 | 0 | 16 |
+| Unknown | 1 | 14 | 0 | 15 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)

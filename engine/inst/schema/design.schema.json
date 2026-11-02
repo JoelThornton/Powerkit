@@ -40,7 +40,8 @@
         "mixed_model",
         "meta_analysis",
         "precision",
-        "dyadic"
+        "dyadic",
+        "survival"
       ]
     },
     "template": {
@@ -161,6 +162,9 @@
     },
     {
       "$ref": "#/definitions/design_dyadic"
+    },
+    {
+      "$ref": "#/definitions/design_survival"
     }
   ],
   "definitions": {
@@ -173,14 +177,15 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "description": "continuous = a score or scale; binary = two groups or yes/no; count = a number of events (0, 1, 2, ...); categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
+          "description": "continuous = a score or scale; binary = two groups or yes/no; count = a number of events (0, 1, 2, ...); time_to_event = the time until an event (such as relapse), which some people may not reach before the study ends; categorical = several unordered categories; between_factor / within_factor = an experimental factor varied between or within participants.",
           "enum": [
             "continuous",
             "binary",
             "count",
             "categorical",
             "between_factor",
-            "within_factor"
+            "within_factor",
+            "time_to_event"
           ]
         },
         "label": {
@@ -10158,6 +10163,230 @@
             "model": false,
             "test": false
           }
+        }
+      }
+    },
+    "variable_time_to_event": {
+      "properties": {
+        "type": {
+          "const": "time_to_event"
+        }
+      }
+    },
+    "design_survival": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "survival"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "log_rank",
+              "cox_predictor"
+            ]
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "exact"
+                ]
+              },
+              "proportions_formula": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "path": false,
+              "comparison": false,
+              "p_adjust": false,
+              "weights": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "log_rank"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_log_rank"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "cox_predictor"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_cox_predictor"
+            }
+          }
+        ]
+      }
+    },
+    "template_log_rank": {
+      "description": "Two groups compared on the time until an event (such as relapse or dropout), by the log-rank test (equivalently, the Cox model's test of the group), via Hmisc::cpower(). Assumes the time to the event follows an exponential distribution in each group (a constant hazard), so the hazard ratio is the same throughout. The effect is the proportion of each group who have had the event by a given time (population > time); people are recruited at an even rate over population > accrual and followed for at least population > follow_up (all in the same unit of time), so those recruited first are followed longest. Power is that of the two-sided test, from the expected number of events in each group (George and Desu's variance of the log hazard ratio, as cpower() computes it). goal > n is the total number of participants; options > allocation_ratio splits it (the second group's size over the first's).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_time_to_event"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "time",
+            "p_event",
+            "follow_up"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "event_proportions"
+            },
+            "time": {
+              "description": "The time at which the proportions with the event are given (for example 12, for 12 months), in the study's unit of time.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "p_event": {
+              "description": "The proportion of each group who have had the event by population > time: the first group's (X's first level, usually the control group) then the second's.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "accrual": {
+              "description": "How long recruitment takes, in the same unit (default 0: everyone starts together). People are recruited at an even rate over it.",
+              "type": "number",
+              "minimum": 0
+            },
+            "follow_up": {
+              "description": "The shortest follow-up: how long the last person recruited is followed, in the same unit. Everyone else is followed longer, by up to population > accrual.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "group_difference"
+                },
+                "method": {
+                  "const": "log_rank"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_cox_predictor": {
+      "description": "A measured score (X) predicting the time until an event, in a Cox proportional hazards model, possibly beside other predictors, by the formula of Hsieh and Lavori (2000) via powerSurvEpi::powerEpiCont.default(). The effect is the hazard ratio for a person 1 SD higher on X. Power is that of the two-sided test of X's coefficient, from the number of events: n times population > event_proportion, the share of people expected to have the event during the study. population > r2_other is the R-squared of X on the other predictors in the model (0 when there are none, or in a randomised comparison). goal > n is the total number of participants.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_time_to_event"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "hazard_ratio",
+            "event_proportion"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "hazard_ratio"
+            },
+            "hazard_ratio": {
+              "description": "The hazard ratio for a person 1 SD higher on X (above 1: the event comes sooner; below 1: later).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "event_proportion": {
+              "description": "The proportion of all participants expected to have the event during the study.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "r2_other": {
+              "description": "The R-squared of X regressed on the other predictors in the model (default 0: no other predictors, or none related to X).",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "hazard_ratio"
+                },
+                "method": {
+                  "const": "cox_regression"
+                }
+              }
+            }
+          ]
         }
       }
     }

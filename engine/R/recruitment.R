@@ -18,6 +18,7 @@ analysed_groups <- function(spec, n) {
     two_correlations = ,
     two_variances = ,
     ordinal_two_groups = ,
+    log_rank = ,
     tost_independent = {
       ratio <- spec$options$allocation_ratio %||% 1
       n1 <- round(n / (1 + ratio))
@@ -62,6 +63,7 @@ group_unit <- function(spec) {
     two_proportions = ,
     two_correlations = ,
     two_variances = ,
+    log_rank = ,
     tost_independent = "group",
     "2x2_between" = ,
     factorial_between = ,

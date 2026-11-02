@@ -2597,6 +2597,33 @@
       ],
       "Hash": "1dc114e00afb855997f419560e86b6f3"
     },
+    "powerSurvEpi": {
+      "Package": "powerSurvEpi",
+      "Version": "0.1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "pracma",
+        "stats",
+        "survival"
+      ],
+      "Hash": "6a3c66ccfd4013468cb1981c77d2ecfe"
+    },
+    "pracma": {
+      "Package": "pracma",
+      "Version": "2.4.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Hash": "675fbd4ff5a99a23ffcdd303e24329fc"
+    },
     "praise": {
       "Package": "praise",
       "Version": "1.0.0",
