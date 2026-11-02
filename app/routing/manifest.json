@@ -5822,6 +5822,29 @@
         "Built": "R 4.5.0; ; 2026-04-28 05:02:31 UTC; unix"
       }
     },
+    "powerSurvEpi": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "powerSurvEpi",
+        "Version": "0.1.5",
+        "Date": "2025-06-22",
+        "Title": "Power and Sample Size Calculation for Survival Analysis of\nEpidemiological Studies",
+        "Authors@R": "c(person(given = \"Weiliang\",\n                      family = \"Qiu\",\n                      role = c(\"aut\", \"cre\"),\n                      email = \"weiliang.qiu@gmail.com\"),\n               person(given = \"Jorge\",\n                      family = \"Chavarro\",\n                      role = \"aut\"),\n               person(given = \"Ross\",\n                      family = \"Lazarus\",\n                      role = \"aut\"),\n               person(given = \"Bernard\",\n                      family = \"Rosner\",\n                      role = \"aut\"),\n               person(given = \"Jing\",\n                      family = \"Ma\",\n                      role = \"aut\"))",
+        "Maintainer": "Weiliang Qiu <weiliang.qiu@gmail.com>",
+        "Depends": "R (>= 3.6.0)",
+        "Imports": "stats, survival, pracma",
+        "Description": "Functions to calculate power and\n                sample size for testing main effect or interaction effect in\n                the survival analysis of epidemiological studies\n                (non-randomized studies), taking into account the \n                correlation between the covariate of the\n                interest and other covariates. Some calculations also take \n                into account the competing risks and stratified analysis. \n                This package also includes\n                a set of functions to calculate power and sample size\n                for testing main effect in the survival analysis of \n                randomized clinical trials and conditional logistic regression for nested case-control study.",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-06-22 20:20:07 UTC; weiliangqiu",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-06-22 20:50:02 UTC",
+        "Author": "Weiliang Qiu [aut, cre],\n  Jorge Chavarro [aut],\n  Ross Lazarus [aut],\n  Bernard Rosner [aut],\n  Jing Ma [aut]",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 22:09:14 UTC; unix"
+      }
+    },
     "powerkit": {
       "Source": "github",
       "Repository": null,
@@ -5835,7 +5858,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize,\nInteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, PMCMRplus, POMADE, presize, lme4, lmerTest,\nmanymome, MBESS, gsl, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, pwrss, PUMP, semPower, simr,\nSimDesign, Spower (>= 0.7), stats, SuppDists, Superpower,\nTOSTER, utils, WebPower",
+        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize, Hmisc,\nInteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, PMCMRplus, POMADE, presize, lme4, lmerTest,\nmanymome, MBESS, gsl, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, powerSurvEpi, pwrss, PUMP,\nsemPower, simr, SimDesign, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5845,19 +5868,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "208ef568aa0dadf9201a95e78125a725edc240f5",
-        "RemoteSha": "208ef568aa0dadf9201a95e78125a725edc240f5",
+        "RemoteRef": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
+        "RemoteSha": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "208ef568aa0dadf9201a95e78125a725edc240f5",
-        "GithubSHA1": "208ef568aa0dadf9201a95e78125a725edc240f5",
+        "GithubRef": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
+        "GithubSHA1": "5d988f7b7664fbea38180ad8bcc9652c67208b60",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 05:05:02 UTC; runner",
+        "Packaged": "2026-11-02 05:37:46 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 05:05:15 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 05:37:54 UTC; unix"
       }
     },
     "powertools": {
@@ -5887,6 +5910,33 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-11-15 00:00:02 UTC",
         "Built": "R 4.5.0; ; 2026-04-24 01:34:40 UTC; unix"
+      }
+    },
+    "pracma": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "pracma",
+        "Type": "Package",
+        "Version": "2.4.6",
+        "Date": "2025-10-20",
+        "Title": "Practical Numerical Math Functions",
+        "Authors@R": "person(\"Hans W.\", \"Borchers\", \n                  email=\"hwborchers@googlemail.com\", \n                  role=c(\"aut\", \"cre\"))",
+        "Depends": "R (>= 3.1.0)",
+        "Imports": "graphics, grDevices, stats, utils",
+        "Suggests": "NlcOptim, quadprog",
+        "Description": "\n    Provides a large number of functions from numerical analysis and\n    linear algebra, numerical optimization, differential equations,\n    time series, plus some well-known special mathematical functions.\n    Uses 'MATLAB' function names where appropriate to simplify porting.",
+        "License": "GPL (>= 3)",
+        "ByteCompile": "true",
+        "LazyData": "yes",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-10-21 15:28:06 UTC; hwb",
+        "Author": "Hans W. Borchers [aut, cre]",
+        "Maintainer": "Hans W. Borchers <hwborchers@googlemail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-10-22 15:00:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:41 UTC; unix"
       }
     },
     "praise": {
@@ -7748,7 +7798,7 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "639a1d68bd593f29dbc0f8fb402c093e"
+      "checksum": "2a692cb3c940797cd45c1b4b2d3f9480"
     },
     "methods-map.yaml": {
       "checksum": "772d45d6ccbc57e89e312004b5ae079d"
@@ -7775,7 +7825,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "98f1b8bc03d4339caeb977ed6ab3965c"
+      "checksum": "f4f84e40213866b14bc892e42169d889"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7802,7 +7852,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "00f0511a28f69f4a02f8444f0ef791a3"
+      "checksum": "55694eec7b349b6571dc4e43bc309277"
     },
     "tests/testthat/setup.R": {
       "checksum": "4669f0c43aa31677e2f6ec24355ccdc9"
@@ -7817,7 +7867,7 @@
       "checksum": "38eb6fe808a37e9e2368029da2400bc7"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "4aa1e621329a6495b7ff3b136a4e485d"
+      "checksum": "4dc3e62c28f015b1d7ad4a261383282f"
     },
     "tests/testthat/test-labs.R": {
       "checksum": "58e746b05432af341462490421362821"
@@ -7826,25 +7876,25 @@
       "checksum": "f35ce203732fd8ebf97d01f57bf26873"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "a8141ba3814bd4d6a85c688271f9ceb8"
+      "checksum": "2a7f7ebc30a062251f5297d914392ae9"
     },
     "tests/testthat/test-project.R": {
-      "checksum": "c83b5d0a62eccfac1e080e29de6bb9d6"
+      "checksum": "e8c7af15d5146e5ea8d3289913dccda8"
     },
     "tests/testthat/test-repo-consistency.R": {
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "5e725426fc10ed3fd8ea9b85bb128cac"
+      "checksum": "cdead84e1195ed711567fe3c0938c085"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "0e8e7bb7ab7c8bd3ec368a1efbc819c4"
+      "checksum": "0829aa4e4f00b39a7239c7af31a2bb5d"
     },
     "tests/testthat/test-study-plan.R": {
       "checksum": "270e97f5b56331990ac7ad7559b2f46a"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "7a31d0c3d6d52807dab2a223c969cd0a"
+      "checksum": "18833e153edde1b695ed997ed6ea08b6"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
       "checksum": "21dc18aefa2e3618ebd163a75e3480b7"
@@ -7859,7 +7909,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "9686a0e7dbf151adc7e5a3acd072abef"
+      "checksum": "802d39aa7ae947cab9775fbc99f54898"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7874,7 +7924,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "b53fd72984332b2edaaf0565ac15877e"
+      "checksum": "617f7ebf40c0ce5e6a4a92ddc459bbc8"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
