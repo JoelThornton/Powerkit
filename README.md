@@ -181,6 +181,6 @@ it can be stopped and resumed, and run one design at a time. Package versions fo
 ## Licence
 
 The engine is free software, licensed under the GNU General Public License,
+version 3 or later (GPL (>= 3)). See [`LICENSE`](LICENSE).
 
 <meta name="google-site-verification" content="7-BujXKugl-RpJ5nQE4NepC5vJQ-oAmUHs3EkopTuW0" />
-version 3 or later (GPL (>= 3)). See [`LICENSE`](LICENSE).
